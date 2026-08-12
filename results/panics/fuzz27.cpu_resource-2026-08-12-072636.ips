@@ -1,0 +1,215 @@
+{"app_name":"fuzz27","timestamp":"2026-08-12 07:26:36.00 +0300","app_version":"1","slice_uuid":"6E97DE67-01F1-3EFA-A698-2F0BF308752D","build_version":"1","bundleID":"cancer9725.turquoise1323","duration_ms":"112687","share_with_app_devs":0,"is_first_party":0,"bug_type":"202","os_version":"iPhone OS 27.0 (24A5390f)","roots_installed":0,"name":"fuzz27","incident_id":"84848EC3-3770-4676-84C9-C7D2EE6A0410"}
+Date/Time:        2026-08-12 07:24:37.340 +0300
+End time:         2026-08-12 07:26:30.027 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 84848EC3-3770-4676-84C9-C7D2EE6A0410
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18c8f4000
+
+Command:          fuzz27
+Path:             /private/var/containers/Bundle/Application/B30C20F5-CFEF-41CB-969B-3E85E9A59351/fuzz27.app/fuzz27
+Identifier:       cancer9725.turquoise1323
+Version:          1 (1)
+Is First Party:   No
+Beta Identifier:  F9A2E63F-A010-4485-B900-C5DA6D77D6C1
+Resource Coalition: "cancer9725.turquoise1323"(4389)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+PID:              21653
+
+Event:            cpu usage
+Action taken:     none
+CPU:              90 seconds cpu time over 113 seconds (80% cpu average), exceeding limit of 50% cpu over 180 seconds
+CPU limit:        90s
+Limit duration:   180s
+CPU used:         90s
+CPU duration:     113s
+Duration:         112.69s
+Duration Sampled: 106.49s (event starts 3.24s before samples, event ends 2.96s after samples)
+Steps:            28 (10 gigacycles/step, 94 samples lost)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 9.41% (641.86 MB / 6819.12 MB)
+
+Time Since Boot:  357831s
+Time Awake Since Boot: 265946s
+Time Since Wake:  29845s
+
+Total CPU Time:   85.617s
+Advisory levels:  Battery -> 3, User -> 3, ThermalPressure -> 20, Combined -> 2
+Free disk space:  143.46 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 63.85% (17879/28000, 14000 allocated, 14000 soft limit)
+Model:            com.apple.fm.language.instruct_3b.tokenizer
+  Loaded:         -55s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification
+  Loaded:         -55s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.base
+  Loaded:         -55s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification?language=en
+  Executing:      0.12s - 0.21s, requested by [247] use case classification.classifyMailMessage
+  Executing:      0.21s - 0.29s, requested by [247] use case classification.classifyMailMessage
+  Executing:      1.6s - 1.7s, requested by [247] use case classification.classifyMailMessage
+  Executing:      1.7s - 1.7s, requested by [247] use case classification.classifyMailMessage
+  Executing:      2.4s - 2.6s, requested by [247] use case classification.classifyUserNotification
+  Executing:      2.4s - 2.5s, requested by [247] use case classification.classifyMailMessage
+  Executing:      2.5s - 2.7s, requested by [247] use case classification.classifyMailMessage
+  Executing:      2.6s - 2.7s, requested by [247] use case classification.classifyUserNotification
+  Executing:      2.8s - 2.8s, requested by [247] use case classification.classifyUserNotification
+  Executing:      2.8s - 2.9s, requested by [247] use case classification.classifyUserNotification
+  Executing:      2.9s - 3.1s, requested by [247] use case classification.classifyUserNotification
+  Executing:      3.1s - 3.5s, requested by [247] use case classification.classifyUserNotification
+  Executing:      4.4s - 4.5s, requested by [247] use case classification.classifyTextMessage
+  Executing:      4.5s - 4.6s, requested by [247] use case classification.classifyTextMessage
+  Executing:      4.6s - 4.7s, requested by [247] use case classification.classifyTextMessage
+  Executing:      4.7s - 4.7s, requested by [247] use case classification.classifyTextMessage
+  Executing:      4.7s - 4.9s, requested by [247] use case classification.classifyTextMessage
+  Executing:      4.9s - 5.0s, requested by [247] use case classification.classifyTextMessage
+  Executing:      5.7s - 5.7s, requested by [247] use case classification.classifyTextMessage
+  Executing:      5.7s - 5.8s, requested by [247] use case classification.classifyTextMessage
+  Executing:      5.9s - 5.9s, requested by [247] use case classification.classifyTextMessage
+  Executing:      5.9s - 6.0s, requested by [247] use case classification.classifyTextMessage
+  Executing:      6.0s - 6.0s, requested by [247] use case classification.classifyTextMessage
+  Executing:      6.0s - 6.2s, requested by [247] use case classification.classifyTextMessage
+  Executing:      25s - 25s, requested by [247] use case classification.classifyMailMessage
+  Executing:      25s - 25s, requested by [247] use case classification.classifyMailMessage
+  Executing:      28s - 28s, requested by [247] use case classification.classifyMailMessage
+  Executing:      28s - 28s, requested by [247] use case classification.classifyMailMessage
+  Executing:      29s - 29s, requested by [247] use case classification.classifyTextMessage
+  Executing:      29s - 29s, requested by [247] use case classification.classifyTextMessage
+  Executing:      29s - 29s, requested by [247] use case classification.classifyTextMessage
+  Executing:      29s - 29s, requested by [247] use case classification.classifyTextMessage
+  Executing:      29s - 29s, requested by [247] use case classification.classifyTextMessage
+  Executing:      29s - 30s, requested by [247] use case classification.classifyTextMessage
+  Executing:      32s - 32s, requested by [247] use case classification.classifyTextMessage
+  Executing:      32s - 32s, requested by [247] use case classification.classifyTextMessage
+  Executing:      32s - 32s, requested by [247] use case classification.classifyTextMessage
+  Executing:      32s - 32s, requested by [247] use case classification.classifyTextMessage
+  Executing:      32s - 33s, requested by [247] use case classification.classifyTextMessage
+  Executing:      33s - 33s, requested by [247] use case classification.classifyTextMessage
+  Executing:      50s - 50s, requested by [247] use case classification.classifyMailMessage
+  Executing:      50s - 50s, requested by [247] use case classification.classifyMailMessage
+  Executing:      52s - 52s, requested by [247] use case classification.classifyMailMessage
+  Executing:      52s - 52s, requested by [247] use case classification.classifyMailMessage
+  Executing:      54s - 54s, requested by [247] use case classification.classifyTextMessage
+  Executing:      54s - 54s, requested by [247] use case classification.classifyTextMessage
+  Executing:      54s - 54s, requested by [247] use case classification.classifyTextMessage
+  Executing:      54s - 54s, requested by [247] use case classification.classifyTextMessage
+  Executing:      54s - 55s, requested by [247] use case classification.classifyTextMessage
+  Executing:      55s - 55s, requested by [247] use case classification.classifyTextMessage
+  Executing:      56s - 56s, requested by [247] use case classification.classifyTextMessage
+  Executing:      56s - 56s, requested by [247] use case classification.classifyTextMessage
+  Executing:      56s - 56s, requested by [247] use case classification.classifyTextMessage
+  Executing:      56s - 56s, requested by [247] use case classification.classifyTextMessage
+  Executing:      56s - 57s, requested by [247] use case classification.classifyTextMessage
+  Executing:      57s - 57s, requested by [247] use case classification.classifyTextMessage
+  Executing:      75s - 75s, requested by [247] use case classification.classifyMailMessage
+  Executing:      75s - 75s, requested by [247] use case classification.classifyMailMessage
+  Executing:      79s - 79s, requested by [247] use case classification.classifyTextMessage
+  Executing:      79s - 79s, requested by [247] use case classification.classifyTextMessage
+  Executing:      79s - 79s, requested by [247] use case classification.classifyTextMessage
+  Executing:      79s - 80s, requested by [247] use case classification.classifyTextMessage
+  Executing:      80s - 80s, requested by [247] use case classification.classifyTextMessage
+  Executing:      80s - 80s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyMailMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyMailMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyMailMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyMailMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyMailMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyTextMessage
+  Executing:      110s - 110s, requested by [247] use case classification.classifyMailMessage
+Model:            com.apple.fm.language.instruct_300m.tokenizer
+  Loaded:         -23s - 9.7s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.base?language=en
+  Executing:      30s - 30s, requested by [19318] use case textUnderstanding.TextEventExtraction
+  Executing:      30s - 31s, requested by [19318] use case textUnderstanding.TextEventExtraction
+  Executing:      31s - 31s, requested by [19318] use case textUnderstanding.TextEventExtraction
+  Executing:      31s - 31s, requested by [19318] use case textUnderstanding.TextEventExtraction
+  Executing:      31s - 31s, requested by [19318] use case textUnderstanding.TextEventExtraction
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.base
+  Loaded:         31s - 42s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.tokenizer
+  Loaded:         31s - 62s, requested by token-generation-inference
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        ru_RU Russian, en_US QWERTY
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  28  ??? (libsystem_pthread.dylib + 2332) [0x18ce2e91c]
+  28  ??? (libsystem_pthread.dylib + 16444) [0x18ce3203c]
+  19  ??? (fuzz27 + 19384) [0x102084bb8]
+  18  ??? (IOKit + 6328) [0x19bb028b8]
+  18  ??? (IOKit + 6892) [0x19bb02aec]
+  18  ??? (libsystem_kernel.dylib + 3284) [0x245109cd4]
+
+
+Powerstats for:   fuzz27 [21653]
+UUID:             6E97DE67-01F1-3EFA-A698-2F0BF308752D
+Path:             /private/var/containers/Bundle/Application/B30C20F5-CFEF-41CB-969B-3E85E9A59351/fuzz27.app/fuzz27
+Identifier:       cancer9725.turquoise1323
+Version:          1 (1)
+Is First Party:   No
+Beta Identifier:  F9A2E63F-A010-4485-B900-C5DA6D77D6C1
+Resource Coalition: 28 samples "cancer9725.turquoise1323"(4389)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+UID:              501
+Footprint:        10064 KB
+Start time:       2026-08-12 07:24:40.576 +0300
+End time:         2026-08-12 07:26:27.067 +0300
+Num samples:      28 (100%)
+Energy:           45.79 mWh
+Num threads:      1
+Primary state:    25 samples Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 28 samples Active
+Power Source:     0 samples on Battery, 28 samples on AC
+  28  ??? (libsystem_pthread.dylib + 2332) [0x18ce2e91c]
+    28  ??? (libsystem_pthread.dylib + 16444) [0x18ce3203c]
+      19  ??? (fuzz27 + 19384) [0x102084bb8]
+        18  ??? (IOKit + 6328) [0x19bb028b8]
+          18  ??? (IOKit + 6892) [0x19bb02aec]
+            18  ??? (libsystem_kernel.dylib + 3284) [0x245109cd4]
+              1   <e-core>
+        1   ??? (IOKit + 6164) [0x19bb02814]
+      4   ??? (fuzz27 + 19456) [0x102084c00]
+        4   ??? (libsystem_c.dylib + 117572) [0x19478cb44]
+          4   ??? (libsystem_c.dylib + 117328) [0x19478ca50]
+            4   ??? (libsystem_c.dylib + 118176) [0x19478cda0]
+              4   ??? (libsystem_c.dylib + 34648) [0x194778758]
+                4   ??? (libsystem_c.dylib + 56084) [0x19477db14]
+                  4   ??? (libsystem_kernel.dylib + 29624) [0x2451103b8]
+      3   ??? (fuzz27 + 19184) [0x102084af0]
+        1   ??? (fuzz27 + 17000) [0x102084268]
+          1   <User mode>
+        1   ??? (fuzz27 + 16992) [0x102084260]
+          1   <User mode>
+        1   ??? (fuzz27 + 16920) [0x102084218]
+          1   <User mode>
+      2   ??? (fuzz27 + 19472) [0x102084c10]
+        2   ??? (libsystem_c.dylib + 132428) [0x19479054c]
+          2   ??? (libsystem_c.dylib + 183128) [0x19479cb58]
+            2   ??? (libsystem_c.dylib + 34648) [0x194778758]
+              2   ??? (libsystem_c.dylib + 56084) [0x19477db14]
+                2   ??? (libsystem_kernel.dylib + 29624) [0x2451103b8]
+
+  Binary Images:
+           0x102080000 -                ???  cancer9725.turquoise1323 1 (1) <6E97DE67-01F1-3EFA-A698-2F0BF308752D>  /private/var/containers/Bundle/Application/B30C20F5-CFEF-41CB-969B-3E85E9A59351/fuzz27.app/fuzz27
+           0x18ce2e000 -        0x18ce3a247  libsystem_pthread.dylib        <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x194770000 -        0x1947f0ee3  libsystem_c.dylib              <18912EF8-9112-3316-9296-3052491AB886>  /usr/lib/system/libsystem_c.dylib
+           0x19bb01000 -        0x19bbc835f  IOKit                          <B9F62B79-FD09-3488-8FC9-39218AD85245>  /System/Library/Frameworks/IOKit.framework/Versions/A/IOKit
+           0x245109000 -        0x2451461fb  libsystem_kernel.dylib         <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib

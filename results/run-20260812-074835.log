@@ -1,0 +1,629 @@
+[connected:00008130-001C05C20C01001C]
+07:48:35  Acquired tunnel connection to device.
+07:48:35  Enabling developer disk image services.
+07:48:35  Acquired usage assertion.
+Aug 12 07:48:35.786105 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27,0x0,0x1b6) = 29
+Aug 12 07:48:35.786115 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27,0x0,0x1b6) = 36
+Aug 12 07:48:35.786502 SpringBoard(Security)[37] <Debug>: 6094 signing bytes in 5 blob(s) from /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27(arm64)
+Aug 12 07:48:35.795247 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/Info.plist,0x0,0x1b6) = 29
+Aug 12 07:48:35.802938 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27,0x0,0x1b6) = 29
+Aug 12 07:48:35.802947 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27,0x0,0x1b6) = 36
+Aug 12 07:48:35.803239 SpringBoard(Security)[37] <Debug>: 6094 signing bytes in 5 blob(s) from /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27(arm64)
+Aug 12 07:48:35.810073 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/Info.plist,0x0,0x1b6) = 29
+Aug 12 07:48:35.842992 amfid(libxpc.dylib)[21552] <Debug>: [0x789d058900] 'amfid mig server': Transaction created
+Aug 12 07:48:35.843002 amfid[21552] <Info>: Entering iOS path for /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27
+Aug 12 07:48:35.843160 amfid(Security)[21552] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27,0x0,0x1b6) = 3
+Aug 12 07:48:35.843178 amfid(Security)[21552] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27,0x0,0x1b6) = 4
+Aug 12 07:48:35.843282 amfid(Security)[21552] <Debug>: 6094 signing bytes in 5 blob(s) from /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27(arm64)
+Aug 12 07:48:35.845462 amfid(Security)[21552] <Debug>: open(/private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/Info.plist,0x0,0x1b6) = 3
+Aug 12 07:48:35.851302 amfid(libxpc.dylib)[21552] <Debug>: [0x789d058900] 'amfid mig server': Transaction released
+Aug 12 07:48:35.852302 kernel(Sandbox)[0] <Notice>: /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27[21695] ==> container
+Aug 12 07:48:35.852593 runningboardd(RunningBoard)[36] <Info>: _executablePath = /var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27
+Aug 12 07:48:35.852787 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) sysctl-read kern.bootargs
+Aug 12 07:48:35.853684 SpringBoard(BaseBoard)[37] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7caeffed40; usable: YES; (37:15101b:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7caeffec00>{number = 23154, name = (null)}) (
+	0   BaseBoard                           0x000000019c3242bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x000000019c323f50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x000000019c323d04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x000000019c317314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x000000019c324544 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111940
+	5   FrontBoard                          0x00000001d1f55908 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 43272
+	6   FrontBoard                          0x00000001d1f50048 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 20552
+	7   FrontBoard                          0x00000001d1f4dea8 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 11944
+Aug 12 07:48:35.854139 kernel[0] <Notice>: vm: fuzz27[21695] triggered unnest of range 0x1ec000000->0x1f0000000 of DYLD shared region in VM map 0xfac40b0f248242e9. While not abnormal for debuggers, this increases system memory footprint until the target exits.
+Aug 12 07:48:35.857006 dtappserviced(BaseBoard)[21572] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7913030e00; usable: YES; (21572:e63:send xpcCode) from (37:15101b:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7913030680>{number = 9, name = (null)}) (
+	0   BaseBoard                           0x000000019c3242bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x000000019c3599c0 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 330176
+	2   BaseBoard                           0x000000019c359d80 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 331136
+	3   BaseBoard                           0x000000019c31f2a0 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 90784
+	4   BaseBoard                           0x000000019c31e5d8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 87512
+	5   BaseBoard                           0x000000019c3252fc _BSXPCDecodeIvarsForObject + 1168
+	6   BaseBoard                           0x000000019c324640 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 112192
+	7   BaseBoard                           0x000000019c31f1ec 4C812EE8-66AA-3110-8B9F-FC3BB
+Aug 12 07:48:35.860580 dtappserviced(FrontBoardServices)[21572] <Notice>: [FBSSystemService][0x890] Request successful: <BSProcessHandle: 0x7912c0cc00; fuzz27:21695; valid: YES>
+Aug 12 07:48:35.860616 dtappserviced(BaseBoard)[21572] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x7913030e00 usable=YES (21572:e63:send xpcCode) from (37:15101b:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7913030680>{number = 9, name = (null)}) (
+	0   BaseBoard                           0x000000019c357c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x000000019c357ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x000000019c35a1d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   libobjc.A.dylib                     0x000000018ccfb418 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 13336
+	4   libobjc.A.dylib                     0x000000018ccfb0a4 objc_autoreleasePoolPop + 244
+	5   BoardServices                       0x000000019c3db514 BSXPCServiceConnectionExecuteCallOut + 260
+	6   BoardServices                       0x000000019c41edb8 2B05C9D3-3F1D-3021-82CF-64797327508E + 298424
+	7   BoardServices                       0x000000019c3e067c 2B05C9D3-3F1D-3021-82CF-64797327508E +
+Aug 12 07:48:35.860659 dtappserviced(CoreDeviceUtilities)[21572] <Notice>: invoke(usingContentsOf:): Received reply from action (type=LaunchActionImplementation, invocation=F37C8954-CD2F-468F-9BD7-F9A8142C0927, device=8A8A1D3F-AF75-5493-9585-6374D1BB90D1): success(CoreDeviceUtilities.LaunchActionDeclaration.Output(processToken: CoreDeviceUtilities.ProcessToken.(unknown context at $102f44fc8)._Value.auditToken(__C.audit_token_t(val: (4294967295, 501, 501, 501, 501, 21695, 0, 58871))) => /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27))
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+Aug 12 07:48:35.875636 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d168a0> (Domain: com.apple.UIKit, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.876851 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d172a0> (Domain: com.apple.UIKit, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.877115 fuzz27(CoreFoundation)[21695] <Debug>: main bundle CFBundle 0x1055403f0 </private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app> (executable, loaded) getting handle 0xfffffffffffffffb
+Aug 12 07:48:35.877583 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d16300> (Domain: kCFPreferencesAnyApplication, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.880535 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f32fb60> (Domain: com.apple.UIKit, User: m{4}e, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.880753 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f0a8e60> (Domain: com.apple.UIKit, User: m{4}e, ByHost: No, Dirty: No)
+Aug 12 07:48:35.880827 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDSource<0x760f0a8e60> (Domain: com.apple.UIKit, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Aug 12 07:48:35.880851 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f0103c0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.880898 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDSource<0x760f0103c0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No), backed by <private>
+Aug 12 07:48:35.881167 SpringBoard(BaseBoard)[37] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7caeffc380; usable: YES; (37:15101b:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7cb21b7a40>{number = 23143, name = (null)}) (
+	0   BaseBoard                           0x000000019c3242bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x000000019c323f50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x000000019c323d04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x000000019c317314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x000000019c33b144 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 205124
+	5   BoardServices                       0x000000019c3d95cc 2B05C9D3-3F1D-3021-82CF-64797327508E + 13772
+	6   BoardServices                       0x000000019c3f4084 2B05C9D3-3F1D-3021-82CF-64797327508E + 123012
+	7   BoardServices                       0x000000019c3f46f0 2B05C9D3-3F1D-3021-82CF-64797327508E + 1246
+Aug 12 07:48:35.882210 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDMirroredSource<0x760f010460> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No)
+Aug 12 07:48:35.882420 backboardd(IOKit)[73] <Notice>: Connection added: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 07:48:35.882564 backboardd(BackBoardHIDEventFoundation)[73] <Debug>: Got a client addition callback: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 07:48:35.882599 backboardd(BackBoardHIDEventFoundation)[73] <Info>: HID connection vpid:21695(vE5F7) bundleID:cancer9725.turquoise1323 successfully initialized: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 07:48:35.882610 backboardd(BackBoardHIDEventFoundation)[73] <Notice>: Adding client connection: <BKHIDClientConnection: 0x7856d6eb40; IOHIDEventSystemConnectionRef: 0x7844f3ce00; vpid: 21695(vE5F7); taskPort: 0x154AB7; bundleID: cancer9725.turquoise1323> for client: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 07:48:35.882759 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDMirroredSource<0x760f010460> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Aug 12 07:48:35.882837 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f32fb60> (Domain: cancer9725.turquoise1323, User: m{4}e, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.883346 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDContainerSource<0x760f32cf00> (Domain: cancer9725.turquoise1323, User: m{4}e, ByHost: No, Container: /p{5}e/v{1}r/m{4}e/Containers/Data/A{9}n/C{34}C, Dirty: No)
+Aug 12 07:48:35.888319 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d168a0> (Domain: cancer9725.turquoise1323, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.888360 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f0103c0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.888570 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDSource<0x760f0103c0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No), backed by <private>
+Aug 12 07:48:35.888593 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d172a0> (Domain: cancer9725.turquoise1323, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.888817 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDMirroredSource<0x760f010460> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No)
+Aug 12 07:48:35.892702 backboardd(IOKit)[73] <Debug>: SetProperty called IOHIDEventSystemClientIsUnresponsive=0 caller=IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 07:48:35.897293 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDMirroredSource<0x760f010460> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Aug 12 07:48:35.913158 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d16300> (Domain: kCFPreferencesAnyApplication, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.913223 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d168a0> (Domain: com.apple.Accessibility, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.913231 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f2ef700> (Domain: com.apple.Accessibility, User: m{4}e, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.914359 InputUI(BaseBoard)[161] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7456a89d00; usable: YES; (161:27857:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7456a8a480>{number = 14093, name = (null)}) (
+	0   BaseBoard                           0x000000019c3242bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x000000019c323f50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x000000019c323d04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x000000019c317314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x000000019c33b144 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 205124
+	5   BoardServices                       0x000000019c3d95cc 2B05C9D3-3F1D-3021-82CF-64797327508E + 13772
+	6   BoardServices                       0x000000019c3f4084 2B05C9D3-3F1D-3021-82CF-64797327508E + 123012
+	7   BoardServices                       0x000000019c3f46f0 2B05C9D3-3F1D-3021-82CF-64797327508E + 1246
+Aug 12 07:48:35.915968 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d172a0> (Domain: com.apple.Accessibility, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.916057 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f012580> (Domain: com.apple.Accessibility, User: m{4}e, ByHost: No, Dirty: No)
+[main] fuzz harness up, mode=all
+Aug 12 07:48:35.926387 backboardd(BaseBoard)[73] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7854ce7540; usable: YES; (73:154ab7:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7856d6f1c0>{number = 14306, name = (null)}) (
+	0   BaseBoard                           0x000000019c3242bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x000000019c323f50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x000000019c323d04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x000000019c317314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x000000019c33b144 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 205124
+	5   BoardServices                       0x000000019c3d95cc 2B05C9D3-3F1D-3021-82CF-64797327508E + 13772
+	6   BoardServices                       0x000000019c3f4084 2B05C9D3-3F1D-3021-82CF-64797327508E + 123012
+	7   BoardServices                       0x000000019c3f46f0 2B05C9D3-3F1D-3021-82CF-64797327508E + 1246
+Aug 12 07:48:35.927462 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDSource<0x760f012580> (Domain: com.apple.Accessibility, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Aug 12 07:48:35.927546 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDContainerSource<0x760f32fb60> (Domain: com.apple.ImageIO, User: m{4}e, ByHost: No, Container: /p{5}e/v{1}r/m{4}e/Containers/Data/A{9}n/C{34}C, Dirty: No)
+Aug 12 07:48:35.935497 InputUI(BaseBoard)[161] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7456a89cc0; usable: YES; (161:27857:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7456a88c00>{number = 14090, name = (null)}) (
+	0   BaseBoard                           0x000000019c3242bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x000000019c323f50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x000000019c323d04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x000000019c317314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x000000019c324544 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111940
+	5   FrontBoard                          0x00000001d1f55908 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 43272
+	6   FrontBoard                          0x00000001d1f50048 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 20552
+	7   FrontBoard                          0x00000001d1f4dea8 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 11944
+Aug 12 07:48:35.937131 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d168a0> (Domain: com.apple.coreanimation, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.937324 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f32fb60> (Domain: com.apple.coreanimation, User: m{4}e, ByHost: Yes, Dirty: No)
+[open] service IOSurfaceRootUserClient not found
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6013
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+Aug 12 07:48:35.940632 cfprefsd(CoreFoundation)[112] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x7d72d172a0> (Domain: com.apple.coreanimation, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Aug 12 07:48:35.941680 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f32cf00> (Domain: com.apple.coreanimation, User: m{4}e, ByHost: No, Dirty: No)
+Aug 12 07:48:35.944583 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) iokit-open-user-client VCPDRMUserClient
+Aug 12 07:48:35.944618 kernel[0] <Notice>: IOUC VCPDRMUserClient failed MACF in process pid 21695, fuzz27
+Aug 12 07:48:35.944658 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.sprr
+Aug 12 07:48:35.944727 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.jitbox
+Aug 12 07:48:35.944745 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.pmap
+Aug 12 07:48:35.944752 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.vmapple
+Aug 12 07:48:35.944848 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.kernel.sprr
+Aug 12 07:48:35.944912 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.private.sprr
+Aug 12 07:48:35.944993 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.vm.map
+Aug 12 07:48:35.945091 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.memory.control
+Aug 12 07:48:35.945224 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) mach-lookup com.apple.jit
+Aug 12 07:48:35.956422 fuzz27(AggregateDictionary)[21695] <Notice>: AggregateDictionary is deprecated and has been removed. Please migrate to Core Analytics.
+Aug 12 07:48:35.957490 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(21695) deny(1) process-info-codesignature others [SpringBoard(37)]
+Aug 12 07:48:36.019192 UserEventAgent(com.apple.fsevents.matching)[33] <Info>: Received FSEvent about /private/var/mobile/Containers/Data/Application/CF907FBD-400F-465B-BB40-744E94C2AABC/Library/Caches/com.apple.dyld/fuzz27.dyld4
+Aug 12 07:48:36.019479 UserEventAgent(com.apple.fsevents.matching)[33] <Info>: Received FSEvent about /private/var/mobile/Containers/Data/Application/CF907FBD-400F-465B-BB40-744E94C2AABC/Library/Caches/com.apple.dyld/fuzz27.dyld4.21695
+Aug 12 07:48:36.020051 UserEventAgent(com.apple.fsevents.matching)[33] <Info>: Received FSEvent about /private/var/mobile/Containers/Data/Application/CF907FBD-400F-465B-BB40-744E94C2AABC/Library/Caches/com.apple.dyld/fuzz27.dyld4
+Aug 12 07:48:36.173078 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] sent a request related to CFPDSource<0x760f012ee0> (Domain: com.apple.da, User: m{4}e, ByHost: No, Dirty: No)
+Aug 12 07:48:36.174158 cfprefsd(CoreFoundation)[113] <Debug>: Process fuzz27[21695] read data for CFPDSource<0x760f012ee0> (Domain: com.apple.da, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Aug 12 07:48:36.433170 intelligentroutingd(IntelligentRoutingDaemon)[2219] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus:
+<private>
+<private>
+Aug 12 07:48:37.414744 swcd(CoreFoundation)[21381] <Debug>: Resource lookup at <private>
+	Request       :  type: json
+	Result        : migrate.google.json -- file:///Applications/Transfer%20to%20Android.app/Library/SharedWebCredentials/,
+Aug 12 07:48:46.441339 intelligentroutingd(IntelligentRoutingDaemon)[2219] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus window end:
+<private>
+<private>
+Aug 12 07:49:12.502728 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:49:17.301368 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:50:19.462035 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:50:50.325435 symptomsd(SymptomEvaluator)[207] <Notice>: Received CPU usage trigger: 
+  fuzz27[21695] () used 90.00s of CPU over 134.38 seconds (averaging 66%), violating a CPU usage limit of 90.00s over 180 seconds.
+Aug 12 07:50:50.325468 symptomsd(SymptomEvaluator)[207] <Info>: Processing ResourceNotify event: com.apple.symptoms.resource_notify.cpu_usage_trigger triggered by fuzz27
+Aug 12 07:50:50.326196 symptomsd(SymptomEvaluator)[207] <Debug>: Attempting to retrieve record for key RESOURCE_NOTIFY|EXC_CPU_USAGE|NON-FATAL|fuzz27
+Aug 12 07:50:50.326358 symptomsd(SymptomEvaluator)[207] <Debug>:   Found report record for RESOURCE_NOTIFY : EXC_CPU_USAGE : NON-FATAL (fuzz27) - <RNReportRecord: 0x78b6f5bd00>
+Aug 12 07:50:50.326382 symptomsd(SymptomEvaluator)[207] <Debug>:   1 reports for fuzz27 is still under the limit of 5. Allowing report.
+Aug 12 07:50:50.327478 symptomsd(SymptomEvaluator)[207] <Debug>: Updating RESOURCE_NOTIFY report statistics for RESOURCE_NOTIFY : EXC_CPU_USAGE : NON-FATAL : fuzz27
+Aug 12 07:50:50.327518 symptomsd(SymptomEvaluator)[207] <Info>: Upating record for RESOURCE_NOTIFY|EXC_CPU_USAGE|NON-FATAL|fuzz27 to (lastSeen: 1786510250, count: 2)
+Aug 12 07:50:50.328118 symptomsd(SymptomEvaluator)[207] <Info>:   Will capture micro-stackshot for fuzz27 [21695]
+Aug 12 07:50:50.347174 spindump[21699] <Info>: fuzz27 [21695]: cpu resource: thread 0 using 90s cpu over the last 134 seconds with flags 0
+Aug 12 07:50:51.607716 spindump[21699] <Info>: fuzz27 [21695]: Providing cpu usage report to MetricKit
+Aug 12 07:50:51.612262 osanalyticshelper(OSAnalytics)[4974] <Notice>: creating type 202 as /private/var/mobile/Library/Logs/CrashReporter/.fuzz27.cpu_resource-2026-08-12-075051.ips
+Aug 12 07:50:51.625398 spindump(OSAnalytics)[21699] <Notice>: client log create type 202 result success: /private/var/mobile/Library/Logs/CrashReporter/fuzz27.cpu_resource-2026-08-12-075051.ips
+Aug 12 07:50:51.629540 spindump[21699] <Debug>: fuzz27 [21695]: cpu resource: all microstackshots without errors: 0 out-of-order microstackshots, 0 microstackshots missing load infos, 0 bytes invalid
+Aug 12 07:50:51.629566 spindump[21699] <Debug>: fuzz27 [21695]: cpu resource: done reporting (0)
+Aug 12 07:51:22.340336 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:52:22.966438 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:54:32.289286 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:54:59.223314 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:54:59.296915 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:54:59.365388 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.366350 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.367695 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.368855 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.372329 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.373471 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.374713 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.375436 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.376115 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.376922 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.377864 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.379092 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.380675 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.382094 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.384053 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.385180 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.386216 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.387422 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:54:59.518711 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 07:55:00.195975 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:55:01.274678 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:55:01.422463 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:55:04.436691 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:55:05.871696 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 07:55:06.646605 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:56:17.286763 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:57:12.299354 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.300379 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.301267 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.302169 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.305078 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.305819 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.306782 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.307693 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.308612 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.309576 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.310341 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.311025 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.312030 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.313647 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.314684 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.315292 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.315959 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:12.316600 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 07:57:27.135325 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:58:32.300751 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 07:59:42.134725 dasd[87] <Notice>: com.apple.spotlightknowledged.pipelines.migration.journal-processing:66C129:[
+	{name: Thermal Policy, policyWeight: 5.000, response: {AMNP, 0.00, [{thermalLevel > 10}]}}
+ ], Decision: AMNP}
+Aug 12 08:00:24.455193 batteryintelligenced(AggregateDictionary)[20952] <Notice>: AggregateDictionary is deprecated and has been removed. Please migrate to Core Analytics.
+Aug 12 08:02:52.399247 locationd(CoreBluetooth)[79] <Error>: WARNING: Client is using deprecated scanForPeripheralsWithServices:options:completion: API. Please migrate to scanForPeripheralsWithServices:options:completionWithOptions: to receive scan options
+Aug 12 08:02:58.535891 locationd(CoreBluetooth)[79] <Error>: WARNING: Client is using deprecated scanForPeripheralsWithServices:options:completion: API. Please migrate to scanForPeripheralsWithServices:options:completionWithOptions: to receive scan options
+Aug 12 08:08:38.419330 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.421643 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.423914 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.425873 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.427495 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.428406 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.430090 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:08:38.432500 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:09:36.984328 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:37.070618 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:37.126285 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.128519 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.130371 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.131578 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.136755 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.137927 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.138956 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.139560 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.140557 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.141526 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.142737 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.143581 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.144620 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.145701 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.146398 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.147298 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.148289 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.149795 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:09:37.883919 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:38.984729 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:39.221956 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:42.192181 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:43.236334 kernel()[0] <Notice>: wlan0:com.apple.p2p.awdl0: monitorProModeState[40058]: cannot use ProMode (mode 1). allowed 0, AirDrop count (legacy 0 6G 0, sender legacy 0 6G 0, cached: 0) has common 6G channel 0 migration 0
+Aug 12 08:09:49.402820 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:09:50.454837 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:43.857349 NotificationServiceExtensionv1(libAudioDSP.dylib)[21661] <Notice>: cannot migrate AudioUnit assets for current process
+Aug 12 08:10:44.937169 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:45.044132 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:46.026723 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:47.074149 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:47.119024 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:48.801872 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:48.876668 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:50.186226 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:50.727981 accountsd(AccountsDaemon)[42] <Debug>: Keychain item (<private>) known to be migrated, skipping...
+Aug 12 08:10:50.765853 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:51.082443 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:51.862645 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:10:53.781697 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:00.015142 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:01.077724 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:03.114116 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:03.154813 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:03.562994 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:04.655825 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:05.374673 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:07.582262 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:09.126958 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:10.170143 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:10.215894 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:10.332651 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:12.126211 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:12.320078 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:13.783139 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:15.343083 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:16.613021 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:17.718983 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:11:39.498717 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:13:58.246812 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:13:58.253984 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:13:58.386696 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:13:58.388551 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:13:58.390430 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:13:58.391888 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:13:58.392473 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:13:59.203404 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:03.333898 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:04.440184 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:05.506635 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:09.573479 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:09.654784 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:10.528211 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:11.572264 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:11.730372 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:14.652717 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:15.858682 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:16.905699 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:20.727662 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:20.804406 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:26.452822 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:26.760249 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:36.074722 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:36.156272 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:36.515818 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:37.617089 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:38.268985 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:41.191209 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:43.802270 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:14:44.857529 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:15:24.469770 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:15:24.520994 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:15:25.452349 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:02.529858 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:10.323355 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:10.332194 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:11.342677 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:12.379433 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:12.424333 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:15.258710 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:16.455463 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:16:17.502218 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:45.860849 SpringBoard(ApplePushService)[37] <Notice>: <APSConnection: 0x7cbeffce00> making delegate (<UNCRemoteNotificationServer: 0x7cb5b10460>) calls to deliver message 4201912403 {
+    aps =     {
+        alert = "You have a new message";
+        "mutable-content" = 1;
+    };
+    p = "1rDp5B3SduHL-I3Ak6tYUtUFJj6S66naYbtg8FsulTXqPd8H5EkExwUE9x2-QQpK8zE5mqF_FvMkno6HMWhsb62XFSU252LA4rpcw2FhkS9Z6AEC8T6RajQnZKWg4-qJc2ko3bOpp3DtFwssbq_ft8QVXDDKjvqCfDyvxTmkH7IpHklc4vSGYjwZ-SzIBE9vI1PEuIev6Di4-o1Zc71x7eLrbYIokDeaaM48eQmex-10HLTXPv5y0FPnIUiX4qMS1izr5l_Gva-zHVhlNOQA1SASrnsmXlFqsab1UthnmignpwepWJt6JyafcWDwWdxkeGAjZ3ZxG7aX27tTzjgltJneKjYBXDKR1G1jRNKYbn0UGg4TUezmGkUC88nDdxWYfSKDRRxJvvlR9UPcpvmr920pVuKOa8YFrMm0SlLBRM3b_x2hPw5S-IyMGFJnVekWnGjmXRC65MMRvrVLbnkZ4oS2FeOImlKeJOGJVlIo9ZYQBVJpv5bfbakNOQ8oDTh2qHniy2uqfbtPX1H86T5DBP6RuaNWYmVaeei4YpHRMhL6Xm2Z1vYIO9k69jfQsnTSGWzv7ZJ6vPZ8USAjJJRvehMazdIp0AYjtJG8ySoMY_3MMKAFWfTZ1z1EBHkwCfAa9GfILV8Y4CWoTbJjk1KXKRGbaxv7mhTEigfLxtX_UAmaplcsnGdNjygGrDppNfCmjBM0ic4xId50TDl_kmsfUioBCo_50MFg";
+} for topic com.GLEProject.GLEGram
+Aug 12 08:17:47.935456 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:48.058863 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:49.138360 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:50.127972 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:53.179681 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:54.394802 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:17:55.422982 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:18:22.409213 locationd(CoreBluetooth)[79] <Error>: WARNING: Client is using deprecated scanForPeripheralsWithServices:options:completion: API. Please migrate to scanForPeripheralsWithServices:options:completionWithOptions: to receive scan options
+Aug 12 08:18:28.562836 locationd(CoreBluetooth)[79] <Error>: WARNING: Client is using deprecated scanForPeripheralsWithServices:options:completion: API. Please migrate to scanForPeripheralsWithServices:options:completionWithOptions: to receive scan options
+App terminated due to signal 15.
+Aug 12 08:18:36.505209 backboardd(IOKit)[73] <Notice>: Connection removed: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x1 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 08:18:36.505243 backboardd(BackBoardHIDEventFoundation)[73] <Debug>: Got a client removal callback: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x1 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Aug 12 08:18:36.505261 backboardd(BackBoardHIDEventFoundation)[73] <Notice>: Removing client connection <BKHIDClientConnection: 0x7856d6eb40; IOHIDEventSystemConnectionRef: 0x7844f3ce00; vpid: 21695(vE5F7); taskPort: 0x154AB7; bundleID: cancer9725.turquoise1323> for client: IOHIDEventSystemConnection uuid:6B8FCFB3-14F4-41C2-9C03-094CAD2FD5A1 pid:21695 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 21695;
+} state:0x1 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE source:HID
+Aug 12 08:18:36.505347 dtappserviced(CoreDeviceUtilities)[21572] <Notice>: invoke(usingContentsOf:): Received reply from action (type=SendSignalToProcessActionImplementation, invocation=E750AA86-20B3-4F04-AB3C-7FC704083770, device=8A8A1D3F-AF75-5493-9585-6374D1BB90D1): success(CoreDeviceUtilities.SendSignalToProcessActionResult(process: CoreDeviceUtilities.ProcessToken.(unknown context at $102f44fc8)._Value.processIdentifier(21695, version: nil) => /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27, signal: 15, deviceTimestamp: 2026-08-12 05:18:36 +0000))
+Aug 12 08:18:36.505560 backboardd[73] <Debug>: BKHIDEventClient died (port): <BKAccelerometerClientBKSAccelerometer: 0x7855893780; name: fuzz27.21695; port: 0x10ba77; wantsOrientationEvents: NO; passiveEvents: NO; wantsAccelerometerEvents: YES>
+Aug 12 08:18:36.505634 backboardd(BackBoardHIDEventFoundation)[73] <Notice>: [BKHIDEventDeliveryManager] connection invalidated: (fuzz27.21695)
+Aug 12 08:18:36.505661 backboardd(BackBoardHIDEventFoundation)[73] <Notice>: [BKHIDEventDeliveryObserver] connection invalidated: (fuzz27.21695)
+Aug 12 08:18:36.514219 SpringBoard(BaseBoard)[37] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x7caeffc380 usable=NO (37:15101b:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7cae4ab880>{number = 23214, name = (null)}) (
+	0   BaseBoard                           0x000000019c357c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x000000019c357ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x000000019c35a1d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   BoardServices                       0x000000019c416264 2B05C9D3-3F1D-3021-82CF-64797327508E + 262756
+	4   libobjc.A.dylib                     0x000000018cd00340 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 33600
+	5   libobjc.A.dylib                     0x000000018ccfbbcc E708DFC2-BA03-3C4C-8376-FFC11461C752 + 15308
+	6   libobjc.A.dylib                     0x000000018ccfdbb4 _objc_rootDealloc + 72
+	7   BoardServices                       0x000000019c3ee7c4 2B05C9D3-3F1D-3021-82CF-64797327508E + 100292
+	8   libobjc.A.dylib
+Aug 12 08:18:36.514452 InputUI(BaseBoard)[161] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x7456a89d00 usable=NO (161:27857:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x7456a8a480>{number = 14096, name = (null)}) (
+	0   BaseBoard                           0x000000019c357c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x000000019c357ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x000000019c35a1d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   BoardServices                       0x000000019c416264 2B05C9D3-3F1D-3021-82CF-64797327508E + 262756
+	4   libobjc.A.dylib                     0x000000018cd00340 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 33600
+	5   libobjc.A.dylib                     0x000000018ccfbbcc E708DFC2-BA03-3C4C-8376-FFC11461C752 + 15308
+	6   libobjc.A.dylib                     0x000000018ccfdbb4 _objc_rootDealloc + 72
+	7   BoardServices                       0x000000019c3ee7c4 2B05C9D3-3F1D-3021-82CF-64797327508E + 100292
+	8   libobjc.A.dylib
+Aug 12 08:18:36.514992 InputUI(BaseBoard)[161] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x7456a89cc0 usable=NO (161:27857:send task_name_for_pid:fuzz27.21695)> -> (<_NSMainThread: 0x102aee910>{number = 1, name = main}) (
+	0   BaseBoard                           0x000000019c357c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x000000019c357ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x000000019c35a1d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   FrontBoard                          0x00000001d1f7f898 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 215192
+	4   libobjc.A.dylib                     0x000000018cd00340 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 33600
+	5   libobjc.A.dylib                     0x000000018ccfbbcc E708DFC2-BA03-3C4C-8376-FFC11461C752 + 15308
+	6   libobjc.A.dylib                     0x000000018ccfdbb4 _objc_rootDealloc + 72
+	7   FrontBoard                          0x00000001d1f7fc04 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 216068
+	8   FrontBoard
+Aug 12 08:18:36.536266 backboardd(BaseBoard)[73] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x7854ce7540 usable=NO (73:154ab7:send task_name_for_pid:fuzz27.21695)> -> (<NSThread: 0x78564b0080>{number = 14311, name = (null)}) (
+	0   BaseBoard                           0x000000019c357c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x000000019c357ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x000000019c35a1d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   BoardServices                       0x000000019c416264 2B05C9D3-3F1D-3021-82CF-64797327508E + 262756
+	4   libobjc.A.dylib                     0x000000018cd00340 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 33600
+	5   libobjc.A.dylib                     0x000000018ccfbbcc E708DFC2-BA03-3C4C-8376-FFC11461C752 + 15308
+	6   libobjc.A.dylib                     0x000000018ccfdbb4 _objc_rootDealloc + 72
+	7   BoardServices                       0x000000019c3ee7c4 2B05C9D3-3F1D-3021-82CF-64797327508E + 100292
+	8   libobjc.A.dylib
+Aug 12 08:18:36.573984 SpringBoard(BaseBoard)[37] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x7caeffed40 usable=NO (37:15101b:send task_name_for_pid:fuzz27.21695)> -> (<_NSMainThread: 0x100c06df0>{number = 1, name = main}) (
+	0   BaseBoard                           0x000000019c357c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x000000019c357ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x000000019c35a1d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   FrontBoard                          0x00000001d1f7f898 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 215192
+	4   libobjc.A.dylib                     0x000000018cd00340 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 33600
+	5   libobjc.A.dylib                     0x000000018ccfbbcc E708DFC2-BA03-3C4C-8376-FFC11461C752 + 15308
+	6   libobjc.A.dylib                     0x000000018ccfdbb4 _objc_rootDealloc + 72
+	7   FrontBoard                          0x00000001d1f7fc04 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 216068
+	8   FrontBoard
+Aug 12 08:18:36.639251 intelligentroutingd(IntelligentRoutingDaemon)[2219] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus:
+<private>
+<private>
+Aug 12 08:18:47.187287 remotepairingdeviced(RemotePairingDevice)[20980] <Notice>: 4F50B5C4-C7BE-4C82-8449-B86E6814CC08 (utun11/fd12:c0f5:fbcc::): No more connections in connection pool. Cannot migrate. Cancelling tunnel
+Aug 12 08:20:51.844666 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:20:51.898619 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:20:51.988329 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.989303 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.989935 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.990669 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.992679 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.993123 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.993656 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.994147 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.994656 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.995207 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.995812 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.996372 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.997012 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.997512 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.998012 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.998452 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.998831 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:51.999383 identityservicesd[66] <Notice>: ******** We're missing an SMS auth token, this will SMS migration register ********
+Aug 12 08:20:52.890148 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:20:54.159532 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:20:57.275951 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:20:58.339753 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:00.081500 NotificationServiceExtensionv1(AggregateDictionary)[21708] <Notice>: AggregateDictionary is deprecated and has been removed. Please migrate to Core Analytics.
+Aug 12 08:21:00.174327 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:00.248190 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:01.141425 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:02.465621 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:05.147531 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:06.271689 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:07.299814 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:31.940139 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:31.995564 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:32.911931 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:33.980630 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:34.128060 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:36.846839 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:37.958933 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:37.976087 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:39.070450 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:21:39.072027 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:17.361797 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:17.408122 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:18.352920 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:19.402771 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:19.547118 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:22.723431 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:23.935275 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:25.040119 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:43.044190 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:43.107993 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:44.083504 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:45.117835 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:45.303580 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:47.070278 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:47.197814 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:48.766696 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:49.391292 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:52.451873 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:22:52.980070 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:04.452630 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:05.499307 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:07.297288 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:08.386752 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:11.057371 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:11.120716 watchlistd(libquic.dylib)[168] <Debug>: quic_tp_serialize_parameter migration_version=9
+Aug 12 08:23:11.130608 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:11.189266 watchlistd(libquic.dylib)[168] <Notice>: quic_crypto_tls_ready_inner [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] server suports migration, migration feature enabled
+Aug 12 08:23:11.190182 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path bff2cd6519386b48 over utun8 received event established
+Aug 12 08:23:11.190441 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_primary [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] promoted path 0x75d3292300 over utun8 to primary
+Aug 12 08:23:11.190449 watchlistd(libquic.dylib)[168] <Debug>: quic_migration_path_established delaying path processing until we're connected
+Aug 12 08:23:11.190458 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path c5b7fc5e87a8bdfc over en2 received event available
+Aug 12 08:23:11.190697 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] evaluating path migration
+Aug 12 08:23:11.190723 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path c5b7fc5e87a8bdfc state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.190741 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path bff2cd6519386b48 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.190815 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.190835 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path ae61dcd1bf28c98d over en0 received event available
+Aug 12 08:23:11.191012 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] evaluating path migration
+Aug 12 08:23:11.191049 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path ae61dcd1bf28c98d state available (0), ifname en0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191061 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path c5b7fc5e87a8bdfc state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191116 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path bff2cd6519386b48 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191129 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.191156 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path 2d64bdc691199bea over pdp_ip0 received event available
+Aug 12 08:23:11.191314 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] evaluating path migration
+Aug 12 08:23:11.191342 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path 2d64bdc691199bea state available (0), ifname pdp_ip0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191388 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path ae61dcd1bf28c98d state available (0), ifname en0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191439 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path c5b7fc5e87a8bdfc state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191497 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path bff2cd6519386b48 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191518 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.191554 watchlistd(Network)[168] <Info>: nw_flow_notify [C249.1.1.1 IPv4#fe20dfa6:443 ready channel-flow (satisfied (Path is satisfied), viable, interface: utun8, ipv4, dns)] received notification migration
+Aug 12 08:23:11.191569 watchlistd(Network)[168] <Info>: nw_flow_notify [C249.1.1.1 IPv4#fe20dfa6:443 ready channel-flow (satisfied (Path is satisfied), viable, interface: utun8, ipv4, dns)] received migration flow registration <private>
+Aug 12 08:23:11.191659 watchlistd(Network)[168] <Notice>: [C249.1.1.1 IPv4#fe20dfa6:443 ready channel-flow (satisfied (Path is satisfied), viable, interface: utun8, ipv4, dns)] event: path:migrated @0.147s, uuid: 288DC923-F8AB-410A-B928-AC027F2239B4
+Aug 12 08:23:11.191700 watchlistd(Network)[168] <Notice>: [C249.1.1 Hostname#478e49fc:443 ready resolver (satisfied (Path is satisfied), interface: utun8, ipv4, dns)] event: path:migrated @0.147s, uuid: 27A73DAA-971C-48E8-BCE8-65A93C335240
+Aug 12 08:23:11.191722 watchlistd(Network)[168] <Notice>: [C249.1 Hostname#478e49fc:443 ready transform (satisfied (Path is satisfied), interface: utun8, ipv4, dns)] event: path:migrated @0.147s, uuid: E6947F48-DD93-4963-9A26-7E92A57849A6
+Aug 12 08:23:11.191732 watchlistd(Network)[168] <Notice>: [C249 IPv4#fe20dfa6:443 ready parent-flow (satisfied (Path is satisfied), interface: utun8, ipv4, dns)] event: path:migrated @0.147s, uuid: E6947F48-DD93-4963-9A26-7E92A57849A6
+Aug 12 08:23:11.191767 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] evaluating path migration
+Aug 12 08:23:11.191777 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path 2d64bdc691199bea state available (0), ifname pdp_ip0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191787 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path ae61dcd1bf28c98d state available (0), ifname en0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191797 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path c5b7fc5e87a8bdfc state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191807 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] path bff2cd6519386b48 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.191828 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C249.1.1.1:2] [-74a88b6e00530f43adfbe5de790c04d333] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.368646 watchlistd(libquic.dylib)[168] <Debug>: quic_tp_serialize_parameter migration_version=9
+Aug 12 08:23:11.439564 watchlistd(libquic.dylib)[168] <Debug>: quic_tp_deserialize_buffer disable_active_migration
+Aug 12 08:23:11.439661 watchlistd(libquic.dylib)[168] <Info>: quic_crypto_tls_ready_inner [C251.1.1.1:2] [-0622eecb4dc09628] peer asked us to disable active migration
+Aug 12 08:23:11.439785 watchlistd(libquic.dylib)[168] <Notice>: quic_crypto_tls_ready_inner [C251.1.1.1:2] [-0622eecb4dc09628] server does NOT support migration, migration feature enabled
+Aug 12 08:23:11.441344 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 9fb2fc81dec561e5 over utun8 received event established
+Aug 12 08:23:11.441486 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_primary [C251.1.1.1:2] [-0622eecb4dc09628] promoted path 0x75d33288c0 over utun8 to primary
+Aug 12 08:23:11.441504 watchlistd(libquic.dylib)[168] <Debug>: quic_migration_path_established delaying path processing until we're connected
+Aug 12 08:23:11.441514 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4483071364a51bd3 over en2 received event available
+Aug 12 08:23:11.441600 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] evaluating path migration
+Aug 12 08:23:11.441610 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4483071364a51bd3 state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.441622 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 9fb2fc81dec561e5 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.441639 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.441660 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path e67a7a7c473da12c over en0 received event available
+Aug 12 08:23:11.441735 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] evaluating path migration
+Aug 12 08:23:11.441745 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path e67a7a7c473da12c state available (0), ifname en0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.441802 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4483071364a51bd3 state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.441815 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 9fb2fc81dec561e5 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.441824 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.441842 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_path_event_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4f030bbd52fe7bdf over pdp_ip0 received event available
+Aug 12 08:23:11.442063 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] evaluating path migration
+Aug 12 08:23:11.442104 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4f030bbd52fe7bdf state available (0), ifname pdp_ip0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442139 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path e67a7a7c473da12c state available (0), ifname en0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442169 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4483071364a51bd3 state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442183 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 9fb2fc81dec561e5 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442207 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.442230 watchlistd(Network)[168] <Info>: nw_flow_notify [C251.1.1.1 IPv4#ff2cd046:443 ready channel-flow (satisfied (Path is satisfied), viable, interface: utun8, ipv4, dns)] received notification migration
+Aug 12 08:23:11.442240 watchlistd(Network)[168] <Info>: nw_flow_notify [C251.1.1.1 IPv4#ff2cd046:443 ready channel-flow (satisfied (Path is satisfied), viable, interface: utun8, ipv4, dns)] received migration flow registration <private>
+Aug 12 08:23:11.442405 watchlistd(Network)[168] <Notice>: [C251.1.1.1 IPv4#ff2cd046:443 ready channel-flow (satisfied (Path is satisfied), viable, interface: utun8, ipv4, dns)] event: path:migrated @0.150s, uuid: 3D7623CB-E1C2-4700-8F72-608E70D1B4D2
+Aug 12 08:23:11.442544 watchlistd(Network)[168] <Notice>: [C251.1.1 Hostname#892128d5:443 ready resolver (satisfied (Path is satisfied), interface: utun8, ipv4, dns)] event: path:migrated @0.151s, uuid: 65E07F79-7CB3-4BD2-8C6E-0CD8C335EC02
+Aug 12 08:23:11.442566 watchlistd(Network)[168] <Notice>: [C251.1 Hostname#892128d5:443 ready transform (satisfied (Path is satisfied), interface: utun8, ipv4, dns)] event: path:migrated @0.151s, uuid: 5755EFF5-5A39-4A9E-996E-C4C55364AB0F
+Aug 12 08:23:11.442576 watchlistd(Network)[168] <Notice>: [C251 IPv4#ff2cd046:443 ready parent-flow (satisfied (Path is satisfied), interface: utun8, ipv4, dns)] event: path:migrated @0.151s, uuid: 5755EFF5-5A39-4A9E-996E-C4C55364AB0F
+Aug 12 08:23:11.442612 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] evaluating path migration
+Aug 12 08:23:11.442623 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4f030bbd52fe7bdf state available (0), ifname pdp_ip0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442639 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path e67a7a7c473da12c state available (0), ifname en0, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442650 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 4483071364a51bd3 state available (0), ifname en2, primary? 0, initial? 0, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442661 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate_block_invoke [C251.1.1.1:2] [-0622eecb4dc09628] path 9fb2fc81dec561e5 state validated (0), ifname utun8, primary? 1, initial? 1, fallback? 0, preferred? 0 lossy? 0
+Aug 12 08:23:11.442685 watchlistd(libquic.dylib)[168] <Notice>: quic_migration_evaluate [C251.1.1.1:2] [-0622eecb4dc09628] current path is usable, no strong fallback or we are probing
+Aug 12 08:23:11.491648 watchlistd(libquic.dylib)[168] <Debug>: quic_tp_serialize_parameter disable_active_migration
+Aug 12 08:23:11.491789 watchlistd(libquic.dylib)[168] <Debug>: quic_tp_serialize_parameter disable_active_migration
+Aug 12 08:23:12.027128 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:13.087627 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:13.394109 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:17.138565 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:22.869641 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:23.950721 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted
+Aug 12 08:23:31.385570 spotlightknowledged.updater(SpotlightKnowledgeDaemon)[130] <Info>: [DAS] Ignoring submission of dynamic background task com.apple.spotlightknowledged.pipelines.migration.journal-processing: Task is already submitted

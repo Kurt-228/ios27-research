@@ -1,0 +1,421 @@
+{"duration_ms":"98556","share_with_app_devs":0,"roots_installed":0,"bug_type":"202","os_version":"iPhone OS 27.0 (24A5390f)","slice_uuid":"A36916AB-5A18-3D0E-BE35-5F26151F8132","is_first_party":1,"incident_id":"A820E739-3BBB-4BB9-B26A-EF730DCB0F30","timestamp":"2026-08-12 07:50:16.00 +0300","app_name":"diagnosticd","name":"diagnosticd"}
+Date/Time:        2026-08-12 07:48:36.180 +0300
+End time:         2026-08-12 07:50:14.736 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: A820E739-3BBB-4BB9-B26A-EF730DCB0F30
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18c8f4000
+
+Command:          diagnosticd
+Path:             /usr/libexec/diagnosticd
+Resource Coalition: "com.apple.diagnosticd"(4438)
+Architecture:     arm64e
+Parent:           UNKNOWN [1]
+PID:              21660
+
+Event:            cpu usage
+Action taken:     none
+CPU:              90 seconds cpu time over 99 seconds (91% cpu average), exceeding limit of 50% cpu over 180 seconds
+CPU limit:        90s
+Limit duration:   180s
+CPU used:         90s
+CPU duration:     99s
+Duration:         98.56s
+Duration Sampled: 95.79s (event starts 0.25s before samples, event ends 2.52s after samples)
+Steps:            94 (10 gigacycles/step)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 9.88% (673.86 MB / 6819.12 MB)
+
+Time Since Boot:  359267s
+Time Awake Since Boot: 267382s
+Time Since Wake:  31281s
+
+Total CPU Time:   273.711s
+Advisory levels:  Battery -> 3, User -> 3, ThermalPressure -> 20, Combined -> 2
+Free disk space:  143.46 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 61.69% (17272/28000, 14000 allocated, 14000 soft limit)
+Models:           none
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        ru_RU Russian, en_US QWERTY
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  32  ??? (libsystem_pthread.dylib + 2320) [0x18ce2e910]
+  32  ??? (libsystem_pthread.dylib + 4664) [0x18ce2f238]
+  31  ??? (libdispatch.dylib + 87740) [0x1bbb506bc]
+  31  ??? (libdispatch.dylib + 89240) [0x1bbb50c98]
+  28  ??? (libdispatch.dylib + 46192) [0x1bbb46470]
+  17  ??? (libdispatch.dylib + 43132) [0x1bbb4587c]
+  17  ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+  17  ??? (libdispatch.dylib + 7372) [0x1bbb3cccc]
+  16  ??? (diagnosticd + 36604) [0x10226cefc]
+  10  ??? (diagnosticd + 22496) [0x1022697e0]
+  10  ??? (liblockdown.dylib + 4576) [0x2ce0e71e0]
+  8   ??? (Security + 248040) [0x195dbd8e8]
+  8   ??? (Security + 245900) [0x195dbd08c]
+  8   ??? (libsystem_kernel.dylib + 20528) [0x24510e030]
+
+
+Powerstats for:   diagnosticd [21660]
+UUID:             A36916AB-5A18-3D0E-BE35-5F26151F8132
+Path:             /usr/libexec/diagnosticd
+Resource Coalition: 36 samples "com.apple.diagnosticd"(4438)
+Architecture:     arm64e
+Parent:           UNKNOWN [1]
+UID:              0
+Sudden Term:      Tracked (allows idle exit)
+Footprint:        5408 KB -> 4528 KB (-880 KB)
+Pageins:          34 pages
+Start time:       2026-08-12 07:48:36.431 +0300
+End time:         2026-08-12 07:50:11.984 +0300
+Num samples:      36 (38%)
+Energy:           11.71 mWh
+Num threads:      12
+Primary state:    20 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS User Initiated, Requested Thread QoS User Initiated, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 36 samples Active
+Power Source:     0 samples on Battery, 36 samples on AC
+  32  ??? (libsystem_pthread.dylib + 2320) [0x18ce2e910]
+    32  ??? (libsystem_pthread.dylib + 4664) [0x18ce2f238]
+      31  ??? (libdispatch.dylib + 87740) [0x1bbb506bc]
+        31  ??? (libdispatch.dylib + 89240) [0x1bbb50c98]
+          28  ??? (libdispatch.dylib + 46192) [0x1bbb46470]
+            17  ??? (libdispatch.dylib + 43132) [0x1bbb4587c]
+              17  ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                17  ??? (libdispatch.dylib + 7372) [0x1bbb3cccc]
+                  16  ??? (diagnosticd + 36604) [0x10226cefc]
+                    10  ??? (diagnosticd + 22496) [0x1022697e0]
+                      10  ??? (liblockdown.dylib + 4576) [0x2ce0e71e0]
+                        8   ??? (Security + 248040) [0x195dbd8e8]
+                          8   ??? (Security + 245900) [0x195dbd08c]
+                            8   ??? (libsystem_kernel.dylib + 20528) [0x24510e030]
+                              8   <Kernel mode>
+                        2   ??? (Security + 247992) [0x195dbd8b8]
+                          1   ??? (Security + 246888) [0x195dbd468]
+                            1   ??? (libcoretls.dylib + 24136) [0x2cc80fe48]
+                              1   ??? (libcoretls.dylib + 24724) [0x2cc810094]
+                                1   ??? (libcorecrypto.dylib + 39184) [0x1dfa1b910]
+                                  1   ??? (libcorecrypto.dylib + 5520) [0x1dfa13590]
+                          1   ??? (Security + 246816) [0x195dbd420]
+                            1   ??? (libcoretls.dylib + 23340) [0x2cc80fb2c]
+                    3   ??? (diagnosticd + 20704) [0x1022690e0]
+                      2   ??? (LoggingSupport + 270992) [0x1cf927290]
+                        2   ??? (LoggingSupport + 98972) [0x1cf8fd29c]
+                          1   ??? (libsystem_platform.dylib + 2744) [0x198b21ab8]
+                          1   ??? (libxpc.dylib + 147920) [0x18ceb11d0]
+                            1   ??? (libxpc.dylib + 158944) [0x18ceb3ce0]
+                      1   ??? (libobjc.A.dylib + 30284) [0x18ccff64c]
+                    1   ??? (libsystem_platform.dylib + 4420) [0x198b22144]
+                    1   ??? (diagnosticd + 22604) [0x10226984c]
+                      1   ??? (libsystem_malloc.dylib + 17848) [0x18ce3f5b8]
+                    1   ??? (diagnosticd + 20848) [0x102269170]
+                      1   ??? (LoggingSupport + 265392) [0x1cf925cb0]
+                        1   ??? (LoggingSupport + 33500) [0x1cf8ed2dc]
+                          1   ??? (LoggingSupport + 36956) [0x1cf8ee05c]
+                            1   ??? (LoggingSupport + 73724) [0x1cf8f6ffc]
+                              1   ??? (libsystem_c.dylib + 17532) [0x19477447c]
+                                1   ??? (libsystem_c.dylib + 4872) [0x194771308]
+                                  1   ??? (libsystem_platform.dylib + 8060) [0x198b22f7c]
+                  1   ??? (diagnosticd + 36820) [0x10226cfd4]
+                    1   ??? (libxpc.dylib + 280704) [0x18ced1880]
+                      1   ??? (libxpc.dylib + 137920) [0x18ceaeac0]
+            11  ??? (libdispatch.dylib + 42768) [0x1bbb45710]
+              10  ??? (libdispatch.dylib + 101012) [0x1bbb53a94]
+                10  ??? (libdispatch.dylib + 105424) [0x1bbb54bd0]
+                  10  ??? (libdispatch.dylib + 26368) [0x1bbb41700]
+                    10  ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                      3   ??? (libsystem_kernel.dylib + 24296) [0x24510eee8]
+                        3   <Kernel mode>
+                      3   ??? (diagnosticd + 34244) [0x10226c5c4]
+                        2   ??? (LoggingSupport + 268480) [0x1cf9268c0]
+                          2   ??? (LoggingSupport + 114120) [0x1cf900dc8]
+                            1   ??? (libsystem_trace.dylib + 28324) [0x19afadea4]
+                            1   ??? (libsystem_malloc.dylib + 5372) [0x18ce3c4fc]
+                        1   ??? (LoggingSupport + 265640) [0x1cf925da8]
+                          1   ??? (libsystem_c.dylib + 46756) [0x19477b6a4]
+                      2   ??? (diagnosticd + 34280) [0x10226c5e8]
+                        2   ??? (diagnosticd + 5520) [0x102265590]
+                          2   ??? (libdispatch.dylib + 74028) [0x1bbb4d12c]
+                            2   ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                              1   ??? (libxpc.dylib + 5252) [0x18ce8e484]
+                              1   ??? (diagnosticd + 6404) [0x102265904]
+                                1   ??? (diagnosticd + 10768) [0x102266a10]
+                                  1   ??? (libxpc.dylib + 153756) [0x18ceb289c]
+                      1   ??? (diagnosticd + 34260) [0x10226c5d4]
+                        1   ??? (libsystem_trace.dylib + 74192) [0x19afb91d0]
+                          1   ??? (libsystem_trace.dylib + 71708) [0x19afb881c]
+                            1   ??? (libxpc.dylib + 143668) [0x18ceb0134]
+                              1   ??? (libdispatch.dylib + 11260) [0x1bbb3dbfc]
+                                1   ??? (libsystem_malloc.dylib + 4624) [0x18ce3c210]
+                      1   ??? (diagnosticd + 33640) [0x10226c368]
+                        1   ??? (libsystem_c.dylib + 30632) [0x1947777a8]
+                          1   ??? (libsystem_c.dylib + 31040) [0x194777940]
+                            1   ??? (libsystem_c.dylib + 55356) [0x19477d83c]
+                              1   ??? (libsystem_notify.dylib + 4148) [0x2cf06b034]
+                                1   ??? (libsystem_notify.dylib + 4528) [0x2cf06b1b0]
+                                  1   ??? (libsystem_notify.dylib + 3028) [0x2cf06abd4]
+              1   ??? (libdispatch.dylib + 100180) [0x1bbb53754]
+          1   ??? (libdispatch.dylib + 130320) [0x1bbb5ad10]
+            1   ??? (libdispatch.dylib + 151380) [0x1bbb5ff54]
+              1   ??? (libsystem_platform.dylib + 2336) [0x198b21920]
+                1   <Effective Thread QoS Default, Requested Thread QoS Default>
+          1   ??? (libdispatch.dylib + 46536) [0x1bbb465c8]
+            1   ??? (libdispatch.dylib + 13332) [0x1bbb3e414]
+              1   ??? (libobjc.A.dylib + 47008) [0x18cd037a0]
+          1   ??? (libdispatch.dylib + 46516) [0x1bbb465b4]
+            1   ??? (libdispatch.dylib + 13392) [0x1bbb3e450]
+              1   ??? (libobjc.A.dylib + 12452) [0x18ccfb0a4]
+                1   ??? (libobjc.A.dylib + 13284) [0x18ccfb3e4]
+      1   ??? (libdispatch.dylib + 87520) [0x1bbb505e0]
+        1   ??? (libdispatch.dylib + 152436) [0x1bbb60374]
+  4   ??? (libsystem_pthread.dylib + 2312) [0x18ce2e908]
+    4   <Kernel mode>
+
+  Binary Images:
+           0x102264000 -                ???  diagnosticd              <A36916AB-5A18-3D0E-BE35-5F26151F8132>  /usr/libexec/diagnosticd
+           0x18ccf8000 -        0x18cd458c7  libobjc.A.dylib          <E708DFC2-BA03-3C4C-8376-FFC11461C752>  /usr/lib/libobjc.A.dylib
+           0x18ce2e000 -        0x18ce3a247  libsystem_pthread.dylib  <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18ce3b000 -        0x18ce8c77f  libsystem_malloc.dylib   <CA3526A8-F722-3EA2-A9CD-41DB4F8BF294>  /usr/lib/system/libsystem_malloc.dylib
+           0x18ce8d000 -        0x18ceee3d3  libxpc.dylib             <98A38038-E2BA-36F4-933D-FC98CDEA2582>  /usr/lib/system/libxpc.dylib
+           0x194770000 -        0x1947f0ee3  libsystem_c.dylib        <18912EF8-9112-3316-9296-3052491AB886>  /usr/lib/system/libsystem_c.dylib
+           0x195d81000 -        0x195f59b2b  Security                 <71ACB297-3479-3D78-8DCF-31A7EA5055E8>  /System/Library/Frameworks/Security.framework/Security
+           0x198b21000 -        0x198b2967f  libsystem_platform.dylib <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x19afa7000 -        0x19afc6547  libsystem_trace.dylib    <1B016F3B-E58B-36FA-B078-A54E449E9960>  /usr/lib/system/libsystem_trace.dylib
+           0x1bbb3b000 -        0x1bbb81d5f  libdispatch.dylib        <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x1cf8e5000 -        0x1cf958cc7  LoggingSupport           <D4E48C0C-BAFF-339F-8A27-47D9E64B948B>  /System/Library/PrivateFrameworks/LoggingSupport.framework/LoggingSupport
+           0x1dfa12000 -        0x1dfac723f  libcorecrypto.dylib      <A73101FC-2475-361B-B188-67065A85CE72>  /usr/lib/system/libcorecrypto.dylib
+           0x245109000 -        0x2451461fb  libsystem_kernel.dylib   <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2cc80a000 -        0x2cc820edb  libcoretls.dylib         <D2EA67DE-A847-3B12-BAA5-20B771A93A6D>  /usr/lib/libcoretls.dylib
+           0x2ce0e6000 -        0x2ce0eeb9f  liblockdown.dylib        <3CDECFBA-6D15-3166-A34E-F5C4D133232B>  /usr/lib/liblockdown.dylib
+           0x2cf06a000 -        0x2cf07613b  libsystem_notify.dylib   <72B3F5F3-D00F-34C4-A6CF-CABF08EE9500>  /usr/lib/system/libsystem_notify.dylib
+
+
+Powerstats for:   kernel_task
+UUID:             1A040488-8215-3A6D-BBDF-E1D981010216
+Version:          Darwin Kernel Version 27.0.0: Tue Jul 14 21:26:37 PDT 2026; root:xnu-13432.0.94.502.2~2/RELEASE_ARM64_T8122
+Resource Coalition: 33 samples 1
+Architecture:     arm64
+Start time:       2026-08-12 07:48:48.254 +0300
+End time:         2026-08-12 07:50:10.684 +0300
+Num samples:      33 (35%)
+Energy:           18.91 mWh
+Primary state:    33 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Unspecified, Requested Thread QoS Unspecified, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 33 samples Active
+Power Source:     0 samples on Battery, 33 samples on AC
+ *24  ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7982040) [0xfffffff00af08bd8]
+   *24  ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7979768) [0xfffffff00af082f8]
+     *24  ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7993096) [0xfffffff00af0b708]
+       *22  ??? (AppleUSBXDCI + 93768) [0xfffffff00a292128]
+         *21  ??? (AppleUSBXDCI + 96108) [0xfffffff00a292a4c]
+           *11  ??? (IOUSBDeviceFamily + 95084) [0xfffffff00a26664c]
+             *9   ??? (AppleUSBDeviceMux + 4008) [0xfffffff009867638]
+               *9   ??? (AppleUSBDeviceMux + 10096) [0xfffffff009868e00]
+                 *7   ??? (AppleUSBDeviceMux + 10804) [0xfffffff0098690c4]
+                   *7   ??? (AppleUSBDeviceMux + 19012) [0xfffffff00986b0d4]
+                     *7   ??? (IOUSBDeviceFamily + 36064) [0xfffffff00a257fc0]
+                       *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                         *7   ??? (IOUSBDeviceFamily + 37000) [0xfffffff00a258368]
+                           *7   ??? (IOUSBDeviceFamily + 109252) [0xfffffff00a269da4]
+                             *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                               *5   ??? (AppleUSBXDCI + 22020) [0xfffffff00a2808e4]
+                                 *3   ??? (IOUSBDeviceFamily + 166896) [0xfffffff00a277ed0]
+                                   *3   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8038876) [0xfffffff00af169dc]
+                                     *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8037092) [0xfffffff00af162e4]
+                                       *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8095140) [0xfffffff00af245a4]
+                                         *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8097464) [0xfffffff00af24eb8]
+                                           *1   ??? (IODARTFamily + 37340) [0xfffffff009ceb27c]
+                                             *1   ??? (IODARTFamily + 39212) [0xfffffff009ceb9cc]
+                                               *1   ??? (IODARTFamily + 42528) [0xfffffff009cec6c0]
+                                                 *1   ??? (IODARTFamily + 43828) [0xfffffff009cecbd4]
+                                                   *1   ??? (AppleT8110DART + 26984) [0xfffffff0096c9fe8]
+                                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1848228) [0xfffffff00a92f3a4]
+                                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2000608) [0xfffffff00a9546e0]
+                                                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8938408) [0xfffffff00aff23a8]
+                                           *1   ??? (IODARTFamily + 37104) [0xfffffff009ceb190]
+                                             *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8096136) [0xfffffff00af24988]
+                                               *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1444904) [0xfffffff00a8ccc28]
+                                     *1   ??? (IOUSBDeviceFamily + 167740) [0xfffffff00a27821c]
+                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8073816) [0xfffffff00af1f258]
+                                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1896028) [0xfffffff00a93ae5c]
+                                           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 9072572) [0xfffffff00b012fbc]
+                                 *2   ??? (IOUSBDeviceFamily + 166832) [0xfffffff00a277e90]
+                                   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8028996) [0xfffffff00af14344]
+                                     *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8023540) [0xfffffff00af12df4]
+                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7606180) [0xfffffff00aeacfa4]
+                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7606180) [0xfffffff00aeacfa4]
+                                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1171364) [0xfffffff00a889fa4]
+                                           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1197592) [0xfffffff00a890618]
+                                             *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1297020) [0xfffffff00a8a8a7c]
+                                               *1   ??? (corecrypto + 376636) [0xfffffff00a72d37c]
+                                                 *1   ??? (corecrypto + 153956) [0xfffffff00a6f6da4]
+                                                   *1   ??? (corecrypto + 238360) [0xfffffff00a70b758]
+                               *2   ??? (AppleUSBXDCI + 24436) [0xfffffff00a281254]
+                                 *2   ??? (AppleUSBXDCI + 30988) [0xfffffff00a282bec]
+                                   *2   ??? (AppleUSBXDCI + 103332) [0xfffffff00a294684]
+                                     *2   ??? (AppleUSBXDCI + 6304) [0xfffffff00a27cb80]
+                                       *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 9072972) [0xfffffff00b01314c]
+                 *2   ??? (AppleUSBDeviceMux + 10980) [0xfffffff009869174]
+                   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 6310060) [0xfffffff00ad708ac]
+                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 6168532) [0xfffffff00ad4dfd4]
+                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 6172832) [0xfffffff00ad4f0a0]
+                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 6106364) [0xfffffff00ad3ecfc]
+                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 6168504) [0xfffffff00ad4dfb8]
+                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4441080) [0xfffffff00aba83f8]
+                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4332304) [0xfffffff00ab8db10]
+                           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4336508) [0xfffffff00ab8eb7c]
+                             *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4229632) [0xfffffff00ab74a00]
+                               *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2878696) [0xfffffff00aa2ace8]
+                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2900080) [0xfffffff00aa30070]
+                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2816452) [0xfffffff00aa1b9c4]
+                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2874152) [0xfffffff00aa29b28]
+                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 833288) [0xfffffff00a837708]
+                                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 830180) [0xfffffff00a836ae4]
+             *2   ??? (AppleUSBDeviceMux + 3036) [0xfffffff00986726c]
+               *2   ??? (AppleUSBDeviceMux + 5684) [0xfffffff009867cc4]
+                 *2   ??? (IOUSBDeviceFamily + 36064) [0xfffffff00a257fc0]
+                   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                     *2   ??? (IOUSBDeviceFamily + 37000) [0xfffffff00a258368]
+                       *2   ??? (IOUSBDeviceFamily + 109252) [0xfffffff00a269da4]
+                         *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                           *2   ??? (AppleUSBXDCI + 22020) [0xfffffff00a2808e4]
+                             *1   ??? (IOUSBDeviceFamily + 166896) [0xfffffff00a277ed0]
+                               *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8038876) [0xfffffff00af169dc]
+                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8037092) [0xfffffff00af162e4]
+                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8095140) [0xfffffff00af245a4]
+                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8097464) [0xfffffff00af24eb8]
+                                       *1   ??? (IODARTFamily + 37340) [0xfffffff009ceb27c]
+                                         *1   ??? (IODARTFamily + 39212) [0xfffffff009ceb9cc]
+                                           *1   ??? (IODARTFamily + 42528) [0xfffffff009cec6c0]
+                                             *1   ??? (IODARTFamily + 43828) [0xfffffff009cecbd4]
+                                               *1   ??? (AppleT8110DART + 26984) [0xfffffff0096c9fe8]
+                                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1848228) [0xfffffff00a92f3a4]
+                                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2000608) [0xfffffff00a9546e0]
+                                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8938408) [0xfffffff00aff23a8]
+                             *1   ??? (IOUSBDeviceFamily + 166484) [0xfffffff00a277d34]
+                               *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8089904) [0xfffffff00af23130]
+                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8091856) [0xfffffff00af238d0]
+                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1425336) [0xfffffff00a8c7fb8]
+                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1609364) [0xfffffff00a8f4e94]
+           *9   ??? (AppleUSBXDCI + 43188) [0xfffffff00a285b94]
+             *9   ??? (AppleUSBXDCI + 24840) [0xfffffff00a2813e8]
+               *7   ??? (IOUSBDeviceFamily + 167120) [0xfffffff00a277fb0]
+                 *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8038204) [0xfffffff00af1673c]
+                   *7   ??? (IOUSBDeviceFamily + 167796) [0xfffffff00a278254]
+                     *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8036176) [0xfffffff00af15f50]
+                       *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8094712) [0xfffffff00af243f8]
+                         *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8075172) [0xfffffff00af1f7a4]
+                           *5   ??? (IODARTFamily + 44744) [0xfffffff009cecf68]
+                             *5   ??? (IODARTFamily + 45604) [0xfffffff009ced2c4]
+                               *5   ??? (IODARTFamily + 34356) [0xfffffff009cea6d4]
+                                 *5   ??? (IODARTFamily + 43828) [0xfffffff009cecbd4]
+                                   *5   ??? (AppleT8110DART + 26984) [0xfffffff0096c9fe8]
+                                     *5   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1848228) [0xfffffff00a92f3a4]
+                                       *5   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1997632) [0xfffffff00a953b40]
+                                         *5   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8938448) [0xfffffff00aff23d0]
+                                           *5   ??? [0xfffffff02709a314]
+                                             *5   ??? [0xfffffff02709a4fc]
+                                               *5   ??? [0xfffffff0270c655c]
+                                                 *5   ??? [0xfffffff0270dfd3c]
+                                                   *2   ??? [0xfffffff0270ded70]
+                                                   *1   ??? [0xfffffff0270dee20]
+                                                   *1   ??? [0xfffffff0270dee0c]
+                                                   *1   ??? [0xfffffff0270ded5c]
+                                                     *1   ??? [0xfffffff0270dcbfc]
+                           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 586796) [0xfffffff00a7fb42c]
+                           *1   ??? (IODARTFamily + 44660) [0xfffffff009cecf14]
+               *2   ??? (IOUSBDeviceFamily + 167240) [0xfffffff00a278028]
+                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8024844) [0xfffffff00af1330c]
+                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7606636) [0xfffffff00aead16c]
+                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1179828) [0xfffffff00a88c0b4]
+                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1232708) [0xfffffff00a898f44]
+                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1184656) [0xfffffff00a88d390]
+                           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1185980) [0xfffffff00a88d8bc]
+                             *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1158732) [0xfffffff00a886e4c]
+                               *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1159596) [0xfffffff00a8871ac]
+                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1140816) [0xfffffff00a882850]
+                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8024800) [0xfffffff00af132e0]
+                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8101444) [0xfffffff00af25e44]
+                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8077040) [0xfffffff00af1fef0]
+           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 866964) [0xfffffff00a83fa94]
+         *1   ??? (AppleUSBXDCI + 94372) [0xfffffff00a292384]
+       *2   ??? (AppleUSBXDCI + 58992) [0xfffffff00a289950]
+         *2   ??? (AppleUSBXDCI + 50388) [0xfffffff00a2877b4]
+           *2   ??? (AppleUSBXDCI + 121480) [0xfffffff00a298d68]
+ *3   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 583700) [0xfffffff00a7fa814]
+   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 583084) [0xfffffff00a7fa5ac]
+     *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1920804) [0xfffffff00a940f24]
+        1   <e-core>
+   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 583088) [0xfffffff00a7fa5b0]
+ *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2872772) [0xfffffff00aa295c4]
+   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2864828) [0xfffffff00aa276bc]
+     *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2867556) [0xfffffff00aa28164]
+       *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2901528) [0xfffffff00aa30618]
+         *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 3169628) [0xfffffff00aa71d5c]
+           *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4203940) [0xfffffff00ab6e5a4]
+             *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4213020) [0xfffffff00ab7091c]
+               *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 4291168) [0xfffffff00ab83a60]
+                 *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 3377232) [0xfffffff00aaa4850]
+                   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 3361272) [0xfffffff00aaa09f8]
+ *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7982164) [0xfffffff00af08c54]
+ *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7981952) [0xfffffff00af08b80]
+ *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2872484) [0xfffffff00aa294a4]
+ *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 582864) [0xfffffff00a7fa4d0]
+    1   <e-core>
+
+  Binary Images:
+   *0xfffffff0096c3680 - 0xfffffff0096d2faf  com.apple.driver.AppleT8110DART (1)          <EA2BA703-6E71-3993-A3ED-5BBDF35C98A0>__TEXT_EXEC  /System/Library/Extensions/AppleT8110DART.kext/AppleT8110DART
+   *0xfffffff009866690 - 0xfffffff00986c447  com.apple.driver.AppleUSBDeviceMux (1.0.0d1) <EBA18C97-A879-396B-BF8E-4E498E70C0C4>__TEXT_EXEC  /System/Library/Extensions/AppleUSBDeviceMux.kext/AppleUSBDeviceMux
+   *0xfffffff009ce20a0 - 0xfffffff009cf610f  com.apple.driver.IODARTFamily (1)            <DCE483E2-2B8E-330E-A89E-AE426CD71CB7>__TEXT_EXEC  /System/Library/Extensions/IODARTFamily.kext/IODARTFamily
+   *0xfffffff00a24f2e0 - 0xfffffff00a27a7e7  com.apple.iokit.IOUSBDeviceFamily (2.0.0)    <6357F10B-38DD-3005-B52F-9397AA044949>__TEXT_EXEC  /System/Library/Extensions/IOUSBDeviceFamily.kext/IOUSBDeviceFamily
+   *0xfffffff00a27b2e0 - 0xfffffff00a29a6db  com.apple.driver.AppleUSBXDCI (1.0)          <63A14D57-16D5-31CA-B1D5-DB846DD0DAF6>__TEXT_EXEC  /System/Library/Extensions/IOUSBDeviceFamily.kext/PlugIns/AppleUSBXDCI.kext/AppleUSBXDCI
+   *0xfffffff00a6d1440 - 0xfffffff00a73b76b  com.apple.kec.corecrypto (27.0)              <F4D7E122-9D22-3E50-8567-8874F2E0A730>__TEXT_EXEC  /System/Library/Extensions/corecrypto.kext/corecrypto
+   *0xfffffff00a76c000 - 0xfffffff00b013fff  ??? (27.0.0)                                 <1A040488-8215-3A6D-BBDF-E1D981010216>__TEXT_EXEC
+
+
+Powerstats for:   fuzz27
+UUID:             9DAF4A62-2CE9-33D5-B7F3-D8A6DFFEB94B
+Path:             /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27
+Identifier:       cancer9725.turquoise1323
+Version:          1 (1)
+Is First Party:   No
+Beta Identifier:  F9A2E63F-A010-4485-B900-C5DA6D77D6C1
+Resource Coalition: 19 samples "cancer9725.turquoise1323"(4389)
+Architecture:     arm64
+Start time:       2026-08-12 07:48:36.570 +0300
+End time:         2026-08-12 07:50:09.676 +0300
+Num samples:      19 (20%)
+Energy:           25.26 mWh
+Primary state:    16 samples Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 19 samples Active
+Power Source:     0 samples on Battery, 19 samples on AC
+  19  ??? (libsystem_pthread.dylib + 2332) [0x18ce2e91c]
+    19  ??? (libsystem_pthread.dylib + 16444) [0x18ce3203c]
+      16  ??? (fuzz27 + 19384) [0x104da8bb8]
+        16  ??? (IOKit + 6328) [0x19bb028b8]
+          15  ??? (IOKit + 6892) [0x19bb02aec]
+            15  ??? (libsystem_kernel.dylib + 3284) [0x245109cd4]
+              1   <e-core>
+          1   ??? (libsystem_platform.dylib + 4436) [0x198b22154]
+            1   <User mode>
+      3   ??? (fuzz27 + 19184) [0x104da8af0]
+        1   ??? (fuzz27 + 17280) [0x104da8380]
+          1   <User mode>
+        1   ??? (fuzz27 + 16992) [0x104da8260]
+        1   ??? (fuzz27 + 16896) [0x104da8200]
+          1   <User mode>
+
+  Binary Images:
+           0x104da4000 -                ???  cancer9725.turquoise1323 1 (1) <9DAF4A62-2CE9-33D5-B7F3-D8A6DFFEB94B>  /private/var/containers/Bundle/Application/F09FE1CF-406E-42CC-BE5B-3FC0443B9D84/fuzz27.app/fuzz27
+           0x18ce2e000 -        0x18ce3a247  libsystem_pthread.dylib        <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x198b21000 -        0x198b2967f  libsystem_platform.dylib       <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x19bb01000 -        0x19bbc835f  IOKit                          <B9F62B79-FD09-3488-8FC9-39218AD85245>  /System/Library/Frameworks/IOKit.framework/Versions/A/IOKit
+           0x245109000 -        0x2451461fb  libsystem_kernel.dylib         <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
