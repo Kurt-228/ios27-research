@@ -117,7 +117,7 @@ static void probe_v8(io_connect_t conn, IOSurfaceID s1, IOSurfaceID s2) {
                 kr = IOConnectCallMethod(conn, sel, NULL, 0, sz ? req : NULL, sz,
                                          osc, &nosc, osz ? out : NULL, &osz);
                 LOG("[p1] sel %2u sz 0x%-4zx outsz 0x%-4zx -> kr 0x%08x nosc %u osz %zu",
-                    sel, sz, ov ? 0x298 : 0, kr, nosc, osz);
+                    sel, sz, (size_t)(ov ? 0x298 : 0), kr, nosc, osz);
                 if (kr == 0 && osz) dump_out("[p1]", out, osz);
             }
         }
