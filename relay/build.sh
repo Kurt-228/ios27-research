@@ -44,6 +44,7 @@ codesign --force --sign "$IDENT" --entitlements fuzzer/ent.plist \
 rm -rf build
 mkdir -p build
 ditto --norsrc "$OUT" "$FINAL_OUT"
-xattr -d com.apple.FinderInfo "$FINAL_OUT" 2>/dev/null || true
-xattr -d 'com.apple.fileprovider.fpfs#P' "$FINAL_OUT" 2>/dev/null || true
+# File Provider/Finder can reapply metadata to nested bundle entries while the
+# final app is staged; remove it recursively so codesign sees a clean bundle.
+xattr -rc "$FINAL_OUT" 2>/dev/null || true
 echo "[build] OK -> $FINAL_OUT"

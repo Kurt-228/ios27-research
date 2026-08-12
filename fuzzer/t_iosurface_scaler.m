@@ -1,6 +1,6 @@
 // Target: AppleM2ScalerCSCDriver — probe v2 (selector arg signatures + sel11 OOB test)
 #include "fuzz.h"
-#include <IOSurface/IOSurface.h>
+#include <IOSurface/IOSurfaceRef.h>
 
 #define REQ_SZ 0x1b0
 
