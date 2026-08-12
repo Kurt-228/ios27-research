@@ -1,1 +1,2 @@
-placeholder — real content in docs/SPTM_jitbox_final_report.md (fetch from repo)
+# moved
+See `SPTM_research_journal_part2.md`.
