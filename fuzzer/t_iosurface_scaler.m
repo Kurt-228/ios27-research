@@ -1,12 +1,6 @@
 // Target: AppleM2ScalerCSCDriver (rewritten in iOS 27, attached to IOSurfaceRoot)
-// Sec.32 map: M2ScalerCSCRequest is fed from user struct x21 (~0x1b0 bytes):
-//   +0x00: two u32 (pair A)        +0x20: flags bitfield
-//   +0x28/0x30/0x38/0x40: fixed-point floats
-//   +0x50/0x58: two u64 (surface objs src/dst pair)
-//   +0x60/0x68: dims pairs (width,height; zero-checked)
-//   +0xa8..0x114: rects/misc, +0x110: 4 records x 0x28
 #include "fuzz.h"
-#include <IOSurface/IOSurfaceRef.h>
+#include <IOSurface/IOSurface.h>
 
 #define REQ_SZ 0x1b0
 
@@ -18,16 +12,13 @@ static void craft_request(uint8_t *r, IOSurfaceID sid) {
         *(uint32_t *)(r + 0x60) = 0x3f800000;
         *(uint32_t *)(r + 0x64) = 0x3f800000;
     }
-    // surface id pair: the driver's surface-map branch (sec.32) needs [req+0xd0]!=0.
-    // [req+0xd0]/[req+0xd8/0xe0] sit inside the x21 struct; we don't know their exact
-    // offsets yet — spray the real id across the struct at likely spots + random offsets.
     if (sid) {
         *(uint64_t *)(r + 0x50) = sid;
         *(uint64_t *)(r + 0x58) = sid;
-        *(uint32_t *)(r + 0xd0) = (uint32_t)sid;          // candidate surface-id field
+        *(uint32_t *)(r + 0xd0) = (uint32_t)sid;
         if (frand() & 1) {
             size_t off = (frand_range(0, REQ_SZ - 8)) & ~7ULL;
-            *(uint64_t *)(r + off) = sid;                 // shotgun: id somewhere else
+            *(uint64_t *)(r + off) = sid;
         }
         if ((frand() & 3) == 0)
             *(uint64_t *)(r + 0xd0) = sid + (uint64_t)frand_range(0, 0x100);
@@ -35,11 +26,10 @@ static void craft_request(uint8_t *r, IOSurfaceID sid) {
 }
 
 static IOSurfaceRef make_surface(void) {
-    int w = 64, h = 64, bpe = 4;
+    int w = 64, h = 64, bpe = 4, fmt = 0x42475241;
     CFNumberRef W = CFNumberCreate(NULL, kCFNumberIntType, &w);
     CFNumberRef H = CFNumberCreate(NULL, kCFNumberIntType, &h);
     CFNumberRef B = CFNumberCreate(NULL, kCFNumberIntType, &bpe);
-    int fmt = 0x42475241;
     CFNumberRef F = CFNumberCreate(NULL, kCFNumberIntType, &fmt);
     const void *keys[] = { kIOSurfaceWidth, kIOSurfaceHeight, kIOSurfaceBytesPerElement, kIOSurfacePixelFormat };
     const void *vals[] = { W, H, B, F };
@@ -47,9 +37,36 @@ static IOSurfaceRef make_surface(void) {
         &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
     IOSurfaceRef s = IOSurfaceCreate(props);
     CFRelease(props); CFRelease(W); CFRelease(H); CFRelease(B); CFRelease(F);
-    if (s) LOG("[iosf] IOSurfaceCreate -> id %u", IOSurfaceGetID(s));
-    else LOG("[iosf] IOSurfaceCreate failed");
     return s;
+}
+
+// probe: map selector return codes. For each selector try:
+//  (a) struct input 8 bytes, (b) struct input 0x1b0, (c) scalar input only
+// Codes meaning (IOKit): 0x0 ok, 0xe00002c2 bad selector/unsupported,
+//  0xe00002c7 bad argument count, 0xe00002bc bad argument, 0xe00002f0 not privileged,
+//  0xe00002e2 not permitted, 0xe00002c9 exclusive/offline
+static void probe(io_connect_t conn, IOSurfaceID sid) {
+    uint8_t small[8] = {0};
+    uint8_t *req = must_map(REQ_SZ);
+    uint64_t scalars[4] = { 1, 2, 3, 4 };
+    *(uint64_t *)small = sid;
+    LOG("[probe] selector map start");
+    for (uint32_t sel = 0; sel < 32; sel++) {
+        uint64_t out[16] = {0}; size_t outsz;
+        outsz = sizeof(out);
+        kern_return_t ka = IOConnectCallMethod(conn, sel, NULL, 0, small, 8, NULL, NULL, out, &outsz);
+        size_t osza = outsz;
+        craft_request(req, sid);
+        outsz = sizeof(out);
+        kern_return_t kb = IOConnectCallMethod(conn, sel, NULL, 0, req, REQ_SZ, NULL, NULL, out, &outsz);
+        size_t oszb = outsz;
+        outsz = sizeof(out);
+        kern_return_t kc = IOConnectCallMethod(conn, sel, scalars, 4, NULL, 0, NULL, NULL, out, &outsz);
+        LOG("[probe] sel %2u: struct8=0x%08x struct1b0=0x%08x scalar4=0x%08x outsz=%zu/%zu/%zu",
+            sel, ka, kb, kc, osza, oszb, outsz);
+        usleep(2000);
+    }
+    LOG("[probe] selector map end");
 }
 
 void *t_iosurface_scaler(void *arg) {
@@ -64,12 +81,11 @@ void *t_iosurface_scaler(void *arg) {
     io_connect_t conn = 0;
     for (int i = 0; names[i] && !conn; i++)
         conn = open_service(names[i], 0);
-    if (!conn) {
-        LOG("[scaler] not directly openable (unexpected: was openable at first run)");
-        return NULL;
-    }
+    if (!conn) { LOG("[scaler] not openable"); return NULL; }
 
-    // throttle: stay under symptomsd CPU watchdog (90s/180s -> keep ~45% duty)
+    static int probed = 0;
+    if (!probed) { probed = 1; probe(conn, sid); }
+
     for (long round = 0;; round++) {
         craft_request(req, sid);
         uint32_t sel = (uint32_t)frand_range(0, 15);
@@ -81,7 +97,6 @@ void *t_iosurface_scaler(void *arg) {
             LOG("[scaler] sel %u -> 0x%x", sel, kr);
         sched_yield();
         if ((round & 0x3ff) == 0) usleep(300);
-        // occasionally create/destroy surfaces alongside
         if ((round & 0x3fff) == 0 && surf) { CFRelease(surf); surf = make_surface(); sid = surf ? IOSurfaceGetID(surf) : 0; }
     }
     return NULL;
