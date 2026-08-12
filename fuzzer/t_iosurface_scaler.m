@@ -6,7 +6,7 @@
 //   +0x60/0x68: dims pairs (width,height; zero-checked)
 //   +0xa8..0x114: rects/misc, +0x110: 4 records x 0x28
 #include "fuzz.h"
-#include <IOSurface/IOSurface.h>
+#include <IOSurface/IOSurfaceRef.h>
 
 #define REQ_SZ 0x1b0
 
