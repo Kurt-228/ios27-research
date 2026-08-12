@@ -1,0 +1,100 @@
+00:23:31  Acquired tunnel connection to device.
+00:23:31  Enabling developer disk image services.
+00:23:31  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7103
+[scaler] conn 0x7103, s1 18 s2 85
+[probe8] SetNotificationPort -> 0x00000000
+[probe8] P1 sync matrix sel 0..11, outsz {0, 0x298}
+[p1] sel  0 sz 0x0    outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  0 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  0 sz 0x0    outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  0 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  0 sz 0x40   outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  0 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  1 sz 0x1b0  outsz 0x0    -> kr 0xe00002f0 nosc 0 osz 0
+[p1] sel  1 sz 0x1b0  outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  1 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  1 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  1 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  1 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  2 sz 0x0    outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  2 sz 0x0    outsz 0x298  -> kr 0xe00002c7 nosc 0 osz 664
+[p1] sel  2 sz 0x0    outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  2 sz 0x0    outsz 0x298  -> kr 0xe00002c7 nosc 0 osz 664
+[p1] sel  2 sz 0x40   outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  2 sz 0x40   outsz 0x298  -> kr 0xe00002c7 nosc 0 osz 664
+[p1] sel  3 sz 0x0    outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  3 sz 0x0    outsz 0x298  -> kr 0xe00002c7 nosc 0 osz 664
+[p1] sel  3 sz 0x0    outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  3 sz 0x0    outsz 0x298  -> kr 0xe00002c7 nosc 0 osz 664
+[p1] sel  3 sz 0x40   outsz 0x0    -> kr 0xe00002c7 nosc 0 osz 0
+[p1] sel  3 sz 0x40   outsz 0x298  -> kr 0xe00002c7 nosc 0 osz 664
+[p1] sel  4 sz 0x20   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  4 sz 0x20   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  4 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  4 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  4 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  4 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  5 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  5 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  5 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  5 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  5 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  5 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  6 sz 0xfa8  outsz 0x0    -> kr 0xe00002e2 nosc 0 osz 0
+[p1] sel  6 sz 0xfa8  outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  6 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  6 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  6 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  6 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  7 sz 0x8    outsz 0x0    -> kr 0x00000001 nosc 0 osz 0
+[p1] sel  7 sz 0x8    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  7 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  7 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  7 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  7 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  8 sz 0x8    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  8 sz 0x8    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  8 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  8 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  8 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  8 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  9 sz 0x10   outsz 0x0    -> kr 0xe00002bd nosc 0 osz 0
+[p1] sel  9 sz 0x10   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  9 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  9 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel  9 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel  9 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel 10 sz 0x18   outsz 0x0    -> kr 0x00000000 nosc 0 osz 0
+[p1] sel 10 sz 0x18   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel 10 sz 0x0    outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel 10 sz 0x0    outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel 10 sz 0x40   outsz 0x0    -> kr 0xe00002c2 nosc 0 osz 0
+[p1] sel 10 sz 0x40   outsz 0x298  -> kr 0xe00002c2 nosc 0 osz 664
+[p1] sel 11 sz 0x0    outsz 0x0    -> kr 0x00000000 nosc 0 osz 0
+[p1] sel 11 sz 0x0    outsz 0x298  -> kr 0x00000000 nosc 0 osz 664
+[p1] out: 13 00 00 00 04 00 0e 00 01 01 01 01 01 01 01 01
+[p1] sel 11 sz 0x0    outsz 0x0    -> kr 0x00000000 nosc 0 osz 0
+[p1] sel 11 sz 0x0    outsz 0x298  -> kr 0x00000000 nosc 0 osz 664
+[p1] out: 13 00 00 00 04 00 0e 00 01 01 01 01 01 01 01 01
+[p1] sel 11 sz 0x40   outsz 0x0    -> kr 0x00000000 nosc 0 osz 0
+[p1] sel 11 sz 0x40   outsz 0x298  -> kr 0x00000000 nosc 0 osz 664
+[p1] out: 13 00 00 00 04 00 0e 00 01 01 01 01 01 01 01 01
+[probe8] P2 valid async attempts
+[p2] async sel  1 (valid) -> kr 0xe00002bf osz 8192
+[p2] async sel  6 (valid) -> kr 0xe00002bf osz 8192
+[p2] async sel  7 (valid) -> kr 0xe00002bf osz 8192
+[p2] async sel  8 (valid) -> kr 0xe00002bf osz 8192
+[p2] async sel  9 (valid) -> kr 0xe00002bf osz 8192
+[p2] async sel 10 (valid) -> kr 0xe00002bf osz 8192
+[probe8] P2 done, waiting 6s for completions
+[probe8] end
+App terminated due to signal 15.
