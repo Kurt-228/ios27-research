@@ -1,0 +1,565 @@
+{"duration_ms":"156047","share_with_app_devs":0,"roots_installed":0,"bug_type":"202","os_version":"iPhone OS 27.0 (24A5390f)","slice_uuid":"E2F4C1C3-4229-3259-B79F-522E0CC8FD6D","is_first_party":1,"incident_id":"45D92EBC-F376-445D-B642-E06749996E7C","timestamp":"2026-08-12 08:21:14.00 +0300","app_name":"afcd","name":"afcd"}
+Date/Time:        2026-08-12 08:18:36.554 +0300
+End time:         2026-08-12 08:21:12.601 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 45D92EBC-F376-445D-B642-E06749996E7C
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18c8f4000
+
+Command:          afcd
+Path:             /usr/libexec/afcd
+Resource Coalition: "com.apple.crashreportcopymobile"(4396)
+On Behalf Of:     17 samples UNKNOWN [14885] (17 samples originated by UNKNOWN [14885])
+Architecture:     arm64e
+Parent:           UNKNOWN [1]
+PID:              21578
+
+Event:            cpu usage
+Action taken:     none
+CPU:              90 seconds cpu time over 156 seconds (58% cpu average), exceeding limit of 50% cpu over 180 seconds
+CPU limit:        90s
+Limit duration:   180s
+CPU used:         90s
+CPU duration:     156s
+Duration:         156.05s
+Duration Sampled: 154.21s (event starts 0.23s before samples, event ends 1.60s after samples)
+Steps:            82 (10 gigacycles/step, 122 samples lost)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 9.89% (674.48 MB / 6819.12 MB)
+
+Time Since Boot:  361068s
+Time Awake Since Boot: 269182s
+Time Since Wake:  33082s
+
+Total CPU Time:   294.596s
+Advisory levels:  Battery -> 3, User -> 3, ThermalPressure -> 20, Combined -> 2
+Free disk space:  143.45 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 63.66% (17826/28000, 14000 allocated, 14000 soft limit)
+Model:            com.apple.fm.language.instruct_3b.tokenizer
+  Loaded:         -48s - 15s, requested by token-generation-inference
+  Loaded:         140s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification
+  Loaded:         140s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.base
+  Loaded:         140s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification?language=en
+  Executing:      140s - 140s, requested by [247] use case classification.classifyUserNotification
+  Executing:      140s - 140s, requested by [247] use case classification.classifyMailMessage
+  Executing:      140s - 140s, requested by [247] use case classification.classifyMailMessage
+  Executing:      140s - 140s, requested by [247] use case classification.classifyUserNotification
+  Executing:      140s - 140s, requested by [247] use case classification.classifyUserNotification
+  Executing:      140s - 140s, requested by [247] use case classification.classifyUserNotification
+  Executing:      140s - 140s, requested by [247] use case classification.classifyUserNotification
+  Executing:      140s - 140s, requested by [247] use case classification.classifyUserNotification
+  Executing:      140s - 140s, requested by [247] use case classification.classifyMailMessage
+  Executing:      140s - 140s, requested by [247] use case classification.classifyMailMessage
+  Executing:      150s - 150s, requested by [247] use case classification.classifyTextMessage
+  Executing:      150s - 150s, requested by [247] use case classification.classifyTextMessage
+  Executing:      150s - 150s, requested by [247] use case classification.classifyTextMessage
+  Executing:      150s - 150s, requested by [247] use case classification.classifyTextMessage
+  Executing:      150s - 150s, requested by [247] use case classification.classifyTextMessage
+  Executing:      150s - 150s, requested by [247] use case classification.classifyTextMessage
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        ru_RU Russian, en_US QWERTY
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  23  ??? (libsystem_pthread.dylib + 2320) [0x18ce2e910]
+  23  ??? (libsystem_pthread.dylib + 4604) [0x18ce2f1fc]
+  23  ??? (libdispatch.dylib + 86256) [0x1bbb500f0]
+  23  ??? (libdispatch.dylib + 84748) [0x1bbb4fb0c]
+  23  ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+  23  ??? (afcd + 6352) [0x100d518d0]
+  13  ??? (libafc.dylib + 4932) [0x2cc4bc344]
+  8   ??? (libafc.dylib + 19932) [0x2cc4bfddc]
+  2   ??? (libafc.dylib + 36316) [0x2cc4c3ddc]
+  2   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+  2   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+  2   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+  2   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+  1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+  1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+  1   ??? (libdispatch.dylib + 28172) [0x1bbb41e0c]
+  1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+  1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+  1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+
+
+Powerstats for:   afcd [21578]
+UUID:             E2F4C1C3-4229-3259-B79F-522E0CC8FD6D
+Path:             /usr/libexec/afcd
+Resource Coalition: 24 samples "com.apple.crashreportcopymobile"(4396)
+On Behalf Of:     17 samples UNKNOWN [14885] (17 samples originated by UNKNOWN [14885])
+Architecture:     arm64e
+Parent:           UNKNOWN [1]
+UID:              501
+Sudden Term:      Tracked (allows idle exit)
+Footprint:        2336 KB
+Start time:       2026-08-12 08:18:43.804 +0300
+End time:         2026-08-12 08:21:10.998 +0300
+Num samples:      24 (29%)
+Energy:           26.67 mWh
+Num threads:      2
+Primary state:    12 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 24 samples Active
+Power Source:     0 samples on Battery, 24 samples on AC
+  23  ??? (libsystem_pthread.dylib + 2320) [0x18ce2e910]
+    23  ??? (libsystem_pthread.dylib + 4604) [0x18ce2f1fc]
+      23  ??? (libdispatch.dylib + 86256) [0x1bbb500f0]
+        23  ??? (libdispatch.dylib + 84748) [0x1bbb4fb0c]
+          23  ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+            23  ??? (afcd + 6352) [0x100d518d0]
+              13  ??? (libafc.dylib + 4932) [0x2cc4bc344]
+                8   ??? (libafc.dylib + 19932) [0x2cc4bfddc]
+                  2   ??? (libafc.dylib + 36316) [0x2cc4c3ddc]
+                    2   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                      2   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        2   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          2   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                              1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                1   ??? (libdispatch.dylib + 28172) [0x1bbb41e0c]
+                                  1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+                                    1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+                                      1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+                                        1   <Kernel mode>
+                            1   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                              1   ??? (dyld + 224972) [0x18cdacecc]
+                                1   ??? (dyld + 5400) [0x18cd77518]
+                                  1   ??? (dyld + 12004) [0x18cd78ee4]
+                                    1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                  2   ??? (libafc.dylib + 35756) [0x2cc4c3bac]
+                    2   ??? (libsystem_trace.dylib + 13824) [0x19afaa600]
+                      2   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        2   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          2   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73380) [0x19afb8ea4]
+                              1   ??? (libsystem_trace.dylib + 74192) [0x19afb91d0]
+                                1   ??? (libsystem_trace.dylib + 72744) [0x19afb8c28]
+                                  1   ??? (libsystem_trace.dylib + 76984) [0x19afb9cb8]
+                                    1   ??? (libdispatch.dylib + 168500) [0x1bbb64234]
+                                      1   ??? (libsystem_kernel.dylib + 12908) [0x24510c26c]
+                                        1   ??? (libsystem_kernel.dylib + 3284) [0x245109cd4]
+                                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), Kernel mode>
+                            1   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                              1   ??? (dyld + 224972) [0x18cdacecc]
+                                1   ??? (dyld + 5400) [0x18cd77518]
+                                  1   ??? (dyld + 12004) [0x18cd78ee4]
+                                    1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                  2   ??? (libafc.dylib + 35628) [0x2cc4c3b2c]
+                    2   ??? (Security + 247460) [0x195dbd6a4]
+                      2   ??? (Security + 246256) [0x195dbd1f0]
+                        2   ??? (libsystem_kernel.dylib + 26192) [0x24510f650]
+                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), Kernel mode>
+                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), Kernel mode, e-core>
+                  1   ??? (libafc.dylib + 36224) [0x2cc4c3d80]
+                    1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                      1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        1   ??? (libsystem_trace.dylib + 6024) [0x19afa8788]
+                          1   ??? (libsystem_trace.dylib + 67392) [0x19afb7740]
+                            1   ??? (dyld + 11148) [0x18cd78b8c]
+                              1   ??? (dyld + 6552) [0x18cd77998]
+                                1   ??? (dyld + 12160) [0x18cd78f80]
+                                  1   ??? (dyld + 6980) [0x18cd77b44]
+                                    1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                  1   ??? (libafc.dylib + 35600) [0x2cc4c3b10]
+                    1   ??? (libsystem_kernel.dylib + 30964) [0x2451108f4]
+                      1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), Kernel mode>
+                3   ??? (libafc.dylib + 20156) [0x2cc4bfebc]
+                  2   ??? (libafc.dylib + 36140) [0x2cc4c3d2c]
+                    2   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                      2   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        2   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          2   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                              1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                1   ??? (libdispatch.dylib + 28172) [0x1bbb41e0c]
+                                  1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+                                    1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+                                      1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+                                        1   <Kernel mode>
+                            1   ??? (libsystem_trace.dylib + 73380) [0x19afb8ea4]
+                              1   ??? (libsystem_trace.dylib + 74192) [0x19afb91d0]
+                                1   ??? (libsystem_trace.dylib + 71708) [0x19afb881c]
+                                  1   ??? (libxpc.dylib + 143668) [0x18ceb0134]
+                                    1   ??? (libdispatch.dylib + 11260) [0x1bbb3dbfc]
+                                      1   ??? (libsystem_malloc.dylib + 4704) [0x18ce3c260]
+                                        1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                  1   ??? (libafc.dylib + 36224) [0x2cc4c3d80]
+                    1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                      1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                              1   ??? (dyld + 224972) [0x18cdacecc]
+                                1   ??? (dyld + 4968) [0x18cd77368]
+                                  1   ??? (dyld + 5980) [0x18cd7775c]
+                                    1   ??? (dyld + 6172) [0x18cd7781c]
+                                      1   ??? (dyld + 10296) [0x18cd78838]
+                                        1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                2   ??? (libafc.dylib + 20224) [0x2cc4bff00]
+                  1   ??? (libafc.dylib + 19220) [0x2cc4bfb14]
+                    1   ??? (libsystem_trace.dylib + 13824) [0x19afaa600]
+                      1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                              1   ??? (dyld + 224972) [0x18cdacecc]
+                                1   ??? (dyld + 5400) [0x18cd77518]
+                                  1   ??? (dyld + 10796) [0x18cd78a2c]
+                                    1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                  1   ??? (libafc.dylib + 10340) [0x2cc4bd864]
+                    1   ??? (libsystem_c.dylib + 20920) [0x1947751b8]
+                      1   ??? (libsystem_c.dylib + 17532) [0x19477447c]
+                        1   ??? (libsystem_c.dylib + 7744) [0x194771e40]
+                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), e-core>
+              10  ??? (libafc.dylib + 4968) [0x2cc4bc368]
+                8   ??? (libafc.dylib + 54184) [0x2cc4c83a8]
+                  8   ??? (libafc.dylib + 84372) [0x2cc4cf994]
+                    4   ??? (libafc.dylib + 68136) [0x2cc4cba28]
+                      2   ??? (libafc.dylib + 37576) [0x2cc4c42c8]
+                        2   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                          2   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                            1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                              1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                                1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                                  1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                    1   ??? (libdispatch.dylib + 28172) [0x1bbb41e0c]
+                                      1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+                                        1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+                                          1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+                                            1   <Kernel mode>
+                            1   ??? (libsystem_trace.dylib + 6024) [0x19afa8788]
+                              1   ??? (libsystem_trace.dylib + 66060) [0x19afb720c]
+                                1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                      1   ??? (libafc.dylib + 37668) [0x2cc4c4324]
+                        1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                          1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                            1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                              1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                                1   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                                  1   ??? (dyld + 224972) [0x18cdacecc]
+                                    1   ??? (dyld + 5400) [0x18cd77518]
+                                      1   ??? (dyld + 12004) [0x18cd78ee4]
+                                        1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                      1   ??? (libafc.dylib + 37144) [0x2cc4c4118]
+                        1   ??? (libafc.dylib + 3920) [0x2cc4bbf50]
+                          1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                            1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                              1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                                1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                                  1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                                    1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                      1   ??? (libdispatch.dylib + 27956) [0x1bbb41d34]
+                                        1   ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                                          1   ??? (libsystem_trace.dylib + 75120) [0x19afb9570]
+                                            1   ??? (libxpc.dylib + 246448) [0x18cec92b0]
+                                              1   ??? (libxpc.dylib + 249988) [0x18ceca084]
+                                                1   ??? (libxpc.dylib + 247188) [0x18cec9594]
+                                                  1   ??? (libxpc.dylib + 249464) [0x18cec9e78]
+                                                    1   ??? (libsystem_kernel.dylib + 16500) [0x24510d074]
+                                                      1   ??? (libsystem_kernel.dylib + 16936) [0x24510d228]
+                                                        1   ??? (libsystem_kernel.dylib + 3284) [0x245109cd4]
+                                                          1   <Kernel mode, e-core>
+                    3   ??? (libafc.dylib + 68116) [0x2cc4cba14]
+                      2   ??? (libafc.dylib + 20824) [0x2cc4c0158]
+                        2   ??? (libafc.dylib + 37668) [0x2cc4c4324]
+                          2   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                            2   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                              2   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                                2   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                                  2   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                                    2   ??? (dyld + 224972) [0x18cdacecc]
+                                      2   ??? (dyld + 5400) [0x18cd77518]
+                                        1   ??? (dyld + 12004) [0x18cd78ee4]
+                                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                                        1   ??? (dyld + 10776) [0x18cd78a18]
+                                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), Kernel mode>
+                      1   ??? (libafc.dylib + 20808) [0x2cc4c0148]
+                        1   ??? (libafc.dylib + 19220) [0x2cc4bfb14]
+                          1   ??? (libsystem_trace.dylib + 13824) [0x19afaa600]
+                            1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                              1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                                1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                                  1   ??? (libsystem_trace.dylib + 73240) [0x19afb8e18]
+                                    1   ??? (dyld + 224972) [0x18cdacecc]
+                                      1   ??? (dyld + 5400) [0x18cd77518]
+                                        1   ??? (dyld + 11972) [0x18cd78ec4]
+                                          1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885])>
+                    1   ??? (libafc.dylib + 68024) [0x2cc4cb9b8]
+                      1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                        1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                          1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                            1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                              1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                                1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                  1   ??? (libdispatch.dylib + 28172) [0x1bbb41e0c]
+                                    1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+                                      1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+                                        1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+                                          1   <Kernel mode>
+                1   ??? (libafc.dylib + 43428) [0x2cc4c59a4]
+                  1   ??? (libafc.dylib + 85608) [0x2cc4cfe68]
+                    1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                      1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                              1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                1   ??? (libdispatch.dylib + 28200) [0x1bbb41e28]
+                                  1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+                                    1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+                                      1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+                                        1   <on behalf of UNKNOWN [14885] (originated by UNKNOWN [14885]), Kernel mode, e-core>
+                1   ??? (libafc.dylib + 43396) [0x2cc4c5984]
+                  1   ??? (libafc.dylib + 85464) [0x2cc4cfdd8]
+                    1   ??? (libsystem_trace.dylib + 25288) [0x19afad2c8]
+                      1   ??? (libsystem_trace.dylib + 13992) [0x19afaa6a8]
+                        1   ??? (libsystem_trace.dylib + 11504) [0x19afa9cf0]
+                          1   ??? (libsystem_trace.dylib + 71352) [0x19afb86b8]
+                            1   ??? (libsystem_trace.dylib + 73476) [0x19afb8f04]
+                              1   ??? (libdispatch.dylib + 27716) [0x1bbb41c44]
+                                1   ??? (libdispatch.dylib + 27956) [0x1bbb41d34]
+                                  1   ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                                    1   ??? (libsystem_trace.dylib + 75120) [0x19afb9570]
+                                      1   ??? (libxpc.dylib + 246448) [0x18cec92b0]
+                                        1   ??? (libxpc.dylib + 249968) [0x18ceca070]
+                                          1   ??? (libxpc.dylib + 246824) [0x18cec9428]
+                                            1   ??? (libxpc.dylib + 195600) [0x18cebcc10]
+                                              1   ??? [0x194a2da00]
+  1   ??? (libsystem_pthread.dylib + 2312) [0x18ce2e908]
+    1   <Kernel mode, Effective Thread QoS User Initiated, Requested Thread QoS User Initiated, e-core>
+
+  Binary Images:
+           0x100d50000 -        0x100d5bfff  afcd                    <E2F4C1C3-4229-3259-B79F-522E0CC8FD6D>  /usr/libexec/afcd
+           0x18cd76000 -        0x18ce2d16f  dyld                    <5FD0ED6B-D314-3392-AA82-91C9FC014422>  /usr/lib/dyld
+           0x18ce2e000 -        0x18ce3a247  libsystem_pthread.dylib <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18ce3b000 -        0x18ce8c77f  libsystem_malloc.dylib  <CA3526A8-F722-3EA2-A9CD-41DB4F8BF294>  /usr/lib/system/libsystem_malloc.dylib
+           0x18ce8d000 -        0x18ceee3d3  libxpc.dylib            <98A38038-E2BA-36F4-933D-FC98CDEA2582>  /usr/lib/system/libxpc.dylib
+           0x194770000 -        0x1947f0ee3  libsystem_c.dylib       <18912EF8-9112-3316-9296-3052491AB886>  /usr/lib/system/libsystem_c.dylib
+           0x195d81000 -        0x195f59b2b  Security                <71ACB297-3479-3D78-8DCF-31A7EA5055E8>  /System/Library/Frameworks/Security.framework/Security
+           0x19afa7000 -        0x19afc6547  libsystem_trace.dylib   <1B016F3B-E58B-36FA-B078-A54E449E9960>  /usr/lib/system/libsystem_trace.dylib
+           0x1bbb3b000 -        0x1bbb81d5f  libdispatch.dylib       <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x245109000 -        0x2451461fb  libsystem_kernel.dylib  <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2cc4bb000 -        0x2cc4d4cff  libafc.dylib            <BE966FC2-F184-3A5D-AA6A-B5D2FC2884C5>  /usr/lib/libafc.dylib
+
+
+Powerstats for:   kernel_task
+UUID:             1A040488-8215-3A6D-BBDF-E1D981010216
+Version:          Darwin Kernel Version 27.0.0: Tue Jul 14 21:26:37 PDT 2026; root:xnu-13432.0.94.502.2~2/RELEASE_ARM64_T8122
+Resource Coalition: 33 samples 1
+Architecture:     arm64
+Start time:       2026-08-12 08:18:36.784 +0300
+End time:         2026-08-12 08:19:05.067 +0300
+Num samples:      33 (40%)
+Energy:           5680.72 uWh
+Primary state:    33 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Unspecified, Requested Thread QoS Unspecified, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 33 samples Active
+Power Source:     0 samples on Battery, 33 samples on AC
+ *22  ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 583700) [0xfffffff00a7fa814]
+   *22  ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 583084) [0xfffffff00a7fa5ac]
+     *22  ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1882504) [0xfffffff00a937988]
+        6   <p-core>
+ *7   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7982040) [0xfffffff00af08bd8]
+   *5   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7979768) [0xfffffff00af082f8]
+     *5   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7993096) [0xfffffff00af0b708]
+       *5   ??? (AppleUSBXDCI + 93768) [0xfffffff00a292128]
+         *5   ??? (AppleUSBXDCI + 96108) [0xfffffff00a292a4c]
+           *3   ??? (IOUSBDeviceFamily + 95084) [0xfffffff00a26664c]
+             *2   ??? (AppleUSBDeviceMux + 3036) [0xfffffff00986726c]
+               *2   ??? (AppleUSBDeviceMux + 5684) [0xfffffff009867cc4]
+                 *2   ??? (IOUSBDeviceFamily + 36064) [0xfffffff00a257fc0]
+                   *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                     *2   ??? (IOUSBDeviceFamily + 37000) [0xfffffff00a258368]
+                       *2   ??? (IOUSBDeviceFamily + 109252) [0xfffffff00a269da4]
+                         *2   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                           *1   ??? (AppleUSBXDCI + 24436) [0xfffffff00a281254]
+                             *1   ??? (AppleUSBXDCI + 33136) [0xfffffff00a283450]
+                                1   <p-core>
+                           *1   ??? (AppleUSBXDCI + 22020) [0xfffffff00a2808e4]
+                             *1   ??? (IOUSBDeviceFamily + 166896) [0xfffffff00a277ed0]
+                               *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8038876) [0xfffffff00af169dc]
+                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8037092) [0xfffffff00af162e4]
+                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8095140) [0xfffffff00af245a4]
+                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8097464) [0xfffffff00af24eb8]
+                                       *1   ??? (IODARTFamily + 37340) [0xfffffff009ceb27c]
+                                         *1   ??? (IODARTFamily + 39212) [0xfffffff009ceb9cc]
+                                           *1   ??? (IODARTFamily + 42528) [0xfffffff009cec6c0]
+                                             *1   ??? (IODARTFamily + 43828) [0xfffffff009cecbd4]
+                                               *1   ??? (AppleT8110DART + 26984) [0xfffffff0096c9fe8]
+                                                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1848228) [0xfffffff00a92f3a4]
+                                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2000608) [0xfffffff00a9546e0]
+                                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8938408) [0xfffffff00aff23a8]
+                                                        1   <p-core>
+             *1   ??? (AppleUSBDeviceMux + 4008) [0xfffffff009867638]
+               *1   ??? (AppleUSBDeviceMux + 10096) [0xfffffff009868e00]
+                 *1   ??? (AppleUSBDeviceMux + 10804) [0xfffffff0098690c4]
+                   *1   ??? (AppleUSBDeviceMux + 19012) [0xfffffff00986b0d4]
+                     *1   ??? (IOUSBDeviceFamily + 36064) [0xfffffff00a257fc0]
+                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                         *1   ??? (IOUSBDeviceFamily + 37000) [0xfffffff00a258368]
+                           *1   ??? (IOUSBDeviceFamily + 109252) [0xfffffff00a269da4]
+                             *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7997432) [0xfffffff00af0c7f8]
+                               *1   ??? (AppleUSBXDCI + 22020) [0xfffffff00a2808e4]
+                                 *1   ??? (IOUSBDeviceFamily + 166896) [0xfffffff00a277ed0]
+                                   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8038876) [0xfffffff00af169dc]
+                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8037092) [0xfffffff00af162e4]
+                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8095140) [0xfffffff00af245a4]
+                                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8097464) [0xfffffff00af24eb8]
+                                           *1   ??? (IODARTFamily + 37340) [0xfffffff009ceb27c]
+                                             *1   ??? (IODARTFamily + 39212) [0xfffffff009ceb9cc]
+                                               *1   ??? (IODARTFamily + 42528) [0xfffffff009cec6c0]
+                                                 *1   ??? (IODARTFamily + 43828) [0xfffffff009cecbd4]
+                                                   *1   ??? (AppleT8110DART + 26984) [0xfffffff0096c9fe8]
+                                                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 1848228) [0xfffffff00a92f3a4]
+                                                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 2000608) [0xfffffff00a9546e0]
+                                                         *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8938384) [0xfffffff00aff2390]
+                                                           *1   ??? [0xfffffff02709a314]
+                                                             *1   ??? [0xfffffff02709a4fc]
+                                                               *1   ??? [0xfffffff0270c7a80]
+                                                                 *1   ??? [0xfffffff0270df340]
+                                                                    1   <p-core>
+           *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 865528) [0xfffffff00a83f4f8]
+              1   <p-core>
+           *1   ??? (AppleUSBXDCI + 43188) [0xfffffff00a285b94]
+             *1   ??? (AppleUSBXDCI + 24840) [0xfffffff00a2813e8]
+               *1   ??? (IOUSBDeviceFamily + 167120) [0xfffffff00a277fb0]
+                 *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8038204) [0xfffffff00af1673c]
+                   *1   ??? (IOUSBDeviceFamily + 167796) [0xfffffff00a278254]
+                     *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8036176) [0xfffffff00af15f50]
+                       *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 8094696) [0xfffffff00af243e8]
+                          1   <p-core>
+   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7979768) [0xfffffff00af082f8]
+      1   <p-core>
+   *1   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 7979728) [0xfffffff00af082d0]
+      1   <p-core>
+ *4   ??? (<1A040488-8215-3A6D-BBDF-E1D981010216> + 582864) [0xfffffff00a7fa4d0]
+    1   <p-core>
+
+  Binary Images:
+   *0xfffffff0096c3680 - 0xfffffff0096d2faf  com.apple.driver.AppleT8110DART (1)          <EA2BA703-6E71-3993-A3ED-5BBDF35C98A0>__TEXT_EXEC  /System/Library/Extensions/AppleT8110DART.kext/AppleT8110DART
+   *0xfffffff009866690 - 0xfffffff00986c447  com.apple.driver.AppleUSBDeviceMux (1.0.0d1) <EBA18C97-A879-396B-BF8E-4E498E70C0C4>__TEXT_EXEC  /System/Library/Extensions/AppleUSBDeviceMux.kext/AppleUSBDeviceMux
+   *0xfffffff009ce20a0 - 0xfffffff009cf610f  com.apple.driver.IODARTFamily (1)            <DCE483E2-2B8E-330E-A89E-AE426CD71CB7>__TEXT_EXEC  /System/Library/Extensions/IODARTFamily.kext/IODARTFamily
+   *0xfffffff00a24f2e0 - 0xfffffff00a27a7e7  com.apple.iokit.IOUSBDeviceFamily (2.0.0)    <6357F10B-38DD-3005-B52F-9397AA044949>__TEXT_EXEC  /System/Library/Extensions/IOUSBDeviceFamily.kext/IOUSBDeviceFamily
+   *0xfffffff00a27b2e0 - 0xfffffff00a29a6db  com.apple.driver.AppleUSBXDCI (1.0)          <63A14D57-16D5-31CA-B1D5-DB846DD0DAF6>__TEXT_EXEC  /System/Library/Extensions/IOUSBDeviceFamily.kext/PlugIns/AppleUSBXDCI.kext/AppleUSBXDCI
+   *0xfffffff00a76c000 - 0xfffffff00b013fff  ??? (27.0.0)                                 <1A040488-8215-3A6D-BBDF-E1D981010216>__TEXT_EXEC
+
+
+Powerstats for:   diagnosticd
+UUID:             A36916AB-5A18-3D0E-BE35-5F26151F8132
+Path:             /usr/libexec/diagnosticd
+Resource Coalition: 19 samples "com.apple.diagnosticd"(4438)
+On Behalf Of:     1 sample afcd [21578] (1 sample originated by afcd [21578]), 1 sample UNKNOWN [17601] (1 sample originated by UNKNOWN [17601])
+Architecture:     arm64e
+Pageins:          9 pages
+Start time:       2026-08-12 08:18:38.385 +0300
+End time:         2026-08-12 08:21:06.254 +0300
+Num samples:      19 (23%)
+Energy:           8178.71 uWh
+Primary state:    11 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 19 samples Active
+Power Source:     0 samples on Battery, 19 samples on AC
+  17  ??? (libsystem_pthread.dylib + 2320) [0x18ce2e910]
+    17  ??? (libsystem_pthread.dylib + 4664) [0x18ce2f238]
+      16  ??? (libdispatch.dylib + 87740) [0x1bbb506bc]
+        16  ??? (libdispatch.dylib + 89240) [0x1bbb50c98]
+          6   ??? (libdispatch.dylib + 130372) [0x1bbb5ad44]
+            6   ??? (libdispatch.dylib + 42768) [0x1bbb45710]
+              5   ??? (libdispatch.dylib + 126120) [0x1bbb59ca8]
+                5   ??? (libdispatch.dylib + 114716) [0x1bbb5701c]
+                  5   ??? (libxpc.dylib + 118508) [0x18cea9eec]
+                    5   ??? (libxpc.dylib + 109236) [0x18cea7ab4]
+                      3   ??? (diagnosticd + 5520) [0x102265590]
+                        3   ??? (libdispatch.dylib + 74028) [0x1bbb4d12c]
+                          3   ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                            2   ??? (diagnosticd + 6404) [0x102265904]
+                              1   ??? (diagnosticd + 10800) [0x102266a30]
+                                1   ??? (diagnosticd + 10548) [0x102266934]
+                                  1   ??? (libxpc.dylib + 149840) [0x18ceb1950]
+                                    1   ??? (libobjc.A.dylib + 30284) [0x18ccff64c]
+                              1   ??? (diagnosticd + 10532) [0x102266924]
+                                1   ??? (libxpc.dylib + 151764) [0x18ceb20d4]
+                                  1   ??? (libsystem_malloc.dylib + 109392) [0x18ce55b50]
+                            1   ??? (diagnosticd + 6516) [0x102265974]
+                              1   ??? (libdispatch.dylib + 150312) [0x1bbb5fb28]
+                                1   ??? (libsystem_kernel.dylib + 2644) [0x245109a54]
+                                  1   <Kernel mode>
+                      1   ??? (libdispatch.dylib + 33652) [0x1bbb43374]
+                      1   ??? (diagnosticd + 3936) [0x102264f60]
+                        1   ??? (libxpc.dylib + 153924) [0x18ceb2944]
+                          1   ??? (libxpc.dylib + 153188) [0x18ceb2664]
+                            1   ??? (libxpc.dylib + 147920) [0x18ceb11d0]
+                              1   ??? (libxpc.dylib + 158940) [0x18ceb3cdc]
+                                1   <on behalf of afcd [21578] (originated by afcd [21578])>
+              1   ??? (libdispatch.dylib + 126324) [0x1bbb59d74]
+                1   ??? (libdispatch.dylib + 23388) [0x1bbb40b5c]
+                  1   ??? (libdispatch.dylib + 22884) [0x1bbb40964]
+                    1   ??? (libsystem_kernel.dylib + 23468) [0x24510ebac]
+                      1   <on behalf of UNKNOWN [17601] (originated by UNKNOWN [17601])>
+          6   ??? (libdispatch.dylib + 46192) [0x1bbb46470]
+            6   ??? (libdispatch.dylib + 43132) [0x1bbb4587c]
+              6   ??? (libdispatch.dylib + 114644) [0x1bbb56fd4]
+                6   ??? (libdispatch.dylib + 7372) [0x1bbb3cccc]
+                  6   ??? (diagnosticd + 36604) [0x10226cefc]
+                    4   ??? (diagnosticd + 22496) [0x1022697e0]
+                      4   ??? (liblockdown.dylib + 4576) [0x2ce0e71e0]
+                        2   ??? (Security + 248040) [0x195dbd8e8]
+                          2   ??? (Security + 245900) [0x195dbd08c]
+                            2   ??? (libsystem_kernel.dylib + 20528) [0x24510e030]
+                              2   <Kernel mode>
+                        2   ??? (Security + 247992) [0x195dbd8b8]
+                          2   ??? (Security + 246888) [0x195dbd468]
+                            2   ??? (libcoretls.dylib + 24136) [0x2cc80fe48]
+                              1   ??? (libcoretls.dylib + 24724) [0x2cc810094]
+                                1   ??? (libcorecrypto.dylib + 39208) [0x1dfa1b928]
+                                  1   ??? (libcorecrypto.dylib + 8992) [0x1dfa14320]
+                              1   ??? (libcoretls.dylib + 24700) [0x2cc81007c]
+                                1   ??? (libcorecrypto.dylib + 31472) [0x1dfa19af0]
+                                  1   ??? (libcorecrypto.dylib + 35896) [0x1dfa1ac38]
+                    1   ??? (diagnosticd + 20848) [0x102269170]
+                      1   ??? (LoggingSupport + 265392) [0x1cf925cb0]
+                        1   ??? (LoggingSupport + 33500) [0x1cf8ed2dc]
+                          1   ??? (LoggingSupport + 36956) [0x1cf8ee05c]
+                            1   ??? (LoggingSupport + 73724) [0x1cf8f6ffc]
+                              1   ??? (libsystem_c.dylib + 17532) [0x19477447c]
+                                1   ??? (libsystem_malloc.dylib + 5276) [0x18ce3c49c]
+                    1   ??? (diagnosticd + 20704) [0x1022690e0]
+                      1   ??? (LoggingSupport + 271644) [0x1cf92751c]
+                        1   ??? (libxpc.dylib + 152972) [0x18ceb258c]
+                          1   ??? (libxpc.dylib + 153132) [0x18ceb262c]
+          4   ??? (libdispatch.dylib + 130320) [0x1bbb5ad10]
+            4   ??? (libdispatch.dylib + 151380) [0x1bbb5ff54]
+              3   ??? (libdispatch.dylib + 152016) [0x1bbb601d0]
+                3   ??? (libsystem_kernel.dylib + 2644) [0x245109a54]
+                  3   <Kernel mode>
+              1   ??? (libsystem_platform.dylib + 2336) [0x198b21920]
+      1   ??? (libdispatch.dylib + 87520) [0x1bbb505e0]
+        1   ??? [0x1bca2c210]
+  2   ??? (libsystem_pthread.dylib + 2312) [0x18ce2e908]
+    2   <Kernel mode>
+
+  Binary Images:
+           0x102264000 -        0x10227bfff  diagnosticd              <A36916AB-5A18-3D0E-BE35-5F26151F8132>  /usr/libexec/diagnosticd
+           0x18ccf8000 -        0x18cd458c7  libobjc.A.dylib          <E708DFC2-BA03-3C4C-8376-FFC11461C752>  /usr/lib/libobjc.A.dylib
+           0x18ce2e000 -        0x18ce3a247  libsystem_pthread.dylib  <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18ce3b000 -        0x18ce8c77f  libsystem_malloc.dylib   <CA3526A8-F722-3EA2-A9CD-41DB4F8BF294>  /usr/lib/system/libsystem_malloc.dylib
+           0x18ce8d000 -        0x18ceee3d3  libxpc.dylib             <98A38038-E2BA-36F4-933D-FC98CDEA2582>  /usr/lib/system/libxpc.dylib
+           0x194770000 -        0x1947f0ee3  libsystem_c.dylib        <18912EF8-9112-3316-9296-3052491AB886>  /usr/lib/system/libsystem_c.dylib
+           0x195d81000 -        0x195f59b2b  Security                 <71ACB297-3479-3D78-8DCF-31A7EA5055E8>  /System/Library/Frameworks/Security.framework/Security
+           0x198b21000 -        0x198b2967f  libsystem_platform.dylib <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x1bbb3b000 -        0x1bbb81d5f  libdispatch.dylib        <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x1cf8e5000 -        0x1cf958cc7  LoggingSupport           <D4E48C0C-BAFF-339F-8A27-47D9E64B948B>  /System/Library/PrivateFrameworks/LoggingSupport.framework/LoggingSupport
+           0x1dfa12000 -        0x1dfac723f  libcorecrypto.dylib      <A73101FC-2475-361B-B188-67065A85CE72>  /usr/lib/system/libcorecrypto.dylib
+           0x245109000 -        0x2451461fb  libsystem_kernel.dylib   <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2cc80a000 -        0x2cc820edb  libcoretls.dylib         <D2EA67DE-A847-3B12-BAA5-20B771A93A6D>  /usr/lib/libcoretls.dylib
+           0x2ce0e6000 -        0x2ce0eeb9f  liblockdown.dylib        <3CDECFBA-6D15-3166-A34E-F5C4D133232B>  /usr/lib/liblockdown.dylib
