@@ -36,55 +36,55 @@ def build():
     sh(str(ROOT / "relay/build.sh"), check=True)
 
 def install():
+    # modern path: devicectl; fallback: ideviceinstaller
     dev = shlex.quote(device_id())
     app = shlex.quote(str(ROOT / "build/fuzz27.app"))
     r = sh(f"xcrun devicectl device install app --device {dev} {app}")
-    print(r.stdout, r.stderr, sep="", end="")
     if r.returncode != 0:
         if shutil.which("ideviceinstaller"):
             sh(f"ideviceinstaller -i {app}", check=True)
         else:
+            print(r.stdout, r.stderr, sep="", end="")
             print("[install] devicectl failed and ideviceinstaller is not installed")
             sys.exit(1)
-    # verify the app is really installed — silent install failures otherwise
-    r = sh(f"xcrun devicectl device info apps --device {dev} | grep -i turquoise || true")
-    if "turquoise" not in (r.stdout or ""):
-        print("[install][warn] app not listed after install — check provisioning/signing")
-    else:
-        print("[install] verified on device")
 
 def launch_and_watch(minutes):
     ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     log = RESULTS / f"run-{ts}.log"
     RESULTS.mkdir(exist_ok=True)
-    dev = shlex.quote(device_id())
-    bid = shlex.quote(BUNDLE_ID)
     with open(log, "w") as lf:
-        # 1) try devicectl console; 2) in parallel tail idevicesyslog (unified log)
-        p1 = subprocess.Popen(
-            f"xcrun devicectl device process launch --device {dev} --console {bid}",
+        # launch with console streaming via devicectl if possible
+        p = subprocess.Popen(
+            "xcrun devicectl device process launch --device %s --console %s" %
+            (shlex.quote(device_id()), shlex.quote(BUNDLE_ID)),
             shell=True, stdout=lf, stderr=subprocess.STDOUT, text=True)
-        p2 = subprocess.Popen(
-            "idevicesyslog -m fuzz27 -m vcpdrm -m scaler -m mig 2>/dev/null || "
-            "idevicesyslog 2>/dev/null | grep -E 'fuzz27|vcpdrm|scaler|VCPDRM' ",
-            shell=True, stdout=lf, stderr=subprocess.DEVNULL, text=True)
         t0 = time.time()
         while time.time() - t0 < minutes * 60:
             time.sleep(20)
-            r = sh("idevicesyslog -m 'panic' 2>/dev/null | tail -5")
-            if r.stdout.strip():
-                lf.write("\n=== PANIC DETECTED (syslog match) ===\n" + r.stdout)
+            # detect device reboot (panic) — syslog dies
+            try:
+                panic = subprocess.run(
+                    ["idevicesyslog", "-m", "panic"],
+                    stdout=subprocess.PIPE,
+                    stderr=subprocess.DEVNULL,
+                    text=True,
+                    timeout=5,
+                )
+                panic_output = panic.stdout or ""
+            except subprocess.TimeoutExpired as exc:
+                # idevicesyslog is a live stream and normally never exits.
+                # Keep only any matching lines emitted during the short probe.
+                panic_output = exc.stdout or ""
+                if isinstance(panic_output, bytes):
+                    panic_output = panic_output.decode(errors="replace")
+            if panic_output.strip():
+                lf.write("\n=== PANIC DETECTED (syslog match) ===\n" + "\n".join(panic_output.splitlines()[-5:]) + "\n")
                 break
-            # if devicectl died early, report its status into the log
-            if p1.poll() is not None and (time.time() - t0) > 30:
-                lf.write(f"\n=== devicectl launch exited rc={p1.returncode} ===\n")
-                break
-        for p in (p1, p2):
-            try: p.terminate()
-            except Exception: pass
+        p.terminate()
     return log
 
 def collect_panics():
+    # idevicecrashreport copies crash logs off the device
     out = RESULTS / "panics"
     out.mkdir(parents=True, exist_ok=True)
     timeout = int(os.environ.get("CRASHREPORT_TIMEOUT", "300"))
@@ -92,6 +92,7 @@ def collect_panics():
         sh(f"idevicecrashreport -e -k {shlex.quote(str(out))}", timeout=timeout)
     except subprocess.TimeoutExpired:
         print(f"[crashreport] timed out after {timeout}s; keeping partial results")
+
 
 def push(log):
     sh("git -C %s add results/" % ROOT)
