@@ -3,7 +3,7 @@
 // with structureOutput >= 0x2000 -> they are ASYNC OSActions. Invoke via
 // IOConnectCallAsyncMethod and read completions from the wake port.
 #include "fuzz.h"
-#include <IOSurface/IOSurface.h>
+#include <IOSurface/IOSurfaceRef.h>
 
 #define REQ_SZ 0x1b0
 #define OUT_SZ 0x2380
@@ -62,7 +62,7 @@ static void async_call(io_connect_t conn, uint32_t sel, const void *in, size_t i
                        uint8_t *out, size_t *outsz, uint32_t sc_in, uint32_t sc_out) {
     uint64_t scalars[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     uint64_t outScalars[8] = {0};
-    io_reference_t refs[1] = { 0x1234 };
+    uint64_t refs[1] = { 0x1234 };
     kern_return_t kr = IOConnectCallAsyncMethod(conn, sel, g_wake, refs, sc_in ? 1 : 0,
         sc_in ? scalars : NULL, sc_in,
         in, insz,
