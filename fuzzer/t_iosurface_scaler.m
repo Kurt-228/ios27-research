@@ -1,6 +1,6 @@
-// Target: AppleM2ScalerCSCDriver (rewritten in iOS 27, attached to IOSurfaceRoot)
+// Target: AppleM2ScalerCSCDriver — probe v2 (selector arg signatures + sel11 OOB test)
 #include "fuzz.h"
-#include <IOSurface/IOSurfaceRef.h>
+#include <IOSurface/IOSurface.h>
 
 #define REQ_SZ 0x1b0
 
@@ -40,33 +40,49 @@ static IOSurfaceRef make_surface(void) {
     return s;
 }
 
-// probe: map selector return codes. For each selector try:
-//  (a) struct input 8 bytes, (b) struct input 0x1b0, (c) scalar input only
-// Codes meaning (IOKit): 0x0 ok, 0xe00002c2 bad selector/unsupported,
-//  0xe00002c7 bad argument count, 0xe00002bc bad argument, 0xe00002f0 not privileged,
-//  0xe00002e2 not permitted, 0xe00002c9 exclusive/offline
-static void probe(io_connect_t conn, IOSurfaceID sid) {
-    uint8_t small[8] = {0};
-    uint8_t *req = must_map(REQ_SZ);
-    uint64_t scalars[4] = { 1, 2, 3, 4 };
-    *(uint64_t *)small = sid;
-    LOG("[probe] selector map start");
-    for (uint32_t sel = 0; sel < 32; sel++) {
-        uint64_t out[16] = {0}; size_t outsz;
-        outsz = sizeof(out);
-        kern_return_t ka = IOConnectCallMethod(conn, sel, NULL, 0, small, 8, NULL, NULL, out, &outsz);
-        size_t osza = outsz;
-        craft_request(req, sid);
-        outsz = sizeof(out);
-        kern_return_t kb = IOConnectCallMethod(conn, sel, NULL, 0, req, REQ_SZ, NULL, NULL, out, &outsz);
-        size_t oszb = outsz;
-        outsz = sizeof(out);
-        kern_return_t kc = IOConnectCallMethod(conn, sel, scalars, 4, NULL, 0, NULL, NULL, out, &outsz);
-        LOG("[probe] sel %2u: struct8=0x%08x struct1b0=0x%08x scalar4=0x%08x outsz=%zu/%zu/%zu",
-            sel, ka, kb, kc, osza, oszb, outsz);
+static void probe_v2(io_connect_t conn, IOSurfaceID sid) {
+    static const size_t sizes[] = { 0, 4, 8, 16, 24, 32, 40, 48, 56, 64, 80, 96, 128, 160, 192, 256, 0x1b0, 0x200, 0x400 };
+    static const uint32_t sels[] = { 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    uint8_t *req = must_map(0x400);
+    craft_request(req, sid);
+    LOG("[probe2] size sweep for existing selectors");
+    for (unsigned si = 0; si < sizeof(sels)/4; si++) {
+        uint32_t sel = sels[si];
+        for (unsigned zi = 0; zi < sizeof(sizes)/sizeof(size_t); zi++) {
+            size_t z = sizes[zi];
+            uint64_t out[16] = {0}; size_t outsz = sizeof(out);
+            kern_return_t k = IOConnectCallMethod(conn, sel, NULL, 0, req, z, NULL, NULL, out, &outsz);
+            if (k != 0xe00002c7 && k != 0xe00002c2)
+                LOG("[probe2] sel %u size %zu -> 0x%08x outsz %zu", sel, z, k, outsz);
+            usleep(1500);
+        }
+    }
+    // scalar-count sweep
+    uint64_t scalars[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
+    for (unsigned si = 0; si < sizeof(sels)/4; si++) {
+        uint32_t sel = sels[si];
+        for (uint32_t n = 0; n <= 8; n++) {
+            uint64_t out[16] = {0}; size_t outsz = sizeof(out);
+            kern_return_t k = IOConnectCallMethod(conn, sel, scalars, n, NULL, 0, NULL, NULL, out, &outsz);
+            if (k != 0xe00002c7 && k != 0xe00002c2)
+                LOG("[probe2] sel %u scalarN %u -> 0x%08x outsz %zu", sel, n, k, outsz);
+            usleep(1500);
+        }
+    }
+    // sel11 deep OOB test: vary input size, dump output
+    LOG("[probe2] sel11 deep test");
+    static const size_t s11[] = { 0, 1, 2, 4, 8, 16, 0x1b0, 0x400, 0x1000 };
+    for (unsigned zi = 0; zi < sizeof(s11)/sizeof(size_t); zi++) {
+        size_t z = s11[zi];
+        memset(req, 0, 0x400);
+        *(uint32_t *)req = 0x41414141;
+        uint64_t out[16] = {0}; size_t outsz = sizeof(out);
+        kern_return_t k = IOConnectCallMethod(conn, 11, NULL, 0, req, z, NULL, NULL, out, &outsz);
+        LOG("[probe2] sel11 insize %zu -> 0x%08x outsz %zu out=%016llx %016llx %016llx %016llx",
+            z, k, outsz, out[0], out[1], out[2], out[3]);
         usleep(2000);
     }
-    LOG("[probe] selector map end");
+    LOG("[probe2] end");
 }
 
 void *t_iosurface_scaler(void *arg) {
@@ -84,11 +100,11 @@ void *t_iosurface_scaler(void *arg) {
     if (!conn) { LOG("[scaler] not openable"); return NULL; }
 
     static int probed = 0;
-    if (!probed) { probed = 1; probe(conn, sid); }
+    if (!probed) { probed = 1; probe_v2(conn, sid); }
 
     for (long round = 0;; round++) {
         craft_request(req, sid);
-        uint32_t sel = (uint32_t)frand_range(0, 15);
+        uint32_t sel = (uint32_t)frand_range(2, 31);
         uint64_t out[16] = {0}; size_t outsz = sizeof(out);
         kern_return_t kr = IOConnectCallMethod(conn, sel, NULL, 0,
             req, REQ_SZ, NULL, NULL, out, &outsz);
