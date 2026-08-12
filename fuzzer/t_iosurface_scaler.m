@@ -1,6 +1,6 @@
 // Target: AppleM2ScalerCSCDriver — probe v3 (exhaustive arg mapping + sel11 state diff)
 #include "fuzz.h"
-#include <IOSurface/IOSurface.h>
+#include <IOSurface/IOSurfaceRef.h>
 
 #define REQ_SZ 0x1b0
 
