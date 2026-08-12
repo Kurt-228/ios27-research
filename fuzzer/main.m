@@ -18,6 +18,8 @@
 
     const char *mode = getenv("FUZZ_MODE") ?: "all";
     LOG("[main] fuzz harness up, mode=%s", mode);
+    LOG("[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); "
+        "mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)");
     pthread_t t1, t2, t3;
     if (strstr(mode, "vcpdrm") || strstr(mode, "all"))
         pthread_create(&t1, NULL, t_vcpdrm, NULL);
