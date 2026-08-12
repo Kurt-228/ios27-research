@@ -3,7 +3,7 @@
 // size (x3 in target fn has +0x15c count field -> likely the output struct).
 // Our earlier sweeps never went above 256 bytes of structureOutput.
 #include "fuzz.h"
-#include <IOSurface/IOSurface.h>
+#include <IOSurface/IOSurfaceRef.h>
 
 #define REQ_SZ 0x1b0
 
