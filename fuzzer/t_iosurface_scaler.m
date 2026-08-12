@@ -68,7 +68,8 @@ static void async_call(io_connect_t conn, uint32_t sel, const void *in, size_t i
         in, insz,
         outScalars, sc_out ? &sc_out : NULL,
         out, outsz);
-    if (kr)
+    if (kr && kr != 0xe00002bf && kr != 0xe00002c2 && kr != 0xe00002c7 &&
+        kr != 0xe00002c9 && kr != 0xe00002bc && kr != 0xe00002f0 && kr != 0xe00002e2)
         LOG("[async] sel %u call -> 0x%08x", sel, kr);
 }
 
