@@ -52,8 +52,9 @@ io_connect_t open_service(const char *class_name, uint32_t type) {
     return conn;
 }
 void *must_map(mach_vm_size_t sz) {
-    mach_vm_address_t a = 0;
-    if (mach_vm_allocate(mach_task_self(), &a, sz, VM_FLAGS_ANYWHERE)) {
+    vm_address_t a = 0;
+    vm_size_t size = (vm_size_t)sz;
+    if (vm_allocate(mach_task_self(), &a, size, VM_FLAGS_ANYWHERE)) {
         LOG("[map] alloc failed"); exit(1);
     }
     return (void *)a;

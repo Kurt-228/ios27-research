@@ -1,0 +1,1 @@
+The summary of all the files collected is located in <sysdiagnose_dir>/summaries/crashes_and_spins.log

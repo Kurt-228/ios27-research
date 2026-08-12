@@ -44,10 +44,15 @@ static IOSurfaceID make_surface(void) {
         CFNumberCreate(NULL, kCFNumberIntType, &bpe));
     CFDictionarySetValue(props, CFSTR("IOSurfacePixelFormat"),
         CFNumberCreate(NULL, kCFNumberIntType, &fmt));
+    CFDataRef data = CFPropertyListCreateData(NULL, props,
+        kCFPropertyListBinaryFormat_v1_0, 0, NULL);
     uint64_t id = 0; size_t idsz = 8;
     kern_return_t kr = IOConnectCallMethod(root, 0, NULL, 0,
-        props, CFPropertyListCreateData(NULL, props, kCFPropertyListBinaryFormat_v1_0, 0, NULL).length,
+        data ? CFDataGetBytePtr(data) : NULL,
+        data ? (size_t)CFDataGetLength(data) : 0,
         NULL, NULL, &id, &idsz);
+    if (data) CFRelease(data);
+    CFRelease(props);
     // fallback: binary struct path
     if (kr) {
         struct { uint32_t ver; uint32_t w; uint32_t h; uint32_t bpe; uint32_t fmt; } in =

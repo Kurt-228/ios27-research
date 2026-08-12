@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 # relay.py — device loop: pull -> build -> install -> launch -> collect logs/panics -> push results
 # deps: Xcode CLI, libimobiledevice (brew install libimobiledevice)
-import os, re, sys, time, shutil, subprocess, datetime, pathlib
+import os, re, sys, time, shutil, subprocess, datetime, pathlib, shlex
 
 ROOT = pathlib.Path(__file__).resolve().parent.parent
 RESULTS = ROOT / "results"
-BUNDLE_ID = "local.fuzz27.harness"
+BUNDLE_ID = "cancer9725.turquoise1323"
 
 def sh(cmd, check=False, timeout=None, capture=True):
     print("$", cmd, flush=True)
@@ -15,16 +15,38 @@ def sh(cmd, check=False, timeout=None, capture=True):
     return r
 
 def pull():
+    status = sh("git -C %s status --porcelain" % ROOT)
+    if status.stdout.strip():
+        print("[pull] skipped: local changes are present; preserving working tree")
+        return
     sh("git -C %s pull --rebase" % ROOT, check=True)
+
+def device_id():
+    configured = os.environ.get("DEVICE_ID")
+    if configured:
+        return configured
+    r = sh("idevice_id -l")
+    ids = [line.strip() for line in r.stdout.splitlines() if line.strip()]
+    if not ids:
+        print("[device] no connected iPhone found; set DEVICE_ID explicitly")
+        sys.exit(1)
+    return ids[0]
 
 def build():
     sh(str(ROOT / "relay/build.sh"), check=True)
 
 def install():
     # modern path: devicectl; fallback: ideviceinstaller
-    r = sh(f"xcrun devicectl device install app {ROOT}/build/fuzz27.app")
+    dev = shlex.quote(device_id())
+    app = shlex.quote(str(ROOT / "build/fuzz27.app"))
+    r = sh(f"xcrun devicectl device install app --device {dev} {app}")
     if r.returncode != 0:
-        sh(f"ideviceinstaller -i {ROOT}/build/fuzz27.app", check=True)
+        if shutil.which("ideviceinstaller"):
+            sh(f"ideviceinstaller -i {app}", check=True)
+        else:
+            print(r.stdout, r.stderr, sep="", end="")
+            print("[install] devicectl failed and ideviceinstaller is not installed")
+            sys.exit(1)
 
 def launch_and_watch(minutes):
     ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
@@ -33,7 +55,8 @@ def launch_and_watch(minutes):
     with open(log, "w") as lf:
         # launch with console streaming via devicectl if possible
         p = subprocess.Popen(
-            f"xcrun devicectl device process launch --console {BUNDLE_ID}",
+            "xcrun devicectl device process launch --device %s --console %s" %
+            (shlex.quote(device_id()), shlex.quote(BUNDLE_ID)),
             shell=True, stdout=lf, stderr=subprocess.STDOUT, text=True)
         t0 = time.time()
         while time.time() - t0 < minutes * 60:
@@ -50,7 +73,11 @@ def collect_panics():
     # idevicecrashreport copies crash logs off the device
     out = RESULTS / "panics"
     out.mkdir(parents=True, exist_ok=True)
-    sh(f"idevicecrashreport -e -k {out}")
+    timeout = int(os.environ.get("CRASHREPORT_TIMEOUT", "300"))
+    try:
+        sh(f"idevicecrashreport -e -k {shlex.quote(str(out))}", timeout=timeout)
+    except subprocess.TimeoutExpired:
+        print(f"[crashreport] timed out after {timeout}s; keeping partial results")
 
 
 def push(log):

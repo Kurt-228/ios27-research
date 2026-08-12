@@ -1,0 +1,334 @@
+{
+  "assertions" : [
+
+  ],
+  "assets" : [
+    {
+      "cost" : {
+        "onDeviceMemory" : 0
+      },
+      "descriptor" : "<com.apple.fm.coremotion.pednet_v1.base, version: (none), custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : true,
+        "id" : "CoreMotionPednetV1InferenceProvider",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "isCacheable" : false,
+      "isLocked" : false,
+      "loadState" : "unloaded",
+      "path" : "",
+      "requiredByOtherAssets" : [
+
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:54:27+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:54:27+0300",
+      "useEnergyEfficientMode" : false
+    },
+    {
+      "cost" : {
+        "onDeviceMemory" : 0
+      },
+      "descriptor" : "<com.apple.fm.language.instruct_server_v2.base_pro, version: (none), custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : true,
+        "id" : "private-ml-client",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "isCacheable" : false,
+      "isLocked" : false,
+      "loadState" : "unloaded",
+      "path" : "",
+      "requiredByOtherAssets" : [
+        "com.apple.fm.language.instruct_server_v2.lw_planner_v4"
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:54:35+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:54:31+0300",
+      "useEnergyEfficientMode" : false
+    },
+    {
+      "cost" : {
+        "onDeviceMemory" : 100000
+      },
+      "descriptor" : "<com.apple.fm.language.instruct_300m.safety, version: 14.2.0.13.103019,0, custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : false,
+        "id" : "token-generation-inference",
+        "instance" : {
+          "specificInstance" : {
+            "_0" : "instruct-300m"
+          }
+        }
+      },
+      "isCacheable" : false,
+      "isLocked" : false,
+      "loadState" : "unloaded",
+      "path" : "/private/var/MobileAsset/AssetsV2/com_apple_MobileAsset_UAF_FM_GenerativeModels/purpose_auto/17719d1cd7cc3888843c6949300eda00f4dc704b.asset/AssetData",
+      "requiredByOtherAssets" : [
+
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:56:04+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:55:33+0300",
+      "useEnergyEfficientMode" : false
+    },
+    {
+      "cost" : {
+        "onDeviceMemory" : 200000
+      },
+      "descriptor" : "<com.apple.fm.language.instruct_300m.base, version: 14.2.81616.13.204479,0, custom asset: (none)>",
+      "dynamicModeAllowed" : true,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : false,
+        "id" : "token-generation-inference",
+        "instance" : {
+          "specificInstance" : {
+            "_0" : "instruct-300m"
+          }
+        }
+      },
+      "isCacheable" : false,
+      "isLocked" : true,
+      "loadState" : "dynamicMode",
+      "path" : "/private/var/MobileAsset/AssetsV2/com_apple_MobileAsset_UAF_FM_GenerativeModels/purpose_auto/cf2833d775419ca7bc8efa7ee205446fee0af114.asset/.AssetData",
+      "requiredByOtherAssets" : [
+        "com.apple.fm.language.instruct_300m.safety"
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:56:04+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:55:04+0300",
+      "useEnergyEfficientMode" : false
+    },
+    {
+      "cost" : {
+        "onDeviceMemory" : 0
+      },
+      "descriptor" : "<com.apple.fm.language.instruct_server_v2.tokenizer_pro, version: (none), custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : true,
+        "id" : "private-ml-client",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "isCacheable" : true,
+      "isLocked" : false,
+      "loadState" : "loaded",
+      "path" : "",
+      "requiredByOtherAssets" : [
+
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:54:35+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:54:31+0300",
+      "useEnergyEfficientMode" : false
+    },
+    {
+      "cost" : {
+        "onDeviceMemory" : 10000
+      },
+      "descriptor" : "<com.apple.fm.language.instruct_300m.tokenizer, version: 14.2.0.13.204358,0, custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : false,
+        "id" : "token-generation-inference",
+        "instance" : {
+          "specificInstance" : {
+            "_0" : "instruct-300m"
+          }
+        }
+      },
+      "isCacheable" : true,
+      "isLocked" : true,
+      "loadState" : "loaded",
+      "path" : "/private/var/MobileAsset/AssetsV2/com_apple_MobileAsset_UAF_FM_GenerativeModels/purpose_auto/ca4f6ed4a41a9d812cb6a973f7fdeda74ccdbb2d.asset/AssetData",
+      "requiredByOtherAssets" : [
+
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:56:04+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:55:04+0300",
+      "useEnergyEfficientMode" : false
+    },
+    {
+      "cost" : {
+        "onDeviceMemory" : 0
+      },
+      "descriptor" : "<com.apple.fm.language.instruct_server_v2.lw_planner_v4, version: (none), custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : true,
+        "id" : "private-ml-client",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "isCacheable" : false,
+      "isLocked" : false,
+      "loadState" : "unloaded",
+      "path" : "",
+      "requiredByOtherAssets" : [
+
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T02:54:35+0300",
+      "timeLastRequestEnded" : "2026-08-08T02:54:31+0300",
+      "useEnergyEfficientMode" : false
+    }
+  ],
+  "budget" : 2000000,
+  "currentPolicy" : {
+    "assetPolicy" : "standard",
+    "cancelPriority" : "none"
+  },
+  "disabledUseCases" : [
+    "codeLM.denyThisUseCaseOnJune6of2024"
+  ],
+  "executionGroups" : {
+    "active" : [
+
+    ],
+    "pendingBackground" : [
+
+    ],
+    "pendingForeground" : [
+
+    ]
+  },
+  "inferenceProviders" : [
+    {
+      "activePriority" : "none",
+      "activeRequests" : [
+
+      ],
+      "descriptor" : {
+        "hostedOnServer" : true,
+        "id" : "private-ml-client",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "loadingCount" : 0,
+      "pid" : 448
+    },
+    {
+      "activePriority" : "none",
+      "activeRequests" : [
+
+      ],
+      "descriptor" : {
+        "hostedOnServer" : false,
+        "id" : "token-generation-inference",
+        "instance" : {
+          "specificInstance" : {
+            "_0" : "instruct-300m"
+          }
+        }
+      },
+      "loadingCount" : 0,
+      "pid" : 503
+    },
+    {
+      "activePriority" : "none",
+      "activeRequests" : [
+
+      ],
+      "descriptor" : {
+        "hostedOnServer" : true,
+        "id" : "CoreMotionPednetV1InferenceProvider",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "loadingCount" : 0,
+      "pid" : -1
+    }
+  ],
+  "remoteRequests" : [
+
+  ],
+  "requests" : [
+
+  ],
+  "runningRequests" : [
+
+  ],
+  "sessions" : [
+    {
+      "createdByPID" : 79,
+      "identifier" : "571FBD91-3F80-42AB-8645-98F905C7283F",
+      "isCancelled" : false,
+      "onBehalfOfPID" : 79,
+      "requests" : [
+
+      ],
+      "supportedAssets" : [
+        "com.apple.fm.coremotion.pednet_v1.base"
+      ],
+      "useCaseIdentifier" : "CMSPInference"
+    }
+  ],
+  "transactions" : [
+    "FA0D13D1-97EE-4686-BBFE-5439A32ABFA0",
+    "Inference Monitors Listening"
+  ],
+  "trials" : {
+
+  }
+}

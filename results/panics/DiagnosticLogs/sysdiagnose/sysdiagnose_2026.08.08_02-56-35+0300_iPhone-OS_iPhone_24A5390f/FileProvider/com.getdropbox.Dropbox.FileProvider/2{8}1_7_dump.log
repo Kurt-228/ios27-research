@@ -1,0 +1,414 @@
+Date/Time:         2026-08-07 23:56:51 +0000, (807839811.088032)
+OS Version:        24A5390f
+FP Version:        4838.0.93
+uid:               501
+
+
+7 providers, filtered by 'com.getdropbox.Dropbox.FileProvider/2{8}1'
+=====================================================
+com.getdropbox.Dropbox.FileProvider
+=====================================================
+  + version: none
+  + available system wide: 1
+  + supports enumeration: 1
+  + supports FPFS: 1
+  + read-only: 0
+  + extension storage URLs: (1)
+    - <GroupContainers>/341E8239-F48F-4493-B9D0-8BA156F9A734/F{19}e
+  + file coordination purpose ID: com.getdropbox.Dropbox.FileProvider
+  + display name: Dropbox
+  + bundle URL: /p{5}e/v{1}r/c{8}s/B{4}e/A{9}n/8{34}F/D{5}x.app/P{5}s/F{19}n.appex
+  + containing bundle identifier: com.getdropbox.Dropbox
+  + persona: FEEDEEEE-DDDD-CCCC-BBBB-0000000001F5
+  + document group name: group.com.getdropbox.Dropbox
+  + supported file types: none
+  + uses unique item identifiers across devices: 0
+  + applies changes atomically: 1
+  + supports failing upload on conflict: 0
+  + disallowed by MDM: 0
+  + push topics (development, opportunistic): (0)
+  + push topics (production): (0)
+  + push topics (production, opportunistic): (0)
+  + push topics (development): (0)
+
+-----------------------------------------------------
+domain: 2{8}1 (Л{4}й)
+-----------------------------------------------------
+ no process observed; grace period timer not running
+  + features: repl,
+  + root: <FPFS>/57462BA1-D425-4040-9057-E52C1EFA7873
+  + FPDDomain instance: <FPDDomain:0x7d9ac61b80>
+      - default backend: <FileProviderDaemon.FPDDomainFPFSBackend:0x7d9b0e8000>
+      - extension backend: <FPDDomainExtensionBackend:0x7d9b025410>
+      - deactivated backend: <(null):0x0>
+      - volume: <FPDVolume:0x7d9b058060 role:home dev:16777224 uuid:61...07 '/p{5}e/v{1}r/m{4}e'>
+  + persona: FEEDEEEE-DDDD-CCCC-BBBB-0000000001F5
+  + userInfo: 0 keys
+  + indexer:
+domain: com.getdropbox.Dropbox.FileProvider/2{8}1
+      spDomainID:     528B1DE7-826D-4C40-8EF1-3F127B9BB45D
+      scheduler:      <l:com.apple.fileprovider.indexing 🛏  registration:<from:2026-08-07 23:54:20 +0000 count:1>>
+      enabled:        yes
+      indexing:       no
+      needs-auth:     no
+      needs-indexing: no
+      + telemetry info:
+         count of files requested for redonation in the last day: 0
+      errors:         0
+      batch-indexed (since last startup): 0
+      spotlightIndexer:
+      eligibleForEmbeddings: true
+sync engine state:
+    + upload progress: <gprogress:NSProgressFileOperationKindUploading url:<FPFS>/57462BA1-D425-4040-9057-E52C1EFA7873>
+    + download progress: <gprogress:NSProgressFileOperationKindDownloading url:<FPFS>/57462BA1-D425-4040-9057-E52C1EFA7873>
+    + database: version=v13.4.r202507081658 UUID=33421997-84B2-4FBE-A0EB-8E5318C1A6BF
+    + FSEvent: UUID=29460369-FD2E-4ABA-A727-CF6C8C346DC4 StreamID=66795
+    + FP anchor: <page:<nil> anchor:{"version":100,"itemsPerSyncAnchor":200}>
+    + domain version: 0
+    + features: evict_packages|mark_directories_as_locked
+    + scheduling state: running
+    + error generation: 89
+    + disk import: no
+    + stream reset: yes
+      - scheduler: <l:com.apple.fileproviderd.stream-reset ⏳  registration:<from:2026-08-07 23:54:20 +0000 count:1> watchers=com.getdropbox.Dropbox.FileProvider/2{3}1,com.apple.CloudDocs.iCloudDriveFileProvider/C{4}E>
+    + refresh speculative policy: no
+    + directory manifest: not-loaded
+    + database history:
+      [2026-08-02 14:40:06.484+0300] OS:24A5390f DB:v13.4.r202507081658 FS:4838.0.93 FP:484.2 (8104DA3C-342C-4CAD-8DEF-402C53BDFC2C)
+      [2026-07-26 21:01:26.128+0300] OS:24A5390f DB:v13.4.r202507081658 FS:4838.0.93 FP:482.2 (3FB92A14-04CB-4237-9DC2-697E64008987)
+      Creation reason: domainCreation
+    + processing requests
+    + reconciliation (82 entries):
+        <fs:✅  root content:watch sver:root/5{34}3 cver:549886> <-> <fp:✅  .root content:watch sver: cver:> dir sched:utility#1786146920.8927631 rank:<s:1785531413955399936 c:0> <spec:isNotIndexable>
+        <fs:✅  trash content:watch sver:trash/.{4}h cver:549968> <-> <fp:✅  .trash sver: cver:> dir sched:utility#1786143446.851299 rank:<s:1785117278181634816 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729719) content:watch sver:root/C{13}s cver:729719> <-> <fp:✅  14 sver: cver:> dir sched:utility#1786143448.3059928 rank:<s:1785117279606255104 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729708) content:watch sver:root/.{3}m cver:729708> <-> <fp:✅  25 sver: cver:> dir sched:utility#1786143448.2942002 rank:<s:1785117279564087040 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729702) content:watch sver:root/I{4}e cver:729702> <-> <fp:✅  38 sver: cver:> dir sched:utility#1786143448.311627 rank:<s:1785117279544600064 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1167) content:watch sver:root/А{3}в 2.zip cver:729712> <-> <fp:✅  45 sver:01657553d8e766b0000000364b191d3 cver:ace3cca8d9fab097a2f614071482e3f3880578bf0cdf09a60fe8f47586207340> doc sched:utility#1786143448.2963529 rank:<s:1785117279576751872 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729729) content:watch sver:root/н{2}м cver:729729> <-> <fp:✅  7 sver: cver:> dir sched:utility#1786143448.3022609 rank:<s:1785117279637196032 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729700) content:watch sver:root/M{9}t cver:729700> <-> <fp:✅  23 sver: cver:> dir sched:utility#1786143448.309908 rank:<s:1785117279538329088 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729714) content:watch sver:root/.{7}e cver:729714> <-> <fp:✅  15 sver: cver:> dir sched:utility#1786143448.3057141 rank:<s:1785117279590095104 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729723) content:watch sver:root/S{1}H cver:729723> <-> <fp:✅  34 content:watch sver: cver:> dir sched:utility#1786143448.289793 rank:<s:1785117298411004160 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1178) content:watch sver:root/i{8}t.pcap cver:729731> <-> <fp:✅  29 sver:0165683e16568080000000364b191d3 cver:b22e25619697a76da81399406ce1a596ff0e756d7ecf797278d321e91d442121> doc sched:utility#1786143448.3653631 rank:<s:1785117279643817984 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1175) content:watch sver:root/c{14}n.zip cver:729727> <-> <fp:✅  31 sver:016566d577d24790000000364b191d3 cver:3f9e56a1dabbe8da35bdf71edaf1b32bba54b7f5f46da0b919cb22e4f27b4fad> doc sched:utility#1786143448.302824 rank:<s:1785117279631226112 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1160) content:watch sver:root/0{34}d.json cver:729696> <-> <fp:✅  10 sver:01656e7b536795a0000000364b191d3 cver:72456f347711fee211927a74e31ed1d4e0d6f1ea5d64e20418566f25dd251524> doc sched:utility#1786143448.304858 rank:<s:1785117279527448064 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1165) content:watch sver:root/p{9}e.plist cver:729709> <-> <fp:✅  47 sver:0165774e5450b1f0000000364b191d3 cver:5c53d49263681d2f7f5bb5d6f332f0a5ed2184bd6e5118ffbba5f994c16b893d> doc sched:utility#1786143448.36406 rank:<s:1785117279566946048 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1164) content:watch sver:root/Y{5}E.7z cver:729707> <-> <fp:✅  18 sver:016568395c1a56f0000000364b191d3 cver:a9f35c15366a3c5d98b61abcbb4490b033bf99dca6e89b76239e9370ede973bb> doc sched:utility#1786143448.364623 rank:<s:1785117279561208064 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729703) content:watch sver:root/.{7}g cver:729703> <-> <fp:✅  17 sver: cver:> dir sched:utility#1786143448.3033419 rank:<s:1785117279547634176 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729736) content:watch sver:root/.{5}e cver:729736> <-> <fp:✅  26 sver: cver:> dir sched:utility#1786143448.3656402 rank:<s:1785117279659645184 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1168) content:watch sver:root/d{8}1.pdf cver:729713> <-> <fp:✅  2 sver:01656f3d23ed21e0000000364b191d3 cver:d3a2f7eedee1b85aa2375fd53057ede5577407937068afab3a7fa10ddf73ad39> doc sched:utility#1786143448.3112411 rank:<s:1785117279586065152 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1183) content:watch sver:root/C{9}p.zip cver:729742> <-> <fp:✅  46 sver:0165771aaf7400f0000000364b191d3 cver:5c8d3e9af5f5636645dc7aa0b527ebf077685b5b7129236a0794a576e3dbe649> doc sched:utility#1786143448.3103762 rank:<s:1785117279684939008 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729739) content:watch sver:root/F{7}0.1ModpackFINAL cver:729739> <-> <fp:✅  48 sver: cver:> dir sched:utility#1786143448.296049 rank:<s:1785117279675580928 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729715) content:watch sver:root/w{11}n cver:729715> <-> <fp:✅  40 sver: cver:> dir sched:utility#1786143448.289393 rank:<s:1785117279593240064 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1174) content:watch sver:root/А{3}в.zip cver:729726> <-> <fp:✅  4 sver:0165755409271ea0000000364b191d3 cver:34fa6fd1d878c3cf97dca920f0c3cab0186404528c9d1998cdce4a718410c95f> doc sched:utility#1786143448.286876 rank:<s:1785117279627970048 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1185) content:watch sver:root/0{60}8.json cver:729744> <-> <fp:✅  28 sver:01656e7e5001c220000000364b191d3 cver:186e68887257792cde949e89164410b30908cd6d7ee4c989d66d22c44bea7b8b> doc sched:utility#1786143448.27789 rank:<s:1785117279692652032 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1169) content:watch sver:root/d{6}t.pdf cver:729716> <-> <fp:✅  1 sver:01656f3a7671b7b0000000364b191d3 cver:91ead33748d2e795bbb68debb82d00c2d4a84742492cd32f7e7a842b82847bc6> doc sched:utility#1786143448.3469582 rank:<s:1785117279597229056 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1158) content:watch sver:root/0{53}y.json cver:729694> <-> <fp:✅  51 sver:01656e7b54bf1220000000364b191d3 cver:daf9e6bec08e91bb8602f69b06cd4c848b6fe30f28e693328a01008540cc2a32> doc sched:utility#1786143448.29388 rank:<s:1785117279521016064 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729699) content:watch sver:root/.{4}x cver:729699> <-> <fp:✅  39 sver: cver:> dir sched:utility#1786143448.347327 rank:<s:1785117279535080960 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729735) content:watch sver:root/b{7}t cver:729735> <-> <fp:✅  37 sver: cver:> dir sched:utility#1786143448.2972388 rank:<s:1785117279656840960 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729721) content:watch sver:root/C{12}s cver:729721> <-> <fp:✅  19 sver: cver:> dir sched:utility#1786143448.283526 rank:<s:1785117279612754944 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(729732) content:watch sver:root/P{8}s cver:729732> <-> <fp:✅  13 content:watch sver: cver:> dir sched:utility#1786143448.3649404 rank:<s:1785353638110008064 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1182) content:watch sver:root/н{2}м.7z cver:729741> <-> <fp:✅  36 sver:01656aa110f15db0000000364b191d3 cver:c32ed5e99ee8fbe1dd1c9859d9903d61a361408ef091728a78f08c0e3705dea0> doc sched:utility#1786143448.291472 rank:<s:1785117279682052096 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1179) content:watch sver:root/i{4}e.txt cver:729734> <-> <fp:✅  3 sver:01657751029e9c80000000364b191d3 cver:8a44a6a35a624cd11e70c9fe78689f7c977be5e76700fa189e3d6427443e1aa0> doc sched:utility#1786143448.364331 rank:<s:1785117279653677824 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1180) content:watch sver:root/0{46}8.json cver:729737> <-> <fp:✅  5 sver:01656e79ee132ba0000000364b191d3 cver:2c1d782354bd79fb49a66c02d78832c7d0f29df16e0caadba54f0a44a0e958d4> doc sched:utility#1786143448.312142 rank:<s:1785117279662840832 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729720) content:watch sver:root/M{2}s cver:729720> <-> <fp:✅  27 sver: cver:> dir sched:utility#1786143448.333045 rank:<s:1785117279609084160 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1163) content:watch sver:root/a{16}8.vpn cver:729706> <-> <fp:✅  42 sver:016570f355a40640000000364b191d3 cver:129106e22eb893d0651b5120743e41f0d0e298b553e9b7b0996790fe9efdb030> doc sched:utility#1786143448.2843242 rank:<s:1785117279557851904 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1159) content:watch sver:root/2{68}e.zip cver:729695> <-> <fp:✅  50 sver:016578890d9e8fe0000000364b191d3 cver:4d95063ece7b32debc1031fc6157f98658dc0a6fa241f3ab74f0c9bc2c76f5d4> doc sched:utility#1786143448.301948 rank:<s:1785117279524332032 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1181) content:watch sver:root/0{21}e.json cver:729738> <-> <fp:✅  24 sver:01656e7cce7b09f0000000364b191d3 cver:daf9e6bec08e91bb8602f69b06cd4c848b6fe30f28e693328a01008540cc2a32> doc sched:utility#1786143448.308858 rank:<s:1785117279665821184 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729740) content:watch sver:root/u{8}s cver:729740> <-> <fp:✅  9 sver: cver:> dir sched:utility#1786143448.296914 rank:<s:1785117279679177984 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1184) content:watch sver:root/w{11}n.zip cver:729743> <-> <fp:✅  21 sver:016566d56b790a50000000364b191d3 cver:233c5a5a8837f6142621ca767a5db13cdce2c952401ffdc82864bb89c48e7075> doc sched:utility#1786143448.311888 rank:<s:1785117279687947008 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1162) content:watch sver:root/0{41}8.json cver:729705> <-> <fp:✅  12 sver:01656e79ecea85f0000000364b191d3 cver:28b13ed5aba31799c5d26a2fb2ee1eee8788981bb6e0bc85c58bf315b6ed6cbd> doc sched:utility#1786143448.333807 rank:<s:1785117279554217984 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729733) content:watch sver:root/.{7}k cver:729733> <-> <fp:✅  11 sver: cver:> dir sched:utility#1786143448.347869 rank:<s:1785117279650226176 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1172) content:watch sver:root/e{2}p.log.xz cver:729724> <-> <fp:✅  43 sver:016574db99b9fe30000000364b191d3 cver:9b1989b1b877a645c763318a7d0b49c240b46c5117ddc8bfc5d0e8837cc8bbe5> doc sched:utility#1786143448.301165 rank:<s:1785117279621723136 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1173) content:watch sver:root/P{9}E.7z cver:729725> <-> <fp:✅  8 sver:0165694aa536a070000000364b191d3 cver:cd604ea41e2b629eed874fcf9290ba510a3ec458b2448436da646d7928410ded> doc sched:utility#1786143448.301618 rank:<s:1785117279624724992 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1170) content:watch sver:root/i{19}d.plist cver:729718> <-> <fp:✅  49 sver:0165774e84056410000000364b191d3 cver:690e538c8a36665c6ec5e29180313237acdfa5d654a4b43e6b6b80808442b99b> doc sched:utility#1786143448.2878752 rank:<s:1785117279603247104 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729704) content:watch sver:root/c{14}n cver:729704> <-> <fp:✅  22 sver: cver:> dir sched:utility#1786143448.291187 rank:<s:1785117279550714112 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1161) content:watch sver:root/1{13}2.md cver:729697> <-> <fp:✅  16 sver:0165650f48bda2a0000000364b191d3 cver:3607839bd832646c1d9b3c1fe6f7297a83e7d4329bc098bd9a518c9820401ad7> doc sched:utility#1786143448.3357348 rank:<s:1785117279530721024 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729701) content:watch sver:root/.{7}e cver:729701> <-> <fp:✅  30 sver: cver:> dir sched:utility#1786143448.3459291 rank:<s:1785117279541452032 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1166) content:watch sver:root/c{15}l.zip cver:729710> <-> <fp:✅  44 sver:016574e07efee3c0000000364b191d3 cver:040a162072dd22bc7c21eb799ecb85771db9fd570bf082501b87ccf4d2e0504d> doc sched:utility#1786143448.2934499 rank:<s:1785117279570636032 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1171) content:watch sver:root/0{15}g.json cver:729722> <-> <fp:✅  41 sver:01656e7d89d26ed0000000364b191d3 cver:b740232bb2d8b132dda8ccbd9539e2287b379ff007dc1141090f4d09ef0a4388> doc sched:utility#1786143448.294801 rank:<s:1785117279616130816 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729711) content:watch sver:root/0{23}C cver:729711> <-> <fp:✅  20 sver: cver:> dir sched:utility#1786143448.3053489 rank:<s:1785117279573585152 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1157) content:watch sver:root/0{47}8.json cver:729693> <-> <fp:✅  32 sver:01656e79ef2808a0000000364b191d3 cver:53cece4441e031998561c32c977cafb162d0dfac6682897fccbfd977d87b88e7> doc sched:utility#1786143448.3006492 rank:<s:1785117279516905984 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729717) content:watch sver:root/s{14}l cver:729717> <-> <fp:✅  6 sver: cver:> dir sched:utility#1786143448.287301 rank:<s:1785117279600188928 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1176) content:watch sver:root/0{20}e.json cver:729728> <-> <fp:✅  35 sver:01656e7a57cc9eb0000000364b191d3 cver:7040766029dd4089bc8babd4c25683492af035c9f007146812ee9dafdc7f1628> doc sched:utility#1786143448.288447 rank:<s:1785117279634164992 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1177) content:watch sver:root/Х{8}r.zst cver:729730> <-> <fp:✅  33 sver:01656ff560ba7300000000364b191d3 cver:90b84280e567008b1f81cef47d20979a4c09aa94f0becad4e93c5f0541b5dee7> doc sched:utility#1786143448.294476 rank:<s:1785117279640197120 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(729815) content:watch sver:fileID(729723)/l{23}e cver:729815> <-> <fp:✅  53 content:watch sver: cver:> dir sched:utility#1786143448.6650848 rank:<s:1785117298410948864 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(1186) content:watch sver:fileID(729815)/R{4}E.txt cver:729829> <-> <fp:✅  55 sver:01656e8f24601c90000000364b191d3 cver:1b0cde7b88b31627930c9034f554c48d836caa283206b593b89fb304205d81da> doc sched:utility#1786143448.9892778 rank:<s:1785117298414648064 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1187) content:watch sver:fileID(729815)/i{34}e cver:729830> <-> <fp:✅  56 sver:01656e89d54ef3d0000000364b191d3 cver:3af47812fcba3c14a9e09b337016845c2d39dc98c0196e48877be2c626ff7bf5> doc sched:utility#1786143448.9938679 rank:<s:1785117298416356096 c:max> <spec:isNotIndexable>
+        <fs:✅  docID(1188) content:watch sver:fileID(729815)/i{34}e.pub cver:729831> <-> <fp:✅  54 sver:01656e89d54ef3e0000000364b191d3 cver:b0530082a1b2f4c69554eec9850456830bfecf626a6aa95aa9880bc27c265c2e> doc sched:utility#1786143448.991298 rank:<s:1785117298417850112 c:max> <spec:isNotIndexable>
+        <fs:✅  fileID(1260631) content:watch sver:root/п{8}к cver:1260631> <-> <fp:✅  57 sver: cver:> dir sched:utility#1786143448.3322911 rank:<s:1785353625188294912 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1260632) content:watch sver:root/C{18}s cver:1260632> <-> <fp:✅  58 sver: cver:> dir sched:utility#1786143448.295597 rank:<s:1785353625192583168 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1260718) content:watch sver:fileID(729732)/k{10}h cver:1260718> <-> <fp:✅  59 sver: cver:> dir sched:utility#1786143448.687612 rank:<s:1785353638103750912 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755787) content:watch sver:root/e{7}s cver:1755787> <-> <fp:✅  60 sver: cver:> dir sched:utility#1786143448.2889218 rank:<s:1785531382247476224 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755788) content:watch sver:root/V{7}n cver:1755788> <-> <fp:✅  62 content:watch sver: cver:> dir sched:utility#1786143448.282596 rank:<s:1785531413955266048 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755789) content:watch sver:root/A{2}s cver:1755789> <-> <fp:✅  61 sver: cver:> dir sched:utility#1786143448.29756 rank:<s:1785531382256269056 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755827) content:watch sver:fileID(1755788)/c{5}t cver:1755827> <-> <fp:✅  64 sver: cver:> dir sched:utility#1786143448.905906 rank:<s:1785531391103325952 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755828) content:watch sver:fileID(1755788)/c{5}t cver:1755828> <-> <fp:✅  63 sver: cver:> dir sched:utility#1786143448.906911 rank:<s:1785531391105023744 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755829) content:watch sver:fileID(1755788)/d{16}2 cver:1755829> <-> <fp:✅  65 sver: cver:> dir sched:utility#1786143448.9033232 rank:<s:1785531391106204928 c:0> <spec:isNotIndexable>
+        <fs:✅  fileID(1755835) content:watch sver:fileID(1755788)/C{9}n cver:1755835> <-> <fp:✅  66 content:watch sver: cver:> dir sched:utility#1786143448.904951 rank:<s:1785597154960846848 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(8677) content:watch sver:fileID(1755835)/C{9}n.md cver:1755851@1:sz:59595> <-> <fp:✅  68 content:watch sver:01657ee6c9ef97a0000000364b191d3 cver:5ae495b0c263d01c2b37922e3cb440791f15093f811d9c9d5cf57e352eccca18> doc sched:utility#1786143449.060508 rank:<s:1785531398476965888 c:1785531392928442112> <spec:isNotIndexable>
+        <fs:✅  fileID(1755837) content:watch sver:fileID(1755835)/A{9}s cver:1755837> <-> <fp:✅  67 content:watch sver: cver:> dir sched:utility#1786143449.0611072 rank:<s:1785531413954895872 c:0> <spec:isNotIndexable>
+        <fs:✅  docID(8675) content:watch sver:fileID(1755837)/8{34}D.heic cver:1755849@1:sz:1373778> <-> <fp:✅  70 content:watch sver:01657ee6cd114880000000364b191d3 cver:1f623ca95b3cfe966b758b7c84b589bed35e9b2cc3c8411637f5cca9f83d596d> doc sched:utility#1786143449.439789 rank:<s:1785531401314262016 c:1785531392981158912> <spec:isNotIndexable>
+        <fs:✅  docID(8672) content:watch sver:fileID(1755837)/2{34}E.jpeg cver:1755846@1:sz:75103> <-> <fp:✅  69 content:watch sver:01657ee6cc699030000000364b191d3 cver:428ed0a0cb5959e0efe6c0af3e7b26760cb691217f53a936e7f0fd8a56736007> doc sched:utility#1786143449.435494 rank:<s:1785531400767444224 c:1785531392981883904> <spec:isNotIndexable>
+        <fs:✅  docID(8671) content:watch sver:fileID(1755837)/0{34}A.png cver:1755845@1:sz:11674868> <-> <fp:✅  72 content:watch sver:01657ee6cf5da070000000364b191d3 cver:11052dde03f65814b8a3e0e5ee5f23ad65d2678cda4b4e63db9ea9348bf08a94> doc sched:utility#1786143449.436733 rank:<s:1785531404129249024 c:1785531392982539264> <spec:isNotIndexable>
+        <fs:✅  docID(8665) content:watch sver:fileID(1755837)/0{34}1.jpeg cver:1755839@1:sz:174434> <-> <fp:✅  71 content:watch sver:01657ee6cf09ce00000000364b191d3 cver:9d31ada95953cf22b362257a3bf1e30fb136a927b750584aec572405528cf2cd> doc sched:utility#1786143449.462686 rank:<s:1785531403603017984 c:1785531392983220992> <spec:isNotIndexable>
+        <fs:✅  docID(8676) content:watch sver:fileID(1755837)/3{34}A.jpeg cver:1755850@1:sz:29086> <-> <fp:✅  73 content:watch sver:01657ee6d10e9ef0000000364b191d3 cver:284a7af69047d8e9c77cf51a9b864370add26cb328901923431c4e6a0200ae1b> doc sched:utility#1786143449.450993 rank:<s:1785531405918880000 c:1785531392983938048> <spec:isNotIndexable>
+        <fs:✅  docID(8673) content:watch sver:fileID(1755837)/9{34}D.json cver:1755847@1:sz:16231> <-> <fp:✅  74 content:watch sver:01657ee6d1abef40000000364b191d3 cver:43824c7d661ff544dea10d6d0513bf2a4d36ecaafac131eab0eaf93125946809> doc sched:utility#1786143449.438713 rank:<s:1785531406518712064 c:1785531392984689920> <spec:isNotIndexable>
+        <fs:✅  docID(8667) content:watch sver:fileID(1755837)/5{34}4.jpeg cver:1755841@1:sz:41118> <-> <fp:✅  75 content:watch sver:01657ee6d2ec1730000000364b191d3 cver:b2cf3a131e9a0f2c13f59c19194cd550e4c226d2c9693d38b0e0953893f27d8f> doc sched:utility#1786143449.4401011 rank:<s:1785531407722201856 c:1785531392985750016> <spec:isNotIndexable>
+        <fs:✅  docID(8674) content:watch sver:fileID(1755837)/F{34}9.png cver:1755848@1:sz:799179> <-> <fp:✅  76 content:watch sver:01657ee6d4386550000000364b191d3 cver:ee89c04cd48e684aada2a5c7593ff7027b34905576fd7171c2eadf90f48a99b5> doc sched:utility#1786143449.4364579 rank:<s:1785531408901543168 c:1785531392986490880> <spec:isNotIndexable>
+        <fs:✅  docID(8668) content:watch sver:fileID(1755837)/8{34}6.jpeg cver:1755842@1:sz:18507> <-> <fp:✅  77 content:watch sver:01657ee6d4d59750000000364b191d3 cver:260ec450cd7529f840552b298cdb0fb5e477b5cb118f87b560f4898b9fa25d6f> doc sched:utility#1786143449.437818 rank:<s:1785531409500262912 c:1785531392987279872> <spec:isNotIndexable>
+        <fs:✅  docID(8666) content:watch sver:fileID(1755837)/1{34}D.jpeg cver:1755840@1:sz:66770> <-> <fp:✅  78 content:watch sver:01657ee6d6426fd0000000364b191d3 cver:b466a70e41f30e588d3e5bcb474582da067f85990752f7328898b83640c7ca18> doc sched:utility#1786143449.4361758 rank:<s:1785531411199054080 c:1785531392988041984> <spec:isNotIndexable>
+        <fs:✅  docID(8664) content:watch sver:fileID(1755837)/3{34}4.jpeg cver:1755838@1:sz:28337> <-> <fp:✅  79 content:watch sver:01657ee6d7006c80000000364b191d3 cver:a2d9a6ae5848ed61b147d4ee87b92ed00fa543eddf6bebc157089902fe5ae598> doc sched:utility#1786143449.4358768 rank:<s:1785531411768134144 c:1785531392989538048> <spec:isNotIndexable>
+        <fs:✅  docID(8670) content:watch sver:fileID(1755837)/F{34}F.png cver:1755844@1:sz:4266085> <-> <fp:✅  80 content:watch sver:01657ee6d8a71b40000000364b191d3 cver:56111d30152862c5ec4c5105e83cb371d93bf298b7c0feb0b8736c81a87119e2> doc sched:utility#1786143449.451544 rank:<s:1785531413501140224 c:1785531392990983936> <spec:isNotIndexable>
+        <fs:✅  docID(8669) content:watch sver:fileID(1755837)/1{34}F.png cver:1755843@1:sz:4287924> <-> <fp:✅  81 content:watch sver:01657ee6da671ba0000000364b191d3 cver:71309ae0877486777cba08a1dd05938d9a5271ac85b5e42b7c781c9fc08f9dfb> doc sched:utility#1786143449.451311 rank:<s:1785531413990829056 c:1785531392991887104> <spec:isNotIndexable>
+    
+    + background
+      cacheDelete enabled: true
+      download scheduler: <l:com.apple.fileproviderd.background-download 🛏  registration:<from:2026-08-07 23:54:20 +0000 count:1>>
+      background downloader pacer: <dirty:false last:1785572751 lastDownloadsAllowedReset:1785572751 totalDownloadCount:0 lastIndexingBarrier: Optional(FileProviderDaemon.DatabaseIndexAnchor.anchor(1785597154960846848))>
+      speculative disk management: <inGreedyState:true>
+      upload scheduler: <l:com.apple.fileproviderd.background-upload-non-expensive 🛏  registration:<from:2026-08-07 23:54:20 +0000 count:1>>
+    + throttling: no expiration scheduled
+    + propagation jobs
+    + item jobs
+      <FS4 ⏳  fetch-metadata(trash) why:streamReset sched:background#1786146689.684867 ⧗streamReset>
+      <FS5 ⏳  resnapshot-children(root) why:streamReset sched:background#1786146920.486246 ⧗streamReset>
+      <FS6 ⏳  fetch-children-metadata(root) why:streamReset sched:background#1786146920.4862506 ⧗streamReset>
+    + snapshot fs (82 entries):
+      <s:root p:root n:"5{34}3/" dir child:57 m:rwxS ct:1785088886.0046902 mt:1785088886.004706 v:sver:root/5{34}3 cver:549886 rec:<dls:60 nev:0 ev:14 dlswc:0>>
+       <s:docID(1157) p:root n:"0{47}8.json" doc dls sz:10414 m:rw-e ct:1785117278.164781 mt:1784401856.0 v:sver:root/0{47}8.json cver:729693>
+       <s:docID(1158) p:root n:"0{53}y.json" doc dls sz:13846 m:rw-e ct:1785117278.164743 mt:1784402854.0 v:sver:root/0{53}y.json cver:729694>
+       <s:docID(1159) p:root n:"2{68}e.zip" doc dls sz:3043759057 m:rw-e ct:1785117278.164794 mt:1773958680.0 v:sver:root/2{68}e.zip cver:729695>
+       <s:docID(1160) p:root n:"0{34}d.json" doc dls sz:51167 m:rw-e ct:1785117278.16475 mt:1784402183.0 v:sver:root/0{34}d.json cver:729696>
+       <s:docID(1161) p:root n:"1{13}2.md" doc dls sz:25901 m:rw-e ct:1785117278.164788 mt:1783727659.0 v:sver:root/1{13}2.md cver:729697>
+       <s:fileID(729699) p:root n:".{4}x/" dir dls child:65533 m:rwxhe ct:1785117278.164657 mt:1783298779.0 v:sver:root/.{4}x cver:729699 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729700) p:root n:"M{9}t/" dir dls child:65533 m:rwxe ct:1785117278.164906 mt:1784905702.0 v:sver:root/M{9}t cver:729700 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729701) p:root n:".{7}e/" dir dls child:65533 m:rwxhe ct:1785117278.164681 mt:1783615983.0 v:sver:root/.{7}e cver:729701 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729702) p:root n:"I{4}e/" dir dls child:65533 m:rwxe ct:1785117278.16488 mt:1783021394.0 v:sver:root/I{4}e cver:729702 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729703) p:root n:".{7}g/" dir dls child:65533 m:rwxhe ct:1785117278.164688 mt:1783627016.0 v:sver:root/.{7}g cver:729703 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729704) p:root n:"c{14}n/" dir dls child:65533 m:rwxe ct:1785117278.164835 mt:1783877500.0 v:sver:root/c{14}n cver:729704 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1162) p:root n:"0{41}8.json" doc dls sz:11937 m:rw-e ct:1785117278.164715 mt:1784401499.0 v:sver:root/0{41}8.json cver:729705>
+       <s:docID(1163) p:root n:"a{16}8.vpn" doc dls sz:617 m:rw-e ct:1785117278.1648011 mt:1784572691.0 v:sver:root/a{16}8.vpn cver:729706>
+       <s:docID(1164) p:root n:"Y{5}E.7z" doc dls sz:592496195 m:rw-e ct:1785117278.1649752 mt:1783972198.0 v:sver:root/Y{5}E.7z cver:729707>
+       <s:fileID(729708) p:root n:".{3}m/" dir dls child:65533 m:rwxhe ct:1785117278.164695 mt:1783616426.0 v:sver:root/.{3}m cver:729708 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1165) p:root n:"p{9}e.plist" doc dls sz:9816 m:rw-e ct:1785117278.164918 mt:1784996367.0 v:sver:root/p{9}e.plist cver:729709>
+       <s:docID(1166) p:root n:"c{15}l.zip" doc dls sz:570703158 m:rw-e ct:1785117278.164847 mt:1784842512.0 v:sver:root/c{15}l.zip cver:729710>
+       <s:fileID(729711) p:root n:"0{23}C/" dir dls child:65533 m:rwxe ct:1785117278.164702 mt:1785090389.0 v:sver:root/0{23}C cver:729711 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1167) p:root n:"А{3}в 2.zip" doc dls sz:465244430 m:rw-e ct:1785117278.164983 mt:1784873476.0 v:sver:root/А{3}в 2.zip cver:729712>
+       <s:docID(1168) p:root n:"d{8}1.pdf" doc dls sz:439325 m:rw-e ct:1785117278.164854 mt:1784454892.0 v:sver:root/d{8}1.pdf cver:729713>
+       <s:fileID(729714) p:root n:".{7}e/" dir dls child:65533 m:rwxhe ct:1785117278.164648 mt:1783611051.0 v:sver:root/.{7}e cver:729714 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729715) p:root n:"w{11}n/" dir dls child:65533 m:rwxe ct:1785117278.164963 mt:1783877474.0 v:sver:root/w{11}n cver:729715 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1169) p:root n:"d{6}t.pdf" doc dls sz:156171 m:rw-e ct:1785117278.1648622 mt:1784454119.0 v:sver:root/d{6}t.pdf cver:729716>
+       <s:fileID(729717) p:root n:"s{14}l/" dir dls child:65533 m:rwxe ct:1785117278.1649442 mt:1774529292.0 v:sver:root/s{14}l cver:729717 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1170) p:root n:"i{19}d.plist" doc dls sz:9568 m:rw-e ct:1785117278.164887 mt:1785009483.0 v:sver:root/i{19}d.plist cver:729718>
+       <s:fileID(729719) p:root n:"C{13}s/" dir dls child:65533 m:rwxe ct:1785117278.164822 mt:1784875258.0 v:sver:root/C{13}s cver:729719 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729720) p:root n:"M{2}s/" dir dls child:65533 m:rwxe ct:1785117278.164912 mt:1783268883.0 v:sver:root/M{2}s cver:729720 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729721) p:root n:"C{12}s/" dir dls child:65533 m:rwxe ct:1785117278.164815 mt:1783021327.0 v:sver:root/C{12}s cver:729721 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1171) p:root n:"0{15}g.json" doc dls sz:10659 m:rw-e ct:1785117278.164709 mt:1784403631.0 v:sver:root/0{15}g.json cver:729722>
+       <s:fileID(729723) p:root n:"S{1}H/" dir child:1 m:rwxe ct:1785117278.16495 mt:1784406869.0 v:sver:root/S{1}H cver:729723 rec:<dls:3 nev:0 ev:0 dlswc:0>>
+        <s:fileID(729815) p:fileID(729723) n:"l{23}e/" dir child:3 m:rwxe ct:1785117293.5401978 mt:1784406869.0 v:sver:fileID(729723)/l{23}e cver:729815 rec:<dls:3 nev:0 ev:0 dlswc:0>>
+         <s:docID(1186) p:fileID(729815) n:"R{4}E.txt" doc dls sz:1508 m:rw-e ct:1785117298.287074 mt:1784408285.0 v:sver:fileID(729815)/R{4}E.txt cver:729829>
+         <s:docID(1187) p:fileID(729815) n:"i{34}e" doc dls sz:444 m:rw-e ct:1785117298.287129 mt:1784406869.0 v:sver:fileID(729815)/i{34}e cver:729830>
+         <s:docID(1188) p:fileID(729815) n:"i{34}e.pub" doc dls sz:123 m:rw-e ct:1785117298.287153 mt:1784406869.0 v:sver:fileID(729815)/i{34}e.pub cver:729831>
+       <s:docID(1172) p:root n:"e{2}p.log.xz" doc dls sz:13308 m:rw-e ct:1785117278.1648679 mt:1784841198.0 v:sver:root/e{2}p.log.xz cver:729724>
+       <s:docID(1173) p:root n:"P{9}E.7z" doc dls sz:630542797 m:rw-e ct:1785117278.164937 mt:1783983031.0 v:sver:root/P{9}E.7z cver:729725>
+       <s:docID(1174) p:root n:"А{3}в.zip" doc dls sz:258439185 m:rw-e ct:1785117278.16499 mt:1784873527.0 v:sver:root/А{3}в.zip cver:729726>
+       <s:docID(1175) p:root n:"c{14}n.zip" doc dls sz:11055072 m:rw-e ct:1785117278.1648412 mt:1783877479.0 v:sver:root/c{14}n.zip cver:729727>
+       <s:docID(1176) p:root n:"0{20}e.json" doc dls sz:6584 m:rw-e ct:1785117278.164729 mt:1784402773.0 v:sver:root/0{20}e.json cver:729728>
+       <s:fileID(729729) p:root n:"н{2}м/" dir dls child:65533 m:rwxe ct:1785117278.1649961 mt:1784729120.0 v:sver:root/н{2}м cver:729729 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1177) p:root n:"Х{8}r.zst" doc dls sz:69562724628 m:rw-e ct:1785117278.165009 mt:1784316682.0 v:sver:root/Х{8}r.zst cver:729730>
+       <s:docID(1178) p:root n:"i{8}t.pcap" doc dls sz:117695611 m:rw-e ct:1785117278.1648989 mt:1783973251.0 v:sver:root/i{8}t.pcap cver:729731>
+       <s:fileID(729732) p:root n:"P{8}s/" dir child:1 m:rwxe ct:1785117278.1649241 mt:1783828968.0 v:sver:root/P{8}s cver:729732 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+        <s:fileID(1260718) p:fileID(729732) n:"k{10}h/" dir dls child:65533 m:rwxe ct:1785353638.011331 mt:1783828968.0 v:sver:fileID(729732)/k{10}h cver:1260718 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729733) p:root n:".{7}k/" dir dls child:65533 m:rwxhe ct:1785117278.1646729 mt:1783613072.0 v:sver:root/.{7}k cver:729733 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1179) p:root n:"i{4}e.txt" doc dls sz:65411 m:rw-e ct:1785117278.1648932 mt:1785010153.0 v:sver:root/i{4}e.txt cver:729734>
+       <s:fileID(729735) p:root n:"b{7}t/" dir dls child:65533 m:rwxe ct:1785117278.164809 mt:1774039010.0 v:sver:root/b{7}t cver:729735 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729736) p:root n:".{5}e/" dir dls child:65533 m:rwxhe ct:1785117278.1646252 mt:1783696269.0 v:sver:root/.{5}e cver:729736 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1180) p:root n:"0{46}8.json" doc dls sz:14432 m:rw-e ct:1785117278.164737 mt:1784401547.0 v:sver:root/0{46}8.json cver:729737>
+       <s:docID(1181) p:root n:"0{21}e.json" doc dls sz:13846 m:rw-e ct:1785117278.164774 mt:1784402854.0 v:sver:root/0{21}e.json cver:729738>
+       <s:fileID(729739) p:root n:"F{7}0.1ModpackFINAL/" dir dls child:65533 m:rwxe ct:1785117278.164874 mt:1783727659.0 v:sver:root/F{7}0.1ModpackFINAL cver:729739 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(729740) p:root n:"u{8}s/" dir dls child:65533 m:rwxe ct:1785117278.164956 mt:1784112689.0 v:sver:root/u{8}s cver:729740 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:docID(1182) p:root n:"н{2}м.7z" doc dls sz:32216133 m:rw-e ct:1785117278.1650028 mt:1784052646.0 v:sver:root/н{2}м.7z cver:729741>
+       <s:docID(1183) p:root n:"C{9}p.zip" doc dls sz:109937365 m:rw-e ct:1785117278.1648278 mt:1784995571.0 v:sver:root/C{9}p.zip cver:729742>
+       <s:docID(1184) p:root n:"w{11}n.zip" doc dls sz:402923 m:rw-e ct:1785117278.164969 mt:1783877466.0 v:sver:root/w{11}n.zip cver:729743>
+       <s:docID(1185) p:root n:"0{60}8.json" doc dls sz:50366 m:rw-e ct:1785117278.164767 mt:1784403839.0 v:sver:root/0{60}8.json cver:729744>
+       <s:fileID(1260631) p:root n:"п{8}к/" dir dls child:65533 m:rwxe ct:1785353625.133407 mt:1785274641.0 v:sver:root/п{8}к cver:1260631 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(1260632) p:root n:"C{18}s/" dir dls child:65533 m:rwxe ct:1785353625.133384 mt:1785285375.0 v:sver:root/C{18}s cver:1260632 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(1755787) p:root n:"e{7}s/" dir dls child:65533 m:rwxe ct:1785531382.165084 mt:1785428181.0 v:sver:root/e{7}s cver:1755787 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+       <s:fileID(1755788) p:root n:"V{7}n/" dir child:4 m:rwxe ct:1785531382.165101 mt:1785398159.0 v:sver:root/V{7}n cver:1755788 rec:<dls:3 nev:0 ev:14 dlswc:0>>
+        <s:fileID(1755827) p:fileID(1755788) n:"c{5}t/" dir dls child:65533 m:rwxe ct:1785531391.026417 mt:1785522502.0 v:sver:fileID(1755788)/c{5}t cver:1755827 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+        <s:fileID(1755828) p:fileID(1755788) n:"c{5}t/" dir dls child:65533 m:rwxe ct:1785531391.02647 mt:1785398159.0 v:sver:fileID(1755788)/c{5}t cver:1755828 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+        <s:fileID(1755829) p:fileID(1755788) n:"d{16}2/" dir dls child:65533 m:rwxe ct:1785531391.026483 mt:1785398181.0 v:sver:fileID(1755788)/d{16}2 cver:1755829 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+        <s:fileID(1755835) p:fileID(1755788) n:"C{9}n/" dir child:2 m:rwx ct:1785531280.7632298 mt:1785531393.0 lu:1785531290.0 v:sver:fileID(1755788)/C{9}n cver:1755835 rec:<dls:0 nev:0 ev:14 dlswc:0>>
+         <s:docID(8677) p:fileID(1755835) n:"C{9}n.md" doc sz:59595 m:rw-%<549886:high:createdLocally> ct:1785531280.7615905 mt:1785531396.0 v:sver:fileID(1755835)/C{9}n.md cver:1755851@1:sz:59595>
+         <s:fileID(1755837) p:fileID(1755835) n:"A{9}s/" dir child:13 m:rwx ct:1785531280.7861335 mt:1785531395.0 v:sver:fileID(1755835)/A{9}s cver:1755837 rec:<dls:0 nev:0 ev:13 dlswc:0>>
+          <s:docID(8675) p:fileID(1755837) n:"8{34}D.heic" doc sz:1373778 m:rw-%<549886:high:createdLocally> ct:1785524841.2378798 mt:1785531399.0 v:sver:fileID(1755837)/8{34}D.heic cver:1755849@1:sz:1373778>
+          <s:docID(8672) p:fileID(1755837) n:"2{34}E.jpeg" doc sz:75103 m:rw-%<549886:high:createdLocally> ct:1785529050.1927316 mt:1785531398.0 v:sver:fileID(1755837)/2{34}E.jpeg cver:1755846@1:sz:75103>
+          <s:docID(8671) p:fileID(1755837) n:"0{34}A.png" doc sz:11674868 m:rw-%<549886:high:createdLocally> ct:1785524841.5746503 mt:1785531401.0 v:sver:fileID(1755837)/0{34}A.png cver:1755845@1:sz:11674868>
+          <s:docID(8665) p:fileID(1755837) n:"0{34}1.jpeg" doc sz:174434 m:rw-%<549886:high:createdLocally> ct:1785528546.514143 mt:1785531401.0 v:sver:fileID(1755837)/0{34}1.jpeg cver:1755839@1:sz:174434>
+          <s:docID(8676) p:fileID(1755837) n:"3{34}A.jpeg" doc sz:29086 m:rw-%<549886:high:createdLocally> ct:1785529894.8983066 mt:1785531403.0 v:sver:fileID(1755837)/3{34}A.jpeg cver:1755850@1:sz:29086>
+          <s:docID(8673) p:fileID(1755837) n:"9{34}D.json" doc sz:16231 m:rw-%<549886:high:createdLocally> ct:1785528535.0853646 mt:1785531404.0 lu:1785528574.0 v:sver:fileID(1755837)/9{34}D.json cver:1755847@1:sz:16231>
+          <s:docID(8667) p:fileID(1755837) n:"5{34}4.jpeg" doc sz:41118 m:rw-%<549886:high:createdLocally> ct:1785529800.0545306 mt:1785531405.0 v:sver:fileID(1755837)/5{34}4.jpeg cver:1755841@1:sz:41118>
+          <s:docID(8674) p:fileID(1755837) n:"F{34}9.png" doc sz:799179 m:rw-%<549886:high:createdLocally> ct:1785524840.8249187 mt:1785531407.0 v:sver:fileID(1755837)/F{34}9.png cver:1755848@1:sz:799179>
+          <s:docID(8668) p:fileID(1755837) n:"8{34}6.jpeg" doc sz:18507 m:rw-%<549886:high:createdLocally> ct:1785529484.312974 mt:1785531407.0 v:sver:fileID(1755837)/8{34}6.jpeg cver:1755842@1:sz:18507>
+          <s:docID(8666) p:fileID(1755837) n:"1{34}D.jpeg" doc sz:66770 m:rw-%<549886:high:createdLocally> ct:1785530281.6943755 mt:1785531409.0 v:sver:fileID(1755837)/1{34}D.jpeg cver:1755840@1:sz:66770>
+          <s:docID(8664) p:fileID(1755837) n:"3{34}4.jpeg" doc sz:28337 m:rw-%<549886:high:createdLocally> ct:1785530049.780598 mt:1785531409.0 v:sver:fileID(1755837)/3{34}4.jpeg cver:1755838@1:sz:28337>
+          <s:docID(8670) p:fileID(1755837) n:"F{34}F.png" doc sz:4266085 m:rw-%<549886:high:createdLocally> ct:1785524841.904374 mt:1785531411.0 v:sver:fileID(1755837)/F{34}F.png cver:1755844@1:sz:4266085>
+          <s:docID(8669) p:fileID(1755837) n:"1{34}F.png" doc sz:4287924 m:rw-%<549886:high:createdLocally> ct:1785524842.167546 mt:1785531413.0 v:sver:fileID(1755837)/1{34}F.png cver:1755843@1:sz:4287924>
+       <s:fileID(1755789) p:root n:"A{2}s/" dir dls child:65533 m:rwxe ct:1785531382.16507 mt:1785526379.0 v:sver:root/A{2}s cver:1755789 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+      <s:trash p:trash n:".{4}h/" dir dls child:65533 m:rwx ct:1785088886.162715 mt:1785088886.162716 v:sver:trash/.{4}h cver:549968 rec:<dls:1 nev:0 ev:0 dlswc:0>>
+      + counters: createCount=0 updateCount=1 deleteCount=0 resetDate=2026-08-07 23:55:02 +0000
+    + FS roots
+      <FPFS>/57462BA1-D425-4040-9057-E52C1EFA7873 [ino:549886]
+    
+    + throttling: no expiration scheduled
+    + propagation jobs
+    + item jobs
+    + snapshot fp (82 entries):
+      <s:.root p:.root n:"//" dir child:65533 m:rwxe ct:1785117278.15047 mt:1783021284.0 v:sver: cver: nsattr:<cap:rw----e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system> rec:<!del:1 !excl:81>>
+       <s:14 p:.root n:"C{13}s/" dir child:65533 m:rwxe ct:1785117278.164822 mt:1784875258.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:25 p:.root n:".{3}m/" dir child:65533 m:rwxhe ct:1785117278.164695 mt:1783616426.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:38 p:.root n:"I{4}e/" dir child:65533 m:rwxe ct:1785117278.16488 mt:1783021394.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:45 p:.root n:"А{3}в 2.zip" doc sz:465244430 m:rw-e%<0:high> ct:1785117278.164983 mt:1784873476.0 v:sver:01657553d8e766b0000000364b191d3 cver:ace3cca8d9fab097a2f614071482e3f3880578bf0cdf09a60fe8f47586207340 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:7 p:.root n:"н{2}м/" dir child:65533 m:rwxe ct:1785117278.1649961 mt:1784729120.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:23 p:.root n:"M{9}t/" dir child:65533 m:rwxe ct:1785117278.164906 mt:1784905702.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:15 p:.root n:".{7}e/" dir child:65533 m:rwxhe ct:1785117278.164648 mt:1783611051.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:34 p:.root n:"S{1}H/" dir child:65533 m:rwxe ct:1785117278.16495 mt:1784406869.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:5>>
+        <s:53 p:34 n:"l{23}e/" dir child:65533 m:rwxe ct:1785117293.5401978 mt:1784406869.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:4>>
+         <s:55 p:53 n:"R{4}E.txt" doc sz:1508 m:rw-e%<0:high> ct:1785117298.287074 mt:1784408285.0 v:sver:01656e8f24601c90000000364b191d3 cver:1b0cde7b88b31627930c9034f554c48d836caa283206b593b89fb304205d81da nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+         <s:56 p:53 n:"i{34}e" doc sz:444 m:rw-e%<0:high> ct:1785117298.287129 mt:1784406869.0 v:sver:01656e89d54ef3d0000000364b191d3 cver:3af47812fcba3c14a9e09b337016845c2d39dc98c0196e48877be2c626ff7bf5 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+         <s:54 p:53 n:"i{34}e.pub" doc sz:123 m:rw-e%<0:high> ct:1785117298.287153 mt:1784406869.0 v:sver:01656e89d54ef3e0000000364b191d3 cver:b0530082a1b2f4c69554eec9850456830bfecf626a6aa95aa9880bc27c265c2e nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:29 p:.root n:"i{8}t.pcap" doc sz:117695611 m:rw-e%<0:high> ct:1785117278.1648989 mt:1783973251.0 v:sver:0165683e16568080000000364b191d3 cver:b22e25619697a76da81399406ce1a596ff0e756d7ecf797278d321e91d442121 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:31 p:.root n:"c{14}n.zip" doc sz:11055072 m:rw-e%<0:high> ct:1785117278.1648412 mt:1783877479.0 v:sver:016566d577d24790000000364b191d3 cver:3f9e56a1dabbe8da35bdf71edaf1b32bba54b7f5f46da0b919cb22e4f27b4fad nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:10 p:.root n:"0{34}d.json" doc sz:51167 m:rw-e%<0:high> ct:1785117278.16475 mt:1784402183.0 v:sver:01656e7b536795a0000000364b191d3 cver:72456f347711fee211927a74e31ed1d4e0d6f1ea5d64e20418566f25dd251524 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:47 p:.root n:"p{9}e.plist" doc sz:9816 m:rw-e%<0:high> ct:1785117278.164918 mt:1784996367.0 v:sver:0165774e5450b1f0000000364b191d3 cver:5c53d49263681d2f7f5bb5d6f332f0a5ed2184bd6e5118ffbba5f994c16b893d nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:18 p:.root n:"Y{5}E.7z" doc sz:592496195 m:rw-e%<0:high> ct:1785117278.1649752 mt:1783972198.0 v:sver:016568395c1a56f0000000364b191d3 cver:a9f35c15366a3c5d98b61abcbb4490b033bf99dca6e89b76239e9370ede973bb nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:17 p:.root n:".{7}g/" dir child:65533 m:rwxhe ct:1785117278.164688 mt:1783627016.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:26 p:.root n:".{5}e/" dir child:65533 m:rwxhe ct:1785117278.1646252 mt:1783696269.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:2 p:.root n:"d{8}1.pdf" doc sz:439325 m:rw-e%<0:high> ct:1785117278.164854 mt:1784454892.0 v:sver:01656f3d23ed21e0000000364b191d3 cver:d3a2f7eedee1b85aa2375fd53057ede5577407937068afab3a7fa10ddf73ad39 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:46 p:.root n:"C{9}p.zip" doc sz:109937365 m:rw-e%<0:high> ct:1785117278.1648278 mt:1784995571.0 v:sver:0165771aaf7400f0000000364b191d3 cver:5c8d3e9af5f5636645dc7aa0b527ebf077685b5b7129236a0794a576e3dbe649 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:48 p:.root n:"F{7}0.1ModpackFINAL/" dir child:65533 m:rwxe ct:1785117278.164874 mt:1783727659.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:40 p:.root n:"w{11}n/" dir child:65533 m:rwxe ct:1785117278.164963 mt:1783877474.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:4 p:.root n:"А{3}в.zip" doc sz:258439185 m:rw-e%<0:high> ct:1785117278.16499 mt:1784873527.0 v:sver:0165755409271ea0000000364b191d3 cver:34fa6fd1d878c3cf97dca920f0c3cab0186404528c9d1998cdce4a718410c95f nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:28 p:.root n:"0{60}8.json" doc sz:50366 m:rw-e%<0:high> ct:1785117278.164767 mt:1784403839.0 v:sver:01656e7e5001c220000000364b191d3 cver:186e68887257792cde949e89164410b30908cd6d7ee4c989d66d22c44bea7b8b nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:1 p:.root n:"d{6}t.pdf" doc sz:156171 m:rw-e%<0:high> ct:1785117278.1648622 mt:1784454119.0 v:sver:01656f3a7671b7b0000000364b191d3 cver:91ead33748d2e795bbb68debb82d00c2d4a84742492cd32f7e7a842b82847bc6 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:51 p:.root n:"0{53}y.json" doc sz:13846 m:rw-e%<0:high> ct:1785117278.164743 mt:1784402854.0 v:sver:01656e7b54bf1220000000364b191d3 cver:daf9e6bec08e91bb8602f69b06cd4c848b6fe30f28e693328a01008540cc2a32 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:39 p:.root n:".{4}x/" dir child:65533 m:rwxhe ct:1785117278.164657 mt:1783298779.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:37 p:.root n:"b{7}t/" dir child:65533 m:rwxe ct:1785117278.164809 mt:1774039010.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:19 p:.root n:"C{12}s/" dir child:65533 m:rwxe ct:1785117278.164815 mt:1783021327.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:13 p:.root n:"P{8}s/" dir child:65533 m:rwxe ct:1785117278.1649241 mt:1783828968.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:2>>
+        <s:59 p:13 n:"k{10}h/" dir child:65533 m:rwxe ct:1785353638.011331 mt:1783828968.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:36 p:.root n:"н{2}м.7z" doc sz:32216133 m:rw-e%<0:high> ct:1785117278.1650028 mt:1784052646.0 v:sver:01656aa110f15db0000000364b191d3 cver:c32ed5e99ee8fbe1dd1c9859d9903d61a361408ef091728a78f08c0e3705dea0 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:3 p:.root n:"i{4}e.txt" doc sz:65411 m:rw-e%<0:high> ct:1785117278.1648932 mt:1785010153.0 v:sver:01657751029e9c80000000364b191d3 cver:8a44a6a35a624cd11e70c9fe78689f7c977be5e76700fa189e3d6427443e1aa0 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:5 p:.root n:"0{46}8.json" doc sz:14432 m:rw-e%<0:high> ct:1785117278.164737 mt:1784401547.0 v:sver:01656e79ee132ba0000000364b191d3 cver:2c1d782354bd79fb49a66c02d78832c7d0f29df16e0caadba54f0a44a0e958d4 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:27 p:.root n:"M{2}s/" dir child:65533 m:rwxe ct:1785117278.164912 mt:1783268883.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:42 p:.root n:"a{16}8.vpn" doc sz:617 m:rw-e%<0:high> ct:1785117278.1648011 mt:1784572691.0 v:sver:016570f355a40640000000364b191d3 cver:129106e22eb893d0651b5120743e41f0d0e298b553e9b7b0996790fe9efdb030 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:50 p:.root n:"2{68}e.zip" doc sz:3043759057 m:rw-e%<0:high> ct:1785117278.164794 mt:1773958680.0 v:sver:016578890d9e8fe0000000364b191d3 cver:4d95063ece7b32debc1031fc6157f98658dc0a6fa241f3ab74f0c9bc2c76f5d4 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:24 p:.root n:"0{21}e.json" doc sz:13846 m:rw-e%<0:high> ct:1785117278.164774 mt:1784402854.0 v:sver:01656e7cce7b09f0000000364b191d3 cver:daf9e6bec08e91bb8602f69b06cd4c848b6fe30f28e693328a01008540cc2a32 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:9 p:.root n:"u{8}s/" dir child:65533 m:rwxe ct:1785117278.164956 mt:1784112689.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:21 p:.root n:"w{11}n.zip" doc sz:402923 m:rw-e%<0:high> ct:1785117278.164969 mt:1783877466.0 v:sver:016566d56b790a50000000364b191d3 cver:233c5a5a8837f6142621ca767a5db13cdce2c952401ffdc82864bb89c48e7075 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:12 p:.root n:"0{41}8.json" doc sz:11937 m:rw-e%<0:high> ct:1785117278.164715 mt:1784401499.0 v:sver:01656e79ecea85f0000000364b191d3 cver:28b13ed5aba31799c5d26a2fb2ee1eee8788981bb6e0bc85c58bf315b6ed6cbd nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:11 p:.root n:".{7}k/" dir child:65533 m:rwxhe ct:1785117278.1646729 mt:1783613072.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:43 p:.root n:"e{2}p.log.xz" doc sz:13308 m:rw-e%<0:high> ct:1785117278.1648679 mt:1784841198.0 v:sver:016574db99b9fe30000000364b191d3 cver:9b1989b1b877a645c763318a7d0b49c240b46c5117ddc8bfc5d0e8837cc8bbe5 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:8 p:.root n:"P{9}E.7z" doc sz:630542797 m:rw-e%<0:high> ct:1785117278.164937 mt:1783983031.0 v:sver:0165694aa536a070000000364b191d3 cver:cd604ea41e2b629eed874fcf9290ba510a3ec458b2448436da646d7928410ded nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:49 p:.root n:"i{19}d.plist" doc sz:9568 m:rw-e%<0:high> ct:1785117278.164887 mt:1785009483.0 v:sver:0165774e84056410000000364b191d3 cver:690e538c8a36665c6ec5e29180313237acdfa5d654a4b43e6b6b80808442b99b nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:22 p:.root n:"c{14}n/" dir child:65533 m:rwxe ct:1785117278.164835 mt:1783877500.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:16 p:.root n:"1{13}2.md" doc sz:25901 m:rw-e%<0:high> ct:1785117278.164788 mt:1783727659.0 v:sver:0165650f48bda2a0000000364b191d3 cver:3607839bd832646c1d9b3c1fe6f7297a83e7d4329bc098bd9a518c9820401ad7 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:30 p:.root n:".{7}e/" dir child:65533 m:rwxhe ct:1785117278.164681 mt:1783615983.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:44 p:.root n:"c{15}l.zip" doc sz:570703158 m:rw-e%<0:high> ct:1785117278.164847 mt:1784842512.0 v:sver:016574e07efee3c0000000364b191d3 cver:040a162072dd22bc7c21eb799ecb85771db9fd570bf082501b87ccf4d2e0504d nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:41 p:.root n:"0{15}g.json" doc sz:10659 m:rw-e%<0:high> ct:1785117278.164709 mt:1784403631.0 v:sver:01656e7d89d26ed0000000364b191d3 cver:b740232bb2d8b132dda8ccbd9539e2287b379ff007dc1141090f4d09ef0a4388 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:20 p:.root n:"0{23}C/" dir child:65533 m:rwxe ct:1785117278.164702 mt:1785090389.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:32 p:.root n:"0{47}8.json" doc sz:10414 m:rw-e%<0:high> ct:1785117278.164781 mt:1784401856.0 v:sver:01656e79ef2808a0000000364b191d3 cver:53cece4441e031998561c32c977cafb162d0dfac6682897fccbfd977d87b88e7 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:6 p:.root n:"s{14}l/" dir child:65533 m:rwxe ct:1785117278.1649442 mt:1774529292.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:35 p:.root n:"0{20}e.json" doc sz:6584 m:rw-e%<0:high> ct:1785117278.164729 mt:1784402773.0 v:sver:01656e7a57cc9eb0000000364b191d3 cver:7040766029dd4089bc8babd4c25683492af035c9f007146812ee9dafdc7f1628 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:33 p:.root n:"Х{8}r.zst" doc sz:69562724628 m:rw-e%<0:high> ct:1785117278.165009 mt:1784316682.0 v:sver:01656ff560ba7300000000364b191d3 cver:90b84280e567008b1f81cef47d20979a4c09aa94f0becad4e93c5f0541b5dee7 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:57 p:.root n:"п{8}к/" dir child:65533 m:rwxe ct:1785353625.133407 mt:1785274641.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:58 p:.root n:"C{18}s/" dir child:65533 m:rwxe ct:1785353625.133384 mt:1785285375.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:60 p:.root n:"e{7}s/" dir child:65533 m:rwxe ct:1785531382.165084 mt:1785428181.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+       <s:62 p:.root n:"V{7}n/" dir child:65533 m:rwxe ct:1785531382.165101 mt:1785398159.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:20>>
+        <s:64 p:62 n:"c{5}t/" dir child:65533 m:rwxe ct:1785531391.026417 mt:1785522502.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+        <s:63 p:62 n:"c{5}t/" dir child:65533 m:rwxe ct:1785531391.02647 mt:1785398159.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+        <s:65 p:62 n:"d{16}2/" dir child:65533 m:rwxe ct:1785531391.026483 mt:1785398181.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+        <s:66 p:62 n:"C{9}n/" dir child:65533 m:rwxe ct:1785531394.629637 mt:1785531393.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:16>>
+         <s:67 p:66 n:"A{9}s/" dir child:65533 m:rwxe ct:1785531395.981214 mt:1785531395.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:14>>
+          <s:69 p:67 n:"2{34}E.jpeg" doc sz:75103 m:rw-e%<0:high> ct:1785531399.318275 mt:1785531398.0 v:sver:01657ee6cc699030000000364b191d3 cver:428ed0a0cb5959e0efe6c0af3e7b26760cb691217f53a936e7f0fd8a56736007 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:70 p:67 n:"8{34}D.heic" doc sz:1373778 m:rw-e%<0:high> ct:1785531399.982393 mt:1785531399.0 v:sver:01657ee6cd114880000000364b191d3 cver:1f623ca95b3cfe966b758b7c84b589bed35e9b2cc3c8411637f5cca9f83d596d nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:71 p:67 n:"0{34}1.jpeg" doc sz:174434 m:rw-e%<0:high> ct:1785531402.0593991 mt:1785531401.0 v:sver:01657ee6cf09ce00000000364b191d3 cver:9d31ada95953cf22b362257a3bf1e30fb136a927b750584aec572405528cf2cd nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:72 p:67 n:"0{34}A.png" doc sz:11674868 m:rw-e%<0:high> ct:1785531402.400348 mt:1785531401.0 v:sver:01657ee6cf5da070000000364b191d3 cver:11052dde03f65814b8a3e0e5ee5f23ad65d2678cda4b4e63db9ea9348bf08a94 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:73 p:67 n:"3{34}A.jpeg" doc sz:29086 m:rw-e%<0:high> ct:1785531404.116543 mt:1785531403.0 v:sver:01657ee6d10e9ef0000000364b191d3 cver:284a7af69047d8e9c77cf51a9b864370add26cb328901923431c4e6a0200ae1b nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:74 p:67 n:"9{34}D.json" doc sz:16231 m:rw-e%<0:high> ct:1785531404.790494 mt:1785531404.0 v:sver:01657ee6d1abef40000000364b191d3 cver:43824c7d661ff544dea10d6d0513bf2a4d36ecaafac131eab0eaf93125946809 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:75 p:67 n:"5{34}4.jpeg" doc sz:41118 m:rw-e%<0:high> ct:1785531406.130426 mt:1785531405.0 v:sver:01657ee6d2ec1730000000364b191d3 cver:b2cf3a131e9a0f2c13f59c19194cd550e4c226d2c9693d38b0e0953893f27d8f nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:76 p:67 n:"F{34}9.png" doc sz:799179 m:rw-e%<0:high> ct:1785531407.5090342 mt:1785531407.0 v:sver:01657ee6d4386550000000364b191d3 cver:ee89c04cd48e684aada2a5c7593ff7027b34905576fd7171c2eadf90f48a99b5 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:77 p:67 n:"8{34}6.jpeg" doc sz:18507 m:rw-e%<0:high> ct:1785531408.095457 mt:1785531407.0 v:sver:01657ee6d4d59750000000364b191d3 cver:260ec450cd7529f840552b298cdb0fb5e477b5cb118f87b560f4898b9fa25d6f nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:78 p:67 n:"1{34}D.jpeg" doc sz:66770 m:rw-e%<0:high> ct:1785531409.645257 mt:1785531409.0 v:sver:01657ee6d6426fd0000000364b191d3 cver:b466a70e41f30e588d3e5bcb474582da067f85990752f7328898b83640c7ca18 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:79 p:67 n:"3{34}4.jpeg" doc sz:28337 m:rw-e%<0:high> ct:1785531410.4119391 mt:1785531409.0 v:sver:01657ee6d7006c80000000364b191d3 cver:a2d9a6ae5848ed61b147d4ee87b92ed00fa543eddf6bebc157089902fe5ae598 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:80 p:67 n:"F{34}F.png" doc sz:4266085 m:rw-e%<0:high> ct:1785531412.100473 mt:1785531411.0 v:sver:01657ee6d8a71b40000000364b191d3 cver:56111d30152862c5ec4c5105e83cb371d93bf298b7c0feb0b8736c81a87119e2 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+          <s:81 p:67 n:"1{34}F.png" doc sz:4287924 m:rw-e%<0:high> ct:1785531413.945405 mt:1785531413.0 v:sver:01657ee6da671ba0000000364b191d3 cver:71309ae0877486777cba08a1dd05938d9a5271ac85b5e42b7c781c9fc08f9dfb nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+         <s:68 p:66 n:"C{9}n.md" doc sz:59595 m:rw-e%<0:high> ct:1785531396.678416 mt:1785531396.0 v:sver:01657ee6c9ef97a0000000364b191d3 cver:5ae495b0c263d01c2b37922e3cb440791f15093f811d9c9d5cf57e352eccca18 nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:system>>
+       <s:61 p:.root n:"A{2}s/" dir child:65533 m:rwxe ct:1785531382.16507 mt:1785526379.0 v:sver: cver: nsattr:<cap:rwdpf-e-- ul:uploaded userInfo:<1 keys> cp:system nsp:inherited(lazy)> rec:<!del:0 !excl:1>>
+      <s:.trash p:.trash n:".{4}h/" dir child:65533 m:rwxhe ct:0.0 mt:0.0 v:sver: cver: nsattr:<cap:rw------- cp:system nsp:system> rec:<!del:1 !excl:1>>
+      + counters: createCount=0 updateCount=0 deleteCount=0 resetDate=2026-08-07 23:55:02 +0000
+    
+    + FP Jobs accounted in Global Progress:
+      + Content counters : 0 items with size 0
+      + Materialize counters : 0 items with size 0
+      + Jobs counters : 0 items with size 0
+    
+    + FSCounters: lookupCount=2 scanCount=0 droppedEventCount=0 resetDate=2026-08-07 23:54:28 +0000
+    + DBCounters: flushCount=6 resetDate=2026-08-07 23:55:02 +0000
+    
+
+
+== CloudStorage xattrs ==
+=========================
+57462BA1-D425-4040-9057-E52C1EFA7873
+    com.apple.file-provider-domain-id: com.getdropbox.Dropbox.FileProvider/2294190211
+
+== FileProvider xattrs ==
+=========================
+57462BA1-D425-4040-9057-E52C1EFA7873
+    com.apple.file-provider-domain-id: com.getdropbox.Dropbox.FileProvider/2294190211
+
+== action operation engine ==
+=================
+0 operations
+
+apps monitor [0;1;32mactive[0m
+-----------------------------------------------------
+[0;1;37m14[0m apps monitored:
+ - <FPAppMetadata:0x7d9b822460 ai.qwenlm.chat.ios n:'Qwen Studio' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8211a0 com.SideStore.SideStore.JML2QQMJYG n:'SideStore' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b820420 com.apple.Fitness n:'Fitness' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822580 com.apple.Preview n:'Preview' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8208d0 com.asus.GlideX n:'ASUS GlideX' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8203f0 com.crystalnix.ServerAuditor n:'Termius' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822e20 com.cuilingshi.fileextract n:'Unzip' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822dc0 com.esim.tele n:'eSIM Plus' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b820960 com.kdt.livecontainer.JML2QQMJYG n:'LiveContainer' p:'com.apple.FileProvider.LocalStorage'>:
+ - <FPAppMetadata:0x7d9b821ec0 com.moonshot.kimichat n:'Kimi' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8221f0 com.neo.NeoMan n:'NeoServer' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8224f0 com.skyjos.fileexplorer n:'FE File Explorer' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822ca0 com.stik.stikdebug.JML2QQMJYG n:'StikDebug' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822c10 dk.simonbs.RunestoneEditor n:'Runestone' p:'com.apple.CloudDocs.iCloudDriveFileProvider/CAE2D5CA-6DAB-48AF-B228-F6A7808C6DCE'>:
+
+== Trial configuration ==
+{
+  "COREOS_FPFS_CONFIG" : {
+    "rollout" : {
+      "rolloutId" : "616061f15c43822edc9b3b70",
+      "factorPackId" : "6970ea8e549a232162d81fb2",
+      "rampId" : "6970eb53ef5b27740d75104f"
+    },
+    "experiment" : {
+
+    }
+  },
+  "COREOS_FPFS_SPECULATIVE_DOWNLOADS" : {
+    "rollout" : {
+
+    },
+    "experiment" : {
+
+    }
+  }
+}

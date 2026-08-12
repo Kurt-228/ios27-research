@@ -1,0 +1,229 @@
+{"incident_id":"E11F8513-D37F-4613-B85B-FC678D45D3FE","roots_installed":0,"app_name":"GLEGram","timestamp":"2026-07-28 14:55:48.00 +0300","app_version":"12.7","app_cohort":"2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e","slice_uuid":"E829EFCE-B6EE-387C-AE12-A62192B65528","adam_id":"6759809153","build_version":"100034","bundleID":"com.GLEProject.GLEGram","duration_ms":"6012096","is_first_party":0,"share_with_app_devs":0,"bug_type":"145","os_version":"iPhone OS 27.0 (24A5390f)","distributor_id":"com.apple.TestFlight","name":"GLEGram","is_beta":1}
+Date/Time:        2026-07-28 13:15:33.661 +0300
+End time:         2026-07-28 14:55:45.758 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: E11F8513-D37F-4613-B85B-FC678D45D3FE
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          GLEGram
+Path:             /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/GLEGram
+Identifier:       com.GLEProject.GLEGram
+Version:          12.7 (100034)
+Adam ID:          6759809153
+Is First Party:   No
+Is Beta:          Yes
+Cohort:           2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e
+Beta Identifier:  B36CC610-F0CA-4DE7-A626-FF998076FE64
+Resource Coalition: "com.GLEProject.GLEGram"(2326)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+PID:              6552
+
+Event:            disk writes
+Action taken:     none
+Writes:           1073.74 MB of file backed memory dirtied over 6012 seconds (178.60 KB per second average), exceeding limit of 12.43 KB per second over 86400 seconds
+Writes limit:     1073.74 MB
+Limit duration:   86400s
+Writes caused:    1073.74 MB
+Writes duration:  6012s
+Duration:         6012.10s
+Duration Sampled: 184.11s (event starts 5825.87s before samples, event ends 2.12s after samples)
+Steps:            28 (48 samples lost, 10.49 MB/step)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 9.20% (627.27 MB / 6819.12 MB)
+
+Time Since Boot:  162390s
+Time Awake Since Boot: 146989s
+Time Since Wake:  89514s
+
+Total CPU Time:   36.582s
+Advisory levels:  Battery -> 2, User -> 3, ThermalPressure -> 0, Combined -> 2
+Free disk space:  166.91 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 64.74% (18126/28000, 14000 allocated, 14000 soft limit)
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.tokenizer
+  Loaded:         ??? - N/A, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_300m.tokenizer
+  Loaded:         ??? - N/A, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_3b.tokenizer
+  Loaded:         ??? - N/A, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_3b.urgency_classification?language=en
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyMailMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyMailMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5800s - 5800s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyMailMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyMailMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyTextMessage
+  Executing:      5900s - 5900s, requested by [271] use case classification.classifyTextMessage
+Model:            com.apple.fm.language.instruct_3b.base
+  Loaded:         5800s - 5900s, requested by token-generation-inference
+  Loaded:         5900s - 5900s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification
+  Loaded:         5800s - 5900s, requested by token-generation-inference
+  Loaded:         5900s - 5900s, requested by token-generation-inference
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        en_US QWERTY, fonts.app.keyboardEN
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  28  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+  28  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+  28  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+  28  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+  28  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+  28  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+  28  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  28  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+  28  ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 65236) [0x102f67ed4]
+  18  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 626476) [0x103260f2c]
+  17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 624308) [0x1032606b4]
+  17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 627424) [0x1032612e0]
+  17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 637624) [0x103263ab8]
+  17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 636752) [0x103263750]
+  17  ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+
+
+Powerstats for:   GLEGram [6552]
+UUID:             E829EFCE-B6EE-387C-AE12-A62192B65528
+Path:             /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/GLEGram
+Identifier:       com.GLEProject.GLEGram
+Version:          12.7 (100034)
+Adam ID:          6759809153
+Is First Party:   No
+Is Beta:          Yes
+Cohort:           2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e
+Beta Identifier:  B36CC610-F0CA-4DE7-A626-FF998076FE64
+Resource Coalition: 28 samples "com.GLEProject.GLEGram"(2326)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+UID:              501
+Footprint:        163.66 MB -> 288.03 MB (+124.38 MB) (max 315.77 MB )
+Pageins:          5403 pages
+Start time:       2026-07-28 14:52:39.534 +0300
+End time:         2026-07-28 14:55:43.642 +0300
+Num samples:      28 (100%)
+Energy:           13.64 mWh
+Num threads:      22
+Primary state:    28 samples Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 28 samples Active
+Power Source:     28 samples on Battery, 0 samples on AC
+  28  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    28  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      28  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        28  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          28  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            28  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              28  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                28  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  28  ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 65236) [0x102f67ed4]
+                    18  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 626476) [0x103260f2c]
+                      17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 624308) [0x1032606b4]
+                        17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 627424) [0x1032612e0]
+                          17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 637624) [0x103263ab8]
+                            17  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 636752) [0x103263750]
+                              17  ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                5   <e-core>
+                      1   ??? (libsystem_kernel.dylib + 85048) [0x243c35c38]
+                    4   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1550176) [0x103342760]
+                      4   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1532404) [0x10333e1f4]
+                        4   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1550972) [0x103342a7c]
+                          3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1536624) [0x10333f270]
+                            3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1730672) [0x10336e870]
+                              3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 387468) [0x10322698c]
+                                3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2042800) [0x1033babb0]
+                                  3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2073964) [0x1033c256c]
+                                    3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2101960) [0x1033c92c8]
+                                      3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2102188) [0x1033c93ac]
+                                        3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2102792) [0x1033c9608]
+                                          3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2175112) [0x1033db088]
+                                            3   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2116088) [0x1033cc9f8]
+                                              3   ??? (libsystem_kernel.dylib + 28000) [0x243c27d60]
+                          1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1536584) [0x10333f248]
+                            1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1636124) [0x10335771c]
+                              1   ??? (<C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34> + 3529460) [0x1038edaf4]
+                                1   ??? (<C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34> + 3474120) [0x1038e02c8]
+                                  1   ??? (<C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34> + 3330592) [0x1038bd220]
+                                    1   ??? (<C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34> + 3163784) [0x103894688]
+                                      1   ??? (<C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34> + 514308) [0x10360d904]
+                                        1   ??? (<C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34> + 515008) [0x10360dbc0]
+                                          1   ??? (Foundation + 3289896) [0x18c20c328]
+                                            1   ??? (Foundation + 3290356) [0x18c20c4f4]
+                                              1   ??? (Foundation + 3031596) [0x18c1cd22c]
+                                                1   ??? (libsystem_kernel.dylib + 21448) [0x243c263c8]
+                    2   ??? (<A8C44E4E-E8DE-3083-829F-126360A70458> + 59595008) [0x1084d1900]
+                      2   ??? (<A8C44E4E-E8DE-3083-829F-126360A70458> + 6211032) [0x1051e85d8]
+                        2   ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 51876) [0x102f64aa4]
+                          2   ??? (<A8C44E4E-E8DE-3083-829F-126360A70458> + 6248276) [0x1051f1754]
+                            2   ??? (<A8C44E4E-E8DE-3083-829F-126360A70458> + 6211584) [0x1051e8800]
+                              2   ??? (<A8C44E4E-E8DE-3083-829F-126360A70458> + 6215192) [0x1051e9618]
+                                2   ??? (<A8C44E4E-E8DE-3083-829F-126360A70458> + 6220344) [0x1051eaa38]
+                                  2   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                    2   ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 68172) [0x102f68a4c]
+                      1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1851436) [0x10338c02c]
+                        1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1827892) [0x103386434]
+                          1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1730672) [0x10336e870]
+                            1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 387468) [0x10322698c]
+                              1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2042800) [0x1033babb0]
+                                1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2072984) [0x1033c2198]
+                                  1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2227132) [0x1033e7bbc]
+                                    1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2184724) [0x1033dd614]
+                                      1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2186484) [0x1033ddcf4]
+                                        1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2066888) [0x1033c09c8]
+                                          1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2065960) [0x1033c0628]
+                                            1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2167888) [0x1033d9450]
+                                              1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2170704) [0x1033d9f50]
+                                                1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2116088) [0x1033cc9f8]
+                                                  1   ??? (libsystem_kernel.dylib + 28000) [0x243c27d60]
+                                                    1   <e-core>
+                      1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1851052) [0x10338beac]
+                        1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1730672) [0x10336e870]
+                          1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 387468) [0x10322698c]
+                            1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2042800) [0x1033babb0]
+                              1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2072984) [0x1033c2198]
+                                1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2227132) [0x1033e7bbc]
+                                  1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2184724) [0x1033dd614]
+                                    1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2186484) [0x1033ddcf4]
+                                      1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2066888) [0x1033c09c8]
+                                        1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2065960) [0x1033c0628]
+                                          1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2167888) [0x1033d9450]
+                                            1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2170704) [0x1033d9f50]
+                                              1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2116088) [0x1033cc9f8]
+                                                1   ??? (libsystem_kernel.dylib + 28000) [0x243c27d60]
+                    1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                      1   <e-core>
+                    1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 551968) [0x10324ec20]
+                      1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 630092) [0x103261d4c]
+                        1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 615956) [0x10325e614]
+                          1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 642224) [0x103264cb0]
+                            1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 637072) [0x103263890]
+                              1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+
+  Binary Images:
+           0x102c90000 -                ???  com.GLEProject.GLEGram 12.7 (100034) <E829EFCE-B6EE-387C-AE12-A62192B65528>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/GLEGram
+           0x102f58000 -                ???  ???                                  <0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF>
+           0x1031c8000 -                ???  ???                                  <5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39>
+           0x103590000 -                ???  ???                                  <C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34>
+           0x104bfc000 -                ???  ???                                  <A8C44E4E-E8DE-3083-829F-126360A70458>
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib              <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18bee9000 -        0x18cff545b  Foundation                           <B17A96F3-DC4A-3757-90DF-BE4837ABB5AA>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib                    <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib               <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib

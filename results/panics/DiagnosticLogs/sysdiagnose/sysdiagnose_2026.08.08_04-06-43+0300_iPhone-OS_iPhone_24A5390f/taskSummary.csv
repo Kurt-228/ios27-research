@@ -1,0 +1,103 @@
+Command,Exit description,Execution Time,Intended Timeout, MAX RSS (MB)
+"/usr/bin/uptime",Never got executed,0.00,1.000000
+"/usr/sbin/spindump -oslog -notarget 2 250 -noProcessingWhileSampling -noSymbolicate -file /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/spindump/spindump-nosymbols.txt","exited with status 0",6.039097,30.000000,67.812500
+
+Concurrent group with total timeout 15.000000 sec
+"/bin/ps axwww -o user,uid,prsna,pid,ppid,flags,%cpu,%mem,pri,ni,vsz,rss,wchan,tt,stat,start,time,command","exited with status 0",1.888980,15.000000,2.187500
+"/bin/ps axMwww -o ppid,flags,%mem,pri,ni,vsz,rss,wchan,start,time,command","exited with status 0",1.843538,15.000000,1.546875
+"/usr/libexec/jetsam_priority -e -k","exited with status 0",2.224892,15.000000,6.546875
+"/usr/libexec/jetsam_priority -e -k -c","exited with status 0",2.213836,15.000000,6.546875
+"/usr/bin/vm_stat -c 25 0.2","exited with status 0",4.953168,15.000000,0.859375
+"/usr/bin/taskinfo --threads --boosts","exited with status 0",1.054293,15.000000,9.546875
+
+
+Concurrent group with total timeout 38.000000 sec
+"/sbin/mount","exited with status 0",0.054541,38.000000,1.265625
+"/bin/df -H","exited with status 0",0.049331,38.000000,0.968750
+"/usr/bin/kbdebug","exited with status 0",0.079727,38.000000,4.296875
+"/usr/bin/zprint -t -w","exited with status 0",0.077275,38.000000,3.500000
+
+"/usr/libexec/smcDiagnose","exited with status 0",2.115307,15.000000,2.359375
+"/usr/local/bin/powermetrics -i 1000 --sample-count 1 --show-all --show-initial-usage --handle-invalid-values",Never got executed,0.00,10.000000
+"/usr/bin/ltop","exited with status 0",0.074304,10.000000,2.546875
+"/usr/libexec/remotectl dumpstate","exited with status 0",0.027106,5.000000,1.765625
+"/usr/sbin/kextstat",Never got executed,0.00,10.000000
+"/usr/bin/find /private/var/mobile/Library/Logs/CrashReporter -ls",Never got executed,0.00,5.000000
+
+Concurrent group with total timeout 20.000000 sec
+"/usr/local/bin/imtool list",Never got executed,0.00,20.000000
+"/usr/local/bin/idstool list",Never got executed,0.00,20.000000
+"/usr/local/bin/imtool info",Never got executed,0.00,20.000000
+"/usr/local/bin/idstool info",Never got executed,0.00,20.000000
+
+
+Concurrent group with total timeout 10.000000 sec
+"/bin/launchctl list",Never got executed,0.00,10.000000
+"/bin/launchctl print system/",Never got executed,0.00,10.000000
+"/bin/launchctl dumpstate",Never got executed,0.00,10.000000
+
+"/usr/local/bin/spuctl --sysdiagnose",Never got executed,0.00,5.000000
+"/usr/bin/cryptexctl dumpstate",Never got executed,0.00,2.000000
+"/usr/libexec/swtransparency-sysdiagnose","exited with status 0",0.435275,3.000000,2.515625
+"/usr/libexec/atcrtcomm /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/atcrtcomm_sysdiagnose_temp.4eKUxz/atcrtcomm","exited with status 1",0.342528,5.000000,1.187500
+"/System/Library/PrivateFrameworks/IOSurfaceAccelerator.framework/Resources/IOSADiagnose","exited with status 0",0.493342,5.000000,1.406250
+"/System/Library/Frameworks/Accounts.framework/Support/acdiagnose","exited with status 0",0.333560,3.000000,1.484375
+"/usr/sbin/otctl status --json","exited with status 0",1.307490,3.000000,6.312500
+"/usr/bin/appprotectiondiagnose diagnostics","exited with status 0",0.456976,1.000000,2.687500
+"/usr/bin/umtool sysdiagnose","exited with status 0",0.914055,5.000000,1.875000
+"/usr/bin/modelmanagerdump","exited with status 0",0.578898,2.000000,3.453125
+"/usr/libexec/corebrightnessdiag nightshift-internal","exited with status 0",0.902868,1.000000,3.437500
+"/usr/bin/searchdiagnose --mode sysdiagnose -o /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/Search_sysdiagnose_temp.LcpwnD/Search","exited with status 0",1.206243,11.000000,2.875000
+"/System/Library/Frameworks/SensorKit.framework/Support/srsupporttool diagnostics -output /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/SensorKit_sysdiagnose_temp.zWRN3N/SensorKit/logs/SensorKit","exited with status 0",0.991526,5.000000,2.515625
+"/usr/libexec/pmudiagnose/pmudiagnose","exited with status 0",1.138330,2.000000,1.359375
+"/System/Library/Filesystems/apfs.fs/apfs_stats","exited with status 0",1.763664,3.000000,1.640625
+"/usr/bin/afktool --role all -a registry -p /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/AFK_sysdiagnose_temp.4Funy7/AFK --format bin","exited with status 0",1.255061,5.000000,4.343750
+
+Concurrent group with total timeout 10.000000 sec
+"/usr/bin/tbtdiagnose",Never got executed,0.00,10.000000
+"/usr/bin/hpmdiagnose","exited with status 0",2.011879,10.000000,1.921875
+
+
+Concurrent group with total timeout 5.000000 sec
+"/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect report --scope system","exited with status 0",1.685383,5.000000,9.687500
+"/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect report --scope user","exited with status 0",0.063355,5.000000,6.203125
+
+"/System/Library/Frameworks/ManagedSettings.framework/managedsettingsdiagnoticstool diagnostics --diagnostics-path /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/ManagedSettings_sysdiagnose_temp.dmtMo4/ManagedSettings","exited with status 0",1.989510,2.000000,5.515625
+"/usr/bin/csfdiagnose --networking false --sysd --json","exited with status 0",1.383797,2.000000,7.890625
+"/System/Library/PrivateFrameworks/SharedWebCredentials.framework/Support/swcutil show --verbose","exited with status 0",2.087818,5.000000,1.546875
+"/System/Library/Frameworks/SystemConfiguration.framework/get-network-info -c /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/Networking_sysdiagnose_temp.1UNYnc/Networking","exited with status 0",2.453449,100.000000,3.781250
+"/usr/libexec/transparency-sysdiagnose","exited with status 0",3.159762,3.000000,4.984375
+"/usr/sbin/ckksctl status --json","exited with status 0",3.573099,3.000000,10.375000
+"/usr/bin/brctl diagnose --sysdiagnose /private/var/mobile/Library/Logs/CrashReporter/Cloud/clouddocs_2026.08.08_04-06-43+0300","exited with status 0",4.462076,30.000000,6.515625
+
+Concurrent group with total timeout 30.000000 sec
+"/usr/sbin/ioreg -z -i -l -p IOService -w 0","exited with status 0",7.542351,30.000000,3.406250
+"/usr/sbin/ioreg -z -i -l -p IOACPIPlane -w 0","exited with status 0",0.039787,30.000000,2.265625
+"/usr/sbin/ioreg -z -i -l -p IOPower -w 0","exited with status 0",0.846153,30.000000,2.734375
+"/usr/sbin/ioreg -z -i -l -p IODeviceTree -w 0","exited with status 0",0.365575,30.000000,2.671875
+"/usr/sbin/ioreg -z -i -l -p IOUSB -w 0","exited with status 0",0.152826,30.000000,2.265625
+"/usr/sbin/ioreg -z -i -l -p IOFireWire -w 0","exited with status 0",0.053196,30.000000,2.250000
+"/usr/sbin/ioreg -z -i -l -p IOPort -w 0","exited with status 0",0.046065,30.000000,2.265625
+"/usr/sbin/ioreg -a -w0 -x 0","exited with status 1",0.067406,30.000000,2.015625
+
+
+Concurrent group with total timeout 25.000000 sec
+"/usr/bin/codecctl -c 1 -a","exited with status 0",1.891570,25.000000,1.500000
+"/usr/libexec/security-sysdiagnose","exited with status 0",9.153730,25.000000,10.906250
+"/usr/libexec/pcsstatus --json capture output","exited with status 0",11.642868,25.000000,8.281250
+"/usr/bin/hidutil dump","exited with status 0",1.755656,25.000000,3.500000
+
+"/usr/sbin/spindump -oslog -microstackshots_only -microstackshots_save -microstackshots_datastore /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/unnamed_tasks_sysdiagnose_temp.mIjhZS/unnamed_tasks/microstackshots -microstackshots_starttime 1785892003 -microstackshots_endtime 1786151203","exited with status 0",11.725202,45.000000,3.390625
+"/usr/bin/lsdiagnose","exited with status 0",23.470848,60.000000,158.734375
+"/usr/bin/modelcatalogdump","exited with status 0",23.366914,2.000000,23.187500
+
+Concurrent group with total timeout 5.000000 sec
+"/usr/bin/fileproviderctl diagnose --limit-dump-size -o /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/FileProvider_sysdiagnose_temp.prHpf1/FileProvider","exited with status 0",11.923332,5.000000,5.828125
+"/usr/bin/fileproviderctl check -v -o /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/FileProvider_sysdiagnose_temp.prHpf1/FileProvider/fileproviderctl_check.log","exited with status 65",27.239931,5.000000,3.609375
+
+
+Concurrent group with total timeout 35.000000 sec
+"/usr/bin/log config --status",Never got executed,0.00,35.000000
+"/bin/ls -lRsh /private/var/db/diagnostics",Never got executed,0.00,35.000000
+"/bin/ls -lRsh /private/var/db/uuidtext",Never got executed,0.00,35.000000
+

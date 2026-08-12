@@ -1,0 +1,130 @@
+{"app_name":"StikDebug","timestamp":"2026-07-27 13:29:14.00 +0300","app_version":"3.1.7","slice_uuid":"EA959312-8EF6-3A19-9BAA-EB3C0D14CC3C","build_version":"1","bundleID":"com.stik.stikdebug.JML2QQMJYG","duration_ms":"48668","share_with_app_devs":0,"is_first_party":0,"bug_type":"206","os_version":"iPhone OS 27.0 (24A5390f)","roots_installed":0,"name":"StikDebug","incident_id":"CAB771B5-8192-4E5B-8E7F-05BC2CD9AC64"}
+Date/Time:        2026-07-27 13:28:24.416 +0300
+End time:         2026-07-27 13:29:13.083 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: CAB771B5-8192-4E5B-8E7F-05BC2CD9AC64
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          StikDebug
+Path:             /private/var/containers/Bundle/Application/543832BF-C176-4CE0-9667-C534B53304BC/App.app/StikDebug
+Identifier:       com.stik.stikdebug.JML2QQMJYG
+Version:          3.1.7 (1)
+Is First Party:   No
+Beta Identifier:  5AB5E59D-652F-4713-BC13-BD2B5504E5F8
+Resource Coalition: 1055
+Architecture:     arm64
+PID:              2626
+
+Event:            cpu usage
+Action taken:     Process killed
+CPU:              48 seconds cpu time over 49 seconds (99% cpu average), exceeding limit of 80% cpu over 60 seconds
+CPU limit:        48s
+Limit duration:   60s
+CPU used:         48s
+CPU duration:     49s
+Duration:         48.67s
+Duration Sampled: 45.07s (event starts 3.59s before samples)
+Steps:            16 (10 gigacycles/step, 3 samples lost)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+
+Models:           UNKNOWN
+
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  16  ??? (libsystem_pthread.dylib + 2332) [0x18b94691c]
+  16  ??? (libsystem_pthread.dylib + 16444) [0x18b94a03c]
+  16  ??? (StikDebug + 8490204) [0x101204cdc]
+  16  ??? (StikDebug + 6406032) [0x101007f90]
+  16  ??? (StikDebug + 6400516) [0x101006a04]
+  16  ??? (StikDebug + 6456640) [0x101014540]
+  16  ??? (StikDebug + 6473732) [0x101018804]
+  16  ??? (StikDebug + 6470960) [0x101017d30]
+  16  ??? (StikDebug + 6467888) [0x101017130]
+  16  ??? (StikDebug + 6461668) [0x1010158e4]
+  16  ??? (StikDebug + 6395684) [0x101005724]
+  16  ??? (StikDebug + 6501052) [0x10101f2bc]
+  16  ??? (StikDebug + 6493312) [0x10101d480]
+  16  ??? (StikDebug + 6489076) [0x10101c3f4]
+  16  ??? (StikDebug + 6491264) [0x10101cc80]
+  16  ??? (StikDebug + 6502516) [0x10101f874]
+  16  ??? (StikDebug + 6149848) [0x100fc96d8]
+  16  ??? (StikDebug + 6147300) [0x100fc8ce4]
+  16  ??? (StikDebug + 6147108) [0x100fc8c24]
+  16  ??? (StikDebug + 6145592) [0x100fc8638]
+  16  ??? (StikDebug + 6128472) [0x100fc4358]
+  16  ??? (StikDebug + 6166476) [0x100fcd7cc]
+  16  ??? (StikDebug + 6133012) [0x100fc5514]
+  15  ??? (StikDebug + 6167104) [0x100fcda40]
+  15  ??? (StikDebug + 6166096) [0x100fcd650]
+  8   ??? (libsystem_platform.dylib + 2508) [0x1976399cc]
+
+
+Powerstats for:   StikDebug [2626]
+UUID:             EA959312-8EF6-3A19-9BAA-EB3C0D14CC3C
+Path:             /private/var/containers/Bundle/Application/543832BF-C176-4CE0-9667-C534B53304BC/App.app/StikDebug
+Identifier:       com.stik.stikdebug.JML2QQMJYG
+Version:          3.1.7 (1)
+Is First Party:   No
+Beta Identifier:  5AB5E59D-652F-4713-BC13-BD2B5504E5F8
+Resource Coalition: 16 samples 1055
+Architecture:     arm64
+Footprint:        67.30 MB
+Start time:       2026-07-27 13:28:28.001 +0300
+End time:         2026-07-27 13:29:13.066 +0300
+Num samples:      16 (100%)
+Energy:           27.86 mWh
+Num threads:      1
+Primary state:    10 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, p-core
+User Activity:    16 samples Idle, 0 samples Active
+Power Source:     16 samples on Battery, 0 samples on AC
+  16  ??? (libsystem_pthread.dylib + 2332) [0x18b94691c]
+    16  ??? (libsystem_pthread.dylib + 16444) [0x18b94a03c]
+      16  ??? (StikDebug + 8490204) [0x101204cdc]
+        16  ??? (StikDebug + 6406032) [0x101007f90]
+          16  ??? (StikDebug + 6400516) [0x101006a04]
+            16  ??? (StikDebug + 6456640) [0x101014540]
+              16  ??? (StikDebug + 6473732) [0x101018804]
+                16  ??? (StikDebug + 6470960) [0x101017d30]
+                  16  ??? (StikDebug + 6467888) [0x101017130]
+                    16  ??? (StikDebug + 6461668) [0x1010158e4]
+                      16  ??? (StikDebug + 6395684) [0x101005724]
+                        16  ??? (StikDebug + 6501052) [0x10101f2bc]
+                          16  ??? (StikDebug + 6493312) [0x10101d480]
+                            16  ??? (StikDebug + 6489076) [0x10101c3f4]
+                              16  ??? (StikDebug + 6491264) [0x10101cc80]
+                                16  ??? (StikDebug + 6502516) [0x10101f874]
+                                  16  ??? (StikDebug + 6149848) [0x100fc96d8]
+                                    16  ??? (StikDebug + 6147300) [0x100fc8ce4]
+                                      16  ??? (StikDebug + 6147108) [0x100fc8c24]
+                                        16  ??? (StikDebug + 6145592) [0x100fc8638]
+                                          16  ??? (StikDebug + 6128472) [0x100fc4358]
+                                            16  ??? (StikDebug + 6166476) [0x100fcd7cc]
+                                              16  ??? (StikDebug + 6133012) [0x100fc5514]
+                                                15  ??? (StikDebug + 6167104) [0x100fcda40]
+                                                  15  ??? (StikDebug + 6166096) [0x100fcd650]
+                                                    8   ??? (libsystem_platform.dylib + 2508) [0x1976399cc]
+                                                    6   ??? (StikDebug + 3322608) [0x100d172f0]
+                                                      6   ??? (StikDebug + 6422832) [0x10100c130]
+                                                        6   ??? (StikDebug + 6575412) [0x101031534]
+                                                          6   ??? (libsystem_kernel.dylib + 26192) [0x243c27650]
+                                                            6   <Kernel mode>
+                                                    1   ??? (libsystem_platform.dylib + 2528) [0x1976399e0]
+                                                1   ??? (StikDebug + 6166936) [0x100fcd998]
+                                                  1   ??? (StikDebug + 6134636) [0x100fc5b6c]
+                                                    1   ??? (StikDebug + 6135880) [0x100fc6048]
+
+  Binary Images:
+           0x1009ec000 -                ???  com.stik.stikdebug.JML2QQMJYG 3.1.7 (1) <EA959312-8EF6-3A19-9BAA-EB3C0D14CC3C>  /private/var/containers/Bundle/Application/543832BF-C176-4CE0-9667-C534B53304BC/App.app/StikDebug
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib                 <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x197639000 -        0x19764167f  libsystem_platform.dylib                <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib                  <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib

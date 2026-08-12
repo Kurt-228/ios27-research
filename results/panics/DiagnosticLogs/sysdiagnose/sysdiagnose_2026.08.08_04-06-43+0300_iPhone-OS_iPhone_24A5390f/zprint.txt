@@ -1,0 +1,857 @@
+                            elem         cur         max        cur         max         cur  alloc  alloc         frag      free             total 
+zone name                   size        size        size      #elts       #elts       inuse   size  count         size      size            allocs 
+---------------------------------------------------------------------------------------------------------------------------------------------------
+vm.permanent                   1        144K        144K     147456      147456      140518    16K  16384           6K        0B              137K
+vm.permanent.percpu            6        192K        192K      32768       32768       28264    96K  16384          26K        0B               27K
+threads_ro                    56        176K        176K       3218        3218        2632    16K    292  C       32K        0B              585K
+MAC.Labels                    32        208K        208K       6656        6656        6231    16K    512  C       13K        0B              497K
+proc_ro                      104         48K         48K        472         472         419    16K    157  C        5K        0B              100K
+cred                         144         80K         80K        568         568         471    16K    113  C       13K        0B              164K
+cs_blob.zone                 256        176K        176K        704         704         650    16K     64  C       13K        0B              175K
+VM.map.entries.ro             64         16K         16K        256         256         156    16K    256  C        6K        0B                9K
+sandbox.sandboxes             96         48K         48K        512         512         410    16K    170  C        9K        0B               44K
+sandbox.profiles             184        240K        240K       1335        1335        1321    16K     89  C        2K        0B              237K
+sandbox.autobox.index         40         64K         64K       1638        1638        1528    16K    409  C        4K        0B               59K
+sandbox.syscallmasks          72        464K        464K       6599        6599        6429    16K    227  C       11K        0B              470K
+amfi.OSEntitlements          240        160K        160K        682         682         662    16K     68  C        4K        0B              164K
+pmap                         160         80K         80K        512         512         410    16K    102  C       15K        0B              306K
+maps                         288        128K        128K        455         455         418    32K    113  C       10K        0B              553K
+VM.map.entries                64       4144K       4144K      66304       66304       65665    16K    256  C       39K        0B            27654K
+VM.map.nodes                 256       1168K       1184K       4672        4736        4587    16K     64  C       21K        0B             2355K
+VM.map.copies                 48        224K        224K       4778        4778        4347    16K    341  C       20K        0B             3135K
+VM.guard.object.chunks        64        112K        112K       1792        1792        1651    16K    256  C        8K        0B             2019K
+vm.pages.array                64      29968K      29968K     479488      479488      479401    16K    256 XC        5K        0B            29962K
+ipc.ports                    144       5232K       5232K      37205       37205       35845    16K    113  C      191K        0B            56218K
+ipc.port.sets                 56         32K         32K        585         585         519    16K    292  C        3K        0B               42K
+ipc.kmsgs                    256        384K        384K       1536        1536        1071    16K     64  C      116K        0B           420899K
+ipc.vouchers                  32         32K         32K       1024        1024         626    16K    512  C       12K        0B            20945K
+proc_task                   3616       1504K       1504K        425         425         418    32K      9  C       27K        0B             3478K
+threads                     1936       6032K       6032K       3190        3190        2632    16K      8  C     1055K        0B            20250K
+turnstiles                    96       1104K       1104K      11776       11776       11505    16K    170  C       25K        0B            13664K
+semaphores                    64         48K         48K        768         768         723    16K    256  C        2K        0B              113K
+select_set                    32         16K         16K        512         512          28    16K    512  C       15K        0B                1K
+fileproc                      32        128K        128K       4096        4096        4021    16K    512  C        2K        0B             7905K
+mbuf.ref                      24         16K         16K        682         682         299    16K    682  C        8K        0B               34K
+mbuf                         512        752K        768K       1504        1536         589    16K     32 XC      457K        0B            29068K
+data_shared.mbuf.cluster$   2048       1616K       1616K        808         808          81    16K      8 XC      110K     1344K             2506K
+data_shared.mbuf.cluster$   4096       1776K       1776K        444         444          71    16K      4 XC      132K     1360K              284K
+data_shared.mbuf.cluster$  16384       2352K       2352K        147         147         147    16K      1 XC        0B        0B             2352K
+mbuf.composite.2k           2584        204K          0K         81           0          16     0K      0  C      164K        0B             6172K
+mbuf.composite.4k           4632        321K          0K         71           0          22     0K      0  C      221K        0B             1203K
+mbuf.composite.16k         16920       2428K          0K        147           0           4     0K      0  C     2362K        0B           216390K
+vm.objects                   256       7728K       7728K      30912       30912       28747    16K     64  C      493K       48K            73018K
+zcc_magazine_zone             96        624K        624K       6656        6656        6471    16K    170  C       17K        0B              856K
+vm.pages                      64        240K        320K       3840        5120        3484    16K    256  C        6K       16K            14778K
+data.kalloc.16                16       1536K       1536K      98304       98304       97182    16K   1024  C       17K        0B            43326K
+data.kalloc.32                32       1072K       1072K      34304       34304       27917    16K    512  C      199K        0B            73077K
+data.kalloc.48                48       1072K       1072K      22869       22869       19836    16K    341  C      142K        0B            66475K
+data.kalloc.64                64        576K        592K       9216        9472        7961    16K    256  C       78K        0B            42348K
+data.kalloc.96                96       1008K       1008K      10752       10752        7144    16K    170  C      290K       48K            33721K
+data.kalloc.128              128        672K        672K       5376        5376        4645    16K    128  C       91K        0B            11511K
+data.kalloc.192              192        400K        416K       2133        2218         946    16K     85  C      222K        0B            27854K
+data.kalloc.256              256        224K        240K        896         960         518    16K     64  C       94K        0B            43792K
+data.kalloc.384              384        448K        448K       1194        1194        1084    32K     85  C       41K        0B            44382K
+data.kalloc.512              512        224K        224K        448         448         379    16K     32  C       34K        0B            33467K
+data.kalloc.768              768        256K        256K        341         341         280    16K     21  C       30K       16K           132320K
+data.kalloc.1024            1024        384K        576K        384         576         337    16K     16  C       15K       32K           541012K
+data.kalloc.1536            1536        640K        640K        426         426         273    32K     21  C      230K        0B          3010533K
+data.kalloc.2048            2048        416K        416K        208         208         184    16K      8  C       16K       32K            52430K
+data.kalloc.3072            3072        432K        432K        144         144         115    16K      5  C       23K       64K            73533K
+data.kalloc.4096            4096        768K        800K        192         200         165    16K      4  C       12K       96K            99400K
+data.kalloc.6144            6144        672K        672K        112         112          76    48K      8  C       72K      144K          1036932K
+data.kalloc.8192            8192        560K        560K         70          70          51    16K      2  C        8K      144K            18640K
+data.kalloc.12288          12288        432K        432K         36          36          31    48K      4  C       12K       48K            72108K
+data.kalloc.16384          16384        880K        880K         55          55          51    16K      1  C        0B       64K           526064K
+data.kalloc.24576          24576        624K        624K         26          26          24    48K      2  C        0B       48K           113784K
+data.kalloc.32768          32768        960K        992K         30          31          24    32K      1  C        0B      192K           275872K
+data_shared.kalloc.16         16         16K         16K       1024        1024           2    16K   1024  C       15K        0B               10K
+data_shared.kalloc.32         32         16K         16K        512         512           1    16K    512  C       15K        0B                1K
+data_shared.kalloc.48         48         16K         16K        341         341           1    16K    341  C       15K        0B                1K
+data_shared.kalloc.64         64         16K         16K        256         256          64    16K    256  C       12K        0B               15K
+data_shared.kalloc.96         96         16K         16K        170         170          13    16K    170  C       14K        0B                6K
+data_shared.kalloc.128       128         16K         16K        128         128           4    16K    128  C       15K        0B                5K
+data_shared.kalloc.192       192         16K         16K         85          85          10    16K     85  C       14K        0B                2K
+data_shared.kalloc.256       256         16K         16K         64          64           2    16K     64  C       15K        0B                3K
+data_shared.kalloc.384       384         32K         32K         85          85          67    32K     85  C        6K        0B               25K
+data_shared.kalloc.512       512         16K         16K         32          32           4    16K     32  C       14K        0B                3K
+data_shared.kalloc.768       768         16K         16K         21          21           1    16K     21  C       15K        0B                4K
+data_shared.kalloc.1024     1024         16K         16K         16          16           0    16K     16  C        0B       16K               10K
+data_shared.kalloc.1536     1536         32K         32K         21          21           3    32K     21  C       27K        0B                4K
+data_shared.kalloc.2048     2048          0K          0K          0           0           0    16K      8  C        0B        0B                0B
+data_shared.kalloc.3072     3072         32K         32K         10          10           8    16K      5  C        8K        0B               27K
+data_shared.kalloc.4096     4096        176K        176K         44          44           2    16K      4  C        8K      160K             7092K
+data_shared.kalloc.6144     6144         48K         48K          8           8           1    48K      8  C       42K        0B                6K
+data_shared.kalloc.8192     8192         48K         48K          6           6           1    16K      2  C        8K       32K               32K
+data_shared.kalloc.12288   12288         48K         96K          4           8           1    48K      4  C       36K        0B              396K
+data_shared.kalloc.16384   16384       6336K       6400K        396         400          17    16K      1  C        0B     6064K              256K
+data_shared.kalloc.24576   24576          0K          0K          0           0           0    48K      2  C        0B        0B                0B
+data_shared.kalloc.32768   32768          0K          0K          0           0           0    32K      1  C        0B        0B                0B
+early.kalloc.16               16        112K        112K       7168        7168        7068    16K   1024  C        1K        0B                0B
+early.kalloc.32               32        144K        144K       4608        4608        4476    16K    512  C        4K        0B                0B
+early.kalloc.48               48        192K        192K       4096        4096        3787    16K    341  C       14K        0B                0B
+early.kalloc.64               64        160K        160K       2560        2560        2398    16K    256  C       10K        0B                0B
+early.kalloc.96               96        192K        192K       2048        2048        1951    16K    170  C        9K        0B                0B
+early.kalloc.128             128        240K        240K       1920        1920        1852    16K    128  C        8K        0B                0B
+early.kalloc.192             192        288K        288K       1536        1536        1484    16K     85  C        9K        0B                0B
+early.kalloc.256             256        368K        368K       1472        1472        1425    16K     64  C       11K        0B                0B
+early.kalloc.384             384         64K         64K        170         170         102    32K     85  C       25K        0B                0B
+early.kalloc.512             512        176K        176K        352         352         338    16K     32  C        7K        0B                0B
+early.kalloc.768             768        400K        400K        533         533         505    16K     21  C       21K        0B                0B
+early.kalloc.1024           1024         80K         80K         80          80          67    16K     16  C       13K        0B                0B
+early.kalloc.1536           1536         32K         32K         21          21           6    32K     21  C       23K        0B                0B
+early.kalloc.2048           2048        128K        128K         64          64          61    16K      8  C        6K        0B                0B
+early.kalloc.3072           3072         16K         16K          5           5           3    16K      5  C        7K        0B                0B
+early.kalloc.4096           4096        416K        416K        104         104         103    16K      4  C        4K        0B                0B
+early.kalloc.6144           6144        192K        192K         32          32          25    48K      8  C       42K        0B                0B
+early.kalloc.8192           8192        192K        192K         24          24          23    16K      2  C        8K        0B                0B
+early.kalloc.12288         12288        144K        144K         12          12           8    48K      4  C       48K        0B                0B
+early.kalloc.16384         16384         80K         80K          5           5           5    16K      1  C        0B        0B                0B
+early.kalloc.24576         24576        192K        192K          8           8           8    48K      2  C        0B        0B                0B
+early.kalloc.32768         32768         96K         96K          3           3           2    32K      1  C        0B       32K                0B
+kalloc.type0.16               16         64K         64K       4096        4096        3804    16K   1024  C        4K        0B              400K
+kalloc.type1.16               16         16K         16K       1024        1024          63    16K   1024  C       15K        0B               19K
+kalloc.type2.16               16          0K          0K          0           0           0    16K   1024  C        0B        0B               10K
+kalloc.type3.16               16         16K         16K       1024        1024          45    16K   1024  C       15K        0B              482K
+kalloc.type4.16               16         48K         48K       3072        3072        2682    16K   1024  C        6K        0B              865K
+kalloc.type5.16               16         16K         16K       1024        1024           2    16K   1024  C       15K        0B               24K
+kalloc.type6.16               16         32K         32K       2048        2048        1493    16K   1024  C        8K        0B              126K
+kalloc.type0.32               32         48K         48K       1536        1536        1104    16K    512  C       13K        0B              123K
+kalloc.type1.32               32        112K        112K       3584        3584        3243    16K    512  C       10K        0B              276K
+kalloc.type2.32               32         32K         32K       1024        1024         541    16K    512  C       15K        0B             1640K
+kalloc.type3.32               32          0K          0K          0           0           0    16K    512  C        0B        0B              448B
+kalloc.type4.32               32         80K         80K       2560        2560        2079    16K    512  C       15K        0B             2142K
+kalloc.type5.32               32        112K        112K       3584        3584        3101    16K    512  C       15K        0B             1831K
+kalloc.type6.32               32         16K         16K        512         512          45    16K    512  C       14K        0B               86K
+kalloc.type7.32               32        208K        208K       6656        6656        6596    16K    512  C        1K        0B              250K
+kalloc.type8.32               32        432K        432K      13824       13824       13555    16K    512  C        8K        0B             3818K
+kalloc.type9.32               32         16K         16K        512         512          85    16K    512  C       13K        0B               30K
+kalloc.type10.32              32          0K          0K          0           0           0    16K    512  C        0B        0B               12K
+kalloc.type11.32              32          0K          0K          0           0           0    16K    512  C        0B        0B               11K
+kalloc.type12.32              32         16K         16K        512         512         184    16K    512  C       10K        0B               99K
+kalloc.type0.48               48         80K         80K       1706        1706        1686    16K    341  C      992B        0B            52404K
+kalloc.type1.48               48         16K         16K        341         341          97    16K    341  C       11K        0B               66K
+kalloc.type2.48               48        448K        448K       9557        9557        9224    16K    341  C       15K        0B              516K
+kalloc.type3.48               48         32K         32K        682         682         422    16K    341  C       12K        0B             1937K
+kalloc.type4.48               48        224K        224K       4778        4778        4742    16K    341  C        1K        0B            13009K
+kalloc.type5.48               48          0K          0K          0           0           0    16K    341  C        0B        0B                1K
+kalloc.type6.48               48          0K          0K          0           0           0    16K    341  C        0B        0B                7K
+kalloc.type7.48               48         16K         16K        341         341          16    16K    341  C       15K        0B               35K
+kalloc.type8.48               48          0K          0K          0           0           0    16K    341  C        0B        0B               48B
+kalloc.type9.48               48          0K          0K          0           0           0    16K    341  C        0B        0B               11K
+kalloc.type10.48              48          0K          0K          0           0           0    16K    341  C        0B        0B               11K
+kalloc.type11.48              48          0K          0K          0           0           0    16K    341  C        0B        0B                1K
+kalloc.type12.48              48         16K         16K        341         341          71    16K    341  C       12K        0B               75K
+kalloc.type13.48              48          0K          0K          0           0           0    16K    341  C        0B        0B              288B
+kalloc.type14.48              48         16K         16K        341         341          33    16K    341  C       14K        0B              253K
+kalloc.type0.64               64         16K         16K        256         256         247    16K    256  C      576B        0B               37K
+kalloc.type1.64               64         16K         16K        256         256         162    16K    256  C        5K        0B              130K
+kalloc.type2.64               64         16K         16K        256         256          25    16K    256  C       14K        0B             7983K
+kalloc.type3.64               64         32K         32K        512         512         448    16K    256  C        4K        0B             9237K
+kalloc.type4.64               64         16K         16K        256         256         107    16K    256  C        9K        0B               78K
+kalloc.type5.64               64         16K         16K        256         256          26    16K    256  C       14K        0B               30K
+kalloc.type6.64               64         16K         16K        256         256          62    16K    256  C       12K        0B              335K
+kalloc.type7.64               64        352K        352K       5632        5632        5529    16K    256  C        6K        0B             1549K
+kalloc.type8.64               64          0K          0K          0           0           0    16K    256  C        0B        0B                8K
+kalloc.type9.64               64          0K          0K          0           0           0    16K    256  C        0B        0B              128B
+kalloc.type10.64              64          0K          0K          0           0           0    16K    256  C        0B        0B               64B
+kalloc.type11.64              64         32K         32K        512         512         242    16K    256  C       16K        0B              216K
+kalloc.type12.64              64          0K          0K          0           0           0    16K    256  C        0B        0B               64B
+kalloc.type13.64              64         16K         16K        256         256          60    16K    256  C       12K        0B              227K
+kalloc.type0.80               80          0K          0K          0           0           0    16K    204  C        0B        0B               14K
+kalloc.type1.80               80         80K         80K       1024        1024         918    16K    204  C        8K        0B              113K
+kalloc.type2.80               80         16K         16K        204         204          15    16K    204  C       14K        0B           168866K
+kalloc.type3.80               80        224K        224K       2867        2867        2690    16K    204  C       13K        0B              346K
+kalloc.type4.80               80         32K         32K        409         409         377    16K    204  C        2K        0B               58K
+kalloc.type5.80               80         32K         32K        409         409         149    16K    204  C       20K        0B             3431K
+kalloc.type6.80               80          0K          0K          0           0           0    16K    204  C        0B        0B                8K
+kalloc.type7.80               80         48K         48K        614         614         439    16K    204  C       13K        0B              222K
+kalloc.type8.80               80         32K         32K        409         409         268    16K    204  C       11K        0B              504K
+kalloc.type9.80               80         16K         16K        204         204           2    16K    204  C       15K        0B               14K
+kalloc.type10.80              80          0K          0K          0           0           0    16K    204  C        0B        0B                4K
+kalloc.type11.80              80          0K          0K          0           0           0    16K    204  C        0B        0B                0B
+kalloc.type12.80              80         48K         48K        614         614         511    16K    204  C        8K        0B              712K
+early.kalloc.80               80        128K        128K       1638        1638        1433    16K    204  C       16K        0B                0B
+kalloc.type0.96               96         64K         64K        682         682         607    16K    170  C        7K        0B             1296K
+kalloc.type1.96               96        224K        224K       2389        2389        2220    16K    170  C       15K        0B            24527K
+kalloc.type2.96               96        736K        736K       7850        7850        7666    16K    170  C       17K        0B              759K
+kalloc.type3.96               96         16K        592K        170        6314          30    16K    170  C       13K        0B             1101K
+kalloc.type4.96               96         16K         16K        170         170           0    16K    170  C        0B       16K              121K
+kalloc.type5.96               96         32K         32K        341         341         185    16K    170  C       14K        0B             5629K
+kalloc.type6.96               96         16K         16K        170         170           1    16K    170  C       15K        0B               20K
+kalloc.type7.96               96         48K         48K        512         512         444    16K    170  C        6K        0B              200K
+kalloc.type8.96               96         96K         96K       1024        1024         868    16K    170  C       14K        0B             6092K
+kalloc.type9.96               96          0K          0K          0           0           0    16K    170  C        0B        0B                0B
+kalloc.type0.128             128         32K         32K        256         256         142    16K    128  C       14K        0B               40K
+kalloc.type1.128             128         16K         16K        128         128          41    16K    128  C       10K        0B             1335K
+kalloc.type2.128             128        784K        784K       6272        6272        5437    16K    128  C      104K        0B             2990K
+kalloc.type3.128             128         16K         16K        128         128          31    16K    128  C       12K        0B              120K
+kalloc.type4.128             128         16K         16K        128         128           1    16K    128  C       15K        0B             1507K
+kalloc.type5.128             128        304K        304K       2432        2432        2322    16K    128  C       13K        0B              301K
+kalloc.type6.128             128          0K          0K          0           0           0    16K    128  C        0B        0B                8K
+kalloc.type7.128             128       1296K       1296K      10368       10368       10265    16K    128  C       12K        0B             1571K
+kalloc.type8.128             128         32K         32K        256         256         133    16K    128  C       15K        0B              323K
+kalloc.type9.128             128        624K        624K       4992        4992        4869    16K    128  C       15K        0B             1248K
+kalloc.type10.128            128        192K        224K       1536        1792        1413    16K    128  C       15K        0B             1369K
+kalloc.type11.128            128         16K         16K        128         128          38    16K    128  C       11K        0B               29K
+kalloc.type12.128            128         32K         32K        256         256         108    16K    128  C        2K       16K              408K
+kalloc.type13.128            128          0K          0K          0           0           0    16K    128  C        0B        0B                0B
+kalloc.type14.128            128          0K          0K          0           0           0    16K    128  C        0B        0B                0B
+kalloc.type0.160             160         48K         48K        307         307         294    16K    102  C        2K        0B               57K
+kalloc.type1.160             160         16K         16K        102         102           0    16K    102  C        0B       16K               13K
+kalloc.type2.160             160          0K          0K          0           0           0    16K    102  C        0B        0B                4K
+kalloc.type3.160             160          0K          0K          0           0           0    16K    102  C        0B        0B                6K
+kalloc.type4.160             160          0K          0K          0           0           0    16K    102  C        0B        0B               18K
+kalloc.type5.160             160        624K        624K       3993        3993        3785    16K    102  C       32K        0B             3860K
+kalloc.type6.160             160         16K         32K        102         204          50    16K    102  C        8K        0B              722K
+kalloc.type7.160             160         16K         16K        102         102          52    16K    102  C        7K        0B               18K
+kalloc.type8.160             160       1264K       1264K       8089        8089        8027    16K    102  C        9K        0B             1328K
+kalloc.type9.160             160          0K          0K          0           0           0    16K    102  C        0B        0B              320B
+kalloc.type10.160            160         16K         16K        102         102           3    16K    102  C       15K        0B               22K
+kalloc.type11.160            160          0K          0K          0           0           0    16K    102  C        0B        0B              320B
+kalloc.type12.160            160         16K         16K        102         102          65    16K    102  C        5K        0B               27K
+kalloc.type13.160            160         16K         16K        102         102          48    16K    102  C        8K        0B               60K
+kalloc.type14.160            160          0K          0K          0           0           0    16K    102  C        0B        0B                8K
+kalloc.type15.160            160         16K         16K        102         102           1    16K    102  C       15K        0B               23K
+early.kalloc.160             160        128K        128K        819         819         768    16K    102  C        8K        0B                0B
+kalloc.type0.192             192        496K        496K       2645        2645        2632    16K     85  C        2K        0B              508K
+kalloc.type1.192             192         48K         48K        256         256         207    16K     85  C        9K        0B              130K
+kalloc.type2.192             192         16K         16K         85          85          24    16K     85  C       11K        0B               17K
+kalloc.type3.192             192         80K         80K        426         426         354    16K     85  C       13K        0B               96K
+kalloc.type4.192             192          0K          0K          0           0           0    16K     85  C        0B        0B                1K
+kalloc.type5.192             192         32K         32K        170         170         135    16K     85  C        6K        0B              211K
+kalloc.type6.192             192         32K         32K        170         170         111    16K     85  C       11K        0B             1707K
+kalloc.type7.192             192       6160K       6160K      32853       32853       32580    16K     85  C       35K       16K             6261K
+kalloc.type8.192             192          0K          0K          0           0           0    16K     85  C        0B        0B                5K
+kalloc.type9.192             192          0K          0K          0           0           0    16K     85  C        0B        0B                0B
+kalloc.type10.192            192          0K          0K          0           0           0    16K     85  C        0B        0B                0B
+kalloc.type11.192            192          0K          0K          0           0           0    16K     85  C        0B        0B              768B
+kalloc.type12.192            192          0K          0K          0           0           0    16K     85  C        0B        0B              576B
+kalloc.type13.192            192          0K          0K          0           0           0    16K     85  C        0B        0B              192B
+kalloc.type0.224             224         16K         16K         73          73           4    16K     73  C       15K        0B               15K
+kalloc.type1.224             224          0K          0K          0           0           0    16K     73  C        0B        0B              448B
+kalloc.type2.224             224          0K          0K          0           0           0    16K     73  C        0B        0B                1K
+kalloc.type3.224             224         16K         32K         73         146           4    16K     73  C       15K        0B             2641K
+kalloc.type4.224             224         16K         16K         73          73           0    16K     73  C        0B       16K               22K
+kalloc.type5.224             224        384K        384K       1755        1755        1683    16K     73  C       15K        0B              482K
+kalloc.type6.224             224         16K         16K         73          73           2    16K     73  C       15K        0B              101K
+kalloc.type7.224             224         16K         16K         73          73          27    16K     73  C       10K        0B               13K
+kalloc.type8.224             224         64K         64K        292         292         144    16K     73  C       32K        0B              206K
+kalloc.type9.224             224          0K          0K          0           0           0    16K     73  C        0B        0B                1K
+kalloc.type10.224            224         32K         32K        146         146          76    16K     73  C       15K        0B               44K
+kalloc.type11.224            224          0K          0K          0           0           0    16K     73  C        0B        0B                0B
+kalloc.type12.224            224          0K          0K          0           0           0    16K     73  C        0B        0B                3K
+kalloc.type13.224            224          0K          0K          0           0           0    16K     73  C        0B        0B                0B
+early.kalloc.224             224         80K         80K        365         365         309    16K     73  C       12K        0B                0B
+kalloc.type0.256             256         16K         16K         64          64          54    16K     64  C        2K        0B               21K
+kalloc.type1.256             256         16K         16K         64          64           8    16K     64  C       14K        0B               33K
+kalloc.type2.256             256         32K         32K        128         128         110    16K     64  C        4K        0B               61K
+kalloc.type3.256             256        112K        112K        448         448         405    16K     64  C       10K        0B              187K
+kalloc.type4.256             256         16K         16K         64          64          53    16K     64  C        2K        0B               64K
+kalloc.type5.256             256         16K         16K         64          64          30    16K     64  C        8K        0B              128K
+kalloc.type6.256             256         32K         32K        128         128         102    16K     64  C        6K        0B             5869K
+kalloc.type7.256             256        208K        208K        832         832         604    16K     64  C       57K        0B             1993K
+kalloc.type8.256             256         16K         16K         64          64          11    16K     64  C       13K        0B               58K
+kalloc.type9.256             256         16K         16K         64          64           1    16K     64  C       15K        0B               20K
+kalloc.type10.256            256      18992K      18992K      75968       75968       75959    16K     64  C        2K        0B            19014K
+kalloc.type11.256            256          0K          0K          0           0           0    16K     64  C        0B        0B                6K
+kalloc.type12.256            256          0K          0K          0           0           0    16K     64  C        0B        0B                3K
+kalloc.type13.256            256          0K          0K          0           0           0    16K     64  C        0B        0B              512B
+kalloc.type0.288             288         64K         64K        227         227         176    32K    113  C       14K        0B               78K
+kalloc.type1.288             288          0K          0K          0           0           0    32K    113  C        0B        0B                5K
+kalloc.type2.288             288          0K          0K          0           0           0    32K    113  C        0B        0B                1K
+kalloc.type3.288             288         32K         32K        113         113          32    32K    113  C       23K        0B               62K
+kalloc.type4.288             288      10528K      10528K      37432       37432       37053    32K    113  C       74K       32K            11289K
+kalloc.type5.288             288         64K         64K        227         227         119    32K    113  C       30K        0B               52K
+kalloc.type6.288             288         32K         32K        113         113          64    32K    113  C       14K        0B               36K
+kalloc.type7.288             288         32K         32K        113         113          55    32K    113  C       16K        0B               52K
+kalloc.type8.288             288         32K         32K        113         113          83    32K    113  C        8K        0B               99K
+kalloc.type9.288             288          0K          0K          0           0           0    32K    113  C        0B        0B              288B
+kalloc.type10.288            288          0K          0K          0           0           0    32K    113  C        0B        0B                0B
+early.kalloc.288             288        160K        160K        568         568         462    32K    113  C       30K        0B                0B
+kalloc.type0.368             368         32K         32K         89          89          71    32K     89  C        6K        0B               41K
+kalloc.type1.368             368        160K        160K        445         445         328    32K     89  C       42K        0B              304K
+kalloc.type2.368             368         32K         32K         89          89           0    32K     89  C        0B       32K               22K
+kalloc.type3.368             368         32K         32K         89          89           1    32K     89  C       31K        0B               13K
+kalloc.type4.368             368          0K          0K          0           0           0    32K     89  C        0B        0B                2K
+kalloc.type5.368             368        352K        448K        979        1246         829    32K     89  C       54K        0B             4461K
+kalloc.type6.368             368         32K         32K         89          89          38    32K     89  C       18K        0B               34K
+kalloc.type7.368             368         32K         32K         89          89          14    32K     89  C       26K        0B               33K
+kalloc.type8.368             368          0K          0K          0           0           0    32K     89  C        0B        0B                6K
+kalloc.type9.368             368          0K          0K          0           0           0    32K     89  C        0B        0B                5K
+kalloc.type10.368            368         64K         64K        178         178         116    32K     89  C       22K        0B               66K
+kalloc.type11.368            368         32K         32K         89          89          14    32K     89  C       26K        0B               21K
+kalloc.type12.368            368          0K          0K          0           0           0    32K     89  C        0B        0B              736B
+kalloc.type13.368            368          0K          0K          0           0           0    32K     89  C        0B        0B                0B
+early.kalloc.368             368        128K        128K        356         356         327    32K     89  C       10K        0B                0B
+kalloc.type0.400             400        416K        480K       1064        1228         917    32K     81  C       57K        0B             4516K
+kalloc.type1.400             400         32K         32K         81          81          16    32K     81  C       25K        0B               42K
+kalloc.type2.400             400         32K         32K         81          81           0    32K     81  C        0B       32K               29K
+kalloc.type3.400             400          0K          0K          0           0           0    32K     81  C        0B        0B                8K
+kalloc.type4.400             400        448K        448K       1146        1146        1108    32K     81  C       15K        0B              696K
+kalloc.type5.400             400          0K          0K          0           0           0    32K     81  C        0B        0B                0B
+early.kalloc.400             400         64K         64K        163         163         132    32K     81  C       12K        0B                0B
+kalloc.type0.512             512         16K         80K         32         160           5    16K     32  C       13K        0B              109K
+kalloc.type1.512             512        368K        368K        736         736         701    16K     32  C        1K       16K           274676K
+kalloc.type2.512             512          0K          0K          0           0           0    16K     32  C        0B        0B                2K
+kalloc.type3.512             512        208K        208K        416         416         406    16K     32  C        5K        0B              493K
+kalloc.type4.512             512        608K        608K       1216        1216        1193    16K     32  C       11K        0B              818K
+kalloc.type5.512             512         16K         16K         32          32          12    16K     32  C       10K        0B               29K
+kalloc.type6.512             512        128K        128K        256         256         252    16K     32  C        2K        0B              232K
+kalloc.type7.512             512         16K         16K         32          32          15    16K     32  C        8K        0B            36797K
+kalloc.type8.512             512         16K         16K         32          32          24    16K     32  C        4K        0B               75K
+kalloc.type9.512             512         16K         16K         32          32          10    16K     32  C       11K        0B               64K
+kalloc.type10.512            512          0K          0K          0           0           0    16K     32  C        0B        0B              512B
+kalloc.type11.512            512          0K          0K          0           0           0    16K     32  C        0B        0B                0B
+kalloc.type0.576             576         16K         16K         28          28          12    16K     28  C        9K        0B               30K
+kalloc.type1.576             576         16K         16K         28          28          13    16K     28  C        8K        0B               46K
+kalloc.type2.576             576         64K         64K        113         113           0    16K     28  C       64K        0B               11K
+kalloc.type3.576             576        576K        576K       1024        1024         993    16K     28  C       17K        0B              638K
+kalloc.type4.576             576          0K          0K          0           0           0    16K     28  C        0B        0B               18K
+kalloc.type5.576             576          0K          0K          0           0           0    16K     28  C        0B        0B               13K
+early.kalloc.576             576         96K         96K        170         170         146    16K     28  C       13K        0B                0B
+kalloc.type0.768             768        304K        304K        405         405         388    16K     21  C       13K        0B              346K
+kalloc.type1.768             768         32K         32K         42          42          39    16K     21  C        2K        0B              220K
+kalloc.type2.768             768         16K         16K         21          21           5    16K     21  C       12K        0B               23K
+kalloc.type3.768             768         16K         16K         21          21           3    16K     21  C       13K        0B               59K
+kalloc.type4.768             768         16K         16K         21          21          10    16K     21  C        8K        0B               19K
+kalloc.type5.768             768         16K         16K         21          21           0    16K     21  C        0B       16K              809K
+kalloc.type6.768             768          0K          0K          0           0           0    16K     21  C        0B        0B               11K
+kalloc.type7.768             768          0K          0K          0           0           0    16K     21  C        0B        0B                0B
+kalloc.type8.768             768          0K          0K          0           0           0    16K     21  C        0B        0B                0B
+kalloc.type0.1024           1024        160K        608K        160         608          65    16K     16  C       95K        0B             5927K
+kalloc.type1.1024           1024          0K          0K          0           0           0    16K     16  C        0B        0B                6K
+kalloc.type2.1024           1024         64K         64K         64          64          42    16K     16  C        6K       16K           245049K
+kalloc.type3.1024           1024         16K         32K         16          32          10    16K     16  C        6K        0B             2873K
+kalloc.type4.1024           1024          0K          0K          0           0           0    16K     16  C        0B        0B                4K
+kalloc.type5.1024           1024         96K         96K         96          96          81    16K     16  C       15K        0B             4805K
+kalloc.type6.1024           1024          0K          0K          0           0           0    16K     16  C        0B        0B                0B
+kalloc.type0.1152           1152         16K         32K         14          28           0    16K     14  C        0B       16K              797K
+kalloc.type1.1152           1152          0K          0K          0           0           0    16K     14  C        0B        0B               10K
+kalloc.type2.1152           1152          0K          0K          0           0           0    16K     14  C        0B        0B                4K
+kalloc.type3.1152           1152         96K         96K         85          85          76    16K     14  C       10K        0B             1200K
+kalloc.type4.1152           1152          0K          0K          0           0           0    16K     14  C        0B        0B                0B
+early.kalloc.1152           1152         32K         32K         28          28          21    16K     14  C        8K        0B                0B
+kalloc.type0.1280           1280          0K          0K          0           0           0    32K     25  C        0B        0B                8K
+kalloc.type1.1280           1280         32K         32K         25          25           0    32K     25  C        0B       32K             1216K
+kalloc.type2.1280           1280         32K         32K         25          25          25    32K     25  C      768B        0B               61K
+kalloc.type3.1280           1280          0K          0K          0           0           0    32K     25  C        0B        0B                0B
+early.kalloc.1280           1280         64K         64K         51          51          33    32K     25  C       22K        0B                0B
+kalloc.type0.1664           1664         96K         96K         59          59          40    32K     19  C       31K        0B              131K
+kalloc.type1.1664           1664         64K         64K         39          39          33    32K     19  C       10K        0B               69K
+kalloc.type2.1664           1664          0K          0K          0           0           0    32K     19  C        0B        0B               14K
+kalloc.type3.1664           1664        736K        736K        452         452         430    32K     19  C       37K        0B             1690K
+kalloc.type4.1664           1664          0K          0K          0           0           0    32K     19  C        0B        0B                1K
+early.kalloc.1664           1664         96K         96K         59          59          51    32K     19  C       13K        0B                0B
+kalloc.type0.2048           2048         32K         32K         16          16          12    16K      8  C        8K        0B               80K
+kalloc.type1.2048           2048         32K         48K         16          24           1    16K      8  C       14K       16K            12172K
+kalloc.type2.2048           2048          0K          0K          0           0           0    16K      8  C        0B        0B               68K
+kalloc.type3.2048           2048          0K          0K          0           0           0    16K      8  C        0B        0B                4K
+kalloc.type4.2048           2048         32K         80K         16          40           0    16K      8  C        0B       32K             1920K
+kalloc.type0.4096           4096        256K        256K         64          64          62    16K      4  C        8K        0B              376K
+kalloc.type1.4096           4096          0K          0K          0           0           0    16K      4  C        0B        0B               20K
+kalloc.type2.4096           4096         16K         16K          4           4           1    16K      4  C       12K        0B           171840K
+kalloc.type3.4096           4096        608K        608K        152         152          55    16K      4  C       68K      320K            11248K
+kalloc.type4.4096           4096        112K        160K         28          40          22    16K      4  C       24K        0B              748K
+kalloc.type5.4096           4096         80K         80K         20          20          16    16K      4  C       16K        0B              396K
+kalloc.type6.4096           4096          0K          0K          0           0           0    16K      4  C        0B        0B                0B
+kalloc.type0.6144           6144        288K        384K         48          64          43    48K      8  C       30K        0B             1236K
+kalloc.type1.6144           6144          0K          0K          0           0           0    48K      8  C        0B        0B               66K
+kalloc.type2.6144           6144          0K          0K          0           0           0    48K      8  C        0B        0B               30K
+kalloc.type3.6144           6144        288K        432K         48          72           0    48K      8  C        0B      288K           129972K
+kalloc.type4.6144           6144          0K          0K          0           0           0    48K      8  C        0B        0B               12K
+kalloc.type0.8192           8192          0K          0K          0           0           0    16K      2  C        0B        0B               32K
+kalloc.type1.8192           8192        128K        128K         16          16          16    16K      2  C        0B        0B              208K
+kalloc.type2.8192           8192          0K          0K          0           0           0    16K      2  C        0B        0B               56K
+kalloc.type3.8192           8192          0K          0K          0           0           0    16K      2  C        0B        0B                8K
+kalloc.type0.12288         12288          0K          0K          0           0           0    48K      4  C        0B        0B               12K
+kalloc.type1.12288         12288         48K         48K          4           4           0    48K      4  C        0B       48K              876K
+kalloc.type2.12288         12288         48K         48K          4           4           0    48K      4  C        0B       48K              168K
+kalloc.type3.12288         12288          0K          0K          0           0           0    48K      4  C        0B        0B                0B
+kalloc.type0.16384         16384          0K          0K          0           0           0    16K      1  C        0B        0B                0B
+kalloc.type1.16384         16384          0K          0K          0           0           0    16K      1  C        0B        0B               48K
+kalloc.type2.16384         16384          0K          0K          0           0           0    16K      1  C        0B        0B               16K
+kalloc.type0.24576         24576          0K          0K          0           0           0    48K      2  C        0B        0B               48K
+kalloc.type1.24576         24576          0K          0K          0           0           0    48K      2  C        0B        0B               96K
+kalloc.type2.24576         24576          0K          0K          0           0           0    48K      2  C        0B        0B               48K
+kalloc.type3.24576         24576          0K          0K          0           0           0    48K      2  C        0B        0B                0B
+kalloc.type0.32768         32768          0K          0K          0           0           0    32K      1  C        0B        0B               32K
+kalloc.type1.32768         32768         64K         64K          2           2           1    32K      1  C        0B       32K               96K
+kalloc.type2.32768         32768          0K          0K          0           0           0    32K      1  C        0B        0B               32K
+kalloc.type3.32768         32768          0K          0K          0           0           0    32K      1  C        0B        0B                0B
+kalloc.type.var2.16           16        736K        736K      47104       47104       46969    16K   1024  C        2K        0B                0B
+kalloc.type.var2.32           32        560K        624K      17920       19968       14980    16K    512  C       91K        0B                0B
+kalloc.type.var2.48           48         48K         48K       1024        1024         688    16K    341  C       15K        0B                0B
+kalloc.type.var2.64           64         64K         64K       1024        1024         796    16K    256  C       14K        0B                0B
+kalloc.type.var2.96           96        128K        128K       1365        1365        1160    16K    170  C       19K        0B                0B
+kalloc.type.var2.128         128        176K        176K       1408        1408        1299    16K    128  C       13K        0B                0B
+kalloc.type.var2.192         192         64K         64K        341         341         254    16K     85  C       16K        0B                0B
+kalloc.type.var2.256         256        448K        448K       1792        1792        1755    16K     64  C        9K        0B                0B
+kalloc.type.var2.384         384         64K         64K        170         170          61    32K     85  C        9K       32K                0B
+kalloc.type.var2.512         512        816K        816K       1632        1632        1609    16K     32  C       11K        0B                0B
+kalloc.type.var2.768         768        160K        160K        213         213         180    16K     21  C        9K       16K                0B
+kalloc.type.var2.1024       1024         64K         64K         64          64          56    16K     16  C        8K        0B                0B
+kalloc.type.var2.1536       1536         64K         96K         42          64          23    32K     21  C       29K        0B                0B
+kalloc.type.var2.2048       2048        672K        672K        336         336         335    16K      8  C        2K        0B                0B
+kalloc.type.var2.3072       3072         64K         64K         21          21          17    16K      5  C       13K        0B                0B
+kalloc.type.var2.4096       4096        128K        128K         32          32          27    16K      4  C        4K       16K                0B
+kalloc.type.var2.6144       6144        240K        240K         40          40          30    48K      8  C       12K       48K                0B
+kalloc.type.var2.8192       8192         48K         48K          6           6           5    16K      2  C        8K        0B                0B
+kalloc.type.var2.12288     12288         48K         48K          4           4           0    48K      4  C        0B       48K                0B
+kalloc.type.var2.16384     16384       2112K       2112K        132         132         132    16K      1  C        0B        0B                0B
+kalloc.type.var2.24576     24576         96K         96K          4           4           1    48K      2  C       24K       48K                0B
+kalloc.type.var2.32768     32768        544K        544K         17          17          16    32K      1  C        0B       32K                0B
+kalloc.type.var3.16           16        128K        128K       8192        8192        6317    16K   1024  C       13K       16K                0B
+kalloc.type.var3.32           32         96K         96K       3072        3072        2609    16K    512  C       14K        0B                0B
+kalloc.type.var3.48           48         16K         16K        341         341         221    16K    341  C        5K        0B                0B
+kalloc.type.var3.64           64        544K        544K       8704        8704        7642    16K    256  C       50K       16K                0B
+kalloc.type.var3.96           96         80K         80K        853         853         817    16K    170  C        3K        0B                0B
+kalloc.type.var3.128         128        144K        144K       1152        1152        1059    16K    128  C       11K        0B                0B
+kalloc.type.var3.192         192        160K        160K        853         853         566    16K     85  C        5K       48K                0B
+kalloc.type.var3.256         256        160K        160K        640         640         533    16K     64  C       10K       16K                0B
+kalloc.type.var3.384         384        128K        128K        341         341         276    32K     85  C       24K        0B                0B
+kalloc.type.var3.512         512        768K        768K       1536        1536        1531    16K     32  C        2K        0B                0B
+kalloc.type.var3.768         768        144K        144K        192         192         169    16K     21  C       17K        0B                0B
+kalloc.type.var3.1024       1024         32K         32K         32          32          28    16K     16  C        4K        0B                0B
+kalloc.type.var3.1536       1536        224K        224K        149         149         133    32K     21  C       24K        0B                0B
+kalloc.type.var3.2048       2048        288K        288K        144         144         141    16K      8  C        6K        0B                0B
+kalloc.type.var3.3072       3072         48K         48K         16          16           9    16K      5  C        5K       16K                0B
+kalloc.type.var3.4096       4096        128K        128K         32          32          30    16K      4  C        8K        0B                0B
+kalloc.type.var3.6144       6144         48K         48K          8           8           4    48K      8  C       24K        0B                0B
+kalloc.type.var3.8192       8192       1104K       1104K        138         138         136    16K      2  C        0B       16K                0B
+kalloc.type.var3.12288     12288         48K         48K          4           4           2    48K      4  C       24K        0B                0B
+kalloc.type.var3.16384     16384       1152K       1152K         72          72          72    16K      1  C        0B        0B                0B
+kalloc.type.var3.24576     24576         48K         48K          2           2           0    48K      2  C        0B       48K                0B
+kalloc.type.var3.32768     32768        160K        160K          5           5           5    32K      1  C        0B        0B                0B
+kalloc.type.var4.16           16         16K         16K       1024        1024           1    16K   1024  C       15K        0B                0B
+kalloc.type.var4.32           32         64K         64K       2048        2048        1646    16K    512  C       12K        0B                0B
+kalloc.type.var4.48           48         32K         32K        682         682         550    16K    341  C        6K        0B                0B
+kalloc.type.var4.64           64         16K         16K        256         256         108    16K    256  C        9K        0B                0B
+kalloc.type.var4.96           96         16K         16K        170         170          22    16K    170  C       13K        0B                0B
+kalloc.type.var4.128         128         16K         16K        128         128          34    16K    128  C       11K        0B                0B
+kalloc.type.var4.192         192         16K         16K         85          85          20    16K     85  C       12K        0B                0B
+kalloc.type.var4.256         256         16K         16K         64          64          33    16K     64  C        7K        0B                0B
+kalloc.type.var4.384         384         32K         32K         85          85          26    32K     85  C       22K        0B                0B
+kalloc.type.var4.512         512         16K         16K         32          32          21    16K     32  C        5K        0B                0B
+kalloc.type.var4.768         768         32K         32K         42          42          28    16K     21  C       11K        0B                0B
+kalloc.type.var4.1024       1024         16K         16K         16          16          11    16K     16  C        5K        0B                0B
+kalloc.type.var4.1536       1536         32K         32K         21          21           2    32K     21  C       29K        0B                0B
+kalloc.type.var4.2048       2048         32K         32K         16          16          15    16K      8  C        2K        0B                0B
+kalloc.type.var4.3072       3072         16K         16K          5           5           0    16K      5  C        0B       16K                0B
+kalloc.type.var4.4096       4096         16K         16K          4           4           1    16K      4  C       12K        0B                0B
+kalloc.type.var4.6144       6144         96K         96K         16          16           8    48K      8  C        0B       48K                0B
+kalloc.type.var4.8192       8192         96K         96K         12          12          12    16K      2  C        0B        0B                0B
+kalloc.type.var4.12288     12288         96K         96K          8           8           5    48K      4  C       36K        0B                0B
+kalloc.type.var4.16384     16384        192K        192K         12          12          12    16K      1  C        0B        0B                0B
+kalloc.type.var4.24576     24576         48K         48K          2           2           1    48K      2  C       24K        0B                0B
+kalloc.type.var4.32768     32768          0K          0K          0           0           0    32K      1  C        0B        0B                0B
+kalloc.type.var5.16           16         16K         16K       1024        1024         374    16K   1024  C       10K        0B                0B
+kalloc.type.var5.32           32         16K         16K        512         512           8    16K    512  C       15K        0B                0B
+kalloc.type.var5.48           48         16K         16K        341         341          39    16K    341  C       14K        0B                0B
+kalloc.type.var5.64           64         16K         16K        256         256           6    16K    256  C       15K        0B                0B
+kalloc.type.var5.96           96         32K         32K        341         341         179    16K    170  C       15K        0B                0B
+kalloc.type.var5.128         128         16K         16K        128         128           2    16K    128  C       15K        0B                0B
+kalloc.type.var5.192         192       1552K       1552K       8277        8277        8191    16K     85  C       16K        0B                0B
+kalloc.type.var5.256         256         64K         80K        256         320         195    16K     64  C       15K        0B                0B
+kalloc.type.var5.384         384         64K         64K        170         170          89    32K     85  C       30K        0B                0B
+kalloc.type.var5.512         512         48K         48K         96          96          87    16K     32  C        4K        0B                0B
+kalloc.type.var5.768         768        112K        176K        149         234          88    16K     21  C       46K        0B                0B
+kalloc.type.var5.1024       1024         16K         32K         16          32          14    16K     16  C        2K        0B                0B
+kalloc.type.var5.1536       1536         96K         96K         64          64          38    32K     21  C        7K       32K                0B
+kalloc.type.var5.2048       2048         96K         96K         48          48          44    16K      8  C        8K        0B                0B
+kalloc.type.var5.3072       3072         32K         32K         10          10           5    16K      5  C        1K       16K                0B
+kalloc.type.var5.4096       4096        560K        560K        140         140         137    16K      4  C       12K        0B                0B
+kalloc.type.var5.6144       6144         48K         48K          8           8           3    48K      8  C       30K        0B                0B
+kalloc.type.var5.8192       8192         16K         32K          2           4           2    16K      2  C        0B        0B                0B
+kalloc.type.var5.12288     12288         96K         96K          8           8           5    48K      4  C       36K        0B                0B
+kalloc.type.var5.16384     16384         48K         80K          3           5           2    16K      1  C        0B       16K                0B
+kalloc.type.var5.24576     24576         48K         48K          2           2           1    48K      2  C       24K        0B                0B
+kalloc.type.var5.32768     32768         32K         32K          1           1           0    32K      1  C        0B       32K                0B
+kalloc.type.var6.16           16         16K         16K       1024        1024           0    16K   1024  C        0B       16K                0B
+kalloc.type.var6.32           32         16K         16K        512         512          28    16K    512  C       15K        0B                0B
+kalloc.type.var6.48           48         16K         16K        341         341           0    16K    341  C        0B       16K                0B
+kalloc.type.var6.64           64         16K         16K        256         256           9    16K    256  C       15K        0B                0B
+kalloc.type.var6.96           96         16K         16K        170         170           1    16K    170  C       15K        0B                0B
+kalloc.type.var6.128         128         16K         16K        128         128           5    16K    128  C       15K        0B                0B
+kalloc.type.var6.192         192        768K        768K       4096        4096        3826    16K     85  C       34K       16K                0B
+kalloc.type.var6.256         256         16K         16K         64          64           2    16K     64  C       15K        0B                0B
+kalloc.type.var6.384         384         32K         32K         85          85          44    32K     85  C       15K        0B                0B
+kalloc.type.var6.512         512         32K         48K         64          96          15    16K     32  C        8K       16K                0B
+kalloc.type.var6.768         768        144K        144K        192         192         166    16K     21  C       19K        0B                0B
+kalloc.type.var6.1024       1024         64K         64K         64          64          43    16K     16  C       21K        0B                0B
+kalloc.type.var6.1536       1536        224K        224K        149         149         139    32K     21  C       15K        0B                0B
+kalloc.type.var6.2048       2048        144K        144K         72          72          63    16K      8  C       18K        0B                0B
+kalloc.type.var6.3072       3072        256K        256K         85          85          76    16K      5  C       28K        0B                0B
+kalloc.type.var6.4096       4096        192K        192K         48          48          41    16K      4  C       28K        0B                0B
+kalloc.type.var6.6144       6144        288K        288K         48          48          42    48K      8  C       36K        0B                0B
+kalloc.type.var6.8192       8192        160K        160K         20          20          17    16K      2  C        8K       16K                0B
+kalloc.type.var6.12288     12288        144K        192K         12          16          11    48K      4  C       12K        0B                0B
+kalloc.type.var6.16384     16384        224K        224K         14          14          12    16K      1  C        0B       32K                0B
+kalloc.type.var6.24576     24576        384K        384K         16          16          14    48K      2  C       48K        0B                0B
+kalloc.type.var6.32768     32768        160K        160K          5           5           3    32K      1  C        0B       64K                0B
+kalloc.type.var7.16           16          0K          0K          0           0           0    16K   1024  C        0B        0B                0B
+kalloc.type.var7.32           32          0K          0K          0           0           0    16K    512  C        0B        0B                0B
+kalloc.type.var7.48           48          0K          0K          0           0           0    16K    341  C        0B        0B                0B
+kalloc.type.var7.64           64          0K          0K          0           0           0    16K    256  C        0B        0B                0B
+kalloc.type.var7.96           96          0K          0K          0           0           0    16K    170  C        0B        0B                0B
+kalloc.type.var7.128         128          0K          0K          0           0           0    16K    128  C        0B        0B                0B
+kalloc.type.var7.192         192          0K          0K          0           0           0    16K     85  C        0B        0B                0B
+kalloc.type.var7.256         256          0K          0K          0           0           0    16K     64  C        0B        0B                0B
+kalloc.type.var7.384         384          0K          0K          0           0           0    32K     85  C        0B        0B                0B
+kalloc.type.var7.512         512          0K          0K          0           0           0    16K     32  C        0B        0B                0B
+kalloc.type.var7.768         768          0K          0K          0           0           0    16K     21  C        0B        0B                0B
+kalloc.type.var7.1024       1024          0K          0K          0           0           0    16K     16  C        0B        0B                0B
+kalloc.type.var7.1536       1536          0K          0K          0           0           0    32K     21  C        0B        0B                0B
+kalloc.type.var7.2048       2048          0K          0K          0           0           0    16K      8  C        0B        0B                0B
+kalloc.type.var7.3072       3072          0K          0K          0           0           0    16K      5  C        0B        0B                0B
+kalloc.type.var7.4096       4096          0K          0K          0           0           0    16K      4  C        0B        0B                0B
+kalloc.type.var7.6144       6144          0K          0K          0           0           0    48K      8  C        0B        0B                0B
+kalloc.type.var7.8192       8192          0K          0K          0           0           0    16K      2  C        0B        0B                0B
+kalloc.type.var7.12288     12288          0K          0K          0           0           0    48K      4  C        0B        0B                0B
+kalloc.type.var7.16384     16384       4000K       4000K        250         250         250    16K      1  C        0B        0B                0B
+kalloc.type.var7.24576     24576          0K          0K          0           0           0    48K      2  C        0B        0B                0B
+kalloc.type.var7.32768     32768          0K          0K          0           0           0    32K      1  C        0B        0B                0B
+kqueue.file.zone             128         16K         16K        128         128          27    16K    128  C       12K        0B               38K
+kqueue.workq.zone            488        192K        192K        402         402         400    32K     67  C        1K        0B              231K
+kqueue.workloop.zone         264       3024K       3024K      11729       11729       11601    16K     62  C       33K        0B            54657K
+mk_timer                     168         96K         96K        585         585         538    16K     97  C        7K        0B              129K
+decmpfs_cnode                 72        272K        272K       3868        3868        1879    16K    227  C      139K        0B              780K
+vnodes                       256       3520K       3520K      14080       14080       14000    16K     64          20K        0B             3500K
+socket                       960        448K        768K        477         819         276    16K     17  C      189K        0B             6361K
+pgrp                          56         32K         32K        585         585         410    16K    292  C        9K        0B               26K
+percpu.64                     48        192K        192K       4096        4096        2494    96K   2048  C       75K        0B              304B
+arm.debug.state              544          0K          0K          0           0           0    16K     30  C        0B        0B                0B
+ipc.task.importance          128         64K         64K        512         512         417    16K    128  C       11K        0B              123K
+knote.zone                   128       2848K       2848K      22784       22784       22601    16K    128  C       22K        0B            79588K
+cluster_read                  24         32K         32K       1365        1365         610    16K    682  C       17K        0B               50K
+cluster_write                152        144K        144K        970         970         782    16K    107  C       27K        0B              460K
+ipc_service_port_label        32         96K         96K       3072        3072        2626    16K    512  C       13K        0B               82K
+ipc.importance.inherit        72         32K         32K        455         455         251    16K    227  C       14K        0B             1993K
+ipc_bootstrap_port_label      16         16K         16K       1024        1024           2    16K   1024  C       15K        0B               32B
+task_apt_token                 8          0K          0K          0           0           0    16K   2048  C        0B        0B                0B
+session                      336        160K        160K        487         487         401    32K     97  C       28K        0B              157K
+task_id_token                 40         16K         16K        409         409          15    16K    409  C       15K        0B                1K
+bank_task                    160         80K         80K        512         512         411    16K    102  C       15K        0B              152K
+iokit.OSSymbol                32        704K        704K      22528       22528       22339    16K    512  C        5K        0B            12166K
+bank_account                 104         96K         96K        945         945         598    16K    157  C       35K        0B            28076K
+vsockpcbzone                 112          0K          0K          0           0           0    16K    146  C        0B        0B                0B
+AES.ctx                      288          0K          0K          0           0           0    32K    113  C        0B        0B                0B
+workq.threadreq               32         16K         16K        512         512          14    16K    512  C       15K        0B             1195K
+buf.headers                  304          0K          0K          0           0           0    32K    107  C        0B        0B                0B
+cpx                           80        624K        624K       7987        7987        7846    16K    204  C       11K        0B              618K
+workq.wq                     416        176K        176K        433         433         400    16K     39  C       13K        0B              197K
+vnode.pager.structures        40        336K        336K       8601        8601        5996    16K    409  C       85K       16K             2079K
+compressor_pager              64        208K        208K       3328        3328        3122    16K    256  C       12K        0B              197K
+namecache                    104       1520K       1520K      14966       14966       10261    16K    157  C      477K        0B             9142K
+ipc.kobject.labels            16         32K         32K       2048        2048        1292    16K   1024  C       11K        0B               56K
+ubc_info.zone                104        880K        880K       8664        8664        5996    16K    157  C      255K       16K             5406K
+vfsstringcache                32        384K        384K      12288       12288       10429    16K    512  C       58K        0B             2508K
+hv_vm_t.hv_vm_percpu_t       768          0K          0K          0           0           0    96K    128  C        0B        0B                0B
+user.save.state              848       2000K       2000K       2415        2415        1993    16K     19  C      349K        0B             6752K
+io_reprioritize_req           32         16K         16K        512         512           0    16K    512  C        0B       16K               32B
+unpzone                      200         32K         32K        163         163          96    32K    163  C       13K        0B               39K
+fileglob                      88        352K        352K       4096        4096        3923    16K    186  C       14K        0B            19732K
+ipc.spaces                   128         64K         64K        512         512         411    16K    128  C       12K        0B              123K
+compressor_slots.16           16         16K         16K       1024        1024         180    16K   1024  C       13K        0B                2K
+compressor_slots.64           64         32K         32K        512         512         297    16K    256  C       13K        0B               18K
+compressor_slots.512         512       1488K       1488K       2976        2976        2950    16K     32  C       13K        0B             1486K
+recount_usage_cpu            480          0K          0K          0           0           0    16K     34  C        0B        0B                0B
+recount_track_cpu            528        224K        224K        434         434         417    16K     31  C        8K        0B              512K
+recount_usage_cpu_kind       160        128K        128K        819         819         770    16K    102  C        7K        0B              212K
+recount_track_cpu_kind       176        528K        528K       3072        3072        2632    16K     93  C       75K        0B             1840K
+Bank.ledger                   64         64K         64K       1024        1024         598    16K    256  C       26K        0B            17277K
+thread_groups               3232       1136K       1136K        359         359         355    16K      5  C       15K        0B             1148K
+Per-task.ledger             1584       1248K       1248K        806         806         770    16K     10  C       56K        0B             3348K
+Per-coalition.ledger          80         32K         32K        409         409         361    16K    204  C        3K        0B               29K
+matrix.saved.state          5248         16K         48K          3           9           3    16K      3  C      640B        0B               82K
+Per-thread.ledger             80        240K        240K       3072        3072        2632    16K    204  C       34K        0B              836K
+iokit.OSArray                 40       2752K       2752K      70451       70451       64597    16K    409  C      228K        0B            16852K
+iokit.OSData                  40        336K        336K       8601        8601        8120    16K    409  C        2K       16K             3052K
+iokit.OSDictionary            40        928K        928K      23756       23756       21447    16K    409  C       90K        0B            38316K
+iokit.OSNumber                24       1536K       1536K      65536       65536       54386    16K    682  C      261K        0B             6572K
+iokit.OSSet                   32        128K        128K       4096        4096        4017    16K    512  C        2K        0B              631K
+iokit.OSString                24        912K        912K      38912       38912       28446    16K    682  C      245K        0B            53556K
+iokit.IOCommandGate           80        144K        144K       1843        1843        1678    16K    204  C       12K        0B              177K
+iokit.IOBufferMemoryDesc$    232        464K        464K       2048        2048        1917    16K     70  C       13K       16K             2618K
+iokit.IODMACommand           120       4352K       4352K      37137       37137       36855    16K    136  C       33K        0B             4671K
+iokit.IOGeneralMemoryDes$    176        144K        160K        837         930         753    16K     93  C       14K        0B            42424K
+iokit.IOMemoryMap             88        448K        448K       5213        5213        5053    16K    186  C       13K        0B             2180K
+iokit.IOGuardPageMemoryD$    192          0K          0K          0           0           0    16K     85  C        0B        0B                0B
+iokit.IOMachPort              40        128K        128K       3276        3276        2871    16K    409  C       15K        0B              786K
+iokit.IOSKMemoryBuffer       288        512K        512K       1820        1820        1707    32K    113  C       31K        0B              606K
+iokit.OSDetachedCertific$    112          0K          0K          0           0           0    16K    146  C        0B        0B                0B
+iokit.OSEntitlements          40         32K         32K        819         819         662    16K    409  C        6K        0B               27K
+iokit.IOSurface              992        288K        320K        297         330         243    32K     33  C       52K        0B             1768K
+ifmultiaddr                   96         16K         16K        170         170          82    16K    170  C        8K        0B                9K
+pfrulepl                    1040          0K          0K          0           0           0    32K     31  C        0B        0B                0B
+pfsrctrpl                    152          0K          0K          0           0           0    16K    107  C        0B        0B                0B
+pfstatepl                    328          0K          0K          0           0           0    32K     99  C        0B        0B                0B
+pfstatekeypl                 176          0K          0K          0           0           0    16K     93  C        0B        0B                0B
+pfappstatepl                  32          0K          0K          0           0           0    16K    512  C        0B        0B                0B
+pfpooladdrpl                  88          0K          0K          0           0           0    16K    186  C        0B        0B                0B
+pfrktable                   1288          0K          0K          0           0           0    32K     25  C        0B        0B                0B
+pfrkentry                    216          0K          0K          0           0           0    32K    151  C        0B        0B                0B
+pfrkentry2                   216          0K          0K          0           0           0    32K    151  C        0B        0B                0B
+pfiaddrpl                    120          0K          0K          0           0           0    16K    136  C        0B        0B                0B
+pfosfpen                     112          0K          0K          0           0           0    16K    146  C        0B        0B                0B
+pfosfp                        40          0K          0K          0           0           0    16K    409  C        0B        0B                0B
+pffrent                       48          0K          0K          0           0           0    16K    341  C        0B        0B                0B
+pffrag                       112          0K          0K          0           0           0    16K    146  C        0B        0B                0B
+pffrcache                    112          0K          0K          0           0           0    16K    146  C        0B        0B                0B
+pffrcent                      24          0K          0K          0           0           0    16K    682  C        0B        0B                0B
+pfstscr                       40          0K          0K          0           0           0    16K    409  C        0B        0B                0B
+ip_moptions                   72         16K         16K        227         227           1    16K    227  C       15K        0B              216B
+ip6_moptions                  64         16K         16K        256         256           1    16K    256  C       15K        0B                3K
+nd6_prefix                   248         16K         16K         66          66          12    16K     66  C       13K        0B                3K
+nd6_defrouter                152         16K         16K        107         107           5    16K    107  C       15K        0B              912B
+rtentry                      440          0K          0K          0           0           0    16K     37  C        0B        0B                0B
+skywalk.skm                 1408       1184K       1184K        861         861         838    32K     23  C       31K        0B             1450K
+skywalk.reg.sg                88        160K        160K       1861        1861        1733    16K    186  C       11K        0B              168K
+skywalk.reg.bufctl            48       2272K       2272K      48469       48469       48118    16K    341  C       16K        0B             2638K
+skywalk.reg.slab              72         96K         96K       1365        1365        1247    16K    227  C        8K        0B               94K
+skywalk.reg.mg.14            136         48K         48K        361         361         355    16K    120  C      872B        0B               47K
+skywalk.reg.mg.30            264         64K         64K        248         248         232    16K     62  C        4K        0B               59K
+skywalk.reg.mg.46            392         32K         32K         83          83          23    32K     83  C       23K        0B                8K
+skywalk.reg.mg.62            520         64K         64K        126         126          88    32K     63  C       19K        0B               44K
+skywalk.reg.mg.94            776         16K         16K         21          21           8    16K     21  C        9K        0B                6K
+skywalk.reg.mg.126          1032          0K          0K          0           0           0    32K     31  C        0B        0B                0B
+skywalk.reg.mg.142          1160          0K          0K          0           0           0    16K     14  C        0B        0B                0B
+skywalk.reg.mg.158          1288          0K          0K          0           0           0    32K     25  C        0B        0B                0B
+skywalk.reg.pkt.opt           40        384K        384K       9830        9830        9596    16K    409  C        9K        0B              391K
+skywalk.reg.pkt.flow         160       1520K       1520K       9728        9728        9599    16K    102  C       20K        0B             1583K
+skywalk.reg.pkt.compl         32        304K        304K       9728        9728        9596    16K    512  C        4K        0B              311K
+skywalk.reg.flow.owner       144         16K         16K        113         113          73    16K    113  C        5K        0B               10K
+skywalk.reg.flow.entry       704         80K         80K        116         116         115    16K     23  C      960B        0B               79K
+skywalk.reg.flow.adv.bma$     64         16K         16K        256         256          73    16K    256  C       11K        0B                4K
+skywalk.reg.flow.route       312         32K         32K        105         105          59    16K     52  C       14K        0B               22K
+skywalk.reg.flow.stats       320         48K         48K        153         153         115    16K     51  C       12K        0B               35K
+skywalk.reg.netns.ns_res$     48         32K         32K        682         682         357    16K    341  C       15K        0B               16K
+skywalk.reg.netns.ns_tok$     80         32K         32K        409         409         207    16K    204  C       15K        0B               16K
+skywalk.reg.netns.ns_flo$    128         16K         16K        128         128          81    16K    128  C        5K        0B               10K
+fs-event-buf                  88         96K         96K       1117        1117           0    16K    186 X        96K        0B             2294K
+APFS_4K_OBJS                4096     120128K     120128K      30032       30032       29556    16K      4  C     1104K      800K           147252K
+APFS_8K_OBJS                8192          0K          0K          0           0           0    16K      2  C        0B        0B                0B
+APFS_INODES                  424       5760K       5792K      13910       13988       13747    32K     77  C       67K        0B            49685K
+APFS_TREE_LOOKUP_ZONE       4640         64K         64K         14          14           0    32K      7  C        0B       64K          2681417K
+APFS_BTREE_NODES             264       8112K       8112K      31464       31464       30919    16K     62  C      140K        0B             9611K
+SYSTEM_GRAFT_4K_OBJS        4096       6336K       6336K       1584        1584        1583    16K      4  C        4K        0B             6332K
+clpc_normal_groups          1168         48K         48K         42          42          40    16K     14  C        2K        0B               45K
+clpc_efficient_groups        512        160K        160K        320         320         315    16K     32  C        2K        0B              162K
+compressor_segment           352         96K         96K        279         279         212    32K     93  C       23K        0B               72K
+-------------------------------------------------------------------------------------------------------------
+                                                               kmod          vm        peak               cur
+wired memory                                                     id         tag        size  waste       size
+-------------------------------------------------------------------------------------------------------------
+VM_KERN_COUNT_BOOT_STOLEN                                                   266                       549344K
+VM_KERN_COUNT_RESERVED                                                      257                        16400K
+VM_KERN_COUNT_STOLEN                                                        260                          496K
+VM_KERN_COUNT_WIRED_STATIC_KERNELCACHE                                      267                        67808K
+VM_KERN_MEMORY_COMPRESSOR                                                    14                          192K
+VM_KERN_MEMORY_DIAG                                                          18                         1536K
+VM_KERN_MEMORY_FILE                                                          20                         4976K
+VM_KERN_MEMORY_IOKIT                                                          3                          304K
+VM_KERN_MEMORY_IPC                                                            7                           80K
+VM_KERN_MEMORY_KALLOC                                                        13                          160K
+VM_KERN_MEMORY_KALLOC_DATA                                                   29                          944K
+VM_KERN_MEMORY_KALLOC_TYPE                                                   31                          896K
+VM_KERN_MEMORY_LIBKERN                                                        4                           64K
+VM_KERN_MEMORY_LOG                                                           19                          672K
+VM_KERN_MEMORY_OSFMK                                                          1                          832K
+VM_KERN_MEMORY_OSKEXT                                                         5                           32K
+VM_KERN_MEMORY_PHANTOM_CACHE                                                 16                          256K
+VM_KERN_MEMORY_PTE                                                           11                       101376K
+VM_KERN_MEMORY_SECURITY                                                      23                        26368K
+VM_KERN_MEMORY_SKYWALK                                                       26                        19664K
+VM_KERN_MEMORY_STACK                                                          8                         2992K
+VM_KERN_MEMORY_TRIAGE                                                        32                         1552K
+VM_KERN_MEMORY_WAITQ                                                         17                           32K
+com.apple.AGXG16P                                                           105                         6528K
+com.apple.DriverKit-AppleBCMWLAN                                            238                        14912K
+com.apple.driver.AppleA7IOP.DMA.ane                                         160                         1280K
+com.apple.driver.AppleAOPAudio                                              216                         1040K
+com.apple.driver.AppleAVD                                                   116                         6080K
+com.apple.driver.AppleAVE2                                                  145                         1232K
+com.apple.driver.AppleAVE2.DMA.ave                                          168                          144K
+com.apple.driver.AppleBasebandPCI                                           182                          608K
+com.apple.driver.AppleBasebandPCIMAVControl                                 240                          288K
+com.apple.driver.AppleConvergedIPCOLYBTControl                              242                         1152K
+com.apple.driver.AppleConvergedPCI                                          241                           80K
+com.apple.driver.AppleEmbeddedAudio                                         215                           32K
+com.apple.driver.AppleEmbeddedPCIE.DMA.baseband-pcie                        217                        14944K
+com.apple.driver.AppleEmbeddedPCIE.DMA.bluetooth-pcie                       213                          352K
+com.apple.driver.AppleEmbeddedPCIE.DMA.wlan                                 211                         6592K
+com.apple.driver.AppleFirmwareKit                                           234                           32K
+com.apple.driver.AppleH11ANEInterface.HEAP                                  201                        15360K
+com.apple.driver.AppleH11ANEInterface.INTM                                  202                         1520K
+com.apple.driver.AppleH11ANEInterface.MISC                                  203                         8144K
+com.apple.driver.AppleH16ANEInterface                                       163                        81040K
+com.apple.driver.AppleH16CameraInterface                                    140                          720K
+com.apple.driver.AppleH16CameraInterface.Endpoint                           144                           96K
+com.apple.driver.AppleH16CameraInterface.NonPersistent                      141                       188944K
+com.apple.driver.AppleH16CameraInterface.PearlCamBuffer                     222                           32K
+com.apple.driver.AppleH16CameraInterface.Persistent                         142                        38144K
+com.apple.driver.AppleHIDTransport                                          236                           80K
+com.apple.driver.AppleHapticsSupportLEAP                                    227                           64K
+com.apple.driver.AppleInputDeviceSupport                                    228                          176K
+com.apple.driver.AppleInterruptControllerV3                                  86                          256K
+com.apple.driver.AppleM2ScalerCSCDriver                                     153                           48K
+com.apple.driver.AppleM2ScalerCSCDriver.DMA.scaler0                         164                          128K
+com.apple.driver.AppleMSG                                                   106                          176K
+com.apple.driver.AppleMultitouchDriver                                      237                          528K
+com.apple.driver.ApplePMGR                                                  130                           80K
+com.apple.driver.ApplePPMCPMS                                               137                          176K
+com.apple.driver.ApplePhoneBTM                                              177                          128K
+com.apple.driver.AppleS8000AES                                               90                           16K
+com.apple.driver.AppleSMC                                                   120                           48K
+com.apple.driver.AppleSPU                                                   125                          192K
+com.apple.driver.AppleSPURose                                               194                           32K
+com.apple.driver.AppleT8110DART                                              95                        23808K
+com.apple.driver.AppleT8130PMGR                                              87                          464K
+com.apple.driver.AppleUSBEthernetDevice                                     248                          256K
+com.apple.driver.AppleUSBMike                                               244                          112K
+com.apple.driver.AppleUSBXDCI                                               192                         2256K
+com.apple.driver.FairPlayIOKit                                               84                           96K
+com.apple.driver.IODARTFamily                                               109                          992K
+com.apple.driver.IOSlaveProcessor                                           129                        10416K
+com.apple.driver.RTBuddy                                                    119                         2416K
+com.apple.driver.corecapture                                                107                           32K
+com.apple.driver.usb.networking                                             249                          768K
+com.apple.filesystems.apfs                                                  178                          256K
+com.apple.iokit.AppleARMIISAudio                                            151                         2192K
+com.apple.iokit.CoreAnalyticsFamily                                         250                           32K
+com.apple.iokit.IOAccessoryManager                                          167                          288K
+com.apple.iokit.IOAudio2Family                                              152                          160K
+com.apple.iokit.IODisplayPortFamily                                         186                           80K
+com.apple.iokit.IOGPUFamily                                                 197                        51360K
+com.apple.iokit.IOGPUFamily.API                                             196                        68064K
+com.apple.iokit.IOHIDFamily                                                 179                         1056K
+com.apple.iokit.IOMobileGraphicsFamily                                      147                        15024K
+com.apple.iokit.IOMobileGraphicsFamily-DCP                                  165                         1024K
+com.apple.iokit.IONVMeFamily                                                132                          352K
+com.apple.iokit.IOReportFamily                                              229                           48K
+com.apple.iokit.IOSkywalkFamily                                             183                         1152K
+com.apple.iokit.IOSurface                                                    82                          432K
+com.apple.iokit.IOUSBDeviceFamily                                           193                          576K
+com.apple.iokit.IOUSBHostFamily                                             189                          704K
+com.apple.iokit.IOUSBHostFamily.DMA.usb-drd                                 190                           16K
+com.apple.kec.Compression                                                    81                          304K
+com.apple.security.AKSAnalytics                                             251                           32K
+com.apple.tracked.ApplePearlSEPDriver                                       224                         1024K
+zones                                                                                                 360122K
+total                                                                                    1693.67M of 1690.81M
+-------------------------------------------------------------------------------------------------------------
+                                                                        largest        peak               cur
+maps                                                           free        free        size              size
+-------------------------------------------------------------------------------------------------------------
+VM_KERN_COUNT_MANAGED                                                                                7724592K
+VM_KERN_COUNT_MAP_KERNEL                                  41970192K   10435792K                    134217728K
+VM_KERN_COUNT_MAP_ZONE                                    24676832K    4992240K                     25159616K
+VM_KERN_COUNT_WIRED                                                                                  1731392K
+VM_KERN_COUNT_WIRED_BOOT                                                                              409808K
+VM_KERN_COUNT_WIRED_MANAGED                                                                          1097344K
+com.apple.driver.AppleA7IOP.DMA.ane                                                                    63296K
+com.apple.driver.AppleA7IOP.DMA.ans                                                                      128K
+com.apple.driver.AppleA7IOP.DMA.aop                                                                     5152K
+com.apple.driver.AppleA7IOP.DMA.dcp                                                                    15568K
+com.apple.driver.AppleA7IOP.DMA.dcpext                                                                  1248K
+com.apple.driver.AppleA7IOP.DMA.gfx-asc                                                                   32K
+com.apple.driver.AppleA7IOP.DMA.mtp                                                                     2436K
+com.apple.driver.AppleA7IOP.DMA.pmp                                                                     1408K
+com.apple.driver.AppleA7IOP.DMA.sep                                                                     1568K
+com.apple.driver.AppleA7IOP.DMA.sio                                                                      528K
+com.apple.driver.AppleAVD.DMA.avd                                                                       6016K
+com.apple.driver.AppleEmbeddedPCIE.DMA.baseband-pcie                                                   15536K
+com.apple.driver.AppleEmbeddedPCIE.DMA.bluetooth-pcie                                                   1584K
+com.apple.driver.AppleEmbeddedPCIE.DMA.wlan                                                             9472K
+com.apple.driver.AppleH16CameraInterface.DMA.isp                                                      203488K
+com.apple.driver.AppleH16CameraInterface.NonPersistent                                                188816K
+com.apple.driver.AppleH16CameraInterface.Persistent                                                    14576K
+com.apple.driver.AppleMobileDispH16P-DCP.DMA.disp0                                                      7064K
+com.apple.driver.AppleS8000AES.DMA.aes                                                                     4K
+com.apple.iokit.IOMobileGraphicsFamily-DCP.DMA.disp0                                                   36480K
+com.apple.iokit.IOUSBHostFamily.DMA.usb-drd                                                             3552K
+-------------------------------------------------------------------------------------------------------------
+                                                                                                          cur
+zone views                                                                                              inuse
+-------------------------------------------------------------------------------------------------------------
+data.kalloc.16[raw]                                                                                      735K
+data.kalloc.16[site.lck_attr_t]                                                                            0K
+data.kalloc.16[site.lck_grp_attr_t]                                                                        0K
+data.kalloc.16[site.lck_mtx_t]                                                                           254K
+data.kalloc.16[site.lck_rw_old_t]                                                                          1K
+data.kalloc.16[site.lck_spin_t]                                                                           41K
+data.kalloc.16[site.struct kern_apfs_reflock]                                                            486K
+data.kalloc.32[raw]                                                                                      872K
+data.kalloc.48[raw]                                                                                      929K
+data.kalloc.64[raw]                                                                                      497K
+data.kalloc.96[raw]                                                                                      663K
+data.kalloc.96[site.lck_grp_t]                                                                             6K
+data.kalloc.128[raw]                                                                                     580K
+data.kalloc.192[raw]                                                                                     177K
+data.kalloc.256[raw]                                                                                     129K
+data.kalloc.384[raw]                                                                                     406K
+data.kalloc.512[raw]                                                                                     189K
+data.kalloc.768[raw]                                                                                     210K
+data.kalloc.1024[raw]                                                                                    335K
+data.kalloc.1536[raw]                                                                                    409K
+data.kalloc.2048[raw]                                                                                    368K
+data.kalloc.3072[raw]                                                                                    345K
+data.kalloc.4096[raw]                                                                                    660K
+data.kalloc.6144[raw]                                                                                    456K
+data.kalloc.8192[raw]                                                                                    408K
+data.kalloc.12288[raw]                                                                                   372K
+data.kalloc.16384[raw]                                                                                   816K
+data.kalloc.24576[raw]                                                                                   576K
+data.kalloc.32768[raw]                                                                                   768K
+data.kalloc[vfs_namei]                                                                                     2K
+data_shared.kalloc.16[raw]                                                                                 0K
+data_shared.kalloc.32[raw]                                                                                 0K
+data_shared.kalloc.48[raw]                                                                                 0K
+data_shared.kalloc.64[raw]                                                                                 4K
+data_shared.kalloc.96[raw]                                                                                 1K
+data_shared.kalloc.128[raw]                                                                                0K
+data_shared.kalloc.192[raw]                                                                                1K
+data_shared.kalloc.256[raw]                                                                                0K
+data_shared.kalloc.384[raw]                                                                               25K
+data_shared.kalloc.512[raw]                                                                                2K
+data_shared.kalloc.768[raw]                                                                                0K
+data_shared.kalloc.1536[raw]                                                                               4K
+data_shared.kalloc.3072[raw]                                                                              24K
+data_shared.kalloc.4096[raw]                                                                               8K
+data_shared.kalloc.6144[raw]                                                                               6K
+data_shared.kalloc.8192[raw]                                                                               8K
+data_shared.kalloc.12288[raw]                                                                             12K
+data_shared.kalloc.16384[raw]                                                                            144K
+data_shared.kalloc[vfs_bio]                                                                              128K
+kalloc.type.var4[KHEAP_DEFAULT]                                                                            3K
+kalloc.type.var4[kern_os_malloc]                                                                          50K
+kalloc.type.var6[site.struct ipc_entry]                                                                 1606K
+kalloc.type.var7[IOBMD_control]                                                                         4016K
+kalloc.type.var[raw]                                                                                   17185K
+kalloc.type1.96[raw]                                                                                     159K
+kalloc.type1.96[site.struct lockf]                                                                        78K
+kalloc.type1.512[raw]                                                                                     25K
+kalloc.type1.512[site.struct coalition]                                                                  353K
+kalloc.type2.48[raw]                                                                                     363K
+kalloc.type2.48[site.struct waitq_link]                                                                  105K
+kalloc.type2.576[raw]                                                                                     11K
+kalloc.type2.576[site.struct vm_page_delayed_work_ctx]                                                    22K
+kalloc.type4.16[raw]                                                                                      81K
+kalloc.type4.16[site.struct vfs_context]                                                                   5K
+kalloc.type5.32[raw]                                                                                     116K
+kalloc.type5.32[site.gate_t]                                                                               0K
+kalloc.type5.32[site.struct waitq_sellink]                                                                 7K
+kalloc.type5.1024[raw]                                                                                    17K
+kalloc.type5.1024[site.struct vmgo_slab_pair]                                                            106K
+kalloc.type9.128[raw]                                                                                     47K
+kalloc.type9.128[site.thread_call_data_t]                                                                600K
+percpu.64[per_cpu_counters]                                                                              115K
+percpu.64[raw]                                                                                             1K
+
+ZONE TOTALS
+---------------------------------------------
+TOTAL SIZE        = 368765448
+TOTAL USED        = 338284246
+TOTAL WASTED      = 30481202
+TOTAL FRAGMENTED  = 17423154
+TOTAL COLLECTABLE = 13058048
+TOTAL ALLOCS      = 12273761918

@@ -7,6 +7,11 @@
 #include "fuzz.h"
 #include <mach/mach.h>
 
+// The iOS SDK keeps the bootstrap header as a compatibility stub, while the
+// symbol is still exported by libSystem.B.
+extern kern_return_t bootstrap_look_up(mach_port_t bp, const char *service_name,
+                                       mach_port_t *sp);
+
 static const char *cand_names[] = {
     "com.apple.sprr", "com.apple.jitbox", "com.apple.pmap", "com.apple.vmapple",
     "com.apple.kernel.sprr", "com.apple.private.sprr", "com.apple.vm.map",

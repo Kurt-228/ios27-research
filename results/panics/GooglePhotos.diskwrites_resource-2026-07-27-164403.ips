@@ -1,0 +1,165 @@
+{"roots_installed":0,"app_name":"GooglePhotos","timestamp":"2026-07-27 16:44:03.00 +0300","app_version":"7.85.0","slice_uuid":"E3B91957-9642-3937-955D-191354AC811F","adam_id":"962194608","build_version":"7.85.950509959","bundleID":"com.google.photos","duration_ms":"6788345","is_first_party":0,"share_with_app_devs":0,"bug_type":"145","os_version":"iPhone OS 27.0 (24A5390f)","distributor_id":"com.apple.AppStore","name":"GooglePhotos","incident_id":"8DA3D7CA-A404-4985-B395-CBED7A3CD98C"}
+Date/Time:        2026-07-27 14:50:51.380 +0300
+End time:         2026-07-27 16:43:59.725 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 8DA3D7CA-A404-4985-B395-CBED7A3CD98C
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          GooglePhotos
+Path:             /private/var/containers/Bundle/Application/4329870D-C7D4-4C5C-A9B1-094C1C5B508E/GooglePhotos.app/GooglePhotos
+Identifier:       com.google.photos
+Version:          7.85.0 (7.85.950509959)
+Adam ID:          962194608
+Is First Party:   No
+Beta Identifier:  9941C068-6FBF-4975-861D-C220B746BED2
+Resource Coalition: 1768
+On Behalf Of:     9 samples UNKNOWN [37] (9 samples originated by UNKNOWN [87])
+Architecture:     arm64
+PID:              3479
+
+Event:            disk writes
+Action taken:     none
+Writes:           1073.74 MB of file backed memory dirtied over 6788 seconds (158.17 KB per second average), exceeding limit of 12.43 KB per second over 86400 seconds
+Writes limit:     1073.74 MB
+Limit duration:   86400s
+Writes caused:    1073.74 MB
+Writes duration:  6788s
+Duration:         6788.35s
+Duration Sampled: 6252.88s (event starts 533.81s before samples, event ends 1.65s after samples)
+Steps:            10 (177 samples lost, 10.49 MB/step)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+
+Models:           UNKNOWN
+
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  10  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+  9   ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+  9   ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+  9   ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+  9   ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+  9   ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+  9   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  9   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+  7   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25715932) [0x10ceee4dc]
+  7   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25725052) [0x10cef087c]
+  6   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25729592) [0x10cef1a38]
+  6   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+  6   ??? (libsqlite3.dylib + 235228) [0x1a9e856dc]
+  6   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+  6   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+  6   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+  6   ??? (libsqlite3.dylib + 331232) [0x1a9e9cde0]
+  6   ??? (libsqlite3.dylib + 373836) [0x1a9ea744c]
+  6   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+  6   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+
+
+Powerstats for:   GooglePhotos (Google Photos) [3479]
+UUID:             E3B91957-9642-3937-955D-191354AC811F
+Path:             /private/var/containers/Bundle/Application/4329870D-C7D4-4C5C-A9B1-094C1C5B508E/GooglePhotos.app/GooglePhotos
+Identifier:       com.google.photos
+Version:          7.85.0 (7.85.950509959)
+Adam ID:          962194608
+Is First Party:   No
+Beta Identifier:  9941C068-6FBF-4975-861D-C220B746BED2
+Resource Coalition: 10 samples 1768
+On Behalf Of:     9 samples UNKNOWN [37] (9 samples originated by UNKNOWN [87])
+Architecture:     arm64
+Footprint:        68.08 MB -> 40.72 MB (-27.36 MB)
+Pageins:          4147 pages
+Start time:       2026-07-27 14:59:45.189 +0300
+End time:         2026-07-27 16:43:58.074 +0300
+Num samples:      10 (100%)
+Energy:           217.50 uWh
+Num threads:      10
+Primary state:    8 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Background, Requested Thread QoS User Initiated, Override Thread QoS Unspecified, e-core
+User Activity:    1 samples Idle, 9 samples Active
+Power Source:     10 samples on Battery, 0 samples on AC
+  10  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    9   ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      9   ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        9   ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          9   ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            9   ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              9   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                9   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  7   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25715932) [0x10ceee4dc]
+                    7   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25725052) [0x10cef087c]
+                      6   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25729592) [0x10cef1a38]
+                        6   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                          6   ??? (libsqlite3.dylib + 235228) [0x1a9e856dc]
+                            6   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                              6   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                6   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                  6   ??? (libsqlite3.dylib + 331232) [0x1a9e9cde0]
+                                    6   ??? (libsqlite3.dylib + 373836) [0x1a9ea744c]
+                                      6   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                        6   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                          6   <on behalf of UNKNOWN [37] (originated by UNKNOWN [87])>
+                      1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 25729728) [0x10cef1ac0]
+                        1   ??? (libsqlite3.dylib + 92456) [0x1a9e62928]
+                          1   ??? (libsqlite3.dylib + 92644) [0x1a9e629e4]
+                            1   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                              1   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                1   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                  1   ??? (libsqlite3.dylib + 331232) [0x1a9e9cde0]
+                                    1   ??? (libsqlite3.dylib + 373836) [0x1a9ea744c]
+                                      1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                        1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                          1   <on behalf of UNKNOWN [37] (originated by UNKNOWN [87])>
+                  1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28323616) [0x10d16af20]
+                    1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28325516) [0x10d16b68c]
+                      1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28338368) [0x10d16e8c0]
+                        1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28619816) [0x10d1b3428]
+                          1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28620336) [0x10d1b3630]
+                            1   ??? (CoreFoundation + 217132) [0x18ba3c02c]
+                              1   ??? (CoreFoundation + 1092884) [0x18bb11d14]
+                                1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                  1   <on behalf of UNKNOWN [37] (originated by UNKNOWN [87]), Requested Thread QoS Utility>
+                  1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 16753376) [0x10c6622e0]
+                    1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 8812724) [0x10becf8b4]
+                      1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 16750804) [0x10c6618d4]
+                        1   ??? (libsqlite3.dylib + 33000) [0x1a9e540e8]
+                          1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                            1   ??? (libsqlite3.dylib + 235288) [0x1a9e85718]
+                              1   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                1   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                  1   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                    1   ??? (libsqlite3.dylib + 331128) [0x1a9e9cd78]
+                                      1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                        1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                          1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                            1   <on behalf of UNKNOWN [37] (originated by UNKNOWN [87])>
+    1   ??? (libsystem_pthread.dylib + 4604) [0x18b9471fc]
+      1   ??? (libdispatch.dylib + 86256) [0x1ba6680f0]
+        1   ??? (libdispatch.dylib + 84748) [0x1ba667b0c]
+          1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+            1   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+              1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28276064) [0x10d15f560]
+                1   ??? (<A04EA093-B810-32DC-A2C4-44D68497E7CD> + 28278868) [0x10d160054]
+                  1   ??? (Foundation + 551716) [0x18bf6fb24]
+                    1   ??? (Foundation + 579064) [0x18bf765f8]
+                      1   ??? (Foundation + 566796) [0x18bf7360c]
+                        1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                          1   <Requested Thread QoS Utility>
+
+  Binary Images:
+           0x10492c000 -                ???  com.google.photos 7.85.0 (7.85.950509959) <E3B91957-9642-3937-955D-191354AC811F>  /private/var/containers/Bundle/Application/4329870D-C7D4-4C5C-A9B1-094C1C5B508E/GooglePhotos.app/GooglePhotos
+           0x10b668000 -                ???  ???                                       <A04EA093-B810-32DC-A2C4-44D68497E7CD>
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib                   <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18ba07000 -        0x18bee8fbf  CoreFoundation                            <7CDBA4FD-E90E-3EF2-8AE3-9071648E4673>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x18bee9000 -        0x18cff545b  Foundation                                <B17A96F3-DC4A-3757-90DF-BE4837ABB5AA>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x1a9e4c000 -        0x1aa004367  libsqlite3.dylib                          <53F034B0-3589-3AF3-A615-A14BD7746696>  /usr/lib/libsqlite3.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib                         <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib                    <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib

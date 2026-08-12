@@ -1,0 +1,415 @@
+{"incident_id":"8F3DE95B-F6EE-434D-8BA9-E0BCD8203B79","roots_installed":0,"app_name":"GLEGram","timestamp":"2026-07-28 13:23:08.00 +0300","app_version":"12.7","app_cohort":"2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e","slice_uuid":"E829EFCE-B6EE-387C-AE12-A62192B65528","adam_id":"6759809153","build_version":"100034","bundleID":"com.GLEProject.GLEGram","duration_ms":"168060","is_first_party":0,"share_with_app_devs":0,"bug_type":"202","os_version":"iPhone OS 27.0 (24A5390f)","distributor_id":"com.apple.TestFlight","name":"GLEGram","is_beta":1}
+Date/Time:        2026-07-28 13:20:17.670 +0300
+End time:         2026-07-28 13:23:05.729 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 8F3DE95B-F6EE-434D-8BA9-E0BCD8203B79
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          GLEGram
+Path:             /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/GLEGram
+Identifier:       com.GLEProject.GLEGram
+Version:          12.7 (100034)
+Adam ID:          6759809153
+Is First Party:   No
+Is Beta:          Yes
+Cohort:           2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e
+Beta Identifier:  B36CC610-F0CA-4DE7-A626-FF998076FE64
+Resource Coalition: "com.GLEProject.GLEGram"(2326)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+PID:              6220
+
+Event:            cpu usage
+Action taken:     none
+CPU:              90 seconds cpu time over 168 seconds (54% cpu average), exceeding limit of 50% cpu over 180 seconds
+CPU limit:        90s
+Limit duration:   180s
+CPU used:         90s
+CPU duration:     168s
+Duration:         168.06s
+Duration Sampled: 135.10s (event starts 32.46s before samples, event ends 0.49s after samples)
+Steps:            31 (10 gigacycles/step, 12 samples lost)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 10.42% (710.36 MB / 6819.12 MB)
+
+Time Since Boot:  156880s
+Time Awake Since Boot: 141480s
+Time Since Wake:  84004s
+
+Total CPU Time:   97.905s
+Advisory levels:  Battery -> 2, User -> 3, ThermalPressure -> 10, Combined -> 1
+Free disk space:  166.77 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 66.56% (18638/28000, 14000 allocated, 14000 soft limit)
+Model:            com.apple.fm.language.instruct_300m.tokenizer
+  Loaded:         39s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.tokenizer
+  Loaded:         ??? - N/A, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.tokenizer
+  Loaded:         38s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification
+  Loaded:         ??? - 1.0s, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_3b.base
+  Loaded:         ??? - 1.0s, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.base?language=en
+  Executing:      38s - 38s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      38s - 38s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      38s - 39s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      39s - 39s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      39s - 39s, requested by [299] use case textUnderstanding.TextEventExtraction
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.base
+  Loaded:         38s - 49s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.open_ended_extract?language=en
+  Executing:      39s - 39s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      39s - 40s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      40s - 40s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      42s - 43s, requested by [299] use case textUnderstanding.TextEventExtraction
+Model:            com.apple.fm.language.instruct_300m.base
+  Loaded:         39s - 53s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.open_ended_extract.draft
+  Loaded:         39s - 53s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.open_ended_extract
+  Loaded:         40s - 53s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.safety
+  Loaded:         40s - 52s, requested by token-generation-inference
+Model:            com.apple.tokeninputdenylist.template
+  Executing:      40s - 40s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      41s - 41s, requested by [299] use case textUnderstanding.TextEventExtraction
+Model:            com.apple.gm.safety_embedding_deny.all
+  Loaded:         40s - 52s, requested by generative-experiences-safety-inference-provider
+Model:            com.apple.gm.safety_deny.input.foundation_models_framework.api
+  Loaded:         40s - 52s, requested by generative-experiences-safety-inference-provider
+Model:            com.apple.fm.language.instruct_300m.safety?language=en
+  Executing:      40s - 41s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      41s - 41s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      41s - 41s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      41s - 42s, requested by [299] use case textUnderstanding.TextEventExtraction
+Model:            com.apple.safety.output.configuration
+  Loaded:         41s - 52s, requested by generative-experiences-safety-inference-provider
+  Executing:      41s - 41s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      42s - 42s, requested by [299] use case textUnderstanding.TextEventExtraction
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        en_US QWERTY
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  27  ??? (dyld + 22064) [0x18b893630]
+  27  ??? (GLEGram + 65672) [0x10246c088]
+  27  ??? (UIKitCore + 755808) [0x18fce4860]
+  27  ??? (GraphicsServices + 3876) [0x23607ff24]
+  27  ??? (CoreFoundation + 243456) [0x18ba42700]
+  25  ??? (CoreFoundation + 239512) [0x18ba41798]
+  25  ??? (CoreFoundation + 300616) [0x18ba50648]
+  25  ??? (libdispatch.dylib + 69696) [0x1ba664040]
+  25  ??? (libdispatch.dylib + 70512) [0x1ba664370]
+  25  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  21  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+  21  ??? (SwiftSignalKitFramework + 65236) [0x10255bed4]
+  21  ??? (TelegramUIFramework + 54506124) [0x1077b728c]
+  21  ??? (TelegramUIFramework + 68858876) [0x1085673fc]
+  21  ??? (TelegramUIFramework + 69014200) [0x10858d2b8]
+  20  ??? (TelegramUIFramework + 68885132) [0x10856da8c]
+  12  ??? (TelegramUIFramework + 69042496) [0x108594140]
+  12  ??? (TelegramUIFramework + 68445952) [0x108502700]
+  12  ??? (TelegramUIFramework + 69578264) [0x108616e18]
+  12  ??? (TelegramUIFramework + 69581228) [0x1086179ac]
+  10  ??? (libswiftCore.dylib + 201968) [0x18d0b44f0]
+  4   ??? (TelegramUIFramework + 69014208) [0x10858d2c0]
+
+
+Powerstats for:   GLEGram [6220]
+UUID:             E829EFCE-B6EE-387C-AE12-A62192B65528
+Path:             /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/GLEGram
+Identifier:       com.GLEProject.GLEGram
+Version:          12.7 (100034)
+Adam ID:          6759809153
+Is First Party:   No
+Is Beta:          Yes
+Cohort:           2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e
+Beta Identifier:  B36CC610-F0CA-4DE7-A626-FF998076FE64
+Resource Coalition: 31 samples "com.GLEProject.GLEGram"(2326)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+UID:              501
+Footprint:        211.56 MB -> 2520.89 MB (+2309.33 MB)
+Pageins:          1427 pages
+Start time:       2026-07-28 13:20:50.134 +0300
+End time:         2026-07-28 13:23:05.235 +0300
+Num samples:      31 (100%)
+Energy:           67.88 mWh
+Num threads:      5
+Primary state:    26 samples Frontmost App, Non-Suppressed, User mode, Effective Thread QoS User Interactive, Requested Thread QoS User Interactive, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 31 samples Active
+Power Source:     31 samples on Battery, 0 samples on AC
+  27  ??? (dyld + 22064) [0x18b893630]
+    27  ??? (GLEGram + 65672) [0x10246c088]
+      27  ??? (UIKitCore + 755808) [0x18fce4860]
+        27  ??? (GraphicsServices + 3876) [0x23607ff24]
+          27  ??? (CoreFoundation + 243456) [0x18ba42700]
+            25  ??? (CoreFoundation + 239512) [0x18ba41798]
+              25  ??? (CoreFoundation + 300616) [0x18ba50648]
+                25  ??? (libdispatch.dylib + 69696) [0x1ba664040]
+                  25  ??? (libdispatch.dylib + 70512) [0x1ba664370]
+                    25  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                      21  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                        21  ??? (SwiftSignalKitFramework + 65236) [0x10255bed4]
+                          21  ??? (TelegramUIFramework + 54506124) [0x1077b728c]
+                            21  ??? (TelegramUIFramework + 68858876) [0x1085673fc]
+                              21  ??? (TelegramUIFramework + 69014200) [0x10858d2b8]
+                                20  ??? (TelegramUIFramework + 68885132) [0x10856da8c]
+                                  12  ??? (TelegramUIFramework + 69042496) [0x108594140]
+                                    12  ??? (TelegramUIFramework + 68445952) [0x108502700]
+                                      12  ??? (TelegramUIFramework + 69578264) [0x108616e18]
+                                        12  ??? (TelegramUIFramework + 69581228) [0x1086179ac]
+                                          10  ??? (libswiftCore.dylib + 201968) [0x18d0b44f0]
+                                            4   ??? (TelegramUIFramework + 69014208) [0x10858d2c0]
+                                            3   ??? (TelegramUIFramework + 70337704) [0x1086d04a8]
+                                            2   ??? (TelegramUIFramework + 69053012) [0x108596a54]
+                                              1   ??? (libswiftCore.dylib + 30316) [0x18d08a66c]
+                                              1   ??? (libswiftCore.dylib + 30264) [0x18d08a638]
+                                            1   ??? (TelegramUIFramework + 69052960) [0x108596a20]
+                                          1   ??? (TelegramUIFramework + 69053052) [0x108596a7c]
+                                          1   ??? (TelegramUIFramework + 69053048) [0x108596a78]
+                                  8   ??? (TelegramUIFramework + 69042340) [0x1085940a4]
+                                    8   ??? (TelegramUIFramework + 68327728) [0x1084e5930]
+                                      8   ??? (TelegramUIFramework + 69581388) [0x108617a4c]
+                                        6   ??? (libswiftCore.dylib + 201968) [0x18d0b44f0]
+                                          4   ??? (TelegramUIFramework + 69052268) [0x10859676c]
+                                            2   ??? (libswiftCore.dylib + 30316) [0x18d08a66c]
+                                            1   ??? (TelegramUIFramework + 69051996) [0x10859665c]
+                                            1   ??? (TelegramUIFramework + 69051972) [0x108596644]
+                                          1   ??? (TelegramUIFramework + 69052228) [0x108596744]
+                                          1   ??? (TelegramUIFramework + 69052188) [0x10859671c]
+                                        2   ??? (libswiftCore.dylib + 201948) [0x18d0b44dc]
+                                1   ??? (TelegramUIFramework + 68885204) [0x10856dad4]
+                                  1   ??? (TelegramUIFramework + 68884492) [0x10856d80c]
+                                    1   ??? (TelegramUIFramework + 68857008) [0x108566cb0]
+                                      1   ??? (TelegramUIFramework + 54505180) [0x1077b6edc]
+                                        1   ??? (TelegramUIFramework + 68857532) [0x108566ebc]
+                                          1   ??? (TelegramUIFramework + 68856436) [0x108566a74]
+                                            1   ??? (libswiftDispatch.dylib + 8040) [0x19ad6af68]
+                                              1   ??? (libswiftDispatch.dylib + 8472) [0x19ad6b118]
+                                                1   ??? (libdispatch.dylib + 63848) [0x1ba662968]
+                                                  1   ??? (libsystem_kernel.dylib + 2688) [0x243c21a80]
+                                                    1   <Kernel mode>
+                      4   ??? (libsystem_blocks.dylib + 4032) [0x2cdb27fc0]
+                        4   ??? (libsystem_blocks.dylib + 4108) [0x2cdb2800c]
+                          4   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                            4   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                              4   ??? (TelegramUIFramework + 54523060) [0x1077bb4b4]
+                                4   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                                  4   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                                    4   ??? (TelegramUIFramework + 69014568) [0x10858d428]
+                                      4   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                                        4   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                                          3   ??? (TelegramUIFramework + 69014032) [0x10858d210]
+                                            3   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                                              3   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                                                3   ??? (TelegramUIFramework + 69012824) [0x10858cd58]
+                                                  3   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                                                    3   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                                                      3   ??? (libswiftCore.dylib + 62612) [0x18d092494]
+                                                        2   ??? (libswiftCore.dylib + 63076) [0x18d092664]
+                                                          1   ??? (libswiftCore.dylib + 30392) [0x18d08a6b8]
+                                                          1   ??? (TelegramUIFramework + 70337680) [0x1086d0490]
+                                                        1   ??? (libswiftCore.dylib + 30448) [0x18d08a6f0]
+                                          1   ??? (TelegramUIFramework + 69014048) [0x10858d220]
+                                            1   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                                              1   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                                                1   ??? (TelegramUIFramework + 69013696) [0x10858d0c0]
+                                                  1   ??? (libswiftCore.dylib + 31032) [0x18d08a938]
+                                                    1   ??? (libswiftCore.dylib + 35888) [0x18d08bc30]
+                                                      1   ??? (libswiftCore.dylib + 62612) [0x18d092494]
+                                                        1   ??? (libswiftCore.dylib + 63076) [0x18d092664]
+            1   ??? (CoreFoundation + 238912) [0x18ba41540]
+              1   ??? (CoreFoundation + 303876) [0x18ba51304]
+                1   ??? (CoreFoundation + 303348) [0x18ba510f4]
+                  1   ??? (CoreFoundation + 157592) [0x18ba2d798]
+                    1   ??? (UpdateCycle + 3008) [0x2bda4cbc0]
+                      1   ??? (UIKitCore + 428092) [0x18fc9483c]
+                        1   ??? (UIKitCore + 428700) [0x18fc94a9c]
+                          1   ??? (QuartzCore + 118572) [0x18f7daf2c]
+                            1   ??? (QuartzCore + 870804) [0x18f892994]
+                              1   ??? (QuartzCore + 868020) [0x18f891eb4]
+                                1   ??? (QuartzCore + 871648) [0x18f892ce0]
+                                  1   ??? (TelegramUIFramework + 68602160) [0x108528930]
+                                    1   ??? (TelegramUIFramework + 68601820) [0x1085287dc]
+                                      1   ??? (TelegramUIFramework + 68604244) [0x108529154]
+                                        1   ??? (TelegramUIFramework + 27236232) [0x105db5788]
+                                          1   ??? (TelegramUIFramework + 60948744) [0x107ddc108]
+                                            1   ??? (TelegramUIFramework + 61047512) [0x107df42d8]
+                                              1   ??? (TelegramUIFramework + 61046964) [0x107df40b4]
+                                                1   ??? (TelegramUIFramework + 60953328) [0x107ddd2f0]
+                                                  1   ??? (TelegramUIFramework + 60952264) [0x107ddcec8]
+                                                    1   ??? (TelegramUIFramework + 27236988) [0x105db5a7c]
+                                                      1   ??? (TelegramUIFramework + 27236740) [0x105db5984]
+                                                        1   ??? (TelegramUIFramework + 27235700) [0x105db5574]
+                                                          1   ??? (TelegramUIFramework + 27218432) [0x105db1200]
+                                                            1   ??? (TelegramUIFramework + 61046176) [0x107df3da0]
+                                                              1   ??? (TelegramUIFramework + 61046964) [0x107df40b4]
+                                                                1   ??? (TelegramUIFramework + 60953328) [0x107ddd2f0]
+                                                                  1   ??? (TelegramUIFramework + 60952264) [0x107ddcec8]
+                                                                    1   ??? (TelegramUIFramework + 27272608) [0x105dbe5a0]
+                                                                      1   ??? (TelegramUIFramework + 27272448) [0x105dbe500]
+                                                                        1   ??? (TelegramUIFramework + 27257024) [0x105dba8c0]
+                                                                          1   ??? (UIKitCore + 155072) [0x18fc51dc0]
+                                                                            1   ??? (UIKitCore + 151180) [0x18fc50e8c]
+                                                                              1   ??? (UIKitCore + 971036) [0x18fd1911c]
+                                                                                1   ??? (UIKitCore + 147984) [0x18fc50210]
+                                                                                  1   ??? (UIKitCore + 341776) [0x18fc7f710]
+                                                                                    1   ??? (UIKitCore + 147588) [0x18fc50084]
+                                                                                      1   ??? [0x193426790]
+                                                                                        1   <e-core>
+            1   ??? (CoreFoundation + 238224) [0x18ba41290]
+              1   ??? (CoreFoundation + 242036) [0x18ba42174]
+                1   ??? (CoreFoundation + 367140) [0x18ba60a24]
+                  1   ??? (CoreFoundation + 367280) [0x18ba60ab0]
+                    1   ??? (UpdateCycle + 3008) [0x2bda4cbc0]
+                      1   ??? (UIKitCore + 428092) [0x18fc9483c]
+                        1   ??? (UIKitCore + 428700) [0x18fc94a9c]
+                          1   ??? (UIKitCore + 401672) [0x18fc8e108]
+                            1   ??? (UIKitCore + 403644) [0x18fc8e8bc]
+                              1   ??? (QuartzCore + 119844) [0x18f7db424]
+                                1   ??? (QuartzCore + 122492) [0x18f7dbe7c]
+                                  1   ??? (QuartzCore + 120356) [0x18f7db624]
+                                    1   ??? (QuartzCore + 123436) [0x18f7dc22c]
+                                      1   ??? (QuartzCore + 139096) [0x18f7dff58]
+                                        1   ??? (QuartzCore + 954264) [0x18f8a6f98]
+                                          1   ??? (QuartzCore + 943556) [0x18f8a45c4]
+                                            1   ??? (QuartzCore + 944592) [0x18f8a49d0]
+                                              1   ??? (CoreGraphics + 74692) [0x18f0233c4]
+                                                1   ??? (CoreGraphics + 75612) [0x18f02375c]
+                                                  1   ??? (CoreGraphics + 218852) [0x18f0466e4]
+                                                    1   ??? (CoreGraphics + 111176) [0x18f02c248]
+                                                      1   ??? (CoreGraphics + 114256) [0x18f02ce50]
+                                                        1   ??? (CoreGraphics + 332812) [0x18f06240c]
+                                                          1   ??? (libsystem_platform.dylib + 2508) [0x1976399cc]
+                                                            1   <Kernel mode>
+  3   ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    2   ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      2   ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        2   ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          2   ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            2   ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              2   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                2   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  1   ??? (SwiftSignalKitFramework + 65236) [0x10255bed4]
+                    1   ??? (PostboxFramework + 1550176) [0x102b02760]
+                      1   ??? (PostboxFramework + 1532404) [0x102afe1f4]
+                        1   ??? (PostboxFramework + 1550972) [0x102b02a7c]
+                          1   ??? (PostboxFramework + 1536596) [0x102aff254]
+                            1   ??? (PostboxFramework + 1528932) [0x102afd464]
+                              1   ??? (PostboxFramework + 1990596) [0x102b6dfc4]
+                                1   ??? (PostboxFramework + 152148) [0x1029ad254]
+                                  1   ??? (PostboxFramework + 203020) [0x1029b990c]
+                                    1   ??? (PostboxFramework + 235068) [0x1029c163c]
+                                      1   ??? (PostboxFramework + 244512) [0x1029c3b20]
+                                        1   ??? (PostboxFramework + 248020) [0x1029c48d4]
+                                          1   ??? (PostboxFramework + 204908) [0x1029ba06c]
+                                            1   ??? (PostboxFramework + 444368) [0x1029f47d0]
+                                              1   ??? (PostboxFramework + 1269000) [0x102abdd08]
+                                                1   ??? (PostboxFramework + 1181104) [0x102aa85b0]
+                                                  1   ??? (libswiftCore.dylib + 38120) [0x18d08c4e8]
+                                                    1   <Effective Thread QoS Default, Requested Thread QoS Default>
+                  1   ??? (MtProtoKitFramework + 316420) [0x1024cd404]
+                    1   ??? (MtProtoKitFramework + 230900) [0x1024b85f4]
+                      1   ??? (CoreFoundation + 22108) [0x18ba0c65c]
+                        1   ??? (CoreFoundation + 22532) [0x18ba0c804]
+                          1   ??? (CoreFoundation + 33008) [0x18ba0f0f0]
+                            1   ??? (CoreFoundation + 23652) [0x18ba0cc64]
+                              1   ??? (Foundation + 14744) [0x18beec998]
+                                1   ??? (TelegramCoreFramework + 2722048) [0x102fe8900]
+                                  1   ??? (TelegramCoreFramework + 2722152) [0x102fe8968]
+                                    1   ??? (TelegramCoreFramework + 2721828) [0x102fe8824]
+                                      1   ??? (TelegramCoreFramework + 4974544) [0x10320e7d0]
+                                        1   ??? (TelegramCoreFramework + 4978356) [0x10320f6b4]
+                                          1   ??? (TelegramCoreFramework + 4980796) [0x10321003c]
+                                            1   ??? (TelegramCoreFramework + 4978356) [0x10320f6b4]
+                                              1   ??? (TelegramCoreFramework + 4979680) [0x10320fbe0]
+                                                1   ??? (libswiftCore.dylib + 250340) [0x18d0c01e4]
+                                                  1   ??? (TelegramCoreFramework + 13080576) [0x1039c9800]
+                                                    1   ??? (TelegramCoreFramework + 13079600) [0x1039c9430]
+                                                      1   ??? (Foundation + 1019352) [0x18bfe1dd8]
+                                                        1   ??? (Foundation + 1019840) [0x18bfe1fc0]
+                                                          1   ??? (Foundation + 1021512) [0x18bfe2648]
+                                                            1   ??? (Foundation + 1295328) [0x18c0253e0]
+                                                              1   ??? (Foundation + 2442948) [0x18c13d6c4]
+                                                                1   ??? (CoreFoundation + 777916) [0x18bac4ebc]
+                                                                  1   ??? (CoreFoundation + 35328) [0x18ba0fa00]
+                                                                    1   <Effective Thread QoS Default, Requested Thread QoS Default, e-core>
+    1   ??? (libsystem_pthread.dylib + 4604) [0x18b9471fc]
+      1   ??? (libdispatch.dylib + 86256) [0x1ba6680f0]
+        1   ??? (libdispatch.dylib + 84332) [0x1ba66796c]
+          1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+            1   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+              1   ??? (TelegramUIFramework + 241116) [0x1043f6ddc]
+                1   ??? (TelegramUIFramework + 54505320) [0x1077b6f68]
+                  1   ??? (TelegramUIFramework + 54509088) [0x1077b7e20]
+                    1   ??? (TelegramUIFramework + 69364488) [0x1085e2b08]
+                      1   ??? (UIKitCore + 2145904) [0x18fe37e70]
+  1   ??? (libsystem_pthread.dylib + 2332) [0x18b94691c]
+    1   ??? (libsystem_pthread.dylib + 16444) [0x18b94a03c]
+      1   ??? (Foundation + 2228988) [0x18c1092fc]
+        1   ??? (AnimationKit + 54208) [0x1aacc63c0]
+          1   ??? (AnimationKit + 153504) [0x1aacde7a0]
+            1   ??? (Foundation + 2218232) [0x18c1068f8]
+              1   ??? (Foundation + 139832) [0x18bf0b238]
+                1   ??? (CoreFoundation + 243456) [0x18ba42700]
+                  1   ??? (CoreFoundation + 238912) [0x18ba41540]
+                    1   ??? (CoreFoundation + 303876) [0x18ba51304]
+                      1   ??? (CoreFoundation + 303348) [0x18ba510f4]
+                        1   ??? (CoreFoundation + 157592) [0x18ba2d798]
+                          1   ??? (QuartzCore + 37928) [0x18f7c7428]
+                            1   ??? (QuartzCore + 870804) [0x18f892994]
+                              1   ??? (QuartzCore + 868020) [0x18f891eb4]
+                                1   ??? (QuartzCore + 871648) [0x18f892ce0]
+                                  1   ??? (AnimationKit + 65892) [0x1aacc9164]
+                                    1   ??? (AnimationKit + 39596) [0x1aacc2aac]
+                                      1   ??? (AnimationKit + 65732) [0x1aacc90c4]
+                                        1   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                          1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                            1   ??? (AnimationKit + 38164) [0x1aacc2514]
+                                              1   ??? (AnimationKit + 45252) [0x1aacc40c4]
+                                                1   ??? (AnimationKit + 38928) [0x1aacc2810]
+                                                  1   ??? (AnimationKit + 79512) [0x1aaccc698]
+                                                    1   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                      1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                        1   ??? (AnimationKit + 38164) [0x1aacc2514]
+                                                          1   ??? (AnimationKit + 45252) [0x1aacc40c4]
+                                                            1   ??? (AnimationKit + 80240) [0x1aaccc970]
+                                                              1   ??? (AnimationKit + 84776) [0x1aaccdb28]
+                                                                1   <Effective Thread QoS Unspecified, Requested Thread QoS Unspecified>
+
+  Binary Images:
+           0x10245c000 -        0x102477fff  com.GLEProject.GLEGram 12.7 (100034) <E829EFCE-B6EE-387C-AE12-A62192B65528>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/GLEGram
+           0x102480000 -        0x10252ffff  MtProtoKitFramework                  <F031EF1E-551E-3CBC-9C81-819A80074354>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/Frameworks/MtProtoKitFramework.framework/MtProtoKitFramework
+           0x10254c000 -        0x10259bfff  SwiftSignalKitFramework              <0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/Frameworks/SwiftSignalKitFramework.framework/SwiftSignalKitFramework
+           0x102988000 -        0x102ce3fff  PostboxFramework                     <5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/Frameworks/PostboxFramework.framework/PostboxFramework
+           0x102d50000 -        0x103feffff  TelegramCoreFramework                <C3CDD36D-53D4-313D-9FC9-57D7D0EEEE34>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/Frameworks/TelegramCoreFramework.framework/TelegramCoreFramework
+           0x1043bc000 -        0x109e2bfff  TelegramUIFramework                  <A8C44E4E-E8DE-3083-829F-126360A70458>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/Frameworks/TelegramUIFramework.framework/TelegramUIFramework
+           0x18b88e000 -        0x18b94516f  dyld                                 <5FD0ED6B-D314-3392-AA82-91C9FC014422>  /usr/lib/dyld
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib              <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18ba07000 -        0x18bee8fbf  CoreFoundation                       <7CDBA4FD-E90E-3EF2-8AE3-9071648E4673>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x18bee9000 -        0x18cff545b  Foundation                           <B17A96F3-DC4A-3757-90DF-BE4837ABB5AA>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x18d083000 -        0x18d63acdf  libswiftCore.dylib                   <47AE339D-D2C0-3FFB-9EED-E55BB0051FBE>  /usr/lib/swift/libswiftCore.dylib
+           0x18f011000 -        0x18f7bd177  CoreGraphics                         <0F9D2576-86DF-3940-943D-B8DA81E60386>  /System/Library/Frameworks/CoreGraphics.framework/CoreGraphics
+           0x18f7be000 -        0x18fc2b7a3  QuartzCore                           <B46D97D1-9296-3D11-BD8E-FDFDE3A2469D>  /System/Library/Frameworks/QuartzCore.framework/QuartzCore
+           0x18fc2c000 -        0x191c32cc7  UIKitCore                            <8AC5E0AF-75BA-3416-AB91-BCD844AB4213>  /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+           0x197639000 -        0x19764167f  libsystem_platform.dylib             <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x19ad69000 -        0x19ad7ed4f  libswiftDispatch.dylib               <B7A2C829-D2E5-3814-A235-74E45FFDF62B>  /usr/lib/swift/libswiftDispatch.dylib
+           0x1aacb9000 -        0x1aad81727  AnimationKit                         <05506C50-7F11-3697-B668-7E47F14B4FDC>  /System/Library/PrivateFrameworks/AnimationKit.framework/AnimationKit
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib                    <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x23607f000 -        0x236086ea3  GraphicsServices                     <56086422-9E1C-3BD6-99BD-FCC78E31B423>  /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib               <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2bda4c000 -        0x2bda4de15  UpdateCycle                          <F0C9D3F7-87C3-340A-9E6F-EDDF5BDBA505>  /System/Library/PrivateFrameworks/UpdateCycle.framework/UpdateCycle
+           0x2cdb27000 -        0x2cdb29fe7  libsystem_blocks.dylib               <1B6011DB-AE2B-3466-BAFD-2CA31505ED1B>  /usr/lib/system/libsystem_blocks.dylib

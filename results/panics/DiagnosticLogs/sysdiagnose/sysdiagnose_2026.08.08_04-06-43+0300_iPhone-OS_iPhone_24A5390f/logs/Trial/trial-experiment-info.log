@@ -1,0 +1,29 @@
+experiments:
+    - experiment: 6a5f07b1796bdc5cb264d8d2.1
+      treatment : d0bb49e6-3717-496d-b592-ae45ce800dcd
+      namespaces:
+       - namespace: AD_PLATFORMS_APPSTORE_ALL_PLACEMENTS.1
+         factors:
+          - factor: attributionV3Native
+            type: string
+            levelValue: {"enabled":false}
+      counterfactualTreatments:
+       - 96ff9519-effc-4bda-90be-a9c3ee6f7338
+    - experiment: 66b1602abe27b2208fd291ba.500000021
+      treatment : d5c127b8-b13e-42a1-acf5-c483124a1bb5
+      namespaces:
+       - namespace: STEEL_ROSE_CHECK_IN_COHORT.1
+         factors:
+          - factor: cohort_r
+            type: file
+            assetReference: 6a63b207a6977f493b94ff72
+            path: /private/var/mobile/Library/Trial/Treatments/STEEL_ROSE_CHECK_IN_COHORT/factorPacks/6a63b20792886851e5649fd9/assets/cohort_r
+            metadata:
+    - experiment: 68fe4accf23ec52b15be139f.500000011
+      treatment : cd952bca-2fb3-4e6e-b40f-b11e364bdb66
+      namespaces:
+       - namespace: WALLET_APP_ECOM_PAYMENT_BUTTONS.1
+         factors:
+          - factor: show_dynamic_card_art
+            type: boolean
+            levelValue: 1

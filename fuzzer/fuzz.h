@@ -8,8 +8,13 @@
 #include <pthread.h>
 #include <CoreFoundation/CoreFoundation.h>
 #include <IOKit/IOKitLib.h>
+#include <IOSurface/IOSurfaceTypes.h>
+#include <mach/mach.h>
+#include <mach/vm_map.h>
 
-#define LOG(...) do { NSLog(__VA_ARGS__); fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } while (0)
+// devicectl captures stderr from the launched app. Keep the format as a C
+// string so callers can use the same macro from .m and C-style code.
+#define LOG(...) do { fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } while (0)
 
 uint64_t frand(void);
 uint64_t frand_range(uint64_t lo, uint64_t hi);

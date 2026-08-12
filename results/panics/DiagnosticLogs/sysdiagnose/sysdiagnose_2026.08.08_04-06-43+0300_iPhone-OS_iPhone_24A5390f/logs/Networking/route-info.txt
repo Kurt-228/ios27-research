@@ -1,0 +1,46 @@
+#
+# /sbin/route -n -v get www.apple.com
+#
+u: inet 184.24.145.53; u: link ; RTM_GET: Report Metrics: len 128, pid: 0, seq 1, errno 0, flags:<UP,GATEWAY,HOST,STATIC>
+locks:  inits: 
+sockaddrs: <DST,IFP>
+ 184.24.145.53 index: 0 
+   route to: 184.24.145.53
+destination: default
+       mask: default
+    gateway: 192.168.50.1
+  interface: en0
+      flags: <UP,GATEWAY,DONE,STATIC,PRCLONING,GLOBAL>
+ recvpipe  sendpipe  ssthresh  rtt,msec    rttvar  hopcount      mtu     expire
+       0         0         0         0         0         0      1500         0 
+
+locks:  inits: 
+sockaddrs: <DST,GATEWAY,NETMASK,IFP,IFA>
+ default 192.168.50.1 default index: 22 en0:2a.8f.a6.2b.23.82 192.168.50.110
+#
+# /sbin/route -n -v get 0.0.0.0
+#
+u: inet 0.0.0.0; u: inet 0.0.0.0; u: link ; RTM_GET: Report Metrics: len 132, pid: 0, seq 1, errno 0, flags:<UP,GATEWAY,STATIC>
+locks:  inits: 
+sockaddrs: <DST,NETMASK,IFP>
+ default default index: 0 
+   route to: default
+destination: default
+       mask: default
+    gateway: 192.168.50.1
+  interface: en0
+      flags: <UP,GATEWAY,DONE,STATIC,PRCLONING,GLOBAL>
+ recvpipe  sendpipe  ssthresh  rtt,msec    rttvar  hopcount      mtu     expire
+       0         0         0         0         0         0      1500         0 
+
+locks:  inits: 
+sockaddrs: <DST,GATEWAY,NETMASK,IFP,IFA>
+ default 192.168.50.1 default index: 22 en0:2a.8f.a6.2b.23.82 192.168.50.110
+#
+# /sbin/route -n -v get -inet6 ::
+#
+u: link ; RTM_GET: Report Metrics: len 144, pid: 0, seq 1, errno 0, flags:<UP,GATEWAY,STATIC>
+locks:  inits: 
+sockaddrs: <DST,NETMASK,IFP>
+ :: :: index: 0 
+route: writing to routing socket: not in table

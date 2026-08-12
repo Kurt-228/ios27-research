@@ -1,0 +1,322 @@
+{"app_name":"Focus Filter Extension","timestamp":"2026-08-08 03:22:03.00 +0300","app_version":"8.12.30","slice_uuid":"c0d55059-2c0b-34cc-8763-da415bfe8b50","adam_id":"1511601750","build_version":"81230021","bundleID":"com.1password.1password.Focus-Filter-Extension","platform":2,"share_with_app_devs":0,"is_first_party":0,"bug_type":"309","os_version":"iPhone OS 27.0 (24A5390f)","roots_installed":0,"incident_id":"B9810C4C-8A32-4146-AE91-765BB45FFB0C","name":"Focus Filter Extension"}
+{
+  "uptime" : 690,
+  "procRole" : "Unspecified",
+  "version" : 2,
+  "userID" : 501,
+  "deployVersion" : 210,
+  "modelCode" : "iPhone16,2",
+  "coalitionID" : 807,
+  "osVersion" : {
+    "isEmbedded" : true,
+    "train" : "iPhone OS 27.0",
+    "releaseType" : "Beta",
+    "build" : "24A5390f"
+  },
+  "captureTime" : "2026-08-08 03:22:01.4759 +0300",
+  "codeSigningMonitor" : 2,
+  "incident" : "B9810C4C-8A32-4146-AE91-765BB45FFB0C",
+  "pid" : 646,
+  "translated" : false,
+  "cpuType" : "ARM-64",
+  "procLaunch" : "2026-08-08 03:22:00.2941 +0300",
+  "procStartAbsTime" : 16647475341,
+  "procExitAbsTime" : 16674963012,
+  "procName" : "Focus Filter Extension",
+  "procPath" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Extensions\/Focus Filter Extension.appex\/Focus Filter Extension",
+  "bundleInfo" : {"CFBundleShortVersionString":"8.12.30","CFBundleVersion":"81230021","CFBundleIdentifier":"com.1password.1password.Focus-Filter-Extension"},
+  "storeInfo" : {"itemID":"1511601750","storeCohortMetadata":"10|date=1785051000000&sf=143444&app=com.apple.AppStore&prpg=Account_AccountMain&ctxt=Apps&lngid=2","distributorID":"com.apple.AppStore","deviceIdentifierForVendor":"A3B338EC-291C-474B-813F-84D9FCD1B405","softwareVersionExternalIdentifier":"888983192","applicationVariant":"1:iPhone16,2:18","thirdParty":true},
+  "parentProc" : "launchd",
+  "parentPid" : 1,
+  "coalitionName" : "com.1password.1password.Focus-Filter-Extension",
+  "crashReporterKey" : "3f2cd59fb756dc67319e2a332feb22f980dba425",
+  "developerMode" : 1,
+  "bootProgressRegister" : "0x2080000c",
+  "wasUnlockedSinceBoot" : 1,
+  "isLocked" : 0,
+  "throttleTimeout" : 10,
+  "codeSigningID" : "com.1password.1password.Focus-Filter-Extension",
+  "codeSigningTeamID" : "2BUA8C4S2C",
+  "codeSigningFlags" : 570450689,
+  "codeSigningValidationCategory" : 4,
+  "codeSigningTrustLevel" : 5,
+  "codeSigningAuxiliaryInfo" : 0,
+  "instructionByteStream" : {"beforePC":"ARAA1MADX9aQBYCSARAA1MADX9awBYCSARAA1MADX9bQBYCSARAA1A==","atPC":"wANf1vAFgJIBEADUwANf1hAGgJIBEADUwANf1jAGgJIBEADUwANf1g=="},
+  "bootSessionUUID" : "4B1E12AD-E761-4315-BCC4-7FF457175B18",
+  "basebandVersion" : "4.02.01",
+  "exception" : {"codes":"0x0000000000000000, 0x0000000000000000","rawCodes":[0,0],"type":"EXC_CRASH","signal":"SIGKILL"},
+  "termination" : {"namespace":"RUNNINGBOARD","flags":6,"code":3735883980},
+  "faultingThread" : 0,
+  "threads" : [{"triggered":true,"id":16872,"threadState":{"x":[{"value":268451845},{"value":21592279046},{"value":8589934592},{"value":105566001168384},{"value":0},{"value":105566001168384},{"value":2},{"value":4294967295},{"value":0},{"value":0},{"value":2},{"value":0},{"value":0},{"value":24579},{"value":0},{"value":0},{"value":18446744073709551569},{"value":8273393424},{"value":0},{"value":4294967295},{"value":2},{"value":105566001168384},{"value":0},{"value":105566001168384},{"value":21592279046},{"value":6132833944},{"value":8589934592},{"value":18446744073709550527},{"value":10682351616,"symbolLocation":0,"symbol":"_libkernel_string_functions"}],"flavor":"ARM_THREAD_STATE64","lr":{"value":9613267720},"cpsr":{"value":4096},"fp":{"value":6132833792},"sp":{"value":6132833712},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613253844,"matchesCrashFrame":1},"far":{"value":0}},"queue":"com.apple.main-thread","frames":[{"imageOffset":3284,"symbol":"mach_msg2_trap","symbolLocation":8,"imageIndex":15},{"imageOffset":17160,"symbol":"mach_msg2_internal","symbolLocation":76,"imageIndex":15},{"imageOffset":16936,"symbol":"mach_msg_overwrite","symbolLocation":424,"imageIndex":15},{"imageOffset":16500,"symbol":"mach_msg","symbolLocation":24,"imageIndex":15},{"imageOffset":242552,"symbol":"__CFRunLoopServiceMachPort","symbolLocation":136,"imageIndex":16},{"imageOffset":238404,"symbol":"__CFRunLoopRun","symbolLocation":596,"imageIndex":16},{"imageOffset":243456,"symbol":"_CFRunLoopRunSpecificWithOptions","symbolLocation":344,"imageIndex":16},{"imageOffset":139832,"symbol":"-[NSRunLoop(NSRunLoop) runMode:beforeDate:]","symbolLocation":212,"imageIndex":17},{"imageOffset":2218232,"symbol":"-[NSRunLoop(NSRunLoop) run]","symbolLocation":64,"imageIndex":17},{"imageOffset":176572,"symbol":"_xpc_objc_main","symbolLocation":484,"imageIndex":18},{"imageOffset":188208,"symbol":"_xpc_main","symbolLocation":60,"imageIndex":18},{"imageOffset":188148,"symbol":"xpc_bs_main","symbolLocation":16,"imageIndex":18},{"imageOffset":270272,"symbol":"+[BSServicesConfiguration activateXPCService]","symbolLocation":64,"imageIndex":19},{"imageOffset":539448,"symbol":"_EXRunningExtension.resume()","symbolLocation":1080,"imageIndex":20},{"imageOffset":272776,"symbol":"_EXRunningExtension.start(with:)","symbolLocation":168,"imageIndex":20},{"imageOffset":509608,"symbol":"ExtensionMain.start(with:)","symbolLocation":732,"imageIndex":20},{"imageOffset":266276,"symbol":"EXExtensionMain(_:_:)","symbolLocation":3440,"imageIndex":20},{"imageOffset":3238868,"symbol":"NSExtensionMain","symbolLocation":200,"imageIndex":17},{"imageOffset":22064,"symbol":"start","symbolLocation":6616,"imageIndex":21}]},{"id":16987,"frames":[],"threadState":{"x":[{"value":6133395456},{"value":3599},{"value":6132858880},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6133395456},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6523250952},"far":{"value":0}}},{"id":16988,"frames":[],"threadState":{"x":[{"value":6133968896},{"value":4099},{"value":6133432320},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6133968896},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6523250952},"far":{"value":0}}},{"id":16994,"name":"runtime-worker","threadState":{"x":[{"value":260},{"value":0},{"value":4352},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6136113496},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":0},{"value":0},{"value":4802865856},{"value":4803154672},{"value":6136115424},{"value":0},{"value":0},{"value":4352},{"value":4353},{"value":4608},{"value":1},{"value":4753225968,"symbolLocation":0,"symbol":"_RNvNtNtCslX3vpobT7MJ_3std9panicking11panic_count18GLOBAL_PANIC_COUNT"}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6136113616},"sp":{"value":6136113472},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":81388500,"symbol":"tokio::runtime::scheduler::multi_thread::park::Inner::park_condvar::h631a91fe9a1a8233","symbolLocation":284,"imageIndex":4},{"imageOffset":81400248,"symbol":"tokio::runtime::scheduler::multi_thread::worker::Context::park_internal::h07a62ed08d7a9e5f","symbolLocation":900,"imageIndex":4},{"imageOffset":81394684,"symbol":"tokio::runtime::scheduler::multi_thread::worker::run::h522662b063da48f9","symbolLocation":3360,"imageIndex":4},{"imageOffset":81343096,"symbol":"tokio::runtime::task::raw::poll::h43b4bbe2d58722f8","symbolLocation":464,"imageIndex":4},{"imageOffset":81209472,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":660,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":16995,"name":"runtime-worker","threadState":{"x":[{"value":260},{"value":0},{"value":2560},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6138259800},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":3},{"value":0},{"value":4802866240},{"value":4803154528},{"value":6138261728},{"value":0},{"value":0},{"value":2560},{"value":2561},{"value":2816},{"value":3},{"value":4753225968,"symbolLocation":0,"symbol":"_RNvNtNtCslX3vpobT7MJ_3std9panicking11panic_count18GLOBAL_PANIC_COUNT"}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6138259920},"sp":{"value":6138259776},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":81388500,"symbol":"tokio::runtime::scheduler::multi_thread::park::Inner::park_condvar::h631a91fe9a1a8233","symbolLocation":284,"imageIndex":4},{"imageOffset":81400248,"symbol":"tokio::runtime::scheduler::multi_thread::worker::Context::park_internal::h07a62ed08d7a9e5f","symbolLocation":900,"imageIndex":4},{"imageOffset":81394684,"symbol":"tokio::runtime::scheduler::multi_thread::worker::run::h522662b063da48f9","symbolLocation":3360,"imageIndex":4},{"imageOffset":81343096,"symbol":"tokio::runtime::task::raw::poll::h43b4bbe2d58722f8","symbolLocation":464,"imageIndex":4},{"imageOffset":81209472,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":660,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":16996,"name":"runtime-worker","threadState":{"x":[{"value":14},{"value":8589934595},{"value":171798697235},{"value":143018115990019},{"value":14680198217728},{"value":143018115989504},{"value":48},{"value":0},{"value":0},{"value":1},{"value":8608695264},{"value":15},{"value":5718528},{"value":4819037688},{"value":8242345784,"symbolLocation":0,"symbol":"OBJC_CLASS_$_OS_dispatch_queue_global"},{"value":8242345784,"symbolLocation":0,"symbol":"OBJC_CLASS_$_OS_dispatch_queue_global"},{"value":18446744073709551580},{"value":8273389304},{"value":0},{"value":4804102720},{"value":4804102656},{"value":18446744073709551615},{"value":4819037680},{"value":6140402992},{"value":4870477024},{"value":4870477040},{"value":8242350016,"symbolLocation":1152,"symbol":"_dispatch_root_queues"},{"value":4804102656},{"value":4816747824}],"flavor":"ARM_THREAD_STATE64","lr":{"value":7308699756},"cpsr":{"value":1610616832},"fp":{"value":6140402912},"sp":{"value":6140402896},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613253712},"far":{"value":0}},"frames":[{"imageOffset":3152,"symbol":"semaphore_wait_trap","symbolLocation":8,"imageIndex":15},{"imageOffset":14444,"symbol":"_dispatch_sema4_wait","symbolLocation":28,"imageIndex":24},{"imageOffset":16208,"symbol":"_dispatch_semaphore_wait_slow","symbolLocation":156,"imageIndex":24},{"imageOffset":48238384,"imageIndex":4},{"imageOffset":48237712,"symbol":"_$LT$op_autofill..ios..IOSSystemAutofill$u20$as$u20$op_autofill..SystemAutofill$GT$::is_enabled::he2bf75b16fcfd846","symbolLocation":28,"imageIndex":4},{"imageOffset":15004252,"symbol":"_$LT$op_tracing..instrument..Instrumented$LT$T$GT$$u20$as$u20$core..future..future..Future$GT$::poll::h47e7097959ca6b28","symbolLocation":1396,"imageIndex":4},{"imageOffset":11207884,"symbol":"tokio::runtime::task::raw::poll::hff43f79d92dec3b9","symbolLocation":120,"imageIndex":4},{"imageOffset":81401032,"symbol":"tokio::runtime::scheduler::multi_thread::worker::Context::run_task::h2df5effe8f62f8cc","symbolLocation":368,"imageIndex":4},{"imageOffset":81393444,"symbol":"tokio::runtime::scheduler::multi_thread::worker::run::h522662b063da48f9","symbolLocation":2120,"imageIndex":4},{"imageOffset":81343096,"symbol":"tokio::runtime::task::raw::poll::h43b4bbe2d58722f8","symbolLocation":464,"imageIndex":4},{"imageOffset":81209472,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":660,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":16997,"name":"runtime-worker","threadState":{"x":[{"value":260},{"value":0},{"value":3072},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6142552408},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":14},{"value":0},{"value":4804614208},{"value":4803166096},{"value":6142554336},{"value":0},{"value":0},{"value":3072},{"value":3073},{"value":3328},{"value":4},{"value":4753225968,"symbolLocation":0,"symbol":"_RNvNtNtCslX3vpobT7MJ_3std9panicking11panic_count18GLOBAL_PANIC_COUNT"}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6142552528},"sp":{"value":6142552384},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":81388500,"symbol":"tokio::runtime::scheduler::multi_thread::park::Inner::park_condvar::h631a91fe9a1a8233","symbolLocation":284,"imageIndex":4},{"imageOffset":81400248,"symbol":"tokio::runtime::scheduler::multi_thread::worker::Context::park_internal::h07a62ed08d7a9e5f","symbolLocation":900,"imageIndex":4},{"imageOffset":81394684,"symbol":"tokio::runtime::scheduler::multi_thread::worker::run::h522662b063da48f9","symbolLocation":3360,"imageIndex":4},{"imageOffset":81343096,"symbol":"tokio::runtime::task::raw::poll::h43b4bbe2d58722f8","symbolLocation":464,"imageIndex":4},{"imageOffset":81209472,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":660,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":16998,"name":"runtime-worker","threadState":{"x":[{"value":260},{"value":0},{"value":8448},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6144698712},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":3},{"value":0},{"value":4802866048},{"value":4803153424},{"value":6144700640},{"value":0},{"value":0},{"value":8448},{"value":8449},{"value":8704},{"value":5},{"value":4753225968,"symbolLocation":0,"symbol":"_RNvNtNtCslX3vpobT7MJ_3std9panicking11panic_count18GLOBAL_PANIC_COUNT"}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6144698832},"sp":{"value":6144698688},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":81388500,"symbol":"tokio::runtime::scheduler::multi_thread::park::Inner::park_condvar::h631a91fe9a1a8233","symbolLocation":284,"imageIndex":4},{"imageOffset":81400248,"symbol":"tokio::runtime::scheduler::multi_thread::worker::Context::park_internal::h07a62ed08d7a9e5f","symbolLocation":900,"imageIndex":4},{"imageOffset":81394684,"symbol":"tokio::runtime::scheduler::multi_thread::worker::run::h522662b063da48f9","symbolLocation":3360,"imageIndex":4},{"imageOffset":81343096,"symbol":"tokio::runtime::task::raw::poll::h43b4bbe2d58722f8","symbolLocation":464,"imageIndex":4},{"imageOffset":81209472,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":660,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":16999,"name":"runtime-worker","threadState":{"x":[{"value":4},{"value":0},{"value":0},{"value":4802641920},{"value":1024},{"value":6146844960},{"value":0},{"value":0},{"value":1},{"value":6146844960},{"value":951000000},{"value":27},{"value":1},{"value":1000000000},{"value":18446744073709550922},{"value":1},{"value":363},{"value":0},{"value":0},{"value":4802746584},{"value":4346898504},{"value":4802746584},{"value":1000000000},{"value":1000000000},{"value":1000000000},{"value":28672},{"value":4753225968,"symbolLocation":0,"symbol":"_RNvNtNtCslX3vpobT7MJ_3std9panicking11panic_count18GLOBAL_PANIC_COUNT"},{"value":0},{"value":1}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4693956040},"cpsr":{"value":536875008},"fp":{"value":6146844992},"sp":{"value":6146844944},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613281524},"far":{"value":0}},"frames":[{"imageOffset":30964,"symbol":"kevent","symbolLocation":8,"imageIndex":15},{"imageOffset":81483208,"symbol":"mio::poll::Poll::poll::h15d1239fa46e4f39","symbolLocation":116,"imageIndex":4},{"imageOffset":81329352,"symbol":"tokio::runtime::io::driver::Driver::turn::h8c74b3fbc6ef2e1d","symbolLocation":204,"imageIndex":4},{"imageOffset":81364676,"symbol":"tokio::runtime::time::Driver::park_internal::hb248d23ddc5dc618","symbolLocation":692,"imageIndex":4},{"imageOffset":81400152,"symbol":"tokio::runtime::scheduler::multi_thread::worker::Context::park_internal::h07a62ed08d7a9e5f","symbolLocation":804,"imageIndex":4},{"imageOffset":81394684,"symbol":"tokio::runtime::scheduler::multi_thread::worker::run::h522662b063da48f9","symbolLocation":3360,"imageIndex":4},{"imageOffset":81343096,"symbol":"tokio::runtime::task::raw::poll::h43b4bbe2d58722f8","symbolLocation":464,"imageIndex":4},{"imageOffset":81209472,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":660,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17000,"name":"flexi_logger-fs-cleanup","threadState":{"x":[{"value":14},{"value":8589934595},{"value":171798697235},{"value":50590419780099},{"value":14680198217728},{"value":50590419779584},{"value":48},{"value":0},{"value":0},{"value":1},{"value":0},{"value":2},{"value":369435911474176},{"value":0},{"value":0},{"value":0},{"value":18446744073709551580},{"value":4350940928},{"value":0},{"value":4804100640},{"value":4804100576},{"value":18446744073709551615},{"value":4803764024},{"value":4803905536},{"value":4803764000},{"value":1000000000},{"value":1000000000},{"value":2},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":7308699756},"cpsr":{"value":1610616832},"fp":{"value":6147418816},"sp":{"value":6147418800},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613253712},"far":{"value":0}},"frames":[{"imageOffset":3152,"symbol":"semaphore_wait_trap","symbolLocation":8,"imageIndex":15},{"imageOffset":14444,"symbol":"_dispatch_sema4_wait","symbolLocation":28,"imageIndex":24},{"imageOffset":16208,"symbol":"_dispatch_semaphore_wait_slow","symbolLocation":156,"imageIndex":24},{"imageOffset":86013052,"symbol":"_RNvMs_NtNtCslX3vpobT7MJ_3std6thread6threadNtB4_6Thread4park","symbolLocation":56,"imageIndex":4},{"imageOffset":85674728,"symbol":"std::sync::mpmc::list::Channel$LT$T$GT$::recv::_$u7b$$u7b$closure$u7d$$u7d$::h24cf75ef62e13ed6","symbolLocation":164,"imageIndex":4},{"imageOffset":85667020,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hb2a4ea2ace2931e4","symbolLocation":520,"imageIndex":4},{"imageOffset":85689240,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::he6c23be77600d8e9","symbolLocation":192,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17004,"frames":[{"imageOffset":33388,"symbol":"fsync","symbolLocation":8,"imageIndex":15},{"imageOffset":77754460,"symbol":"unixSync","symbolLocation":72,"imageIndex":4},{"imageOffset":77828208,"symbol":"pagerWalFrames","symbolLocation":1944,"imageIndex":4},{"imageOffset":77662512,"symbol":"sqlite3PagerCommitPhaseOne","symbolLocation":332,"imageIndex":4},{"imageOffset":77663544,"symbol":"sqlite3BtreeCommitPhaseOne","symbolLocation":160,"imageIndex":4},{"imageOffset":77850816,"symbol":"vdbeCommit","symbolLocation":1100,"imageIndex":4},{"imageOffset":77848156,"symbol":"sqlite3VdbeHalt","symbolLocation":1332,"imageIndex":4},{"imageOffset":77914204,"symbol":"sqlite3VdbeExec","symbolLocation":42380,"imageIndex":4},{"imageOffset":77649396,"symbol":"sqlite3_step","symbolLocation":444,"imageIndex":4},{"imageOffset":77594540,"symbol":"rusqlite::Connection::execute_batch::h3fe658b8d8f43f9f","symbolLocation":260,"imageIndex":4},{"imageOffset":41748272,"symbol":"op_db::Transaction::commit::hf1ba5878c73b2329","symbolLocation":216,"imageIndex":4},{"imageOffset":5385980,"symbol":"op_db_queue_worker::operations::handle_core_tx::_$u7b$$u7b$closure$u7d$$u7d$::maybe_commit::_$u7b$$u7b$closure$u7d$$u7d$::h1d4bf472f3ddfeb2","symbolLocation":88,"imageIndex":4},{"imageOffset":5389920,"symbol":"op_db_queue_worker::operations::handle_core_tx::_$u7b$$u7b$closure$u7d$$u7d$::hf6bf985f688f54d7","symbolLocation":3592,"imageIndex":4},{"imageOffset":5444772,"symbol":"op_db_queue_worker::worker::Worker$LT$T$GT$::handle_request::_$u7b$$u7b$closure$u7d$$u7d$::h8132cae195bf3fff","symbolLocation":2008,"imageIndex":4},{"imageOffset":5440700,"symbol":"op_db_queue_worker::worker::start_task::_$u7b$$u7b$closure$u7d$$u7d$::_$u7b$$u7b$closure$u7d$$u7d$::h30f02f4085294ab4","symbolLocation":764,"imageIndex":4},{"imageOffset":9096920,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h99e117d40c230f39","symbolLocation":2132,"imageIndex":4},{"imageOffset":9151844,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::h03ffb598e5b3f2f1","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}],"threadState":{"x":[{"value":0},{"value":0},{"value":4096},{"value":3918176},{"value":4346908608},{"value":84},{"value":84},{"value":18446744072367376383},{"value":2},{"value":11149803838120591405},{"value":3363879788},{"value":4806455296},{"value":660892021},{"value":4664334484406},{"value":4664334484406},{"value":12001849025144505136},{"value":95},{"value":8442858337298431035},{"value":0},{"value":4346908656},{"value":11},{"value":1086},{"value":0},{"value":4346908512},{"value":4120},{"value":4806455352},{"value":952},{"value":3922272},{"value":4346908584}],"flavor":"ARM_THREAD_STATE64","lr":{"value":4690227292},"cpsr":{"value":2147487744},"fp":{"value":6149453424},"sp":{"value":6149453360},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613283948},"far":{"value":0}}},{"id":17005,"name":"runtime-worker","threadState":{"x":[{"value":4},{"value":0},{"value":512},{"value":0},{"value":0},{"value":160},{"value":10},{"value":0},{"value":512},{"value":0},{"value":2560},{"value":10995116280322},{"value":10995116280322},{"value":2560},{"value":0},{"value":10995116280320},{"value":305},{"value":35184372097280},{"value":0},{"value":4802864768},{"value":4803763568},{"value":1},{"value":0},{"value":10},{"value":512},{"value":512},{"value":1024},{"value":4346853744},{"value":4346853752}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256272},"cpsr":{"value":2684358656},"fp":{"value":6151711984},"sp":{"value":6151711840},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7632,"symbol":"_pthread_cond_wait","symbolLocation":1024,"imageIndex":23},{"imageOffset":85966376,"symbol":"_RNvMNtNtNtNtCslX3vpobT7MJ_3std3sys4sync7condvar7pthreadNtB2_7Condvar12wait_timeout","symbolLocation":184,"imageIndex":4},{"imageOffset":81209256,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":444,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17007,"frames":[],"threadState":{"x":[{"value":6152286208},{"value":12291},{"value":6151749632},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6152286208},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6523250952},"far":{"value":0}}},{"id":17008,"frames":[],"threadState":{"x":[{"value":6152859648},{"value":12547},{"value":6152323072},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6152859648},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6523250952},"far":{"value":0}}},{"id":17009,"frames":[],"threadState":{"x":[{"value":6153433088},{"value":13827},{"value":6152896512},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6153433088},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6523250952},"far":{"value":0}}},{"id":17010,"frames":[],"threadState":{"x":[{"value":6154006528},{"value":16899},{"value":6153469952},{"value":0},{"value":409604},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6154006528},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":6523250952},"far":{"value":0}}},{"id":17011,"frames":[],"threadState":{"x":[{"value":6154579968},{"value":0},{"value":6154043392},{"value":0},{"value":278532},{"value":18446744073709551615},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":4096},"fp":{"value":0},"sp":{"value":6154579968},"esr":{"value":0},"pc":{"value":6523250952},"far":{"value":0}}},{"id":17012,"name":"runtime-worker","threadState":{"x":[{"value":4},{"value":0},{"value":512},{"value":0},{"value":0},{"value":160},{"value":10},{"value":0},{"value":512},{"value":0},{"value":2560},{"value":10995116280322},{"value":10995116280322},{"value":2560},{"value":0},{"value":10995116280320},{"value":305},{"value":141},{"value":0},{"value":4802864768},{"value":4803763568},{"value":1},{"value":0},{"value":10},{"value":512},{"value":512},{"value":1280},{"value":4346853744},{"value":4346853752}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256272},"cpsr":{"value":2684358656},"fp":{"value":6156725488},"sp":{"value":6156725344},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7632,"symbol":"_pthread_cond_wait","symbolLocation":1024,"imageIndex":23},{"imageOffset":85966376,"symbol":"_RNvMNtNtNtNtCslX3vpobT7MJ_3std3sys4sync7condvar7pthreadNtB2_7Condvar12wait_timeout","symbolLocation":184,"imageIndex":4},{"imageOffset":81209256,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":444,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17013,"name":"runtime-worker","threadState":{"x":[{"value":260},{"value":0},{"value":512},{"value":0},{"value":0},{"value":160},{"value":10},{"value":0},{"value":513},{"value":0},{"value":2560},{"value":10995116280322},{"value":10995116280322},{"value":2560},{"value":0},{"value":10995116280320},{"value":305},{"value":31885837213184},{"value":0},{"value":4802864768},{"value":4803763568},{"value":1},{"value":0},{"value":10},{"value":512},{"value":513},{"value":768},{"value":4346853744},{"value":4346853752}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256272},"cpsr":{"value":2684358656},"fp":{"value":6158871792},"sp":{"value":6158871648},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7632,"symbol":"_pthread_cond_wait","symbolLocation":1024,"imageIndex":23},{"imageOffset":85966376,"symbol":"_RNvMNtNtNtNtCslX3vpobT7MJ_3std3sys4sync7condvar7pthreadNtB2_7Condvar12wait_timeout","symbolLocation":184,"imageIndex":4},{"imageOffset":81209256,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::hbb704733131ddb25","symbolLocation":444,"imageIndex":4},{"imageOffset":81219396,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::ha10f7a966e6b573c","symbolLocation":80,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17039,"name":"smart-search0","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6161017384},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":4351198144},{"value":0},{"value":4871018176},{"value":4869838224},{"value":6161019104},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6161017504},"sp":{"value":6161017360},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":87486544,"symbol":"rayon_core::sleep::Sleep::sleep::hae6e82141a2806a3","symbolLocation":480,"imageIndex":4},{"imageOffset":87487160,"symbol":"rayon_core::registry::WorkerThread::wait_until_cold::h6f1b93316db151db","symbolLocation":204,"imageIndex":4},{"imageOffset":79710908,"symbol":"rayon_core::registry::ThreadBuilder::run::hb6bc83181c1981a9","symbolLocation":300,"imageIndex":4},{"imageOffset":79719780,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h7ff7adb52fa4e205","symbolLocation":12,"imageIndex":4},{"imageOffset":79721596,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hdffc8cf69b2e4e42","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17040,"name":"smart-search1","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6163163688},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":4351198144},{"value":0},{"value":4871018240},{"value":4869838176},{"value":6163165408},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6163163808},"sp":{"value":6163163664},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":87486544,"symbol":"rayon_core::sleep::Sleep::sleep::hae6e82141a2806a3","symbolLocation":480,"imageIndex":4},{"imageOffset":87487160,"symbol":"rayon_core::registry::WorkerThread::wait_until_cold::h6f1b93316db151db","symbolLocation":204,"imageIndex":4},{"imageOffset":79710908,"symbol":"rayon_core::registry::ThreadBuilder::run::hb6bc83181c1981a9","symbolLocation":300,"imageIndex":4},{"imageOffset":79719780,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h7ff7adb52fa4e205","symbolLocation":12,"imageIndex":4},{"imageOffset":79721596,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hdffc8cf69b2e4e42","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17041,"name":"smart-search2","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6165309992},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":4351198144},{"value":0},{"value":4871018304},{"value":4869838128},{"value":6165311712},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6165310112},"sp":{"value":6165309968},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":87486544,"symbol":"rayon_core::sleep::Sleep::sleep::hae6e82141a2806a3","symbolLocation":480,"imageIndex":4},{"imageOffset":87487160,"symbol":"rayon_core::registry::WorkerThread::wait_until_cold::h6f1b93316db151db","symbolLocation":204,"imageIndex":4},{"imageOffset":79710908,"symbol":"rayon_core::registry::ThreadBuilder::run::hb6bc83181c1981a9","symbolLocation":300,"imageIndex":4},{"imageOffset":79719780,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h7ff7adb52fa4e205","symbolLocation":12,"imageIndex":4},{"imageOffset":79721596,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hdffc8cf69b2e4e42","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17042,"name":"smart-search3","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6167456296},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":4351198144},{"value":0},{"value":4871018368},{"value":4869838080},{"value":6167458016},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6167456416},"sp":{"value":6167456272},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":87486544,"symbol":"rayon_core::sleep::Sleep::sleep::hae6e82141a2806a3","symbolLocation":480,"imageIndex":4},{"imageOffset":87487160,"symbol":"rayon_core::registry::WorkerThread::wait_until_cold::h6f1b93316db151db","symbolLocation":204,"imageIndex":4},{"imageOffset":79710908,"symbol":"rayon_core::registry::ThreadBuilder::run::hb6bc83181c1981a9","symbolLocation":300,"imageIndex":4},{"imageOffset":79719780,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h7ff7adb52fa4e205","symbolLocation":12,"imageIndex":4},{"imageOffset":79721596,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hdffc8cf69b2e4e42","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17043,"name":"smart-search4","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6169602600},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":4351198144},{"value":0},{"value":4871018432},{"value":4869838032},{"value":6169604320},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6169602720},"sp":{"value":6169602576},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":87486544,"symbol":"rayon_core::sleep::Sleep::sleep::hae6e82141a2806a3","symbolLocation":480,"imageIndex":4},{"imageOffset":87487160,"symbol":"rayon_core::registry::WorkerThread::wait_until_cold::h6f1b93316db151db","symbolLocation":204,"imageIndex":4},{"imageOffset":79710908,"symbol":"rayon_core::registry::ThreadBuilder::run::hb6bc83181c1981a9","symbolLocation":300,"imageIndex":4},{"imageOffset":79719780,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h7ff7adb52fa4e205","symbolLocation":12,"imageIndex":4},{"imageOffset":79721596,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hdffc8cf69b2e4e42","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]},{"id":17044,"name":"smart-search5","threadState":{"x":[{"value":260},{"value":0},{"value":0},{"value":0},{"value":0},{"value":160},{"value":0},{"value":0},{"value":6171748904},{"value":0},{"value":0},{"value":2},{"value":2},{"value":0},{"value":0},{"value":0},{"value":305},{"value":4351198144},{"value":0},{"value":4871018496},{"value":4869837984},{"value":6171750624},{"value":0},{"value":0},{"value":0},{"value":1},{"value":256},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":6523256228},"cpsr":{"value":1610616832},"fp":{"value":6171749024},"sp":{"value":6171748880},"esr":{"value":1442840704,"description":"(Syscall)"},"pc":{"value":9613276664},"far":{"value":0}},"frames":[{"imageOffset":26104,"symbol":"__psynch_cvwait","symbolLocation":8,"imageIndex":15},{"imageOffset":7588,"symbol":"_pthread_cond_wait","symbolLocation":980,"imageIndex":23},{"imageOffset":87486544,"symbol":"rayon_core::sleep::Sleep::sleep::hae6e82141a2806a3","symbolLocation":480,"imageIndex":4},{"imageOffset":87487160,"symbol":"rayon_core::registry::WorkerThread::wait_until_cold::h6f1b93316db151db","symbolLocation":204,"imageIndex":4},{"imageOffset":79710908,"symbol":"rayon_core::registry::ThreadBuilder::run::hb6bc83181c1981a9","symbolLocation":300,"imageIndex":4},{"imageOffset":79719780,"symbol":"std::sys::backtrace::__rust_begin_short_backtrace::h7ff7adb52fa4e205","symbolLocation":12,"imageIndex":4},{"imageOffset":79721596,"symbol":"core::ops::function::FnOnce::call_once$u7b$$u7b$vtable.shim$u7d$$u7d$::hdffc8cf69b2e4e42","symbolLocation":152,"imageIndex":4},{"imageOffset":86096600,"symbol":"_RNvNvMs0_NtNtNtCslX3vpobT7MJ_3std3sys6thread4unixNtB7_6Thread3new12thread_start","symbolLocation":408,"imageIndex":4},{"imageOffset":16444,"symbol":"_pthread_start","symbolLocation":136,"imageIndex":23},{"imageOffset":2332,"symbol":"thread_start","symbolLocation":8,"imageIndex":23}]}],
+  "usedImages" : [
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4334043136,
+    "size" : 65536,
+    "uuid" : "c0d55059-2c0b-34cc-8763-da415bfe8b50",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Extensions\/Focus Filter Extension.appex\/Focus Filter Extension",
+    "name" : "Focus Filter Extension"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4357849088,
+    "size" : 14188544,
+    "uuid" : "92a652cd-4d66-3c6b-906b-d03fb28f3f5c",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordCore.framework\/OnePasswordCore",
+    "name" : "OnePasswordCore"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4403200000,
+    "size" : 13434880,
+    "uuid" : "b536589a-0e0b-3a28-8f1a-ddadc3bfddd2",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordCommon.framework\/OnePasswordCommon",
+    "name" : "OnePasswordCommon"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4334387200,
+    "size" : 98304,
+    "uuid" : "f21209a0-979c-38dc-848e-a1c1f3d2b6f0",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OPIPhrases_2C806CF86BDBEBC8_PackageProduct.framework\/OPIPhrases_2C806CF86BDBEBC8_PackageProduct",
+    "name" : "OPIPhrases_2C806CF86BDBEBC8_PackageProduct"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4612472832,
+    "size" : 127123456,
+    "uuid" : "0eea97ec-eedd-3e22-8231-0b71751a97c4",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordCoreFFI.framework\/OnePasswordCoreFFI",
+    "name" : "OnePasswordCoreFFI"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4334288896,
+    "size" : 32768,
+    "uuid" : "5204185c-4ab6-3190-ab96-8f8d3293329f",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordMacros_25941629FE68B8EB_PackageProduct.framework\/OnePasswordMacros_25941629FE68B8EB_PackageProduct",
+    "name" : "OnePasswordMacros_25941629FE68B8EB_PackageProduct"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4334698496,
+    "size" : 49152,
+    "uuid" : "0e255bed-522d-3a87-b674-94846e7b7545",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordFoundation_-1F4F9B1CBCE7905F_PackageProduct.framework\/OnePasswordFoundation_-1F4F9B1CBCE7905F_PackageProduct",
+    "name" : "OnePasswordFoundation_-1F4F9B1CBCE7905F_PackageProduct"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4381622272,
+    "size" : 2080768,
+    "uuid" : "ff5176e9-6c48-3bfe-aa62-2f90f5ab4000",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/Sentry.framework\/Sentry",
+    "name" : "Sentry"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4334829568,
+    "size" : 49152,
+    "uuid" : "5a9b0db4-832c-364b-b75c-42c48428a64d",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/ApolloTestSupport_2BC82B93D5BD5F15_PackageProduct.framework\/ApolloTestSupport_2BC82B93D5BD5F15_PackageProduct",
+    "name" : "ApolloTestSupport_2BC82B93D5BD5F15_PackageProduct"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4338810880,
+    "size" : 884736,
+    "uuid" : "57b3d457-f085-3acc-8b92-ee6321a02154",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/Knox_622FD17E4_PackageProduct.framework\/Knox_622FD17E4_PackageProduct",
+    "name" : "Knox_622FD17E4_PackageProduct"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4337303552,
+    "size" : 327680,
+    "uuid" : "f129bddf-ced0-368e-ad35-75dfc7a5e769",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/ApolloTypes_7C0E9C813D14E87_PackageProduct.framework\/ApolloTypes_7C0E9C813D14E87_PackageProduct",
+    "name" : "ApolloTypes_7C0E9C813D14E87_PackageProduct"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4340350976,
+    "size" : 589824,
+    "uuid" : "f28e8c34-c93f-3341-82b4-469bc147e6c0",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/Apollo.framework\/Apollo",
+    "name" : "Apollo"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4335271936,
+    "size" : 180224,
+    "uuid" : "f2dfc505-d1dd-3ce3-b2ae-008f43c8e360",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/ApolloAPI.framework\/ApolloAPI",
+    "name" : "ApolloAPI"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4341202944,
+    "size" : 262144,
+    "uuid" : "81ed7142-54d2-3b1a-97da-067909cc9e42",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordUIElements.framework\/OnePasswordUIElements",
+    "name" : "OnePasswordUIElements"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64",
+    "base" : 4335583232,
+    "size" : 81920,
+    "uuid" : "801fff14-f9c1-325f-992b-eaceb0cdac97",
+    "path" : "\/private\/var\/containers\/Bundle\/Application\/E71E0CCB-F4B8-4C62-B89F-04DED5C8C7A6\/1Password.app\/Frameworks\/OnePasswordGraphQL.framework\/OnePasswordGraphQL",
+    "name" : "OnePasswordGraphQL"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 9613250560,
+    "size" : 250364,
+    "uuid" : "66561a3e-67d2-3f28-9e5c-c7bde524ee9d",
+    "path" : "\/usr\/lib\/system\/libsystem_kernel.dylib",
+    "name" : "libsystem_kernel.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6524039168,
+    "size" : 5119936,
+    "uuid" : "7cdba4fd-e90e-3ef2-8ae3-9071648e4673",
+    "path" : "\/System\/Library\/Frameworks\/CoreFoundation.framework\/CoreFoundation",
+    "name" : "CoreFoundation"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6529159168,
+    "size" : 17876060,
+    "uuid" : "b17a96f3-dc4a-3757-90df-be4837abb5aa",
+    "path" : "\/System\/Library\/Frameworks\/Foundation.framework\/Foundation",
+    "name" : "Foundation"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6523637760,
+    "size" : 398292,
+    "uuid" : "98a38038-e2ba-36f4-933d-fc98cdea2582",
+    "path" : "\/usr\/lib\/system\/libxpc.dylib",
+    "name" : "libxpc.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6780837888,
+    "size" : 657216,
+    "uuid" : "2b05c9d3-3f1d-3021-82cf-64797327508e",
+    "path" : "\/System\/Library\/PrivateFrameworks\/BoardServices.framework\/BoardServices",
+    "name" : "BoardServices"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6634881024,
+    "size" : 1337144,
+    "uuid" : "3fd86a31-de8a-36a4-9cec-3066b1f04506",
+    "path" : "\/System\/Library\/Frameworks\/ExtensionFoundation.framework\/ExtensionFoundation",
+    "name" : "ExtensionFoundation"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6522494976,
+    "size" : 749936,
+    "uuid" : "5fd0ed6b-d314-3392-aa82-91c9fc014422",
+    "path" : "\/usr\/lib\/dyld",
+    "name" : "dyld"
+  },
+  {
+    "size" : 0,
+    "source" : "A",
+    "base" : 0,
+    "uuid" : "00000000-0000-0000-0000-000000000000"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 6523248640,
+    "size" : 49736,
+    "uuid" : "8674ae84-5a65-39b4-bcfe-a6178afd3eae",
+    "path" : "\/usr\/lib\/system\/libsystem_pthread.dylib",
+    "name" : "libsystem_pthread.dylib"
+  },
+  {
+    "source" : "P",
+    "arch" : "arm64e",
+    "base" : 7308685312,
+    "size" : 290144,
+    "uuid" : "c9c06c2c-438c-3e88-aa74-dcce16127dc9",
+    "path" : "\/usr\/lib\/system\/libdispatch.dylib",
+    "name" : "libdispatch.dylib"
+  }
+],
+  "sharedCache" : {
+  "base" : 6517768192,
+  "size" : 6374752256,
+  "uuid" : "e2d6f6bd-03e7-3f04-bacd-9c086e5900f6"
+},
+  "vmSummary" : "ReadOnly portion of Libraries: Total=2.6G resident=0K(0%) swapped_out_or_unallocated=2.6G(100%)\nWritable regions: Total=105.5M written=546K(1%) resident=546K(1%) swapped_out=0K(0%) unallocated=105.0M(99%)\n\n                                VIRTUAL   REGION \nREGION TYPE                        SIZE    COUNT (non-coalesced) \n===========                     =======  ======= \nActivity Tracing                   256K        1 \nDispatch Continuations            6144K        1 \nGuard                            385.0G        1 \nMalloc                            57.2M       18 \nMalloc Guard Page                 3952K        4 \nOS Alloc Once                       32K        1 \nStack                             37.7M       25 \nStack Guard                        400K       25 \n__AUTH                            9604K      776 \n__AUTH_CONST                     118.1M     1190 \n__CTF                               824        1 \n__DATA                            59.0M     1216 \n__DATA_CONST                      52.9M     1256 \n__DATA_DIRTY                      18.5M     1112 \n__FONT_DATA                        2352        1 \n__LINKEDIT                       709.9M       16 \n__OBJC_RO                        126.5M        1 \n__OBJC_RW                         3355K        1 \n__TEXT                             1.9G     1290 \n__TPRO_CONST                       132K        4 \nmapped file                       35.0M        7 \npage table in kernel               546K        1 \nshared memory                       96K        4 \n===========                     =======  ======= \nTOTAL                            388.1G     6952 \n",
+  "legacyInfo" : {
+  "threadTriggered" : {
+    "queue" : "com.apple.main-thread"
+  }
+},
+  "logWritingSignature" : "087d4ff9dd66b81c58de43a8dbc7fae894f62eca",
+  "bug_type" : "309",
+  "roots_installed" : 0,
+  "trmStatus" : 1,
+  "sandboxProfileName" : "container",
+  "spawnFlags" : 17420,
+  "trialInfo" : {
+  "rollouts" : [
+    {
+      "rolloutId" : "616061f15c43822edc9b3b70",
+      "factorPackIds" : [
+        "6970ea8e549a232162d81fb2"
+      ],
+      "deploymentId" : 250000031
+    },
+    {
+      "rolloutId" : "5f72dc58705eff005a46b3a9",
+      "factorPackIds" : [
+        "63d867d28283bf1629655506"
+      ],
+      "deploymentId" : 250000014
+    }
+  ],
+  "experiments" : [
+    {
+      "treatmentId" : "d0bb49e6-3717-496d-b592-ae45ce800dcd",
+      "experimentId" : "6a5f07b1796bdc5cb264d8d2",
+      "deploymentId" : 1
+    },
+    {
+      "treatmentId" : "d5c127b8-b13e-42a1-acf5-c483124a1bb5",
+      "experimentId" : "66b1602abe27b2208fd291ba",
+      "deploymentId" : 500000021
+    }
+  ]
+}
+}

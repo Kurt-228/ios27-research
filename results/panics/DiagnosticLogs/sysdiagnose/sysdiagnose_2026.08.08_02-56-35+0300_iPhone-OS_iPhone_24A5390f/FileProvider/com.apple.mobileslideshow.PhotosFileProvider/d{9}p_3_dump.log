@@ -1,0 +1,115 @@
+Date/Time:         2026-08-07 23:56:49 +0000, (807839809.996935)
+OS Version:        24A5390f
+FP Version:        4838.0.93
+uid:               501
+
+
+7 providers, filtered by 'com.apple.mobileslideshow.PhotosFileProvider/d{9}p'
+=====================================================
+com.apple.mobileslideshow.PhotosFileProvider
+=====================================================
+  + version: none
+  + available system wide: 1
+  + supports enumeration: 0
+  + supports FPFS: 0
+  + read-only: 0
+  + extension storage URLs: (1)
+    - <GroupContainers>/9E9C5F8B-30D4-4B5A-BAF1-F541DF6BA16C/F{19}e
+  + file coordination purpose ID: com.apple.mobileslideshow.PhotosFileProvider
+  + display name: PhotosFileProvider
+  + bundle URL: /System/Library/ExtensionKit/Extensions/PhotosFileProvider.appex
+  + containing bundle identifier: com.apple.mobileslideshow.PhotosFileProvider
+  + persona: FEEDEEEE-DDDD-CCCC-BBBB-0000000001F5
+  + document group name: group.com.apple.mobileslideshow.PhotosFileProvider
+  + supported file types: none
+  + uses unique item identifiers across devices: 0
+  + applies changes atomically: 0
+  + supports failing upload on conflict: 0
+  + disallowed by MDM: 0
+  + push topics (development, opportunistic): (0)
+  + push topics (production): (0)
+  + push topics (production, opportunistic): (0)
+  + push topics (development): (0)
+
+-----------------------------------------------------
+domain: d{9}p (hidden) (P{4}s)
+-----------------------------------------------------
+ no process observed; grace period timer not running
+  + features: 
+  + root: <GroupContainers>/9E9C5F8B-30D4-4B5A-BAF1-F541DF6BA16C/F{19}e/d{9}p
+  + FPDDomain instance: <FPDDomain:0x7d9ac61540>
+      - default backend: <FPDDomainExtensionBackend:0x7d9b0263a0>
+      - extension backend: <FPDDomainExtensionBackend:0x7d9b0263a0>
+      - deactivated backend: <(null):0x0>
+      - volume: <FPDVolume:0x7d9b058060 role:home dev:16777224 uuid:61...07 '/p{5}e/v{1}r/m{4}e'>
+  + persona: FEEDEEEE-DDDD-CCCC-BBBB-0000000001F5
+  + userInfo: 0 keys
+  + indexer:
+domain: com.apple.mobileslideshow.PhotosFileProvider/d{9}p
+      spDomainID:     68A7DFD3-67AA-4067-AA59-467032E1C96A
+      scheduler:      <l:com.apple.fileprovider.indexing 🛏  registration:<from:2026-08-07 23:54:20 +0000 count:1>>
+      enabled:        no
+      indexing:       no
+      needs-auth:     no
+      needs-indexing: no
+      + drop info:
+         drops-since-start: 1
+         index-is-dropped:  no
+         last-drop-date:    2026-08-07 23:55:00 +0000
+         last-drop-reason:  Domain hidden
+      + telemetry info:
+         count of files requested for redonation in the last day: 0
+      errors:         0
+      batch-indexed (since last startup): 0
+      not dumping extension: not running
+
+
+== CloudStorage xattrs ==
+=========================
+
+== FileProvider xattrs ==
+=========================
+
+== action operation engine ==
+=================
+0 operations
+
+apps monitor [0;1;32mactive[0m
+-----------------------------------------------------
+[0;1;37m14[0m apps monitored:
+ - <FPAppMetadata:0x7d9b822460 ai.qwenlm.chat.ios n:'Qwen Studio' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8211a0 com.SideStore.SideStore.JML2QQMJYG n:'SideStore' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b820420 com.apple.Fitness n:'Fitness' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822580 com.apple.Preview n:'Preview' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8208d0 com.asus.GlideX n:'ASUS GlideX' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8203f0 com.crystalnix.ServerAuditor n:'Termius' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822e20 com.cuilingshi.fileextract n:'Unzip' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822dc0 com.esim.tele n:'eSIM Plus' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b820960 com.kdt.livecontainer.JML2QQMJYG n:'LiveContainer' p:'com.apple.FileProvider.LocalStorage'>:
+ - <FPAppMetadata:0x7d9b821ec0 com.moonshot.kimichat n:'Kimi' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8221f0 com.neo.NeoMan n:'NeoServer' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b8224f0 com.skyjos.fileexplorer n:'FE File Explorer' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822ca0 com.stik.stikdebug.JML2QQMJYG n:'StikDebug' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7d9b822c10 dk.simonbs.RunestoneEditor n:'Runestone' p:'com.apple.CloudDocs.iCloudDriveFileProvider/CAE2D5CA-6DAB-48AF-B228-F6A7808C6DCE'>:
+
+== Trial configuration ==
+{
+  "COREOS_FPFS_CONFIG" : {
+    "rollout" : {
+      "rolloutId" : "616061f15c43822edc9b3b70",
+      "factorPackId" : "6970ea8e549a232162d81fb2",
+      "rampId" : "6970eb53ef5b27740d75104f"
+    },
+    "experiment" : {
+
+    }
+  },
+  "COREOS_FPFS_SPECULATIVE_DOWNLOADS" : {
+    "rollout" : {
+
+    },
+    "experiment" : {
+
+    }
+  }
+}

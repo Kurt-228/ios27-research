@@ -1,0 +1,98 @@
+{"is_simulated":1,"app_name":"MobileMail","timestamp":"2026-08-04 22:43:33.00 +0300","app_version":"1.0.0","slice_uuid":"679e6ea6-a4f1-368c-8e6c-0588241cedf6","build_version":"3897.100.8.2.5","platform":2,"bundleID":"com.apple.mobilemail","share_with_app_devs":0,"is_first_party":1,"bug_type":"308","os_version":"iPhone OS 27.0 (24A5390f)","roots_installed":0,"name":"MobileMail","incident_id":"A02A39C8-F218-4DB4-AD41-676A12919DB1"}
+{
+  "uptime" : 680000,
+  "procRole" : "Unspecified",
+  "version" : 2,
+  "userID" : 501,
+  "deployVersion" : 210,
+  "modelCode" : "iPhone16,2",
+  "coalitionID" : 6384,
+  "osVersion" : {
+    "isEmbedded" : true,
+    "train" : "iPhone OS 27.0",
+    "releaseType" : "Beta",
+    "build" : "24A5390f"
+  },
+  "captureTime" : "2026-08-04 22:43:33.1335 +0300",
+  "codeSigningMonitor" : 2,
+  "incident" : "A02A39C8-F218-4DB4-AD41-676A12919DB1",
+  "pid" : 40616,
+  "translated" : false,
+  "cpuType" : "ARM-64",
+  "procStartAbsTime" : 16472358134892,
+  "procName" : "MobileMail",
+  "procPath" : "\/private\/var\/containers\/Bundle\/Application\/BEFFADA8-6D85-4D5C-9D7C-55C81EA7E11F\/MobileMail.app\/MobileMail",
+  "bundleInfo" : {"CFBundleShortVersionString":"1.0.0","CFBundleVersion":"3897.100.8.2.5","CFBundleIdentifier":"com.apple.mobilemail"},
+  "storeInfo" : {"deviceIdentifierForVendor":"2D8D9BFF-DA7C-43EA-AEC7-3A7C9EEAEB28"},
+  "parentPid" : 1,
+  "coalitionName" : "com.apple.mobilemail",
+  "crashReporterKey" : "3f2cd59fb756dc67319e2a332feb22f980dba425",
+  "lowPowerMode" : 1,
+  "developerMode" : 1,
+  "bootProgressRegister" : "0x2080000c",
+  "wasUnlockedSinceBoot" : 1,
+  "isLocked" : 0,
+  "codeSigningValidationCategory" : 0,
+  "codeSigningTrustLevel" : 0,
+  "bootSessionUUID" : "4BD8815F-E28B-4818-9340-724AC4B2D5B4",
+  "basebandVersion" : "4.02.01",
+  "isLightWeightCorpse" : 1,
+  "exception" : {"codes":"0x600000000000001f, 0x0000000000000000","reason":0,"message":"namespc 31 reason_code 0x0000000000000000","subtype":"GUARD_TYPE_USER","type":"EXC_GUARD","rawCodes":[6917529027641081887,0],"namespc":31},
+  "termination" : {"namespace":"WEBKIT","flags":518,"code":0},
+  "faultingThread" : 0,
+  "threads" : [{"id":8947138,"frames":[{"imageOffset":3095505284,"imageIndex":0},{"imageOffset":503693820,"imageIndex":0},{"imageOffset":489311136,"imageIndex":0},{"imageOffset":489305876,"imageIndex":0},{"imageOffset":451954712,"imageIndex":0},{"imageOffset":6638256,"imageIndex":0},{"imageOffset":6638116,"imageIndex":0},{"imageOffset":6513128,"imageIndex":0},{"imageOffset":6509200,"imageIndex":0},{"imageOffset":6514432,"imageIndex":0},{"imageOffset":2865184548,"imageIndex":0},{"imageOffset":76384352,"imageIndex":0},{"imageOffset":19004,"imageIndex":1},{"imageOffset":4748848,"imageIndex":0}],"threadState":{"x":[{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0},{"value":0}],"flavor":"ARM_THREAD_STATE64","lr":{"value":0},"cpsr":{"value":0},"fp":{"value":0},"sp":{"value":0},"esr":{"value":0},"pc":{"value":0,"matchesCrashFrame":0},"far":{"value":0}}}],
+  "usedImages" : [
+  {
+    "size" : 5502931152,
+    "source" : "S",
+    "base" : 6442450944,
+    "uuid" : "e2d6f6bd-03e7-3f04-bacd-9c086e5900f6"
+  },
+  {
+    "size" : 11534336,
+    "source" : "P",
+    "base" : 4343332864,
+    "uuid" : "679e6ea6-a4f1-368c-8e6c-0588241cedf6"
+  }
+],
+  "legacyInfo" : {
+  "threadTriggered" : {
+
+  }
+},
+  "bug_type" : "308",
+  "roots_installed" : 0,
+  "trialInfo" : {
+  "rollouts" : [
+    {
+      "rolloutId" : "616061f15c43822edc9b3b70",
+      "factorPackIds" : [
+        "6970ea8e549a232162d81fb2"
+      ],
+      "deploymentId" : 250000031
+    },
+    {
+      "rolloutId" : "5f72dc58705eff005a46b3a9",
+      "factorPackIds" : [
+        "63d867d28283bf1629655506"
+      ],
+      "deploymentId" : 250000014
+    }
+  ],
+  "experiments" : [
+    {
+      "treatmentId" : "d0bb49e6-3717-496d-b592-ae45ce800dcd",
+      "experimentId" : "6a5f07b1796bdc5cb264d8d2",
+      "deploymentId" : 1
+    },
+    {
+      "treatmentId" : "d5c127b8-b13e-42a1-acf5-c483124a1bb5",
+      "experimentId" : "66b1602abe27b2208fd291ba",
+      "deploymentId" : 500000021
+    }
+  ]
+},
+  "reportNotes" : [
+  "PC register does not match crashing frame (0x0 vs 0x23881A984)"
+]
+}

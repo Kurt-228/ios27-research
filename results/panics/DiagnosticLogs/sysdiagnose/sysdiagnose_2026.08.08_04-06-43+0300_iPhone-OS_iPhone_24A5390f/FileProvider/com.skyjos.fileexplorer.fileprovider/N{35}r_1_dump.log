@@ -1,0 +1,111 @@
+Date/Time:         2026-08-08 01:06:58 +0000, (807844018.652731)
+OS Version:        24A5390f
+FP Version:        4838.0.93
+uid:               501
+
+
+7 providers, filtered by 'com.skyjos.fileexplorer.fileprovider/N{35}r'
+=====================================================
+com.skyjos.fileexplorer.fileprovider
+=====================================================
+  + version: none
+  + available system wide: 1
+  + supports enumeration: 1
+  + supports FPFS: 1
+  + read-only: 0
+  + extension storage URLs: (1)
+    - <GroupContainers>/1A2B7331-8754-4335-99DA-08044204C9C1/F{19}e
+  + file coordination purpose ID: com.skyjos.fileexplorer.fileprovider
+  + display name: FE File Explorer
+  + bundle URL: /p{5}e/v{1}r/c{8}s/B{4}e/A{9}n/5{34}8/F{10}r.app/P{5}s/F{18}r.appex
+  + containing bundle identifier: com.skyjos.fileexplorer
+  + persona: FEEDEEEE-DDDD-CCCC-BBBB-0000000001F5
+  + document group name: group.com.skyjos.fileexplorer
+  + supported file types: none
+  + uses unique item identifiers across devices: 0
+  + applies changes atomically: 0
+  + supports failing upload on conflict: 0
+  + disallowed by MDM: 0
+  + push topics (development, opportunistic): (0)
+  + push topics (production): (0)
+  + push topics (production, opportunistic): (0)
+  + push topics (development): (0)
+
+-----------------------------------------------------
+domain: (default)
+-----------------------------------------------------
+ no process observed; grace period timer not running
+[33m  + (⏹  user-disabled)
+[39m  + features: 
+  + root: <GroupContainers>/1A2B7331-8754-4335-99DA-08044204C9C1/F{19}e
+  + FPDDomain instance: <FPDDomain:0x780306de00>
+      - default backend: <FPDDomainExtensionBackend:0x7802c15260>
+      - extension backend: <FPDDomainExtensionBackend:0x7802c15260>
+      - deactivated backend: <(null):0x0>
+      - volume: <FPDVolume:0x7803050060 role:home dev:16777228 uuid:61...07 '/p{5}e/v{1}r/m{4}e'>
+  + persona: FEEDEEEE-DDDD-CCCC-BBBB-0000000001F5
+  + userInfo: 0 keys
+  + indexer:
+domain: com.skyjos.fileexplorer.fileprovider/N{35}r
+      spDomainID:     NSFileProviderDomainDefaultIdentifier
+      scheduler:      <l:com.apple.fileprovider.indexing 🛏  registration:<from:2026-08-08 01:06:42 +0000 count:1>>
+      enabled:        no
+      indexing:       no
+      needs-auth:     no
+      needs-indexing: no
+      + telemetry info:
+         count of files requested for redonation in the last day: 0
+      errors:         0
+      batch-indexed (since last startup): 0
+      not dumping extension: not running
+
+
+== CloudStorage xattrs ==
+=========================
+
+== FileProvider xattrs ==
+=========================
+
+== action operation engine ==
+=================
+0 operations
+
+apps monitor [0;1;32mactive[0m
+-----------------------------------------------------
+[0;1;37m14[0m apps monitored:
+ - <FPAppMetadata:0x7802d057a0 ai.qwenlm.chat.ios n:'Qwen Studio' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d04f60 com.SideStore.SideStore.JML2QQMJYG n:'SideStore' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d047e0 com.apple.Fitness n:'Fitness' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d06820 com.apple.Preview n:'Preview' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d064c0 com.asus.GlideX n:'ASUS GlideX' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d059b0 com.crystalnix.ServerAuditor n:'Termius' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d06a30 com.cuilingshi.fileextract n:'Unzip' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d05260 com.esim.tele n:'eSIM Plus' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d050e0 com.kdt.livecontainer.JML2QQMJYG n:'LiveContainer' p:'com.apple.FileProvider.LocalStorage'>:
+ - <FPAppMetadata:0x7802d05d70 com.moonshot.kimichat n:'Kimi' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d06760 com.neo.NeoMan n:'NeoServer' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d06670 com.skyjos.fileexplorer n:'FE File Explorer' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d05bf0 com.stik.stikdebug.JML2QQMJYG n:'StikDebug' p:'com.apple.FileProvider.LocalStorage'[default]>:
+ - <FPAppMetadata:0x7802d06490 dk.simonbs.RunestoneEditor n:'Runestone' p:'com.apple.CloudDocs.iCloudDriveFileProvider/CAE2D5CA-6DAB-48AF-B228-F6A7808C6DCE'>:
+
+== Trial configuration ==
+{
+  "COREOS_FPFS_CONFIG" : {
+    "rollout" : {
+      "rolloutId" : "616061f15c43822edc9b3b70",
+      "factorPackId" : "6970ea8e549a232162d81fb2",
+      "rampId" : "6970eb53ef5b27740d75104f"
+    },
+    "experiment" : {
+
+    }
+  },
+  "COREOS_FPFS_SPECULATIVE_DOWNLOADS" : {
+    "rollout" : {
+
+    },
+    "experiment" : {
+
+    }
+  }
+}

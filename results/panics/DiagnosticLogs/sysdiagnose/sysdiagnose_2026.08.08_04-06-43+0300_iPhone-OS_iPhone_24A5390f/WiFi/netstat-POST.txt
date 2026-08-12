@@ -1,0 +1,1275 @@
+--------------------------------------------------------------------
+netstat -n -s -I en0
+--------------------------------------------------------------------
+BEGIN: 04:07:09.638, END: 04:07:09.647
+--------------------------------------------------------------------
+Name       Mtu   Network       Address            Ipkts Ierrs    Opkts Oerrs  Coll
+en0        1500  <Link#22>   2a:8f:a6:2b:23:82     3389     0     3074     0     0
+en0        1500  fe80::f1:6e fe80:16::f1:6ebf:     3389     -     3074     -     -
+en0        1500  192.168.50    192.168.50.110      3389     -     3074     -     -
+tcp on en0
+	0 incoming packet with bad TCP header format
+	0 incoming packet with unspecified IPv6 address
+	0 incoming packet with SYN and FIN flags
+	7 incoming packets to closed port
+	0 incoming packet for a closed socket
+	0 incoming packet with SYN with ACK or RST flags
+	0 incoming packet to an IPv6 anycast address
+	0 incoming packet to an IPv6 deprecated address
+	0 incoming RST packet in SYN_RECEIVED state
+	0 incoming packet with bad ACK in connecting states
+	0 incoming packet with bad sequence number in SYN_RECEIVED state
+	1 incoming packet received after close
+udp on en0
+	121 incoming packets for a closed port
+	0 incoming packet destination port 0
+	0 incoming packet with a bad length
+	0 incoming packet with a bad checksum
+	0 incoming multicast packet for a closed port
+	0 incoming packet for closed socket
+	0 incoming packet not allowed by NECP
+ip6 on en0:
+	82 total input datagrams
+	0 datagram with invalid header received
+	0 datagram exceeded MTU received
+	0 datagram with no route received
+	0 datagram with invalid dst received
+	0 datagram with unknown proto received
+	0 truncated datagram received
+	0 input datagram discarded
+	82 datagrams delivered to an upper layer protocol
+	0 datagram forwarded to this interface
+	45 datagrams sent from an upper layer protocol
+	0 total discarded output datagram
+	0 output datagram fragmented
+	0 output datagram failed on fragment
+	0 output datagram succeeded on fragment
+	0 incoming datagram fragmented
+	0 datagram reassembled
+	0 atomic fragments received
+	0 datagram failed on reassembling
+	81 multicast datagrams received
+	45 multicast datagrams sent
+	0 ICMPv6 packet received for unreachable destination
+	0 address expiry event reported
+	0 prefix expiry event reported
+	0 default router expiry event reported
+icmp6 on en0:
+	1 total input message
+	0 total input error message
+	0 input destination unreachable error
+	0 input administratively prohibited error
+	0 input time exceeded error
+	0 input parameter problem error
+	0 input packet too big error
+	0 input echo request
+	0 input echo reply
+	0 input router solicitation
+	1 input router advertisement
+	0 input neighbor solicitation
+	0 input neighbor advertisement
+	0 input redirect
+	0 input MLD query
+	0 input MLD report
+	0 input MLD done
+	0 total output message
+	0 total output error message
+	0 output destination unreachable error
+	0 output administratively prohibited error
+	0 output time exceeded error
+	0 output parameter problem error
+	0 output packet too big error
+	0 output echo request
+	0 output echo reply
+	0 output router solicitation
+	0 output router advertisement
+	0 output neighbor solicitation
+	0 output neighbor advertisement
+	0 output redirect
+	0 output MLD query
+	0 output MLD report
+	0 output MLD done
+link heuristics on en0
+	enabled: false
+	0 time link heuristics enabled
+	0.000 seconds link heuristics enabled
+	0 time link congested enabled
+	0.000 seconds link congested
+	0 time good link quality enabled
+	0.000 seconds of good link quality
+	1 time poor link quality enabled
+	33.883 seconds of poor link quality
+	1 time minimally viable link quality enabled
+	1.006 seconds of minimally viable link quality
+	1 time bad link quality enabled
+	2.002 seconds of bad link quality
+	0 stealth TCP packet to closed port
+	0 TCP packet ACK/SYN no prioritized
+	0 TCP data retransmission compressed
+	0 TCP SYN retransmission standard backoff
+	0 TCP retransmission delayed to floor
+	0 stealth UDP packet to closed port
+
+--------------------------------------------------------------------
+netstat -n -I en0
+--------------------------------------------------------------------
+BEGIN: 04:07:09.648, END: 04:07:09.655
+--------------------------------------------------------------------
+Name       Mtu   Network       Address            Ipkts Ierrs    Opkts Oerrs  Coll
+en0        1500  <Link#22>   2a:8f:a6:2b:23:82     3389     0     3074     0     0
+en0        1500  fe80::f1:6e fe80:16::f1:6ebf:     3389     -     3074     -     -
+en0        1500  192.168.50    192.168.50.110      3389     -     3074     -     -
+
+--------------------------------------------------------------------
+netstat -qq -I en0
+--------------------------------------------------------------------
+BEGIN: 04:07:09.655, END: 04:07:09.663
+--------------------------------------------------------------------
+en0:
+     [ sched:           FQ_CODEL  qlength:    0/7392 ]
+     [ dequeued pkts:       3074  bytes:    1210033  dropped pkts:      6 bytes:    588 ]
+=====================================================
+     [ pri: VO (1)	srv_cl: 0x400180	quantum: 605	drr_max: 8	qset idx: 0 ]
+     [ queued pkts: 0	bytes: 0 ]
+     [ dequeued pkts: 105	bytes: 31252 ]
+     [ budget: 0	target qdelay: 10.00 msec	update interval:100.00 msec ]
+     [ flow control: 0	feedback: 0	stalls: 0	failed: 0 	overwhelming: 0 ]
+     [ drop overflow: 0	early: 0	memfail: 0	duprexmt:0 ]
+     [ congestion feedback: 0	 congestion drops: 0 ]
+     [ L4S target qdelay: 15.00 msec ]
+     [ CE marked:0	CE marking failures:0	L4S pkts:0   ]
+     [ paced pkts:0	pacemaker needed:0 ]
+     [ flows total: 0	new: 0	old: 0 ]
+     [ throttle on: 0	off: 0	drop: 0 ]
+     [ compressible pkts: 1 compressed pkts: 0]
+=====================================================
+     [ pri: VI (2)	srv_cl: 0x380100	quantum: 3028	drr_max: 6	qset idx: 0 ]
+     [ queued pkts: 0	bytes: 0 ]
+     [ dequeued pkts: 1	bytes: 84 ]
+     [ budget: 0	target qdelay: 10.00 msec	update interval:100.00 msec ]
+     [ flow control: 0	feedback: 0	stalls: 0	failed: 0 	overwhelming: 0 ]
+     [ drop overflow: 0	early: 0	memfail: 0	duprexmt:0 ]
+     [ congestion feedback: 0	 congestion drops: 0 ]
+     [ L4S target qdelay: 15.00 msec ]
+     [ CE marked:0	CE marking failures:0	L4S pkts:0   ]
+     [ paced pkts:0	pacemaker needed:0 ]
+     [ flows total: 0	new: 0	old: 0 ]
+     [ throttle on: 0	off: 0	drop: 0 ]
+     [ compressible pkts: 0 compressed pkts: 0]
+=====================================================
+     [ pri: BE (7)	srv_cl: 0x0	quantum: 1514	drr_max: 4	qset idx: 0 ]
+     [ queued pkts: 0	bytes: 0 ]
+     [ dequeued pkts: 2805	bytes: 1109456 ]
+     [ budget: 0	target qdelay: 10.00 msec	update interval:100.00 msec ]
+     [ flow control: 0	feedback: 0	stalls: 0	failed: 0 	overwhelming: 0 ]
+     [ drop overflow: 0	early: 0	memfail: 0	duprexmt:0 ]
+     [ congestion feedback: 0	 congestion drops: 0 ]
+     [ L4S target qdelay: 15.00 msec ]
+     [ CE marked:0	CE marking failures:0	L4S pkts:0   ]
+     [ paced pkts:0	pacemaker needed:0 ]
+     [ flows total: 0	new: 0	old: 0 ]
+     [ throttle on: 0	off: 0	drop: 0 ]
+     [ compressible pkts: 623 compressed pkts: 0]
+=====================================================
+     [ pri: BK (8)	srv_cl: 0x100080	quantum: 1514	drr_max: 2	qset idx: 0 ]
+     [ queued pkts: 0	bytes: 0 ]
+     [ dequeued pkts: 163	bytes: 69241 ]
+     [ budget: 0	target qdelay: 10.00 msec	update interval:100.00 msec ]
+     [ flow control: 0	feedback: 0	stalls: 0	failed: 0 	overwhelming: 0 ]
+     [ drop overflow: 0	early: 0	memfail: 0	duprexmt:0 ]
+     [ congestion feedback: 0	 congestion drops: 0 ]
+     [ L4S target qdelay: 15.00 msec ]
+     [ CE marked:0	CE marking failures:0	L4S pkts:0   ]
+     [ paced pkts:0	pacemaker needed:0 ]
+     [ flows total: 0	new: 0	old: 0 ]
+     [ throttle on: 0	off: 0	drop: 0 ]
+     [ compressible pkts: 44 compressed pkts: 0]
+
+--------------------------------------------------------------------
+netstat -n -s
+--------------------------------------------------------------------
+BEGIN: 04:07:09.663, END: 04:07:09.675
+--------------------------------------------------------------------
+tcp:
+	12941 packets sent
+		6536 data packets (39880105 bytes)
+		7 data packets (67550 bytes) retransmitted
+		0 resend initiated by MTU discovery
+		3456 ack-only packets (0 delayed)
+		0 URG only packet
+		0 window probe packet
+		2271 window update packets
+		670 control packets
+		0 data packet sent after flow control
+		0 challenge ACK sent due to unexpected SYN
+		0 challenge ACK sent due to unexpected RST
+		0 challenge ACK sent due to unexpected RST
+		187 checksummed in software
+			3 segments (10248 bytes) over IPv4
+			184 segments (37356 bytes) over IPv6
+	13028 packets received
+		5491 acks (for 39880744 bytes)
+		42 duplicate acks
+		0 ack for unsent data
+		6956 packets (39867073 bytes) received in-sequence
+		21 completely duplicate packets (65975 bytes)
+		0 old duplicate packet
+		0 received packet dropped due to low memory
+		0 packet with some dup. data (0 byte duped)
+		0 out-of-order packet (0 byte)
+		0 packet (0 byte) of data after window
+		0 window probe
+		240 window update packets
+		0 packet recovered after loss
+		11 packets received after close
+		0 bad reset
+		0 discarded for bad checksum
+		11 checksummed in software
+			0 segment (0 byte) over IPv4
+			11 segments (484 bytes) over IPv6
+		0 discarded for bad header offset field
+		0 discarded because packet too short
+	246 connection requests
+	224 connection accepts
+	0 bad connection attempt
+	0 listen queue overflow
+	450 connections established (including accepts)
+	477 connections closed (including 12 drops)
+		41 connections updated cached RTT on close
+		41 connections updated cached RTT variance on close
+		0 connection updated cached ssthresh on close
+		637 connections initialized RTT from route cache
+		637 connections initialized RTT variance from route cache
+		0 connection initialized ssthresh from route cache
+	17 embryonic connections dropped
+	5474 segments updated rtt (of 4891 attempts)
+	1 retransmit timeout
+		0 connection dropped by rexmit timeout
+		0 connection dropped after retransmitting FIN
+		0 unnecessary packet retransmissions
+	0 persist timeout
+		0 connection dropped by persist timeout
+	22 keepalive timeouts
+		22 keepalive probes sent
+		0 connection dropped by keepalive
+		0 connection dropped by keepalive offload
+	0 correct ACK header prediction
+	6472 correct data packet header predictions
+	0 SACK recovery episode
+	0 segment rexmit in SACK recovery episodes
+	0 byte rexmit in SACK recovery episodes
+	6 SACK options (SACK blocks) received
+	5 SACK options (SACK blocks) sent
+	0 SACK scoreboard overflow
+	0 segment retransmitted in RACK recovery episodes
+	0 RACK recovery episode
+	0 RACK recovery episode due to reordering timeout
+	0 limited transmit done
+	0 early retransmit done
+	0 time cumulative ack advanced along with SACK
+	7 probe timeouts
+		0 time retransmit timeout triggered after probe
+		0 time probe packets were sent for an interface
+		0 time couldn't send probe packets for an interface
+		0 time fast recovery after tail loss
+		0 time recovered last packet 
+		0 SACK based rescue retransmit
+	15 client connections attempted to negotiate ECN
+		13 client connections successfully negotiated ECN
+		0 time graceful fallback to Non-ECN connection
+		1 time lost ECN negotiating SYN, followed by retransmission
+		9 server connections attempted to negotiate ECN
+		9 server connections successfully negotiated ECN
+		0 time lost ECN negotiating SYN-ACK, followed by retransmission
+		0 time received congestion experienced (CE) notification
+		0 time CWR was sent in response to ECE
+		0 time sent ECE notification
+		0 connection received CE atleast once
+		0 connection received ECE atleast once
+		24 connections using ECN have seen packet loss but no CE
+		0 connection using ECN have seen packet loss and CE
+		0 connection using ECN received CE but no packet loss
+		0 connection fell back to non-ECN due to SYN-loss
+		0 connection fell back to non-ECN due to reordering
+		0 connection fell back to non-ECN due to excessive CE-markings
+		0 connection fell back caused by connection drop due to RST
+		0 connection fell back due to drop after multiple retransmits 
+		0 time received AccECN SYN packet with Not-ECT
+		0 time received AccECN SYN packet with ECT1
+		0 time received AccECN SYN packet with ECT0
+		0 time received AccECN SYN packet with CE
+		0 time CE received in ACE field
+	0 time packet reordering was detected on a connection
+		0 time transmitted packets were reordered
+		0 time fast recovery was delayed to handle reordering
+		0 time retransmission was avoided by delaying recovery
+	1 retransmission due to tail loss
+	5 times DSACK option was sent
+		6 times DSACK option was received
+		0 time recovered from bad retransmission using DSACK
+		5 times ignored DSACK due to ack loss
+		0 time ignored old DSACK options
+	0 time PMTU Blackhole detection, size reverted
+	0 connection were dropped after long sleep
+	0 time a TFO-cookie has been announced
+	0 SYN with data and a valid TFO-cookie have been received
+	0 SYN with TFO-cookie-request received
+	0 time an invalid TFO-cookie has been received
+	0 time we requested a TFO-cookie
+		0 time the peer announced a TFO-cookie
+	0 time we combined SYN with data and a TFO-cookie
+		0 time our SYN with data has been acknowledged
+	0 time a connection-attempt with TFO fell back to regular TCP
+	0 time a TFO-connection blackhole'd
+	0 time a TFO-cookie we sent was wrong
+	0 time did not received a TFO-cookie we asked for
+	0 time TFO got disabled due to heuristicsn
+	0 time TFO got blackholed in the sending direction
+	0 time maximum segment size was changed to default
+	0 time maximum segment size was changed to medium
+	0 time maximum segment size was changed to low
+	672 timer drifts less or equal to 1 ms
+	3 timer drifts less or equal to 10 ms
+	0 timer drift less or equal to 20 ms
+	0 timer drift less or equal to 50 ms
+	0 timer drift less or equal to 100 ms
+	0 timer drift less or equal to 200 ms
+	0 timer drift less or equal to 500 ms
+	0 timer drift less or equal to 1000 ms
+	0 timer drift greater than to 1000 ms
+	0 FIN_WAIT timeout drop
+	0 time could not reply to packet
+	0 successful extraction of entries
+	0 syncache entries aborted
+	0 SYN cookie sent
+	0 SYN cookie received
+	10 duplicate RST packets for port unreachable suppressed
+	41 RST packets for port unreachable not suppressed
+	35 open TCP sockets
+udp:
+	1029 datagrams received
+		0 with incomplete header
+		0 with bad data length field
+		0 with bad checksum
+		0 with no checksum
+		171 checksummed in software
+			61 datagrams (17690 bytes) over IPv4
+			110 datagrams (73913 bytes) over IPv6
+		187 dropped due to no socket
+		9 broadcast/multicast datagrams undelivered
+		0 IPv6 multicast datagram undelivered
+		0 time multicast source filter matched
+		0 dropped due to full socket buffers
+		0 not for hashed pcb
+		833 delivered
+	750 datagrams output
+		366 checksummed in software
+			49 datagrams (9446 bytes) over IPv4
+			317 datagrams (89720 bytes) over IPv6
+	81 duplicate IMCP packets for port unreachable suppressed
+	106 ICMP packets for port unreachable not suppressed
+ip:
+	13529 total packets received
+		0 bad header checksum
+		620 headers (12408 bytes) checksummed in software
+		0 with size smaller than minimum
+		0 with data size < data length
+		0 with data size > data length
+			0 packet forced to software checksum
+		0 with ip length > max ip packet size
+		0 with header length < data size
+		0 with data length < header length
+		0 with bad options
+		0 with incorrect version number
+		0 fragment received
+			0 dropped (dup or out of space)
+			0 dropped after timeout
+			0 reassembled ok
+		13496 packets for this host
+		3 packets for unknown/unsupported protocol
+		0 packet forwarded (0 packet fast forwarded)
+		0 packet not forwardable
+		36 packets received for unknown multicast group
+		0 redirect sent
+		1 input packet not chained due to collision
+		13516 input packets processed in a chain
+		12 input packets unable to chain
+		798 input packet chains processed with length greater than 2
+		120 input packet chains processed with length greater than 4
+		0 input packet did not go through list processing path
+		0 input packet that passed the weak ES interface address match
+		2 input packets with no interface address match
+	13483 packets sent from this host
+		0 packet sent with fabricated ip header
+		0 output packet dropped due to no bufs, etc.
+		0 output packet discarded due to no route
+		0 output datagram fragmented
+		0 fragment created
+		0 datagram that can't be fragmented
+		0 tunneling packet that can't find gif
+		0 datagram with bad address in header
+		0 packet dropped due to no bufs for control data
+		0 packet dropped due to NECP policy
+		899 headers (17996 bytes) checksummed in software
+	1 open raw IP socket
+icmp:
+	106 calls to icmp_error
+	0 error not generated 'cuz old message was icmp
+	Output histogram:
+		destination unreachable: 106
+	0 message with bad code fields
+	0 message < minimum length
+	0 bad checksum
+	0 message with bad length
+	0 multicast echo requests ignored
+	0 multicast timestamp requests ignored
+	Input histogram:
+		echo reply: 6
+	0 message response generated
+	ICMP address mask responses are disabled
+igmp:
+	2 messages received
+	0 message received with too few bytes
+	0 message received with wrong TTL
+	0 message received with bad checksum
+	1 V1/V2 membership query received
+	0 V3 membership queries received
+	0 membership queries received with invalid field(s)
+	1 general query received
+	0 group queries received
+	0 group-source queries received
+	0 group-source queries dropped
+	1 membership report received
+	0 membership report received with invalid field(s)
+	1 membership report received for groups to which we belong
+	0 V3 report received without Router Alert
+	4 membership reports sent
+ipsec:
+	0 inbound packet processed successfully
+	0 inbound packet violated process security policy
+	0 inbound packet with no SA available
+	0 invalid inbound packet
+	0 inbound packet failed due to insufficient memory
+	0 inbound packet failed getting SPI
+	0 inbound packet failed on AH replay check
+	0 inbound packet failed on ESP replay check
+	0 inbound packet considered authentic by AH
+	0 inbound packet failed on AH authentication
+	0 inbound packet considered authentic by ESP
+	0 inbound packet failed on ESP authentication
+	0 outbound packet processed successfully
+	0 outbound packet violated process security policy
+	0 outbound packet with no SA available
+	0 invalid outbound packet
+	0 outbound packet failed due to insufficient memory
+	0 outbound packet with no route
+arp:
+	12 broadast ARP requests sent
+	0 unicast ARP request sent
+	2 ARP replies sent
+	0 ARP announcement sent
+	4 ARP requests received
+	11 ARP replies received
+	22 total ARP packets received
+	0 ARP conflict probe sent
+	0 invalid ARP resolve request
+	0 total packet dropped due to lack of memory
+	0 total packet held awaiting ARP reply
+	0 total packet dropped due to no ARP entry
+	0 total packet dropped during ARP entry removal
+	0 ARP entry timed out
+	0 Duplicate IP seen
+mptcp:
+	0 data packet sent
+	0 data byte sent
+	0 data packet received
+	0 data byte received
+	0 packet with an invalid MPCAP option
+	0 packet with an invalid MPJOIN option
+	1 time primary subflow fell back to TCP
+	0 time secondary subflow fell back to TCP
+	0 DSS option drop
+	0 other invalid MPTCP option
+	0 time the MPTCP subflow window was reduced
+	0 bad DSS checksum
+	0 time received out of order data 
+	0 subflow switch
+	0 subflow switch due to rtt
+	0 subflow switch due to rto
+	0 number of subflow probe
+	0 number of join ack retransmits
+	0 MPTCP packet dropped for lack of memory
+	0 MPTCP duplicate-only packet received
+	0 MPTCP packet with data after window
+	0 MPTCP attempt using handover mode
+	0 successfull handover mode connection that started on Wi-Fi
+	0 successfull handover mode connection that started on cellular
+	0 successfull handover mode connection that started on Wi-Fi
+	0 successfull handover mode connection that started on cellular
+	0 byte sent on cellular in handover-mode
+	0 byte sent in handover
+	0 MPTCP attempt using aggregate mode
+	0 aggregate mode connection that negotiated MPTCP
+	0 byte sent on cellular in aggregate mode
+	0 byte sent in aggregate
+	0 connection that moved traffic away from cellular when starting on cellular
+	0 new subflow that fell back to regular TCP on cellular
+	0 new subflow that fell back to regular TCP on Wi-Fi
+	0 time an MPTCP connection triggered cellular
+ip6:
+	589 total packets received
+		0 with size smaller than minimum
+		0 with data size < data length
+		0 with data size > data length
+			0 packet forced to software checksum
+		0 with bad options
+		0 with incorrect version number
+		0 fragment received
+			0 dropped (dup or out of space)
+			0 dropped after timeout
+			0 exceeded limit
+			0 reassembled ok
+			0 atomic fragments received
+		538 packets for this host
+		0 input packet that passed the weak ES interface address match
+		0 input packet with no interface address match
+		0 packet forwarded
+		31 packets not forwardable
+		0 redirect sent
+		31 multicast packets which we didn't join
+		0 packet whose headers are not continuous
+		0 tunneling packet that can't find gif
+		0 packet discarded due to too may headers
+		0 forward cache hit
+		0 forward cache miss
+		0 packet dropped due to no bufs for control data
+		0 input packet dropped due to too short length 
+		0 input packet dropped due to missing CLAT46 IPv6 address
+		0 input packet dropped due to missing CLAT46 IPv4 address
+		0 input packet dropped due to CLAT46 IPv4 address derivation failure
+		0 input packet dropped due to CLAT46 IP header translation failure
+		0 input packet dropped due to CLAT46 protocol translation failure
+		0 input packet dropped due to CLAT46 fragment translation failure
+		0 input packet dropped due to invalid pbuf
+		0 input IPv4 packet dropped on CLAT46 enabled interface
+		0 input packet dropped due to CLAT46 failures
+		0 input packet successfully translated from IPv6 to IPv4
+	482 packets sent from this host
+		0 packet sent with fabricated ip header
+		0 output packet dropped due to no bufs, etc.
+		34 output packets discarded due to no route
+		0 output datagram fragmented
+		0 fragment created
+		0 datagram that can't be fragmented
+		0 packet that violated scope rules
+		4 packets dropped due to NECP policy
+		0 output packet dropped due to missing CLAT46 IPv6 address
+		0 output packet dropped due to CLAT46 IPv6 address synthesis failure
+		0 output packet dropped due to CLAT46 IP header translation failure
+		0 output packet dropped due to CLAT46 protocol translation failure
+		0 output packet dropped due to CLAT46 fragment translation failure
+		0 output packet dropped due to invalid pbuf
+		0 output packet dropped due to CLAT46 failures
+		0 output packet successfully translated from IPv4 to IPv6
+	Input histogram:
+		hop by hop: 13
+		TCP: 183
+		UDP: 364
+		ICMP6: 29
+	Mbuf statistics:
+		223 one mbuf
+		two or more mbuf:
+			lo0= 197
+		167 one ext mbuf
+		2 two or more ext mbuf
+		0 failure of source address selection
+		source addresses on an outgoing I/F
+			0 addresses scope=0
+			0 node-local
+			0 link-local
+			0 addresses scope=3
+			0 addresses scope=4
+			0 site-local
+			0 addresses scope=6
+			0 addresses scope=7
+			0 addresses scope=8
+			0 addresses scope=9
+			0 addresses scope=a
+			0 addresses scope=b
+			0 addresses scope=c
+			0 addresses scope=d
+			0 global
+			0 addresses scope=f
+		source addresses on a non-outgoing I/F
+			0 addresses scope=0
+			0 node-local
+			0 link-local
+			0 addresses scope=3
+			0 addresses scope=4
+			0 site-local
+			0 addresses scope=6
+			0 addresses scope=7
+			0 addresses scope=8
+			0 addresses scope=9
+			0 addresses scope=a
+			0 addresses scope=b
+			0 addresses scope=c
+			0 addresses scope=d
+			0 global
+			0 addresses scope=f
+		source addresses of same scope
+			0 addresses scope=0
+			0 node-local
+			0 link-local
+			0 addresses scope=3
+			0 addresses scope=4
+			0 site-local
+			0 addresses scope=6
+			0 addresses scope=7
+			0 addresses scope=8
+			0 addresses scope=9
+			0 addresses scope=a
+			0 addresses scope=b
+			0 addresses scope=c
+			0 addresses scope=d
+			0 global
+			0 addresses scope=f
+		source addresses of a different scope
+			0 addresses scope=0
+			0 node-local
+			0 link-local
+			0 addresses scope=3
+			0 addresses scope=4
+			0 site-local
+			0 addresses scope=6
+			0 addresses scope=7
+			0 addresses scope=8
+			0 addresses scope=9
+			0 addresses scope=a
+			0 addresses scope=b
+			0 addresses scope=c
+			0 addresses scope=d
+			0 global
+			0 addresses scope=f
+		deprecated source addresses
+			0 addresses scope=0
+			0 node-local
+			0 link-local
+			0 addresses scope=3
+			0 addresses scope=4
+			0 site-local
+			0 addresses scope=6
+			0 addresses scope=7
+			0 addresses scope=8
+			0 addresses scope=9
+			0 addresses scope=a
+			0 addresses scope=b
+			0 addresses scope=c
+			0 addresses scope=d
+			0 global
+			0 addresses scope=f
+		source address selection
+			190 rules default
+			0 rule prefer same address
+			6 rules prefer appropriate scope
+			0 rule avoid deprecated addresses
+			0 rule prefer home addresses
+			0 rule prefer outgoing interface
+			0 rule prefer matching label
+			55 rules prefer temporary addresses
+			4 rules prefer addresses on alive interfaces
+			0 rule use longest matching prefix
+		0 duplicate address detection collision
+		0 duplicate address detection NS loop
+		0 time ignored source on secondary expensive I/F
+icmp6:
+	0 call to icmp_error
+	0 error not generated because old message was icmp error or so
+	0 error not generated because rate limitation
+	Output histogram:
+		router solicitation: 6
+		neighbor solicitation: 12
+		neighbor advertisement: 16
+		MLDv2 listener report: 41
+	0 message with bad code fields
+	0 message < minimum length
+	0 bad checksum
+	0 message with bad length
+	Input histogram:
+		router advertisement: 3
+		neighbor solicitation: 16
+		neighbor advertisement: 4
+	Histogram of error messages to be generated:
+		0 no route
+		0 administratively prohibited
+		0 beyond scope
+		0 address unreachable
+		0 port unreachable
+		0 packet too big
+		0 time exceed transit
+		0 time exceed reassembly
+		0 erroneous header field
+		0 unrecognized next header
+		0 unrecognized option
+		0 redirect
+		0 unknown
+	0 message response generated
+	0 message with too many ND options
+	0 message with bad ND options
+	0 bad neighbor solicitation message
+	0 bad neighbor advertisement message
+	0 bad router solicitation message
+	0 bad router advertisement message
+	0 bad redirect message
+	0 path MTU change
+	0 dropped fragmented NDP message
+ipsec6:
+	0 inbound packet processed successfully
+	0 inbound packet violated process security policy
+	0 inbound packet with no SA available
+	0 invalid inbound packet
+	0 inbound packet failed due to insufficient memory
+	0 inbound packet failed getting SPI
+	0 inbound packet failed on AH replay check
+	0 inbound packet failed on ESP replay check
+	0 inbound packet considered authentic by AH
+	0 inbound packet failed on AH authentication
+	0 inbound packet considered authentic by ESP
+	0 inbound packet failed on ESP authentication
+	0 outbound packet processed successfully
+	0 outbound packet violated process security policy
+	0 outbound packet with no SA available
+	0 invalid outbound packet
+	0 outbound packet failed due to insufficient memory
+	0 outbound packet with no route
+rip6:
+	0 message received
+	0 checksum calculation on inbound
+	0 message with bad checksum
+	0 message dropped due to no socket
+	0 multicast message dropped due to no socket
+	0 message dropped due to full socket buffers
+	0 delivered
+	0 datagram output
+local (UNIX):
+	102 open local sockets
+kevt:
+	13 open kernel event sockets
+	15 kernel control generation count
+	0 bad vendor failure
+	0 message too big failure
+	0 out of memory failure
+	0 message dropped due to full socket buffers
+	2599 messages posted
+kctl:
+	0 total kernel control module registered
+	13 current kernel control modules registered
+	105 open kernel control sockets
+	202 kernel control generation count
+	147 connection attempts
+	0 connection failure
+	0 send failure
+	0 send list failure
+	705 enqueue failures
+	705 packets dropped due to full socket buffers
+	0 failure with bad kern_ctl_ref
+	0 register failure because of too many kern_ctl_ref
+	0 enqueuedata failure because could not allocate a packet
+	0 enqueuedata failure due to full socket buffers
+nstat:
+	0 enqueue success message failure
+	0 enqueue source counts message failure
+	0 enqueue sysinfo message failure
+	21 enqueue source update message failures
+	0 enqueue description message failure
+	0 enqueue remove message failure
+	671 enqueue source added message failures
+	0 enqueue error message failure
+	0 copy descriptor failure
+	0 provider counts failure
+	0 control send description failure
+	20 control send goodbye failures
+	13 flush accumulated messages failures
+	0 accumulated message failure
+	0 control cleanup source failure
+	269 handle message failures
+xbkidle:
+	1 max per process
+	600 maximum time (seconds)
+	131072 high water mark
+	0 socket option not supported failure
+	0 too many sockets failure
+	0 total socket requested OK
+	0 extended bk idle socket
+	0 no cellular failure
+	0 no time failures
+	0 forced defunct socket
+	0 resumed socket
+	0 timeout expired failure
+	0 timer rescheduled
+	0 no delegated failure
+net_api:
+	0 interface filter currently attached
+	0 interface filter currently attached by OS
+	0 interface filter attached since boot
+	0 interface filter attached since boot by OS
+	0 IP filter currently attached
+	0 IP filter currently attached by OS
+	0 IP filter attached since boot
+	0 IP filter attached since boot by OS
+	0 socket filter currently attached
+	0 socket filter currently attached by OS
+	0 socket filter attached since boot
+	0 socket filter attached since boot by OS
+	7924 sockets allocated since boot
+	222 sockets allocated in-kernel since boot
+	222 sockets allocated in-kernel by OS
+	10 sockets with NECP client UUID since boot
+	223 local domain sockets allocated since boot
+	84 route domain sockets allocated since boot
+	6722 inet domain sockets allocated since boot
+	481 inet6 domain sockets allocated since boot
+	161 system domain sockets allocated since boot
+	1 multipath domain socket allocated since boot
+	0 key domain socket allocated since boot
+	1 ndrv domain socket allocated since boot
+	1 other domains socket allocated since boot
+	271 IPv4 stream sockets created since boot
+	6451 IPv4 datagram sockets created since boot
+	28 IPv4 datagram sockets connected
+	339 IPv4 DNS sockets
+	6102 IPv4 datagram sockets without data
+	16 IPv6 stream sockets created since boot
+	465 IPv6 datagram sockets created since boot
+	25 IPv6 datagram sockets connected
+	0 IPv6 DNS socket
+	434 IPv6 datagram sockets without data
+	14 socket multicast joins since boot
+	14 socket multicast joins since boot by OS
+	128 IPv4 stream nexus flows added since boot
+	107 IPv4 datagram nexus flows added since boot
+	11 IPv6 stream nexus flows added since boot
+	22 IPv6 datagram nexus flows added since boot
+	29 interfaces currently allocated
+	29 interfaces allocated since boot
+	29 interfaces currently allocated by OS
+	29 extended interfaces allocated since boot by OS
+	0 PF addrule operation since boot
+	0 PF addrule operation since boot by OS
+	0 vmnet start since boot
+if_ports_used:
+	0 wakeuuid generation
+	0 offload port list query with wakeuuid not set
+	0 total offload port entry created since boot
+	0 current offload port entry
+	0 max offload port entry
+	0 duplicate offload port entry
+	0 total table entry search
+	0 max hash table entry search
+	0 match so wake packet call
+	0 match ch wake packet call
+	0 IPv4 wake packet
+	0 IPv6 wake packet
+	0 TCP wake packet
+	0 UDP wake packet
+	0 ISAKMP NAT traversal wake packet
+	0 ESP wake packet
+	0 bad protocol wake packet
+	0 bad family wake packet
+	0 wake packet event
+	0 duplicate wake packet event in same wake cycle
+	0 wake packet event undelivered
+	0 unattributed wake packet event
+	0 duplicate unattributed wake packet event in same wake cycle
+	0 unattributed wake packet event undelivered
+	0 unattributed wake packet received with null interface
+	0 bad packet without wake flag
+	0 pure fragment wake packet
+	0 packet with incomplete TCP header
+	0 packet with incomplete UDP header
+	0 port entry not added with wakeuuid not set
+	0 deferred matching of ISAKMP NAT traversal wake packet
+	0 spurious no wake from sleep packet event
+	0 delayed attributed wake packet event
+	0 delayed unattributed wake packet event
+	0 undelivered delayed wake packet event
+	0 connection idle wake
+	0 LPW connection idle wake
+	0 LPW not idle connection wake
+	0 LPW to full wake transition
+	0 ignored wake packet in same wake cycle
+	0 delayed wake packet
+	0 ignored delayed attributed event
+	0 ignored delayed unattributed event
+	0 wake pkt event notifications in vain
+	0 packet received in LPW mode
+	0 packet transmitted in LPW mode
+Local ports offload:
+	wakeuuid: 00000000-0000-0000-0000-000000000000
+	interface        flags                                       local address.port                           foreign address.port             pname.pid             epname.epid 
+droptap:
+       2 Flowswitch flow lookup failed                   
+       9 Flowswitch flow not viable                      
+      16 Flowswitch flow tracker error                   
+     126 AQM purge flow                                  
+       2 DLIL no protocol                                
+      17 TCP connection reset                            
+      14 TCP bad RST                                     
+      36 IP unknown multicast group join                 
+       2 IP receive interface no match                   
+       4 NECP not allowed on interface                   
+      31 IPv6 unknown multicast group join               
+      90 UDP port unreachable                            
+pfkey:
+	0 request sent to userland
+	0 byte sent to userland
+	0 message with invalid length field
+	0 message with invalid version field
+	0 message with invalid message type field
+	0 message too short
+	0 message with memory allocation failure
+	0 message with duplicate extension
+	0 message with invalid extension type
+	0 message with invalid sa type
+	0 message with invalid address extension
+	0 request sent from userland
+	0 byte sent from userland
+	0 message toward single socket
+	0 message toward all sockets
+	0 message toward registered sockets
+	0 message with memory allocation failure
+	0 open pfkey socket
+vsock:
+	0 open vsock socket
+vsock_private:
+	0 open vsock_private socket
+
+--------------------------------------------------------------------
+netstat -n
+--------------------------------------------------------------------
+BEGIN: 04:07:09.676, END: 04:07:09.689
+--------------------------------------------------------------------
+Active Internet connections
+Proto Recv-Q Send-Q  Local Address          Foreign Address        (state)    
+tcp6       0      0  fe80::cff:9734:e.49414 fe80::1cf6:4cff:.57861 ESTABLISHED
+tcp4       0      0  127.0.0.1.49324        127.0.0.1.49325        ESTABLISHED
+tcp4       0      0  127.0.0.1.49325        127.0.0.1.49324        ESTABLISHED
+tcp4       0      0  192.168.50.110.49313   203.209.243.114.443    ESTABLISHED
+tcp4       0      0  192.168.50.110.49301   47.235.21.35.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.49297   119.42.231.5.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.49296   47.235.9.189.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.49295   47.246.2.182.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.49294   47.246.2.182.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.49293   47.246.2.182.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.49292   163.181.254.194.443    CLOSE_WAIT 
+tcp4       0      0  192.168.50.110.49291   163.181.254.193.443    CLOSE_WAIT 
+tcp6       0      0  fe80::908b:b3ff:.49248 fe80::908b:b3ff:.49368 ESTABLISHED
+tcp4       0      0  127.0.0.1.49231        127.0.0.1.49232        ESTABLISHED
+tcp4       0      0  127.0.0.1.49232        127.0.0.1.49231        ESTABLISHED
+tcp6       0      0  fe80::908b:b3ff:.58783 fe80::908b:b3ff:.57834 ESTABLISHED
+tcp4       0      0  192.168.234.3.51644    17.253.39.137.443      ESTABLISHED
+tcp4       0      0  192.168.234.3.51643    192.168.234.1.49158    TIME_WAIT  
+tcp4       0      0  192.168.234.3.51641    17.145.16.2.443        TIME_WAIT  
+tcp4       0      0  192.168.234.3.51639    17.188.178.46.5223     ESTABLISHED
+tcp4       0      0  192.168.234.3.51637    17.253.39.144.443      SYN_SENT   
+tcp4       0      0  192.168.50.110.63413   17.248.214.12.443      TIME_WAIT  
+tcp4       0      0  192.168.50.110.63412   17.253.39.141.443      ESTABLISHED
+tcp4       0      0  192.168.50.110.63409   17.248.214.70.443      TIME_WAIT  
+tcp4       0      0  192.168.50.110.63408   17.253.39.143.443      TIME_WAIT  
+tcp4       0      0  192.168.50.110.63404   17.8.136.39.443        TIME_WAIT  
+tcp4       0      0  192.168.50.110.63401   17.8.130.25.443        ESTABLISHED
+tcp4       0      0  192.168.50.110.63400   23.32.24.165.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.63397   17.156.129.129.443     TIME_WAIT  
+tcp4       0      0  192.168.50.110.63393   17.137.162.3.443       TIME_WAIT  
+tcp4       0      0  192.168.50.110.63390   17.156.176.107.443     TIME_WAIT  
+tcp4       0      0  192.168.50.110.63388   17.248.214.12.443      TIME_WAIT  
+tcp4       0     63  192.168.50.110.63387   2.20.255.11.443        ESTABLISHED
+tcp4       0      0  192.168.50.110.63386   47.246.2.183.80        ESTABLISHED
+tcp4       0      0  11.192.213.232.56880   17.188.169.5.5223      ESTABLISHED
+tcp4       0      0  192.168.50.110.63380   47.246.2.208.80        ESTABLISHED
+tcp4       0      0  192.168.50.110.63379   47.246.2.184.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.63378   110.76.3.55.443        ESTABLISHED
+tcp4       0      0  192.168.50.110.63377   47.246.2.198.443       ESTABLISHED
+tcp4       0      0  192.168.50.110.63376   17.156.176.107.443     TIME_WAIT  
+tcp4       0      0  192.168.50.110.63374   205.204.122.81.443     ESTABLISHED
+tcp4       0      0  192.168.50.110.63373   17.32.194.2.443        TIME_WAIT  
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp46      0      0  *.53738                *.*                               
+udp46      0      0  *.59572                *.*                               
+udp46      0      0  *.53131                *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp46      0      0  *.53568                *.*                               
+udp46      0      0  *.64833                *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp4       0      0  *.*                    *.*                               
+udp6       0      0  *.5353                 *.*                               
+udp4       0      0  *.5353                 *.*                               
+udp4       0      0  *.*                    *.*                               
+udp46      0      0  *.56936                *.*                               
+Active Multipath Internet connections
+Proto/ID  Flags      Local Address          Foreign Address        (state)    
+mptcp/00  00000c06/00000082                                          TERMINATE 
+      [tok(0) snd(0x95c7812a1363000) rcv(0xe84) aid(2)]
+icm6       0      0  *.*                    *.*                               
+Active LOCAL (UNIX) domain sockets
+Address          Type   Recv-Q Send-Q            Inode             Conn             Refs          Nextref Addr
+4fc5418b838393c3 stream      0      0                0 c75de5ab6a436e68                0                0 /var/run/mDNSResponder
+c75de5ab6a436e68 stream      0      0                0 4fc5418b838393c3                0                0
+d93b5200ac9e3309 stream      0      0                0 fc3e45155c1dc5d1                0                0 /var/run/mDNSResponder
+fc3e45155c1dc5d1 stream      0      0                0 d93b5200ac9e3309                0                0
+858866cfef28a557 stream      0      0                0 76892229fab01b76                0                0 /var/run/mDNSResponder
+76892229fab01b76 stream      0      0                0 858866cfef28a557                0                0
+fee96c8c48ce87dd stream      0      0                0 e0cff3057f34fc72                0                0 /var/run/mDNSResponder
+e0cff3057f34fc72 stream      0      0                0 fee96c8c48ce87dd                0                0
+793304848f345b42 stream      0      0                0 8c0b5a9aab22e9b5                0                0 /var/run/mDNSResponder
+8c0b5a9aab22e9b5 stream      0      0                0 793304848f345b42                0                0
+34b707af3639f938 stream      0      0                0 868fdfa1b6051e29                0                0 /var/run/mDNSResponder
+868fdfa1b6051e29 stream      0      0                0 34b707af3639f938                0                0
+a1c9eb3b92c74eaf stream      0      0                0 9cfd957b93cc6e05                0                0 /var/run/mDNSResponder
+9cfd957b93cc6e05 stream      0      0                0 a1c9eb3b92c74eaf                0                0
+5f54543b9d425f84 stream      0      0                0 764a17d8636de91e                0                0 /var/run/mDNSResponder
+764a17d8636de91e stream      0      0                0 5f54543b9d425f84                0                0
+57f9a1f193d6a5d9 stream      0      0                0 2ec69da8ec29bbe0                0                0 /var/run/mDNSResponder
+2ec69da8ec29bbe0 stream      0      0                0 57f9a1f193d6a5d9                0                0
+cd720e9e699e1ae9 stream      0      0                0 f955db7df977e9b5                0                0 /var/run/mDNSResponder
+f955db7df977e9b5 stream      0      0                0 cd720e9e699e1ae9                0                0
+4cb8c57667ba8f02 stream      0      0                0 5f5df8f7d39f96c6                0                0 /var/run/mDNSResponder
+5f5df8f7d39f96c6 stream      0      0                0 4cb8c57667ba8f02                0                0
+441d700b59206f5c stream      0      0                0 ac8b086b45c22750                0                0
+ac8b086b45c22750 stream      0      0                0 441d700b59206f5c                0                0
+917451b82eca1e76 stream      0      0 b0f19a88c7609178                0                0                0 /var/run/vpncontrol.sock
+a3864d9b99c33206 stream      0      0 f15dfd81be72a922                0                0                0 /var/run/lockdown.sock
+34725c9d6c1422bf stream      0      0 faa6fe34b074aefb                0                0                0 /var/run/mDNSResponder
+8bd5df3536ef2605 dgram       0      0                0 e4550bd83b36abfb                0 286a5df36d478161
+286a5df36d478161 dgram       0      0                0 e4550bd83b36abfb                0 f2bd7b60ed99003c
+f2bd7b60ed99003c dgram       0      0                0 e4550bd83b36abfb                0 cbedea9139c8563a
+cbedea9139c8563a dgram       0      0                0 e4550bd83b36abfb                0 c7b891e0795d66d7
+c7b891e0795d66d7 dgram       0      0                0 e4550bd83b36abfb                0 43227f547655341f
+43227f547655341f dgram       0      0                0 e4550bd83b36abfb                0 c1fdea6a3c1e9b10
+c1fdea6a3c1e9b10 dgram       0      0                0 e4550bd83b36abfb                0 49d2783f7641b472
+49d2783f7641b472 dgram       0      0                0 e4550bd83b36abfb                0 c46bf046859f1acd
+c46bf046859f1acd dgram       0      0                0 e4550bd83b36abfb                0 7eebb5469264bb16
+7eebb5469264bb16 dgram       0      0                0 e4550bd83b36abfb                0 8e94d47eb13e8f31
+8e94d47eb13e8f31 dgram       0      0                0 e4550bd83b36abfb                0 795b02b0bf53e8d5
+795b02b0bf53e8d5 dgram       0      0                0 e4550bd83b36abfb                0  59e6176402a1c9f
+4170b77062068cf7 dgram       0      0                0 880dda2fe8c17795 880dda2fe8c17795                0
+880dda2fe8c17795 dgram       0      0                0 4170b77062068cf7 4170b77062068cf7                0
+ 59e6176402a1c9f dgram       0      0                0 e4550bd83b36abfb                0 409fc92f6990b28a
+409fc92f6990b28a dgram       0      0                0 e4550bd83b36abfb                0 c158619ea44afa5b
+c158619ea44afa5b dgram       0      0                0 e4550bd83b36abfb                0 cf3478046a30f745
+cf3478046a30f745 dgram       0      0                0 e4550bd83b36abfb                0 98671d468faff055
+98671d468faff055 dgram       0      0                0 e4550bd83b36abfb                0 eecbf5dfd3e40582
+eecbf5dfd3e40582 dgram       0      0                0 e4550bd83b36abfb                0 55c8b77c194c889b
+55c8b77c194c889b dgram       0      0                0 e4550bd83b36abfb                0 7147a3fa4a9e378e
+7147a3fa4a9e378e dgram       0      0                0 e4550bd83b36abfb                0 486c52fbfec41a3a
+486c52fbfec41a3a dgram       0      0                0 e4550bd83b36abfb                0 95729233e98b5a3a
+95729233e98b5a3a dgram       0      0                0 e4550bd83b36abfb                0 d78fd18bb428c9e2
+d78fd18bb428c9e2 dgram       0      0                0 e4550bd83b36abfb                0 2e0f2613f8607b3b
+2e0f2613f8607b3b dgram       0      0                0 e4550bd83b36abfb                0 67fb672a1804d320
+67fb672a1804d320 dgram       0      0                0 e4550bd83b36abfb                0 82276892f01a88f4
+82276892f01a88f4 dgram       0      0                0 e4550bd83b36abfb                0 5be8534a1c1285ac
+5be8534a1c1285ac dgram       0      0                0 e4550bd83b36abfb                0 95c56c9f7058b7cc
+95c56c9f7058b7cc dgram       0      0                0 e4550bd83b36abfb                0 efabd1c585498da5
+efabd1c585498da5 dgram       0      0                0 e4550bd83b36abfb                0 2a2eefba4c0e8393
+2a2eefba4c0e8393 dgram       0      0                0 e4550bd83b36abfb                0 2524ed557803ebfd
+2524ed557803ebfd dgram       0      0                0 e4550bd83b36abfb                0 2d8f72ca2ed1f6a9
+2d8f72ca2ed1f6a9 dgram       0      0                0 e4550bd83b36abfb                0 7c0c8dc8a810c1eb
+7c0c8dc8a810c1eb dgram       0      0                0 e4550bd83b36abfb                0 400307ce40942dd5
+400307ce40942dd5 dgram       0      0                0 e4550bd83b36abfb                0 5c18acf00c218f1d
+5c18acf00c218f1d dgram       0      0                0 e4550bd83b36abfb                0 9f661e22cae4c20b
+9f661e22cae4c20b dgram       0      0                0 e4550bd83b36abfb                0 8790d3c50706a8f8
+8790d3c50706a8f8 dgram       0      0                0 e4550bd83b36abfb                0 5c96097bbdbe441b
+5c96097bbdbe441b dgram       0      0                0 e4550bd83b36abfb                0 5ddaf69f2ec255e0
+5ddaf69f2ec255e0 dgram       0      0                0 e4550bd83b36abfb                0 12fe93784883045f
+12fe93784883045f dgram       0      0                0 e4550bd83b36abfb                0 ad73e172fc550334
+ad73e172fc550334 dgram       0      0                0 e4550bd83b36abfb                0 b8c047bd8b890a41
+b8c047bd8b890a41 dgram       0      0                0 e4550bd83b36abfb                0 c1e51d0d042789a5
+c1e51d0d042789a5 dgram       0      0                0 e4550bd83b36abfb                0 3f353e8e0f0dc646
+3f353e8e0f0dc646 dgram       0      0                0 e4550bd83b36abfb                0 a82c20f1c3a8c188
+a82c20f1c3a8c188 dgram       0      0                0 e4550bd83b36abfb                0 e2de4e3fc57dbfd1
+e2de4e3fc57dbfd1 dgram       0      0                0 e4550bd83b36abfb                0 f4c2fde633b04092
+f4c2fde633b04092 dgram       0      0                0 e4550bd83b36abfb                0 991116de18755e7b
+991116de18755e7b dgram       0      0                0 e4550bd83b36abfb                0 4460c5006b3665dc
+4460c5006b3665dc dgram       0      0                0 e4550bd83b36abfb                0 e9e4094ee8c39f1a
+e9e4094ee8c39f1a dgram       0      0                0 e4550bd83b36abfb                0 e341b1826d9aabf5
+e341b1826d9aabf5 dgram       0      0                0 e4550bd83b36abfb                0 f74a87e79ff4d96e
+f74a87e79ff4d96e dgram       0      0                0 e4550bd83b36abfb                0  2bf19c57f7e7e2c
+ 2bf19c57f7e7e2c dgram       0      0                0 e4550bd83b36abfb                0 697948b87392086d
+697948b87392086d dgram       0      0                0 e4550bd83b36abfb                0 80582573b7df1d0e
+80582573b7df1d0e dgram       0      0                0 e4550bd83b36abfb                0 88f50fe0126b707d
+88f50fe0126b707d dgram       0      0                0 e4550bd83b36abfb                0 43851a826990002c
+5a8dadd787bf9527 dgram       0      0                0 ba21a567ac0ce925 ba21a567ac0ce925                0
+ba21a567ac0ce925 dgram       0      0                0 5a8dadd787bf9527 5a8dadd787bf9527                0
+43851a826990002c dgram       0      0                0 e4550bd83b36abfb                0 6932c5cf8660c792
+6932c5cf8660c792 dgram       0      0                0 e4550bd83b36abfb                0 46e5fd506b12a44f
+46e5fd506b12a44f dgram       0      0                0 e4550bd83b36abfb                0 a66615fc20c41a1f
+a66615fc20c41a1f dgram       0      0                0 e4550bd83b36abfb                0 aeb7f7ccc173f97d
+aeb7f7ccc173f97d dgram       0      0                0 e4550bd83b36abfb                0  62ead4943bc6255
+ 62ead4943bc6255 dgram       0      0                0 e4550bd83b36abfb                0 16ade2017dd994e4
+16ade2017dd994e4 dgram       0      0                0 e4550bd83b36abfb                0 9bb5b120f4e781a0
+9bb5b120f4e781a0 dgram       0      0                0 e4550bd83b36abfb                0 c50341c32dcb600f
+c50341c32dcb600f dgram       0      0                0 e4550bd83b36abfb                0 46ae9b6ae8535a62
+46ae9b6ae8535a62 dgram       0      0                0 e4550bd83b36abfb                0 c9f730583775d9fc
+c9f730583775d9fc dgram       0      0                0 e4550bd83b36abfb                0 97550d4fb80c92a8
+97550d4fb80c92a8 dgram       0      0                0 e4550bd83b36abfb                0 72d60d52bcc86e82
+72d60d52bcc86e82 dgram       0      0                0 e4550bd83b36abfb                0 ff2fc848d3dbf908
+ff2fc848d3dbf908 dgram       0      0                0 e4550bd83b36abfb                0                0
+e4550bd83b36abfb dgram       0      0 574076db032253ec                0 8bd5df3536ef2605                0 /private//var/run/syslog
+Registered kernel control modules
+id       flags    pcbcount rcvbuf   sndbuf   name 
+       1        5        0     8192    32768 com.apple.network.tcp_ccdebug 
+       2       28        1     8192   131072 com.apple.flow-divert 
+       3        1       47    65536    65536 com.apple.net.netagent 
+       4        9        0   524288   524288 com.apple.content-filter 
+       5       29        4   524288   524288 com.apple.net.utun_control 
+       6       21        4    65536    65536 com.apple.net.ipsec_control 
+       7        0       42     8192     2048 com.apple.netsrc 
+       8       18        4     8192     2048 com.apple.network.statistics 
+       9        1        1     8192     2048 com.apple.network.advisory 
+       a        4        1    65536     2048 com.apple.spmi.nfc 
+       b        4        0    65536     2048 com.apple.uart.debug-console 
+       c        4        0     8192     2048 com.apple.uart.sk.debug-console 
+       d        4        1    65536     2048 com.apple.spmi.nfc.hammerfest 
+Active kernel event sockets
+Proto Recv-Q Send-Q vendor  class  subcl
+kevt       0      0      1      1      2
+kevt       0      0      1      1      4
+kevt       0      0      1      6      1
+kevt       0      0      1      6      1
+kevt       0      0      1      1      2
+kevt       0      0      1      1     12
+kevt       0      0      1      1      7
+kevt       0      0      1      1      1
+kevt       0      0      1      1      2
+kevt       0      0      1      1      3
+kevt       0      0      1      1      0
+kevt       0      0      1      1      3
+kevt       0      0      1      3      3
+Active kernel control sockets
+Proto Recv-Q Send-Q   unit     id name
+kctl       0      0      1      2 com.apple.flow-divert
+kctl       0      0      1      3 com.apple.net.netagent
+kctl       0      0      2      3 com.apple.net.netagent
+kctl       0      0      3      3 com.apple.net.netagent
+kctl       0      0      4      3 com.apple.net.netagent
+kctl       0      0      5      3 com.apple.net.netagent
+kctl       0      0      6      3 com.apple.net.netagent
+kctl       0      0      7      3 com.apple.net.netagent
+kctl       0      0      8      3 com.apple.net.netagent
+kctl       0      0      9      3 com.apple.net.netagent
+kctl       0      0     10      3 com.apple.net.netagent
+kctl       0      0     11      3 com.apple.net.netagent
+kctl       0      0     12      3 com.apple.net.netagent
+kctl       0      0     13      3 com.apple.net.netagent
+kctl       0      0     14      3 com.apple.net.netagent
+kctl       0      0     15      3 com.apple.net.netagent
+kctl       0      0     16      3 com.apple.net.netagent
+kctl       0      0     17      3 com.apple.net.netagent
+kctl       0      0     18      3 com.apple.net.netagent
+kctl       0      0     19      3 com.apple.net.netagent
+kctl       0      0     20      3 com.apple.net.netagent
+kctl       0      0     21      3 com.apple.net.netagent
+kctl       0      0     22      3 com.apple.net.netagent
+kctl       0      0     23      3 com.apple.net.netagent
+kctl       0      0     24      3 com.apple.net.netagent
+kctl       0      0     25      3 com.apple.net.netagent
+kctl       0      0     26      3 com.apple.net.netagent
+kctl       0      0     27      3 com.apple.net.netagent
+kctl       0      0     28      3 com.apple.net.netagent
+kctl       0      0     29      3 com.apple.net.netagent
+kctl       0      0     30      3 com.apple.net.netagent
+kctl       0      0     31      3 com.apple.net.netagent
+kctl       0      0     32      3 com.apple.net.netagent
+kctl       0      0     33      3 com.apple.net.netagent
+kctl       0      0     34      3 com.apple.net.netagent
+kctl       0      0     35      3 com.apple.net.netagent
+kctl       0      0     36      3 com.apple.net.netagent
+kctl       0      0     37      3 com.apple.net.netagent
+kctl       0      0     38      3 com.apple.net.netagent
+kctl       0      0     39      3 com.apple.net.netagent
+kctl       0      0     40      3 com.apple.net.netagent
+kctl       0      0     41      3 com.apple.net.netagent
+kctl       0      0     42      3 com.apple.net.netagent
+kctl       0      0     43      3 com.apple.net.netagent
+kctl       0      0     44      3 com.apple.net.netagent
+kctl       0      0     45      3 com.apple.net.netagent
+kctl       0      0     46      3 com.apple.net.netagent
+kctl       0      0     47      3 com.apple.net.netagent
+kctl       0      0      1      5 com.apple.net.utun_control
+kctl       0      0      2      5 com.apple.net.utun_control
+kctl       0      0      3      5 com.apple.net.utun_control
+kctl     100      0      4      5 com.apple.net.utun_control
+kctl       0      0      1      6 com.apple.net.ipsec_control
+kctl       0      0      2      6 com.apple.net.ipsec_control
+kctl       0      0      3      6 com.apple.net.ipsec_control
+kctl       0      0      4      6 com.apple.net.ipsec_control
+kctl       0      0      1      7 com.apple.netsrc
+kctl       0      0      2      7 com.apple.netsrc
+kctl       0      0      3      7 com.apple.netsrc
+kctl       0      0      4      7 com.apple.netsrc
+kctl       0      0      5      7 com.apple.netsrc
+kctl       0      0      6      7 com.apple.netsrc
+kctl       0      0      7      7 com.apple.netsrc
+kctl       0      0      8      7 com.apple.netsrc
+kctl       0      0      9      7 com.apple.netsrc
+kctl       0      0     10      7 com.apple.netsrc
+kctl       0      0     11      7 com.apple.netsrc
+kctl       0      0     12      7 com.apple.netsrc
+kctl       0      0     13      7 com.apple.netsrc
+kctl       0      0     14      7 com.apple.netsrc
+kctl       0      0     15      7 com.apple.netsrc
+kctl       0      0     16      7 com.apple.netsrc
+kctl       0      0     17      7 com.apple.netsrc
+kctl       0      0     18      7 com.apple.netsrc
+kctl       0      0     19      7 com.apple.netsrc
+kctl       0      0     20      7 com.apple.netsrc
+kctl       0      0     21      7 com.apple.netsrc
+kctl       0      0     22      7 com.apple.netsrc
+kctl       0      0     23      7 com.apple.netsrc
+kctl       0      0     24      7 com.apple.netsrc
+kctl       0      0     25      7 com.apple.netsrc
+kctl       0      0     26      7 com.apple.netsrc
+kctl       0      0     27      7 com.apple.netsrc
+kctl       0      0     28      7 com.apple.netsrc
+kctl       0      0     29      7 com.apple.netsrc
+kctl       0      0     30      7 com.apple.netsrc
+kctl       0      0     31      7 com.apple.netsrc
+kctl       0      0     32      7 com.apple.netsrc
+kctl       0      0     33      7 com.apple.netsrc
+kctl       0      0     34      7 com.apple.netsrc
+kctl       0      0     35      7 com.apple.netsrc
+kctl       0      0     36      7 com.apple.netsrc
+kctl       0      0     37      7 com.apple.netsrc
+kctl       0      0     38      7 com.apple.netsrc
+kctl       0      0     39      7 com.apple.netsrc
+kctl       0      0     40      7 com.apple.netsrc
+kctl       0      0     41      7 com.apple.netsrc
+kctl       0      0     42      7 com.apple.netsrc
+kctl       0      0      1      8 com.apple.network.statistics
+kctl       0      0      2      8 com.apple.network.statistics
+kctl     296      0      3      8 com.apple.network.statistics
+kctl  198280      0      4      8 com.apple.network.statistics
+kctl       0      0      1      9 com.apple.network.advisory
+kctl       0      0      1     10 com.apple.spmi.nfc
+kctl       0      0      1     13 com.apple.spmi.nfc.hammerfest
+Active pfkey sockets
+Proto  Recv-Q Send-Q Local Address      Foreign Address    
+Active routing sockets
+Proto  Recv-Q Send-Q Local Address      Foreign Address    
+unspec   8120      0                                       
+unspec   8172      0                                       
+

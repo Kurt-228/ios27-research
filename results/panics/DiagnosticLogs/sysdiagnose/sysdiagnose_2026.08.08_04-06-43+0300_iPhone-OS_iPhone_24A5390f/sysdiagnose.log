@@ -1,0 +1,1064 @@
+2026-08-08 04:06:43: The following properties were changed from default:
+Property shouldCreateTarBall changed from default 1 to 0
+Property shouldDisplayTarBall changed from default 1 to 0
+Property shouldCreateTarBall changed from default 1 to 0
+
+2026-08-08 04:06:43: sysdiagnose version 3.0
+2026-08-08 04:06:43: iPhone OS 27.0 (Build 24A5390f)
+2026-08-08 04:06:43: Sysdiagnose mode: Customer
+2026-08-08 04:06:43: Request source: XPC
+2026-08-08 04:06:43: Disabling streaming into tar as we are not creating tarball
+2026-08-08 04:06:43: The case is Companion only
+2026-08-08 04:06:43: Skipping forwarding shouldCreateTarBall key
+2026-08-08 04:06:43: Skipping forwarding coSysdiagnose key
+2026-08-08 04:06:43: Skipping forwarding clientPID key
+2026-08-08 04:06:43: [Subsystem remoteSysdiagnose, Category: AccessoryLogSubsystem] Log: Querying bluetooth if Airpods are connected, and collect AirPod logs if so.
+2026-08-08 04:06:43: Posting start notification
+2026-08-08 04:06:43: Begin Time Sensitive Phase
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/spindump-nosymbols.txt --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/spindump/spindump-nosymbols.txt
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: systemInfo-timeSensitive (/usr/sbin/lsof -F -n -M -P -T -w +c 0 -s +fg +L): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: systemInfo-timeSensitive (/usr/sbin/lsof -n -M -P -T -w +c 0 -s +fg +L): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: systemInfo-timeSensitive (/usr/bin/lsmp -a -v): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: systemInfo-timeSensitive (/usr/bin/lskq -a -v): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: systemInfo-timeSensitive (/usr/local/bin/IOSDebug): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/sample-(null).txt --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/unnamed_tasks_sysdiagnose_temp.WEENnb/unnamed_tasks/sample-(null).txt
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: thermhid (/bin/bash -c /usr/local/bin/thermhid | /usr/bin/sort): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: thermhid (/bin/bash -c /usr/local/bin/thermhid -t -p | /usr/bin/sort): Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ASPSnapshots...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ASPSnapshots
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: time-sensitive-stackshot_task...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: time-sensitive-stackshot_task
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Waiting for container time-sensitive-stackshot_task to finish
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ASPSnapshots_collection...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: time-sensitive-stackshot_collection...
+2026-08-08 04:06:43: TaskDepot unblocking waiting threads
+2026-08-08 04:06:43: Blocked thread for 0.1s while waiting for tasks to complete
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Uptime...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Uptime
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/bin/uptime' not accessible
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/bin/uptime (null) in group Uptime
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for Uptime
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container Uptime finished 0/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 1.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:43: TaskDepot unblocking waiting threads
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute Uptime
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: tailspin-save-ts...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: tailspin-save-ts
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Waiting for container tailspin-save-ts to finish
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task TAILSPIN_SAVE_NO_SYMBOLICATE_TS: failure while running task.
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task TAILSPIN_SAVE_NO_SYMBOLICATE_TS: not calling reply block due to failure
+2026-08-08 04:06:43: TaskDepot unblocking waiting threads
+2026-08-08 04:06:43: Blocked thread for 0.0s while waiting for tasks to complete
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: tailspin-info-ts_task...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: tailspin-info-ts_task
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: spindump-meta...
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: spindump-meta
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/spindump -oslog -notarget 2 250 -noProcessingWhileSampling -noSymbolicate -file /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/spindump/spindump-nosymbols.txt'
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Waiting for container spindump-meta to finish
+2026-08-08 04:06:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: tailspin-info-ts_collection...
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/spindump' exited with status 0
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'spindump|spindump_nosym_errors.txt' finished in 6.039097 seconds and used 3.501746 seconds of actual CPU time
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container spindump-meta finished 1/1 tasks [wall seconds:6.0] [CPU seconds:3.5] [CPU/wall: 0.6%] [timeout: 30.0] [CPU/timeout: 11.7%] [numTimeouts: 0] 
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: spindump-meta-collection...
+2026-08-08 04:06:49: TaskDepot unblocking waiting threads
+2026-08-08 04:06:49: Blocked thread for 6.0s while waiting for tasks to complete
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: tailspin-history...
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/db/spindump/tailspin-trace*
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BASEBAND_TS_TRIGGER...
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: BASEBAND_TS_TRIGGER
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: processesInfo...
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: processesInfo
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/bin/ps axwww -o user,uid,prsna,pid,ppid,flags,%cpu,%mem,pri,ni,vsz,rss,wchan,tt,stat,start,time,command'
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/bin/ps axMwww -o ppid,flags,%mem,pri,ni,vsz,rss,wchan,start,time,command'
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/jetsam_priority -e -k'
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/jetsam_priority -e -k -c'
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/vm_stat -c 25 0.2'
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/taskinfo --threads --boosts'
+2026-08-08 04:06:49: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Waiting for container processesInfo to finish
+2026-08-08 04:06:50: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BASEBAND_TS_TRIGGER_collection...
+2026-08-08 04:06:50: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/taskinfo' exited with status 0
+2026-08-08 04:06:50: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'taskinfo|taskinfo.txt' finished in 1.054293 seconds and used 0.270247 seconds of actual CPU time
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/bin/ps' exited with status 0
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ps|ps_thread.txt' finished in 1.843538 seconds and used 0.008203 seconds of actual CPU time
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/bin/ps' exited with status 0
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ps|ps.txt' finished in 1.888980 seconds and used 0.047045 seconds of actual CPU time
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/jetsam_priority' exited with status 0
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'jetsam_priority|jetsam_priority.csv' finished in 2.213836 seconds and used 0.285373 seconds of actual CPU time
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/jetsam_priority' exited with status 0
+2026-08-08 04:06:51: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'jetsam_priority|jetsam_priority.txt' finished in 2.224892 seconds and used 0.302938 seconds of actual CPU time
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/vm_stat' exited with status 0
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'vm_stat|vm_stat.txt' finished in 4.953168 seconds and used 0.006758 seconds of actual CPU time
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container processesInfo finished 6/6 tasks [wall seconds:14.2] [CPU seconds:0.9] [CPU/wall: 0.1%] [timeout: 15.0] [CPU/timeout: 6.1%] [numTimeouts: 0] 
+2026-08-08 04:06:54: TaskDepot unblocking waiting threads
+2026-08-08 04:06:54: Blocked thread for 4.9s while waiting for tasks to complete
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: systemInfo-timeSensitive...
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: systemInfo-timeSensitive
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/sbin/mount'
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/bin/df -H'
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/kbdebug'
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/zprint -t -w'
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sample-targeted_task : Req - 0120 State - 6078. Conditions did not pass.
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: mtrecorder_task : Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: smcdiagnose...
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: smcdiagnose
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/smcDiagnose'
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: thermhid : Req - 0021 State - 6078. Conditions did not pass.
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: powermetrics...
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Waiting for other containers to finish before starting powermetrics
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/sbin/mount' exited with status 0
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'mount|mount.txt' finished in 0.054541 seconds and used 0.008078 seconds of actual CPU time
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/bin/df' exited with status 0
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'df|disks.txt' finished in 0.049331 seconds and used 0.005418 seconds of actual CPU time
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/kbdebug' exited with status 0
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'kbdebug|kbdebug.txt' finished in 0.079727 seconds and used 0.020574 seconds of actual CPU time
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/zprint' exited with status 0
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'zprint|zprint.txt' finished in 0.077275 seconds and used 0.027926 seconds of actual CPU time
+2026-08-08 04:06:54: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container systemInfo-timeSensitive finished 4/4 tasks [wall seconds:0.3] [CPU seconds:0.1] [CPU/wall: 0.2%] [timeout: 38.0] [CPU/timeout: 0.2%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/smcDiagnose' exited with status 0
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'smcDiagnose|smcDiagnose.txt' finished in 2.115307 seconds and used 0.392266 seconds of actual CPU time
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container smcdiagnose finished 1/1 tasks [wall seconds:2.1] [CPU seconds:0.4] [CPU/wall: 0.2%] [timeout: 15.0] [CPU/timeout: 2.6%] [numTimeouts: 0] 
+2026-08-08 04:06:56: TaskDepot unblocking waiting threads
+2026-08-08 04:06:56: Blocked thread for 2.1s while waiting for tasks to complete
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: powermetrics
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/local/bin/powermetrics' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/local/bin/powermetrics (
+    "-i",
+    1000,
+    "--sample-count",
+    1,
+    "--show-all",
+    "--show-initial-usage",
+    "--handle-invalid-values"
+) in group powermetrics
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for powermetrics
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container powermetrics finished 0/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 10.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: TaskDepot unblocking waiting threads
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute powermetrics
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: utilities-timeSensitive-embedded_task...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: utilities-timeSensitive-embedded_task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/ltop'
+2026-08-08 04:06:56: Main thread waiting for tasks to finish
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/ltop' exited with status 0
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ltop|ltop.txt' finished in 0.074304 seconds and used 0.061312 seconds of actual CPU time
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container utilities-timeSensitive-embedded_task finished 1/1 tasks [wall seconds:0.1] [CPU seconds:0.1] [CPU/wall: 0.8%] [timeout: 10.0] [CPU/timeout: 0.6%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: utilities-timeSensitive-embedded_collection...
+2026-08-08 04:06:56: TaskDepot unblocking waiting threads
+2026-08-08 04:06:56: Blocked thread for 0.1s while waiting for tasks to complete
+2026-08-08 04:06:56: End Time Sensitive Phase
+2026-08-08 04:06:56: Begin Log Generation Phase
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sysctl (/usr/sbin/sysctl -a): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sysconfigInternalLogs (/usr/sbin/nvram -p): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sysconfigInternalLogs (/usr/bin/sw_vers): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sysconfigInternalLogs (/usr/local/bin/cdcontexttool -p get): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sysconfigInternalLogs (/usr/local/bin/darwinup -p / list): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IOLogs (/usr/local/bin/iordump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IOLogs (/usr/sbin/ioalloccount): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IOLogs (/usr/sbin/ioclasscount): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: accountInternalLogs (/usr/local/bin/accctl list): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: miscInternalLogs (/usr/local/bin/keystorectl -v get-info): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: miscInternalLogs (/usr/local/bin/findmydevicetool sysdiagnose): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: miscInternalLogs (/usr/local/bin/BacklightdTester -set CarryLogCommit 1): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: miscInternalLogs (/usr/local/bin/mbtool info): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: clpc (/usr/local/bin/clpc debug-info): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: clpctop (/usr/local/bin/clpctop -C -N 1): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: clpcctrl (/usr/local/bin/clpcctrl -a): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: systemInfo-logGen (/usr/bin/pmset -g everything): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/Networking_sysdiagnose_temp.1UNYnc/Networking
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreduet (/usr/local/bin/cdknowledgetool summarizeDB -readMetadata no -output json -directDBAccess): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreduet (/usr/local/bin/cdknowledgetool syncstream -directDBAccess): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreduet (/usr/local/bin/cdknowledgetool stats): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreduet (/usr/local/bin/cdcontexttool dumpregistrations): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreduet (/bin/bash -c /usr/local/bin/cdinteracttool summarizeData | /usr/bin/grep -E -v "Accounts:|Data"): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: gestalt query (/bin/bash -c /usr/local/bin/gestalt_query   $(/usr/local/bin/gestalt_query -listKeys | /usr/bin/awk 'NR == 1 || NR == 2 || /Nonce/ || /BasebandPreflight/ || /Savage/ || /FDRSealingStatus/ {next}; {print $1}')): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: c26tool (/usr/local/bin/c26tool sysdiagnose): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: aopaudctl (/usr/local/bin/aopaudctl --dump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AHSTool (/usr/local/bin/AHSTool read -a): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: syscfg (/usr/local/bin/sysconfig read --all --show-underlying): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: syscfg (/usr/local/bin/sysconfig debug): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SoundBoard (/usr/local/bin/soundboardtool show): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: OSVARIANTUTIL (/usr/local/bin/osvariantutil status): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Freezerctl (/usr/local/bin/freezerctl): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: controlbits (/usr/local/bin/controlbits read -a): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AOPFirmwareState (/usr/local/bin/aopvtctl --dump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AOPFirmwareState (/usr/local/bin/aopenvsctl --dump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: cadebug (/usr/local/bin/CADebug -s layers): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: cadebug (/usr/local/bin/CADebug -s contexts): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: cadebug (/usr/local/bin/CADebug --displays): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: cadebug (/usr/local/bin/CADebug -s display-trace): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/selfctl_tail.json --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/selfctl_sysdiagnose_temp.0k9zVM/selfctl/selfctl_tail.json
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/selfctl_sysdiagnose_temp.0k9zVM/selfctl
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: utilities-logGen (/usr/bin/buttontool --sysdiagnose): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: utilities-logGen (/usr/local/bin/apsclient -dumpState): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: utilities-logGen (/usr/local/bin/audioDeviceDump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/microstackshots --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/unnamed_tasks_sysdiagnose_temp.mIjhZS/unnamed_tasks/microstackshots
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: timezonedb (/bin/ls -lR /private/var/db/timezone): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ACMTool (/usr/local/bin/ACMTool -o): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: HomeUtilDumpAll (/usr/local/bin/homeutil dump-all -S): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: HomeUtilDumpAccessoryState (/usr/local/bin/homeutil dump-accessory-state -d): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AirPlay (/usr/local/bin/airplayutil version): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AirPlay (/usr/local/bin/airplayutil show): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AirPlay (/usr/local/bin/airplayutil diagnose): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AirPlay (/usr/local/bin/airplayutil prefs read): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: GMSAvailability (/usr/local/bin/gmstool sysdiagnose): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: disks-concurrent (/usr/local/bin/diskutil list): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: disks-concurrent (/usr/local/bin/diskutil internal allDisks): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/ManagedSettings_sysdiagnose_temp.dmtMo4/ManagedSettings
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: DarwinInitStatus (/usr/bin/darwin-init status): Req - 1011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/FileProvider_sysdiagnose_temp.prHpf1/FileProvider
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/fileproviderctl_check.log --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/FileProvider_sysdiagnose_temp.prHpf1/FileProvider/fileproviderctl_check.log
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: arkitctl (/usr/local/bin/arkitctl systemInfo): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: KCSharingDiagnose (/usr/local/bin/kcsharingdiagnose.py): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: pommes_status (/usr/appleinternal/bin/pommes_status.sh): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/Search_sysdiagnose_temp.LcpwnD/Search
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Switch (/usr/local/bin/switchcl --report --json): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SEP Util (/usr/libexec/seputil --rawlog): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: testIOMFBGPO (/usr/local/bin/testIOMFBGPO): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/AFK_sysdiagnose_temp.4Funy7/AFK
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: lhtool-patches (/usr/appleinternal/bin/lhtool patch list --json): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: usbctl (/usr/local/bin/usbctl --list): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: assistantd state dump (/usr/local/bin/assistant_tool dumpState): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: benchrun_validate (/usr/local/bin/benchrun validate --why): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IOPowerSources (/usr/local/bin/iopsutil --all-dump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreAnalytics (/usr/local/bin/analytics_tool log transform-counts): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: profilectl (/usr/local/bin/profilectl list): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/atcrtcomm_sysdiagnose_temp.4eKUxz/atcrtcomm
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool dbStats): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool filesystemMetadata): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool dbSchema): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool assetVersion): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool RTCGetDictionaryExtractions): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool RTCGetDictionaryInteractions): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks (/usr/appleinternal/bin/suggest_tool RTCGetDictionaryInteractionsSummary): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: diagpipectl (/usr/local/bin/diagpipectl print-log-records -u -j): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/logs/SensorKit --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/SensorKit_sysdiagnose_temp.zWRN3N/SensorKit/logs/SensorKit
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ppmctrl (/usr/local/bin/ppmctrl --getClientState): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreBrightness (/usr/libexec/corebrightnessdiag status-info-internal): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ffctl (/usr/local/bin/ffctl list --hierarchy --format=json): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ffctl (/usr/local/bin/ffctl list --hierarchy): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ffctl (/usr/local/bin/ffctl list --changed): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ffctl (/usr/local/bin/ffctl featureset list --hierarchy): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: agx_util (/usr/local/bin/agx_util -dumpRestartReport): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: agx_util (/usr/local/bin/agx_util -dumpDiagnosisReport): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: LocalAuthentication (/usr/local/bin/latool status): Req - 4011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: EXBrightSIL (/usr/local/bin/exbright_tester silDebug): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: OpenvSwitch (/usr/bin/ovs-diagdump --stdout): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: GMSSelfService (/usr/local/bin/gmstool self-service): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: GMSSelfService (/usr/local/bin/gmstool self-service -j): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: mediaremotetool (/usr/appleinternal/bin/mediaremotetool diagnose): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SpotlightKnowledge (/usr/local/bin/skdump): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR> --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/IntelligenceFlow_sysdiagnose_temp.OfyaTp/IntelligenceFlow
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: dastool (/usr/local/bin/dastool list): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: dastool (/usr/local/bin/dastool bgst inspect): Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/node-serial-logs.txt --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/BMC_sysdiagnose_temp.RgZ3Wv/BMC/node-serial-logs.txt
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: bmc-triage (OR_flags): Req - 1011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: bmc-triage (OR_flags): Req - 0013 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: <TMPOUTPUTDIR> Substitution found: <TMPOUTPUTDIR>/ane.anetrace --> /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/ANE_sysdiagnose_temp.Dinp5d/ANE/ane.anetrace
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: remotectl...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: remotectl
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/remotectl dumpstate'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: sysctl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SYSCTL...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: SYSCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: sysconfigInternalLogs...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: sysconfigInternalLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for sysconfigInternalLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container sysconfigInternalLogs finished 0/0 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 15.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute sysconfigInternalLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: IOLogs...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: IOLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/bin/tbtdiagnose' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/bin/tbtdiagnose (null) in group IOLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/hpmdiagnose'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: accountInternalLogs : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: miscInternalLogs...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: miscInternalLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SYSCTL_collection...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/remotectl' exited with status 0
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'remotectl|remotectl_dumpstate.txt' finished in 0.027106 seconds and used 0.009537 seconds of actual CPU time
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container remotectl finished 1/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: 0.4%] [timeout: 5.0] [CPU/timeout: 0.2%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for miscInternalLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container miscInternalLogs finished 0/0 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 20.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute miscInternalLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: lsawLogs...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: lsawLogs
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/lsdiagnose'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: clpc : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: clpctop : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: clpcctrl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: systemInfo-logGen...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: systemInfo-logGen
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/sbin/kextstat' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/sbin/kextstat (null) in group systemInfo-logGen
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for systemInfo-logGen
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container systemInfo-logGen finished 0/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 10.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute systemInfo-logGen
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Networking_task...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Networking_task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Container Networking_task shouldn't be marked as not concurrent because it only has 1 task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/Frameworks/SystemConfiguration.framework/get-network-info -c /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/Networking_sysdiagnose_temp.1UNYnc/Networking'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreduet : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ASPSnapshots...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ASPSnapshots
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ASPSnapshots : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: gestalt query : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: c26tool : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: libnotify : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: aopaudctl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AHSTool : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: syscfg : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SoundBoard : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: OSVARIANTUTIL : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Freezerctl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: controlbits : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AOPFirmwareState : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: cadebug : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Enumerate CrashReporter...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Enumerate CrashReporter
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/bin/find' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/bin/find (
+    "/private/var/mobile/Library/Logs/CrashReporter",
+    "-ls"
+) in group Enumerate CrashReporter
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for Enumerate CrashReporter
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container Enumerate CrashReporter finished 0/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 5.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute Enumerate CrashReporter
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: selfctl_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: utilities-logGen...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: utilities-logGen
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/codecctl -c 1 -a'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/security-sysdiagnose'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to get user context for uid 501: Unknown error: 144
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to setflags on spawn attr when launching SDTask
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/pcsstatus --json capture output'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to get user context for uid 501: Unknown error: 144
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to setflags on spawn attr when launching SDTask
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/hidutil dump'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: idsTasks...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: idsTasks
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ioreg...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ioreg
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: hidrecorderd_task : Req - 0400 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/local/bin/imtool' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/local/bin/imtool (
+    list
+) in group idsTasks
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IOService -w 0'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/local/bin/idstool' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/local/bin/idstool (
+    list
+) in group idsTasks
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/local/bin/imtool' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/local/bin/imtool (
+    info
+) in group idsTasks
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/local/bin/idstool' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/local/bin/idstool (
+    info
+) in group idsTasks
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for idsTasks
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container idsTasks finished 0/4 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 20.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SoundAutoConfig_task : Req - 0811 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: microstackshots_task...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: microstackshots_task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Container microstackshots_task shouldn't be marked as not concurrent because it only has 1 task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/spindump -oslog -microstackshots_only -microstackshots_save -microstackshots_datastore /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/unnamed_tasks_sysdiagnose_temp.mIjhZS/unnamed_tasks/microstackshots -microstackshots_starttime 1785892003 -microstackshots_endtime 1786151203'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: olddsc...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: olddsc
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CKKSCTL...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: CKKSCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ASPSnapshots_collection...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ckksctl status --json'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: OTCTL...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: OTCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/otctl status --json'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Preferences...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Preferences
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Preferences : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: crashes_and_spins...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: crashes_and_spins
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: olddsc_collection...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: TimezoneDB...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: TimezoneDB
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: timezonedb : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Personalization...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Personalization
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: launchCTL...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: launchCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: TimezoneDB_collection...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task EXC_RESOURCE: failure while running task.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task EXC_RESOURCE: not calling reply block due to failure
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/bin/launchctl' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /bin/launchctl (
+    list
+) in group launchCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/bin/launchctl' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /bin/launchctl (
+    print,
+    "system/"
+) in group launchCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/bin/launchctl' not accessible
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /bin/launchctl (
+    dumpstate
+) in group launchCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for launchCTL
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container launchCTL finished 0/3 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 10.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: launchdLogs : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: cts_task...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: cts_task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Container cts_task shouldn't be marked as not concurrent because it only has 0 task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for cts_task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container cts_task finished 0/0 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 6.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: cts_collection...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.xpc.activity failed due to file not found
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute cts_task
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: APFS_STATS...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: APFS_STATS
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/Filesystems/apfs.fs/apfs_stats'
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: RunningBoard...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: RunningBoard
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Preferences...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Preferences
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Preferences...
+2026-08-08 04:06:56: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Preferences
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CoreCapture...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: CoreCapture
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Preferences_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Preferences_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CDIS.custom failed due to file not found
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: FDR...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: FDR
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Preferences_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ASPSnapshots...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ASPSnapshots
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: powerlogs...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: powerlogs
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ACMTool : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Proximity...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Proximity
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: spuctl...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: spuctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/local/bin/spuctl' not accessible
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/local/bin/spuctl (
+    "--sysdiagnose"
+) in group spuctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for spuctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container spuctl finished 0/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 5.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute spuctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: HomeUtilDumpAll : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BTPHY...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: BTPHY
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SWCUTIL...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: SWCUTIL
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/PrivateFrameworks/SharedWebCredentials.framework/Support/swcutil show --verbose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Trial...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: Trial
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Personalization_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: HomeUtilDumpAccessoryState : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: rmd...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: rmd
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BackgroundPowerlog_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: BackgroundPowerlog_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect report --scope system'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AirPlay : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: GMSAvailability : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CoreCaptureConfig...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: CoreCaptureConfig
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: disks-concurrent : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ManagedSettings_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ManagedSettings_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/Frameworks/ManagedSettings.framework/managedsettingsdiagnoticstool diagnostics --diagnostics-path /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/ManagedSettings_sysdiagnose_temp.dmtMo4/ManagedSettings'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BatteryUIPlist...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: BatteryUIPlist
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Proximity_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Rose failed due to file not found
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/db/nearbyd/nearbyd-*.protobuf.log
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/containers/Shared/SystemGroup/7C8084A1-333C-4EAC-9B5A-F474C78328FF/Library/nearbyd-*.protobuf.log
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ACLogs...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ACLogs
+2026-08-08 04:06:57: Wifi profile: 0, BT profile: 0
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: WiFi...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: WiFi
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: taskQueue thread spent 0.0 seconds blocked waiting for WiFi to finish
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CentauriLogs_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: CentauriLogs_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: taskQueue thread spent 0.0 seconds blocked waiting for CentauriLogs_task to finish
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: TRANSPARENCYCTL...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: TRANSPARENCYCTL
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CentauriLogs_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/transparency-sysdiagnose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: swtransparency...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: swtransparency
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/swtransparency-sysdiagnose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: DarwinInitStatus : Req - 1011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: fileproviderctl_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: fileproviderctl_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: brctl_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: brctl_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Container brctl_task shouldn't be marked as not concurrent because it only has 1 task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/brctl diagnose --sysdiagnose /private/var/mobile/Library/Logs/CrashReporter/Cloud/clouddocs_2026.08.08_04-06-43+0300'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/fileproviderctl diagnose --limit-dump-size -o /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/FileProvider_sysdiagnose_temp.prHpf1/FileProvider'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to get user context for uid 501: Unknown error: 144
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to setflags on spawn attr when launching SDTask
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: arkitctl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: KCSharingDiagnose : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: pommes_status : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: searchdiagnose_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: searchdiagnose_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/searchdiagnose --mode sysdiagnose -o /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/Search_sysdiagnose_temp.LcpwnD/Search'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Switch : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SEP Util : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ProactiveInputPredictions_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ProactiveInputPredictions_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: umtool...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: umtool
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/umtool sysdiagnose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: testIOMFBGPO : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AFK_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: AFK_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/afktool --role all -a registry -p /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/AFK_sysdiagnose_temp.4Funy7/AFK --format bin'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BatteryHealth_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: BatteryHealth_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: lhtool-patches : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ReportMemoryExceptions_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ReportMemoryExceptions_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BackgroundPowerlog_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: usbctl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: assistantd state dump : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: UnifiedAssetLogs_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: UnifiedAssetLogs_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BatteryHealth_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ReportMemoryExceptionsListLogs_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ReportMemoryExceptionsListLogs_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ProactiveInputPredictions_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: benchrun_validate : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: pmudiagnose...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: pmudiagnose
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/pmudiagnose/pmudiagnose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: IOSADiagnose...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: IOSADiagnose
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/PrivateFrameworks/IOSurfaceAccelerator.framework/Resources/IOSADiagnose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IOPowerSources : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreAnalytics : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: cryptexctl...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: cryptexctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ReportMemoryExceptionsListLogs_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/bin/cryptexctl' not accessible
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/bin/cryptexctl (
+    dumpstate
+) in group cryptexctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for cryptexctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container cryptexctl finished 0/1 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 2.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute cryptexctl
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IntelligencePlatform_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: profilectl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AppleTypeCRetimerLogs_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: AppleTypeCRetimerLogs_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/atcrtcomm /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/atcrtcomm_sysdiagnose_temp.4eKUxz/atcrtcomm'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: suggestToolTasks : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: diagpipectl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SensorKit_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: SensorKit_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/Frameworks/SensorKit.framework/Support/srsupporttool diagnostics -output /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/SensorKit_sysdiagnose_temp.zWRN3N/SensorKit/logs/SensorKit'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ppmctrl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreBrightness : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: nightshift...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: nightshift
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/libexec/corebrightnessdiag nightshift-internal'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreRepair_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: OSEligibility_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: OSEligibility_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ffctl : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ModelManager...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ModelManager
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ASPSnapshots_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ReportMemoryExceptions_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/modelmanagerdump'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CloudKitPreferences_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: HIDCrashlogs_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: HIDCrashlogs_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: OSEligibility_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/swtransparency-sysdiagnose' exited with status 0
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'swtransparency-sysdiagnose|swtransparency.log' finished in 0.435275 seconds and used 0.007353 seconds of actual CPU time
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container swtransparency finished 1/1 tasks [wall seconds:0.4] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 3.0] [CPU/timeout: 0.2%] [numTimeouts: 0] 
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SiriEnrollment_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: SiriEnrollment_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: agx_util : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: LocalAuthentication : Req - 4011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ModelCatalog...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ModelCatalog
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: HIDCrashlogs_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ACLogs_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/modelcatalogdump'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task SIRI_ENROLLMENT: failure while running task.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CloudSubscriptionFeatures...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: CloudSubscriptionFeatures
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task SIRI_ENROLLMENT: not calling reply block due to failure
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/csfdiagnose --networking false --sysd --json'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: GEAvailability_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: GEAvailability_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ProtectedApps...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ProtectedApps
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/appprotectiondiagnose diagnostics'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IOAccelMemory_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: StoreServices_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: eSIMSetup_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: eSIMSetup_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: EXBrightSIL : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: profile_access_diagnostics_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: profile_access_diagnostics_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ACDiagnose...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ACDiagnose
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: eSIMSetup_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/Frameworks/Accounts.framework/Support/acdiagnose'
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: OpenvSwitch : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: GMSSelfService : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: mediaremotetool : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: RRD-state_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: RRD-state_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SpotlightKnowledge : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: IntelligenceFlow_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: GEAvailability_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AppManagedFeatures_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: AppManagedFeatures_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: NetworkRelay_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: NetworkRelay_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task RRD_STATE: failure while running task.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Helper connection error for task RRD_STATE: not calling reply block due to failure
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: dastool : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: launch-services_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: launch-services_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AppManagedFeatures_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ContainerManager_task...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: ContainerManager_task
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: NetworkRelay_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CiderCLISerialize_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ANETraceBuffer_task : Req - 0011 State - 6078. Conditions did not pass.
+2026-08-08 04:06:57: Main thread waiting for tasks to finish
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: launch-services_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/atcrtcomm' exited with nonzero status 1
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'atcrtcomm|atcrtcomm.txt' finished in 0.342528 seconds and used 0.003700 seconds of actual CPU time
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container AppleTypeCRetimerLogs_task finished 1/1 tasks [wall seconds:0.3] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.1%] [numTimeouts: 0] 
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AppleTypeCRetimerLogs_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: profile_access_diagnostics_collection...
+2026-08-08 04:06:57: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: FDR_collection...
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/PrivateFrameworks/IOSurfaceAccelerator.framework/Resources/IOSADiagnose' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'IOSADiagnose|IOSADiagnose.log' finished in 0.493342 seconds and used 0.005831 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container IOSADiagnose finished 1/1 tasks [wall seconds:0.5] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.1%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ContainerManager_collection...
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/Frameworks/Accounts.framework/Support/acdiagnose' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'acdiagnose|acdiagnose.txt' finished in 0.333560 seconds and used 0.004700 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container ACDiagnose finished 1/1 tasks [wall seconds:0.3] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 3.0] [CPU/timeout: 0.2%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/otctl' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'otctl|otctl_status.txt' finished in 1.307490 seconds and used 0.015565 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container OTCTL finished 1/1 tasks [wall seconds:1.3] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 3.0] [CPU/timeout: 0.5%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: RunningBoard_collection...
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/appprotectiondiagnose' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'appprotectiondiagnose|appprotectiondiagnose_diagnostics.json' finished in 0.456976 seconds and used 0.006320 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container ProtectedApps finished 1/1 tasks [wall seconds:0.5] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 1.0] [CPU/timeout: 0.6%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/umtool' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'umtool|umtool.txt' finished in 0.914055 seconds and used 0.007508 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container umtool finished 1/1 tasks [wall seconds:0.9] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.2%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/modelmanagerdump' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'modelmanagerdump|model_manager_dump.json' finished in 0.578898 seconds and used 0.010216 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container ModelManager finished 1/1 tasks [wall seconds:0.6] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 2.0] [CPU/timeout: 0.5%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/corebrightnessdiag' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'corebrightnessdiag|night-shift.log' finished in 0.902868 seconds and used 0.011360 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container nightshift finished 1/1 tasks [wall seconds:0.9] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 1.0] [CPU/timeout: 1.1%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/searchdiagnose' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'searchdiagnose|searchdiagnose.txt' finished in 1.206243 seconds and used 0.016126 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container searchdiagnose_task finished 1/1 tasks [wall seconds:1.2] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 11.0] [CPU/timeout: 0.1%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: searchdiagnose_collection...
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/Frameworks/SensorKit.framework/Support/srsupporttool' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'srsupporttool|srsupport_tool_errors.txt' finished in 0.991526 seconds and used 0.010964 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container SensorKit_task finished 1/1 tasks [wall seconds:1.0] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.2%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SensorKit_collection...
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/hidutil' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'hidutil|hidutil.plist' finished in 1.755656 seconds and used 0.033503 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/pmudiagnose/pmudiagnose' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'pmudiagnose|pmudiagnose.txt' finished in 1.138330 seconds and used 0.021846 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container pmudiagnose finished 1/1 tasks [wall seconds:1.1] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 2.0] [CPU/timeout: 1.1%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/Filesystems/apfs.fs/apfs_stats' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'apfs_stats|apfs_stats.txt' finished in 1.763664 seconds and used 0.047159 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container APFS_STATS finished 1/1 tasks [wall seconds:1.8] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 3.0] [CPU/timeout: 1.6%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/codecctl' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'codecctl|codecctl.txt' finished in 1.891570 seconds and used 0.029792 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/afktool' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'afktool|error_log.txt' finished in 1.255061 seconds and used 0.022447 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container AFK_task finished 1/1 tasks [wall seconds:1.3] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.4%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AFK_collection...
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/hpmdiagnose' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'hpmdiagnose|hpmDiagnose.txt' finished in 2.011879 seconds and used 0.052321 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container IOLogs finished 1/2 tasks [wall seconds:2.0] [CPU seconds:0.1] [CPU/wall: 0.0%] [timeout: 10.0] [CPU/timeout: 0.5%] [numTimeouts: 0] 
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'rmdinspect|rmd_inspect_system.txt' finished in 1.685383 seconds and used 0.033911 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect report --scope user'
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Set target uid to 501 for: '/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect report --scope user'
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/PrivateFrameworks/RemoteManagement.framework/rmdinspect' exited with status 0
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'rmdinspect|rmd_inspect_user.txt' finished in 0.063355 seconds and used 0.010075 seconds of actual CPU time
+2026-08-08 04:06:58: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container rmd finished 2/2 tasks [wall seconds:1.7] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.9%] [numTimeouts: 0] 
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BTPHY_collection...
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AppleBTC-BTPHY-sysdiagnose failed due to file not found
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/Frameworks/ManagedSettings.framework/managedsettingsdiagnoticstool' exited with status 0
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'managedsettingsdiagnoticstool|managed_settings_diagnostic_tool_stdout.txt' finished in 1.989510 seconds and used 0.023739 seconds of actual CPU time
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container ManagedSettings_task finished 1/1 tasks [wall seconds:2.0] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 2.0] [CPU/timeout: 1.2%] [numTimeouts: 0] 
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ManagedSettings_collection...
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/csfdiagnose' exited with status 0
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'csfdiagnose|csfdiagnose.json' finished in 1.383797 seconds and used 0.026785 seconds of actual CPU time
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container CloudSubscriptionFeatures finished 1/1 tasks [wall seconds:1.4] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 2.0] [CPU/timeout: 1.3%] [numTimeouts: 0] 
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/PrivateFrameworks/SharedWebCredentials.framework/Support/swcutil' exited with status 0
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'swcutil|swcutil_show.txt' finished in 2.087818 seconds and used 0.007117 seconds of actual CPU time
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container SWCUTIL finished 1/1 tasks [wall seconds:2.1] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 0.1%] [numTimeouts: 0] 
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/System/Library/Frameworks/SystemConfiguration.framework/get-network-info' exited with status 0
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'get-network-info|get_network_info_errors.txt' finished in 2.453449 seconds and used 0.130133 seconds of actual CPU time
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container Networking_task finished 1/1 tasks [wall seconds:2.5] [CPU seconds:0.1] [CPU/wall: 0.1%] [timeout: 100.0] [CPU/timeout: 0.1%] [numTimeouts: 0] 
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Networking_collection...
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BatteryUIPlist_collection...
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: UnifiedAssetLogs_collection...
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 1) (timeout: 2.000000) (elapsed time: 2.01s) (CPU time used: 0.09) (task containers running: 13)
+2026-08-08 04:06:59: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [CKKSCTL container] Giving another 3s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 1) (timeout: 3.000000) (elapsed time: 3.00s) (CPU time used: 0.01) (task containers running: 13)
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [TRANSPARENCYCTL container] Giving another 3s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 1) (timeout: 3.000000) (elapsed time: 3.01s) (CPU time used: 0.01) (task containers running: 13)
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/transparency-sysdiagnose' exited with status 0
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'transparency-sysdiagnose|transparency.log' finished in 3.159762 seconds and used 0.012863 seconds of actual CPU time
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container TRANSPARENCYCTL finished 1/1 tasks [wall seconds:3.2] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 3.0] [CPU/timeout: 0.4%] [numTimeouts: 1] 
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ckksctl' exited with status 0
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ckksctl|ckksctl_status.txt' finished in 3.573099 seconds and used 0.022891 seconds of actual CPU time
+2026-08-08 04:07:00: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container CKKSCTL finished 1/1 tasks [wall seconds:3.6] [CPU seconds:0.0] [CPU/wall: 0.0%] [timeout: 3.0] [CPU/timeout: 0.8%] [numTimeouts: 1] 
+2026-08-08 04:07:01: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/brctl' exited with status 0
+2026-08-08 04:07:01: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'brctl|brctl_errors.txt' finished in 4.462076 seconds and used 0.150930 seconds of actual CPU time
+2026-08-08 04:07:01: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container brctl_task finished 1/1 tasks [wall seconds:4.5] [CPU seconds:0.2] [CPU/wall: 0.0%] [timeout: 30.0] [CPU/timeout: 0.5%] [numTimeouts: 0] 
+2026-08-08 04:07:01: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: brctl_collection...
+2026-08-08 04:07:01: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 2) (timeout: 2.000000) (elapsed time: 4.02s) (CPU time used: 0.28) (task containers running: 10)
+2026-08-08 04:07:02: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 1) (timeout: 5.000000) (elapsed time: 5.00s) (CPU time used: 0.02) (task containers running: 10)
+2026-08-08 04:07:03: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 3) (timeout: 2.000000) (elapsed time: 6.02s) (CPU time used: 0.31) (task containers running: 10)
+2026-08-08 04:07:04: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:04: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOService.txt' finished in 7.542351 seconds and used 0.760060 seconds of actual CPU time
+2026-08-08 04:07:04: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IOACPIPlane -w 0'
+2026-08-08 04:07:04: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:04: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOACPIPlane.txt' finished in 0.039787 seconds and used 0.030477 seconds of actual CPU time
+2026-08-08 04:07:04: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IOPower -w 0'
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOPower.txt' finished in 0.846153 seconds and used 0.254751 seconds of actual CPU time
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IODeviceTree -w 0'
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IODeviceTree.txt' finished in 0.365575 seconds and used 0.141558 seconds of actual CPU time
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IOUSB -w 0'
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOUSB.txt' finished in 0.152826 seconds and used 0.031997 seconds of actual CPU time
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IOFireWire -w 0'
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 4) (timeout: 2.000000) (elapsed time: 8.02s) (CPU time used: 0.31) (task containers running: 10)
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOFireWire.txt' finished in 0.053196 seconds and used 0.029476 seconds of actual CPU time
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -z -i -l -p IOPort -w 0'
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with status 0
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOPort.txt' finished in 0.046065 seconds and used 0.032000 seconds of actual CPU time
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/sbin/ioreg -a -w0 -x 0'
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/ioreg' exited with nonzero status 1
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'ioreg|IOReg.xml' finished in 0.067406 seconds and used 0.048457 seconds of actual CPU time
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container ioreg finished 8/8 tasks [wall seconds:9.1] [CPU seconds:1.3] [CPU/wall: 0.1%] [timeout: 30.0] [CPU/timeout: 4.4%] [numTimeouts: 0] 
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/security-sysdiagnose' exited with status 0
+2026-08-08 04:07:05: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'security-sysdiagnose|security-sysdiagnose.txt' finished in 9.153730 seconds and used 0.080407 seconds of actual CPU time
+2026-08-08 04:07:07: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Trial_collection...
+2026-08-08 04:07:07: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CoreCapture_collection...
+2026-08-08 04:07:07: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 2) (timeout: 5.000000) (elapsed time: 10.01s) (CPU time used: 0.02) (task containers running: 7)
+2026-08-08 04:07:07: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 5) (timeout: 2.000000) (elapsed time: 10.03s) (CPU time used: 0.38) (task containers running: 7)
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/libexec/pcsstatus' exited with status 0
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'pcsstatus|pcsstatus.txt' finished in 11.642868 seconds and used 0.610455 seconds of actual CPU time
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container utilities-logGen finished 4/4 tasks [wall seconds:24.4] [CPU seconds:0.8] [CPU/wall: 0.0%] [timeout: 25.0] [CPU/timeout: 3.0%] [numTimeouts: 0] 
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/sbin/spindump' exited with status 0
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'spindump|microstackshots_errors.txt' finished in 11.725202 seconds and used 0.187750 seconds of actual CPU time
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container microstackshots_task finished 1/1 tasks [wall seconds:11.7] [CPU seconds:0.2] [CPU/wall: 0.0%] [timeout: 45.0] [CPU/timeout: 0.4%] [numTimeouts: 0] 
+2026-08-08 04:07:08: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: microstackshots_collection...
+2026-08-08 04:07:09: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/fileproviderctl' exited with status 0
+2026-08-08 04:07:09: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'fileproviderctl|fileproviderctl_diagnose.log' finished in 11.923332 seconds and used 0.026884 seconds of actual CPU time
+2026-08-08 04:07:09: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing '/usr/bin/fileproviderctl check -v -o /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f.tmp/FileProvider_sysdiagnose_temp.prHpf1/FileProvider/fileproviderctl_check.log'
+2026-08-08 04:07:09: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to get user context for uid 501: Unknown error: 144
+2026-08-08 04:07:09: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to setflags on spawn attr when launching SDTask
+2026-08-08 04:07:09: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 6) (timeout: 2.000000) (elapsed time: 12.03s) (CPU time used: 1.51) (task containers running: 5)
+2026-08-08 04:07:11: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 7) (timeout: 2.000000) (elapsed time: 14.04s) (CPU time used: 2.70) (task containers running: 5)
+2026-08-08 04:07:12: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 3) (timeout: 5.000000) (elapsed time: 15.01s) (CPU time used: 0.05) (task containers running: 5)
+2026-08-08 04:07:13: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 8) (timeout: 2.000000) (elapsed time: 16.04s) (CPU time used: 3.93) (task containers running: 5)
+2026-08-08 04:07:15: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 9) (timeout: 2.000000) (elapsed time: 18.05s) (CPU time used: 4.52) (task containers running: 5)
+2026-08-08 04:07:17: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 4) (timeout: 5.000000) (elapsed time: 20.01s) (CPU time used: 0.05) (task containers running: 5)
+2026-08-08 04:07:17: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 10) (timeout: 2.000000) (elapsed time: 20.05s) (CPU time used: 5.26) (task containers running: 5)
+2026-08-08 04:07:19: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [ModelCatalog container] Giving another 2s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 11) (timeout: 2.000000) (elapsed time: 22.05s) (CPU time used: 5.26) (task containers running: 5)
+2026-08-08 04:07:20: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/lsdiagnose' exited with status 0
+2026-08-08 04:07:20: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'lsdiagnose|lsaw.csstoredump' finished in 23.470848 seconds and used 29.495831 seconds of actual CPU time
+2026-08-08 04:07:20: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container lsawLogs finished 1/1 tasks [wall seconds:23.5] [CPU seconds:29.5] [CPU/wall: 1.3%] [timeout: 60.0] [CPU/timeout: 49.2%] [numTimeouts: 0] 
+2026-08-08 04:07:21: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/modelcatalogdump' exited with status 0
+2026-08-08 04:07:21: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'modelcatalogdump|model_catalog_dump.txt' finished in 23.366914 seconds and used 5.351642 seconds of actual CPU time
+2026-08-08 04:07:21: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container ModelCatalog finished 1/1 tasks [wall seconds:23.4] [CPU seconds:5.4] [CPU/wall: 0.2%] [timeout: 2.0] [CPU/timeout: 267.6%] [numTimeouts: 11] 
+2026-08-08 04:07:22: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 5) (timeout: 5.000000) (elapsed time: 25.02s) (CPU time used: 0.05) (task containers running: 3)
+2026-08-08 04:07:22: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: powerlogs_collection...
+2026-08-08 04:07:27: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 6) (timeout: 5.000000) (elapsed time: 30.02s) (CPU time used: 0.05) (task containers running: 2)
+2026-08-08 04:07:32: [Subsystem com.apple.sysdiagnose, Category: containers] Log: [fileproviderctl_task container] Giving another 5s timeout because it hasn't exceeded its minimum CPU and/or wall time: (numTimeouts: 7) (timeout: 5.000000) (elapsed time: 35.02s) (CPU time used: 0.05) (task containers running: 2)
+2026-08-08 04:07:36: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Child process '/usr/bin/fileproviderctl' exited with nonzero status 65
+2026-08-08 04:07:36: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task 'fileproviderctl|fileproviderctl.log' finished in 27.239931 seconds and used 0.023839 seconds of actual CPU time
+2026-08-08 04:07:36: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container fileproviderctl_task finished 2/2 tasks [wall seconds:39.2] [CPU seconds:0.1] [CPU/wall: 0.0%] [timeout: 5.0] [CPU/timeout: 1.0%] [numTimeouts: 7] 
+2026-08-08 04:07:36: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: fileproviderctl_collection...
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: WiFi_collection...
+2026-08-08 04:07:43: TaskDepot unblocking waiting threads
+2026-08-08 04:07:43: Blocked thread for 45.9s while waiting for tasks to complete
+2026-08-08 04:07:43: End Log Generation Phase
+2026-08-08 04:07:43: Begin Log Copying Phase
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: crashes and spins...
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: crashes and spins : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ondemandd : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: VideoProcessing : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ThermalLogs...
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: tgraph.csv failed due to file not found
+2026-08-08 04:07:43: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ThermalLogs : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coreaudio reporting : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AccessibilityPrefs...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.Accessibility.GuidedAccess.plist failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.ZoomTouch.plist failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.Accessibility.TouchAccommodations.plist failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.Accessibility.SwitchControl.plist failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Preferences/com.apple.ClarityUI*.plist
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: LanguagePrefs...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: astro : Req - 000B State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MapsSyncJournal : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CompanionSync : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AGXMTLCompilerCrash : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: NanoPreferencesSync : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreCaptureBT : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: fsck...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: fsck_apfs.log failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileInstallation...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/installd/Library/Logs/MobileInstallation/mobile_installation{,_helper}.log.[01234]
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileActivation...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ucrt_oob_request.txt failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ucrt_oob_response.txt failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: collection_oob_request.txt failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: collection_oob_response.txt failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/mobileactivationd/mobileactivationd.log.*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/mobileactivationd/*baa_request.txt
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/mobileactivationd/*baa_response.txt
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/mobileactivationd/*baa_su_request.txt
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/mobileactivationd/*baa_su_response.txt
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: appinstallation...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: appstored.sqlitedb failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: appstored.sqlitedb-shm failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: appstored.sqlitedb-wal failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: iapinfo.sqlitedb failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: iapinfo.sqlitedb-shm failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: iapinfo.sqlitedb-wal failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AppUpdates.sqlitedb failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AppUpdates.sqlitedb-shm failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AppUpdates.sqlitedb-wal failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: process proxied device logs...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/ProxiedDevice-*/*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Siri...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/VoiceTrigger/audio/*.json
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Siri : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileAssetHistory...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/MobileAsset/AssetsV2/history/MAAutoAsset_{Filesystem,Locker,Atomic,Error,Secure,Stager,Scheduler,PushNotification}_History.txt
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/MobileAsset/AssetsV2/history/MAAutoAsset_{Filesystem,Locker,Atomic,Error,Secure,Stager,Scheduler,PushNotification}_History_0[0-9].log
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SplunkHistory...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/MobileSoftwareUpdate/Controller/SplunkHistory/SUCoreSplunkHistory.log*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: parsecd...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: skapp_data failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CloudKitBookmarks...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SiriAnalytics...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SiriAnalytics.db failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: hidfw-crashlogs...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Splat Versioning...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SystemVersion.plist failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: RestoreVersion.plist failed due to file not found
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: HangTracerTailspins...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/root/Library/Caches/hangtracerd/spool/*.tailspin*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/HangTracer/*.tailspin*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: RecentHangTracerTailspins...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/root/Library/Caches/hangtracerd/spool/*.tailspin*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/HangTracer/*.tailspin*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Sentry...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MCState...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: watchdog : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: watchdogd ddts : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Accessibility...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CalendarPreferences...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SocialLayerPlist...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: WorkflowResponsiveness...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/db/WorkflowResponsiveness/Tailspins/*.tailspin
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MSU...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Mobile Demo...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/logs/MobileDemo/*.log
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: UARP Packet Capture : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MobileKeybagLogs : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: usermanagerd logs...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/logs/usermanagerd*.log*
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MailErrorConditions : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: keyboard cache...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BatteryBDC...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AppSupport...
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MediaserverdBlockageTailspins : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:44: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AVConference...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: avconferenced-embedded : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: NSURLSession logs : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CMCaptureTailspins : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Panics...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/panic-*.ips
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/Retired/panic-*.ips
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: stackshots...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/logs/CrashReporter/stacks-*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/stacks-*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/Retired/stacks-*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: BluetoothAccessory : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: BluetoothCoreDump : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: HCI...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/Bluetooth/bluetoothd-hci*.pklg
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: DataMigration : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileLockdown...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/logs/lockdownd.log*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CoreLocation : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: syslog : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Networking...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.nat.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.RemoteAccessServers.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.smb.server.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: vpnd.log failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: racoon.log failed due to file not found
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/com.apple.networkextension.uuidcache.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/com.apple.networkextension.uuidcache.plist: File exists
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/SystemConfiguration/preferences.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/preferences.plist: File exists
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/SystemConfiguration/NetworkInterfaces.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/NetworkInterfaces.plist: File exists
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/com.apple.networkextension.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/com.apple.networkextension.plist: File exists
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/com.apple.networkextension.control.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/com.apple.networkextension.control.plist: File exists
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/com.apple.networkextension.necp.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/com.apple.networkextension.necp.plist: File exists
+2026-08-08 04:07:45: Unable to copy file /private/var/preferences/com.apple.networkextension.cache.plist -> /private/var/db/sysdiagnose/com.apple.sysdiagnose/IN_PROGRESS_sysdiagnose_2026.08.08_04-06-43+0300_iPhone-OS_iPhone_24A5390f/logs/Networking/com.apple.networkextension.cache.plist: File exists
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: FindMyDevice : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: itunesstored...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: OTA : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: LaunchServices...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: LaunchServices failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AppConduit...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/AppConduit/AppConduit.log.[0-4]
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Accounts...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Accounts failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Harmony : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Contacts : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Burnin : Req - 000B State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Buddy : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ProtectedCloudStorage...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/CrashReporter/DiagnosticLogs/ProtectedCloudStorage*.log
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileBackup...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MobileBackup : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: NanoRegistry : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ATVUpdateLog...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: UpdateLog.txt failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SUInfo : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: demod...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/logs/demod/demod-*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/logs/demod/demod_helper-*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: WatchConnectivity...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: WatchConnectivity failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: coremediacapture-afdebug : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: BridgeActivation : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: BridgeReporting : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: HomePodSetUp : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Frametracer : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MatchTailspins : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: ForceResetTailspins...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: ForceResetTailspins failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: TetheredRestore : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MobileObliteration : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: OTAUpdateLogs...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CommandAndControl...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.speech.SpeechRecognitionCommandAndControl.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.speech.SpeechRecognitionCommandAndControl.CustomGestures.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.Accessibility.FullKeyboardAccess.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SiriTextToSpeech : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: LivabilityApp : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileSlideShow...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AlishaLogs : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MobileStoreDemo...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.MobileStoreDemo.plist failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SleepCycler : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Resource Exhaustion : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SystemVersion...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: Recoverylogd...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: recoverylogd failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: recoverylogd failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: RunningBoard : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CacheDeleteHistory...
+2026-08-08 04:07:45: Getting home dir for uid 501
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: CacheDeletePurgeHistory.txt failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: SpaceAttributionTelemetry : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: AUDeveloperSettings : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: copySpringBoardStateDump : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: WindowServerHangs : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: UARPEndpointPacketCaptures...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: CameraCaptureStateDumps...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/tmp/com.apple.cameracaptured/CMCaptureStateDumps/*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: DarwinInit : Req - 1008 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: green-restore : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: InBoxUpdate...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/mobile/Library/Logs/com.apple.inboxupdaterd/shipping_update_*
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: AirPodPowerMetrics...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: com.apple.Bluetooth.AccessoryCase.pif_daily failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: BatteryIntelligence...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/db/Battery/BI/com.apple.batteryintelligence.batteryalgorithms/com.apple.batteryintelligence.batteryalgorithms-OnDeviceACAM-{state,meta}.plist
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MCUCoreDumps : Req - 1008 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: MCUPanicLogs : Req - 1008 State - 6078. Conditions did not pass.
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: NERDArchive...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Querying glob /private/var/MobileSoftwareUpdate/Controller/NeRD/RecoveryOS-[0-9-]*.logarchive.zip
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: SecureElementService...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: endpoint.log failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: StagingLogs...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: StagingLogs failed due to file not found
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: MiscBreadcrumbs...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: UARPKitFirmwareSubscriptionDatabase...
+2026-08-08 04:07:45: Main thread waiting for tasks to finish
+2026-08-08 04:07:45: End Log Copying Phase
+2026-08-08 04:07:45: Begin Log Archive Phase
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: logarchive summary...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing task container: logarchive summary
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/usr/bin/log' not accessible
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /usr/bin/log (
+    config,
+    "--status"
+) in group logarchive summary
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/bin/ls' not accessible
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /bin/ls (
+    "-lRsh",
+    "/private/var/db/diagnostics"
+) in group logarchive summary
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Launch path '/bin/ls' not accessible
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to create child process for task /bin/ls (
+    "-lRsh",
+    "/private/var/db/uuidtext"
+) in group logarchive summary
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: No tasks were created for logarchive summary
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Task Container logarchive summary finished 0/3 tasks [wall seconds:0.0] [CPU seconds:0.0] [CPU/wall: nan%] [timeout: 35.0] [CPU/timeout: 0.0%] [numTimeouts: 0] 
+2026-08-08 04:07:45: TaskDepot unblocking waiting threads
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Failed to execute logarchive summary
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Executing container: logarchive...
+2026-08-08 04:07:45: [Subsystem com.apple.sysdiagnose, Category: containers] Log: Trigger logarchive with following parameters: {
+    OSLogConstructHighVolumeAgeLimit = 86400;
+    OSLogConstructHighVolumeSizeLimit = 10485760;
+    OSLogConstructPersistAgeLimit = 259200;
+    OSLogConstructPersistSizeLimit = 146800640;
+    OSLogConstructSignpostAgeLimit = 172800;
+    OSLogConstructSignpostSizeLimit = 20971520;
+    OSLogConstructSourceDirectory = "/private/var/db/diagnostics";
+    OSLogConstructSpecialAgeLimit = 1036800;
+    OSLogConstructSpecialSizeLimit = 73400320;
+}
+2026-08-08 04:07:50: [Subsystem com.apple.sysdiagnose, Category: containers] Log: LogStreamFilter : Req - 0009 State - 6078. Conditions did not pass.
+2026-08-08 04:07:50: Main thread waiting for tasks to finish
+2026-08-08 04:07:50: End Log Archive Phase
+2026-08-08 04:07:50: [Subsystem remoteSysdiagnose, Category: AccessoryLogSubsystem] Log: No AirPod logs available to collect.
+2026-08-08 04:07:50: 
+Completed all phases. Wrapping up.
+2026-08-08 04:07:51: 
+Getting time sensitive containers: 0.12
+Getting log generation containers: 0.03
+Getting log copying containers: 0.01
+Getting OS log archive containers: 0.00
+
+2026-08-08 04:07:51: 
+Time Sensitive: 13.59 
+Log Copying: 1.31 
+Log Generation: 47.10 
+OSLogArchive Generation: 5.76 
+Total: 67.76 seconds, 1552246804 bytes
+2026-08-08 04:07:51: Resource Usage: Gathering diagnostics took 67.757968.1 seconds for 1552246804 bytes (uncompressed)
+2026-08-08 04:07:51: Stopping TaskDepot.
+2026-08-08 04:07:51: Trying to reap tasks...

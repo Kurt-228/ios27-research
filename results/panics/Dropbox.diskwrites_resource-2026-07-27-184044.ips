@@ -1,0 +1,632 @@
+{"roots_installed":0,"app_name":"Dropbox","timestamp":"2026-07-27 18:40:44.00 +0300","app_version":"482.2","slice_uuid":"A1D4E5F4-30AB-32E2-89C3-839F19979C4C","adam_id":"327630330","build_version":"482.2.2","bundleID":"com.getdropbox.Dropbox","duration_ms":"1903266","is_first_party":0,"share_with_app_devs":0,"bug_type":"145","os_version":"iPhone OS 27.0 (24A5390f)","distributor_id":"com.apple.AppStore","name":"Dropbox","incident_id":"39CCDF80-78E9-4C85-A885-1C8C6A6E59A0"}
+Date/Time:        2026-07-27 18:08:57.443 +0300
+End time:         2026-07-27 18:40:40.710 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 39CCDF80-78E9-4C85-A885-1C8C6A6E59A0
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          Dropbox
+Path:             /private/var/containers/Bundle/Application/27A31B8F-B12F-484F-8AAE-7C3E9790643A/Dropbox.app/Dropbox
+Identifier:       com.getdropbox.Dropbox
+Version:          482.2 (482.2.2)
+Adam ID:          327630330
+Is First Party:   No
+Beta Identifier:  1A77D9E4-9712-49CC-B97B-AD91C74842EB
+Resource Coalition: "com.getdropbox.Dropbox"(1878)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+PID:              4175
+
+Event:            disk writes
+Action taken:     none
+Writes:           1078.04 MB of file backed memory dirtied over 1903 seconds (566.42 KB per second average), exceeding limit of 12.43 KB per second over 86400 seconds
+Writes limit:     1073.74 MB
+Limit duration:   86400s
+Writes caused:    1078.04 MB
+Writes duration:  1903s
+Duration:         1903.27s
+Duration Sampled: 1891.28s (event starts 11.50s before samples, event ends 0.49s after samples)
+Steps:            92 (219 samples lost, 10.49 MB/step)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 14.17% (966.02 MB / 6819.12 MB)
+
+Time Since Boot:  87778s
+Time Awake Since Boot: 72378s
+Time Since Wake:  14903s
+
+Total CPU Time:   80.236s
+Advisory levels:  Battery -> 3, User -> 3, ThermalPressure -> 0, Combined -> 3
+Free disk space:  168.78 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 63.51% (17784/28000, 14000 allocated, 14000 soft limit)
+Model:            com.apple.fm.language.instruct_3b.base
+  Loaded:         -12s - 100s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.siri_user_experience_analysis
+  Executing:      6.8s - 23s, requested by [87] use case Siri.UserExperienceAnalysis
+  Executing:      32s - 45s, requested by [4211] use case Siri.UserExperienceAnalysis
+  Executing:      45s - 57s, requested by [4211] use case Siri.UserExperienceAnalysis
+  Executing:      57s - 68s, requested by [4211] use case Siri.UserExperienceAnalysis
+  Executing:      68s - 81s, requested by [4211] use case Siri.UserExperienceAnalysis
+  Executing:      81s - 93s, requested by [4211] use case Siri.UserExperienceAnalysis
+Model:            com.apple.fm.language.instruct_3b.fm_api_generic
+  Loaded:         -12s - 100s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.siri_user_experience_analysis.adapter_metadata_override
+  Loaded:         -11s - 100s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.tokenizer
+  Loaded:         ??? - 880s, requested by UNKNOWN
+Model:            com.apple.fm.language.instruct_3b.tokenizer
+  Loaded:         ??? - 990s, requested by UNKNOWN
+Model:            com.apple.gm.pcc_inference_provider
+  Loaded:         1200s - 1300s, requested by pcc-agent-client
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        ru_RU Russian, en_US QWERTY
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  85  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+  83  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+  83  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+  83  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+  83  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+  82  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+  82  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  80  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+  51  ??? (Dropbox + 188716) [0x100f3612c]
+  51  ??? (Dropbox + 44627840) [0x103997780]
+  50  ??? (Dropbox + 44855868) [0x1039cf23c]
+  50  ??? (Dropbox + 44722936) [0x1039aeaf8]
+  50  ??? (Dropbox + 44761584) [0x1039b81f0]
+  48  ??? (Dropbox + 44761888) [0x1039b8320]
+  48  ??? (Dropbox + 44763580) [0x1039b89bc]
+  39  ??? (Dropbox + 44683740) [0x1039a51dc]
+  39  ??? (Dropbox + 44761692) [0x1039b825c]
+  39  ??? (Dropbox + 44592952) [0x10398ef38]
+  39  ??? (Dropbox + 44592536) [0x10398ed98]
+  39  ??? (Dropbox + 44835544) [0x1039ca2d8]
+  39  ??? (Dropbox + 28295008) [0x102a03f60]
+  39  ??? (Dropbox + 28296516) [0x102a04544]
+  39  ??? (ImageIO + 430608) [0x192cab210]
+  39  ??? (ImageIO + 434508) [0x192cac14c]
+  39  ??? (ImageIO + 872276) [0x192d16f54]
+  39  ??? (ImageIO + 866176) [0x192d15780]
+  39  ??? (ImageIO + 413152) [0x192ca6de0]
+  39  ??? (libsystem_c.dylib + 55880) [0x193295a48]
+  39  ??? (libsystem_c.dylib + 18408) [0x19328c7e8]
+  39  ??? (libsystem_c.dylib + 56084) [0x193295b14]
+  39  ??? (libsystem_kernel.dylib + 29624) [0x243c283b8]
+
+
+Powerstats for:   Dropbox [4175]
+UUID:             A1D4E5F4-30AB-32E2-89C3-839F19979C4C
+Path:             /private/var/containers/Bundle/Application/27A31B8F-B12F-484F-8AAE-7C3E9790643A/Dropbox.app/Dropbox
+Identifier:       com.getdropbox.Dropbox
+Version:          482.2 (482.2.2)
+Adam ID:          327630330
+Is First Party:   No
+Beta Identifier:  1A77D9E4-9712-49CC-B97B-AD91C74842EB
+Resource Coalition: 92 samples "com.getdropbox.Dropbox"(1878)
+Architecture:     arm64
+Parent:           UNKNOWN [1]
+UID:              501
+Footprint:        33.20 MB -> 182.16 MB (+148.95 MB) (max 201.52 MB )
+Pageins:          7510 pages
+Start time:       2026-07-27 18:09:08.939 +0300
+End time:         2026-07-27 18:40:40.216 +0300
+Num samples:      92 (100%)
+Energy:           2802.89 uWh
+Num threads:      26
+Primary state:    65 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Background, Requested Thread QoS Utility, Override Thread QoS Unspecified, e-core
+User Activity:    92 samples Idle, 0 samples Active
+Power Source:     0 samples on Battery, 92 samples on AC
+  85  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    83  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      83  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        83  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          83  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            82  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              82  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                80  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  51  ??? (Dropbox + 188716) [0x100f3612c]
+                    51  ??? (Dropbox + 44627840) [0x103997780]
+                      50  ??? (Dropbox + 44855868) [0x1039cf23c]
+                        50  ??? (Dropbox + 44722936) [0x1039aeaf8]
+                          50  ??? (Dropbox + 44761584) [0x1039b81f0]
+                            48  ??? (Dropbox + 44761888) [0x1039b8320]
+                              48  ??? (Dropbox + 44763580) [0x1039b89bc]
+                                39  ??? (Dropbox + 44683740) [0x1039a51dc]
+                                  39  ??? (Dropbox + 44761692) [0x1039b825c]
+                                    39  ??? (Dropbox + 44592952) [0x10398ef38]
+                                      39  ??? (Dropbox + 44592536) [0x10398ed98]
+                                        39  ??? (Dropbox + 44835544) [0x1039ca2d8]
+                                          39  ??? (Dropbox + 28295008) [0x102a03f60]
+                                            39  ??? (Dropbox + 28296516) [0x102a04544]
+                                              39  ??? (ImageIO + 430608) [0x192cab210]
+                                                39  ??? (ImageIO + 434508) [0x192cac14c]
+                                                  39  ??? (ImageIO + 872276) [0x192d16f54]
+                                                    39  ??? (ImageIO + 866176) [0x192d15780]
+                                                      39  ??? (ImageIO + 413152) [0x192ca6de0]
+                                                        39  ??? (libsystem_c.dylib + 55880) [0x193295a48]
+                                                          39  ??? (libsystem_c.dylib + 18408) [0x19328c7e8]
+                                                            39  ??? (libsystem_c.dylib + 56084) [0x193295b14]
+                                                              39  ??? (libsystem_kernel.dylib + 29624) [0x243c283b8]
+                                                                6   <Effective Thread QoS Utility>
+                                                                1   <Effective Thread QoS Utility, p-core>
+                                8   ??? (Dropbox + 44592952) [0x10398ef38]
+                                  8   ??? (Dropbox + 44592536) [0x10398ed98]
+                                    5   ??? (Dropbox + 44571156) [0x103989a14]
+                                      4   ??? (Dropbox + 38901292) [0x10342162c]
+                                        4   ??? (Dropbox + 38901620) [0x103421774]
+                                          4   ??? (Dropbox + 39013256) [0x10343cb88]
+                                            4   ??? (Dropbox + 39013440) [0x10343cc40]
+                                              4   ??? (Dropbox + 38917964) [0x10342574c]
+                                                4   ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+                                                  4   ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+                                                    4   ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+                                                      4   ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+                                                        4   ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+                                                          4   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                            4   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                              4   ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+                                                                4   ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+                                                                  4   ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+                                                                    4   ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+                                                                      4   ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+                                                                        4   ??? (Dropbox + 38923676) [0x103426d9c]
+                                                                          4   ??? (Dropbox + 39013284) [0x10343cba4]
+                                                                            4   ??? (Dropbox + 38918736) [0x103425a50]
+                                                                              4   ??? (Dropbox + 38918828) [0x103425aac]
+                                                                                4   ??? (Dropbox + 38925916) [0x10342765c]
+                                                                                  4   ??? (Dropbox + 38928604) [0x1034280dc]
+                                                                                    4   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                                      3   ??? (libsqlite3.dylib + 219960) [0x1a9e81b38]
+                                                                                        3   ??? (libsqlite3.dylib + 328456) [0x1a9e9c308]
+                                                                                          3   ??? (libsqlite3.dylib + 315948) [0x1a9e9922c]
+                                                                                            3   ??? (libsqlite3.dylib + 371568) [0x1a9ea6b70]
+                                                                                              3   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                3   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                      1   ??? (libsqlite3.dylib + 235228) [0x1a9e856dc]
+                                                                                        1   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                                                                          1   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                                                                            1   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                                                                              1   ??? (libsqlite3.dylib + 331232) [0x1a9e9cde0]
+                                                                                                1   ??? (libsqlite3.dylib + 373836) [0x1a9ea744c]
+                                                                                                  1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                    1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                      1   ??? (Dropbox + 17420032) [0x101fa4f00]
+                                        1   ??? (Dropbox + 38919688) [0x103425e08]
+                                          1   ??? (Dropbox + 38920080) [0x103425f90]
+                                            1   ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+                                              1   ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+                                                1   ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+                                                  1   ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+                                                    1   ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+                                                      1   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                        1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                          1   ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+                                                            1   ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+                                                              1   ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+                                                                1   ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+                                                                  1   ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+                                                                    1   ??? (Dropbox + 38923744) [0x103426de0]
+                                                                      1   ??? (Dropbox + 38920648) [0x1034261c8]
+                                                                        1   ??? (Dropbox + 38918828) [0x103425aac]
+                                                                          1   ??? (Dropbox + 38925916) [0x10342765c]
+                                                                            1   ??? (Dropbox + 38928604) [0x1034280dc]
+                                                                              1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                                1   ??? (libsqlite3.dylib + 235288) [0x1a9e85718]
+                                                                                  1   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                                                                    1   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                                                                      1   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                                                                        1   ??? (libsqlite3.dylib + 331128) [0x1a9e9cd78]
+                                                                                          1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                            1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                              1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                    3   ??? (Dropbox + 44835544) [0x1039ca2d8]
+                                      3   ??? (Dropbox + 17283216) [0x101f83890]
+                                        3   ??? (Dropbox + 28260372) [0x1029fb814]
+                                          3   ??? (Dropbox + 28259420) [0x1029fb45c]
+                                            3   ??? (Dropbox + 28272476) [0x1029fe75c]
+                                              3   ??? (Dropbox + 28270672) [0x1029fe050]
+                                                1   ??? (Dropbox + 28267460) [0x1029fd3c4]
+                                                  1   ??? (Dropbox + 28272044) [0x1029fe5ac]
+                                                    1   ??? (Foundation + 3262028) [0x18c20564c]
+                                                      1   ??? (Foundation + 3265436) [0x18c20639c]
+                                                        1   ??? (Foundation + 3269552) [0x18c2073b0]
+                                                          1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                                            1   <Effective Thread QoS Utility, p-core>
+                                                1   ??? (Dropbox + 28267012) [0x1029fd204]
+                                                  1   ??? (Dropbox + 28272044) [0x1029fe5ac]
+                                                    1   ??? (Foundation + 3262028) [0x18c20564c]
+                                                      1   ??? (Foundation + 3265436) [0x18c20639c]
+                                                        1   ??? (Foundation + 3269552) [0x18c2073b0]
+                                                          1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                                            1   <Effective Thread QoS Utility>
+                                                1   ??? (Dropbox + 28265652) [0x1029fccb4]
+                                                  1   ??? (Dropbox + 28271644) [0x1029fe41c]
+                                                    1   ??? (Dropbox + 28295768) [0x102a04258]
+                                                      1   ??? (Dropbox + 28296516) [0x102a04544]
+                                                        1   ??? (ImageIO + 430608) [0x192cab210]
+                                                          1   ??? (ImageIO + 434508) [0x192cac14c]
+                                                            1   ??? (ImageIO + 872276) [0x192d16f54]
+                                                              1   ??? (ImageIO + 866176) [0x192d15780]
+                                                                1   ??? (ImageIO + 413152) [0x192ca6de0]
+                                                                  1   ??? (libsystem_c.dylib + 55880) [0x193295a48]
+                                                                    1   ??? (libsystem_c.dylib + 18408) [0x19328c7e8]
+                                                                      1   ??? (libsystem_c.dylib + 56084) [0x193295b14]
+                                                                        1   ??? (libsystem_kernel.dylib + 29624) [0x243c283b8]
+                                                                          1   <Effective Thread QoS Utility, p-core>
+                                1   ??? (Dropbox + 44703956) [0x1039aa0d4]
+                                  1   ??? (Dropbox + 44701268) [0x1039a9654]
+                                    1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                      1   ??? (Dropbox + 44486096) [0x103974dd0]
+                                        1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                          1   ??? (Dropbox + 44637500) [0x103999d3c]
+                                            1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                              1   ??? (Dropbox + 44568224) [0x103988ea0]
+                                                1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                  1   ??? (Dropbox + 44517116) [0x10397c6fc]
+                                                    1   ??? (Dropbox + 44515980) [0x10397c28c]
+                                                      1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                        1   ??? (Dropbox + 44519184) [0x10397cf10]
+                                                          1   ??? (Dropbox + 44867576) [0x1039d1ff8]
+                                                            1   ??? (Dropbox + 44867788) [0x1039d20cc]
+                                                              1   ??? (Dropbox + 44487172) [0x103975204]
+                                                                1   ??? (Dropbox + 44870376) [0x1039d2ae8]
+                                                                  1   ??? (Dropbox + 44869616) [0x1039d27f0]
+                                                                    1   ??? (Dropbox + 44517940) [0x10397ca34]
+                                                                      1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                                        1   ??? (Dropbox + 44592952) [0x10398ef38]
+                                                                          1   ??? (Dropbox + 44592536) [0x10398ed98]
+                                                                            1   ??? (Dropbox + 44835544) [0x1039ca2d8]
+                                                                              1   ??? (Dropbox + 19022392) [0x10212c238]
+                                                                                1   ??? (Dropbox + 19024024) [0x10212c898]
+                                                                                  1   ??? (Dropbox + 19020636) [0x10212bb5c]
+                                                                                    1   ??? (Dropbox + 39684152) [0x1034e0838]
+                                                                                      1   ??? (Dropbox + 39686252) [0x1034e106c]
+                                                                                        1   ??? (Dropbox + 39675664) [0x1034de710]
+                                                                                          1   ??? (Dropbox + 39673868) [0x1034de00c]
+                                                                                            1   ??? (Dropbox + 39669332) [0x1034dce54]
+                                                                                              1   ??? (Dropbox + 39669564) [0x1034dcf3c]
+                                                                                                1   ??? (Foundation + 5123064) [0x18c3cbbf8]
+                                                                                                  1   ??? (Foundation + 5128636) [0x18c3cd1bc]
+                                                                                                    1   ??? (Foundation + 2544944) [0x18c156530]
+                                                                                                      1   ??? (Foundation + 5129384) [0x18c3cd4a8]
+                                                                                                        1   ??? (Foundation + 5123228) [0x18c3cbc9c]
+                                                                                                          1   ??? (Foundation + 2547528) [0x18c156f48]
+                                                                                                            1   ??? (Dropbox + 39669836) [0x1034dd04c]
+                                                                                                              1   ??? (Dropbox + 39676428) [0x1034dea0c]
+                                                                                                                1   ??? (Dropbox + 39674308) [0x1034de1c4]
+                                                                                                                  1   ??? (Dropbox + 39684152) [0x1034e0838]
+                                                                                                                    1   ??? (Dropbox + 39686252) [0x1034e106c]
+                                                                                                                      1   ??? (Dropbox + 39690100) [0x1034e1f74]
+                                                                                                                        1   ??? (Dropbox + 39689760) [0x1034e1e20]
+                                                                                                                          1   ??? (Dropbox + 39689056) [0x1034e1b60]
+                                                                                                                            1   ??? (Dropbox + 39687440) [0x1034e1510]
+                                                                                                                              1   ??? (Foundation + 2219432) [0x18c106da8]
+                                                                                                                                1   ??? (Foundation + 913936) [0x18bfc8210]
+                                                                                                                                  1   ??? (Foundation + 914024) [0x18bfc8268]
+                                                                                                                                    1   ??? (Foundation + 2177196) [0x18c0fc8ac]
+                                                                                                                                      1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                                                                                                                        1   <Effective Thread QoS Default, Requested Thread QoS User Initiated, p-core>
+                            2   ??? (Dropbox + 44762324) [0x1039b84d4]
+                              2   ??? (Dropbox + 44815688) [0x1039c5548]
+                                2   ??? (Dropbox + 44781536) [0x1039bcfe0]
+                                  2   ??? (Dropbox + 44782924) [0x1039bd54c]
+                                    2   ??? (Dropbox + 44821796) [0x1039c6d24]
+                                      2   ??? (Dropbox + 44843860) [0x1039cc354]
+                                        2   ??? (Dropbox + 44698460) [0x1039a8b5c]
+                                          2   ??? (Dropbox + 44696824) [0x1039a84f8]
+                                            2   ??? (Dropbox + 44694484) [0x1039a7bd4]
+                                              2   ??? (Dropbox + 17336880) [0x101f90a30]
+                                                2   ??? (Dropbox + 17323564) [0x101f8d62c]
+                                                  2   ??? (Dropbox + 17321300) [0x101f8cd54]
+                                                    2   ??? (Dropbox + 17175684) [0x101f69484]
+                                                      2   ??? (Foundation + 3262028) [0x18c20564c]
+                                                        2   ??? (Foundation + 3265436) [0x18c20639c]
+                                                          2   ??? (Foundation + 3269552) [0x18c2073b0]
+                                                            2   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                                              1   <Effective Thread QoS Utility, p-core>
+                                                              1   <Effective Thread QoS Utility>
+                      1   ??? (Dropbox + 44733872) [0x1039b15b0]
+                        1   ??? (Dropbox + 44733088) [0x1039b12a0]
+                          1   ??? (Dropbox + 44856304) [0x1039cf3f0]
+                            1   ??? (Dropbox + 44855216) [0x1039cefb0]
+                              1   ??? (Dropbox + 44843860) [0x1039cc354]
+                                1   ??? (Dropbox + 44683492) [0x1039a50e4]
+                                  1   ??? (Dropbox + 44682996) [0x1039a4ef4]
+                                    1   ??? (Dropbox + 4798388) [0x10139b7b4]
+                                      1   ??? (libswiftCore.dylib + 1506372) [0x18d1f2c44]
+                                        1   ??? (libswiftCore.dylib + 1651228) [0x18d21621c]
+                                          1   ??? (libswiftCore.dylib + 1231036) [0x18d1af8bc]
+                                            1   ??? (libswiftCore.dylib + 1150772) [0x18d19bf34]
+                                              1   ??? (libswiftCore.dylib + 585568) [0x18d111f60]
+                                                1   ??? (libswiftCore.dylib + 1150696) [0x18d19bee8]
+                                                  1   ??? (Dropbox + 39010412) [0x10343c06c]
+                                                    1   ??? (Dropbox + 38929780) [0x103428574]
+                                                      1   ??? (Dropbox + 38917300) [0x1034254b4]
+                                                        1   ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+                                                          1   ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+                                                            1   ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+                                                              1   ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+                                                                1   ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+                                                                  1   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                                    1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                                      1   ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+                                                                        1   ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+                                                                          1   ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+                                                                            1   ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+                                                                              1   ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+                                                                                1   ??? (Dropbox + 38923700) [0x103426db4]
+                                                                                  1   ??? (Dropbox + 38929412) [0x103428404]
+                                                                                    1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                                      1   ??? (libsqlite3.dylib + 193772) [0x1a9e7b4ec]
+                                                                                        1   ??? (libsqlite3.dylib + 788512) [0x1a9f0c820]
+                                                                                          1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                            1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                              1   <Requested Thread QoS User Initiated>
+                  29  ??? (Photos + 2572896) [0x1a5c77260]
+                    27  ??? (Photos + 2574940) [0x1a5c77a5c]
+                      27  ??? (Photos + 308504) [0x1a5a4e518]
+                        27  ??? (Photos + 309156) [0x1a5a4e7a4]
+                          27  ??? (Dropbox + 17120948) [0x101f5beb4]
+                            27  ??? (Dropbox + 17306248) [0x101f89288]
+                              27  ??? (Dropbox + 17175684) [0x101f69484]
+                                27  ??? (Foundation + 3262028) [0x18c20564c]
+                                  27  ??? (Foundation + 3265436) [0x18c20639c]
+                                    27  ??? (Foundation + 3269552) [0x18c2073b0]
+                                      27  ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                        2   <p-core>
+                                        1   <Effective Thread QoS Utility>
+                    2   ??? (Photos + 2575464) [0x1a5c77c68]
+                      2   ??? (Dropbox + 14243780) [0x101c9d7c4]
+                        2   ??? (Dropbox + 17317632) [0x101f8bf00]
+                          2   ??? (Dropbox + 17306768) [0x101f89490]
+                            2   ??? (Dropbox + 17175788) [0x101f694ec]
+                              2   ??? (libsystem_kernel.dylib + 4832) [0x243c222e0]
+                2   ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                  2   ??? (Foundation + 499204) [0x18bf62e04]
+                    2   ??? (Foundation + 499032) [0x18bf62d58]
+                      2   ??? (Foundation + 500464) [0x18bf632f0]
+                        2   ??? (Foundation + 501176) [0x18bf635b8]
+                          2   ??? (Foundation + 499544) [0x18bf62f58]
+                            2   ??? (Foundation + 244232) [0x18bf24a08]
+                              2   ??? (Dropbox + 188716) [0x100f3612c]
+                                2   ??? (Dropbox + 35698728) [0x103113828]
+                                  2   ??? (Dropbox + 35697272) [0x103113278]
+                                    2   ??? (Dropbox + 35645564) [0x10310687c]
+                                      2   ??? (Dropbox + 35627928) [0x103102398]
+                                        2   ??? (Dropbox + 35735272) [0x10311c6e8]
+                                          2   ??? (Dropbox + 35594012) [0x1030f9f1c]
+                                            2   ??? (Dropbox + 35589204) [0x1030f8c54]
+                                              2   ??? (Dropbox + 39013256) [0x10343cb88]
+                                                2   ??? (Dropbox + 39013440) [0x10343cc40]
+                                                  2   ??? (Dropbox + 38917964) [0x10342574c]
+                                                    2   ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+                                                      2   ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+                                                        2   ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+                                                          2   ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+                                                            2   ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+                                                              2   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                                2   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                                  2   ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+                                                                    2   ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+                                                                      2   ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+                                                                        2   ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+                                                                          2   ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+                                                                            2   ??? (Dropbox + 38923676) [0x103426d9c]
+                                                                              2   ??? (Dropbox + 39013284) [0x10343cba4]
+                                                                                2   ??? (Dropbox + 38918736) [0x103425a50]
+                                                                                  2   ??? (Dropbox + 38918828) [0x103425aac]
+                                                                                    2   ??? (Dropbox + 38925916) [0x10342765c]
+                                                                                      2   ??? (Dropbox + 38928604) [0x1034280dc]
+                                                                                        2   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                                          2   ??? (libsqlite3.dylib + 209172) [0x1a9e7f114]
+                                                                                            1   ??? (libsqlite3.dylib + 328512) [0x1a9e9c340]
+                                                                                              1   ??? (libsqlite3.dylib + 322836) [0x1a9e9ad14]
+                                                                                                1   ??? (libsqlite3.dylib + 315396) [0x1a9e99004]
+                                                                                                  1   ??? (libsqlite3.dylib + 718360) [0x1a9efb618]
+                                                                                                    1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                      1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                                        1   <Requested Thread QoS User Initiated>
+                                                                                            1   ??? (libsqlite3.dylib + 328456) [0x1a9e9c308]
+                                                                                              1   ??? (libsqlite3.dylib + 315948) [0x1a9e9922c]
+                                                                                                1   ??? (libsqlite3.dylib + 371568) [0x1a9ea6b70]
+                                                                                                  1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                    1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                                      1   <Requested Thread QoS User Initiated>
+            1   ??? (libdispatch.dylib + 42768) [0x1ba65d710]
+              1   ??? (libdispatch.dylib + 101012) [0x1ba66ba94]
+                1   ??? (libdispatch.dylib + 105424) [0x1ba66cbd0]
+                  1   ??? (libdispatch.dylib + 26368) [0x1ba659700]
+                    1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                      1   ??? (Dropbox + 314168) [0x100f54b38]
+                        1   ??? (Dropbox + 44627956) [0x1039977f4]
+                          1   ??? (Dropbox + 44513040) [0x10397b710]
+                            1   ??? (Dropbox + 44513156) [0x10397b784]
+                              1   ??? (Dropbox + 44512268) [0x10397b40c]
+                                1   ??? (Dropbox + 44843860) [0x1039cc354]
+                                  1   ??? (Dropbox + 44649344) [0x10399cb80]
+                                    1   ??? (Dropbox + 44649060) [0x10399ca64]
+                                      1   ??? (Dropbox + 44843860) [0x1039cc354]
+                                        1   ??? (Dropbox + 44703732) [0x1039a9ff4]
+                                          1   ??? (Dropbox + 44700088) [0x1039a91b8]
+                                            1   ??? (Dropbox + 44700456) [0x1039a9328]
+                                              1   ??? (Dropbox + 44761584) [0x1039b81f0]
+                                                1   ??? (Dropbox + 44761888) [0x1039b8320]
+                                                  1   ??? (Dropbox + 44763580) [0x1039b89bc]
+                                                    1   ??? (Dropbox + 44517116) [0x10397c6fc]
+                                                      1   ??? (Dropbox + 44515980) [0x10397c28c]
+                                                        1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                          1   ??? (Dropbox + 44703956) [0x1039aa0d4]
+                                                            1   ??? (Dropbox + 44701268) [0x1039a9654]
+                                                              1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                                1   ??? (Dropbox + 44637500) [0x103999d3c]
+                                                                  1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                                    1   ??? (Dropbox + 44734472) [0x1039b1808]
+                                                                      1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                                        1   ??? (Dropbox + 44569024) [0x1039891c0]
+                                                                          1   ??? (Dropbox + 44569292) [0x1039892cc]
+                                                                            1   ??? (Dropbox + 44761692) [0x1039b825c]
+                                                                              1   ??? (Dropbox + 44592952) [0x10398ef38]
+                                                                                1   ??? (Dropbox + 44592536) [0x10398ed98]
+                                                                                  1   ??? (Dropbox + 44571156) [0x103989a14]
+                                                                                    1   ??? (Dropbox + 38902268) [0x1034219fc]
+                                                                                      1   ??? (Dropbox + 38902124) [0x10342196c]
+                                                                                        1   ??? (Dropbox + 39013340) [0x10343cbdc]
+                                                                                          1   ??? (Dropbox + 39013440) [0x10343cc40]
+                                                                                            1   ??? (Dropbox + 38918096) [0x1034257d0]
+                                                                                              1   ??? (Dropbox + 38918336) [0x1034258c0]
+                                                                                                1   ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+                                                                                                  1   ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+                                                                                                    1   ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+                                                                                                      1   ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+                                                                                                        1   ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+                                                                                                          1   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                                                                            1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                                                                              1   ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+                                                                                                                1   ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+                                                                                                                  1   ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+                                                                                                                    1   ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+                                                                                                                      1   ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+                                                                                                                        1   ??? (Dropbox + 38923652) [0x103426d84]
+                                                                                                                          1   ??? (Dropbox + 39022488) [0x10343ef98]
+                                                                                                                            1   ??? (Dropbox + 39013468) [0x10343cc5c]
+                                                                                                                              1   ??? (Dropbox + 39013496) [0x10343cc78]
+                                                                                                                                1   ??? (Dropbox + 38918736) [0x103425a50]
+                                                                                                                                  1   ??? (Dropbox + 38918828) [0x103425aac]
+                                                                                                                                    1   ??? (Dropbox + 38925916) [0x10342765c]
+                                                                                                                                      1   ??? (Dropbox + 38928604) [0x1034280dc]
+                                                                                                                                        1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                                                                                          1   ??? (libsqlite3.dylib + 219960) [0x1a9e81b38]
+                                                                                                                                            1   ??? (libsqlite3.dylib + 780372) [0x1a9f0a854]
+                                                                                                                                              1   ??? (libsqlite3.dylib + 315948) [0x1a9e9922c]
+                                                                                                                                                1   ??? (libsqlite3.dylib + 371568) [0x1a9ea6b70]
+                                                                                                                                                  1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                                                                    1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                                                                                      1   <Effective Thread QoS Utility>
+    2   ??? (libsystem_pthread.dylib + 4604) [0x18b9471fc]
+      2   ??? (libdispatch.dylib + 86256) [0x1ba6680f0]
+        2   ??? (libdispatch.dylib + 84484) [0x1ba667a04]
+          2   ??? (libdispatch.dylib + 23996) [0x1ba658dbc]
+            2   ??? (libdispatch.dylib + 26368) [0x1ba659700]
+              2   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                1   ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                  1   ??? (Foundation + 499204) [0x18bf62e04]
+                    1   ??? (Foundation + 499032) [0x18bf62d58]
+                      1   ??? (Foundation + 500464) [0x18bf632f0]
+                        1   ??? (Foundation + 501176) [0x18bf635b8]
+                          1   ??? (Foundation + 499544) [0x18bf62f58]
+                            1   ??? (Foundation + 244232) [0x18bf24a08]
+                              1   ??? (Dropbox + 18628016) [0x1020cbdb0]
+                                1   ??? (Dropbox + 18629928) [0x1020cc528]
+                                  1   ??? (Dropbox + 18632780) [0x1020cd04c]
+                                    1   ??? (Dropbox + 18606084) [0x1020c6804]
+                                      1   ??? (Dropbox + 18601988) [0x1020c5804]
+                                        1   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                          1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                            1   ??? (Dropbox + 18602220) [0x1020c58ec]
+                                              1   ??? (Dropbox + 18606452) [0x1020c6974]
+                                                1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                  1   ??? (libsqlite3.dylib + 235228) [0x1a9e856dc]
+                                                    1   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                                      1   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                                        1   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                                          1   ??? (libsqlite3.dylib + 331232) [0x1a9e9cde0]
+                                                            1   ??? (libsqlite3.dylib + 373836) [0x1a9ea744c]
+                                                              1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                  1   <Effective Thread QoS Default, Requested Thread QoS User Initiated>
+                1   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  1   ??? (Foundation + 499204) [0x18bf62e04]
+                    1   ??? (Foundation + 499032) [0x18bf62d58]
+                      1   ??? (Foundation + 500464) [0x18bf632f0]
+                        1   ??? (Foundation + 501176) [0x18bf635b8]
+                          1   ??? (Foundation + 499544) [0x18bf62f58]
+                            1   ??? (Foundation + 244232) [0x18bf24a08]
+                              1   ??? (Dropbox + 42767556) [0x1037d14c4]
+                                1   ??? (Dropbox + 42609620) [0x1037aabd4]
+                                  1   ??? (Dropbox + 42612336) [0x1037ab670]
+                                    1   ??? (Dropbox + 42635516) [0x1037b10fc]
+                                      1   ??? (Dropbox + 42634712) [0x1037b0dd8]
+                                        1   ??? (Dropbox + 42797048) [0x1037d87f8]
+                                          1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                            1   ??? (libsqlite3.dylib + 228232) [0x1a9e83b88]
+                                              1   ??? (libsqlite3.dylib + 788512) [0x1a9f0c820]
+                                                1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                  1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                    1   <Effective Thread QoS Default, Requested Thread QoS User Interactive>
+  7   ??? (dyld + 22064) [0x18b893630]
+    7   ??? (Dropbox + 147468) [0x100f2c00c]
+      7   ??? (Dropbox + 147668) [0x100f2c0d4]
+        7   ??? (UIKitCore + 755808) [0x18fce4860]
+          7   ??? (GraphicsServices + 3876) [0x23607ff24]
+            7   ??? (CoreFoundation + 243456) [0x18ba42700]
+              7   ??? (CoreFoundation + 239512) [0x18ba41798]
+                7   ??? (CoreFoundation + 300616) [0x18ba50648]
+                  7   ??? (libdispatch.dylib + 69696) [0x1ba664040]
+                    7   ??? (libdispatch.dylib + 70512) [0x1ba664370]
+                      7   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                        7   ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                          7   ??? (Foundation + 499204) [0x18bf62e04]
+                            7   ??? (Foundation + 499032) [0x18bf62d58]
+                              7   ??? (Foundation + 500464) [0x18bf632f0]
+                                7   ??? (Foundation + 501176) [0x18bf635b8]
+                                  7   ??? (Foundation + 499544) [0x18bf62f58]
+                                    7   ??? (Foundation + 244232) [0x18bf24a08]
+                                      7   ??? (Dropbox + 42983988) [0x103806234]
+                                        6   ??? (Dropbox + 35815184) [0x10312ff10]
+                                          6   ??? (Dropbox + 35812852) [0x10312f5f4]
+                                            6   ??? (Foundation + 2219432) [0x18c106da8]
+                                              6   ??? (Foundation + 1018772) [0x18bfe1b94]
+                                                6   ??? (Foundation + 1018460) [0x18bfe1a5c]
+                                                  6   ??? (Foundation + 2571648) [0x18c15cd80]
+                                                    5   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                                      4   <Requested Thread QoS User Interactive>
+                                                      1   <Effective Thread QoS Default, Requested Thread QoS User Interactive, p-core>
+                                                    1   ??? (Foundation + 2072592) [0x18c0e3010]
+                                                      1   ??? (Foundation + 554572) [0x18bf7064c]
+                                                        1   ??? (libsystem_kernel.dylib + 26516) [0x243c27794]
+                                                          1   <Requested Thread QoS User Interactive>
+                                        1   ??? (Dropbox + 33629376) [0x102f1a4c0]
+                                          1   ??? (Dropbox + 33629588) [0x102f1a594]
+                                            1   ??? (Dropbox + 33630856) [0x102f1aa88]
+                                              1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 356576) [0x1069a30e0]
+                                                1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 665040) [0x1069ee5d0]
+                                                  1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 664636) [0x1069ee43c]
+                                                    1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 66364) [0x10695c33c]
+                                                      1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 664740) [0x1069ee4a4]
+                                                        1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 665176) [0x1069ee658]
+                                                          1   ??? (<9A714169-AC1A-356A-9D88-1397CA5D14F0> + 356756) [0x1069a3194]
+                                                            1   ??? (Foundation + 551716) [0x18bf6fb24]
+                                                              1   ??? (Foundation + 579064) [0x18bf765f8]
+                                                                1   ??? (Foundation + 566796) [0x18bf7360c]
+                                                                  1   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                                                    1   <Requested Thread QoS User Interactive>
+
+  Binary Images:
+           0x100f08000 -                ???  com.getdropbox.Dropbox 482.2 (482.2.2) <A1D4E5F4-30AB-32E2-89C3-839F19979C4C>  /private/var/containers/Bundle/Application/27A31B8F-B12F-484F-8AAE-7C3E9790643A/Dropbox.app/Dropbox
+           0x10694c000 -                ???  ???                                    <9A714169-AC1A-356A-9D88-1397CA5D14F0>
+           0x18b88e000 -        0x18b94516f  dyld                                   <5FD0ED6B-D314-3392-AA82-91C9FC014422>  /usr/lib/dyld
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib                <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18ba07000 -        0x18bee8fbf  CoreFoundation                         <7CDBA4FD-E90E-3EF2-8AE3-9071648E4673>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x18bee9000 -        0x18cff545b  Foundation                             <B17A96F3-DC4A-3757-90DF-BE4837ABB5AA>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x18d083000 -        0x18d63acdf  libswiftCore.dylib                     <47AE339D-D2C0-3FFB-9EED-E55BB0051FBE>  /usr/lib/swift/libswiftCore.dylib
+           0x18fc2c000 -        0x191c32cc7  UIKitCore                              <8AC5E0AF-75BA-3416-AB91-BCD844AB4213>  /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+           0x192c42000 -        0x1932873eb  ImageIO                                <CCD25E8D-BE65-35AA-9CAB-4FB7A72CA437>  /System/Library/Frameworks/ImageIO.framework/ImageIO
+           0x193288000 -        0x193308ee3  libsystem_c.dylib                      <18912EF8-9112-3316-9296-3052491AB886>  /usr/lib/system/libsystem_c.dylib
+           0x19ad69000 -        0x19ad7ed4f  libswiftDispatch.dylib                 <B7A2C829-D2E5-3814-A235-74E45FFDF62B>  /usr/lib/swift/libswiftDispatch.dylib
+           0x1a5a03000 -        0x1a5d71957  Photos                                 <671666A7-8BC9-3D8F-A626-30218A872AF7>  /System/Library/Frameworks/Photos.framework/Photos
+           0x1a9e4c000 -        0x1aa004367  libsqlite3.dylib                       <53F034B0-3589-3AF3-A615-A14BD7746696>  /usr/lib/libsqlite3.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib                      <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x23607f000 -        0x236086ea3  GraphicsServices                       <56086422-9E1C-3BD6-99BD-FCC78E31B423>  /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib                 <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib

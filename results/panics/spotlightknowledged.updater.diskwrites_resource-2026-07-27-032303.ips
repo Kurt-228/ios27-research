@@ -1,0 +1,890 @@
+{"duration_ms":"6961820","share_with_app_devs":0,"roots_installed":0,"bug_type":"145","os_version":"iPhone OS 27.0 (24A5390f)","slice_uuid":"F358E73F-657B-33B3-B00C-33E0854F86A7","is_first_party":1,"incident_id":"0AC0E845-F6BA-49DD-A50C-003401048953","timestamp":"2026-07-27 03:23:03.00 +0300","app_name":"spotlightknowledged.updater","name":"spotlightknowledged.updater"}
+Date/Time:        2026-07-27 01:26:55.979 +0300
+End time:         2026-07-27 03:22:57.799 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 0AC0E845-F6BA-49DD-A50C-003401048953
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          spotlightknowledged.updater
+Path:             /usr/libexec/spotlightknowledged.updater
+Resource Coalition: "com.apple.spotlightknowledged.updater"(199)
+On Behalf Of:     82 samples UNKNOWN [55] (82 samples originated by maild [339]), 30 samples searchd [196] (30 samples originated by maild [339]), 19 samples dasd [87] (19 samples originated by dasd [87])
+Architecture:     arm64e
+Parent:           UNKNOWN [1]
+PID:              132
+
+Event:            disk writes
+Action taken:     none
+Writes:           4294.98 MB of file backed memory dirtied over 6962 seconds (616.93 KB per second average), exceeding limit of 49.71 KB per second over 86400 seconds
+Writes limit:     4294.97 MB
+Limit duration:   86400s
+Writes caused:    4294.98 MB
+Writes duration:  6962s
+Duration:         6961.82s
+Duration Sampled: 6912.28s (event starts 49.45s before samples)
+Steps:            505 (10.49 MB/step)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+Shared cache residency: 11.60% (790.73 MB / 6819.12 MB)
+
+Advisory levels:  Battery -> 3, User -> 3, ThermalPressure -> 0, Combined -> 3
+Free disk space:  179.03 GB/237.97 GB, low space threshold 150 MB
+Vnodes Available: 61.95% (17347/28000, 14000 allocated, 14000 soft limit)
+Model:            com.apple.fm.language.instruct_300m.tokenizer
+  Loaded:         6700s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.tokenizer
+  Loaded:         300s - 1200s, requested by token-generation-inference
+  Loaded:         6700s - N/A, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification?language=en
+  Executing:      300s - 310s, requested by [271] use case classification.classifyUserNotification
+  Executing:      300s - 310s, requested by [271] use case classification.classifyMailMessage
+  Executing:      310s - 310s, requested by [271] use case classification.classifyMailMessage
+  Executing:      310s - 310s, requested by [271] use case classification.classifyUserNotification
+Model:            com.apple.fm.language.instruct_3b.base
+  Loaded:         300s - 340s, requested by token-generation-inference
+  Loaded:         6700s - 6700s, requested by token-generation-inference
+  Loaded:         6700s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.urgency_classification
+  Loaded:         300s - 340s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.summarization?language=en
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+Model:            com.apple.fm.language.instruct_3b.summarization.draft
+  Loaded:         6700s - 6700s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.summarization
+  Loaded:         6700s - 6700s, requested by token-generation-inference
+Model:            com.apple.tokeninputdenylist.template
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+Model:            com.apple.gm.safety_embedding_deny.all
+  Loaded:         6700s - 6700s, requested by generative-experiences-safety-inference-provider
+Model:            com.apple.gm.safety_deny.input.foundation_models_framework.api
+  Loaded:         6700s - 6700s, requested by generative-experiences-safety-inference-provider
+Model:            com.apple.tokenoutputdenylist.template
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+Model:            com.apple.gm.safety_deny.output.foundation_models_framework.api
+  Loaded:         6700s - 6700s, requested by generative-experiences-safety-inference-provider
+Model:            com.apple.fm.language.instruct_300m.factual_consistency_classifier?language=en
+  Executing:      6700s - 6700s, requested by [271] use case summarization.summarizeMailMessage
+Model:            com.apple.fm.language.instruct_300m.base
+  Loaded:         6700s - 6700s, requested by token-generation-inference
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.factual_consistency_classifier
+  Loaded:         6700s - 6700s, requested by token-generation-inference
+Model:            com.apple.gm.pcc_inference_provider
+  Loaded:         6700s - 6700s, requested by pcc-agent-client
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.base?language=en
+  Executing:      6700s - 6700s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      6700s - 6700s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      6700s - 6700s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      6700s - 6700s, requested by [299] use case textUnderstanding.TextEventExtraction
+  Executing:      6700s - 6700s, requested by [299] use case textUnderstanding.TextEventExtraction
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.tokenizer
+  Loaded:         6700s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_9m.text_event_extraction_classifier.base
+  Loaded:         6700s - 6700s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.wallet_receipt_linking
+  Executing:      6700s - 6700s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6700s - 6700s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6700s - 6700s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+Model:            com.apple.fm.language.instruct_3b.image_encoder
+  Loaded:         6700s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.fm_api_generic
+  Loaded:         6700s - 6800s, requested by token-generation-inference
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_3b.wallet_receipt_linking.adapter_metadata_override
+  Loaded:         6700s - 6800s, requested by token-generation-inference
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.safety
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.mm_guard?language=en
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+Model:            com.apple.fm.language.instruct_300m.image_tokenizer
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+Model:            com.apple.fm.language.instruct_300m.mm_guard
+  Loaded:         6800s - 6800s, requested by token-generation-inference
+Model:            com.apple.mm_guard.output.configuration
+  Loaded:         6800s - 6800s, requested by generative-experiences-safety-inference-provider
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+Model:            com.apple.fm.language.instruct_300m.safety?language=en
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+Model:            com.apple.safety.output.configuration
+  Loaded:         6800s - 6800s, requested by generative-experiences-safety-inference-provider
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+  Executing:      6800s - 6800s, requested by [919] use case FinancialInsights.WalletReceiptLinking
+
+Preferred User Language: en-US, ru-US
+Country Code:     US
+Keyboards:        ru_RU Russian, en_US QWERTY
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  82  ??? (libswift_Concurrency.dylib + 30860) [0x18cffd88c]
+  82  ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+  82  ??? (SpotlightKnowledgeDaemon + 3452024) [0x21484ac78]
+  82  ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+  82  ??? (SpotlightKnowledgeDaemon + 3437296) [0x2148472f0]
+  82  ??? (libswift_Concurrency.dylib + 405716) [0x18d0590d4]
+  82  ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+  82  ??? (SpotlightKnowledgeDaemon + 3438308) [0x2148476e4]
+  82  ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+  82  ??? (SpotlightKnowledgeDaemon + 3442000) [0x214848550]
+  82  ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+  82  ??? (SpotlightKnowledgeDaemon + 3451972) [0x21484ac44]
+  82  ??? (SpotlightKnowledgeDaemon + 1900976) [0x2146d01b0]
+  82  ??? (SpotlightKnowledgeDaemon + 1909568) [0x2146d2340]
+  82  ??? (SpotlightKnowledgeDaemon + 3779932) [0x21489ad5c]
+  82  ??? (GRDBInternal + 14080) [0x1b9afd700]
+  82  ??? (GRDBInternal + 13988) [0x1b9afd6a4]
+  82  ??? (GRDBInternal + 14116) [0x1b9afd724]
+  82  ??? (GRDBInternal + 14304) [0x1b9afd7e0]
+  82  ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+  82  ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+  82  ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+  82  ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+  82  ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+  82  ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+  82  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  82  ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+  82  ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+  82  ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+  82  ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+  82  ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+  82  ??? (GRDBInternal + 16440) [0x1b9afe038]
+  82  ??? (GRDBInternal + 16236) [0x1b9afdf6c]
+  82  ??? (GRDBInternal + 16408) [0x1b9afe018]
+  82  ??? (GRDBInternal + 14696) [0x1b9afd968]
+  82  ??? (GRDBInternal + 15092) [0x1b9afdaf4]
+  82  ??? (GRDBInternal + 83264) [0x1b9b0e540]
+  82  ??? (GRDBInternal + 17200) [0x1b9afe330]
+  82  ??? (GRDBInternal + 11668) [0x1b9afcd94]
+  82  ??? (GRDBInternal + 50124) [0x1b9b063cc]
+  43  ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+  43  ??? (libsqlite3.dylib + 235288) [0x1a9e85718]
+  43  ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+  43  ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+  43  ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+  43  ??? (libsqlite3.dylib + 331128) [0x1a9e9cd78]
+  43  ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+  43  ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+  43  ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+
+
+Powerstats for:   spotlightknowledged.updater [132]
+UUID:             F358E73F-657B-33B3-B00C-33E0854F86A7
+Path:             /usr/libexec/spotlightknowledged.updater
+Resource Coalition: 131 samples "com.apple.spotlightknowledged.updater"(199)
+On Behalf Of:     82 samples UNKNOWN [55] (82 samples originated by maild [339]), 30 samples searchd [196] (30 samples originated by maild [339]), 19 samples dasd [87] (19 samples originated by dasd [87])
+Architecture:     arm64e
+Parent:           UNKNOWN [1]
+UID:              501
+Sudden Term:      Tracked (allows idle exit)
+Footprint:        15.84 MB -> 22.91 MB (+7232 KB)
+Pageins:          32390 pages
+Start time:       2026-07-27 03:18:57.311 +0300
+End time:         2026-07-27 03:22:57.708 +0300
+Num samples:      131 (26%)
+Energy:           6810.12 uWh
+Num threads:      13
+Primary state:    82 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, e-core
+User Activity:    88 samples Idle, 43 samples Active
+Power Source:     0 samples on Battery, 131 samples on AC
+  82   ??? (libswift_Concurrency.dylib + 30860) [0x18cffd88c]
+    82   ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+      82   ??? (SpotlightKnowledgeDaemon + 3452024) [0x21484ac78]
+        82   ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+          82   ??? (SpotlightKnowledgeDaemon + 3437296) [0x2148472f0]
+            82   ??? (libswift_Concurrency.dylib + 405716) [0x18d0590d4]
+              82   ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+                82   ??? (SpotlightKnowledgeDaemon + 3438308) [0x2148476e4]
+                  82   ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+                    82   ??? (SpotlightKnowledgeDaemon + 3442000) [0x214848550]
+                      82   ??? (SpotlightKnowledgeDaemon + 1131732) [0x2146144d4]
+                        82   ??? (SpotlightKnowledgeDaemon + 3451972) [0x21484ac44]
+                          82   ??? (SpotlightKnowledgeDaemon + 1900976) [0x2146d01b0]
+                            82   ??? (SpotlightKnowledgeDaemon + 1909568) [0x2146d2340]
+                              82   ??? (SpotlightKnowledgeDaemon + 3779932) [0x21489ad5c]
+                                82   ??? (GRDBInternal + 14080) [0x1b9afd700]
+                                  82   ??? (GRDBInternal + 13988) [0x1b9afd6a4]
+                                    82   ??? (GRDBInternal + 14116) [0x1b9afd724]
+                                      82   ??? (GRDBInternal + 14304) [0x1b9afd7e0]
+                                        82   ??? (libswiftDispatch.dylib + 4968) [0x19ad6a368]
+                                          82   ??? (libswiftDispatch.dylib + 5116) [0x19ad6a3fc]
+                                            82   ??? (libswiftDispatch.dylib + 5560) [0x19ad6a5b8]
+                                              82   ??? (libswiftDispatch.dylib + 5920) [0x19ad6a720]
+                                                82   ??? (libswiftDispatch.dylib + 6156) [0x19ad6a80c]
+                                                  82   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                                    82   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                      82   ??? (libswiftDispatch.dylib + 6700) [0x19ad6aa2c]
+                                                        82   ??? (libswiftDispatch.dylib + 5956) [0x19ad6a744]
+                                                          82   ??? (libswiftDispatch.dylib + 6448) [0x19ad6a930]
+                                                            82   ??? (libswiftDispatch.dylib + 6592) [0x19ad6a9c0]
+                                                              82   ??? (libswiftDispatch.dylib + 6660) [0x19ad6aa04]
+                                                                82   ??? (GRDBInternal + 16440) [0x1b9afe038]
+                                                                  82   ??? (GRDBInternal + 16236) [0x1b9afdf6c]
+                                                                    82   ??? (GRDBInternal + 16408) [0x1b9afe018]
+                                                                      82   ??? (GRDBInternal + 14696) [0x1b9afd968]
+                                                                        82   ??? (GRDBInternal + 15092) [0x1b9afdaf4]
+                                                                          82   ??? (GRDBInternal + 83264) [0x1b9b0e540]
+                                                                            82   ??? (GRDBInternal + 17200) [0x1b9afe330]
+                                                                              82   ??? (GRDBInternal + 11668) [0x1b9afcd94]
+                                                                                82   ??? (GRDBInternal + 50124) [0x1b9b063cc]
+                                                                                  43   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                                    43   ??? (libsqlite3.dylib + 235288) [0x1a9e85718]
+                                                                                      43   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                                                                        43   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                                                                          43   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                                                                            43   ??? (libsqlite3.dylib + 331128) [0x1a9e9cd78]
+                                                                                              43   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                                43   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                  43   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                                    43   <on behalf of UNKNOWN [55] (originated by maild [339])>
+                                                                                  39   ??? (libsqlite3.dylib + 190996) [0x1a9e7aa14]
+                                                                                    39   ??? (libsqlite3.dylib + 333052) [0x1a9e9d4fc]
+                                                                                      39   ??? (libsqlite3.dylib + 571620) [0x1a9ed78e4]
+                                                                                        39   ??? (libsqlite3.dylib + 1232572) [0x1a9f78ebc]
+                                                                                          39   ??? (libsqlite3.dylib + 412348) [0x1a9eb0abc]
+                                                                                            39   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                              39   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                                39   <on behalf of UNKNOWN [55] (originated by maild [339])>
+  49   ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    48   ??? (libsystem_pthread.dylib + 4604) [0x18b9471fc]
+      48   ??? (libdispatch.dylib + 86256) [0x1ba6680f0]
+        48   ??? (libdispatch.dylib + 84484) [0x1ba667a04]
+          47   ??? (libdispatch.dylib + 23996) [0x1ba658dbc]
+            47   ??? (libdispatch.dylib + 26368) [0x1ba659700]
+              47   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                47   ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  47   ??? (SpotlightKnowledgeDaemon + 76000) [0x2145128e0]
+                    47   ??? (SpotlightKnowledgeDaemon + 86244) [0x2145150e4]
+                      47   ??? (SpotlightKnowledgeDaemon + 87024) [0x2145153f0]
+                        29   ??? (SpotlightKnowledgeDaemon + 87760) [0x2145156d0]
+                          29   ??? (SpotlightKnowledgeDaemon + 87536) [0x2145155f0]
+                            29   ??? (SpotlightKnowledgeDaemon + 1679172) [0x214699f44]
+                              29   ??? (SpotlightKnowledgeDaemon + 1318064) [0x214641cb0]
+                                29   ??? (Foundation + 2219432) [0x18c106da8]
+                                  29   ??? (Foundation + 1018772) [0x18bfe1b94]
+                                    29   ??? (Foundation + 1018220) [0x18bfe196c]
+                                      29   ??? (Foundation + 2571648) [0x18c15cd80]
+                                        28   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                          28   <on behalf of searchd [196] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                        1    ??? (Foundation + 2072592) [0x18c0e3010]
+                                          1    ??? (Foundation + 554572) [0x18bf7064c]
+                                            1    ??? (libsystem_kernel.dylib + 26516) [0x243c27794]
+                                              1    <on behalf of searchd [196] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                        18   ??? (SpotlightKnowledgeDaemon + 3447188) [0x214849994]
+                          18   ??? (SpotlightKnowledgeDaemon + 3419400) [0x214842d08]
+                            18   ??? (SpotlightKnowledgeDaemon + 87536) [0x2145155f0]
+                              18   ??? (SpotlightKnowledgeDaemon + 1679172) [0x214699f44]
+                                18   ??? (SpotlightKnowledgeDaemon + 1318064) [0x214641cb0]
+                                  18   ??? (Foundation + 2219432) [0x18c106da8]
+                                    18   ??? (Foundation + 1018772) [0x18bfe1b94]
+                                      18   ??? (Foundation + 1018220) [0x18bfe196c]
+                                        18   ??? (Foundation + 2571648) [0x18c15cd80]
+                                          18   ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                            18   <on behalf of dasd [87] (originated by dasd [87]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+          1    ??? (libdispatch.dylib + 24360) [0x1ba658f28]
+            1    ??? (libdispatch.dylib + 26368) [0x1ba659700]
+              1    ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                1    ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  1    ??? (SpotlightKnowledgeDaemon + 76000) [0x2145128e0]
+                    1    ??? (SpotlightKnowledgeDaemon + 86244) [0x2145150e4]
+                      1    ??? (SpotlightKnowledgeDaemon + 87024) [0x2145153f0]
+                        1    ??? (SpotlightKnowledgeDaemon + 87760) [0x2145156d0]
+                          1    ??? (SpotlightKnowledgeDaemon + 87536) [0x2145155f0]
+                            1    ??? (SpotlightKnowledgeDaemon + 1679172) [0x214699f44]
+                              1    ??? (SpotlightKnowledgeDaemon + 1318064) [0x214641cb0]
+                                1    ??? (Foundation + 2219432) [0x18c106da8]
+                                  1    ??? (Foundation + 1018772) [0x18bfe1b94]
+                                    1    ??? (Foundation + 1018220) [0x18bfe196c]
+                                      1    ??? (Foundation + 2571648) [0x18c15cd80]
+                                        1    ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                                          1    <on behalf of searchd [196] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+    1    ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      1    ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        1    ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          1    ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            1    ??? (libdispatch.dylib + 43508) [0x1ba65d9f4]
+              1    ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                1    ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  1    ??? (SpotlightKnowledgeDaemon + 76000) [0x2145128e0]
+                    1    ??? (SpotlightKnowledgeDaemon + 124624) [0x21451e6d0]
+                      1    ??? (SpotlightKnowledgeDaemon + 128256) [0x21451f500]
+                        1    ??? (SpotlightKnowledgeDaemon + 1346256) [0x214648ad0]
+                          1    ??? (SpotlightKnowledgeDaemon + 1302288) [0x21463df10]
+                            1    ??? (SpotlightKnowledgeDaemon + 4319868) [0x21491ea7c]
+                              1    ??? (Foundation + 890752) [0x18bfc2780]
+                                1    ??? (Foundation + 7025404) [0x18c59c2fc]
+                                  1    ??? (Foundation + 4012128) [0x18c2bc860]
+                                    1    ??? (Foundation + 881776) [0x18bfc0470]
+                                      1    ??? (Foundation + 881980) [0x18bfc053c]
+                                        1    ??? (libremovefile.dylib + 2744) [0x2cdb24ab8]
+                                          1    ??? (libremovefile.dylib + 3760) [0x2cdb24eb0]
+                                            1    ??? (libsystem_kernel.dylib + 25796) [0x243c274c4]
+                                              1    <on behalf of dasd [87] (originated by dasd [87]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+
+  Binary Images:
+           0x1046fc000 -                ???  spotlightknowledged.updater <F358E73F-657B-33B3-B00C-33E0854F86A7>  /usr/libexec/spotlightknowledged.updater
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib     <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18bee9000 -        0x18cff545b  Foundation                  <B17A96F3-DC4A-3757-90DF-BE4837ABB5AA>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x18cff6000 -        0x18d08229f  libswift_Concurrency.dylib  <2F447120-5662-3D10-94C8-4F94E62893D0>  /usr/lib/swift/libswift_Concurrency.dylib
+           0x19ad69000 -        0x19ad7ed4f  libswiftDispatch.dylib      <B7A2C829-D2E5-3814-A235-74E45FFDF62B>  /usr/lib/swift/libswiftDispatch.dylib
+           0x1a9e4c000 -        0x1aa004367  libsqlite3.dylib            <53F034B0-3589-3AF3-A615-A14BD7746696>  /usr/lib/libsqlite3.dylib
+           0x1b9afa000 -        0x1b9c6f797  GRDBInternal                <6E545075-C405-34E6-896B-D6B751780EDF>  /System/Library/PrivateFrameworks/GRDBInternal.framework/GRDBInternal
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib           <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x214500000 -        0x214a02b17  SpotlightKnowledgeDaemon    <4F8FDEAB-2646-337F-9949-DD343A71B1F8>  /System/Library/PrivateFrameworks/SpotlightKnowledgeDaemon.framework/SpotlightKnowledgeDaemon
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib      <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2cdb24000 -        0x2cdb268df  libremovefile.dylib         <A6C1F100-0E60-3018-94EB-FECF70CAE9D3>  /usr/lib/system/libremovefile.dylib
+
+
+Powerstats for:   SetStoreUpdateService
+UUID:             8F9FB5BA-45A1-38F1-9EB6-72851CF7A07D
+Path:             /System/Library/PrivateFrameworks/CascadeSets.framework/XPCServices/SetStoreUpdateService.xpc/SetStoreUpdateService
+Identifier:       com.apple.SetStoreUpdateService
+Version:          1.0 (247.0.1)
+Resource Coalition: 86 samples "com.apple.email.maild"(525), 12 samples "com.apple.suggestd"(425)
+On Behalf Of:     86 samples maild [339] (86 samples originated by maild [339]), 12 samples suggestd [271] (12 samples originated by maild [339])
+Architecture:     arm64e
+Start time:       2026-07-27 03:19:20.908 +0300
+End time:         2026-07-27 03:22:53.440 +0300
+Num samples:      98 (19%)
+Energy:           1757.09 uWh
+Primary state:    57 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Background, Requested Thread QoS Background, Override Thread QoS Unspecified, e-core
+User Activity:    58 samples Idle, 40 samples Active
+Power Source:     0 samples on Battery, 98 samples on AC
+  98  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    98  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      98  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        98  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          98  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            98  ??? (libdispatch.dylib + 42768) [0x1ba65d710]
+              98  ??? (libdispatch.dylib + 130372) [0x1ba672d44]
+                98  ??? (libdispatch.dylib + 42768) [0x1ba65d710]
+                  98  ??? (libdispatch.dylib + 126120) [0x1ba671ca8]
+                    98  ??? (libdispatch.dylib + 114716) [0x1ba66f01c]
+                      98  ??? (libxpc.dylib + 118508) [0x18b9c1eec]
+                        98  ??? (libxpc.dylib + 109236) [0x18b9bfab4]
+                          98  ??? (BiomeFoundation + 10848) [0x1c6d53a60]
+                            98  ??? (Foundation + 212040) [0x18bf1cc48]
+                              98  ??? (Foundation + 214008) [0x18bf1d3f8]
+                                98  ??? (Foundation + 236280) [0x18bf22af8]
+                                  98  ??? (CoreFoundation + 616112) [0x18ba9d6b0]
+                                    98  ??? (CoreFoundation + 615268) [0x18ba9d364]
+                                      92  ??? (CascadeEngine + 23284) [0x262c14af4]
+                                        92  ??? (CascadeEngine + 27640) [0x262c15bf8]
+                                          92  ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                            92  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                              92  ??? (CascadeEngine + 27972) [0x262c15d44]
+                                                92  ??? (CascadeEngine + 10380) [0x262c1188c]
+                                                  91  ??? (CascadeSets + 282500) [0x1c6dd9f84]
+                                                    91  ??? (CascadeEngine + 10740) [0x262c119f4]
+                                                      91  ??? (CascadeEngine + 23468) [0x262c14bac]
+                                                        91  ??? (CascadeEngine + 65208) [0x262c1eeb8]
+                                                          91  ??? (CascadeEngine + 66360) [0x262c1f338]
+                                                            91  ??? (CascadeSets + 404368) [0x1c6df7b90]
+                                                              91  ??? (CascadeSets + 53524) [0x1c6da2114]
+                                                                91  ??? (CascadeSets + 53908) [0x1c6da2294]
+                                                                  91  ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                    91  ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                      55  ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                        55  ??? (libsqlite3.dylib + 235288) [0x1a9e85718]
+                                                                          55  ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                                                            55  ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                                                              55  ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                                                                55  ??? (libsqlite3.dylib + 331128) [0x1a9e9cd78]
+                                                                                  54  ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                    54  ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                      54  ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                        34  <on behalf of maild [339] (originated by maild [339])>
+                                                                                        12  <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                                                        8   <on behalf of suggestd [271] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                                                  1   ??? (libsqlite3.dylib + 721660) [0x1a9efc2fc]
+                                                                                    1   ??? (libsqlite3.dylib + 723872) [0x1a9efcba0]
+                                                                                      1   ??? (libsystem_kernel.dylib + 33628) [0x243c2935c]
+                                                                                        1   <on behalf of suggestd [271] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                                      36  ??? (libsqlite3.dylib + 190996) [0x1a9e7aa14]
+                                                                        36  ??? (libsqlite3.dylib + 333052) [0x1a9e9d4fc]
+                                                                          36  ??? (libsqlite3.dylib + 571620) [0x1a9ed78e4]
+                                                                            36  ??? (libsqlite3.dylib + 1232572) [0x1a9f78ebc]
+                                                                              36  ??? (libsqlite3.dylib + 412348) [0x1a9eb0abc]
+                                                                                36  ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                  36  ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                    20  <on behalf of maild [339] (originated by maild [339])>
+                                                                                    14  <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                                                    2   <on behalf of suggestd [271] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                  1   ??? (CascadeSets + 282564) [0x1c6dd9fc4]
+                                                    1   ??? (CascadeEngine + 10740) [0x262c119f4]
+                                                      1   ??? (CascadeEngine + 23468) [0x262c14bac]
+                                                        1   ??? (CascadeEngine + 65208) [0x262c1eeb8]
+                                                          1   ??? (CascadeEngine + 66360) [0x262c1f338]
+                                                            1   ??? (CascadeSets + 404368) [0x1c6df7b90]
+                                                              1   ??? (CascadeSets + 53524) [0x1c6da2114]
+                                                                1   ??? (CascadeSets + 53908) [0x1c6da2294]
+                                                                  1   ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                    1   ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                      1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                        1   ??? (libsqlite3.dylib + 235288) [0x1a9e85718]
+                                                                          1   ??? (libsqlite3.dylib + 93984) [0x1a9e62f20]
+                                                                            1   ??? (libsqlite3.dylib + 261752) [0x1a9e8be78]
+                                                                              1   ??? (libsqlite3.dylib + 262852) [0x1a9e8c2c4]
+                                                                                1   ??? (libsqlite3.dylib + 331128) [0x1a9e9cd78]
+                                                                                  1   ??? (libsqlite3.dylib + 721660) [0x1a9efc2fc]
+                                                                                    1   ??? (libsqlite3.dylib + 723872) [0x1a9efcba0]
+                                                                                      1   ??? (libsystem_kernel.dylib + 33628) [0x243c2935c]
+                                                                                        1   <on behalf of suggestd [271] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                      6   ??? (CascadeEngine + 15444) [0x262c12c54]
+                                        6   ??? (CascadeEngine + 27640) [0x262c15bf8]
+                                          6   ??? (libdispatch.dylib + 74028) [0x1ba66512c]
+                                            6   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                              6   ??? (CascadeEngine + 27972) [0x262c15d44]
+                                                6   ??? (CascadeEngine + 10380) [0x262c1188c]
+                                                  6   ??? (CascadeSets + 282500) [0x1c6dd9f84]
+                                                    6   ??? (CascadeEngine + 10740) [0x262c119f4]
+                                                      6   ??? (CascadeEngine + 10952) [0x262c11ac8]
+                                                        6   ??? (CascadeEngine + 15820) [0x262c12dcc]
+                                                          6   ??? (CascadeEngine + 67704) [0x262c1f878]
+                                                            3   ??? (CascadeSets + 442844) [0x1c6e011dc]
+                                                              2   ??? (CascadeSets + 432116) [0x1c6dfe7f4]
+                                                                2   ??? (CascadeSets + 432748) [0x1c6dfea6c]
+                                                                  2   ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                    2   ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                      2   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                        2   ??? (libsqlite3.dylib + 219960) [0x1a9e81b38]
+                                                                          2   ??? (libsqlite3.dylib + 328512) [0x1a9e9c340]
+                                                                            1   ??? (libsqlite3.dylib + 322640) [0x1a9e9ac50]
+                                                                              1   ??? (libsqlite3.dylib + 356660) [0x1a9ea3134]
+                                                                                1   ??? (libsqlite3.dylib + 706996) [0x1a9ef89b4]
+                                                                                  1   ??? (libsqlite3.dylib + 776712) [0x1a9f09a08]
+                                                                                    1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                      1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                        1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                          1   <on behalf of maild [339] (originated by maild [339])>
+                                                                            1   ??? (libsqlite3.dylib + 318024) [0x1a9e99a48]
+                                                                              1   ??? (libsqlite3.dylib + 772676) [0x1a9f08a44]
+                                                                                1   ??? (libsqlite3.dylib + 706996) [0x1a9ef89b4]
+                                                                                  1   ??? (libsqlite3.dylib + 776712) [0x1a9f09a08]
+                                                                                    1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                      1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                        1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                          1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                              1   ??? (CascadeSets + 432288) [0x1c6dfe8a0]
+                                                                1   ??? (CascadeSets + 434544) [0x1c6dff170]
+                                                                  1   ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                    1   ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                      1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                        1   ??? (libsqlite3.dylib + 199804) [0x1a9e7cc7c]
+                                                                          1   ??? (libsqlite3.dylib + 754288) [0x1a9f04270]
+                                                                            1   ??? (libsqlite3.dylib + 238524) [0x1a9e863bc]
+                                                                              1   ??? (libsqlite3.dylib + 772676) [0x1a9f08a44]
+                                                                                1   ??? (libsqlite3.dylib + 706996) [0x1a9ef89b4]
+                                                                                  1   ??? (libsqlite3.dylib + 776712) [0x1a9f09a08]
+                                                                                    1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                      1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                        1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                          1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+                                                            3   ??? (CascadeSets + 442884) [0x1c6e01204]
+                                                              1   ??? (CascadeSets + 442456) [0x1c6e01058]
+                                                                1   ??? (CascadeSets + 434008) [0x1c6dfef58]
+                                                                  1   ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                    1   ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                      1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                        1   ??? (libsqlite3.dylib + 209172) [0x1a9e7f114]
+                                                                          1   ??? (libsqlite3.dylib + 326632) [0x1a9e9bbe8]
+                                                                            1   ??? (libsqlite3.dylib + 755072) [0x1a9f04580]
+                                                                              1   ??? (libsqlite3.dylib + 238524) [0x1a9e863bc]
+                                                                                1   ??? (libsqlite3.dylib + 772676) [0x1a9f08a44]
+                                                                                  1   ??? (libsqlite3.dylib + 706996) [0x1a9ef89b4]
+                                                                                    1   ??? (libsqlite3.dylib + 776712) [0x1a9f09a08]
+                                                                                      1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                        1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                          1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                            1   <on behalf of maild [339] (originated by maild [339])>
+                                                              1   ??? (CascadeSets + 442428) [0x1c6e0103c]
+                                                                1   ??? (CascadeSets + 415592) [0x1c6dfa768]
+                                                                  1   ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                    1   ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                      1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                        1   ??? (libsqlite3.dylib + 197204) [0x1a9e7c254]
+                                                                          1   ??? (libsqlite3.dylib + 755072) [0x1a9f04580]
+                                                                            1   ??? (libsqlite3.dylib + 238524) [0x1a9e863bc]
+                                                                              1   ??? (libsqlite3.dylib + 772676) [0x1a9f08a44]
+                                                                                1   ??? (libsqlite3.dylib + 706996) [0x1a9ef89b4]
+                                                                                  1   ??? (libsqlite3.dylib + 776712) [0x1a9f09a08]
+                                                                                    1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                      1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                        1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                          1   <on behalf of maild [339] (originated by maild [339])>
+                                                              1   ??? (CascadeSets + 442404) [0x1c6e01024]
+                                                                1   ??? (CascadeSets + 431640) [0x1c6dfe618]
+                                                                  1   ??? (CascadeSets + 433256) [0x1c6dfec68]
+                                                                    1   ??? (CascadeSets + 242076) [0x1c6dd019c]
+                                                                      1   ??? (CascadeSets + 433432) [0x1c6dfed18]
+                                                                        1   ??? (CascadeSets + 183064) [0x1c6dc1b18]
+                                                                          1   ??? (CascadeSets + 178592) [0x1c6dc09a0]
+                                                                            1   ??? (libsqlite3.dylib + 190232) [0x1a9e7a718]
+                                                                              1   ??? (libsqlite3.dylib + 209172) [0x1a9e7f114]
+                                                                                1   ??? (libsqlite3.dylib + 326632) [0x1a9e9bbe8]
+                                                                                  1   ??? (libsqlite3.dylib + 755072) [0x1a9f04580]
+                                                                                    1   ??? (libsqlite3.dylib + 238524) [0x1a9e863bc]
+                                                                                      1   ??? (libsqlite3.dylib + 772676) [0x1a9f08a44]
+                                                                                        1   ??? (libsqlite3.dylib + 706996) [0x1a9ef89b4]
+                                                                                          1   ??? (libsqlite3.dylib + 776712) [0x1a9f09a08]
+                                                                                            1   ??? (libsqlite3.dylib + 719868) [0x1a9efbbfc]
+                                                                                              1   ??? (libsqlite3.dylib + 332032) [0x1a9e9d100]
+                                                                                                1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                                  1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Utility, Requested Thread QoS Utility>
+
+  Binary Images:
+           0x1025cc000 -                ???  com.apple.SetStoreUpdateService 1.0 (247.0.1) <8F9FB5BA-45A1-38F1-9EB6-72851CF7A07D>  /System/Library/PrivateFrameworks/CascadeSets.framework/XPCServices/SetStoreUpdateService.xpc/SetStoreUpdateService
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib                       <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18b9a5000 -        0x18ba063d3  libxpc.dylib                                  <98A38038-E2BA-36F4-933D-FC98CDEA2582>  /usr/lib/system/libxpc.dylib
+           0x18ba07000 -        0x18bee8fbf  CoreFoundation                                <7CDBA4FD-E90E-3EF2-8AE3-9071648E4673>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x18bee9000 -        0x18cff545b  Foundation                                    <B17A96F3-DC4A-3757-90DF-BE4837ABB5AA>  /System/Library/Frameworks/Foundation.framework/Foundation
+           0x1a9e4c000 -        0x1aa004367  libsqlite3.dylib                              <53F034B0-3589-3AF3-A615-A14BD7746696>  /usr/lib/libsqlite3.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib                             <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x1c6d51000 -        0x1c6d940d3  BiomeFoundation                               <FB058189-2A48-3CEE-8224-EFAE352AB5BF>  /System/Library/PrivateFrameworks/BiomeFoundation.framework/BiomeFoundation
+           0x1c6d95000 -        0x1c6e62eef  CascadeSets                                   <E297EED3-788C-3B53-AD84-2B0811611852>  /System/Library/PrivateFrameworks/CascadeSets.framework/CascadeSets
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib                        <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x262c0f000 -        0x262c86d9f  CascadeEngine                                 <4B77378C-D96D-3A0D-8CF2-82B580D3DC56>  /System/Library/PrivateFrameworks/CascadeEngine.framework/CascadeEngine
+
+
+Powerstats for:   searchd
+UUID:             603B4F18-33FD-3DD2-A9E4-E1A484240C02
+Path:             /System/Library/PrivateFrameworks/Search.framework/searchd
+Resource Coalition: 51 samples "com.apple.searchd"(317)
+On Behalf Of:     41 samples maild [339] (41 samples originated by maild [339]), 7 samples spotlightknowledged.updater [132] (7 samples originated by dasd [87]), 1 sample Dropbox [2080] (1 sample originated by Dropbox [2080]), 1 sample UNKNOWN [1973] (1 sample originated by dasd [87])
+Architecture:     arm64e
+Pageins:          4049 pages
+Start time:       2026-07-27 03:18:59.171 +0300
+End time:         2026-07-27 03:22:50.585 +0300
+Num samples:      51 (10%)
+Energy:           3037.74 uWh
+Primary state:    20 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Utility, Requested Thread QoS Background, Override Thread QoS Unspecified, e-core
+User Activity:    25 samples Idle, 26 samples Active
+Power Source:     0 samples on Battery, 51 samples on AC
+  51  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    34  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      34  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        34  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          34  ??? (libdispatch.dylib + 50268) [0x1ba65f45c]
+            23  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+              23  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+                23  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                  14  ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                    14  ??? (SpotlightIndex + 7032) [0x1e297cb78]
+                      14  ??? (SpotlightIndex + 7312) [0x1e297cc90]
+                        14  ??? (SpotlightIndex + 8144) [0x1e297cfd0]
+                          14  ??? (SpotlightIndex + 12416) [0x1e297e080]
+                            14  ??? (SpotlightDaemon + 11476) [0x24aa7ecd4]
+                              14  ??? (SpotlightDaemon + 433936) [0x24aae5f10]
+                                14  ??? (SpotlightIndex + 511968) [0x1e29f7fe0]
+                                  13  ??? (SpotlightIndex + 42708) [0x1e29856d4]
+                                    13  ??? (MetadataUtilities + 21056) [0x1c5a27240]
+                                      13  ??? (libsystem_kernel.dylib + 84828) [0x243c35b5c]
+                                        12  <on behalf of maild [339] (originated by maild [339]), Requested Thread QoS Utility>
+                                        1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Requested Thread QoS Utility>
+                                  1   ??? (SpotlightIndex + 42620) [0x1e298567c]
+                                    1   ??? (MetadataUtilities + 21056) [0x1c5a27240]
+                                      1   ??? (libsystem_kernel.dylib + 84828) [0x243c35b5c]
+                                        1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Requested Thread QoS Utility>
+                  9   ??? (SpotlightIndex + 7032) [0x1e297cb78]
+                    9   ??? (SpotlightIndex + 7312) [0x1e297cc90]
+                      9   ??? (SpotlightIndex + 8144) [0x1e297cfd0]
+                        9   ??? (SpotlightIndex + 12416) [0x1e297e080]
+                          9   ??? (SpotlightDaemon + 11476) [0x24aa7ecd4]
+                            9   ??? (SpotlightDaemon + 433936) [0x24aae5f10]
+                              9   ??? (SpotlightIndex + 511968) [0x1e29f7fe0]
+                                9   ??? (SpotlightIndex + 42708) [0x1e29856d4]
+                                  9   ??? (MetadataUtilities + 21056) [0x1c5a27240]
+                                    9   ??? (libsystem_kernel.dylib + 84828) [0x243c35b5c]
+                                      9   <on behalf of maild [339] (originated by maild [339])>
+            11  ??? (libdispatch.dylib + 24708) [0x1ba659084]
+              11  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+                11  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+                  11  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                    11  ??? (SpotlightIndex + 7032) [0x1e297cb78]
+                      11  ??? (SpotlightIndex + 7312) [0x1e297cc90]
+                        11  ??? (SpotlightIndex + 8144) [0x1e297cfd0]
+                          11  ??? (SpotlightIndex + 12416) [0x1e297e080]
+                            11  ??? (SpotlightDaemon + 11476) [0x24aa7ecd4]
+                              11  ??? (SpotlightDaemon + 433936) [0x24aae5f10]
+                                11  ??? (SpotlightIndex + 511968) [0x1e29f7fe0]
+                                  11  ??? (SpotlightIndex + 42708) [0x1e29856d4]
+                                    11  ??? (MetadataUtilities + 21056) [0x1c5a27240]
+                                      11  ??? (libsystem_kernel.dylib + 84828) [0x243c35b5c]
+                                        11  <on behalf of maild [339] (originated by maild [339])>
+    17  ??? (libsystem_pthread.dylib + 4604) [0x18b9471fc]
+      17  ??? (libdispatch.dylib + 86256) [0x1ba6680f0]
+        12  ??? (libdispatch.dylib + 84484) [0x1ba667a04]
+          10  ??? (libdispatch.dylib + 23996) [0x1ba658dbc]
+            10  ??? (libdispatch.dylib + 26608) [0x1ba6597f0]
+              10  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+                10  ??? (libdispatch.dylib + 42768) [0x1ba65d710]
+                  10  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+                    10  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+                      10  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                        10  ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                          7   ??? (SpotlightIndex + 7032) [0x1e297cb78]
+                            7   ??? (SpotlightIndex + 7312) [0x1e297cc90]
+                              7   ??? (SpotlightIndex + 8144) [0x1e297cfd0]
+                                4   ??? (SpotlightIndex + 985032) [0x1e2a6b7c8]
+                                  4   ??? (SpotlightIndex + 2134804) [0x1e2b84314]
+                                    4   ??? (SpotlightIndex + 3264716) [0x1e2c980cc]
+                                      2   ??? (SpotlightIndex + 1017636) [0x1e2a73724]
+                                        1   ??? (SpotlightIndex + 1081668) [0x1e2a83144]
+                                          1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background>
+                                        1   ??? (SpotlightIndex + 1081340) [0x1e2a82ffc]
+                                          1   ??? (SpotlightIndex + 5193084) [0x1e2e6ed7c]
+                                            1   ??? (SpotlightIndex + 3422576) [0x1e2cbe970]
+                                              1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background>
+                                      1   ??? (SpotlightIndex + 1019220) [0x1e2a73d54]
+                                        1   ??? (SpotlightIndex + 1091992) [0x1e2a85998]
+                                          1   ??? (SpotlightIndex + 1051216) [0x1e2a7ba50]
+                                            1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                              1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Effective Thread QoS Background>
+                                      1   ??? (SpotlightIndex + 1014860) [0x1e2a72c4c]
+                                        1   ??? (SpotlightIndex + 1035468) [0x1e2a77ccc]
+                                          1   ??? (SpotlightIndex + 1037348) [0x1e2a78424]
+                                            1   ??? (SpotlightIndex + 1035852) [0x1e2a77e4c]
+                                              1   ??? (SpotlightIndex + 1036388) [0x1e2a78064]
+                                                1   ??? (libsystem_platform.dylib + 4536) [0x19763a1b8]
+                                                  1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background>
+                                3   ??? (SpotlightIndex + 36180) [0x1e2983d54]
+                                  3   ??? (SpotlightIndex + 713200) [0x1e2a291f0]
+                                    3   ??? (SpotlightIndex + 102756) [0x1e2994164]
+                                      3   ??? (SpotlightIndex + 505524) [0x1e29f66b4]
+                                        3   ??? (SpotlightDaemon + 11992) [0x24aa7eed8]
+                                          3   ??? (SpotlightIndex + 4688160) [0x1e2df3920]
+                                            3   ??? (SpotlightIndex + 29460) [0x1e2982314]
+                                              3   ??? (SpotlightIndex + 1178440) [0x1e2a9ab48]
+                                                3   ??? (libdispatch.dylib + 92216) [0x1ba669838]
+                                                  3   ??? (libdispatch.dylib + 91400) [0x1ba669508]
+                                                    3   ??? (libdispatch.dylib + 95420) [0x1ba66a4bc]
+                                                      3   ??? (libdispatch.dylib + 19296) [0x1ba657b60]
+                                                        3   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                          3   ??? (libdispatch.dylib + 93584) [0x1ba669d90]
+                                                            3   ??? (libdispatch.dylib + 114668) [0x1ba66efec]
+                                                              3   ??? (SpotlightIndex + 1180096) [0x1e2a9b1c0]
+                                                                3   ??? (SpotlightIndex + 119244) [0x1e29981cc]
+                                                                  3   ??? (SpotlightIndex + 190452) [0x1e29a97f4]
+                                                                    3   ??? (SpotlightIndex + 57464) [0x1e2989078]
+                                                                      3   ??? (SpotlightIndex + 96128) [0x1e2992780]
+                                                                        3   ??? (SpotlightIndex + 91588) [0x1e29915c4]
+                                                                          3   ??? (SpotlightIndex + 957680) [0x1e2a64cf0]
+                                                                            3   ??? (MetadataUtilities + 14476) [0x1c5a2588c]
+                                                                              3   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Requested Thread QoS Utility, Override Thread QoS Utility>
+                                                                                1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Requested Thread QoS Utility>
+                                                                                1   <on behalf of maild [339] (originated by maild [339]), Requested Thread QoS Utility>
+                          3   ??? (SpotlightIndex + 7164) [0x1e297cbfc]
+                            3   ??? (SpotlightIndex + 7312) [0x1e297cc90]
+                              3   ??? (SpotlightIndex + 8144) [0x1e297cfd0]
+                                2   ??? (SpotlightIndex + 985032) [0x1e2a6b7c8]
+                                  1   ??? (SpotlightIndex + 2131528) [0x1e2b83648]
+                                    1   ??? (SpotlightIndex + 3294504) [0x1e2c9f528]
+                                      1   ??? (SpotlightIndex + 3251232) [0x1e2c94c20]
+                                        1   ??? (SpotlightIndex + 3377272) [0x1e2cb3878]
+                                          1   ??? (SpotlightIndex + 3065116) [0x1e2c6751c]
+                                            1   ??? (MetadataUtilities + 26636) [0x1c5a2880c]
+                                              1   ??? (MetadataUtilities + 22212) [0x1c5a276c4]
+                                                1   ??? (MetadataUtilities + 23128) [0x1c5a27a58]
+                                                  1   ??? (MetadataUtilities + 25128) [0x1c5a28228]
+                                                    1   ??? (libsystem_kernel.dylib + 26788) [0x243c278a4]
+                                                      1   <on behalf of Dropbox [2080] (originated by Dropbox [2080]), Effective Thread QoS Background>
+                                  1   ??? (SpotlightIndex + 452624) [0x1e29e9810]
+                                    1   ??? (SpotlightIndex + 997708) [0x1e2a6e94c]
+                                      1   ??? (SpotlightIndex + 1084964) [0x1e2a83e24]
+                                        1   ??? (SpotlightIndex + 1069460) [0x1e2a80194]
+                                          1   ??? (SpotlightIndex + 1071308) [0x1e2a808cc]
+                                            1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                              1   <Effective Thread QoS Background>
+                                1   ??? (SpotlightIndex + 36180) [0x1e2983d54]
+                                  1   ??? (SpotlightIndex + 319640) [0x1e29c9098]
+                                    1   ??? (SpotlightIndex + 102756) [0x1e2994164]
+                                      1   ??? (SpotlightIndex + 505524) [0x1e29f66b4]
+                                        1   ??? (SpotlightDaemon + 11992) [0x24aa7eed8]
+                                          1   ??? (SpotlightIndex + 4688160) [0x1e2df3920]
+                                            1   ??? (SpotlightIndex + 29460) [0x1e2982314]
+                                              1   ??? (SpotlightIndex + 1178440) [0x1e2a9ab48]
+                                                1   ??? (libdispatch.dylib + 92216) [0x1ba669838]
+                                                  1   ??? (libdispatch.dylib + 91400) [0x1ba669508]
+                                                    1   ??? (libdispatch.dylib + 95420) [0x1ba66a4bc]
+                                                      1   ??? (libdispatch.dylib + 19296) [0x1ba657b60]
+                                                        1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                                                          1   ??? (libdispatch.dylib + 93584) [0x1ba669d90]
+                                                            1   ??? (libdispatch.dylib + 114668) [0x1ba66efec]
+                                                              1   ??? (SpotlightIndex + 1180096) [0x1e2a9b1c0]
+                                                                1   ??? (SpotlightIndex + 119244) [0x1e29981cc]
+                                                                  1   ??? (SpotlightIndex + 190452) [0x1e29a97f4]
+                                                                    1   ??? (SpotlightIndex + 57464) [0x1e2989078]
+                                                                      1   ??? (SpotlightIndex + 96128) [0x1e2992780]
+                                                                        1   ??? (SpotlightIndex + 91588) [0x1e29915c4]
+                                                                          1   ??? (SpotlightIndex + 957680) [0x1e2a64cf0]
+                                                                            1   ??? (MetadataUtilities + 14476) [0x1c5a2588c]
+                                                                              1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                                                                1   <on behalf of UNKNOWN [1973] (originated by dasd [87]), Effective Thread QoS Background>
+          2   ??? (libdispatch.dylib + 24360) [0x1ba658f28]
+            2   ??? (libdispatch.dylib + 26608) [0x1ba6597f0]
+              2   ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+                2   ??? (libdispatch.dylib + 42768) [0x1ba65d710]
+                  2   ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+                    2   ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+                      2   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                        2   ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                          2   ??? (SpotlightIndex + 7032) [0x1e297cb78]
+                            2   ??? (SpotlightIndex + 7312) [0x1e297cc90]
+                              2   ??? (SpotlightIndex + 8144) [0x1e297cfd0]
+                                2   ??? (SpotlightIndex + 985032) [0x1e2a6b7c8]
+                                  1   ??? (SpotlightIndex + 2131776) [0x1e2b83740]
+                                    1   ??? (SpotlightIndex + 3298968) [0x1e2ca0698]
+                                      1   ??? (SpotlightIndex + 997708) [0x1e2a6e94c]
+                                        1   ??? (SpotlightIndex + 1084964) [0x1e2a83e24]
+                                          1   ??? (SpotlightIndex + 1067532) [0x1e2a7fa0c]
+                                            1   ??? (MetadataUtilities + 26636) [0x1c5a2880c]
+                                              1   ??? (MetadataUtilities + 22212) [0x1c5a276c4]
+                                                1   ??? (MetadataUtilities + 23100) [0x1c5a27a3c]
+                                                  1   ??? (MetadataUtilities + 12844) [0x1c5a2522c]
+                                                    1   ??? (libsystem_kernel.dylib + 21316) [0x243c26344]
+                                                      1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background>
+                                  1   ??? (SpotlightIndex + 452624) [0x1e29e9810]
+                                    1   ??? (SpotlightIndex + 997708) [0x1e2a6e94c]
+                                      1   ??? (SpotlightIndex + 1084964) [0x1e2a83e24]
+                                        1   ??? (SpotlightIndex + 1067720) [0x1e2a7fac8]
+                                          1   ??? (SpotlightIndex + 1071308) [0x1e2a808cc]
+                                            1   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                              1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Override Thread QoS Utility>
+        5   ??? (libdispatch.dylib + 84332) [0x1ba66796c]
+          5   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+            5   ??? (libdispatch.dylib + 90436) [0x1ba669144]
+              5   ??? (libdispatch.dylib + 19296) [0x1ba657b60]
+                5   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                  5   ??? (libdispatch.dylib + 93584) [0x1ba669d90]
+                    5   ??? (libdispatch.dylib + 114668) [0x1ba66efec]
+                      5   ??? (SpotlightIndex + 1180096) [0x1e2a9b1c0]
+                        5   ??? (SpotlightIndex + 119244) [0x1e29981cc]
+                          3   ??? (SpotlightIndex + 189028) [0x1e29a9264]
+                            3   ??? (SpotlightIndex + 2128528) [0x1e2b82a90]
+                              2   ??? (SpotlightIndex + 4210148) [0x1e2d7ede4]
+                                1   ??? (SpotlightIndex + 4180768) [0x1e2d77b20]
+                                  1   ??? (SpotlightIndex + 4242608) [0x1e2d86cb0]
+                                    1   ??? (libsystem_kernel.dylib + 28000) [0x243c27d60]
+                                      1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background>
+                                1   ??? (SpotlightIndex + 4180732) [0x1e2d77afc]
+                                  1   ??? (libsystem_kernel.dylib + 29384) [0x243c282c8]
+                                    1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background>
+                              1   ??? (SpotlightIndex + 4210452) [0x1e2d7ef14]
+                                1   ??? (SpotlightIndex + 4216332) [0x1e2d8060c]
+                                  1   ??? (SpotlightIndex + 4242976) [0x1e2d86e20]
+                                    1   ??? (SpotlightIndex + 4234468) [0x1e2d84ce4]
+                                      1   ??? (libsystem_kernel.dylib + 29384) [0x243c282c8]
+                                        1   <on behalf of maild [339] (originated by maild [339]), Requested Thread QoS Utility>
+                          2   ??? (SpotlightIndex + 190452) [0x1e29a97f4]
+                            2   ??? (SpotlightIndex + 57464) [0x1e2989078]
+                              2   ??? (SpotlightIndex + 96128) [0x1e2992780]
+                                2   ??? (SpotlightIndex + 91588) [0x1e29915c4]
+                                  2   ??? (SpotlightIndex + 957680) [0x1e2a64cf0]
+                                    2   ??? (MetadataUtilities + 14476) [0x1c5a2588c]
+                                      2   ??? (libsystem_kernel.dylib + 27740) [0x243c27c5c]
+                                        1   <on behalf of maild [339] (originated by maild [339]), Effective Thread QoS Background, Override Thread QoS Background>
+                                        1   <on behalf of spotlightknowledged.updater [132] (originated by dasd [87]), Requested Thread QoS Utility, Override Thread QoS Utility>
+
+  Binary Images:
+           0x1009e4000 -                ???  searchd                  <603B4F18-33FD-3DD2-A9E4-E1A484240C02>  /System/Library/PrivateFrameworks/Search.framework/searchd
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib  <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x197639000 -        0x19764167f  libsystem_platform.dylib <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib        <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x1c5a22000 -        0x1c5a8e8bf  MetadataUtilities        <058542E2-327F-37D7-A947-D59D60B77B14>  /System/Library/PrivateFrameworks/MetadataUtilities.framework/MetadataUtilities
+           0x1e297b000 -        0x1e2ee7f57  SpotlightIndex           <D1CC4E7A-5CAB-3809-A24F-3A8E586E642E>  /System/Library/PrivateFrameworks/SpotlightIndex.framework/SpotlightIndex
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib   <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x24aa7c000 -        0x24ab607b3  SpotlightDaemon          <A35DF3E1-4101-30A3-875E-51038845267E>  /System/Library/PrivateFrameworks/SpotlightDaemon.framework/SpotlightDaemon
+
+
+Powerstats for:   backupd
+UUID:             6F66D8DB-6087-31FF-A3A5-1662B2EA0930
+Path:             /System/Library/PrivateFrameworks/MobileBackup.framework/backupd
+Resource Coalition: 50 samples "com.apple.backupd"(695)
+On Behalf Of:     50 samples assetsd [300] (50 samples originated by assetsd [300])
+Architecture:     arm64
+Pageins:          31 pages
+Start time:       2026-07-27 03:19:13.847 +0300
+End time:         2026-07-27 03:19:44.218 +0300
+Num samples:      50 (10%)
+Energy:           165.96 uWh
+Primary state:    50 samples Non-Frontmost App, Non-Suppressed, Kernel mode, Effective Thread QoS Utility, Requested Thread QoS Utility, Override Thread QoS Unspecified, e-core
+User Activity:    4 samples Idle, 46 samples Active
+Power Source:     0 samples on Battery, 50 samples on AC
+  50  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    49  ??? (libsystem_pthread.dylib + 4604) [0x18b9471fc]
+      49  ??? (libdispatch.dylib + 86256) [0x1ba6680f0]
+        49  ??? (libdispatch.dylib + 84484) [0x1ba667a04]
+          49  ??? (libdispatch.dylib + 23996) [0x1ba658dbc]
+            49  ??? (libdispatch.dylib + 26368) [0x1ba659700]
+              49  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                49  ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                  49  ??? (backupd + 2076836) [0x1010730a4]
+                    49  ??? (backupd + 2079160) [0x1010739b8]
+                      46  ??? (libsystem_kernel.dylib + 20528) [0x243c26030]
+                        46  <on behalf of assetsd [300] (originated by assetsd [300])>
+                      3   ??? (libsystem_kernel.dylib + 4832) [0x243c222e0]
+                        3   <on behalf of assetsd [300] (originated by assetsd [300])>
+    1   ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      1   ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        1   ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          1   ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            1   ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              1   ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                1   ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                  1   ??? (backupd + 26716) [0x100e7e85c]
+                    1   ??? (backupd + 1805396) [0x101030c54]
+                      1   ??? (backupd + 1900812) [0x10104810c]
+                        1   ??? (libsystem_kernel.dylib + 21680) [0x243c264b0]
+                          1   <on behalf of assetsd [300] (originated by assetsd [300])>
+
+  Binary Images:
+           0x100e78000 -                ???  backupd                 <6F66D8DB-6087-31FF-A3A5-1662B2EA0930>  /System/Library/PrivateFrameworks/MobileBackup.framework/backupd
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib       <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib  <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib

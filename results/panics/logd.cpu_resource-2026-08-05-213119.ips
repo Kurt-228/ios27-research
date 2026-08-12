@@ -1,0 +1,392 @@
+{"duration_ms":"142222","share_with_app_devs":0,"roots_installed":0,"bug_type":"202","os_version":"iPhone OS 27.0 (24A5390f)","slice_uuid":"000B4BEC-6673-318E-A4C3-E7533C499E4A","is_first_party":1,"incident_id":"937C79D8-A8AA-4156-9462-AA51C2DEE1D8","timestamp":"2026-08-05 21:31:19.00 +0300","app_name":"logd","name":"logd"}
+Date/Time:        2026-08-05 21:28:56.546 +0300
+End time:         2026-08-05 21:31:18.768 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: 937C79D8-A8AA-4156-9462-AA51C2DEE1D8
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          logd
+Path:             /usr/libexec/logd
+Resource Coalition: 9
+On Behalf Of:     9 samples UNKNOWN [44414] (9 samples originated by UNKNOWN [33])
+Architecture:     arm64
+PID:              35
+
+Event:            cpu usage
+Action taken:     none
+CPU:              90 seconds cpu time over 142 seconds (63% cpu average), exceeding limit of 50% cpu over 180 seconds
+CPU limit:        90s
+Limit duration:   180s
+CPU used:         90s
+CPU duration:     142s
+Duration:         142.22s
+Duration Sampled: 139.91s (event ends 2.26s after samples)
+Steps:            42 (10 gigacycles/step)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+
+Models:           UNKNOWN
+
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  9  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+  9  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+  9  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+  9  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+  9  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+  9  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+  9  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  9  ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+  9  ??? (CacheDelete + 167252) [0x212c85d54]
+  8  ??? (logd + 138044) [0x102a09b3c]
+  5  ??? (logd + 143776) [0x102a0b1a0]
+  2  ??? (logd + 144720) [0x102a0b550]
+  2  ??? (logd + 148576) [0x102a0c460]
+  2  ??? (libcompression.dylib + 4116) [0x2cbde6014]
+  2  ??? (libcompression.dylib + 16620) [0x2cbde90ec]
+  2  ??? (libcompression.dylib + 16496) [0x2cbde9070]
+  2  ??? (libcompression.dylib + 22464) [0x2cbdea7c0]
+
+
+Powerstats for:   logd [35]
+UUID:             000B4BEC-6673-318E-A4C3-E7533C499E4A
+Path:             /usr/libexec/logd
+Resource Coalition: 9 samples 9
+On Behalf Of:     9 samples UNKNOWN [44414] (9 samples originated by UNKNOWN [33])
+Architecture:     arm64
+Footprint:        11.02 MB -> 8928 KB (-2352 KB)
+Pageins:          93520 pages
+Start time:       2026-08-05 21:29:09.502 +0300
+End time:         2026-08-05 21:31:11.015 +0300
+Num samples:      9 (21%)
+Energy:           1857.23 uWh
+Num threads:      1
+Primary state:    9 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Background, Requested Thread QoS Background, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 9 samples Active
+Power Source:     6 samples on Battery, 3 samples on AC
+  9  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    9  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      9  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        9  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          9  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            9  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              9  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                9  ??? (libdispatch.dylib + 72908) [0x1ba664ccc]
+                  9  ??? (CacheDelete + 167252) [0x212c85d54]
+                    8  ??? (logd + 138044) [0x102a09b3c]
+                      5  ??? (logd + 143776) [0x102a0b1a0]
+                        2  ??? (logd + 144720) [0x102a0b550]
+                          2  ??? (logd + 148576) [0x102a0c460]
+                            2  ??? (libcompression.dylib + 4116) [0x2cbde6014]
+                              2  ??? (libcompression.dylib + 16620) [0x2cbde90ec]
+                                2  ??? (libcompression.dylib + 16496) [0x2cbde9070]
+                                  2  ??? (libcompression.dylib + 22464) [0x2cbdea7c0]
+                                    2  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                        2  ??? (logd + 146060) [0x102a0ba8c]
+                          1  ??? (logd + 19604) [0x1029ecc94]
+                            1  ??? (libsystem_collections.dylib + 4732) [0x2cdb2b27c]
+                              1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                          1  ??? (logd + 19424) [0x1029ecbe0]
+                            1  ??? (libsystem_collections.dylib + 4732) [0x2cdb2b27c]
+                              1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                        1  ??? (logd + 146208) [0x102a0bb20]
+                          1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                      2  ??? (logd + 143696) [0x102a0b150]
+                        2  ??? (libcompression.dylib + 24364) [0x2cbdeaf2c]
+                          2  ??? (libcompression.dylib + 86416) [0x2cbdfa190]
+                            1  ??? (libcompression.dylib + 85916) [0x2cbdf9f9c]
+                              1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                            1  ??? (libcompression.dylib + 85856) [0x2cbdf9f60]
+                              1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                      1  ??? (logd + 143364) [0x102a0b004]
+                        1  ??? (logd + 144148) [0x102a0b314]
+                          1  ??? (logd + 148576) [0x102a0c460]
+                            1  ??? (libcompression.dylib + 4116) [0x2cbde6014]
+                              1  ??? (libcompression.dylib + 16620) [0x2cbde90ec]
+                                1  ??? (libcompression.dylib + 16496) [0x2cbde9070]
+                                  1  ??? (libcompression.dylib + 21788) [0x2cbdea51c]
+                                    1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+                    1  ??? (logd + 138096) [0x102a09b70]
+                      1  ??? (logd + 144148) [0x102a0b314]
+                        1  ??? (logd + 148576) [0x102a0c460]
+                          1  ??? (libcompression.dylib + 4116) [0x2cbde6014]
+                            1  ??? (libcompression.dylib + 16620) [0x2cbde90ec]
+                              1  ??? (libcompression.dylib + 16496) [0x2cbde9070]
+                                1  ??? (libcompression.dylib + 22124) [0x2cbdea66c]
+                                  1  <on behalf of UNKNOWN [44414] (originated by UNKNOWN [33])>
+
+  Binary Images:
+           0x1029e8000 -                ???  logd                        <000B4BEC-6673-318E-A4C3-E7533C499E4A>  /usr/libexec/logd
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib     <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib           <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x212c5d000 -        0x212ca06df  CacheDelete                 <B2095A9D-6464-3A26-8AC4-F5D14CB225BB>  /System/Library/PrivateFrameworks/CacheDelete.framework/CacheDelete
+           0x2cbde5000 -        0x2cbec1fe7  libcompression.dylib        <9F2C7138-9087-3CD9-A0B6-CF48739A0719>  /usr/lib/libcompression.dylib
+           0x2cdb2a000 -        0x2cdb2f00f  libsystem_collections.dylib <7A399FCF-B2E1-3242-95B4-526C474C50D5>  /usr/lib/system/libsystem_collections.dylib
+
+
+Powerstats for:   audiomxd
+UUID:             940D9E3D-D0E1-35CD-AE11-958CDC1C9A56
+Path:             /usr/libexec/audiomxd
+Resource Coalition: 3 samples 179
+Architecture:     arm64
+Pageins:          76 pages
+Start time:       2026-08-05 21:29:13.893 +0300
+End time:         2026-08-05 21:31:06.437 +0300
+Num samples:      3 (7%)
+Energy:           432.95 uWh
+Primary state:    2 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Unspecified, Requested Thread QoS Unspecified, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 3 samples Active
+Power Source:     2 samples on Battery, 1 samples on AC
+  3  ??? (libsystem_pthread.dylib + 2332) [0x18b94691c]
+    3  ??? (libsystem_pthread.dylib + 16444) [0x18b94a03c]
+      2  ??? (CoreAudio + 737432) [0x234bd4098]
+        1  ??? (CoreAudio + 4089612) [0x234f0670c]
+          1  ??? (CoreAudio + 5628452) [0x23507e224]
+            1  ??? (<B159BF45-3EDD-3776-B107-3C4D13B9C805> + 5450364) [0x109d32a7c]
+              1  ??? (<B159BF45-3EDD-3776-B107-3C4D13B9C805> + 5452144) [0x109d33170]
+                1  ??? (<B159BF45-3EDD-3776-B107-3C4D13B9C805> + 5460416) [0x109d351c0]
+                  1  ??? (<B159BF45-3EDD-3776-B107-3C4D13B9C805> + 5463184) [0x109d35c90]
+                    1  ??? (AudioDSPGraph + 23080) [0x2115a2a28]
+                      1  ??? (AudioDSPGraph + 786132) [0x21165ced4]
+                        1  ??? (AudioDSPGraph + 787872) [0x21165d5a0]
+                          1  ??? (AudioDSPGraph + 16700) [0x2115a113c]
+                            1  ??? (AudioDSPGraph + 20880) [0x2115a2190]
+                              1  ??? (AudioDSPGraph + 18760) [0x2115a1948]
+                                1  ??? (AudioDSPGraph + 19796) [0x2115a1d54]
+                                  1  ??? (AudioDSPGraph + 781324) [0x21165bc0c]
+                                    1  ??? (libAudioDSP.dylib + 3198208) [0x2112a1d00]
+                                      1  ??? (libAudioDSP.dylib + 4033472) [0x21136dbc0]
+                                        1  ??? (libAudioDSP.dylib + 4704084) [0x211411754]
+                                          1  ??? (libAudioDSP.dylib + 6612) [0x210f969d4]
+        1  ??? (CoreAudio + 4088376) [0x234f06238]
+          1  ??? (CoreAudio + 4059772) [0x234eff27c]
+            1  ??? (CoreAudio + 5652200) [0x235083ee8]
+              1  ??? (CoreAudio + 4078568) [0x234f03be8]
+                1  ??? (AudioServerDriver + 16996) [0x260653264]
+      1  ??? (AudioToolbox + 418080) [0x1bdc3e120]
+        1  ??? (AudioToolbox + 1621060) [0x1bdd63c44]
+          1  ??? (AudioToolbox + 1549068) [0x1bdd5230c]
+            1  ??? (AudioToolbox + 1569356) [0x1bdd5724c]
+              1  ??? (AudioToolbox + 1602492) [0x1bdd5f3bc]
+                1  ??? (AudioToolbox + 995512) [0x1bdccb0b8]
+                  1  ??? (AudioToolbox + 2489284) [0x1bde37bc4]
+                    1  ??? (AudioToolboxCore + 143120) [0x1aa89ef10]
+                      1  ??? (libxpc.dylib + 103728) [0x18b9be530]
+                        1  ??? (libxpc.dylib + 97932) [0x18b9bce8c]
+                          1  ??? (libdispatch.dylib + 120364) [0x1ba67062c]
+                            1  ??? (libdispatch.dylib + 120064) [0x1ba670500]
+                              1  ??? (libdispatch.dylib + 134516) [0x1ba673d74]
+                                1  ??? (libdispatch.dylib + 136108) [0x1ba6743ac]
+                                  1  ??? (libsystem_kernel.dylib + 3284) [0x243c21cd4]
+                                    1  <Kernel mode>
+
+  Binary Images:
+           0x104598000 -                ???  audiomxd                <940D9E3D-D0E1-35CD-AE11-958CDC1C9A56>  /usr/libexec/audiomxd
+           0x109800000 -                ???  ???                     <B159BF45-3EDD-3776-B107-3C4D13B9C805>
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x18b9a5000 -        0x18ba063d3  libxpc.dylib            <98A38038-E2BA-36F4-933D-FC98CDEA2582>  /usr/lib/system/libxpc.dylib
+           0x1aa87c000 -        0x1aac523c7  AudioToolboxCore        <AFC93CCC-7ADF-3282-906F-8DFC76BE0E53>  /System/Library/PrivateFrameworks/AudioToolboxCore.framework/AudioToolboxCore
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib       <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x1bdbd8000 -        0x1bdf025c7  AudioToolbox            <30168741-82C6-39E5-9649-25474E8440D8>  /System/Library/Frameworks/AudioToolbox.framework/AudioToolbox
+           0x210f95000 -        0x21159c3af  libAudioDSP.dylib       <9679A360-B3CD-3AAF-88FA-AE70FCC52B62>  /System/Library/Frameworks/AudioToolbox.framework/libAudioDSP.dylib
+           0x21159d000 -        0x21168a94f  AudioDSPGraph           <CCD62ACD-ADE6-334F-BA7B-38027CC585A4>  /System/Library/PrivateFrameworks/AudioDSPGraph.framework/AudioDSPGraph
+           0x234b20000 -        0x2351cb4cf  CoreAudio               <79CC7612-1AE3-3D09-81E9-F105620D8C95>  /System/Library/Frameworks/CoreAudio.framework/CoreAudio
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib  <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x26064f000 -        0x2606cf197  AudioServerDriver       <7F7C6FB6-2A0B-3B96-9810-69A9F483041F>  /System/Library/PrivateFrameworks/AudioServerDriver.framework/AudioServerDriver
+
+
+Powerstats for:   ChatGPT
+UUID:             A95DD881-6086-3782-856E-BE387381B769
+Path:             /private/var/containers/Bundle/Application/1BC5BCAD-4F17-488E-84A6-3B724A6261F8/ChatGPT.app/ChatGPT
+Identifier:       com.openai.chat
+Version:          1.2026.202 (30140022279)
+Adam ID:          6448311069
+Is First Party:   No
+Beta Identifier:  EC9120F0-EE40-46B9-B524-40C0A583E665
+Resource Coalition: 3 samples 6989
+Architecture:     arm64
+Pageins:          544 pages
+Start time:       2026-08-05 21:29:17.461 +0300
+End time:         2026-08-05 21:31:16.504 +0300
+Num samples:      3 (7%)
+Energy:           583.11 uWh
+Primary state:    2 samples Frontmost App, Non-Suppressed, User mode, Effective Thread QoS User Interactive, Requested Thread QoS User Interactive, Override Thread QoS Unspecified, p-core
+User Activity:    0 samples Idle, 3 samples Active
+Power Source:     2 samples on Battery, 1 samples on AC
+  2  ??? (dyld + 22064) [0x18b893630]
+    2  ??? (ChatGPT + 75836) [0x1025a683c]
+      2  ??? (SwiftUI + 270120) [0x195bcdf28]
+        2  ??? (SwiftUI + 270440) [0x195bce068]
+          2  ??? (SwiftUI + 297184) [0x195bd48e0]
+            2  ??? (UIKitCore + 755808) [0x18fce4860]
+              2  ??? (GraphicsServices + 3876) [0x23607ff24]
+                2  ??? (CoreFoundation + 243456) [0x18ba42700]
+                  2  ??? (CoreFoundation + 238224) [0x18ba41290]
+                    2  ??? (CoreFoundation + 242036) [0x18ba42174]
+                      2  ??? (CoreFoundation + 367140) [0x18ba60a24]
+                        2  ??? (CoreFoundation + 367280) [0x18ba60ab0]
+                          2  ??? (UpdateCycle + 3008) [0x2bda4cbc0]
+                            2  ??? (UIKitCore + 428092) [0x18fc9483c]
+                              2  ??? (UIKitCore + 428700) [0x18fc94a9c]
+                                1  ??? (UIKitCore + 401672) [0x18fc8e108]
+                                  1  ??? (UIKitCore + 403644) [0x18fc8e8bc]
+                                    1  ??? (QuartzCore + 119844) [0x18f7db424]
+                                      1  ??? (QuartzCore + 122492) [0x18f7dbe7c]
+                                        1  ??? (QuartzCore + 120356) [0x18f7db624]
+                                          1  ??? (QuartzCore + 123436) [0x18f7dc22c]
+                                            1  ??? (QuartzCore + 138496) [0x18f7dfd00]
+                                              1  ??? (QuartzCore + 59276) [0x18f7cc78c]
+                                                1  ??? (QuartzCore + 60372) [0x18f7ccbd4]
+                                                  1  ??? (QuartzCore + 62904) [0x18f7cd5b8]
+                                                    1  ??? (UIKitCore + 38824) [0x18fc357a8]
+                                                      1  ??? (UIKitCore + 44696) [0x18fc36e98]
+                                                        1  ??? (UIKitCore + 46692) [0x18fc37664]
+                                                          1  ??? (UIKitCore + 8552560) [0x190454070]
+                                                            1  ??? (UIKitCore + 147984) [0x18fc50210]
+                                                              1  ??? (UIKitCore + 6042048) [0x1901ef1c0]
+                                                                1  ??? (UIKitCore + 8562764) [0x19045684c]
+                                                                  1  ??? (UIKitCore + 8561516) [0x19045636c]
+                                                                    1  ??? (UIKitCore + 8564156) [0x190456dbc]
+                                                                      1  ??? (UIKitCore + 472916) [0x18fc9f754]
+                                                                        1  ??? (QuartzCore + 180040) [0x18f7e9f48]
+                                                                          1  ??? (QuartzCore + 181480) [0x18f7ea4e8]
+                                                                            1  ??? (libsystem_c.dylib + 42976) [0x1932927e0]
+                                                                              1  <e-core>
+                                1  ??? (QuartzCore + 118572) [0x18f7daf2c]
+                                  1  ??? (QuartzCore + 870804) [0x18f892994]
+                                    1  ??? (QuartzCore + 868020) [0x18f891eb4]
+                                      1  ??? (QuartzCore + 871648) [0x18f892ce0]
+                                        1  ??? (SwiftUICore + 2209228) [0x193a2b5cc]
+                                          1  ??? (SwiftUICore + 1046048) [0x19390f620]
+                                            1  ??? (SwiftUICore + 2208496) [0x193a2b2f0]
+                                              1  ??? (SwiftUICore + 160472) [0x1938372d8]
+                                                1  ??? (SwiftUICore + 79980) [0x19382386c]
+                                                  1  ??? (SwiftUICore + 76260) [0x1938229e4]
+                                                    1  ??? (AttributeGraph + 45652) [0x195b51254]
+                                                      1  ??? (AttributeGraph + 43336) [0x195b50948]
+                                                        1  ??? (SwiftUICore + 472792) [0x1938836d8]
+  1  ??? (libswift_Concurrency.dylib + 30860) [0x18cffd88c]
+    1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 688300) [0x1046380ac]
+      1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 688696) [0x104638238]
+        1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 688300) [0x1046380ac]
+          1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 34342264) [0x106650578]
+            1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 34423100) [0x10666413c]
+              1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 5870356) [0x104b29314]
+                1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 34424760) [0x1066647b8]
+                  1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 34430096) [0x106665c90]
+                    1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 34446328) [0x106669bf8]
+                      1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 34446652) [0x106669d3c]
+                        1  ??? (<409EE5BE-BF6F-3F7D-8194-BA07C17265A7> + 568980) [0x10461ae94]
+                          1  ??? (libswiftCore.dylib + 36620) [0x18d08bf0c]
+                            1  <Effective Thread QoS User Initiated, Requested Thread QoS User Initiated>
+
+  Binary Images:
+           0x102594000 -                ???  com.openai.chat 1.2026.202 (30140022279) <A95DD881-6086-3782-856E-BE387381B769>  /private/var/containers/Bundle/Application/1BC5BCAD-4F17-488E-84A6-3B724A6261F8/ChatGPT.app/ChatGPT
+           0x104590000 -                ???  ???                                      <409EE5BE-BF6F-3F7D-8194-BA07C17265A7>
+           0x18b88e000 -        0x18b94516f  dyld                                     <5FD0ED6B-D314-3392-AA82-91C9FC014422>  /usr/lib/dyld
+           0x18ba07000 -        0x18bee8fbf  CoreFoundation                           <7CDBA4FD-E90E-3EF2-8AE3-9071648E4673>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x18cff6000 -        0x18d08229f  libswift_Concurrency.dylib               <2F447120-5662-3D10-94C8-4F94E62893D0>  /usr/lib/swift/libswift_Concurrency.dylib
+           0x18d083000 -        0x18d63acdf  libswiftCore.dylib                       <47AE339D-D2C0-3FFB-9EED-E55BB0051FBE>  /usr/lib/swift/libswiftCore.dylib
+           0x18f7be000 -        0x18fc2b7a3  QuartzCore                               <B46D97D1-9296-3D11-BD8E-FDFDE3A2469D>  /System/Library/Frameworks/QuartzCore.framework/QuartzCore
+           0x18fc2c000 -        0x191c32cc7  UIKitCore                                <8AC5E0AF-75BA-3416-AB91-BCD844AB4213>  /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+           0x193288000 -        0x193308ee3  libsystem_c.dylib                        <18912EF8-9112-3316-9296-3052491AB886>  /usr/lib/system/libsystem_c.dylib
+           0x193810000 -        0x1948989db  SwiftUICore                              <27A94677-5EE1-385B-AA56-8D4B3B75C7BD>  /System/Library/Frameworks/SwiftUICore.framework/SwiftUICore
+           0x195b46000 -        0x195b8b447  AttributeGraph                           <6BF8A320-32CA-36B1-9AF0-A796D67D57A7>  /System/Library/PrivateFrameworks/AttributeGraph.framework/AttributeGraph
+           0x195b8c000 -        0x196e8415b  SwiftUI                                  <D92A70D3-BE60-3C3D-AC79-3CF38ADC1F09>  /System/Library/Frameworks/SwiftUI.framework/SwiftUI
+           0x23607f000 -        0x236086ea3  GraphicsServices                         <56086422-9E1C-3BD6-99BD-FCC78E31B423>  /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+           0x2bda4c000 -        0x2bda4de15  UpdateCycle                              <F0C9D3F7-87C3-340A-9E6F-EDDF5BDBA505>  /System/Library/PrivateFrameworks/UpdateCycle.framework/UpdateCycle
+
+
+Powerstats for:   InputUI
+UUID:             7E06B9B6-077A-3FBE-99E4-C9463D486144
+Path:             /Applications/InputUI.app/InputUI
+Identifier:       com.apple.InputUI
+Version:          1.0 (49)
+Is First Party:   Yes
+Beta Identifier:  2D8D9BFF-DA7C-43EA-AEC7-3A7C9EEAEB28
+Resource Coalition: 3 samples 259
+On Behalf Of:     2 samples UNKNOWN [33450] (2 samples originated by ChatGPT [43771]), 1 sample ChatGPT [43771] (1 sample originated by ChatGPT [43771])
+Architecture:     arm64
+Pageins:          3 pages
+Start time:       2026-08-05 21:30:30.557 +0300
+End time:         2026-08-05 21:30:52.646 +0300
+Num samples:      3 (7%)
+Energy:           41.30 uWh
+Primary state:    2 samples Frontmost App, Non-Suppressed, User mode, Effective Thread QoS User Interactive, Requested Thread QoS User Interactive, Override Thread QoS Unspecified, e-core
+User Activity:    0 samples Idle, 3 samples Active
+Power Source:     3 samples on Battery, 0 samples on AC
+  2  ??? (dyld + 22064) [0x18b893630]
+    2  ??? (InputUI + 40552) [0x100781e68]
+      2  ??? (UIKitCore + 755808) [0x18fce4860]
+        2  ??? (GraphicsServices + 3876) [0x23607ff24]
+          2  ??? (CoreFoundation + 243456) [0x18ba42700]
+            2  ??? (CoreFoundation + 239512) [0x18ba41798]
+              2  ??? (CoreFoundation + 300616) [0x18ba50648]
+                2  ??? (libdispatch.dylib + 69696) [0x1ba664040]
+                  2  ??? (libdispatch.dylib + 70512) [0x1ba664370]
+                    2  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                      2  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                        2  ??? (TextInputUI + 1231248) [0x19b0cc990]
+                          2  ??? (TextInputUI + 206700) [0x19afd276c]
+                            2  ??? (TextInputUI + 59476) [0x19afae854]
+                              2  ??? (TextInputUI + 216884) [0x19afd4f34]
+                                1  ??? (TextInputUI + 218752) [0x19afd5680]
+                                  1  ??? (TextInputUI + 218916) [0x19afd5724]
+                                    1  ??? (UIKitCore + 165804) [0x18fc547ac]
+                                      1  ??? (UIKitCore + 342808) [0x18fc7fb18]
+                                        1  ??? (libobjc.A.dylib + 39740) [0x18b819b3c]
+                                          1  ??? (libobjc.A.dylib + 186128) [0x18b83d710]
+                                            1  ??? (libobjc.A.dylib + 186044) [0x18b83d6bc]
+                                              1  <on behalf of UNKNOWN [33450] (originated by ChatGPT [43771])>
+                                1  ??? (TextInputUI + 218672) [0x19afd5630]
+                                  1  ??? (TextInputUI + 218956) [0x19afd574c]
+                                    1  ??? (QuartzCore + 832188) [0x18f8892bc]
+                                      1  ??? (QuartzCore + 174616) [0x18f7e8a18]
+                                        1  ??? (QuartzCore + 82176) [0x18f7d2100]
+                                          1  ??? (libsystem_platform.dylib + 6432) [0x19763a920]
+                                            1  <on behalf of UNKNOWN [33450] (originated by ChatGPT [43771])>
+  1  ??? (libswift_Concurrency.dylib + 30860) [0x18cffd88c]
+    1  ??? (TextInputUI + 192500) [0x19afceff4]
+      1  ??? (TextInputUI + 192744) [0x19afcf0e8]
+        1  ??? (TextInputUI + 192500) [0x19afceff4]
+          1  ??? (TextInputUI + 191784) [0x19afced28]
+            1  ??? (TextInputUI + 213148) [0x19afd409c]
+              1  ??? (TextInputUI + 189800) [0x19afce568]
+                1  ??? (StickerKit + 1191752) [0x231234f48]
+                  1  ??? (StickerKit + 1191268) [0x231234d64]
+                    1  ??? (StickerKit + 1190808) [0x231234b98]
+                      1  ??? (GenerativeModels + 17436) [0x1925a941c]
+                        1  ??? (GenerativeFunctionsFoundation + 6960) [0x192504b30]
+                          1  ??? (GenerativeFunctionsFoundation + 19488) [0x192507c20]
+                            1  ??? (libsystem_eligibility.dylib + 7104) [0x2cdb3abc0]
+                              1  ??? (libsystem_eligibility.dylib + 5308) [0x2cdb3a4bc]
+                                1  ??? (libsystem_eligibility.dylib + 5744) [0x2cdb3a670]
+                                  1  ??? (libsystem_kernel.dylib + 26516) [0x243c27794]
+                                    1  <on behalf of ChatGPT [43771] (originated by ChatGPT [43771]), Kernel mode>
+
+  Binary Images:
+           0x100778000 -                ???  com.apple.InputUI 1.0 (49)    <7E06B9B6-077A-3FBE-99E4-C9463D486144>  /Applications/InputUI.app/InputUI
+           0x18b810000 -        0x18b85d8c7  libobjc.A.dylib               <E708DFC2-BA03-3C4C-8376-FFC11461C752>  /usr/lib/libobjc.A.dylib
+           0x18b88e000 -        0x18b94516f  dyld                          <5FD0ED6B-D314-3392-AA82-91C9FC014422>  /usr/lib/dyld
+           0x18ba07000 -        0x18bee8fbf  CoreFoundation                <7CDBA4FD-E90E-3EF2-8AE3-9071648E4673>  /System/Library/Frameworks/CoreFoundation.framework/CoreFoundation
+           0x18cff6000 -        0x18d08229f  libswift_Concurrency.dylib    <2F447120-5662-3D10-94C8-4F94E62893D0>  /usr/lib/swift/libswift_Concurrency.dylib
+           0x18f7be000 -        0x18fc2b7a3  QuartzCore                    <B46D97D1-9296-3D11-BD8E-FDFDE3A2469D>  /System/Library/Frameworks/QuartzCore.framework/QuartzCore
+           0x18fc2c000 -        0x191c32cc7  UIKitCore                     <8AC5E0AF-75BA-3416-AB91-BCD844AB4213>  /System/Library/PrivateFrameworks/UIKitCore.framework/UIKitCore
+           0x192503000 -        0x1925a46c3  GenerativeFunctionsFoundation <697C0A51-1511-379C-8576-6659525CC079>  /System/Library/PrivateFrameworks/GenerativeFunctionsFoundation.framework/GenerativeFunctionsFoundation
+           0x1925a5000 -        0x19269b423  GenerativeModels              <87FDC3F0-CD34-3C11-9D95-DE2EE485F7A5>  /System/Library/PrivateFrameworks/GenerativeModels.framework/GenerativeModels
+           0x197639000 -        0x19764167f  libsystem_platform.dylib      <9D2E2FF9-3CDB-3465-B9BA-EBA5CF7ACFDB>  /usr/lib/system/libsystem_platform.dylib
+           0x19afa0000 -        0x19b1053c3  TextInputUI                   <6139920F-BD33-3E77-BAFB-560604481E4E>  /System/Library/PrivateFrameworks/TextInputUI.framework/TextInputUI
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib             <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x231112000 -        0x2313d681f  StickerKit                    <EF2B7F52-4DEE-3720-9008-F56CA89DCFE8>  /System/Library/Frameworks/StickerKit.framework/StickerKit
+           0x23607f000 -        0x236086ea3  GraphicsServices              <56086422-9E1C-3BD6-99BD-FCC78E31B423>  /System/Library/PrivateFrameworks/GraphicsServices.framework/GraphicsServices
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib        <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2cdb39000 -        0x2cdb43d73  libsystem_eligibility.dylib   <A7514D4E-B297-3AE3-AB0E-0F327FE54515>  /usr/lib/system/libsystem_eligibility.dylib

@@ -1,0 +1,107 @@
+{
+  "assertions" : [
+
+  ],
+  "assets" : [
+    {
+      "cost" : {
+        "onDeviceMemory" : 0
+      },
+      "descriptor" : "<com.apple.fm.coremotion.pednet_v1.base, version: (none), custom asset: (none)>",
+      "dynamicModeAllowed" : false,
+      "executionGroups" : [
+
+      ],
+      "foregroundSessions" : [
+
+      ],
+      "inferenceProvider" : {
+        "hostedOnServer" : true,
+        "id" : "CoreMotionPednetV1InferenceProvider",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "isCacheable" : false,
+      "isLocked" : false,
+      "loadState" : "unloaded",
+      "path" : "",
+      "requiredByOtherAssets" : [
+
+      ],
+      "timeLastForegroundSessionEnded" : "2026-08-08T04:01:19+0300",
+      "timeLastRequestEnded" : "2026-08-08T04:01:19+0300",
+      "useEnergyEfficientMode" : false
+    }
+  ],
+  "budget" : 2000000,
+  "currentPolicy" : {
+    "assetPolicy" : "standard",
+    "cancelPriority" : "none"
+  },
+  "disabledUseCases" : [
+    "codeLM.denyThisUseCaseOnJune6of2024"
+  ],
+  "executionGroups" : {
+    "active" : [
+
+    ],
+    "pendingBackground" : [
+
+    ],
+    "pendingForeground" : [
+
+    ]
+  },
+  "inferenceProviders" : [
+    {
+      "activePriority" : "none",
+      "activeRequests" : [
+
+      ],
+      "descriptor" : {
+        "hostedOnServer" : true,
+        "id" : "CoreMotionPednetV1InferenceProvider",
+        "instance" : {
+          "defaultInstance" : {
+
+          }
+        }
+      },
+      "loadingCount" : 0,
+      "pid" : -1
+    }
+  ],
+  "remoteRequests" : [
+
+  ],
+  "requests" : [
+
+  ],
+  "runningRequests" : [
+
+  ],
+  "sessions" : [
+    {
+      "createdByPID" : 79,
+      "identifier" : "D1382A03-39BF-4CB0-BB20-2A633E495F91",
+      "isCancelled" : false,
+      "onBehalfOfPID" : 79,
+      "requests" : [
+
+      ],
+      "supportedAssets" : [
+        "com.apple.fm.coremotion.pednet_v1.base"
+      ],
+      "useCaseIdentifier" : "CMSPInference"
+    }
+  ],
+  "transactions" : [
+
+  ],
+  "trials" : {
+
+  }
+}

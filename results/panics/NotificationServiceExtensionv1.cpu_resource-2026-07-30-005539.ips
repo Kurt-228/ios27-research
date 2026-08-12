@@ -1,0 +1,124 @@
+{"incident_id":"D7BCA6A9-1C1B-4CC6-B2F2-49A95E506EA9","roots_installed":0,"app_name":"NotificationServiceExtensionv1","timestamp":"2026-07-30 00:55:39.00 +0300","app_version":"12.7","app_cohort":"2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e","slice_uuid":"D6CFAE71-5236-3CC8-A811-0158DCFEDBA1","adam_id":"6759809153","build_version":"100034","bundleID":"com.GLEProject.GLEGram.NotificationService","duration_ms":"144080","is_first_party":0,"share_with_app_devs":0,"bug_type":"202","os_version":"iPhone OS 27.0 (24A5390f)","distributor_id":"com.apple.TestFlight","name":"NotificationServiceExtensionv1","is_beta":1}
+Date/Time:        2026-07-30 00:53:14.038 +0300
+End time:         2026-07-30 00:55:38.118 +0300
+OS Version:       iPhone OS 27.0 (Build 24A5390f)
+Architecture:     arm64e
+Report Version:   73
+Incident Identifier: D7BCA6A9-1C1B-4CC6-B2F2-49A95E506EA9
+
+Data Source:      Microstackshots
+Shared Cache:     E2D6F6BD-03E7-3F04-BACD-9C086E5900F6 slid base address 0x18b40c000
+
+Command:          NotificationServiceExtensionv1
+Path:             /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/PlugIns/NotificationServiceExtensionv1.appex/NotificationServiceExtensionv1
+Identifier:       com.GLEProject.GLEGram.NotificationService
+Version:          12.7 (100034)
+Adam ID:          6759809153
+Is First Party:   No
+Is Beta:          Yes
+Cohort:           2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e
+Beta Identifier:  B36CC610-F0CA-4DE7-A626-FF998076FE64
+Resource Coalition: 2336
+On Behalf Of:     30 samples UNKNOWN [37] (30 samples originated by UNKNOWN [147])
+Architecture:     arm64
+PID:              13602
+
+Event:            cpu usage
+Action taken:     none
+CPU:              144 seconds cpu time over 144 seconds (100% cpu average), exceeding limit of 80% cpu over 180 seconds
+CPU limit:        144s
+Limit duration:   180s
+CPU used:         144s
+CPU duration:     144s
+Duration:         144.08s
+Duration Sampled: 140.50s (event starts 3.42s before samples)
+Steps:            30 (10 gigacycles/step, 4 samples lost)
+
+Hardware model:   iPhone16,2
+Active cpus:      6
+Memory size:      7.48 GB
+HW page size:     16384
+VM page size:     16384
+
+Models:           UNKNOWN
+
+OS Cryptex File Extents: 25005
+
+Heaviest stack for the target process:
+  30  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+  30  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+  30  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+  30  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+  30  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+  30  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+  30  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+  30  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+  30  ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 65236) [0x1009efed4]
+  30  ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 67788) [0x1009f08cc]
+  30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1850776) [0x100e4fd98]
+  30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1818960) [0x100e48150]
+  30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1733288) [0x100e332a8]
+  30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1734284) [0x100e3368c]
+  30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1749440) [0x100e371c0]
+  28  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1901204) [0x100e5c294]
+  28  ??? (libswiftDarwin.dylib + 3084) [0x2cd822c0c]
+  28  ??? (libsystem_kernel.dylib + 23944) [0x243c26d88]
+
+
+Powerstats for:   NotificationServiceExtensionv1 (Telegram) [13602]
+UUID:             D6CFAE71-5236-3CC8-A811-0158DCFEDBA1
+Path:             /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/PlugIns/NotificationServiceExtensionv1.appex/NotificationServiceExtensionv1
+Identifier:       com.GLEProject.GLEGram.NotificationService
+Version:          12.7 (100034)
+Adam ID:          6759809153
+Is First Party:   No
+Is Beta:          Yes
+Cohort:           2|date=1785232800000&sf=143444&tid=1faee2d08084683898dbc82aa3fad77289d9d7e484c734d4c731579598df6268&ttype=e
+Beta Identifier:  B36CC610-F0CA-4DE7-A626-FF998076FE64
+Resource Coalition: 30 samples 2336
+On Behalf Of:     30 samples UNKNOWN [37] (30 samples originated by UNKNOWN [147])
+Architecture:     arm64
+Footprint:        23.44 MB
+Start time:       2026-07-30 00:53:17.460 +0300
+End time:         2026-07-30 00:55:37.955 +0300
+Num samples:      30 (100%)
+Energy:           31.08 mWh
+Num threads:      1
+Primary state:    15 samples Non-Frontmost App, Non-Suppressed, User mode, Effective Thread QoS Default, Requested Thread QoS Default, Override Thread QoS Unspecified, p-core
+User Activity:    30 samples Idle, 0 samples Active
+Power Source:     30 samples on Battery, 0 samples on AC
+  30  ??? (libsystem_pthread.dylib + 2320) [0x18b946910]
+    30  ??? (libsystem_pthread.dylib + 4664) [0x18b947238]
+      30  ??? (libdispatch.dylib + 87740) [0x1ba6686bc]
+        30  ??? (libdispatch.dylib + 89240) [0x1ba668c98]
+          30  ??? (libdispatch.dylib + 46192) [0x1ba65e470]
+            30  ??? (libdispatch.dylib + 43132) [0x1ba65d87c]
+              30  ??? (libdispatch.dylib + 114644) [0x1ba66efd4]
+                30  ??? (libdispatch.dylib + 7372) [0x1ba654ccc]
+                  30  ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 65236) [0x1009efed4]
+                    30  ??? (<0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF> + 67788) [0x1009f08cc]
+                      30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1850776) [0x100e4fd98]
+                        30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1818960) [0x100e48150]
+                          30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1733288) [0x100e332a8]
+                            30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1734284) [0x100e3368c]
+                              30  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1749440) [0x100e371c0]
+                                28  ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1901204) [0x100e5c294]
+                                  28  ??? (libswiftDarwin.dylib + 3084) [0x2cd822c0c]
+                                    28  ??? (libsystem_kernel.dylib + 23944) [0x243c26d88]
+                                      15  <on behalf of UNKNOWN [37] (originated by UNKNOWN [147]), Kernel mode>
+                                      13  <on behalf of UNKNOWN [37] (originated by UNKNOWN [147])>
+                                1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 2758812) [0x100f2d89c]
+                                  1   <on behalf of UNKNOWN [37] (originated by UNKNOWN [147])>
+                                1   ??? (<5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39> + 1901216) [0x100e5c2a0]
+                                  1   ??? (libswift_DarwinFoundation1.dylib + 2596) [0x2cd973a24]
+                                    1   <on behalf of UNKNOWN [37] (originated by UNKNOWN [147])>
+
+  Binary Images:
+           0x100798000 -                ???  com.GLEProject.GLEGram.NotificationService 12.7 (100034) <D6CFAE71-5236-3CC8-A811-0158DCFEDBA1>  /private/var/containers/Bundle/Application/71DB3570-D864-4049-A0AE-B2110AB415EE/GLEGram.app/PlugIns/NotificationServiceExtensionv1.appex/NotificationServiceExtensionv1
+           0x1009e0000 -                ???  ???                                                      <0AE8EF9F-3468-37FF-B7A1-6199E05F6ACF>
+           0x100c8c000 -                ???  ???                                                      <5F640EF1-D6E7-3C7B-B1A9-C7407F25DC39>
+           0x18b946000 -        0x18b952247  libsystem_pthread.dylib                                  <8674AE84-5A65-39B4-BCFE-A6178AFD3EAE>  /usr/lib/system/libsystem_pthread.dylib
+           0x1ba653000 -        0x1ba699d5f  libdispatch.dylib                                        <C9C06C2C-438C-3E88-AA74-DCCE16127DC9>  /usr/lib/system/libdispatch.dylib
+           0x243c21000 -        0x243c5e1fb  libsystem_kernel.dylib                                   <66561A3E-67D2-3F28-9E5C-C7BDE524EE9D>  /usr/lib/system/libsystem_kernel.dylib
+           0x2cd822000 -        0x2cd8247b7  libswiftDarwin.dylib                                     <4B457C2F-F63E-3A46-BDE7-270913F3CA7E>  /usr/lib/swift/libswiftDarwin.dylib
+           0x2cd973000 -        0x2cd9759eb  libswift_DarwinFoundation1.dylib                         <88D2B7B7-91FD-372C-9143-96F15C31BD4C>  /usr/lib/swift/libswift_DarwinFoundation1.dylib
