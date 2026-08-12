@@ -4,6 +4,7 @@
 // + raw completion header log + throttled fuzz loop.
 #include "fuzz.h"
 #include <IOSurface/IOSurfaceRef.h>
+#include <stdarg.h>
 #include <fcntl.h>
 #include <unistd.h>
 
@@ -164,7 +165,7 @@ void *t_iosurface_scaler(void *arg) {
         kern_return_t kr = async_call(conn, sel, req, REQ_SZ, out, &osz, frand() % 3, 0);
         if (kr == 0 || (kr != 0xe00002c2 && kr != 0xe00002c7 && kr != 0xe00002bf && (round & 0xff) == 0))
             v6log("[fuzz] r%ld sel %u kr 0x%08x osz %zu", round, sel, kr, osz);
-        usleep(100 + (frand() & 0x7f));  // ~5-8k calls/sec max, watchdog-safe
+        usleep(100 + (frand() & 0x7f));  // watchdog-safe
         if ((round & 0x3fff) == 0 && surf) { CFRelease(surf); surf = make_surface(); sid = surf ? IOSurfaceGetID(surf) : 0; }
     }
     return NULL;
