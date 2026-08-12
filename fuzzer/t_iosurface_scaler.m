@@ -1,11 +1,20 @@
-// Target: AppleM2ScalerCSCDriver — probe v3 (exhaustive arg mapping + sel11 state diff)
+// Target: AppleM2ScalerCSCDriver — probe v4 (structureOutputSize hypothesis)
+// Model: external methods may require an OOL structureOutputDescriptor of exact
+// size (x3 in target fn has +0x15c count field -> likely the output struct).
+// Our earlier sweeps never went above 256 bytes of structureOutput.
 #include "fuzz.h"
-#include <IOSurface/IOSurfaceRef.h>
+#include <IOSurface/IOSurface.h>
 
 #define REQ_SZ 0x1b0
 
 static void craft_request(uint8_t *r, IOSurfaceID sid) {
     fill_semi_structured(r, REQ_SZ);
+    if (frand() & 1) {
+        *(uint32_t *)(r + 0x68) = (uint32_t)frand_range(1, 4096);
+        *(uint32_t *)(r + 0x6c) = (uint32_t)frand_range(1, 4096);
+        *(uint32_t *)(r + 0x60) = 0x3f800000;
+        *(uint32_t *)(r + 0x64) = 0x3f800000;
+    }
     if (sid) {
         *(uint64_t *)(r + 0x50) = sid;
         *(uint64_t *)(r + 0x58) = sid;
@@ -32,62 +41,40 @@ static IOSurfaceRef make_surface(void) {
     return s;
 }
 
-static void dump11(io_connect_t conn, const char *tag) {
-    uint8_t in[8] = {0};
-    uint64_t out[16] = {0}; size_t outsz = sizeof(out);
-    kern_return_t k = IOConnectCallMethod(conn, 11, NULL, 0, in, 0, NULL, NULL, out, &outsz);
-    LOG("[dump11 %s] k=0x%08x out=%016llx %016llx %016llx %016llx %016llx %016llx",
-        tag, k, out[0], out[1], out[2], out[3], out[4], out[5]);
-}
-
-static void probe_v3(io_connect_t conn, IOSurfaceID sid) {
+static void probe_v4(io_connect_t conn, IOSurfaceID sid) {
     static const uint32_t sels[] = { 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
-    uint8_t *req = must_map(0x400);
-    uint64_t scalars[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
-    LOG("[probe3] exhaustive size sweep 4..0x400 step 4");
+    static const size_t outsizes[] = { 0x28, 0x40, 0x80, 0x100, 0x200, 0x400, 0x800, 0x1000, 0x2000, 0x2380, 0x4000, 0x8000 };
+    uint8_t *req = must_map(REQ_SZ);
+    uint8_t *out = must_map(0x8000);
+    uint64_t scalars[4] = { 1, 2, 3, 4 };
+    LOG("[probe4] structureOutputSize sweep");
     for (unsigned si = 0; si < sizeof(sels)/4; si++) {
         uint32_t sel = sels[si];
-        for (size_t z = 4; z <= 0x400; z += 4) {
+        for (unsigned oi = 0; oi < sizeof(outsizes)/sizeof(size_t); oi++) {
             craft_request(req, sid);
-            uint64_t out[16] = {0}; size_t outsz = sizeof(out);
-            kern_return_t k = IOConnectCallMethod(conn, sel, NULL, 0, req, z, NULL, NULL, out, &outsz);
+            memset(out, 0, 0x8000);
+            size_t outsz = outsizes[oi];
+            kern_return_t k = IOConnectCallMethod(conn, sel, NULL, 0, req, REQ_SZ,
+                                                  NULL, NULL, out, &outsz);
             if (k != 0xe00002c7 && k != 0xe00002c2)
-                LOG("[probe3] sel %u struct %zu -> 0x%08x outsz %zu", sel, z, k, outsz);
+                LOG("[probe4] sel %u outsweep 0x%zx -> 0x%08x got 0x%zx first16=%016llx %016llx",
+                    sel, outsizes[oi], k, outsz, *(uint64_t *)out, *(uint64_t *)(out + 8));
+            usleep(1500);
         }
-        // combined scalar+struct (2 scalars + struct)
-        for (size_t z = 8; z <= 0x200; z += 8) {
+        // scalarN with big output
+        for (uint32_t n = 0; n <= 4; n++) {
             craft_request(req, sid);
-            uint64_t out[16] = {0}; size_t outsz = sizeof(out);
-            kern_return_t k = IOConnectCallMethod(conn, sel, scalars, 2, req, z, NULL, NULL, out, &outsz);
+            memset(out, 0, 0x8000);
+            size_t outsz = 0x1000;
+            kern_return_t k = IOConnectCallMethod(conn, sel, scalars, n, req, REQ_SZ,
+                                                  NULL, NULL, out, &outsz);
             if (k != 0xe00002c7 && k != 0xe00002c2)
-                LOG("[probe3] sel %u scalar2+struct %zu -> 0x%08x outsz %zu", sel, z, k, outsz);
-        }
-        // structureOutputSize sweep with fixed struct 0x1b0
-        static const size_t oszs[] = { 0, 4, 8, 16, 24, 32, 40, 48, 64, 96, 128, 256 };
-        for (unsigned oi = 0; oi < sizeof(oszs)/sizeof(size_t); oi++) {
-            craft_request(req, sid);
-            uint64_t out[32] = {0}; size_t outsz = oszs[oi] > sizeof(out) ? sizeof(out) : oszs[oi];
-            kern_return_t k = IOConnectCallMethod(conn, sel, NULL, 0, req, REQ_SZ, NULL, NULL, out, &outsz);
-            if (k != 0xe00002c7 && k != 0xe00002c2)
-                LOG("[probe3] sel %u outsweep %zu -> 0x%08x got %zu", sel, oszs[oi], k, outsz);
+                LOG("[probe4] sel %u scalarN %u -> 0x%08x got 0x%zx", sel, n, k, outsz);
+            usleep(1500);
         }
         usleep(3000);
     }
-    LOG("[probe3] sweep end");
-
-    // sel11 state-diff: dump around attempts on sel 2 and 3 with legal-looking id
-    dump11(conn, "before");
-    for (uint32_t sel = 2; sel <= 3; sel++) {
-        for (uint32_t id = 1; id <= 0x20; id++) {
-            uint64_t out[16] = {0}; size_t outsz = sizeof(out);
-            uint64_t v = id;
-            kern_return_t k = IOConnectCallMethod(conn, sel, NULL, 0, &v, 8, NULL, NULL, out, &outsz);
-            if (k != 0xe00002c7 && k != 0xe00002c2)
-                LOG("[probe3] sel%u id%u -> 0x%08x", sel, id, k);
-        }
-    }
-    dump11(conn, "after");
-    LOG("[probe3] end");
+    LOG("[probe4] end");
 }
 
 void *t_iosurface_scaler(void *arg) {
@@ -105,7 +92,7 @@ void *t_iosurface_scaler(void *arg) {
     if (!conn) { LOG("[scaler] not openable"); return NULL; }
 
     static int probed = 0;
-    if (!probed) { probed = 1; probe_v3(conn, sid); }
+    if (!probed) { probed = 1; probe_v4(conn, sid); }
 
     for (long round = 0;; round++) {
         craft_request(req, sid);
