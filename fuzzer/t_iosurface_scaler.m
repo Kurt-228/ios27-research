@@ -1,6 +1,6 @@
 // Target: AppleM2ScalerCSCDriver (rewritten in iOS 27, attached to IOSurfaceRoot)
 #include "fuzz.h"
-#include <IOSurface/IOSurface.h>
+#include <IOSurface/IOSurfaceRef.h>
 
 #define REQ_SZ 0x1b0
 
