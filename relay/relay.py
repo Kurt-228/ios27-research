@@ -52,12 +52,17 @@ def launch_and_watch(minutes):
     ts = datetime.datetime.now().strftime("%Y%m%d-%H%M%S")
     log = RESULTS / f"run-{ts}.log"
     RESULTS.mkdir(exist_ok=True)
+    dev = shlex.quote(device_id())
+    bid = shlex.quote(BUNDLE_ID)
     with open(log, "w") as lf:
-        # launch with console streaming via devicectl if possible
-        p = subprocess.Popen(
-            "xcrun devicectl device process launch --device %s --console %s" %
-            (shlex.quote(device_id()), shlex.quote(BUNDLE_ID)),
+        # Capture both devicectl console output and a filtered unified-log stream.
+        p1 = subprocess.Popen(
+            f"xcrun devicectl device process launch --device {dev} --console {bid}",
             shell=True, stdout=lf, stderr=subprocess.STDOUT, text=True)
+        p2 = subprocess.Popen(
+            "idevicesyslog -m fuzz27 -m vcpdrm -m scaler -m mig 2>/dev/null || "
+            "idevicesyslog 2>/dev/null | grep -E 'fuzz27|vcpdrm|scaler|VCPDRM'",
+            shell=True, stdout=lf, stderr=subprocess.DEVNULL, text=True)
         t0 = time.time()
         while time.time() - t0 < minutes * 60:
             time.sleep(20)
@@ -80,7 +85,14 @@ def launch_and_watch(minutes):
             if panic_output.strip():
                 lf.write("\n=== PANIC DETECTED (syslog match) ===\n" + "\n".join(panic_output.splitlines()[-5:]) + "\n")
                 break
-        p.terminate()
+            if p1.poll() is not None and (time.time() - t0) > 30:
+                lf.write(f"\n=== devicectl launch exited rc={p1.returncode} ===\n")
+                break
+        for p in (p1, p2):
+            try:
+                p.terminate()
+            except Exception:
+                pass
     return log
 
 def collect_panics():
