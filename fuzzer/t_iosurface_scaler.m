@@ -1,12 +1,34 @@
-// Target: AppleM2ScalerCSCDriver — probe v5 (async OSAction invocation)
-// Decoded: sel 2,3,12-31 return kIOReturnNoCompletion (0xe00002bf) on sync calls
-// with structureOutput >= 0x2000 -> they are ASYNC OSActions. Invoke via
-// IOConnectCallAsyncMethod and read completions from the wake port.
+// Target: AppleM2ScalerCSCDriver — probe v6 (full async telemetry)
+// v5 flaw: async_call only logged non-standard errors; kr==0 and known codes
+// were silent -> we were blind. v6: unconditional kr log matrix + out-diff log
+// + raw completion header log + throttled fuzz loop.
 #include "fuzz.h"
 #include <IOSurface/IOSurfaceRef.h>
+#include <fcntl.h>
+#include <unistd.h>
 
 #define REQ_SZ 0x1b0
 #define OUT_SZ 0x2380
+
+static int g_fd = -1;
+
+static void v6log(const char *fmt, ...) {
+    char buf[512];
+    va_list ap;
+    va_start(ap, fmt);
+    vsnprintf(buf, sizeof(buf), fmt, ap);
+    va_end(ap);
+    LOG("%s", buf);
+    if (g_fd < 0) {
+        char path[512];
+        snprintf(path, sizeof(path), "%s/scaler_v6.log", NSTemporaryDirectory());
+        g_fd = open(path, O_CREAT | O_APPEND | O_WRONLY, 0644);
+    }
+    if (g_fd >= 0) {
+        dprintf(g_fd, "%s\n", buf);
+        fsync(g_fd);
+    }
+}
 
 static void craft_request(uint8_t *r, IOSurfaceID sid) {
     fill_semi_structured(r, REQ_SZ);
@@ -46,55 +68,66 @@ static mach_port_t g_wake;
 
 static void *completion_listener(void *arg) {
     struct { mach_msg_header_t h; uint8_t data[0x200]; } msg;
+    long timeouts = 0;
     for (;;) {
         kern_return_t kr = mach_msg(&msg.h, MACH_RCV_MSG | MACH_RCV_TIMEOUT, 0,
                                     sizeof(msg), g_wake, 2000, MACH_PORT_NULL);
-        if (kr == MACH_RCV_TIMED_OUT) continue;
-        if (kr) { LOG("[async-rx] mach_msg err 0x%x", kr); continue; }
+        if (kr == MACH_RCV_TIMED_OUT) {
+            if (++timeouts % 10 == 0) v6log("[async-rx] alive, %ld quiet intervals", timeouts);
+            continue;
+        }
+        if (kr) { v6log("[async-rx] mach_msg err 0x%x", kr); continue; }
         uint32_t *d = (uint32_t *)&msg;
-        LOG("[async-rx] id 0x%x size %u: %08x %08x %08x %08x %08x %08x",
-            msg.h.msgh_id, msg.h.msgh_size, d[6], d[7], d[8], d[9], d[10], d[11]);
+        v6log("[async-rx] MSG id 0x%x size %u bits 0x%x: %08x %08x %08x %08x %08x %08x %08x %08x",
+            msg.h.msgh_id, msg.h.msgh_size, msg.h.msgh_bits,
+            d[6], d[7], d[8], d[9], d[10], d[11], d[12], d[13]);
     }
     return NULL;
 }
 
-static void async_call(io_connect_t conn, uint32_t sel, const void *in, size_t insz,
-                       uint8_t *out, size_t *outsz, uint32_t sc_in, uint32_t sc_out) {
+// v6: always returns kr to caller; logging handled by caller matrix.
+static kern_return_t async_call(io_connect_t conn, uint32_t sel, const void *in, size_t insz,
+                                uint8_t *out, size_t *outsz, uint32_t sc_in, uint32_t sc_out) {
     uint64_t scalars[8] = { 1, 2, 3, 4, 5, 6, 7, 8 };
     uint64_t outScalars[8] = {0};
-    uint64_t refs[1] = { 0x1234 };
-    kern_return_t kr = IOConnectCallAsyncMethod(conn, sel, g_wake, refs, sc_in ? 1 : 0,
+    uint64_t refs[1] = { 0xdeadbeef };
+    return IOConnectCallAsyncMethod(conn, sel, g_wake, refs, 1,
         sc_in ? scalars : NULL, sc_in,
         in, insz,
         outScalars, sc_out ? &sc_out : NULL,
         out, outsz);
-    if (kr && kr != 0xe00002bf && kr != 0xe00002c2 && kr != 0xe00002c7 &&
-        kr != 0xe00002c9 && kr != 0xe00002bc && kr != 0xe00002f0 && kr != 0xe00002e2)
-        LOG("[async] sel %u call -> 0x%08x", sel, kr);
 }
 
-static void probe_v5(io_connect_t conn, IOSurfaceID sid) {
+static void probe_v6(io_connect_t conn, IOSurfaceID sid) {
     mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &g_wake);
     pthread_t lt;
     pthread_create(&lt, NULL, completion_listener, NULL);
 
     uint8_t *req = must_map(REQ_SZ);
     uint8_t *out = must_map(OUT_SZ);
-    LOG("[probe5] async sweep sel 2,3,12-31 with refs/scalars variants");
-    static const uint32_t sels[] = { 2, 3, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    static const uint32_t sels[] = { 2, 3, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30, 31 };
+    v6log("[probe6] kr matrix: sel x {struct, no-struct} x sc_in 0..2, unconditional");
     for (unsigned si = 0; si < sizeof(sels)/4; si++) {
         uint32_t sel = sels[si];
         for (uint32_t sc = 0; sc <= 2; sc++) {
             craft_request(req, sid);
-            memset(out, 0, OUT_SZ);
+            memset(out, 0xAA, OUT_SZ);
             size_t osz = OUT_SZ;
-            async_call(conn, sel, req, REQ_SZ, out, &osz, sc, 0);
-            usleep(5000);
+            kern_return_t kr = async_call(conn, sel, req, REQ_SZ, out, &osz, sc, 0);
+            v6log("[probe6] sel %2u struct sc%u -> kr 0x%08x osz %zu out0-3 %02x %02x %02x %02x",
+                  sel, sc, kr, osz, out[0], out[1], out[2], out[3]);
+            usleep(3000);
         }
+        // no-struct variant (some OSActions take pure scalar input)
+        memset(out, 0xAA, OUT_SZ);
+        size_t osz = OUT_SZ;
+        kern_return_t kr = async_call(conn, sel, NULL, 0, out, &osz, 2, 0);
+        v6log("[probe6] sel %2u nostruct sc2 -> kr 0x%08x osz %zu", sel, kr, osz);
+        usleep(3000);
     }
-    LOG("[probe5] sweep done; waiting 3s for completions");
-    usleep(3000000);
-    LOG("[probe5] end");
+    v6log("[probe6] matrix done; waiting 5s for completions");
+    usleep(5000000);
+    v6log("[probe6] end");
 }
 
 void *t_iosurface_scaler(void *arg) {
@@ -109,12 +142,13 @@ void *t_iosurface_scaler(void *arg) {
     io_connect_t conn = 0;
     for (int i = 0; names[i] && !conn; i++)
         conn = open_service(names[i], 0);
-    if (!conn) { LOG("[scaler] not openable"); return NULL; }
+    if (!conn) { v6log("[scaler] not openable"); return NULL; }
+    v6log("[scaler] conn 0x%x, sid %u", conn, sid);
 
     static int probed = 0;
-    if (!probed) { probed = 1; probe_v5(conn, sid); }
+    if (!probed) { probed = 1; probe_v6(conn, sid); }
 
-    // async fuzz loop (after probe): hammer async methods
+    // async fuzz loop (throttled to stay under watchdog)
     if (!g_wake) {
         mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &g_wake);
         pthread_t lt;
@@ -125,11 +159,12 @@ void *t_iosurface_scaler(void *arg) {
     for (long round = 0;; round++) {
         craft_request(req, sid);
         uint32_t sel = live_sels[frand() % (sizeof(live_sels)/4)];
-        memset(out, 0, OUT_SZ);
+        memset(out, 0xAA, OUT_SZ);
         size_t osz = OUT_SZ;
-        async_call(conn, sel, req, REQ_SZ, out, &osz, 0, 0);
-        sched_yield();
-        if ((round & 0x3ff) == 0) usleep(300);
+        kern_return_t kr = async_call(conn, sel, req, REQ_SZ, out, &osz, frand() % 3, 0);
+        if (kr == 0 || (kr != 0xe00002c2 && kr != 0xe00002c7 && kr != 0xe00002bf && (round & 0xff) == 0))
+            v6log("[fuzz] r%ld sel %u kr 0x%08x osz %zu", round, sel, kr, osz);
+        usleep(100 + (frand() & 0x7f));  // ~5-8k calls/sec max, watchdog-safe
         if ((round & 0x3fff) == 0 && surf) { CFRelease(surf); surf = make_surface(); sid = surf ? IOSurfaceGetID(surf) : 0; }
     }
     return NULL;
