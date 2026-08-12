@@ -101,7 +101,7 @@ void *t_iosurface_scaler(void *arg) {
         uint64_t out[16] = {0}; size_t outsz = sizeof(out);
         kern_return_t kr = IOConnectCallMethod(conn, sel, NULL, 0,
             req, REQ_SZ, NULL, NULL, out, &outsz);
-        if (kr && kr != 0xe00002c2 && kr != 0xe00002c9 && kr != 0xe00002bc && kr != 0xe00002f0)
+        if (kr && kr != 0xe00002c2 && kr != 0xe00002c7 && kr != 0xe00002c9 && kr != 0xe00002bc && kr != 0xe00002f0)
             LOG("[scaler] sel %u -> 0x%x", sel, kr);
         if ((round & 0x7ff) == 0) usleep(500);
     }
