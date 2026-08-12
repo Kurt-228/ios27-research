@@ -22,7 +22,7 @@ static void v6log(const char *fmt, ...) {
     LOG("%s", buf);
     if (g_fd < 0) {
         char path[512];
-        snprintf(path, sizeof(path), "%s/scaler_v6.log", NSTemporaryDirectory());
+        snprintf(path, sizeof(path), "/tmp/scaler_v6.log");
         g_fd = open(path, O_CREAT | O_APPEND | O_WRONLY, 0644);
     }
     if (g_fd >= 0) {
