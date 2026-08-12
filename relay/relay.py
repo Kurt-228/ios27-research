@@ -82,8 +82,13 @@ def launch_and_watch(minutes):
                 panic_output = exc.stdout or ""
                 if isinstance(panic_output, bytes):
                     panic_output = panic_output.decode(errors="replace")
-            if panic_output.strip():
-                lf.write("\n=== PANIC DETECTED (syslog match) ===\n" + "\n".join(panic_output.splitlines()[-5:]) + "\n")
+            panic_lines = [
+                line for line in panic_output.splitlines()
+                if not line.startswith("[connected:")
+                and re.search(r"(?i)(panic|bug[_ ]?type|watchdog|jetsam|exc_|fatal exception)", line)
+            ]
+            if panic_lines:
+                lf.write("\n=== PANIC DETECTED (syslog match) ===\n" + "\n".join(panic_lines[-5:]) + "\n")
                 break
             if p1.poll() is not None and (time.time() - t0) > 30:
                 lf.write(f"\n=== devicectl launch exited rc={p1.returncode} ===\n")
