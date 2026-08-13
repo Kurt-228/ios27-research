@@ -40,3 +40,9 @@
 - Полностью разобранные и работающие на устройстве: скейлер-протокол (все селекторы, легитимные трансформы), IOGPU submit-конвейер (очереди/shmem/segment-list/kernel-command/AGX-command уровни).
 - 0-day: border-fill wraparound → DART panic bug 210 (репорт-готов, на GitHub с воспроизводителем).
 - Write-примитив: не получен. Последний непройденный слой — валидация AGFI-дескрипторов в channel-submit (fn_0x831e1ec/0x831ea18/0x831efb0). Для продолжения: разобрать их до конца (следующий реверс-раунд) или захватить валидный AGFI-дескриптор из реального рендер-пайпа (Metal compute/render workload, не blit).
+
+## Секция 71: захваченный эталон AGX-команды (с Mac, compute dispatch)
+- Настоящая subtype-3 inner command снята с macOS 27 Metal compute: len 0x358, tailLen 0x268, полный дамп в `docs/agx_cmd_template.h`, разбор по смещениям — ниже.
+- Segment-list фрейминг: +0x08 count, +0x0c hdr (bit30/31), пары {lo,hi} по +0x10 с timestamp-qword'ами; kernel command shmem: записи {type,len} (type 0x0f = nop/pad).
+- Tail команды ссылается на подструктуры через 32-битные offsets в multi-window shmem pool (тег 0x100 в high dword) — НЕ GPUVA. GPUVA-поля живут глубже (в окнах 0x28000/0x2a000 пула; единственный видимый: 0x07aa0177).
+- Реплей на iOS (v65): шаблон с санитизированными offset'ами → 0xa. Нужны сами подструктуры (они есть в дампах /tmp/agx_regions/) — следующий шаг: встроить блобы и починить ссылки на них. Это полноценная реконструкция AGFI-дескриптора — объёмная задача.
