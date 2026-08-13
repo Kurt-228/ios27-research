@@ -122,3 +122,11 @@
 2. **Полная карта AppleM2ScalerCSCDriver** (12 селекторов, HAL, Thumb-2 firmware) и **IOGPU/AGX** (56 селекторов, 14 трапов, submit-грамматика до AGFI-команд).
 3. **Первый самописный AGX-клиент на iOS 27**: исполняем захваченные GPU-команды на устройстве без Metal.
 4. Write-примитив: не получен; граница точно — семантика resource binding в AGX-командах.
+
+## Секция 82: заключительные итерации (v74-v78)
+- sel45 mapping: цепочка sel14/42/44 работает, bind ресурса → 0x2c2 (все флаги создания). Mac-трейс: Metal sel45 не вызывает → не тот путь.
+- Редиректы blit: GPUVA-свип 4 МБ, подмена resource-id слотов, prepare-ссылка, комбо (все слоты + candidate GPUVA из out+0x00) — всё принимается (outw 0), записи в наши буферы нет.
+- Вывод: наши submit'ы валидны на уровне kext, но не исполняют видимую GPU-запись — потому что device stream строится ядром и настоящие адреса буферов берутся из resource-binding структур, которые мы не воспроизводим (Metal command encoding internals). Это и есть финальная непокрытая семантика.
+
+### Точное следующее действие (для продолжения)
+Разобрать Metal.framework `MTLIOGPUCommandBuffer`/`AGXCommandEncoder` (macOS, есть в dyld cache ~/.kimi-work/sptm-analysis/macoscache/) — как Metal строит resource binding и что в нём задаёт реальный write-адрес. Либо: расширить Mac-трейс до полного снятия device stream'а из памяти (не только submit syscall'ов, но и построенного потока) и сравнить с нашим.

