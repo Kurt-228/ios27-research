@@ -1,0 +1,34 @@
+19:47:06  Acquired tunnel connection to device.
+19:47:06  Enabling developer disk image services.
+19:47:06  Acquired usage assertion.
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6007
+[scaler] conn 0x6007, s1 26 s2 77
+[probe12] SetNotificationPort -> 0x00000000
+[v52] submit with notif-queue bound
+[open] IOGPU -> conn 0x6703
+[s2] sel14 count 0x100 -> kr 0x00000000 out {104314000, 1}
+[s2] sel6 -> kr 0x00000000 qid 1
+[s2] sel24 bind -> kr 0x00000000
+[sm] resource buf 0x104318000 sz 0x4000 -> kr 0x00000000 rid 1
+[sm] resource buf 0x10431c000 sz 0x4000 -> kr 0x00000000 rid 2
+[s2] resB f14 00 f16 00 rid 3 -> trap0 kr 0x00000000 outw 00000009
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[s2] resB f14 00 f16 02 rid 4 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 06 rid 5 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 04 rid 6 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 40 f16 02 rid 7 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 03 rid 8 -> trap0 kr 0x00000000 outw 00000009
+[s2] trap0 null-ptrs -> kr 0x00000000 outw 00000009
+[s2] trap0 both-valid -> kr 0x00000000 outw 00000009
+[s2] trap0 only-18 -> kr 0x00000000 outw 00000009
+[s2] trap0 only-10 -> kr 0x00000000 outw 00000009
+[s2] sel25 submit -> kr 0x00000000
+[v52] done (alive)
+[v53] submit path open — fuzzing command stream

