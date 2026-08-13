@@ -46,3 +46,7 @@
 - Segment-list фрейминг: +0x08 count, +0x0c hdr (bit30/31), пары {lo,hi} по +0x10 с timestamp-qword'ами; kernel command shmem: записи {type,len} (type 0x0f = nop/pad).
 - Tail команды ссылается на подструктуры через 32-битные offsets в multi-window shmem pool (тег 0x100 в high dword) — НЕ GPUVA. GPUVA-поля живут глубже (в окнах 0x28000/0x2a000 пула; единственный видимый: 0x07aa0177).
 - Реплей на iOS (v65): шаблон с санитизированными offset'ами → 0xa. Нужны сами подструктуры (они есть в дампах /tmp/agx_regions/) — следующий шаг: встроить блобы и починить ссылки на них. Это полноценная реконструкция AGFI-дескриптора — объёмная задача.
+
+## Секция 72: реконструкция AGFI (v66) — 0xa
+- Встроил в shmem A шаблон + подструктуры из дампов (blob по 0xc8000 и т.д.) с переписанными tail-ссылками на локальные офсеты. Submit → всё ещё per-entry 0xa (молча, без IOLog). Остаются незамоделированные зависимости (вероятно: timestamp-поля segment list, поля +0x10/+0x18 записи — user-указатели на Metal-структуры, и/или ожидаемые resource-ссылки в descriptor pool'ах).
+- Вывод: слепая реконструкция AGFI-дескриптора требует полного понимания Metal-стороны (MTLIOGPUCommandBuffer/AGXCommandEncoder) — это следующая отдельная сессия (реверс Metal.framework MTL*CommandBuffer machinery или доводка fn_0x831e1ec до конца).
