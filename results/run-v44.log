@@ -1,0 +1,1356 @@
+17:47:01  Acquired tunnel connection to device.
+17:47:01  Enabling developer disk image services.
+17:47:01  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x6f13
+[scaler] conn 0x6f13, s1 20 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[v44] IOGPU submit path
+[open] IOGPU -> conn 0x8003
+[sub] sel6 stIn 0x410 -> kr 0x00000000 out {1 1506fe09}
+[sub] queue: qid 1 tok 1506fe09
+[sub] sel25 count=0 -> kr 0xe00002c2 out 0
+[v44] done (alive)
+[v43] AGX Metal-sequence replay
+[open] AGXAcceleratorG16P -> conn 0x840f
+[agx] conn 0x840f
+[agx] sel9 alloc -> kr 0xe00002c2 osz 0x100 out {0000000000000000 0000000000000000 0000000000000000}
+[agx] sel14 {0x4000,0} -> kr 0xe00002c2 out {0000000000000000 0000000000000000 0000000000000000 0000000000000000}
+[agx] sel14 {0x4000,1} -> kr 0xe00002c2 out {0000000000000000 0000000000000000 0000000000000000 0000000000000000}
+[agx] sel16 -> kr 0xe00002c2 out {0000000000000000 0000000000000000 0000000000000000 0000000000000000}
+[agx] sel28 {1,1} -> kr 0xe00002c2
+[agx] sel17 {1} -> kr 0xe00002c2
+[agx] sel8 {1} -> kr 0xe00002c2
+[agx] sel15 {2} -> kr 0xe00002c2 out {0 0}
+[v43] done (alive)
+[v42] AGX service scan
+[agx] AGXAcceleratorG16P       type 0x0 -> 0xe00002c7
+[agx] AGXAcceleratorG16P       OPEN OK type 0x1 conn 0x6683
+[agx] AGXAcceleratorG16P       type 0x100005 -> 0xe00002c7
+[agx] AGXAcceleratorG16P       type 0x5 -> 0xe00002c7
+[agx] AGXAcceleratorG16P       OPEN OK type 0x100001 conn 0x6693
+[agx] AGXAcceleratorG16        type 0x0 -> 0xe00002c7
+[agx] AGXAcceleratorG16        OPEN OK type 0x1 conn 0x66a3
+[agx] AGXAcceleratorG16        type 0x100005 -> 0xe00002c7
+[agx] AGXAcceleratorG16        type 0x5 -> 0xe00002c7
+[agx] AGXAcceleratorG16        OPEN OK type 0x100001 conn 0x66b3
+[agx] AGXAccelerator           type 0x0 -> 0xe00002c7
+[agx] AGXAccelerator           OPEN OK type 0x1 conn 0x66c3
+[agx] AGXAccelerator           type 0x100005 -> 0xe00002c7
+[agx] AGXAccelerator           type 0x5 -> 0xe00002c7
+[agx] AGXAccelerator           OPEN OK type 0x100001 conn 0x66d3
+[agx] AGXAcceleratorG15P       NOT FOUND
+[agx] AGXAcceleratorG16G       NOT FOUND
+[agx] AGXG16P                  NOT FOUND
+[agx] AGXControl               NOT FOUND
+[agx] AGXDevice                NOT FOUND
+[agx] AGXService               NOT FOUND
+[agx] AppleAGXControl          NOT FOUND
+[v42] done
+[v41] IOGPU VM full path
+[open] IOGPU -> conn 0x66e3
+[vm2] sel8 -> kr 0x00000000 rid 1
+[vm2] sel14 sweep done, unusual krs 0
+[vm2] sel42 -> kr 0x00000000 vmid 1 tok 1506ffd5
+[vm2] missing pieces, abort
+[v40] IOGPU VM map probes
+[open] IOGPU -> conn 0x774b
+[vm] sel8 -> kr 0x00000000 rid 1
+[vm] sel42 -> kr 0x00000000 out {1, 1506ffe4}
+[vm] sel6 new_cmd_queue -> kr 0xe00002c2 out {0, 0}
+[vm] sel44 attach vmtok (1506ffe4) -> kr 0xe00002c2
+[vm] sel44 attach rid (1) -> kr 0xe00002c2
+[vm] sel44 attach qid (0) -> kr 0xe00002c2
+[vm] no attach, abort
+[v39] IOGPU resource games
+[open] IOGPU -> conn 0x6a0b
+[gpu] conn 0x6a0b
+[gpu] sel8 insz 0x58 outsz 0x58 -> kr 0xe00002bc
+[gpu] sel8 insz 0x58 outsz 0x80 -> kr 0xe00002bc
+[gpu] sel8 insz 0x58 outsz 0x100 -> kr 0xe00002bc
+[gpu] sel8 insz 0x58 outsz 0x220 -> kr 0xe00002bc
+[gpu] sel8 insz 0x58 outsz 0x400 -> kr 0xe00002bc
+[gpu] sel8 insz 0x58 outsz 0x1000 -> kr 0xe00002bc
+[gpu] sel8 insz 0x60 outsz 0x58 -> kr 0xe00002bc
+[gpu] sel8 insz 0x60 outsz 0x80 -> kr 0xe00002bc
+[gpu] sel8 insz 0x60 outsz 0x100 -> kr 0xe00002bc
+[gpu] sel8 insz 0x60 outsz 0x220 -> kr 0xe00002bc
+[gpu] sel8 insz 0x60 outsz 0x400 -> kr 0xe00002bc
+[gpu] sel8 insz 0x60 outsz 0x1000 -> kr 0xe00002bc
+[gpu] sel8 insz 0x68 outsz 0x58 -> kr 0x00000000
+[gpu] sel8 normal -> kr 0x00000000 rid 1
+[gpu] sel8 inflated -> kr 0x00000000 rid 2 (out+28 4000)
+[gpu] inflated out: 0000010000108000 0000000000004000 0000000015070215
+[gpu] sel8 f15 00 f16 01 -> kr 0x00000000 rid 3
+[gpu]   sel38 on rid 3 -> kr 0xe00002c2
+[gpu] sel8 f15 08 f16 00 -> kr 0xe00002c2 rid 0
+[gpu] sel8 f15 00 f16 06 -> kr 0x00000000 rid 4
+[gpu]   sel38 on rid 4 -> kr 0xe00002c2
+[gpu] sel39 replace_ranges -> kr 0xe00002c2
+[gpu] sel42 new_queue -> kr 0x00000000 out 1 15070218
+[v39] done (alive)
+[v38] method-table probes
+[open] AppleJPEGDriver -> conn 0x7863
+[mp] AppleJPEGDriver/0 sel  0: scalar 0xe00002c2 (cnt 4) | s00 0x00000000 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  1: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  2: scalar 0xe00002c2 (cnt 4) | s00 0x00000000 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  3: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  4: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002bc osz 0x1000
+[mp] AppleJPEGDriver/0 sel  5: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002cc osz 0x1000
+[mp] AppleJPEGDriver/0 sel  6: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  7: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  8: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel  9: scalar 0xe00002c2 (cnt 4) | s00 0xe00002bc | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 10: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 11: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 12: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 13: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 14: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 15: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 16: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 17: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 18: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 19: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 20: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 21: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 22: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 23: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 24: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 25: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 26: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 27: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 28: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 29: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 30: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 31: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 32: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 33: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 34: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 35: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 36: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 37: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 38: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0 sel 39: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/0: 40 live selectors
+[open] AppleJPEGDriver -> conn 0xa70f
+[mp] AppleJPEGDriver/1 sel  0: scalar 0xe00002c2 (cnt 4) | s00 0x00000000 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  1: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  2: scalar 0xe00002c2 (cnt 4) | s00 0x00000000 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  3: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  4: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002bc osz 0x1000
+[mp] AppleJPEGDriver/1 sel  5: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002cc osz 0x1000
+[mp] AppleJPEGDriver/1 sel  6: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  7: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  8: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel  9: scalar 0xe00002c2 (cnt 4) | s00 0xe00002bc | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 10: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 11: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 12: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 13: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 14: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 15: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 16: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 17: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 18: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 19: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 20: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 21: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 22: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 23: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 24: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 25: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 26: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 27: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 28: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 29: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 30: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 31: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 32: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 33: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 34: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 35: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 36: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 37: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 38: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1 sel 39: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleJPEGDriver/1: 40 live selectors
+[open] IOMobileFramebufferAP -> conn 0x6b1b
+[mp] IOMobileFramebufferAP/0 sel  0: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  1: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  2: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  3: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  4: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  5: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  6: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  7: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  8: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel  9: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 10: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 11: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 12: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 13: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 14: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 15: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 16: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 17: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 18: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 19: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 20: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 21: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 22: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 23: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 24: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 25: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 26: scalar 0xe00002c2 (cnt 4) | s00 0x00000000 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 27: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 28: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 29: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 30: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 31: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 32: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 33: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 34: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 35: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 36: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 37: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 38: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0 sel 39: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOMobileFramebufferAP/0: 40 live selectors
+[open] IOGPU -> conn 0xa717
+[mp] IOGPU/1 sel  0: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  1: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  2: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  3: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  4: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  5: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  6: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  7: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel  8: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002be osz 0x1000
+[mp] IOGPU/1 sel  9: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 10: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 11: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 12: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 13: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 14: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 15: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 16: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 17: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 18: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 19: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 20: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 21: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 22: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c7 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 23: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 24: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 25: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 26: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 27: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 28: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 29: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 30: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 31: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 32: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 33: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 34: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 35: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 36: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 37: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 38: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1 sel 39: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] IOGPU/1: 40 live selectors
+[open] AppleKeyStore -> conn 0x6b3f
+[mp] AppleKeyStore/0 sel  0: scalar 0x00000000 (cnt 4) | s00 0x00000000 | s1000 0x00000000 osz 0x1000
+[mp] AppleKeyStore/0 sel  1: scalar 0x00000000 (cnt 4) | s00 0x00000000 | s1000 0x00000000 osz 0x1000
+[mp] AppleKeyStore/0 sel  2: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel  3: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel  4: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel  5: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel  6: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel  7: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel  8: scalar 0xe00002c2 (cnt 4) | s00 0xe00002e2 | s1000 0xe00002e2 osz 0x1000
+[mp] AppleKeyStore/0 sel  9: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 10: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 11: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 12: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 13: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 14: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 15: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 16: scalar 0x00000000 (cnt 4) | s00 0x00000000 | s1000 0x00000000 osz 0x1000
+[mp] AppleKeyStore/0 sel 17: scalar 0xe00002c2 (cnt 4) | s00 0xe00002f0 | s1000 0xe00002f0 osz 0x1000
+[mp] AppleKeyStore/0 sel 18: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 19: scalar 0xe00002e2 (cnt 4) | s00 0xe00002e2 | s1000 0xe00002e2 osz 0x1000
+[mp] AppleKeyStore/0 sel 20: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 21: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 22: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 23: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 24: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 25: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 26: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 27: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 28: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 29: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 30: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 31: scalar 0xe00002c2 (cnt 4) | s00 0xe00002c2 | s1000 0xe00002c2 osz 0x1000
+[mp] AppleKeyStore/0 sel 32: scalar 0xe00002c2 (cnt 4) | s00 0xe00002e2 | s1000 0xe00002e2 osz 0x1000
+[mp] AppleKeyStore/0 sel 33: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 34: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 35: scalar 0xe00002c2 (cnt 4) | s00 0xe00002f0 | s1000 0xe00002f0 osz 0x1000
+[mp] AppleKeyStore/0 sel 36: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 37: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 38: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0 sel 39: scalar 0xe00002c1 (cnt 4) | s00 0xe00002c1 | s1000 0xe00002c1 osz 0x1000
+[mp] AppleKeyStore/0: 40 live selectors
+[v38] done
+[v37] IOService open scan
+[sc] VCPDRMService                    exists, open -> 0xe00002e2
+[sc] VCPDRMServiceUserClient          NOT FOUND
+[sc] AppleImage4                      exists, open -> 0xe00002c2
+[sc] Image4                           exists, open -> 0xe00002c2
+[sc] AppleEncryptedArchive            NOT FOUND
+[sc] AFKHIDTBDevice                   NOT FOUND
+[sc] IOGPU                            exists, open -> 0xe00002c7
+[sc] IOGPU                            OPEN OK type 1 conn 0xa71f
+[sc] AGXDevice                        NOT FOUND
+[sc] AGXDeviceUserClient              NOT FOUND
+[sc] IOGPUDevice                      NOT FOUND
+[sc] AppleH16ANEInterface             NOT FOUND
+[sc] ANEDevice                        NOT FOUND
+[sc] AppleANE                         NOT FOUND
+[sc] NeuralEngine                     NOT FOUND
+[sc] AppleAVD                         exists, open -> 0xe00002c1
+[sc] AppleAVE2                        NOT FOUND
+[sc] AppleJPEGDriver                  OPEN OK type 0 conn 0xa723
+[sc] AppleJPEGDriver                  OPEN OK type 1 conn 0xa727
+[sc] AppleJPEGDriver                  OPEN OK type 2 conn 0xa72b
+[sc] AppleJPEGDriver                  OPEN OK type 3 conn 0xa72f
+[sc] AppleProRes                      NOT FOUND
+[sc] AppleMobileFramebuffer           NOT FOUND
+[sc] IOMobileFramebufferAP            OPEN OK type 0 conn 0xa733
+[sc] IOMobileFramebufferAP            OPEN OK type 1 conn 0xa737
+[sc] IOMobileFramebufferAP            OPEN OK type 2 conn 0xa73b
+[sc] IOMobileFramebufferAP            OPEN OK type 3 conn 0xa73f
+[sc] AppleDisplayPipe                 NOT FOUND
+[sc] AppleDPAF                        NOT FOUND
+[sc] AppleDPDevice                    NOT FOUND
+[sc] AppleCDM                         NOT FOUND
+[sc] AppleFairPlayIOKit               NOT FOUND
+[sc] AppleCredentialManager           exists, open -> 0xe00002e2
+[sc] AppleSEPManager                  exists, open -> 0xe00002c2
+[sc] AppleSSE                         exists, open -> 0xe00002c2
+[sc] IOAudio2Device                   exists, open -> 0xe00002c1
+[sc] AppleSPU                         exists, open -> 0xe00002c7
+[sc] AppleSMC                         exists, open -> 0xe00002e2
+[sc] ApplePMGR                        exists, open -> 0xe00002c1
+[sc] AppleNVMeController              exists, open -> 0xe00002e2
+[sc] AppleEmbeddedNVMeController      exists, open -> 0xe00002e2
+[sc] AppleUSBHostController           exists, open -> 0xe00002c7
+[sc] AppleT8132USBXHCI                NOT FOUND
+[sc] AppleConvergedIPCDevice          exists, open -> 0xe00002c7
+[sc] AFKSharedMemoryResource          NOT FOUND
+[sc] IOSurfaceRoot                    OPEN OK type 0 conn 0x6b13
+[sc] IOSurface                        NOT FOUND
+[sc] AppleM2ScalerCSCDriver           OPEN OK type 0 conn 0xa743
+[sc] AppleM2ScalerCSCDriver           OPEN OK type 1 conn 0xa747
+[sc] AppleM2ScalerCSCDriver           OPEN OK type 2 conn 0xa74b
+[sc] AppleM2ScalerCSCDriver           OPEN OK type 3 conn 0xa74f
+[sc] AppleM2ScalerParavirtDriver      NOT FOUND
+[sc] AppleH16CameraInterface          NOT FOUND
+[sc] AppleH13CamIn                    NOT FOUND
+[sc] AppleCameraInterface             NOT FOUND
+[sc] AppleBaseband                    exists, open -> 0xe00002e2
+[sc] AppleBCMWLANCore                 NOT FOUND
+[sc] AppleWiFi                        NOT FOUND
+[sc] AppleS5L8960XUSBArbitrator       NOT FOUND
+[sc] AppleAuthCP                      exists, open -> 0xe00002e2
+[sc] AppleKeyStore                    OPEN OK type 0 conn 0xa753
+[sc] AppleKeyStore                    OPEN OK type 1 conn 0xa757
+[sc] AppleKeyStore                    OPEN OK type 2 conn 0xa75b
+[sc] AppleKeyStore                    OPEN OK type 3 conn 0xa75f
+[sc] AppleARMWatchdogTimer            exists, open -> 0xe00002c2
+[sc] AppleSART                        NOT FOUND
+[sc] ApplePMU                         NOT FOUND
+[v37] done
+[v36] histogram path probes
+[hg] baseline (no histogram transform):
+[hg] GetHistogram -> kr 0x00000000, written(bytes != 0xAA) 1536
+[hg] no ptr-like qwords
+[hg] transform binmode1-region64 -> kr 0x00000000
+[hg] GetHistogram -> kr 0x00000000, written(bytes != 0xAA) 1536
+[hg] no ptr-like qwords
+[hg] transform binmode2-8bins -> kr 0x00000000
+[hg] GetHistogram -> kr 0x00000000, written(bytes != 0xAA) 1536
+[hg] no ptr-like qwords
+[hg] transform binmode1-region4096 -> kr 0xe00002c2
+[hg] GetHistogram -> kr 0x00000000, written(bytes != 0xAA) 1536
+[hg] no ptr-like qwords
+[hg] transform binmode2-region64k -> kr 0xe00002c2
+[hg] GetHistogram -> kr 0x00000000, written(bytes != 0xAA) 1536
+[hg] no ptr-like qwords
+[v36] done (alive)
+[v35] SetCustomFilter probes
+[flt] type 0 a1 08000 -> kr 0xe00002c2
+[flt] type 1 a1 07000 -> kr 0xe00002c2
+[flt] type 2 a1 06000 -> kr 0xe00002c2
+[flt] type 3 a1 05000 -> kr 0xe00002c2
+[flt] type 4 a1 04000 -> kr 0xe00002c2
+[flt] type 5 a1 03000 -> kr 0xe00002c2
+[flt] type 6 a1 02000 -> kr 0xe00002c2
+[flt] type 7 a1 01000 -> kr 0xe00002c2
+[flt] combo 0 {1 1 1 1 1 1} -> kr 0xe00002c2
+[flt] combo 1 {4 4 10 4 8 10} -> kr 0xe00002c2
+[flt] combo 2 {100 4 10 100 8 10} -> kr 0xe00002c2
+[flt] combo 3 {7000 4 10 7000 8 10} -> kr 0xe00002c2
+[flt] combo 4 {ffff ff ff ffff ff ff} -> kr 0xe00002c2
+[flt] set for transform -> kr 0xe00002c2
+[flt] transform+customfilter 0 -> kr 0xe00002c2 checksum 4eeacbc000650383
+[flt] transform+customfilter 1 -> kr 0xe00002c2 checksum 4eeacbc000650383
+[flt] transform+customfilter 2 -> kr 0xe00002c2 checksum 4eeacbc000650383
+[flt] transform+customfilter 3 -> kr 0xe00002c2 checksum 4eeacbc000650383
+[v35] done (alive)
+[v34] cross-request race v2 30s
+[cr2] baseline kr 0x00000000 expect 6592108d262f3383
+[open] AppleM2ScalerCSCDriver -> conn 0xa60b
+[cr2] 4 iters, 0 corrupted
+[v34] done (alive)
+[v33] fault-oracle mapping
+[or] bfX 0x00000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x01000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x02000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x03000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x04000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x05000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x06000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x07000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x08000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x09000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x0a000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x0b000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x0c000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x0d000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x0e000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x0f000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x10000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x11000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x12000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x13000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x14000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x15000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x16000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x17000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x18000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x19000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x1a000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x1b000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x1c000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x1d000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x1e000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfX 0x1f000 -> kr 0x00000000 changed 8192 first 0x0
+[or] bfY 0x00000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x00800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x01000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x01800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x02000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x02800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x03000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x03800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x04000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x04800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x05000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x05800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x06000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x06800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x07000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x07800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x08000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x08800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x09000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x09800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0a000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0a800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0b000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0b800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0c000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0c800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0d000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0d800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0e000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0e800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0f000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x0f800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x10000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x10800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x11000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x11800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x12000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x12800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x13000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x13800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x14000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x14800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x15000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x15800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x16000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x16800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x17000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x17800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x18000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x18800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x19000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x19800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1a000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1a800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1b000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1b800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1c000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1c800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1d000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1d800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1e000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1e800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1f000 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[or] bfY 0x1f800 -> kr 0xe00002c2 changed -1 first 0xffffffffffffffff
+[v33] done (alive)
+[v32] diag dart-error capture
+[s] kill-shot -> kr 0xe00002d6
+[dd] +0x4088: 00fc000100000000 -> 0aa9000100000000
+[dd] +0x4090: 000000cfa5f5a38f -> 000000cfa66fe26b
+[dd] +0x40a0: 000000100000014a -> 01218ba20000011f
+[dd] +0x40a8: 0000000000000000 -> 76bffcc300000002
+[dd] +0x40b0: 0000000000000000 -> 000000083c70550b
+[dd] +0x40c8: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x4100: 0000000000000000 -> 000000000000006f
+[dd] +0x4108: a5f5a43703ad0001 -> a66fe2ed1b200001
+[dd] +0x4118: 0000012700000000 -> 0000014900000000
+[dd] +0x4120: 0000000000000001 -> 0000000000000f04
+[dd] +0x4128: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x4130: 0000000000000000 -> cd1ee80b00000008
+[dd] +0x4138: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4140: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4148: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4178: 0000000000000000 -> 0000006f00000000
+[dd] +0x4180: 00a0000100000000 -> 1c25000100000000
+[dd] +0x4188: 000000cfa5f5a45f -> 000000cfa66fe2f2
+[dd] +0x4198: 0000000000000224 -> 0000f04000000182
+[dd] +0x41a0: 0000000000000000 -> 0000000010000f04
+[dd] +0x4200: a5f5a6041b730001 -> a66fe2f31b3e0001
+[dd] +0x4210: 0000014c00000000 -> 0000014800000000
+[dd] +0x4218: 0000000000000001 -> 0000000000000000
+[dd] +0x4220: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x4228: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x4230: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4238: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4240: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4270: 0000000000000000 -> 0000006f00000000
+[dd] +0x4278: 00e0000100000000 -> 0cb7000100000000
+[dd] +0x4280: 000000cfa5f5a606 -> 000000cfa66fe2fb
+[dd] +0x4290: 0001000000000142 -> 01218ba200000125
+[dd] +0x4298: 626d359900010000 -> 76bffcc300000000
+[dd] +0x42a0: 0000000069b758dd -> 000000003c70550b
+[dd] +0x42a8: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x42b0: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x42f0: 0000000000000069 -> 000000000000006f
+[dd] +0x42f8: a5f5a60716de0001 -> a66fed5015f40101
+[dd] +0x4308: 0000013500000000 -> 0000010a00000000
+[dd] +0x4310: 0000000000000110 -> dae42bf5813c994d
+[dd] +0x4318: 69b758dd626d3599 -> 3c70550b76bffcc3
+[dd] +0x4320: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x4328: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x4330: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x4368: 0000006900000000 -> 0000006f00000000
+[dd] +0x4370: 1ce4010100000000 -> 15fd010100000000
+[dd] +0x4378: 000000cfa5f5a651 -> 000000cfa66fed59
+[dd] +0x4388: 11fa77dd0000010b -> 500f69d90000010c
+[dd] +0x4390: 0000000048b6785d -> 76bffcc34b7faea3
+[dd] +0x4398: 0000000000000000 -> 000000003c70550b
+[dd] +0x43a0: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x43a8: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x43b0: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x43e8: 0000000000000000 -> 000000000000006f
+[dd] +0x43f0: a5f5a6d91d070001 -> a66fee8b15f40101
+[dd] +0x4400: 0000011900000000 -> 0000010a00000000
+[dd] +0x4408: 0100000000000000 -> bed3be2a652fade9
+[dd] +0x4410: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x4418: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x4420: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4428: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4430: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4460: 0000000000000000 -> 0000006f00000000
+[dd] +0x4468: 1ce4010100000000 -> 15fd010100000000
+[dd] +0x4470: 000000cfa5f5a70d -> 000000cfa66fee8d
+[dd] +0x4480: 3d6834030000010b -> cd1ee80b0000010c
+[dd] +0x4488: 00000000618e27eb -> 76bffcc306258cf1
+[dd] +0x4490: 0000000000000000 -> 000000003c70550b
+[dd] +0x4498: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x44a0: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x44a8: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x44e0: 0000000000000000 -> 000000000000006f
+[dd] +0x44e8: a5f5a72e1d070001 -> a66fef9a16d50001
+[dd] +0x44f8: 0000011900000000 -> 0000013500000000
+[dd] +0x4500: 0100000080000000 -> 0000000000001001
+[dd] +0x4508: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x4510: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x4518: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4520: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4528: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4558: 0000000000000000 -> 0000006f00000000
+[dd] +0x4560: 0dd3010100000000 -> 00aa000100000000
+[dd] +0x4568: 000000cfa5f5aba7 -> 000000cfa66fefa1
+[dd] +0x4578: 626d35990000011e -> 0000010000000142
+[dd] +0x4580: 0000000069b758dd -> 76bffcc300000000
+[dd] +0x4588: 0000000000000000 -> 000000003c70550b
+[dd] +0x4590: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x4598: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x45a0: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x45d8: 0000000000000000 -> 000000000000006f
+[dd] +0x45e0: a5f5abab16d50001 -> a66fefb400b90001
+[dd] +0x45f0: 0000013500000000 -> 0000014100000000
+[dd] +0x45f8: 0000000000010001 -> 0000000000000001
+[dd] +0x4600: 69b758dd626d3599 -> 0000000000000000
+[dd] +0x4608: 4fd1904100000000 -> 0000000000000000
+[dd] +0x4610: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x4618: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x4620: 0000000052a2e443 -> 0000000000000000
+[dd] +0x4650: 0000006900000000 -> 0000000000000000
+[dd] +0x4658: 00aa000100000000 -> 0075000100000000
+[dd] +0x4660: 000000cfa5f5abb0 -> 000000cfa66ff70c
+[dd] +0x4670: 0000001000000142 -> 00dd01000000017f
+[dd] +0x4678: 626d359900000000 -> 0000000000000000
+[dd] +0x4680: 0000000069b758dd -> 0000000000000000
+[dd] +0x4688: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x4690: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x4698: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x46d0: 0000000000000069 -> 0000000000000000
+[dd] +0x46d8: a5f5abb200f60001 -> a66ff71102300001
+[dd] +0x46e8: 0000014200000000 -> 0000011d00000000
+[dd] +0x46f0: ffff000000000000 -> 0000000000001001
+[dd] +0x46f8: 69b758dd626d3599 -> 0000000000000000
+[dd] +0x4700: 4fd1904100000000 -> 0000000000000000
+[dd] +0x4708: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x4710: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x4718: 0000000052a2e443 -> 0000000000000000
+[dd] +0x4748: 0000006900000000 -> 0000000000000000
+[dd] +0x4750: 008b000100000000 -> 00fc000100000000
+[dd] +0x4758: 000000cfa5f5ac28 -> 000000cfa66ffad0
+[dd] +0x4768: 0000000100000132 -> 000000100000014a
+[dd] +0x47d0: a5f5ac3500b40001 -> a66ffae503ad0001
+[dd] +0x47e0: 0000013200000000 -> 0000012700000000
+[dd] +0x47e8: 0000000000000100 -> 0000000000000001
+[dd] +0x4848: 00bd000100000000 -> 00a0000100000000
+[dd] +0x4850: 000000cfa5f5ac36 -> 000000cfa66ffb13
+[dd] +0x4860: 0000010100000132 -> 0000000000000224
+[dd] +0x48c8: a5f5ac3800b90001 -> a66ffd6b1b730001
+[dd] +0x48d8: 0000014100000000 -> 0000014c00000000
+[dd] +0x48e0: 0000000000000000 -> 0000000000000001
+[dd] +0x4940: 0230000100000000 -> 00e0000100000000
+[dd] +0x4948: 000000cfa5f5ac3b -> 000000cfa66ffd6c
+[dd] +0x4958: 000010100000011d -> 0001000000000142
+[dd] +0x4960: 0000000000000000 -> 76bffcc300010000
+[dd] +0x4968: 0000000000000000 -> 000000003c70550b
+[dd] +0x4970: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x4978: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x4980: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x49b8: 0000000000000000 -> 000000000000006f
+[dd] +0x49c0: a5f5adea00750001 -> a66ffd6e16de0001
+[dd] +0x49d0: 0000017f00000000 -> 0000013500000000
+[dd] +0x49d8: 0000000000dd0000 -> 0000000000000110
+[dd] +0x49e0: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x49e8: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x49f0: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x49f8: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4a00: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4a30: 0000000000000000 -> 0000006f00000000
+[dd] +0x4a38: 00fc000100000000 -> 1ce4010100000000
+[dd] +0x4a40: 000000cfa5f5b16d -> 000000cfa66ffdc3
+[dd] +0x4a50: 000000000000014a -> 813c994d0000010b
+[dd] +0x4a58: 0000000000000000 -> 00000000dae42bf5
+[dd] +0x4ab8: a5f5b1771b730001 -> a67000011d070001
+[dd] +0x4ac8: 0000014c00000000 -> 0000011900000000
+[dd] +0x4ad0: 0000000000000001 -> 0100000100000000
+[dd] +0x4b30: 16de000100000000 -> 1ce4010100000000
+[dd] +0x4b38: 000000cfa5f5b179 -> 000000cfa6700059
+[dd] +0x4b48: 0000000000000135 -> 652fade90000010b
+[dd] +0x4b50: 626d359900000000 -> 00000000bed3be2a
+[dd] +0x4b58: 0000000069b758dd -> 0000000000000000
+[dd] +0x4b60: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x4b68: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x4b70: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x4ba8: 0000000000000069 -> 0000000000000000
+[dd] +0x4bb0: a5f5b1f81d270001 -> a67001571d070001
+[dd] +0x4bc0: 0000011a00000000 -> 0000011900000000
+[dd] +0x4bc8: 0100000000000000 -> 0100000180000000
+[dd] +0x4c28: 1d27000100000000 -> 16d5000100000000
+[dd] +0x4c30: 000000cfa5f5b228 -> 000000cfa6700274
+[dd] +0x4c40: 800000000000011a -> 0001010100000135
+[dd] +0x4c48: 0000000001000000 -> 76bffcc300000000
+[dd] +0x4c50: 0000000000000000 -> 000000003c70550b
+[dd] +0x4c58: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x4c60: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x4c68: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x4ca0: 0000000000000000 -> 000000000000006f
+[dd] +0x4ca8: a5f5b22c13970001 -> a670027900aa0001
+[dd] +0x4cb8: 0000010d00000000 -> 0000014200000000
+[dd] +0x4cc0: 0000000000000016 -> 0000000000000010
+[dd] +0x4cc8: 69b758dd626d3599 -> 3c70550b76bffcc3
+[dd] +0x4cd0: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x4cd8: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x4ce0: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x4d18: 0000006900000000 -> 0000006f00000000
+[dd] +0x4d20: 139d000100000000 -> 00f6000100000000
+[dd] +0x4d28: 000000cfa5f5b230 -> 000000cfa670027b
+[dd] +0x4d38: 000000180000010d -> 0000000000000142
+[dd] +0x4d40: 626d359900000000 -> 76bffcc3ffff0000
+[dd] +0x4d48: 0000000069b758dd -> 000000003c70550b
+[dd] +0x4d50: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x4d58: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x4d98: 0000000000000069 -> 000000000000006f
+[dd] +0x4da0: a5f5b23c1c1e0001 -> a67002b816de0001
+[dd] +0x4db0: 0000018300000000 -> 0000013500000000
+[dd] +0x4db8: f0000f0400000000 -> 0000000000000000
+[dd] +0x4dc0: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x4dc8: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x4dd0: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4dd8: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4de0: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4e10: 0000000000000000 -> 0000006f00000000
+[dd] +0x4e18: 13c8000100000000 -> 1158000100000000
+[dd] +0x4e20: 000000cfa5f5b242 -> 000000cfa67002c3
+[dd] +0x4e30: 0000000100000120 -> 0000000000000101
+[dd] +0x4e38: 626d359900000000 -> 76bffcc300000000
+[dd] +0x4e40: 0000000069b758dd -> 000000003c70550b
+[dd] +0x4e48: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x4e50: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x4e90: 0000000000000069 -> 000000000000006f
+[dd] +0x4e98: a5f5b35f0deb0101 -> a67003a211780101
+[dd] +0x4ea8: 0000012600000000 -> 0000010e00000000
+[dd] +0x4eb0: 69b758dd626d3599 -> 06258cf1cd1ee80b
+[dd] +0x4eb8: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x4ec0: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x4ec8: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4ed0: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x4ed8: 0000000000000000 -> 0000000052a2e443
+[dd] +0x4f08: 0000000000000000 -> 0000006f00000000
+[dd] +0x4f10: 022c010100000000 -> 1197010100000000
+[dd] +0x4f18: 000000cfa5f5b4a6 -> 000000cfa6700440
+[dd] +0x4f28: aa4f5fb900000115 -> 500f69d90000010e
+[dd] +0x4f30: 0000000052a2e443 -> 76bffcc34b7faea3
+[dd] +0x4f38: 0000000000000000 -> 000000003c70550b
+[dd] +0x4f40: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x4f48: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x4f50: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x4f58: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x4f88: 0000000000000000 -> 000000000000006f
+[dd] +0x4f90: a609e3ba0aa90001 -> a670058710b10001
+[dd] +0x4fa0: 0000011f00000000 -> 0000010200000000
+[dd] +0x4fa8: 0000000201218b9d -> 0000000000020001
+[dd] +0x4fb0: 248cb1e6243840f7 -> 3c70550b76bffcc3
+[dd] +0x4fb8: 0000000000000008 -> cd1ee80b00000000
+[dd] +0x4fc0: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x4fc8: aa4f5fb900000000 -> aa4f5fb94b7faea3
+[dd] +0x4fd0: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x4fd8: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x4fe0: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x5000: 0000006a00000000 -> 0000006f00000000
+[dd] +0x5008: 1b20000100000000 -> 11fe000100000000
+[dd] +0x5010: 000000cfa609e40f -> 000000cfa67005c6
+[dd] +0x5020: 00000f0400000149 -> 0000100100000147
+[dd] +0x5028: 243840f700000000 -> 76bffcc300000000
+[dd] +0x5030: 00000008248cb1e6 -> 000000003c70550b
+[dd] +0x5038: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x5040: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x5050: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5058: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5080: 000000000000006a -> 000000000000006f
+[dd] +0x5088: a609e4111c250001 -> a67005c812b20001
+[dd] +0x5098: 0000018200000000 -> 0000010300000000
+[dd] +0x50a0: 10000f040000f040 -> 0000000000001011
+[dd] +0x50a8: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x50b0: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x50b8: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x50c0: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x50c8: 0000000000000000 -> cc742faf52a2e443
+[dd] +0x50d0: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x50d8: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x50f8: 0000000000000000 -> 0000006f00000000
+[dd] +0x5100: 1b3e000100000000 -> 1baa000100000000
+[dd] +0x5108: 000000cfa609e413 -> 000000cfa67005d1
+[dd] +0x5118: 0000000000000148 -> 000001020000015c
+[dd] +0x5120: 243840f700000000 -> 76bffcc300000000
+[dd] +0x5128: 00000000248cb1e6 -> 000000003c70550b
+[dd] +0x5130: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x5138: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x5148: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5150: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5178: 000000000000006a -> 000000000000006f
+[dd] +0x5180: a609e4160cb70001 -> a67005d3122e0001
+[dd] +0x5190: 0000012500000000 -> 0000013a00000000
+[dd] +0x5198: 0000000001218b9d -> 01218ba200000010
+[dd] +0x51a0: 248cb1e6243840f7 -> 3c70550b76bffcc3
+[dd] +0x51a8: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x51b0: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x51b8: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x51c0: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x51c8: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x51d0: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x51f0: 0000006a00000000 -> 0000006f00000000
+[dd] +0x51f8: 15f4010100000000 -> 00aa000100000000
+[dd] +0x5200: 000000cfa609ebd7 -> 000000cfa67005d6
+[dd] +0x5210: 11fa77dd0000010a -> 0000010000000142
+[dd] +0x5218: 243840f748b6785d -> 76bffcc300000000
+[dd] +0x5220: 00000000248cb1e6 -> 000000003c70550b
+[dd] +0x5228: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x5230: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x5240: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5248: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5270: 000000000000006a -> 000000000000006f
+[dd] +0x5278: a609ebdc15fd0101 -> a67005d800b80001
+[dd] +0x5288: 0000010c00000000 -> 0000014200000000
+[dd] +0x5290: 0b7a8a4286715a3b -> 0001000000010000
+[dd] +0x5298: 248cb1e6243840f7 -> 3c70550b76bffcc3
+[dd] +0x52a0: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x52a8: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x52b0: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x52b8: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x52c0: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x52c8: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x52e8: 0000006a00000000 -> 0000006f00000000
+[dd] +0x52f0: 15f4010100000000 -> 0230000100000000
+[dd] +0x52f8: 000000cfa609ec29 -> 000000cfa6700650
+[dd] +0x5308: 3d6834030000010a -> 000010110000011d
+[dd] +0x5310: 243840f7618e27eb -> 0000000000000000
+[dd] +0x5318: 00000000248cb1e6 -> 0000000000000000
+[dd] +0x5320: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x5328: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x5330: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x5368: 000000000000006a -> 0000000000000000
+[dd] +0x5370: a609ec2d15fd0101 -> a670068318e30001
+[dd] +0x5380: 0000010c00000000 -> 0000013000000000
+[dd] +0x5388: 8f4f467c4fd19041 -> 00000f0400000200
+[dd] +0x5390: 248cb1e6243840f7 -> 0000000000000000
+[dd] +0x5398: 4fd1904100000000 -> 0000000000000000
+[dd] +0x53a0: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x53a8: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x53b0: 0000000052a2e443 -> 0000000000000000
+[dd] +0x53e0: 0000006a00000000 -> 0000000000000000
+[dd] +0x53e8: 16d5000100000000 -> 01a3000100000000
+[dd] +0x53f0: 000000cfa609ec89 -> 000000cfa67006bd
+[dd] +0x5400: 0000100100000135 -> 005101100000012f
+[dd] +0x5408: 243840f700000000 -> 76bffcc300000000
+[dd] +0x5410: 00000000248cb1e6 -> 000000003c70550b
+[dd] +0x5418: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x5420: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x5430: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5438: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5460: 000000000000006a -> 000000000000006f
+[dd] +0x5468: a609ec8e00aa0001 -> a6700726018c0001
+[dd] +0x5478: 0000014200000000 -> 0000020c00000000
+[dd] +0x5480: 0000000000000100 -> 0000000100000000
+[dd] +0x5488: 248cb1e6243840f7 -> 3c70550b76bffcc3
+[dd] +0x5490: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x5498: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x54a0: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x54a8: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x54b0: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x54b8: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x54d8: 0000006a00000000 -> 0000006f00000000
+[dd] +0x54e0: 00b9000100000000 -> 007b000100000000
+[dd] +0x54e8: 000000cfa609ec9e -> 000000cfa670134a
+[dd] +0x54f8: 0000000100000141 -> 000000000000014d
+[dd] +0x5500: 0000000000000000 -> 76bffcc300000000
+[dd] +0x5508: 0000000000000000 -> 000000003c70550b
+[dd] +0x5510: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x5518: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x5520: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x5528: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5530: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5558: 0000000000000000 -> 000000000000006f
+[dd] +0x5560: a609f48600750001 -> a670137902a40001
+[dd] +0x5570: 0000017f00000000 -> 0000014d00000000
+[dd] +0x5578: 0000000000dd0100 -> 0000000000000000
+[dd] +0x5580: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x5588: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x5590: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x5598: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x55a0: 0000000000000000 -> cc742faf52a2e443
+[dd] +0x55a8: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x55b0: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x55d0: 0000000000000000 -> 0000006f00000000
+[dd] +0x55d8: 0230000100000000 -> 13ae000100000000
+[dd] +0x55e0: 000000cfa609f488 -> 000000cfa6701422
+[dd] +0x55f0: 000010010000011d -> 0000000000000107
+[dd] +0x55f8: 0000000000000000 -> 76bffcc301218ba2
+[dd] +0x5600: 0000000000000000 -> 000000003c70550b
+[dd] +0x5608: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x5610: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x5618: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x5620: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5628: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5650: 0000000000000000 -> 000000000000006f
+[dd] +0x5658: a609fa6500fc0001 -> a6701446125e0001
+[dd] +0x5668: 0000014a00000000 -> 0000012900000000
+[dd] +0x5670: 0000000000000010 -> 0000000000001000
+[dd] +0x5678: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x5680: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x5688: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x5690: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x5698: 0000000000000000 -> cc742faf52a2e443
+[dd] +0x56a0: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x56a8: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x56c8: 0000000000000000 -> 0000006f00000000
+[dd] +0x56d0: 03ad000100000000 -> 0042000100000000
+[dd] +0x56d8: 000000cfa609fa7e -> 000000cfa6701456
+[dd] +0x56e8: 0000000100000127 -> 0000000100000154
+[dd] +0x56f0: 0000000000000000 -> 76bffcc3fffffffe
+[dd] +0x56f8: 0000000000000000 -> 000000003c70550b
+[dd] +0x5700: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x5708: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x5710: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x5718: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5720: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5748: 0000000000000000 -> 000000000000006f
+[dd] +0x5750: a609faa500a00001 -> a670148300aa0001
+[dd] +0x5760: 0000022400000000 -> 0000014200000000
+[dd] +0x5768: 0000000000000000 -> 0000000000000110
+[dd] +0x57c8: 1b73000100000000 -> 00b8000100000000
+[dd] +0x57d0: 000000cfa609fc3d -> 000000cfa6701485
+[dd] +0x57e0: 000000010000014c -> 0002000000000142
+[dd] +0x57e8: 0000000000000000 -> 0000000000010000
+[dd] +0x5848: a609fc3f00e00001 -> a670148801e00001
+[dd] +0x5858: 0000014200000000 -> 0000021400000000
+[dd] +0x5860: 0001000000010000 -> 0000000100000000
+[dd] +0x5868: 248cb1e6243840f7 -> 3c70550b76bffcc3
+[dd] +0x5870: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x5878: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x5880: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x5888: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x5890: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x5898: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x58b8: 0000006a00000000 -> 0000006f00000000
+[dd] +0x58c0: 16de000100000000 -> 014a000100000000
+[dd] +0x58c8: 000000cfa609fc40 -> 000000cfa67014dc
+[dd] +0x58d8: 0000011000000135 -> 0100010000000200
+[dd] +0x58e0: 243840f700000000 -> 76bffcc300000000
+[dd] +0x58e8: 00000000248cb1e6 -> 000000003c70550b
+[dd] +0x58f0: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x58f8: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x5908: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5910: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5938: 000000000000006a -> 000000000000006f
+[dd] +0x5940: a609fc831ce40101 -> a67014e51b730001
+[dd] +0x5950: 0000010b00000000 -> 0000014c00000000
+[dd] +0x5958: 48b6785d11fa77dd -> 0000000000000000
+[dd] +0x59b8: 1d07000100000000 -> 12f3000100000000
+[dd] +0x59c0: 000000cfa609fd20 -> 000000cfa6701509
+[dd] +0x59d0: 0000000000000119 -> 0001010000000104
+[dd] +0x59d8: 0000000001000000 -> 0000000000000001
+[dd] +0x5a38: a609fd631ce40101 -> a670154b0deb0101
+[dd] +0x5a48: 0000010b00000000 -> 0000012600000000
+[dd] +0x5a50: 618e27eb3d683403 -> 3c70550b76bffcc3
+[dd] +0x5ab0: 1d07000100000000 -> 01b8000100000000
+[dd] +0x5ab8: 000000cfa609fd84 -> 000000cfa6701b2f
+[dd] +0x5ac0: 00000000000440f2 -> 0000000000000400
+[dd] +0x5ac8: 8000000000000119 -> 000100000000021c
+[dd] +0x5ad0: 0000000001000000 -> 0000000000000041
+[dd] +0x5b30: a60a02620dd30101 -> a6701b3000aa0001
+[dd] +0x5b38: 000440f2000000cf -> 00000400000000cf
+[dd] +0x5b40: 0000011e00000000 -> 0000014200000000
+[dd] +0x5b48: 248cb1e6243840f7 -> 0000000000000120
+[dd] +0x5ba8: 16d5000100000000 -> 00b8000100000000
+[dd] +0x5bb0: 000000cfa60a0266 -> 000000cfa6701b38
+[dd] +0x5bb8: 00000000000440f2 -> 0000000000000400
+[dd] +0x5bc0: 0001000100000135 -> 0003000000000142
+[dd] +0x5bc8: 243840f700000000 -> 0000000000010000
+[dd] +0x5bd0: 00000000248cb1e6 -> 0000000000000000
+[dd] +0x5bd8: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x5be0: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x5be8: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x5c20: 000000000000006a -> 0000000000000000
+[dd] +0x5c28: a60a026800aa0001 -> a6701b5502360001
+[dd] +0x5c30: 000440f2000000cf -> 00000400000000cf
+[dd] +0x5c38: 0000014200000000 -> 0000021800000000
+[dd] +0x5c40: 0000000000000010 -> 0000000000010100
+[dd] +0x5c48: 248cb1e6243840f7 -> 3c70550b76bffcc3
+[dd] +0x5c50: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x5c58: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x5c60: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x5c68: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x5c70: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x5c78: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x5c98: 0000006a00000000 -> 0000006f00000000
+[dd] +0x5ca0: 00f6000100000000 -> 00aa000100000000
+[dd] +0x5ca8: 000000cfa60a0269 -> 000000cfa6701b59
+[dd] +0x5cb0: 00000000000440f2 -> 0000000000000400
+[dd] +0x5cb8: 0000000000000142 -> 0000003000000142
+[dd] +0x5cc0: 243840f7ffff0000 -> 0000000000000000
+[dd] +0x5cc8: 00000000248cb1e6 -> 0000000000000000
+[dd] +0x5cd0: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x5cd8: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x5ce0: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x5d18: 000000000000006a -> 0000000000000000
+[dd] +0x5d20: a60a02dc008b0001 -> a6701b5a00f60001
+[dd] +0x5d28: 000440f2000000cf -> 00000400000000cf
+[dd] +0x5d30: 0000013200000000 -> 0000014200000000
+[dd] +0x5d38: 0000000000000001 -> ffff000000020000
+[dd] +0x5d98: 00b4000100000000 -> 0161000100000000
+[dd] +0x5da0: 000000cfa60a02ea -> 000000cfa6701b67
+[dd] +0x5da8: 00000000000440f2 -> 0000000000000400
+[dd] +0x5db0: 0000010000000132 -> 0101010000000204
+[dd] +0x5db8: 0000000000000000 -> 76bffcc300000000
+[dd] +0x5dc0: 0000000000000000 -> 000000003c70550b
+[dd] +0x5dc8: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x5dd0: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x5dd8: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x5de0: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x5de8: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x5e10: 0000000000000000 -> 000000000000006f
+[dd] +0x5e18: a60a02eb00bd0001 -> a6701b6a01a90001
+[dd] +0x5e20: 000440f2000000cf -> 00000400000000cf
+[dd] +0x5e28: 0000013200000000 -> 0000021000000000
+[dd] +0x5e30: 0000000000000101 -> 0000000100000000
+[dd] +0x5e38: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x5e40: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x5e48: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x5e50: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x5e58: 0000000000000000 -> cc742faf52a2e443
+[dd] +0x5e60: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x5e68: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x5e88: 0000000000000000 -> 0000006f00000000
+[dd] +0x5e90: 00b9000100000000 -> 00aa000100000000
+[dd] +0x5e98: 000000cfa60a02ed -> 000000cfa6701b7a
+[dd] +0x5ea0: 00000000000440f2 -> 0000000000000400
+[dd] +0x5ea8: 0000000000000141 -> 0000002000000142
+[dd] +0x5f10: a60a02ef02300001 -> a6701b7c00f60001
+[dd] +0x5f18: 000440f2000000cf -> 00000400000000cf
+[dd] +0x5f20: 0000011d00000000 -> 0000014200000000
+[dd] +0x5f28: 0000000000001010 -> ffff000000010000
+[dd] +0x5f88: 0075000100000000 -> 1980000100000000
+[dd] +0x5f90: 000000cfa60a0441 -> 000000cfae92f6fb
+[dd] +0x5f98: 00000000000440f2 -> 000000000003b5bf
+[dd] +0x5fa0: 00dd00000000017f -> 0001010600000186
+[dd] +0x6008: a60a07c500fc0001 -> b00192d819800001
+[dd] +0x6010: 000440f2000000cf -> 0003b5bf000000cf
+[dd] +0x6018: 0000014a00000000 -> 0000018600000000
+[dd] +0x6020: 0000000000000000 -> 0000000000010106
+[dd] +0x6080: 1b73000100000000 -> 1980000100000000
+[dd] +0x6088: 000000cfa60a07d0 -> 000000cfb1702c57
+[dd] +0x6090: 00000000000440f2 -> 000000000003b5bf
+[dd] +0x6098: 000000010000014c -> 0001010600000186
+[dd] +0x6100: a60a07d216de0001 -> b2dec3fd19800001
+[dd] +0x6108: 000440f2000000cf -> 0003b5bf000000cf
+[dd] +0x6110: 0000013500000000 -> 0000018600000000
+[dd] +0x6118: 0000000000000000 -> 0000000000010106
+[dd] +0x6120: 248cb1e6243840f7 -> 0000000000000000
+[dd] +0x6128: 4fd1904100000000 -> 0000000000000000
+[dd] +0x6130: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x6138: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x6140: 0000000052a2e443 -> 0000000000000000
+[dd] +0x6170: 0000006a00000000 -> 0000000000000000
+[dd] +0x6178: 1d27000100000000 -> 1980000100000000
+[dd] +0x6180: 000000cfa60a083e -> 000000cfb44d5bb9
+[dd] +0x6188: 00000000000440f2 -> 000000000003b5bf
+[dd] +0x6190: 000000000000011a -> 0001010600000186
+[dd] +0x6198: 0000000001000000 -> 0000000000000000
+[dd] +0x61f8: a60a08621d270001 -> b5bbf4d819800001
+[dd] +0x6200: 000440f2000000cf -> 0003b5bf000000cf
+[dd] +0x6208: 0000011a00000000 -> 0000018600000000
+[dd] +0x6210: 0100000080000000 -> 0000000000010106
+[dd] +0x6270: 1397000100000000 -> 1010000100000000
+[dd] +0x6278: 000000cfa60a0866 -> 000000cfb5cc4c68
+[dd] +0x6280: 00000000000440f2 -> 0000000000000400
+[dd] +0x6288: 000000160000010d -> 0000000100000108
+[dd] +0x6290: 243840f700000000 -> 0000000000000002
+[dd] +0x6298: 00000000248cb1e6 -> 0000000000000000
+[dd] +0x62a0: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x62a8: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x62b0: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x62e8: 000000000000006a -> 0000000000000000
+[dd] +0x62f0: a60a08d8139d0001 -> b5cc5130104a0001
+[dd] +0x62f8: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6300: 0000010d00000000 -> 0000010900000000
+[dd] +0x6308: 0000000000000018 -> 0000000000000060
+[dd] +0x6310: 248cb1e6243840f7 -> 0000000000000000
+[dd] +0x6318: 4fd1904100000000 -> 0000000000000000
+[dd] +0x6320: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x6328: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x6330: 0000000052a2e443 -> 0000000000000000
+[dd] +0x6360: 0000006a00000000 -> 0000000000000000
+[dd] +0x6368: 1c1e000100000000 -> 1b73000100000000
+[dd] +0x6370: 000000cfa60a08e1 -> 000000cfb5cc9f3a
+[dd] +0x6378: 00000000000440f2 -> 0000000000000400
+[dd] +0x6380: 0000000000000183 -> 000000000000014c
+[dd] +0x6388: 00000000f0000f04 -> 0000000000000000
+[dd] +0x63e8: a60a08e613c80001 -> b5cc9f4511300001
+[dd] +0x63f0: 000440f2000000cf -> 00000400000000cf
+[dd] +0x63f8: 0000012000000000 -> 0000012100000000
+[dd] +0x6400: 0000000000000001 -> 0000000000010000
+[dd] +0x6408: 248cb1e6243840f7 -> 0000000000000000
+[dd] +0x6410: 4fd1904100000000 -> 0000000000000000
+[dd] +0x6418: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x6420: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x6428: 0000000052a2e443 -> 0000000000000000
+[dd] +0x6458: 0000006a00000000 -> 0000000000000000
+[dd] +0x6460: 0deb010100000000 -> 03ad000100000000
+[dd] +0x6468: 000000cfa60a0a74 -> 000000cfb5cc9f63
+[dd] +0x6470: 00000000000440f2 -> 0000000000000400
+[dd] +0x6478: 243840f700000126 -> 0000000200000127
+[dd] +0x6480: 00000000248cb1e6 -> 0000000000000000
+[dd] +0x64e0: a60a0b6f022c0101 -> b5cc9f9500a00001
+[dd] +0x64e8: 000440f2000000cf -> 00000400000000cf
+[dd] +0x64f0: 0000011500000000 -> 0000022400000000
+[dd] +0x64f8: 52a2e443aa4f5fb9 -> 0000000000000011
+[dd] +0x6558: 0aa9000100000000 -> 1b73000100000000
+[dd] +0x6560: 000000cfa61e397f -> 000000cfb5cc9fff
+[dd] +0x6568: 00000000000440f2 -> 0000000000000400
+[dd] +0x6570: 01218b9e0000011f -> 000000010000014c
+[dd] +0x6578: 76bffcc300000002 -> 0000000000000000
+[dd] +0x6580: 000000083c70550b -> 0000000000000000
+[dd] +0x6598: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x65d0: 000000000000006b -> 0000000000000000
+[dd] +0x65d8: a61e39e51b200001 -> b5cca05f11a00001
+[dd] +0x65e0: 000440f2000000cf -> 00000400000000cf
+[dd] +0x65e8: 0000014900000000 -> 0000012200000000
+[dd] +0x65f0: 0000000000000f04 -> 00008ba200000000
+[dd] +0x6600: 4fd1904100000008 -> cd1ee80b00000000
+[dd] +0x6608: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x6610: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x6618: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x6620: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x6628: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x6648: 0000006b00000000 -> 0000006f00000000
+[dd] +0x6650: 1c25000100000000 -> 126a000100000000
+[dd] +0x6658: 000000cfa61e39e7 -> 000000cfb5cca08f
+[dd] +0x6660: 00000000000440f2 -> 0000000000000400
+[dd] +0x6668: 0000f04000000182 -> 000000000000012a
+[dd] +0x6670: 0000000010000f04 -> 76bffcc300000000
+[dd] +0x6678: 0000000000000000 -> 000000003c70550b
+[dd] +0x6680: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x6688: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x6690: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x6698: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x66a0: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x66c8: 0000000000000000 -> 000000000000006f
+[dd] +0x66d0: a61e39e81b3e0001 -> b5cca09011cc0001
+[dd] +0x66d8: 000440f2000000cf -> 00000400000000cf
+[dd] +0x66e0: 0000014800000000 -> 0000010600000000
+[dd] +0x66e8: 0000000000000000 -> 0000000000000101
+[dd] +0x66f8: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x6700: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x6708: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x6710: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x6718: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x6720: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x6740: 0000006b00000000 -> 0000006f00000000
+[dd] +0x6748: 0cb7000100000000 -> 10c5000100000000
+[dd] +0x6750: 000000cfa61e39f2 -> 000000cfb5cca0a5
+[dd] +0x6758: 00000000000440f2 -> 0000000000000400
+[dd] +0x6760: 01218b9e00000125 -> 0000001000000106
+[dd] +0x6778: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x6780: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x6790: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x6798: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x67c0: 000000000000006b -> 000000000000006f
+[dd] +0x67c8: a61e416b15f40101 -> b5cca10007bf0001
+[dd] +0x67d0: 000440f2000000cf -> 00000400000000cf
+[dd] +0x67d8: 0000010a00000000 -> 0000010500000000
+[dd] +0x67e0: 48b6785d11fa77dd -> 0000000000011010
+[dd] +0x67f0: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x67f8: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x6800: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x6808: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x6810: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x6818: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x6838: 0000006b00000000 -> 0000006f00000000
+[dd] +0x6840: 15fd010100000000 -> 00aa000100000000
+[dd] +0x6848: 000000cfa61e4171 -> 000000cfb5cca1f2
+[dd] +0x6850: 00000000000440f2 -> 0000000000000400
+[dd] +0x6858: 86715a3b0000010c -> 0000001000000142
+[dd] +0x6860: 76bffcc30b7a8a42 -> 76bffcc300000000
+[dd] +0x6870: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x6878: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x6888: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x6890: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x68b8: 000000000000006b -> 000000000000006f
+[dd] +0x68c0: a61e41d915f40101 -> b5cca1fd00f60001
+[dd] +0x68c8: 000440f2000000cf -> 00000400000000cf
+[dd] +0x68d0: 0000010a00000000 -> 0000014200000000
+[dd] +0x68d8: 618e27eb3d683403 -> ffff000000000000
+[dd] +0x68e8: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x68f0: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x68f8: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x6900: 0000000052a2e443 -> cc742faf52a2e443
+[dd] +0x6908: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x6910: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x6930: 0000006b00000000 -> 0000006f00000000
+[dd] +0x6938: 15fd010100000000 -> 008b000100000000
+[dd] +0x6940: 000000cfa61e41dc -> 000000cfb5cca307
+[dd] +0x6948: 00000000000440f2 -> 0000000000000400
+[dd] +0x6950: 4fd190410000010c -> 0000000100000132
+[dd] +0x6958: 76bffcc38f4f467c -> 0000000000000000
+[dd] +0x6960: 000000003c70550b -> 0000000000000000
+[dd] +0x6968: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x6970: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x6978: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x69b0: 000000000000006b -> 0000000000000000
+[dd] +0x69b8: a61e422f16d50001 -> b5cca32900b40001
+[dd] +0x69c0: 000440f2000000cf -> 00000400000000cf
+[dd] +0x69c8: 0000013500000000 -> 0000013200000000
+[dd] +0x69d0: 0000000000001001 -> 0000000000000100
+[dd] +0x69d8: 3c70550b76bffcc3 -> 0000000000000000
+[dd] +0x69e0: 4fd1904100000000 -> 0000000000000000
+[dd] +0x69e8: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x69f0: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x69f8: 0000000052a2e443 -> 0000000000000000
+[dd] +0x6a28: 0000006b00000000 -> 0000000000000000
+[dd] +0x6a30: 00aa000100000000 -> 00bd000100000000
+[dd] +0x6a38: 000000cfa61e4231 -> 000000cfb5cca32b
+[dd] +0x6a40: 00000000000440f2 -> 0000000000000400
+[dd] +0x6a48: 0000010000000142 -> 0000010100000132
+[dd] +0x6a50: 76bffcc300000000 -> 0000000000000000
+[dd] +0x6a58: 000000003c70550b -> 0000000000000000
+[dd] +0x6a60: 8f4f467c4fd19041 -> 0000000000000000
+[dd] +0x6a68: 0b7a8a4286715a3b -> 0000000000000000
+[dd] +0x6a70: 52a2e443aa4f5fb9 -> 0000000000000000
+[dd] +0x6aa8: 000000000000006b -> 0000000000000000
+[dd] +0x6ab0: a61e424400b90001 -> b5cca33400b90001
+[dd] +0x6ab8: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6ac8: 0000000000000001 -> 0000000000000000
+[dd] +0x6b28: 0075000100000000 -> 0230000100000000
+[dd] +0x6b30: 000000cfa61e4a2f -> 000000cfb5cca337
+[dd] +0x6b38: 00000000000440f2 -> 0000000000000400
+[dd] +0x6b40: 00dd01000000017f -> 000010100000011d
+[dd] +0x6ba8: a61e4a3302300001 -> b5cca68700750001
+[dd] +0x6bb0: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6bb8: 0000011d00000000 -> 0000017f00000000
+[dd] +0x6bc0: 0000000000001001 -> 0000000000dd0000
+[dd] +0x6c28: 000000cfa61e4dbc -> 000000cfb5ccad33
+[dd] +0x6c30: 00000000000440f2 -> 0000000000000400
+[dd] +0x6c38: 000000100000014a -> 000000000000014a
+[dd] +0x6ca0: a61e4de403ad0001 -> b5ccad451b730001
+[dd] +0x6ca8: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6cb0: 0000012700000000 -> 0000014c00000000
+[dd] +0x6d18: 00a0000100000000 -> 1353010100000000
+[dd] +0x6d20: 000000cfa61e4e0b -> 000000cfb5ccb173
+[dd] +0x6d28: 00000000000440f2 -> 0000000000000400
+[dd] +0x6d30: 0000000000000224 -> 36edd00500000111
+[dd] +0x6d38: 0000000000000000 -> 76bffcc354eabcd0
+[dd] +0x6d40: 0000000000000000 -> 000000003c70550b
+[dd] +0x6d48: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x6d50: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x6d58: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x6d60: 0000000000000000 -> 1878694fcc742faf
+[dd] +0x6d68: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x6d90: 0000000000000000 -> 000000000000006f
+[dd] +0x6d98: a61e4fab1b730001 -> b5ccb27013570101
+[dd] +0x6da0: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6da8: 0000014c00000000 -> 0000011200000000
+[dd] +0x6db0: 0000000000000001 -> 54eabcd036edd005
+[dd] +0x6db8: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x6dc0: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x6dc8: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x6dd0: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x6dd8: 0000000000000000 -> cc742faf52a2e443
+[dd] +0x6de0: 0000000000000000 -> f9ea7d771878694f
+[dd] +0x6de8: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x6e08: 0000000000000000 -> 0000006f00000000
+[dd] +0x6e10: 00e0000100000000 -> 1369010100000000
+[dd] +0x6e18: 000000cfa61e4fac -> 000000cfb5ccb280
+[dd] +0x6e20: 00000000000440f2 -> 0000000000000400
+[dd] +0x6e28: 0001000000000142 -> 9562efed00000111
+[dd] +0x6e30: 76bffcc300010000 -> 76bffcc3641a7c32
+[dd] +0x6e40: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x6e48: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x6e60: 0000000000000000 -> 6a68ec3ef9ea7d77
+[dd] +0x6e88: 000000000000006b -> 000000000000006f
+[dd] +0x6e90: a61e4fad16de0001 -> b5ccb2aa136d0101
+[dd] +0x6e98: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6ea0: 0000013500000000 -> 0000011200000000
+[dd] +0x6ea8: 0000000000000110 -> 641a7c329562efed
+[dd] +0x6eb8: 4fd1904100000000 -> cd1ee80b00000000
+[dd] +0x6ec0: 86715a3b8f4f467c -> 500f69d906258cf1
+[dd] +0x6ec8: aa4f5fb90b7a8a42 -> aa4f5fb94b7faea3
+[dd] +0x6ed8: 0000000000000000 -> f9ea7d7700000000
+[dd] +0x6ee0: 0000000000000000 -> 000000006a68ec3e
+[dd] +0x6f00: 0000006b00000000 -> 0000006f00000000
+[dd] +0x6f08: 1ce4010100000000 -> 1389000100000000
+[dd] +0x6f10: 000000cfa61e4fe8 -> 000000cfb5ccb2d8
+[dd] +0x6f18: 00000000000440f2 -> 0000000000000400
+[dd] +0x6f20: 11fa77dd0000010b -> e00002d600000113
+[dd] +0x6f28: 0000000048b6785d -> 76bffcc3ffffffff
+[dd] +0x6f30: 0000000000000000 -> 000000003c70550b
+[dd] +0x6f38: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x6f40: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x6f48: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x6f80: 0000000000000000 -> 000000000000006f
+[dd] +0x6f88: a61e50751d070001 -> b5ccb4691d270001
+[dd] +0x6f90: 000440f2000000cf -> 00000400000000cf
+[dd] +0x6f98: 0000011900000000 -> 0000011a00000000
+[dd] +0x6fa0: 0100000000000000 -> 0100000100000000
+[dd] +0x7000: 1ce4010100000000 -> 1d27000100000000
+[dd] +0x7008: 000000cfa61e50a9 -> 000000cfb5ccb4d8
+[dd] +0x7010: 00000000000440f2 -> 0000000000000400
+[dd] +0x7018: 3d6834030000010b -> 800000000000011a
+[dd] +0x7020: 00000000618e27eb -> 0000000001000001
+[dd] +0x7080: a61e50c91d070001 -> b5ccb4ee13970001
+[dd] +0x7088: 000440f2000000cf -> 00000400000000cf
+[dd] +0x7090: 0000011900000000 -> 0000010d00000000
+[dd] +0x7098: 0100000080000000 -> 00000000000000c1
+[dd] +0x70a0: 0000000000000000 -> 3c70550b76bffcc3
+[dd] +0x70a8: 0000000000000000 -> cd1ee80b00000000
+[dd] +0x70b0: 0000000000000000 -> 500f69d906258cf1
+[dd] +0x70b8: 0000000000000000 -> aa4f5fb94b7faea3
+[dd] +0x70c0: 0000000000000000 -> 0000000052a2e443
+[dd] +0x70f0: 0000000000000000 -> 0000006f00000000
+[dd] +0x70f8: 0dd3010100000000 -> 139d000100000000
+[dd] +0x7100: 000000cfa61e55eb -> 000000cfb5ccb562
+[dd] +0x7108: 00000000000440f2 -> 0000000000000400
+[dd] +0x7110: 76bffcc30000011e -> 000000c30000010d
+[dd] +0x7118: 000000003c70550b -> 76bffcc300000000
+[dd] +0x7120: 0000000000000000 -> 000000003c70550b
+[dd] +0x7128: 0000000000000000 -> 06258cf1cd1ee80b
+[dd] +0x7130: 0000000000000000 -> 4b7faea3500f69d9
+[dd] +0x7138: 0000000000000000 -> 52a2e443aa4f5fb9
+[dd] +0x7170: 0000000000000000 -> 000000000000006f
+[dd] +0x7178: a61e55ef16d50001 -> b5ccb5781c1e0001
+[dd] +0x7180: 000440f2000000cf -> 00000400000000cf
+[dd] +0x7188: 0000013500000000 -> 0000018300000000
+[dd] +0x7190: 0000000000010001 -> f0000f0400000000
+[dd] +0x7198: 3c70550b76bffcc3 -> 0000000000000000
+[dd] +0x71a0: 4fd1904100000000 -> 0000000000000000
+[dd] +0x71a8: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x71b0: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x71b8: 0000000052a2e443 -> 0000000000000000
+[dd] +0x71e8: 0000006b00000000 -> 0000000000000000
+[dd] +0x71f0: 00aa000100000000 -> 13c8000100000000
+[dd] +0x71f8: 000000cfa61e55f0 -> 000000cfb5ccb57f
+[dd] +0x7200: 00000000000440f2 -> 0000000000000400
+[dd] +0x7208: 0000001000000142 -> 0000000100000120
+[dd] +0x7220: 8f4f467c4fd19041 -> 06258cf1cd1ee80b
+[dd] +0x7228: 0b7a8a4286715a3b -> 4b7faea3500f69d9
+[dd] +0x7268: 000000000000006b -> 000000000000006f
+[dd] +0x7270: a61e55f200f60001 -> b5ccb97411f10001
+[dd] +0x7278: 000440f2000000cf -> 00000400000000cf
+[dd] +0x7280: 0000014200000000 -> 0000012300000000
+[dd] +0x7288: ffff000000000000 -> 0000000000000000
+[dd] +0x7290: 3c70550b76bffcc3 -> 0000000000000000
+[dd] +0x7298: 4fd1904100000000 -> 0000000000000000
+[dd] +0x72a0: 86715a3b8f4f467c -> 0000000000000000
+[dd] +0x72a8: aa4f5fb90b7a8a42 -> 0000000000000000
+[dd] +0x72b0: 0000000052a2e443 -> 0000000000000000
+[dd] +0x72e0: 0000006b00000000 -> 0000000000000000
+[dd] +0x72e8: 008b000100000000 -> 1b73000100000000
+[dd] +0x72f0: 000000cfa61e5676 -> 000000cfb5ccb977
+[dd] +0x72f8: 00000000000440f2 -> 0000000000000400
+[dd] +0x7300: 0000000100000132 -> 000000010000014c
+[dd] +0x7368: a61e568300b40001 -> b5ccbcac022c0101
+[dd] +0x7378: 0000013200000000 -> 0000011500000000
+[dd] +0x7380: 0000000000000100 -> 52a2e443aa4f5fb9
+[v32] done (alive)
+[v31a] start triangulation (tall dst)
+[tr] dst 64x256 bpr 256 alloc 0x10000
+App terminated due to signal 15.

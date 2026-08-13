@@ -1,0 +1,32 @@
+08:33:05  Acquired tunnel connection to device.
+08:33:05  Enabling developer disk image services.
+08:33:05  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x6603
+[scaler] conn 0x6603, s1 331 s2 333
+[probe12] SetNotificationPort -> 0x00000000
+[v27] fill-target analysis
+[s] kill-shot -> kr 0xe00002d6
+[t] A: src changed 0 first 0xffffffffffffffff
+[t] A: dst changed 0 first 0xffffffffffffffff
+[t] B: color=1 kill-shot -> kr 0xe00002d6
+[t] B: src changed 0 first 0xffffffffffffffff
+[v27] done (alive)
+[v26] async cushion race
+[ac] 8 cushions
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+App terminated due to signal 15.

@@ -11,6 +11,9 @@
 #include <IOSurface/IOSurfaceTypes.h>
 #include <mach/mach.h>
 #include <mach/vm_map.h>
+// not in iOS SDK headers but present in libsystem
+extern kern_return_t mach_vm_region(vm_map_t, mach_vm_address_t *, mach_vm_size_t *,
+    vm_region_flavor_t, vm_region_info_t, mach_msg_type_number_t *, mach_port_t *);
 
 // devicectl captures stderr from the launched app. Keep the format as a C
 // string so callers can use the same macro from .m and C-style code.

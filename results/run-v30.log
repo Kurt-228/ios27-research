@@ -1,0 +1,69 @@
+09:25:15  Acquired tunnel connection to device.
+09:25:15  Enabling developer disk image services.
+09:25:15  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7003
+[scaler] conn 0x7003, s1 20 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[v30] NC-corruption observability
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[nc] t=0 baseline kr 0x00000000 h 0c23e2a60cdd4383 | shot kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[nc] t=1 baseline kr 0x00000000 h 0c23e2a60cdd4383 | shot kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[nc] t=2 baseline kr 0x00000000 h f301dde9407dc383 | shot kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[nc] t=3 baseline kr 0x00000000 h f301dde9407dc383 | shot kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[v30] done (alive)
+[v29] fill calibration
+[k] wrap-start-inside -> kr 0xe00002c7, dst changed 0, first 0xffffffffffffffff
+[k] short-1 -> kr 0x00000000, dst changed 16384, first 0x0
+[k] short-1 dump @first: 00 00 00 00 ff ff ff ff
+[k] short-16 -> kr 0x00000000, dst changed 16384, first 0x0
+[k] short-16 dump @first: 00 00 00 00 00 00 00 00
+[k] short-31 -> kr 0x00000000, dst changed 16384, first 0x0
+[k] short-31 dump @first: 00 00 00 00 00 00 00 00
+[k] W0-freeX -> kr 0x00000000, dst changed 8192, first 0x0
+[k] W0-freeX dump @first: ff ff ff ff ff ff ff ff
+[v29] done (alive)
+[v28] post-shot state corruption check
+[c] baseline 0 kr 0x00000000 checksum 7619f0f90cf6c383
+[c] baseline 1 kr 0x00000000 checksum 7619f0f90cf6c383
+[c] baseline 2 kr 0x00000000 checksum 7619f0f90cf6c383
+[s] kill-shot -> kr 0xe00002d6
+[c] post 0 kr 0x00000000 checksum 7619f0f90cf6c383 OK
+[c] post 0 upscale kr 0x00000000 checksum d1e30965492d1383
+[c] post 1 kr 0x00000000 checksum 7619f0f90cf6c383 OK
+[c] post 1 upscale kr 0x00000000 checksum d1e30965492d1383
+[c] post 2 kr 0x00000000 checksum 7619f0f90cf6c383 OK
+[c] post 2 upscale kr 0x00000000 checksum d1e30965492d1383
+[c] post 3 kr 0x00000000 checksum 7619f0f90cf6c383 OK
+[c] post 3 upscale kr 0x00000000 checksum d1e30965492d1383
+[c] post 4 kr 0x00000000 checksum 7619f0f90cf6c383 OK
+[c] post 4 upscale kr 0x00000000 checksum d1e30965492d1383
+[v28] done (alive)
+[v27] fill-target analysis
+[s] kill-shot -> kr 0xe00002d6
+[t] A: src changed 0 first 0xffffffffffffffff
+[t] A: dst changed 0 first 0xffffffffffffffff
+[t] B: color=1 kill-shot -> kr 0xe00002d6
+[t] B: src changed 0 first 0xffffffffffffffff
+[v27] done (alive)
+[v26] async cushion race
+[ac] 8 cushions
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[v26] done (alive)
+[v25] flip x 420f/420v dst (plane adjacency)
+App terminated due to signal 15.
