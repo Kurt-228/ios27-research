@@ -1,0 +1,44 @@
+07:13:41  Acquired tunnel connection to device.
+07:13:41  Enabling developer disk image services.
+07:13:41  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7003
+[scaler] conn 0x7003, s1 18 s2 165
+[probe12] SetNotificationPort -> 0x00000000
+[v14] verify phase (fresh state)
+[v] readback bpr 256 sum(4 rows) 0x00004400 first 11111111
+[v] readback bpr 256 sum(4 rows) 0x00008800 first 22222222
+[v] normal 64x64 same-fmt -> kr 0x00000000
+[v] readback bpr 256 sum(4 rows) 0x00004400 first 11111111
+[v] readback bpr 256 sum(4 rows) 0x00008800 first 22222222
+[v] oversize dst 4096 -> kr 0x00000000
+[v] readback bpr 256 sum(4 rows) 0x00004400 first 11111111
+[v] dst changed: YES - executed (before 0x00008800 after 0x00004400)
+[v] BGRA->420v fresh -> kr 0x00000000
+[v] readback bpr 128 sum(4 rows) 0x00006a40 first 80808080
+[v] g_s1->g_s2 -> kr 0x00000000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[v] sticky repro: normal 0x00000000 -> oversize 0x00000000 -> normal 0x00000000 -> normal 0x00000000
+[v14] done
+[v18-A] border fill probes (iOS validation mapped)
+[A] baseline dstrect32 border 2,2 2x2 -> kr 0xe00002c7
+[A] baseline2 32-aligned -> kr 0x00000000
+[A] baseline2 changed @row 0 col 0: 00 (expect 22)
+[A] baseline2 changed @row 1 col 0: 00 (expect 22)
+[A] baseline2 changed @row 2 col 0: ff (expect 22)
+[A] baseline2 changed @row 3 col 0: ff (expect 22)
+[A] baseline2 changed @row 4 col 0: ff (expect 22)
+[A] baseline2 changed @row 5 col 0: ff (expect 22)
+[A] baseline2 changed @row 6 col 0: ff (expect 22)
+[A] baseline2 changed @row 7 col 0: ff (expect 22)
+[A] WRAP-KILLSHOT x 00000020 w ffffffe0 -> kr 0xe00002d6
+ERROR: An error occurred while communicating with a remote process. (com.apple.dt.CoreDeviceError error 3 (0x03))
+       ----------------------------------------
+           The connection was invalidated. (com.apple.Mercury.error error 1001 (0x3E9))
+           XPCConnectionDescription = <RemoteXPCPeerConnection 0x7c24d541e0> { <remote connection: 0x7c24d70500> { type = preconnected, state = canceled, remote service name = (null), server mode = 0, protocol version number = 1, protocol feature flags = 0x6, local service version = 0, remote service version = 0, traffic class = 0, (root, reply) helo received = (1, 1), next msg id = 5, first msg id = 1, send in progress = 0, preexisting socket = -1 }

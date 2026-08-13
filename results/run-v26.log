@@ -1,0 +1,35 @@
+07:49:48  Acquired tunnel connection to device.
+07:49:48  Enabling developer disk image services.
+07:49:48  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x620b
+[scaler] conn 0x620b, s1 20 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[v26] async cushion race
+[ac] 8 cushions
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[s] kill-shot -> kr 0xe00002d6
+[v26] done (alive)
+[v25] flip x 420f/420v dst (plane adjacency)
+[f4] 420f t=0 -> kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[f4] 420f t=1 -> kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[f4] 420f t=2 -> kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[f4] 420f t=3 -> kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[f4] 420v t=0 -> kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+[f4] 420v t=1 -> kr 0xe00002d6, dst changed 0 first 0xffffffffffffffff
+App terminated due to signal 15.
