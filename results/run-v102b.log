@@ -1,0 +1,81 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6b03
+[scaler] conn 0x6b03, s1 297 s2 298
+[probe12] SetNotificationPort -> 0x00000000
+[ovr] v102 step 0
+[open] AppleM2ScalerCSCDriver -> conn 0x6803
+[ovr] shot dst=s0 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s0 -> kr 0xe00002c2
+[ovr] adj shot 0 corrupt:
+[ovr] shot dst=s1 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s1 -> kr 0xe00002c2
+[ovr] adj shot 1 corrupt:
+[ovr] shot dst=s2 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s2 -> kr 0xe00002c2
+[ovr] adj shot 2 corrupt:
+[ovr] shot dst=s3 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s3 -> kr 0xe00002c2
+[ovr] adj shot 3 corrupt:
+[ovr] shot dst=s4 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s4 -> kr 0xe00002c2
+[ovr] adj shot 4 corrupt:
+[ovr] shot dst=s5 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s5 -> kr 0xe00002c2
+[ovr] adj shot 5 corrupt:
+[ovr] shot dst=s6 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s6 -> kr 0xe00002c2
+[ovr] adj shot 6 corrupt:
+[ovr] shot dst=s7 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s7 -> kr 0xe00002c2
+[ovr] adj shot 7 corrupt:
+[ovr] shot dst=s8 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s8 -> kr 0xe00002c2
+[ovr] adj shot 8 corrupt:
+[ovr] shot dst=s9 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s9 -> kr 0xe00002c2
+[ovr] adj shot 9 corrupt:
+[ovr] shot dst=s10 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s10 -> kr 0xe00002c2
+[ovr] adj shot 10 corrupt:
+[ovr] shot dst=s11 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s11 -> kr 0xe00002c2
+[ovr] adj shot 11 corrupt:
+[ovr] shot dst=s12 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s12 -> kr 0xe00002c2
+[ovr] adj shot 12 corrupt:
+[ovr] shot dst=s13 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s13 -> kr 0xe00002c2
+[ovr] adj shot 13 corrupt:
+[ovr] shot dst=s14 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s14 -> kr 0xe00002c2
+[ovr] adj shot 14 corrupt:
+[ovr] shot dst=s15 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s15 -> kr 0xe00002c2
+[ovr] adj shot 15 corrupt:
+[ovr] shot dst=s16 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s16 -> kr 0xe00002c2
+[ovr] adj shot 16 corrupt:
+[ovr] shot dst=s17 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s17 -> kr 0xe00002c2
+[ovr] adj shot 17 corrupt:
+[ovr] shot dst=s18 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s18 -> kr 0xe00002c2
+[ovr] adj shot 18 corrupt:
+[ovr] shot dst=s19 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s19 -> kr 0xe00002c2
+[ovr] adj shot 19 corrupt:
+[ovr] shot dst=s20 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s20 -> kr 0xe00002c2
+[ovr] adj shot 20 corrupt:
+[ovr] shot dst=s21 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s21 -> kr 0xe00002c2
+[ovr] adj shot 21 corrupt:
+[ovr] shot dst=s22 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s22 -> kr 0xe00002c2
+[ovr] adj shot 22 corrupt:
+[ovr] shot dst=s23 (wire kr 0x00000000) W 0x80...
+[ovr] shot dst=s23 -> kr 0xe00002c2
+[ovr] adj shot 23 corrupt:
+[ovr] done (alive)
+[probe13] overrun-only mode, stop

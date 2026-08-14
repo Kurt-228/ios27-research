@@ -1,0 +1,16 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6503
+[scaler] conn 0x6503, s1 297 s2 298
+[probe12] SetNotificationPort -> 0x00000000
+[ovr] v102 step 3
+[open] AppleM2ScalerCSCDriver -> conn 0x6603
+[ovr] gate 4096x4096: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 4096x1024: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 4096x256: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 4096x64: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 2048x2048: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 2048x1024: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 1024x4096: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 1024x1024: wire 0x00000000 shot 0xe00002d6
+[ovr] gate 4096x32: wire 0x00000000 shot 0xe00002c2
