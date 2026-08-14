@@ -1,0 +1,11 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6d03
+[scaler] conn 0x6d03, s1 22 s2 23
+[probe12] SetNotificationPort -> 0x00000000
+[guaf] v105 step 1
+[open] IOGPU -> conn 0x6703
+*** Terminating app due to uncaught exception 'NSInvalidArgumentException', reason: '-[AGXG16PFamilyBlitContext waitForEvent:value:]: unrecognized selector sent to instance 0x1057e9800'
+*** First throw call stack:
+(0x18f836fa0 0x18f5b4298 0x18f936478 0x18f7f2784 0x18f7f2a40 0x1000f4c38 0x18f6e203c 0x18f6de91c)
+libc++abi: terminating due to uncaught exception of type NSException

