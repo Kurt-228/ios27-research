@@ -1,0 +1,14 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6803
+[scaler] conn 0x6803, s1 282 s2 295
+[probe12] SetNotificationPort -> 0x00000000
+[dartw] v96 step 3
+[open] AppleM2ScalerCSCDriver -> conn 0x8203
+[dartw] wire small -> kr 0x00000000
+[dartw] giant dst 4096x4096 wire -> kr 0x00000000
+[dartw] giant killshot (PANIC possible)...
+[dartw] giant killshot -> kr 0xe00002d6
+[dartw] giant dst: 0 bytes differ, first @0x0 last @0x0, corrupt pages ~0
+[dartw] giant done (alive)
+[probe13] dartwrite-only mode, stop

