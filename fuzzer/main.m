@@ -17,6 +17,14 @@
     [self.window makeKeyAndVisible];
 
     const char *mode = getenv("FUZZ_MODE") ?: "all";
+    // Fallback log path: when devicectl --console attach is broken, run with
+    // FUZZ_LOGFILE=1 to tee stderr into the app container and pull it via
+    // devicectl copy (domain-type appDataContainer).
+    if (getenv("FUZZ_LOGFILE")) {
+        NSString *logp = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/fuzz.log"];
+        freopen(logp.fileSystemRepresentation, "w", stderr);
+        setvbuf(stderr, NULL, _IONBF, 0);
+    }
     LOG("[main] fuzz harness up, mode=%s", mode);
     LOG("[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); "
         "mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)");

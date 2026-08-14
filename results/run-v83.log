@@ -1,0 +1,47 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x670f
+[scaler] conn 0x670f, s1 282 s2 295
+[probe12] SetNotificationPort -> 0x00000000
+[mtlr] Metal-format replay: format-B resources + 6-pack segment list
+[open] IOGPU -> conn 0x6d0f
+[mtlr] setup: nq 1 qid 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 1023ec000
+[mtlr]   out: 0000010000000000 00000001023ec000 00000001023cc0c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000181857fa 0000000000013a14
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 1023fc000
+[mtlr]   out: 0000010000018000 00000001023fc000 00000001023cc180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000181857fb 0000000000013a15
+[mtlr] A: rid 1 GPUVA 0x10000000000 cpu 0x1023ec000 | B: rid 2 GPUVA 0x10000018000 cpu 0x1023fc000
+[mtlr] space-0x1 check: A 1 B 1 (hi dword 0x100 expected)
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 1023e8000 id 1
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 10240c000 id 2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[mtlr] combo usage3 -> kr 0x00000000 outw 0000000a | B: nonzero 0, pattern(0x41) 0 / 0x10000 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] combo usage3+resid -> kr 0x00000000 outw 0000000a | B: nonzero 0, pattern(0x41) 0 / 0x10000 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] combo usageFFFF -> kr 0x00000000 outw 0000000a | B: nonzero 0, pattern(0x41) 0 / 0x10000 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] combo usageFFFF+resid -> kr 0x00000000 outw 0000000a | B: nonzero 0, pattern(0x41) 0 / 0x10000 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] combo usage6+resid -> kr 0x00000000 outw 0000000a | B: nonzero 0, pattern(0x41) 0 / 0x10000 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] combo usageFF+resid -> kr 0x00000000 outw 0000000a | B: nonzero 0, pattern(0x41) 0 / 0x10000 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] done (alive)
+[v80] GPUVA-correct blit redirect
+[open] IOGPU -> conn 0x514b
+[gw] flagged resource: kr 0x00000000 rid 1 GPUVA 0x10000000000 (cpuptr 0)
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 102454000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 102514000 id 2
+[gw] submit GPUVA 0x10000000000 -> kr 0x00000000 outw 00000000
+[gw] *** target 0x5A bytes: 0 / 0x10000 (no write)
+[v80] done (alive)
+[v79] isolated kill-shot loop (watch screen!)
+[open] AppleM2ScalerCSCDriver -> conn 0x5e2b
+[ks] shot 0 -> kr 0xe00002d6
+[ks] shot 1 -> kr 0xe00002d6

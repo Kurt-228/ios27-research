@@ -20,6 +20,9 @@ $CLANG -arch arm64 \
     fuzzer/*.m -o "$OUT/fuzz27"
 
 cp fuzzer/Info.plist "$OUT/Info.plist"
+if [ -d "$ROOT/fuzzer/assets" ]; then
+    cp "$ROOT"/fuzzer/assets/*.bin "$OUT/" 2>/dev/null || true
+fi
 if [ -f "$PROFILE" ]; then
     cp "$PROFILE" "$OUT/embedded.mobileprovision"
 fi
