@@ -15950,6 +15950,124 @@ static void p_deepprobe(void) {
     LOG("[deep] done (alive)");
 }
 
+// V99: scaler fuzz campaign. sel11 recon, type check, field-by-field mutation
+// of the sel1 request (0x1b0). Every case logged BEFORE the call (panic
+// forensics). FUZZ_SCALERFUZZ_SKIP=N resumes after crash/panic.
+static void p_scalerfuzz(void) {
+    LOG("[sf] v99: scaler fuzz campaign");
+    int skip = atoi(getenv("FUZZ_SCALERFUZZ_SKIP") ?: "0");
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    uint8_t *outb = must_map(0x1000);
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef dst = make_surface(64, 64);
+    if (!src || !dst) return;
+    IOSurfaceID si = IOSurfaceGetID(src), di = IOSurfaceGetID(dst);
+
+    // ---- 1. sel11 recon
+    for (int after = 0; after < 2; after++) {
+        static const size_t szs[] = { 0x8, 0x20, 0x80, 0x100, 0x400 };
+        for (unsigned zi = 0; zi < sizeof(szs)/sizeof(szs[0]); zi++) {
+            memset(req, 0, 0x1000); memset(outb, 0, 0x1000);
+            size_t osz = szs[zi];
+            kern_return_t kr = IOConnectCallStructMethod(c, 11, req, szs[zi], outb, &osz);
+            LOG("[sf] sel11 stIn 0x%zx -> kr 0x%08x osz 0x%zx out: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                szs[zi], kr, osz,
+                outb[0], outb[1], outb[2], outb[3], outb[4], outb[5], outb[6], outb[7],
+                outb[8], outb[9], outb[10], outb[11], outb[12], outb[13], outb[14], outb[15]);
+        }
+        if (!after) {   // again after a real scale (state getter?)
+            craft_transform(req, si, di, 64, 64);
+            LOG("[sf] warm-up scale -> kr 0x%08x", scaler_call1(c, req));
+            usleep(100000);
+        }
+    }
+    // ---- 2. types: sel1 + sel11 availability
+    for (uint32_t t = 0; t <= 3; t++) {
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching("AppleM2ScalerCSCDriver"));
+        io_connect_t cc = 0;
+        kern_return_t ko = s ? IOServiceOpen(s, mach_task_self(), t, &cc) : -1;
+        if (s) IOObjectRelease(s);
+        if (ko || !cc) continue;
+        craft_transform(req, si, di, 64, 64);
+        kern_return_t k1 = scaler_call1(cc, req);
+        memset(req, 0, 0x1000); memset(outb, 0, 0x1000);
+        size_t osz = 0x100;
+        kern_return_t k11 = IOConnectCallStructMethod(cc, 11, req, 0x80, outb, &osz);
+        LOG("[sf] type %u: sel1 kr 0x%08x sel11 kr 0x%08x", t, k1, k11);
+        IOServiceClose(cc);
+    }
+    // baseline dst fingerprint
+    craft_transform(req, si, di, 64, 64);
+    kern_return_t kbase = scaler_call1(c, req);
+    usleep(100000);
+    uint8_t dfp[16];
+    memset(dfp, 0, 16);
+    if (IOSurfaceLock(dst, kIOSurfaceLockReadOnly, NULL) == 0) {
+        memcpy(dfp, IOSurfaceGetBaseAddress(dst), 16);
+        IOSurfaceUnlock(dst, kIOSurfaceLockReadOnly, NULL);
+    }
+    LOG("[sf] baseline: kr 0x%08x dst[0..15] %02x %02x %02x %02x", kbase, dfp[0], dfp[1], dfp[2], dfp[3]);
+
+    // ---- 3. field-by-field mutation
+    static const uint32_t magic[] = { 0, 1, 0x7fffffff, 0x80000000, 0xfffffffe, 0xffffffff };
+    long caseidx = 0;
+    for (long off = 0; off < 0x1b0; off += 4) {
+        for (unsigned mv = 0; mv < 10; mv++) {
+            caseidx++;
+            if (caseidx <= skip) continue;
+            craft_transform(req, si, di, 64, 64);
+            uint32_t orig = *(uint32_t *)(req + off);
+            uint32_t val;
+            if (mv < 6) val = magic[mv];
+            else if (mv == 6) val = orig - 1;
+            else if (mv == 7) val = orig + 1;
+            else if (mv == 8) val = orig << 8;
+            else val = orig * 0x1000;
+            *(uint32_t *)(req + off) = val;
+            LOG("[sf] c%04ld off 0x%03lx val 0x%08x (orig 0x%08x)", caseidx, off, val, orig);
+            kern_return_t kr = scaler_call1(c, req);
+            if (kr != kbase && kr != 0xe00002c2)
+                LOG("[sf] c%04ld -> kr 0x%08x ANOMALY (baseline 0x%08x)", caseidx, kr, kbase);
+            else if (kr != kbase)
+                LOG("[sf] c%04ld -> kr 0x%08x (rejected)", caseidx, kr);
+            if ((caseidx & 0xff) == 0) LOG("[sf] progress c%04ld alive", caseidx);
+            usleep(300);
+        }
+    }
+    LOG("[sf] field fuzz done: %ld cases (alive)", caseidx);
+
+    // ---- 4. combined extremes: pairs of geometry fields
+    static const struct { long o1; uint32_t v1; long o2; uint32_t v2; const char *n; } combos[] = {
+        { 0x48, 0xffff, 0x4c, 0xffff, "srcWH ffff" },
+        { 0x48, 0x10000, 0x4c, 0x10000, "srcWH 10000" },
+        { 0x38, 0xffff0000, 0x40, 0xffff0000, "crop ffff.0" },
+        { 0x38, 0x80000000, 0x40, 0x80000000, "crop neg16.16" },
+        { 0x68, 0xffffffff, 0x6c, 0xffffffff, "dstWH ffffffff" },
+        { 0x68, 0x80000000, 0x6c, 0x80000000, "dstWH 80000000" },
+        { 0x70, 0xffffffff, 0x74, 0xffffffff, "rect2 ffffffff" },
+        { 0x68, 0xffffffe0, 0x6c, 0xffffffe0, "dstWH wrap" },
+        { 0x38, 0xffffff00, 0x40, 0xffffff00, "crop wrap16.16" },
+        { 0x48, 1, 0x4c, 0xffffffff, "w1 h-1" },
+        { 0x48, 0xffffffff, 0x4c, 1, "w-1 h1" },
+    };
+    for (unsigned ci = 0; ci < sizeof(combos)/sizeof(combos[0]); ci++) {
+        caseidx++;
+        if (caseidx <= skip) continue;
+        craft_transform(req, si, di, 64, 64);
+        *(uint32_t *)(req + combos[ci].o1) = combos[ci].v1;
+        *(uint32_t *)(req + combos[ci].o2) = combos[ci].v2;
+        LOG("[sf] combo c%04ld %s: off 0x%lx=0x%08x off 0x%lx=0x%08x",
+            caseidx, combos[ci].n, combos[ci].o1, combos[ci].v1, combos[ci].o2, combos[ci].v2);
+        kern_return_t kr = scaler_call1(c, req);
+        LOG("[sf] combo c%04ld -> kr 0x%08x", caseidx, kr);
+        usleep(2000);
+    }
+    LOG("[sf] done (alive), total cases %ld", caseidx);
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16080,6 +16198,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_SCALERFUZZ")) { p_scalerfuzz(); LOG("[probe13] scalerfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DEEPPROBE")) { p_deepprobe(); LOG("[probe13] deepprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSWEEP")) { p_iosweep(); LOG("[probe13] iosweep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTWRITE")) { p_dartwrite(); LOG("[probe13] dartwrite-only mode, stop"); return NULL; }
