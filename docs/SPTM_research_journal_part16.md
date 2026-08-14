@@ -74,3 +74,31 @@ type 1, и это не тот клиент). НО: command-коннекшн Meta
   reg_10d460000 + fn_0x831e1ec.
 - Побочное: [cb error] в varargs fprintf дважды дал немедленную смерть процесса
   (v86/v86b), после выноса в переменную — работает; причина не до конца ясна (ARC/BGP?).
+
+## 80. Коннекты и userclient types (v87, фаза p_connprobe, env FUZZ_CONNPROBE=1)
+
+- В registry ровно ОДИН GPU-сервис: `AGXAcceleratorG16P`
+  (`IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sgx@80000000/AGXAcceleratorG16P`);
+  матчинги "IOGPU"/"AGXAccelerator"/"AGXAcceleratorG16" резолвятся в него же.
+- IOObjectGetClass/IORegistryEntryGetPath на io_connect_t на iOS 27 → 0xe00002c2
+  (introspection коннектов закрыта); Metal-коннект идентифицирован поведенчески (v86).
+- Перебор IOServiceOpen type (0..0x20, 0x100, 0x1000, 0x10000, 0x100000..0x100005)
+  на IOGPU и AGXAcceleratorG16P — открываются из нашего sandbox'а ТОЛЬКО:
+  - type 0x1 — наш рабочий клиент (sel6/8/12/14/24/trap0);
+  - type 0x100001 — открывается, та же селекторная таблица, тот же результат сабмита;
+  - всё остальное, включая Metal'овский macOS-type **0x100005 → 0xe00002c7** (denied,
+    entitlement/sandbox-gate).
+- Submit-тест (verbatim fill, 2 ресурса) на каждом открытом type: kr 0, outU32 0,
+  completion {0,0}, записи в B нет — идентично для 0x1 и 0x100001, оба сервиса
+  (один объект) ведут себя одинаково.
+- Крашей/паник при переборе не было, FUZZ_CONNPROBE_SKIP не понадобился.
+
+Вывод: «настоящий» GPU-контекст привязан к привилегированному userclient type
+(0x100005 у Metal на macOS; на iOS открытие из App-Sandbox запрещено). Доступные
+нам типы (0x1, 0x100001) дают функционально полный, но «беззубый» конвейер:
+трансляция проходит (completion 0), реальной записи GPU не производит.
+Остаётся гипотеза, что Metal на iOS открывает тот же type 0x100001, а разница —
+в дополнительной инициализации (VM attach sel42/44/45, event setup), которую
+Metal делает на своём коннекте и которую можно попробовать воспроизвести на нашем
+type-0x100001 (см. v74: sel42/44/45 vmid/attach давали kr 0 — стоит прогнать
+replay ПОСЛЕ полного VM-attach).

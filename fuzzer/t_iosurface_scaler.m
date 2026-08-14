@@ -14251,6 +14251,172 @@ static void p_mtlself(void) {
     LOG("[mtls] done (alive)");
 }
 
+// V87: connection / userclient-type probe. Why does our IOGPU type-1 queue get
+// a no-op GPU context ({0,0}, no write) while Metal's queue really executes?
+// 1) identify Metal's conn class/registry path; 2) registry scan of IOGPU/AGX
+// services; 3) userclient type sweep with a one-shot replay submit per type.
+static void connprobe_submittest(io_connect_t c, const char *tag) {
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqVA = *(uint64_t *)out;
+    uint32_t nqid = *(uint32_t *)(out + 8);
+    if (kr) { LOG("[connp] %s: sel14 kr 0x%08x", tag, kr); return; }
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    const char *pn = getprogname();
+    strncpy((char *)in, pn, 0x1f);
+    *(uint32_t *)(in + 0x400) = 2;
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    kern_return_t kb = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+    if (kr || !qid || kb) { LOG("[connp] %s: queue kr 0x%08x qid %llu bind 0x%08x", tag, kr, qid, kb); return; }
+    uint64_t gA = 0, gB = 0;
+    uint8_t *cA = NULL, *cB = NULL;
+    uint32_t rA = gpu_resource2(c, 0x10000, &gA, &cA);
+    uint32_t rB = gpu_resource2(c, 0x10000, &gB, &cB);
+    uint8_t *vS = NULL, *vC = NULL;
+    uint32_t iS = gpu_shmem_t(c, 0x4000, 0, &vS);
+    uint32_t iC = gpu_shmem_t(c, 0x4000, 1, &vC);
+    if (!rA || !rB || !cA || !cB || !iS || !iC) {
+        LOG("[connp] %s: res/shmem fail rA %u rB %u iS %u iC %u", tag, rA, rB, iS, iC);
+        return;
+    }
+    memset(cA, 0x41, 0x10000);
+    memset(cB, 0, 0x10000);
+    memcpy(vC, agx_A4_image, 0x4000);
+    if (gB != 0x10000018000ULL) {
+        for (long o = 0; o < 0x1000 - 8; o += 4) {
+            uint64_t q = *(uint64_t *)(vC + o);
+            if ((q >> 32) == 0x100) {
+                if ((q & 0xffffffff) == 0x18000) *(uint64_t *)(vC + o) = gB;
+                else *(uint64_t *)(vC + o) = gA + (q & 0x3fff);
+            }
+        }
+    }
+    memcpy(vS, agx_B4_image, 0x4000);
+    *(uint32_t *)(vS + 0x40) = 2;
+    *(uint32_t *)(vS + 0x44) = 1;
+    uint8_t *g6 = vS + 0x48;
+    memset(g6, 0, 0x40);
+    *(uint32_t *)(g6 + 0x00) = rA;
+    *(uint32_t *)(g6 + 0x04) = rB;
+    *(uint32_t *)(g6 + 0x18) = 0x40;
+    *(uint32_t *)(g6 + 0x1c) = 0x40;
+    *(uint16_t *)(g6 + 0x30) = 3;
+    *(uint16_t *)(g6 + 0x32) = 3;
+    *(uint16_t *)(g6 + 0x3e) = 2;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    uint8_t *comp = must_map(0x1000);
+    memset(comp, 0, 0x1000);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = iC;
+    *(uint32_t *)(entry + 0x04) = iS;
+    *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+    *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+    *outw = 0xdeadbeef;
+    LOG("[connp] %s: submitting (qid %llu, rA %u rB %u)...", tag, qid, rA, rB);
+    kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+    usleep(50000);
+    uint32_t wr = nqVA ? *(volatile uint32_t *)((volatile uint8_t *)(uintptr_t)nqVA + 0x08) : 0;
+    uint32_t s1 = 0xffff, s2 = 0xffff;
+    volatile uint8_t *nq2 = (volatile uint8_t *)(uintptr_t)nqVA;
+    if (nqVA && wr >= 0x2c) {
+        s2 = *(volatile uint32_t *)(nq2 + 0x10 + wr - 0x2c + 0x18);
+        if (wr >= 0x58) s1 = *(volatile uint32_t *)(nq2 + 0x10 + wr - 0x58 + 0x18);
+    }
+    long b5 = 0, bnz = 0;
+    for (long i = 0; i < 0x10000; i++) { if (cB[i]) bnz++; if (cB[i] == 0x5A) b5++; }
+    LOG("[connp] %s -> kr 0x%08x outU32 %08x wrIdx %x statuses {%u, %u} | B nz %ld 5A %ld %s",
+        tag, kt, *outw, wr, s1, s2, bnz, b5, b5 ? "*** GPU WRITE ***" : "");
+}
+
+static void p_connprobe(void) {
+    LOG("[connp] v87: connection/type probe");
+    // 1. identify Metal's command connection class + registry path
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = dev ? [dev newCommandQueue] : nil;
+    if (mq) {
+        uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+        uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+        io_connect_t mc = dref ? *(uint32_t *)(dref + 0x14) : 0;
+        io_name_t nm; char path[1024];
+        if (mc) {
+            kern_return_t k1 = IOObjectGetClass(mc, nm);
+            path[0] = 0;
+            kern_return_t k2 = IORegistryEntryGetPath(mc, kIOServicePlane, path);
+            LOG("[connp] Metal conn 0x%x: class '%s' (kr %x) path '%s' (kr %x)",
+                mc, k1 ? "?" : nm, k1, k2 ? "?" : path, k2);
+        }
+        io_connect_t ours = open_service("IOGPU", 1);
+        if (ours) {
+            kern_return_t k1 = IOObjectGetClass(ours, nm);
+            path[0] = 0;
+            kern_return_t k2 = IORegistryEntryGetPath(ours, kIOServicePlane, path);
+            LOG("[connp] our type1 conn 0x%x: class '%s' (kr %x) path '%s' (kr %x)",
+                ours, k1 ? "?" : nm, k1, k2 ? "?" : path, k2);
+            IOServiceClose(ours);
+        }
+    }
+    // 2. registry scan
+    static const char *cls[] = { "IOGPU", "IOGPUDevice", "AGXAccelerator",
+                                 "AGXAcceleratorG16P", "AGXAcceleratorG16", "AGXDevice", NULL };
+    for (int ci = 0; cls[ci]; ci++) {
+        io_iterator_t it = 0;
+        if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching(cls[ci]), &it) || !it) {
+            LOG("[connp] match %s: none", cls[ci]);
+            continue;
+        }
+        io_registry_entry_t e; int n = 0;
+        while ((e = IOIteratorNext(it)) && n < 6) {
+            io_name_t nm2, cl2; char path[1024];
+            IORegistryEntryGetName(e, nm2);
+            IOObjectGetClass(e, cl2);
+            path[0] = 0;
+            IORegistryEntryGetPath(e, kIOServicePlane, path);
+            LOG("[connp] match %-20s: name '%s' class '%s' path '%s'", cls[ci], nm2, cl2, path);
+            IOObjectRelease(e); n++;
+        }
+        IOObjectRelease(it);
+    }
+    // 3. userclient type sweep with one-shot replay submit per openable type
+    static const char *sweepSvcs[] = { "IOGPU", "AGXAcceleratorG16P" };
+    uint32_t types[64]; int nt = 0;
+    for (uint32_t t = 0; t <= 0x20; t++) types[nt++] = t;
+    static const uint32_t extra[] = { 0x100, 0x1000, 0x10000, 0x100000, 0x100001,
+                                      0x100002, 0x100003, 0x100004, 0x100005 };
+    for (unsigned i = 0; i < sizeof(extra)/sizeof(extra[0]); i++) types[nt++] = extra[i];
+    const char *sk = getenv("FUZZ_CONNPROBE_SKIP");
+    int skip = sk ? atoi(sk) : 0;
+    int idx = 0;
+    for (unsigned si = 0; si < sizeof(sweepSvcs)/sizeof(sweepSvcs[0]); si++) {
+        for (int ti = 0; ti < nt; ti++) {
+            idx++;
+            if (idx <= skip) continue;
+            io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                IOServiceMatching(sweepSvcs[si]));
+            if (!s) { LOG("[connp] service %s not found", sweepSvcs[si]); break; }
+            io_connect_t cc = 0;
+            kern_return_t ko = IOServiceOpen(s, mach_task_self(), types[ti], &cc);
+            IOObjectRelease(s);
+            LOG("[connp] #%d open %s type 0x%x -> kr 0x%08x conn 0x%x",
+                idx, sweepSvcs[si], types[ti], ko, cc);
+            if (!ko && cc) {
+                char tag[80];
+                snprintf(tag, sizeof tag, "%s/0x%x", sweepSvcs[si], types[ti]);
+                connprobe_submittest(cc, tag);
+                IOServiceClose(cc);
+            }
+        }
+    }
+    LOG("[connp] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -14381,6 +14547,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }
         p_mtlreplay2();     // v84: nq diagnostics matrix FIRST
         if (getenv("FUZZ_MTLR_ONLY")) { LOG("[probe13] mtlr-only mode, stop"); return NULL; }
