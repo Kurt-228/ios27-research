@@ -15825,6 +15825,131 @@ static void p_iosweep(void) {
     LOG("[sweep] done (alive)");
 }
 
+// V98: deep probe of v97 finds. (1) IOCoreSurfaceRoot type sweep; (2) AppleCLCD2
+// invocation-form sweep; (3) AppleKeyStore non-destructive size scan.
+static void p_deepprobe(void) {
+    LOG("[deep] v98: deep probe IOCoreSurfaceRoot / AppleCLCD2 / AppleKeyStore");
+    uint8_t *inb = must_map(0x1000);
+    uint8_t *outb = must_map(0x1000);
+    mach_port_t wake;
+    mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &wake);
+
+    // ---- 1. IOCoreSurfaceRoot: types 0..16 + privileged-looking
+    {
+        static const char *csrNames[] = { "IOCoreSurfaceRoot", "IOSurfaceRoot", "IOSurface" };
+        io_service_t csrSvc = 0;
+        const char *csrUsed = NULL;
+        for (unsigned ni = 0; ni < 3 && !csrSvc; ni++) {
+            csrSvc = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching(csrNames[ni]));
+            if (csrSvc) csrUsed = csrNames[ni];
+        }
+        LOG("[deep] IOCoreSurfaceRoot service: %s", csrSvc ? csrUsed : "NOT FOUND");
+        static const uint32_t tys[] = { 0,1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,
+                                        0x100, 0x1000, 0x10000, 0x100000, 0x100001, 0x100005 };
+        for (unsigned ti = 0; ti < sizeof(tys)/sizeof(tys[0]) && csrSvc; ti++) {
+            io_connect_t c = 0;
+            kern_return_t ko = IOServiceOpen(csrSvc, mach_task_self(), tys[ti], &c);
+            if (ko) { LOG("[deep] IOCoreSurfaceRoot type 0x%x -> 0x%08x", tys[ti], ko); continue; }
+            LOG("[deep] IOCoreSurfaceRoot type 0x%x -> conn 0x%x", tys[ti], c);
+            char live[512] = "";
+            for (uint32_t sel = 0; sel <= 30; sel++) {
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                size_t osz = 0x100;
+                kern_return_t k2 = IOConnectCallStructMethod(c, sel, inb, 0x80, outb, &osz);
+                if (k2 != 0xe00002c2) {
+                    char t2[24]; snprintf(t2, 24, " sel%u=%08x", sel, k2);
+                    strlcat(live, t2, 512);
+                }
+            }
+            // traps 0..3, one zero arg
+            for (uint32_t sel = 0; sel <= 3; sel++) {
+                kern_return_t kt = ioconnect_trap1(c, sel, 0);
+                if (kt != 0xe00002c2) {
+                    char t2[24]; snprintf(t2, 24, " trap%u=%08x", sel, kt);
+                    strlcat(live, t2, 512);
+                }
+            }
+            LOG("[deep]   IOCoreSurfaceRoot t0x%x live:%s", tys[ti], live[0] ? live : " none");
+            IOServiceClose(c);
+        }
+    }
+    // ---- 2. AppleCLCD2: types 0..3 x forms x sel 0..40
+    {
+        for (uint32_t t = 0; t <= 3; t++) {
+            io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                IOServiceMatching("AppleCLCD2"));
+            if (!s) break;
+            io_connect_t c = 0;
+            kern_return_t ko = IOServiceOpen(s, mach_task_self(), t, &c);
+            IOObjectRelease(s);
+            if (ko || !c) continue;
+            int found = 0;
+            for (uint32_t sel = 0; sel <= 40; sel++) {
+                char live[256]; int m = 0;
+                // struct form, two sizes
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                size_t osz = 0x100;
+                kern_return_t k2 = IOConnectCallStructMethod(c, sel, inb, 0x200, outb, &osz);
+                if (k2 != 0xe00002c2) m += snprintf(live + m, 256 - m, " struct=%08x", k2);
+                // scalar form
+                uint64_t sc[4] = {0,0,0,0}; uint64_t so[2] = {0,0}; uint32_t nso = 2;
+                k2 = IOConnectCallScalarMethod(c, sel, sc, 4, so, &nso);
+                if (k2 != 0xe00002c2) m += snprintf(live + m, 256 - m, " scalar=%08x(out %llx)", k2, so[0]);
+                // async struct
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                uint64_t ref = 1; osz = 0x100;
+                uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+                k2 = IOConnectCallAsyncMethod(c, sel, wake, &ref, 1, NULL, 0, inb, 0x200, osc, &nosc, outb, &osz);
+                if (k2 != 0xe00002c2) m += snprintf(live + m, 256 - m, " async=%08x", k2);
+                // trap1
+                kern_return_t kt = ioconnect_trap1(c, sel, 0);
+                if (kt != 0xe00002c2) m += snprintf(live + m, 256 - m, " trap=%08x", kt);
+                if (m) { LOG("[deep] CLCD2 t%u sel %u:%s", t, sel, live); found++; }
+            }
+            LOG("[deep] CLCD2 t%u: %d live selectors", t, found);
+            IOServiceClose(c);
+        }
+    }
+    // ---- 3. AppleKeyStore: NON-DESTRUCTIVE size scan of known sels
+    {
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching("AppleKeyStore"));
+        io_connect_t c = 0;
+        kern_return_t ko = s ? IOServiceOpen(s, mach_task_self(), 0, &c) : -1;
+        if (s) IOObjectRelease(s);
+        if (!ko && c) {
+            static const uint32_t sels[] = { 0, 1, 16, 8, 19, 17, 5, 6 };
+            static const size_t szs[] = { 0x8, 0x10, 0x20, 0x40, 0x80, 0x100, 0x200, 0x400 };
+            for (unsigned si = 0; si < sizeof(sels)/sizeof(sels[0]); si++) {
+                char line[512]; int m = 0;
+                m += snprintf(line + m, sizeof line - m, "[deep] AKS sel %u:", sels[si]);
+                for (unsigned zi = 0; zi < sizeof(szs)/sizeof(szs[0]); zi++) {
+                    memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                    size_t osz = 0x100;
+                    kern_return_t k2 = IOConnectCallStructMethod(c, sels[si], inb, szs[zi], outb, &osz);
+                    m += snprintf(line + m, sizeof line - m, " %zx=%08x", szs[zi], k2);
+                }
+                LOG("%s", line);
+            }
+            // stOut content of the accepting sels (read-only infoleak check)
+            static const uint32_t oksels[] = { 0, 1, 16 };
+            for (unsigned si = 0; si < 3; si++) {
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                size_t osz = 0x100;
+                kern_return_t k2 = IOConnectCallStructMethod(c, oksels[si], inb, 0x80, outb, &osz);
+                LOG("[deep] AKS sel %u -> kr 0x%08x osz 0x%zx stOut: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                    oksels[si], k2, osz,
+                    outb[0], outb[1], outb[2], outb[3], outb[4], outb[5], outb[6], outb[7],
+                    outb[8], outb[9], outb[10], outb[11], outb[12], outb[13], outb[14], outb[15]);
+            }
+            IOServiceClose(c);
+        }
+    }
+    mach_port_destroy(mach_task_self(), wake);
+    LOG("[deep] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -15955,6 +16080,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_DEEPPROBE")) { p_deepprobe(); LOG("[probe13] deepprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSWEEP")) { p_iosweep(); LOG("[probe13] iosweep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTWRITE")) { p_dartwrite(); LOG("[probe13] dartwrite-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTVAL")) { p_dartval(); LOG("[probe13] dartval-only mode, stop"); return NULL; }

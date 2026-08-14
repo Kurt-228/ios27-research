@@ -1,0 +1,212 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6e03
+[scaler] conn 0x6e03, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[deep] v98: deep probe IOCoreSurfaceRoot / AppleCLCD2 / AppleKeyStore
+[deep] IOCoreSurfaceRoot service: IOSurfaceRoot
+[deep] IOCoreSurfaceRoot type 0x0 -> conn 0x6c03
+[deep]   IOCoreSurfaceRoot t0x0 live: none
+[deep] IOCoreSurfaceRoot type 0x1 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x2 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x3 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x4 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x5 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x6 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x7 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x8 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x9 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0xa -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0xb -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0xc -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0xd -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0xe -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0xf -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x10 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x100 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x1000 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x10000 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x100000 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x100001 -> 0xe00002c7
+[deep] IOCoreSurfaceRoot type 0x100005 -> 0xe00002c7
+[deep] CLCD2 t0 sel 0: trap=e00002f0
+[deep] CLCD2 t0 sel 1: trap=e00002f0
+[deep] CLCD2 t0 sel 2: trap=e00002f0
+[deep] CLCD2 t0 sel 3: trap=e00002f0
+[deep] CLCD2 t0 sel 4: trap=e00002f0
+[deep] CLCD2 t0 sel 5: trap=e00002f0
+[deep] CLCD2 t0 sel 6: trap=e00002f0
+[deep] CLCD2 t0 sel 7: trap=e00002f0
+[deep] CLCD2 t0 sel 8: trap=e00002f0
+[deep] CLCD2 t0 sel 9: trap=e00002f0
+[deep] CLCD2 t0 sel 10: trap=e00002f0
+[deep] CLCD2 t0 sel 11: trap=e00002f0
+[deep] CLCD2 t0 sel 12: trap=e00002f0
+[deep] CLCD2 t0 sel 13: trap=e00002f0
+[deep] CLCD2 t0 sel 14: trap=e00002f0
+[deep] CLCD2 t0 sel 15: trap=e00002f0
+[deep] CLCD2 t0 sel 16: trap=e00002f0
+[deep] CLCD2 t0 sel 17: trap=e00002f0
+[deep] CLCD2 t0 sel 18: trap=e00002f0
+[deep] CLCD2 t0 sel 19: trap=e00002f0
+[deep] CLCD2 t0 sel 20: trap=e00002f0
+[deep] CLCD2 t0 sel 21: trap=e00002f0
+[deep] CLCD2 t0 sel 22: trap=e00002f0
+[deep] CLCD2 t0 sel 23: trap=e00002f0
+[deep] CLCD2 t0 sel 24: trap=e00002f0
+[deep] CLCD2 t0 sel 25: trap=e00002f0
+[deep] CLCD2 t0 sel 26: trap=e00002f0
+[deep] CLCD2 t0 sel 27: trap=e00002f0
+[deep] CLCD2 t0 sel 28: trap=e00002f0
+[deep] CLCD2 t0 sel 29: trap=e00002f0
+[deep] CLCD2 t0 sel 30: trap=e00002f0
+[deep] CLCD2 t0 sel 31: trap=e00002f0
+[deep] CLCD2 t0 sel 32: trap=e00002f0
+[deep] CLCD2 t0 sel 33: trap=e00002f0
+[deep] CLCD2 t0 sel 34: trap=e00002f0
+[deep] CLCD2 t0 sel 35: trap=e00002f0
+[deep] CLCD2 t0 sel 36: trap=e00002f0
+[deep] CLCD2 t0 sel 37: trap=e00002f0
+[deep] CLCD2 t0 sel 38: trap=e00002f0
+[deep] CLCD2 t0 sel 39: trap=e00002f0
+[deep] CLCD2 t0 sel 40: trap=e00002f0
+[deep] CLCD2 t0: 41 live selectors
+[deep] CLCD2 t1 sel 0: trap=e00002f0
+[deep] CLCD2 t1 sel 1: trap=e00002f0
+[deep] CLCD2 t1 sel 2: trap=e00002f0
+[deep] CLCD2 t1 sel 3: trap=e00002f0
+[deep] CLCD2 t1 sel 4: trap=e00002f0
+[deep] CLCD2 t1 sel 5: trap=e00002f0
+[deep] CLCD2 t1 sel 6: trap=e00002f0
+[deep] CLCD2 t1 sel 7: trap=e00002f0
+[deep] CLCD2 t1 sel 8: trap=e00002f0
+[deep] CLCD2 t1 sel 9: trap=e00002f0
+[deep] CLCD2 t1 sel 10: trap=e00002f0
+[deep] CLCD2 t1 sel 11: trap=e00002f0
+[deep] CLCD2 t1 sel 12: trap=e00002f0
+[deep] CLCD2 t1 sel 13: trap=e00002f0
+[deep] CLCD2 t1 sel 14: trap=e00002f0
+[deep] CLCD2 t1 sel 15: trap=e00002f0
+[deep] CLCD2 t1 sel 16: trap=e00002f0
+[deep] CLCD2 t1 sel 17: trap=e00002f0
+[deep] CLCD2 t1 sel 18: trap=e00002f0
+[deep] CLCD2 t1 sel 19: trap=e00002f0
+[deep] CLCD2 t1 sel 20: trap=e00002f0
+[deep] CLCD2 t1 sel 21: trap=e00002f0
+[deep] CLCD2 t1 sel 22: trap=e00002f0
+[deep] CLCD2 t1 sel 23: trap=e00002f0
+[deep] CLCD2 t1 sel 24: trap=e00002f0
+[deep] CLCD2 t1 sel 25: trap=e00002f0
+[deep] CLCD2 t1 sel 26: trap=e00002f0
+[deep] CLCD2 t1 sel 27: trap=e00002f0
+[deep] CLCD2 t1 sel 28: trap=e00002f0
+[deep] CLCD2 t1 sel 29: trap=e00002f0
+[deep] CLCD2 t1 sel 30: trap=e00002f0
+[deep] CLCD2 t1 sel 31: trap=e00002f0
+[deep] CLCD2 t1 sel 32: trap=e00002f0
+[deep] CLCD2 t1 sel 33: trap=e00002f0
+[deep] CLCD2 t1 sel 34: trap=e00002f0
+[deep] CLCD2 t1 sel 35: trap=e00002f0
+[deep] CLCD2 t1 sel 36: trap=e00002f0
+[deep] CLCD2 t1 sel 37: trap=e00002f0
+[deep] CLCD2 t1 sel 38: trap=e00002f0
+[deep] CLCD2 t1 sel 39: trap=e00002f0
+[deep] CLCD2 t1 sel 40: trap=e00002f0
+[deep] CLCD2 t1: 41 live selectors
+[deep] CLCD2 t2 sel 0: trap=e00002f0
+[deep] CLCD2 t2 sel 1: trap=e00002f0
+[deep] CLCD2 t2 sel 2: trap=e00002f0
+[deep] CLCD2 t2 sel 3: trap=e00002f0
+[deep] CLCD2 t2 sel 4: trap=e00002f0
+[deep] CLCD2 t2 sel 5: trap=e00002f0
+[deep] CLCD2 t2 sel 6: trap=e00002f0
+[deep] CLCD2 t2 sel 7: trap=e00002f0
+[deep] CLCD2 t2 sel 8: trap=e00002f0
+[deep] CLCD2 t2 sel 9: trap=e00002f0
+[deep] CLCD2 t2 sel 10: trap=e00002f0
+[deep] CLCD2 t2 sel 11: trap=e00002f0
+[deep] CLCD2 t2 sel 12: trap=e00002f0
+[deep] CLCD2 t2 sel 13: trap=e00002f0
+[deep] CLCD2 t2 sel 14: trap=e00002f0
+[deep] CLCD2 t2 sel 15: trap=e00002f0
+[deep] CLCD2 t2 sel 16: trap=e00002f0
+[deep] CLCD2 t2 sel 17: trap=e00002f0
+[deep] CLCD2 t2 sel 18: trap=e00002f0
+[deep] CLCD2 t2 sel 19: trap=e00002f0
+[deep] CLCD2 t2 sel 20: trap=e00002f0
+[deep] CLCD2 t2 sel 21: trap=e00002f0
+[deep] CLCD2 t2 sel 22: trap=e00002f0
+[deep] CLCD2 t2 sel 23: trap=e00002f0
+[deep] CLCD2 t2 sel 24: trap=e00002f0
+[deep] CLCD2 t2 sel 25: trap=e00002f0
+[deep] CLCD2 t2 sel 26: trap=e00002f0
+[deep] CLCD2 t2 sel 27: trap=e00002f0
+[deep] CLCD2 t2 sel 28: trap=e00002f0
+[deep] CLCD2 t2 sel 29: trap=e00002f0
+[deep] CLCD2 t2 sel 30: trap=e00002f0
+[deep] CLCD2 t2 sel 31: trap=e00002f0
+[deep] CLCD2 t2 sel 32: trap=e00002f0
+[deep] CLCD2 t2 sel 33: trap=e00002f0
+[deep] CLCD2 t2 sel 34: trap=e00002f0
+[deep] CLCD2 t2 sel 35: trap=e00002f0
+[deep] CLCD2 t2 sel 36: trap=e00002f0
+[deep] CLCD2 t2 sel 37: trap=e00002f0
+[deep] CLCD2 t2 sel 38: trap=e00002f0
+[deep] CLCD2 t2 sel 39: trap=e00002f0
+[deep] CLCD2 t2 sel 40: trap=e00002f0
+[deep] CLCD2 t2: 41 live selectors
+[deep] CLCD2 t3 sel 0: trap=e00002f0
+[deep] CLCD2 t3 sel 1: trap=e00002f0
+[deep] CLCD2 t3 sel 2: trap=e00002f0
+[deep] CLCD2 t3 sel 3: trap=e00002f0
+[deep] CLCD2 t3 sel 4: trap=e00002f0
+[deep] CLCD2 t3 sel 5: trap=e00002f0
+[deep] CLCD2 t3 sel 6: trap=e00002f0
+[deep] CLCD2 t3 sel 7: trap=e00002f0
+[deep] CLCD2 t3 sel 8: trap=e00002f0
+[deep] CLCD2 t3 sel 9: trap=e00002f0
+[deep] CLCD2 t3 sel 10: trap=e00002f0
+[deep] CLCD2 t3 sel 11: trap=e00002f0
+[deep] CLCD2 t3 sel 12: trap=e00002f0
+[deep] CLCD2 t3 sel 13: trap=e00002f0
+[deep] CLCD2 t3 sel 14: trap=e00002f0
+[deep] CLCD2 t3 sel 15: trap=e00002f0
+[deep] CLCD2 t3 sel 16: trap=e00002f0
+[deep] CLCD2 t3 sel 17: trap=e00002f0
+[deep] CLCD2 t3 sel 18: trap=e00002f0
+[deep] CLCD2 t3 sel 19: trap=e00002f0
+[deep] CLCD2 t3 sel 20: trap=e00002f0
+[deep] CLCD2 t3 sel 21: trap=e00002f0
+[deep] CLCD2 t3 sel 22: trap=e00002f0
+[deep] CLCD2 t3 sel 23: trap=e00002f0
+[deep] CLCD2 t3 sel 24: trap=e00002f0
+[deep] CLCD2 t3 sel 25: trap=e00002f0
+[deep] CLCD2 t3 sel 26: trap=e00002f0
+[deep] CLCD2 t3 sel 27: trap=e00002f0
+[deep] CLCD2 t3 sel 28: trap=e00002f0
+[deep] CLCD2 t3 sel 29: trap=e00002f0
+[deep] CLCD2 t3 sel 30: trap=e00002f0
+[deep] CLCD2 t3 sel 31: trap=e00002f0
+[deep] CLCD2 t3 sel 32: trap=e00002f0
+[deep] CLCD2 t3 sel 33: trap=e00002f0
+[deep] CLCD2 t3 sel 34: trap=e00002f0
+[deep] CLCD2 t3 sel 35: trap=e00002f0
+[deep] CLCD2 t3 sel 36: trap=e00002f0
+[deep] CLCD2 t3 sel 37: trap=e00002f0
+[deep] CLCD2 t3 sel 38: trap=e00002f0
+[deep] CLCD2 t3 sel 39: trap=e00002f0
+[deep] CLCD2 t3 sel 40: trap=e00002f0
+[deep] CLCD2 t3: 41 live selectors
+[deep] AKS sel 0: 8=00000000 10=00000000 20=00000000 40=00000000 80=00000000 100=00000000 200=00000000 400=00000000
+[deep] AKS sel 1: 8=00000000 10=00000000 20=00000000 40=00000000 80=00000000 100=00000000 200=00000000 400=00000000
+[deep] AKS sel 16: 8=00000000 10=00000000 20=00000000 40=00000000 80=00000000 100=00000000 200=00000000 400=00000000
+[deep] AKS sel 8: 8=e00002e2 10=e00002e2 20=e00002e2 40=e00002e2 80=e00002e2 100=e00002e2 200=e00002e2 400=e00002e2
+[deep] AKS sel 19: 8=e00002e2 10=e00002e2 20=e00002e2 40=e00002e2 80=e00002e2 100=e00002e2 200=e00002e2 400=e00002e2
+[deep] AKS sel 17: 8=e00002f0 10=e00002f0 20=e00002f0 40=e00002f0 80=e00002f0 100=e00002f0 200=e00002f0 400=e00002f0
+[deep] AKS sel 5: 8=e00002c1 10=e00002c1 20=e00002c1 40=e00002c1 80=e00002c1 100=e00002c1 200=e00002c1 400=e00002c1
+[deep] AKS sel 6: 8=e00002c1 10=e00002c1 20=e00002c1 40=e00002c1 80=e00002c1 100=e00002c1 200=e00002c1 400=e00002c1
+[deep] AKS sel 0 -> kr 0x00000000 osz 0x100 stOut: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[deep] AKS sel 1 -> kr 0x00000000 osz 0x100 stOut: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[deep] AKS sel 16 -> kr 0x00000000 osz 0x100 stOut: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[deep] done (alive)
+[probe13] deepprobe-only mode, stop

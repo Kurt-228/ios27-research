@@ -194,3 +194,24 @@ blraa-цепочки; требует полного трека по HAL) — з�
   (дорого: reboot+unlock на точку).
 
 
+
+## 91. Deep probe v97-находок (v98, фаза p_deepprobe, run-v98{,b}.log)
+
+- **IOCoreSurfaceRoot** (бывш. IOSurfaceRoot; матчится также как класс
+  "IOSurfaceRoot"): открывается ТОЛЬКО type 0 (0x1..0x100005 → 0x2c7), но живых
+  struct-селекторов 0..30 и трапов 0..3 нет — публичный IOSurface-путь приложений
+  идёт иначе (XPC/спецклиент); новой поверхности тут нет.
+- **AppleCLCD2** (display pipe): types 0-3 × sel 0..40 × формы
+  struct(0x200)/scalar(4)/async/trap — ВСЁ закрыто: 0xe00002c2 на вызовы,
+  0xe00002f0 (unimplemented) на трапы. Клиент деградирован как у JPEG (v93) —
+  методы требуют entitlement'а (display-драйвер mediaserverd/backboardd).
+- **AppleKeyStore** (недеструктивно, только нулевые struct'ы): sel 0/1/16 принимают
+  ЛЮБОЙ stInSize 0x8..0x400 с kr 0, stOut — нули (infoleak'а на нулевом вводе нет;
+  вероятно validate-and-noop). sel 8/19 → 0xe00002e2 (entitlement), sel 5/6 →
+  0xe00002c1, sel 17 → 0xe00002f0. Семантику sel 5/6 (возможно unlock/wrap)
+  не трогали.
+
+Вывод: нового write-примитива разведка не дала. CLCD2 закрыт entitlement'ом
+(как JPEG). AKS живые селекторы для нас — пустышки без семантики; копать глубже
+нельзя без риска для keybag. Открытые направления без изменений: GPU read/leak
+(v90) + write-в-свои-ресурсы (v89) + scaler DoS panic (bug 210).
