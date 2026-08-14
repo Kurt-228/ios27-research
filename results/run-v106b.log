@@ -1,0 +1,40 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7003
+[scaler] conn 0x7003, s1 21 s2 22
+[probe12] SetNotificationPort -> 0x00000000
+[recl] v106 step 2
+[open] IOGPU -> conn 0x611b
+[recl] mconn 0x5027 ourc 0x611b
+[mtlr] resource2 sel8 flags 470 sz 0x1000 -> kr 0x00000000 rid 119 GPUVA 0x10002490000 cpu 109d2c000
+[mtlr]   out: 0000010002490000 0000000109d2c000 0000000102b51940 0000000000000000
+[mtlr]   out: 0000007700000000 0000000000004000 000000000e03f3c8 0000000000003c76
+[recl] sz1000: ridV 119 gv 0x10002490000 slots 12 ridpatch 0 — commit+destroy
+[recl] sz1000: spray clean (no 0x41)
+[recl] sz1000: destroy kr 0x00000000, cb status 4, reclaim hits 0
+[mtlr] resource2 sel8 flags 470 sz 0x4000 -> kr 0x00000000 rid 182 GPUVA 0x10002490000 cpu 109e34000
+[mtlr]   out: 0000010002490000 0000000109e34000 0000000102b54880 0000000000000000
+[mtlr]   out: 000000b600000000 0000000000004000 000000000e03f85e 0000000000003cbc
+[recl] sz4000: ridV 182 gv 0x10002490000 slots 12 ridpatch 1 — commit+destroy
+[recl] sz4000: spray clean (no 0x41)
+[recl] sz4000: destroy kr 0x00000000, cb status 4, reclaim hits 0
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 232 GPUVA 0x100046d8000 cpu 109efc000
+[mtlr]   out: 00000100046d8000 0000000109efc000 0000000102b56e00 0000000000000000
+[mtlr]   out: 000000e800000000 0000000000010000 000000000e03fa7e 0000000000003cf1
+[recl] sz10000: ridV 232 gv 0x100046d8000 slots 12 ridpatch 1 — commit+destroy
+[recl] sz10000: spray clean (no 0x41)
+[recl] sz10000: destroy kr 0x00000000, cb status 4, reclaim hits 0
+[mtlr] resource2 sel8 flags 470 sz 0x40000 -> kr 0x00000000 rid 282 GPUVA 0x10005b90000 cpu 10fc90000
+[mtlr]   out: 0000010005b90000 000000010fc90000 000000010c6d9380 0000000000000000
+[mtlr]   out: 0000011a00000000 0000000000040000 000000000e03fabd 0000000000003d26
+[recl] sz40000: ridV 282 gv 0x10005b90000 slots 12 ridpatch 1 — commit+destroy
+[recl] sz40000: spray clean (no 0x41)
+[recl] sz40000: destroy kr 0x00000000, cb status 4, reclaim hits 0
+[mtlr] resource2 sel8 flags 470 sz 0x100000 -> kr 0x00000000 rid 332 GPUVA 0x100079a8000 cpu 111910000
+[mtlr]   out: 00000100079a8000 0000000111910000 000000010c6db900 0000000000000000
+[mtlr]   out: 0000014c00000000 0000000000100000 000000000e03fafb 0000000000003d5b
+[recl] sz100000: ridV 332 gv 0x100079a8000 slots 12 ridpatch 1 — commit+destroy
+[recl] sz100000: spray clean (no 0x41)
+[recl] sz100000: destroy kr 0x00000000, cb status 4, reclaim hits 0
+[recl] done (alive)
+[probe13] reclaim-only mode, stop
