@@ -1,0 +1,32 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6003
+[scaler] conn 0x6003, s1 297 s2 298
+[probe12] SetNotificationPort -> 0x00000000
+[dartval] v95a: controlled-value matrix (skip 0)
+[open] AppleM2ScalerCSCDriver -> conn 0x5e13
+[dartval] v0 CONTROL no-shot: no shot (control)
+[dartval] v0 CONTROL no-shot [SRC] -> kr 0x00000000 | no corruption
+[dartval] v0 CONTROL no-shot [dst] -> kr 0x00000000 | no corruption
+[dartval] v1 base ff/ff: shot...
+[dartval] v1 base ff/ff [SRC] -> kr 0xe00002d6 | no corruption
+[dartval] v1 base ff/ff [dst] -> kr 0xe00002d6 | no corruption
+[dartval] v2 alpha 0x100: shot...
+[dartval] v2 alpha 0x100 [SRC] -> kr 0xe00002c2 | no corruption
+[dartval] v2 alpha 0x100 [dst] -> kr 0xe00002c2 | no corruption
+[dartval] v3 all 0xffff: shot...
+[dartval] v3 all 0xffff [SRC] -> kr 0xe00002d6 | no corruption
+[dartval] v3 all 0xffff [dst] -> kr 0xe00002d6 | no corruption
+[dartval] v4 rgba 4/3/2/1: shot...
+[dartval] v4 rgba 4/3/2/1 [SRC] -> kr 0xe00002c2 | no corruption
+[dartval] v4 rgba 4/3/2/1 [dst] -> kr 0xe00002c2 | no corruption
+[dartval] v5 all ffffffff: shot...
+[dartval] v5 all ffffffff [SRC] -> kr 0xe00002d6 | no corruption
+[dartval] v5 all ffffffff [dst] -> kr 0xe00002d6 | no corruption
+[dartval] v6 alpha 0: shot...
+[dartval] v6 alpha 0 [SRC] -> kr 0xe00002d6 | no corruption
+[dartval] v6 alpha 0 [dst] -> kr 0xe00002d6 | no corruption
+[dartval] v7 rgb 0x3ff: shot...
+[dartval] v7 rgb 0x3ff [SRC] -> kr 0xe00002d6 | no corruption
+[dartval] v7 rgb 0x3ff [dst] -> kr 0xe00002d6 | no corruption
+[dartval] v8 rgb 0x8000: shot...

