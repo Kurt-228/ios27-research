@@ -102,3 +102,42 @@ type 1, и это не тот клиент). НО: command-коннекшн Meta
 Metal делает на своём коннекте и которую можно попробовать воспроизвести на нашем
 type-0x100001 (см. v74: sel42/44/45 vmid/attach давали kr 0 — стоит прогнать
 replay ПОСЛЕ полного VM-attach).
+
+## 81. Попытка in-process трейса Metal на iOS (v88) — почему нельзя, и эталонная карта
+
+Инфраструктура: `relay/iotrace.m` — interpose-dylib (`__DATA,__interpose`, 16 туплов:
+IOServiceOpen/Close, IOConnectCall{Method,Struct,Scalar,Async}Method,
+SetNotificationPort, MapMemory64, Trap0–6, mach_msg с фильтром msgh_id 2800–3199),
+линкуется в app через Frameworks/libiotrace.dylib (build.sh), ring-buffer 2048 записей,
+дамп по маркам. Фаза `p_mtltrace` (env FUZZ_MTLTRACE=1).
+
+Результат (run-v88..v88c): interpose РАБОТАЕТ для вызовов main executable → IOKit
+(self-test: наш IOServiceOpen попал в трейс), но Metal-сеанс даёт НОЛЬ записей.
+Причина: Metal.framework и IOKit оба в dyld shared cache, а **cache-internal binds
+не interposable** (и страницы cache не перезаписываемы — fishhook бессилен).
+Вывод: in-process symbol tracing вызовов Metal на iOS-девайсе без jailbreak
+невозможен. Эталоном остаётся macOS-трейс (/tmp/iogpu_trace.log, тот же стек).
+
+### Эталонная последовательность Metal (macOS 27, AGXAcceleratorG16G type 0x100005)
+
+| # | вызов | параметры | смысл |
+|---|---|---|---|
+| 1 | IOServiceOpen | AGXAcceleratorG16G, **type 0x100005** | Metal-коннект |
+| 2 | sel 9 ×3 | stIn 0x68 (формат B) | внутренние ресурсы ДО очереди |
+| 3 | **sel 7** | stIn 0x410, @+0 полный path процесса | new_command_queue → qid |
+| 4 | **sel 16** | {0x100, **0x28**} | notification queue → nqid, VA |
+| 5 | **sel 28** | {qid, nqid} | bind |
+| 6 | sel 9 ×~20 | формат B (flags 0x470/0x430/0xc30) | все ресурсы (внутренние + буферы) |
+| 7 | sel 14 ×2 | {0x4000, 0}, {0x4000, 1} | shmem: seglist (id 1), kcmd (id 2) |
+| 8 | **Trap4 sel 0** | {qid, 0x40, entryVA, outVA} | submit |
+| 9 | sel 17 {1}; sel 8 {1}; sel 15 {2}; sel 15 {1} | scalar | post-submit bookkeeping |
+| 10 | Trap1 sel 1 {0x16..0x21, 3, ...} | per-rid | release/untrack ресурсов |
+
+Чего НЕТ в трейсе: SetNotificationPort, MapMemory, VM-attach — Metal их на этом
+пути не делает (либо делал при более раннем init, не попавшем в окно).
+Соответствие нумерации iOS type-1 (проверено на устройстве и на коннекте Metal в v86):
+queue **6**, resource **8** (формат B тот же), shmem **12**, notif **14**, bind **24**,
+submit trap0 — идентичен. Не замаплены/не проверены: post-submit 17/8/15 (iOS sel17 →
+0x2c2) и release-Trap1. Кандидатные «недостающие init» по сути сводятся к:
+(a) type 0x100005 (закрыт), (b) pre-queue внутренние ресурсы, (c) post-submit
+bookkeeping — всё тестируемо на нашем type-1 коннекте без трейса.

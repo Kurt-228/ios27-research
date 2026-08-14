@@ -14417,6 +14417,50 @@ static void p_connprobe(void) {
     LOG("[connp] done (alive)");
 }
 
+// V88: full Metal IOConnect trace via interpose.m (in-process, main-exe
+// __interpose section). Records every IOConnect* call Metal makes during a
+// complete session: device -> queue -> buffers -> blit copy -> commit -> done.
+extern void interpose_set_recording(int);
+extern void interpose_mark(const char *);
+extern void interpose_dump(void (*)(const char *));
+static void mtrace_sink(const char *l) { LOG("%s", l); }
+
+static void p_mtltrace(void) {
+    LOG("[mtrace] v88: Metal IOConnect trace");
+    interpose_set_recording(1);
+    // self-test: does the interpose dylib hook even our own process's calls?
+    interpose_mark("=== self-test begin ===");
+    io_connect_t st = open_service("IOGPU", 1);
+    if (st) IOServiceClose(st);
+    interpose_mark("=== self-test end ===");
+    interpose_mark("=== Metal session begin ===");
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    interpose_mark("device created");
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    interpose_mark("queue created");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    interpose_mark("buffers created");
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    interpose_mark("encoded");
+    [cb commit];
+    interpose_mark("committed");
+    [cb waitUntilCompleted];
+    interpose_mark("completed");
+    long c41 = 0;
+    uint8_t *bb = (uint8_t *)[bufB contents];
+    for (long i = 0; i < 0x10000; i++) if (bb[i] == 0x41) c41++;
+    LOG("[mtrace] Metal session done, bufB 0x41 bytes %ld/0x10000", c41);
+    interpose_set_recording(0);
+    interpose_dump(mtrace_sink);
+    LOG("[mtrace] trace dumped");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -14547,6 +14591,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }
         p_mtlreplay2();     // v84: nq diagnostics matrix FIRST

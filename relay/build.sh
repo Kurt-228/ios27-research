@@ -16,8 +16,18 @@ mkdir -p "$OUT"
 $CLANG -arch arm64 \
     -isysroot "$SDK" -miphoneos-version-min=17.0 \
     -fobjc-arc -O1 \
+    -dynamiclib -install_name @rpath/libiotrace.dylib \
+    -framework Foundation -framework IOKit -framework CoreFoundation \
+    relay/iotrace.m -o "$WORK_DIR/libiotrace.dylib"
+mkdir -p "$OUT/Frameworks"
+cp "$WORK_DIR/libiotrace.dylib" "$OUT/Frameworks/libiotrace.dylib"
+
+$CLANG -arch arm64 \
+    -isysroot "$SDK" -miphoneos-version-min=17.0 \
+    -fobjc-arc -O1 \
     -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface -framework Metal \
-    fuzzer/*.m -o "$OUT/fuzz27"
+    -Wl,-rpath,@executable_path/Frameworks \
+    fuzzer/*.m "$OUT/Frameworks/libiotrace.dylib" -o "$OUT/fuzz27"
 
 cp fuzzer/Info.plist "$OUT/Info.plist"
 if [ -d "$ROOT/fuzzer/assets" ]; then
@@ -38,6 +48,7 @@ if [ -z "$IDENT" ]; then
     fi
 fi
 echo "[build] signing with: $IDENT"
+codesign --force --sign "$IDENT" --timestamp=none "$OUT/Frameworks/libiotrace.dylib"
 codesign --force --sign "$IDENT" --entitlements fuzzer/ent.plist \
     --timestamp=none "$OUT"
 

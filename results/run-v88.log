@@ -1,0 +1,16 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6a03
+[scaler] conn 0x6a03, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[mtrace] v88: Metal IOConnect trace
+[mtrace] Metal session done, bufB 0x41 bytes 65536/0x10000
+#### === Metal session begin ===
+#### device created
+#### queue created
+#### buffers created
+#### encoded
+#### committed
+#### completed
+[mtrace] trace dumped
+[probe13] mtltrace-only mode, stop
