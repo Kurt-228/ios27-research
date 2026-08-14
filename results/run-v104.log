@@ -1,0 +1,35 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6b03
+[scaler] conn 0x6b03, s1 21 s2 22
+[probe12] SetNotificationPort -> 0x00000000
+[groom] v104: DART groom
+[open] AppleM2ScalerCSCDriver -> conn 0x8003
+[groom] packed+wired 32 surfaces of 1MB
+[groom] S1 density shot dst=s31 W 0x1000 (PANIC possible)
+[groom] S1 -> kr 0xe00002c2 (survived => dense or fault-tolerated)
+[groom] S1 scan s29: 0 bad pages
+[groom] S1 scan s30: 0 bad pages
+[groom] S1 scan s31: 0 bad pages
+[groom] S2: hole released s14..s17
+[groom] S2 hole shot dst=s18 W 0x1000 (PANIC if hole unmapped)
+[groom] S2 -> kr 0xe00002c2 (survived => hole still mapped (lazy) or reused)
+[groom] S3 round 0: activity done, hole shot (PANIC possible)
+[groom] S3 round 0 t=1786706135 -> kr 0xe00002c2
+[groom] S3 round 1: activity done, hole shot (PANIC possible)
+[groom] S3 round 1 t=1786706136 -> kr 0xe00002c2
+[groom] S3 round 2: activity done, hole shot (PANIC possible)
+[groom] S3 round 2 t=1786706137 -> kr 0xe00002c2
+[groom] S3 round 3: activity done, hole shot (PANIC possible)
+[groom] S3 round 3 t=1786706137 -> kr 0xe00002c2
+[groom] final scan s12: 0 bad pages
+[groom] final scan s13: 0 bad pages
+[groom] final scan s14: (hole)
+[groom] final scan s15: (hole)
+[groom] final scan s16: (hole)
+[groom] final scan s17: (hole)
+[groom] final scan s18: 0 bad pages
+[groom] final scan s19: 0 bad pages
+[groom] final scan s20: 0 bad pages
+[groom] done (alive)
+[probe13] groom-only mode, stop

