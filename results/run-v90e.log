@@ -1,0 +1,18 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6503
+[scaler] conn 0x6503, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan] v90: GPU VM scan via patched-blit read
+[gscan] gpuA 0x10000080000 gpuB 0x10000098000
+[gscan] #128 X 0x10000004000 (space-high) -> slots 15 | B nz 2888 41 4 DATA-HIT
+[mtls] DATA+10000004000: 04 01 00 00 0f 06 04 01 00 00 0f 04 04 19 0f 01
+[mtls] DATA+10000004010: 54 36 0d 00 00 00 00 00 1a 1c 2b 80 06 00 07 02
+[mtls] DATA+10000004020: 02 00 0f 05 54 01 0f 01 54 d2 00 00 00 00 00 00
+[mtls] DATA+10000004030: 03 04 2e 87 12 02 00 00 00 00 13 84 07 24 08 02
+[gscan] #129 X 0x10000008000 (space-high) -> slots 15 | B nz 0 41 0 unmapped/zero
+[gscan] scan done: 2 probes, 1 data hits
+[gscan] write-probe X 0x10000004000: dest slots patched 13, committed
+[gscan] write-probe X 0x10000004000 -> readback marker qwords 0/8192 (no)
+[gscan] done (alive)
+[probe13] gpuvmscan-only mode, stop

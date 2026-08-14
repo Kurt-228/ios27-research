@@ -1,0 +1,41 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7003
+[scaler] conn 0x7003, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan] v90: GPU VM scan via patched-blit read
+[gscan] gpuA 0x10000080000 gpuB 0x10000098000
+[gscan] #98 X 0x80000 (space-0x0) -> slots 15 | B nz 0 41 0 unmapped/zero
+[gscan] #99 X 0xc0000 (space-0x0) -> slots 18 | B nz 0 41 0 unmapped/zero
+[gscan] #100 X 0x100000 (space-0x0) -> slots 18 | B nz 0 41 0 unmapped/zero
+[gscan] #101 X 0x140000 (space-0x0) -> slots 20 | B nz 0 41 0 unmapped/zero
+[gscan] #102 X 0x180000 (space-0x0) -> slots 20 | B nz 0 41 0 unmapped/zero
+[gscan] #103 X 0x1c0000 (space-0x0) -> slots 20 | B nz 0 41 0 unmapped/zero
+[gscan] #104 X 0x200000 (space-0x0) -> slots 20 | B nz 0 41 0 unmapped/zero
+[gscan] #105 X 0x240000 (space-0x0) -> slots 26 | B nz 0 41 0 unmapped/zero
+[gscan] #106 X 0x280000 (space-0x0) -> slots 25 | B nz 0 41 0 unmapped/zero
+[gscan] #107 X 0x2c0000 (space-0x0) -> slots 25 | B nz 0 41 0 unmapped/zero
+[gscan] #108 X 0x300000 (space-0x0) -> slots 25 | B nz 0 41 0 unmapped/zero
+[gscan] #109 X 0x340000 (space-0x0) -> slots 32 | B nz 0 41 0 unmapped/zero
+[gscan] #110 X 0x380000 (space-0x0) -> slots 32 | B nz 0 41 0 unmapped/zero
+[gscan] #111 X 0x3c0000 (space-0x0) -> slots 32 | B nz 0 41 0 unmapped/zero
+[gscan] #112 X 0x200000000 (space-high) -> slots 32 | B nz 0 41 0 unmapped/zero
+[gscan] #113 X 0x200004000 (space-high) -> slots 631 | B nz 0 41 0 unmapped/zero
+[gscan] #114 X 0x20000c000 (space-high) -> slots 631 | B nz 0 41 0 unmapped/zero
+[gscan] #115 X 0x400000000 (space-high) -> slots 630 | B nz 0 41 0 unmapped/zero
+[gscan] #116 X 0x400004000 (space-high) -> slots 2058 | B nz 0 41 0 unmapped/zero
+[gscan] #117 X 0x40000c000 (space-high) -> slots 2056 | B nz 0 41 0 unmapped/zero
+[gscan] #118 X 0x800000000 (space-high) -> slots 2055 | B nz 0 41 0 unmapped/zero
+[gscan] #119 X 0x800004000 (space-high) -> slots 2405 | B nz 0 41 0 unmapped/zero
+[gscan] #120 X 0x80000c000 (space-high) -> slots 2404 | B nz 0 41 0 unmapped/zero
+[gscan] #121 X 0x1000000000 (space-high) -> slots 2403 | B nz 8 41 0 DATA-HIT
+[mtls] DATA+1000000000: 80 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+1000000010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+1000000020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+1000000030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] #122 X 0x1000004000 (space-high) -> slots 2510 | B nz 0 41 0 unmapped/zero
+[gscan] #123 X 0x100000c000 (space-high) -> slots 2515 | B nz 0 41 0 unmapped/zero
+[gscan] #124 X 0x4000000000 (space-high) -> slots 2514 | B nz 0 41 0 unmapped/zero
+[gscan] #125 X 0x4000004000 (space-high) -> slots 2675 | B nz 0 41 0 unmapped/zero
+[gscan] #126 X 0x400000c000 (space-high) -> slots 2675 | B nz 0 41 0 unmapped/zero
+[gscan] #127 X 0x10000000000 (space-high) -> slots 2674 | B nz 0 41 0 unmapped/zero

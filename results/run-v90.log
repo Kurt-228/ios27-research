@@ -1,0 +1,21 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6603
+[scaler] conn 0x6603, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan] v90: GPU VM scan via patched-blit read
+[gscan] gpuA 0x10000080000 gpuB 0x10000098000
+[gscan] #1 X 0x10000080000 (calib-self) -> slots 15 | B nz 65536 41 65536 A-passthrough?
+[gscan] #2 X 0x1deadbeef0000 (calib-unmapped) -> slots 14 | B nz 0 41 0 unmapped/zero
+[gscan] #3 X 0x10000110000 (kcmd-internal) -> slots 13 | B nz 0 41 0 unmapped/zero
+[gscan] #4 X 0x10000120000 (kcmd-internal) -> slots 19 | B nz 12 41 0 DATA-HIT
+[mtls] DATA+10000120000: 00 00 00 00 40 00 00 01 00 34 00 00 01 00 00 40
+[mtls] DATA+10000120010: 00 10 00 00 01 00 00 00 01 00 00 00 00 04 00 00
+[mtls] DATA+10000120020: 01 00 00 00 01 00 00 00 00 00 00 40 00 00 00 00
+[mtls] DATA+10000120030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] #5 X 0x10000098000 (kcmd-internal) -> slots 22 | B nz 9 41 0 DATA-HIT
+[mtls] DATA+10000098000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] #6 X 0x10000000000 (low-0x1) -> slots 29 | B nz 0 41 0 unmapped/zero
