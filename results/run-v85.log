@@ -1,0 +1,43 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7103
+[scaler] conn 0x7103, s1 296 s2 297
+[probe12] SetNotificationPort -> 0x00000000
+[mtlr2] v84 matrix: {nq entrySize} x {trap entrySize}, capture-faithful
+[mtlr-loop] v85: verbatim replay loop, 90 s
+[open] IOGPU -> conn 0x6c03
+[mtlr-loop] setup: qid 1 nqid 1 nqVA 102a24000 bind 0x00000000 notif 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 102a30000
+[mtlr]   out: 0000010000000000 0000000102a30000 0000000102a100c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000001819c19c 0000000000016758
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 102a40000
+[mtlr]   out: 0000010000018000 0000000102a40000 0000000102a10180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000001819c19d 0000000000016759
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 102a50000
+[mtlr]   out: 0000010000030000 0000000102a50000 0000000102a10240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 000000001819c19e 000000000001675a
+[mtlr-loop] GPUVA A 10000000000 B 10000018000 C 10000030000 (match 1/1/1)
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 102a2c000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 102a70000 id 2
+[mtlr-loop] pre : hash A 0dc50fa718906340 B 84363e71c94a0383 C 101048c7e962004a
+[mtlr-loop] looping 90 s — WATCH THE SCREEN
+[mtlr-loop] t=5s submits 2478 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=10s submits 5014 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=15s submits 7570 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=20s submits 10110 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=25s submits 12669 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=30s submits 15223 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=35s submits 17763 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=40s submits 20185 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=45s submits 22672 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=50s submits 25119 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=55s submits 27616 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=60s submits 30086 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=65s submits 32525 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=70s submits 35041 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=75s submits 37574 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=80s submits 40088 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] t=85s submits 42565 kr 0x00000000 outw 00000000 wrIdx 13f0 last-status {5, 0}
+[mtlr-loop] post: hash A 0dc50fa718906340 (same) B 84363e71c94a0383 (same) C 101048c7e962004a (same)
+[mtlr-loop] done: 45072 submits in 90 s, B nonzero 65536 5A 0, last kr 0x00000000
+[probe13] mtlr-only mode, stop

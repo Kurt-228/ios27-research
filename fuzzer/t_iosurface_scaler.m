@@ -13421,8 +13421,143 @@ static int mtlr_assets(void) {
     return g_mtlr_a0.length == 0x10000 && g_mtlr_a1.length == 0x10000 && g_mtlr_a2.length == 0x20000;
 }
 
+// V85: continuous verbatim-replay loop for the on-screen glitch correlation
+// test. No panic payloads, no scaler phases — AGX replay submits only.
+static uint64_t mtlr_hash(const uint8_t *p, long n) {
+    uint64_t h = 1469598103934665603ULL;
+    for (long i = 0; i < n; i++) { h ^= p[i]; h *= 1099511628211ULL; }
+    return h;
+}
+static void mtlr_loop(int secs) {
+    LOG("[mtlr-loop] v85: verbatim replay loop, %d s", secs);
+    if (!mtlr_assets()) { LOG("[mtlr-loop] assets missing, abort"); return; }
+    const uint64_t BSZ = 0x10000;
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqVA = *(uint64_t *)out;
+    uint32_t nqid = *(uint32_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    const char *pn = getprogname();
+    strncpy((char *)in, pn, 0x1f);
+    *(uint32_t *)(in + 0x400) = 2;
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    kern_return_t kb = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+    kern_return_t kn = IOConnectSetNotificationPort(c, 0, mach_reply_port(), nqid);
+    LOG("[mtlr-loop] setup: qid %llu nqid %u nqVA %llx bind 0x%08x notif 0x%08x",
+        qid, nqid, nqVA, kb, kn);
+    if (!qid || kb) return;
+
+    uint64_t gpuvaA = 0, gpuvaB = 0, gpuvaC = 0;
+    uint8_t *cpuA = NULL, *cpuB = NULL, *cpuC = NULL;
+    uint32_t ridA = gpu_resource2(c, BSZ, &gpuvaA, &cpuA);
+    uint32_t ridB = gpu_resource2(c, BSZ, &gpuvaB, &cpuB);
+    uint32_t ridC = gpu_resource2(c, 0x20000, &gpuvaC, &cpuC);
+    if (!ridA || !ridB || !ridC || !cpuA || !cpuB || !cpuC) {
+        LOG("[mtlr-loop] resources failed %u %u %u", ridA, ridB, ridC); return;
+    }
+    memcpy(cpuA, [g_mtlr_a0 bytes], BSZ);
+    memcpy(cpuB, [g_mtlr_a1 bytes], BSZ);
+    memcpy(cpuC, [g_mtlr_a2 bytes], 0x20000);
+    LOG("[mtlr-loop] GPUVA A %llx B %llx C %llx (match %d/%d/%d)",
+        gpuvaA, gpuvaB, gpuvaC,
+        gpuvaA == 0x10000000000ULL, gpuvaB == 0x10000018000ULL, gpuvaC == 0x10000030000ULL);
+
+    uint8_t *vaSeg, *vaCmd;
+    uint32_t idSeg = gpu_shmem_t(c, 0x4000, 0, &vaSeg);
+    uint32_t idCmd = gpu_shmem_t(c, 0x4000, 1, &vaCmd);
+    if (!idSeg || !idCmd) return;
+    // capture-faithful FULL config (the one that yields kr 0 / outU32 0 / {0,5})
+    memcpy(vaCmd, agx_A4_image, 0x4000);
+    if (gpuvaB != 0x10000018000ULL) {
+        for (long o = 0; o < 0x1000 - 8; o += 4) {
+            uint64_t q = *(uint64_t *)(vaCmd + o);
+            if ((q >> 32) == 0x100) {
+                if ((q & 0xffffffff) == 0x18000) *(uint64_t *)(vaCmd + o) = gpuvaB;
+                else *(uint64_t *)(vaCmd + o) = gpuvaA + (q & 0x3fff);
+            }
+        }
+    }
+    memcpy(vaSeg, agx_B4_image, 0x4000);
+    *(uint32_t *)(vaSeg + 0x40) = 3;
+    *(uint32_t *)(vaSeg + 0x44) = 1;
+    uint8_t *g6 = vaSeg + 0x48;
+    memset(g6, 0, 0x40);
+    *(uint32_t *)(g6 + 0x00) = ridA;
+    *(uint32_t *)(g6 + 0x04) = ridB;
+    *(uint32_t *)(g6 + 0x08) = ridC;
+    *(uint32_t *)(g6 + 0x18) = (uint32_t)(BSZ >> 10);
+    *(uint32_t *)(g6 + 0x1c) = (uint32_t)(BSZ >> 10);
+    *(uint32_t *)(g6 + 0x20) = (uint32_t)(0x20000 >> 10);
+    *(uint16_t *)(g6 + 0x30) = 3;
+    *(uint16_t *)(g6 + 0x32) = 3;
+    *(uint16_t *)(g6 + 0x34) = 3;
+    *(uint16_t *)(g6 + 0x3e) = 3;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    uint8_t *comp = must_map(0x1000);
+    memset(comp, 0, 0x1000);
+    memset(entry, 0, 0x1000);
+    *(uint32_t *)(entry + 0x00) = idCmd;
+    *(uint32_t *)(entry + 0x04) = idSeg;
+    *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+    *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+    volatile uint8_t *nq = (volatile uint8_t *)(uintptr_t)nqVA;
+
+    uint64_t hA0 = mtlr_hash(cpuA, BSZ), hB0 = mtlr_hash(cpuB, BSZ), hC0 = mtlr_hash(cpuC, 0x20000);
+    LOG("[mtlr-loop] pre : hash A %016llx B %016llx C %016llx", hA0, hB0, hC0);
+    LOG("[mtlr-loop] looping %d s — WATCH THE SCREEN", secs);
+
+    struct timespec t0, t1, tlast;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    tlast = t0;
+    long nsub = 0;
+    kern_return_t kt = 0;
+    for (;;) {
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        double el = (double)(t1.tv_sec - t0.tv_sec) + 1e-9 * (double)(t1.tv_nsec - t0.tv_nsec);
+        if (el >= secs) break;
+        *outw = 0xdeadbeef;
+        kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        nsub++;
+        usleep(1000);
+        double sincel = (double)(t1.tv_sec - tlast.tv_sec) + 1e-9 * (double)(t1.tv_nsec - tlast.tv_nsec);
+        if (sincel >= 5.0) {
+            tlast = t1;
+            uint32_t wr = nqVA ? *(volatile uint32_t *)(nq + 0x08) : 0;
+            uint32_t s1 = 0, s2 = 0;
+            if (nqVA && wr >= 0x2c) {
+                s2 = *(volatile uint32_t *)(nq + 0x10 + wr - 0x2c + 0x18);
+                if (wr >= 0x58) s1 = *(volatile uint32_t *)(nq + 0x10 + wr - 0x58 + 0x18);
+            }
+            LOG("[mtlr-loop] t=%.0fs submits %ld kr 0x%08x outw %08x wrIdx %x last-status {%u, %u}",
+                el, nsub, kt, *outw, wr, s1, s2);
+        }
+    }
+    uint64_t hA1 = mtlr_hash(cpuA, BSZ), hB1 = mtlr_hash(cpuB, BSZ), hC1 = mtlr_hash(cpuC, 0x20000);
+    LOG("[mtlr-loop] post: hash A %016llx (%s) B %016llx (%s) C %016llx (%s)",
+        hA1, hA1 == hA0 ? "same" : "CHANGED",
+        hB1, hB1 == hB0 ? "same" : "CHANGED",
+        hC1, hC1 == hC0 ? "same" : "CHANGED");
+    long nz = 0, f5 = 0;
+    for (long i = 0; i < (long)BSZ; i++) { if (cpuB[i]) nz++; if (cpuB[i] == 0x5A) f5++; }
+    LOG("[mtlr-loop] done: %ld submits in %d s, B nonzero %ld 5A %ld, last kr 0x%08x",
+        nsub, secs, nz, f5, kt);
+    IOServiceClose(c);
+}
+
 static void p_mtlreplay2(void) {
     LOG("[mtlr2] v84 matrix: {nq entrySize} x {trap entrySize}, capture-faithful");
+    const char *loopsec = getenv("FUZZ_MTLR_LOOP");
+    if (loopsec) { mtlr_loop(atoi(loopsec)); return; }
     if (!mtlr_assets()) { LOG("[mtlr2] assets missing, abort"); return; }
     static const uint64_t nqSizes[]   = { 0x10, 0x28 };
     static const uint64_t trapSizes[] = { 0x30, 0x40 };
