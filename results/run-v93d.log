@@ -1,0 +1,162 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6d03
+[scaler] conn 0x6d03, s1 297 s2 298
+[probe12] SetNotificationPort -> 0x00000000
+[jpeg] v93: AppleJPEGDriver recon + selector sweep
+[jpeg] open type 0 -> kr 0x00000000 conn 0x6b03 class '?'
+[jpeg] open type 1 -> kr 0x00000000 conn 0x6903 class '?'
+[jpeg] open type 2 -> kr 0x00000000 conn 0x7823 class '?'
+[jpeg] open type 3 -> kr 0x00000000 conn 0x6a03 class '?'
+[jpeg] t0 sel 0: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 1: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 2: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 3: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 4: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 5: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 6: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 7: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 8: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t0 sel 9: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 0: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 1: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 2: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 3: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 4: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 5: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 6: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 7: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 8: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t1 sel 9: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 0: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 1: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 2: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 3: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 4: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 5: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 6: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 7: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 8: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t2 sel 9: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 0: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 1: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 2: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 3: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 4: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 5: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 6: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 7: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 8: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] t3 sel 9: struct=e00002c2 async=e00002c2 scalar=e00002c2 meth=e00002c2
+[jpeg] open AppleJPEGDriver type 0 -> conn 0x7833
+[jpeg] AppleJPEGDriver t0 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t0 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 1 -> conn 0x6a13
+[jpeg] AppleJPEGDriver t1 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t1 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 2 -> conn 0x7853
+[jpeg] AppleJPEGDriver t2 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t2 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 3 -> conn 0x6907
+[jpeg] AppleJPEGDriver t3 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t3 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 4 -> conn 0x7873
+[jpeg] AppleJPEGDriver t4 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t4 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 5 -> conn 0x690f
+[jpeg] AppleJPEGDriver t5 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t5 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 6 -> conn 0x7893
+[jpeg] AppleJPEGDriver t6 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t6 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 7 -> conn 0x6917
+[jpeg] AppleJPEGDriver t7 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t7 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] open AppleJPEGDriver type 8 -> conn 0x78b3
+[jpeg] AppleJPEGDriver t8 sel 0: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 1: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 2: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 3: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 4: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 5: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 6: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 7: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 8: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] AppleJPEGDriver t8 sel 9: trap=e00002f0 s1st=e00002c2 s2st=e00002c2
+[jpeg] svc SJPEGDriver not found
+[jpeg] svc AppleH16JPEG not found
+[jpeg] open type 0x100 -> kr 0x00000000 conn 0x691f
+[jpeg] open type 0x1000 -> kr 0x00000000 conn 0x78d3
+[jpeg] open type 0x10000 -> kr 0x00000000 conn 0x6927
+[jpeg] open type 0x100000 -> kr 0x00000000 conn 0x78f3
+[jpeg] open type 0x100001 -> kr 0x00000000 conn 0x692f
+[jpeg] open type 0x100002 -> kr 0x00000000 conn 0x7807
+[jpeg] open type 0x100003 -> kr 0x00000000 conn 0x6937
+[jpeg] open type 0x100004 -> kr 0x00000000 conn 0x780f
+[jpeg] open type 0x100005 -> kr 0x00000000 conn 0x693f
+[jpeg] done (alive)
+[probe13] jpeg-only mode, stop

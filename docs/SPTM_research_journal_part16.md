@@ -1,4 +1,4 @@
-# Журнал, часть 16 (секции 77–79, 14.08.2026) — Metal self-reference: дискриминация «байты vs очередь»
+# Журнал, часть 16 (секции 77–85, 14.08.2026) — Metal self-reference, MT-PATCH, GPU VM map, pinned
 
 ## 77. Эталон Metal внутри нашего процесса (v86, фаза p_mtlself, env FUZZ_MTLSELF=1)
 

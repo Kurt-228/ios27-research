@@ -15150,6 +15150,149 @@ static void p_pinned(void) {
     LOG("[pin] done (alive)");
 }
 
+// V93: AppleJPEGDriver track. Recon (types), selector/size sweep, then decode
+// attempts. Prior statics (part9 §57): 10 selectors, sel 8/9 entitlement-gated,
+// decode candidate sel 7, encoder sel 4. DMA class: JPEG-header dims vs dst
+// surface size desync.
+static void p_jpeg(void) {
+    LOG("[jpeg] v93: AppleJPEGDriver recon + selector sweep");
+    // A. which types open from the sandbox
+    io_connect_t conns[4] = {0,0,0,0};
+    for (uint32_t t = 0; t < 4; t++) {
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching("AppleJPEGDriver"));
+        if (!s) { LOG("[jpeg] service not found"); return; }
+        kern_return_t ko = IOServiceOpen(s, mach_task_self(), t, &conns[t]);
+        IOObjectRelease(s);
+        io_name_t cls = "?";
+        if (!ko) IOObjectGetClass(conns[t], cls);
+        LOG("[jpeg] open type %u -> kr 0x%08x conn 0x%x class '%s'", t, ko, conns[t], ko ? "" : cls);
+    }
+    // B. selector x invocation-form sweep (struct / async+struct / scalar)
+    static const size_t sizes[] = { 0x40, 0x100, 0x1d0, 0x200, 0x2c8, 0x3c0 };
+    uint8_t *inb = must_map(0x1000);
+    uint8_t *outb = must_map(0x1000);
+    mach_port_t wake;
+    mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &wake);
+    for (uint32_t t = 0; t < 4; t++) {
+        io_connect_t c = conns[t];
+        if (!c) continue;
+        for (uint32_t sel = 0; sel <= 9; sel++) {
+            char line[640]; int m = 0;
+            m += snprintf(line + m, sizeof line - m, "[jpeg] t%u sel %u:", t, sel);
+            // form 1: sync struct
+            memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+            size_t osz = 0x100;
+            kern_return_t kr = IOConnectCallStructMethod(c, sel, inb, 0x100, outb, &osz);
+            m += snprintf(line + m, sizeof line - m, " struct=%08x", kr);
+            // form 2: async struct (wake port + ref)
+            memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+            uint64_t ref = 0x1234;
+            osz = 0x100;
+            uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+            kr = IOConnectCallAsyncMethod(c, sel, wake, &ref, 1, NULL, 0, inb, 0x100, osc, &nosc, outb, &osz);
+            m += snprintf(line + m, sizeof line - m, " async=%08x", kr);
+            // form 3: scalar-only x2
+            uint64_t sc2[2] = {0, 0};
+            uint64_t so2[2] = {0, 0}; uint32_t nso = 2;
+            kr = IOConnectCallScalarMethod(c, sel, sc2, 2, so2, &nso);
+            m += snprintf(line + m, sizeof line - m, " scalar=%08x", kr);
+            // form 4: CallMethod with struct only (no scalars)
+            memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+            osz = 0x100; nosc = 0;
+            kr = IOConnectCallMethod(c, sel, NULL, 0, inb, 0x100, osc, &nosc, outb, &osz);
+            m += snprintf(line + m, sizeof line - m, " meth=%08x", kr);
+            LOG("%s", line);
+        }
+        IOServiceClose(c);
+    }
+    // B2. traps + mixed scalar/struct forms + wider types (after the all-0x2c2
+    // result of the plain forms sweep)
+    static const char *altSvcs[] = { "AppleJPEGDriver", "SJPEGDriver", "AppleH16JPEG" };
+    for (unsigned sn = 0; sn < sizeof(altSvcs)/sizeof(altSvcs[0]); sn++) {
+        for (uint32_t t = 0; t <= 8; t++) {
+            io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                IOServiceMatching(altSvcs[sn]));
+            if (!s) { LOG("[jpeg] svc %s not found", altSvcs[sn]); break; }
+            io_connect_t c = 0;
+            kern_return_t ko = IOServiceOpen(s, mach_task_self(), t, &c);
+            IOObjectRelease(s);
+            if (ko) { if (t <= 3 || ko != 0xe00002c7) LOG("[jpeg] open %s type %u -> 0x%08x", altSvcs[sn], t, ko); continue; }
+            LOG("[jpeg] open %s type %u -> conn 0x%x", altSvcs[sn], t, c);
+            for (uint32_t sel = 0; sel <= 9; sel++) {
+                char line[640]; int m = 0;
+                m += snprintf(line + m, sizeof line - m, "[jpeg] %s t%u sel %u:", altSvcs[sn], t, sel);
+                // trap0/trap1 (no/one arg) — scaler-style
+                kern_return_t kt0 = ioconnect_trap1(c, sel, 0);
+                m += snprintf(line + m, sizeof line - m, " trap=%08x", kt0);
+                // 1 scalar + struct
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                uint64_t s1[1] = {0};
+                size_t osz = 0x100;
+                uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+                kern_return_t kr = IOConnectCallMethod(c, sel, s1, 1, inb, 0x1d0, osc, &nosc, outb, &osz);
+                m += snprintf(line + m, sizeof line - m, " s1st=%08x", kr);
+                // 2 scalars + struct
+                uint64_t s2[2] = {0, 0};
+                osz = 0x100; nosc = 0;
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                kr = IOConnectCallMethod(c, sel, s2, 2, inb, 0x1d0, osc, &nosc, outb, &osz);
+                m += snprintf(line + m, sizeof line - m, " s2st=%08x", kr);
+                LOG("%s", line);
+            }
+            IOServiceClose(c);
+        }
+    }
+    // B3. privileged-looking types (Metal-style 0x10000x) on AppleJPEGDriver
+    static const uint32_t ptypes[] = { 0x100, 0x1000, 0x10000, 0x100000, 0x100001,
+                                       0x100002, 0x100003, 0x100004, 0x100005 };
+    for (unsigned ti = 0; ti < sizeof(ptypes)/sizeof(ptypes[0]); ti++) {
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching("AppleJPEGDriver"));
+        if (!s) break;
+        io_connect_t c = 0;
+        kern_return_t ko = IOServiceOpen(s, mach_task_self(), ptypes[ti], &c);
+        IOObjectRelease(s);
+        LOG("[jpeg] open type 0x%x -> kr 0x%08x conn 0x%x", ptypes[ti], ko, c);
+        if (ko || !c) continue;
+        for (uint32_t sel = 0; sel <= 9; sel++) {
+            memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+            size_t osz = 0x100;
+            kern_return_t kr = IOConnectCallStructMethod(c, sel, inb, 0x1d0, outb, &osz);
+            if (kr != 0xe00002c2) LOG("[jpeg]   type 0x%x sel %u -> 0x%08x", ptypes[ti], sel, kr);
+        }
+        IOServiceClose(c);
+    }
+    // B4. last form matrix on type 0: stIn size x stOut size (struct-returning
+    // methods may require a matching stOut)
+    {
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching("AppleJPEGDriver"));
+        io_connect_t c = 0;
+        kern_return_t ko = s ? IOServiceOpen(s, mach_task_self(), 0, &c) : -1;
+        if (s) IOObjectRelease(s);
+        if (!ko && c) {
+            static const size_t sins[] = { 0x1d0, 0x2c8, 0x3c0 };
+            static const size_t souts[] = { 0x100, 0x1d0, 0x1000 };
+            for (uint32_t sel = 0; sel <= 9; sel++) {
+                char line[640]; int m = 0;
+                m += snprintf(line + m, sizeof line - m, "[jpeg] b4 sel %u:", sel);
+                for (unsigned a = 0; a < 3; a++) for (unsigned b = 0; b < 3; b++) {
+                    memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+                    size_t osz = souts[b];
+                    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+                    kern_return_t kr = IOConnectCallMethod(c, sel, NULL, 0, inb, sins[a], osc, &nosc, outb, &osz);
+                    m += snprintf(line + m, sizeof line - m, " %zx/%zx=%08x", sins[a], souts[b], kr);
+                }
+                LOG("%s", line);
+            }
+            IOServiceClose(c);
+        }
+    }
+    mach_port_destroy(mach_task_self(), wake);
+    LOG("[jpeg] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -15280,6 +15423,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_JPEG")) { p_jpeg(); LOG("[probe13] jpeg-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PINNED")) { p_pinned(); LOG("[probe13] pinned-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUVMSCAN2")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUVMSCAN")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan-only mode, stop"); return NULL; }
