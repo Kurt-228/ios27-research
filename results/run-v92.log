@@ -1,0 +1,97 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x690b
+[scaler] conn 0x690b, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[pin] v92: pinned-GPUAddress aliasing experiments
+[open] IOGPU -> conn 0x6c03
+[pin] === E0 calib-free: pinned 0x1000800000 ===
+[pin]   v0 create pinned 0x1000800000 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x11000000000 cpu 101188000
+[pin]   out: 0000011000000000 0000000101188000 00000001010bc0c0 0000000000000000
+[pin] E0 calib-free: OK rid 1 GPUVA 0x11000000000 (requested 0x1000800000) cpu 0x101188000
+[pin] E0 calib-free: GPU-probe slots 8, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E0 calib-free: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E0 calib-free: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000800000 cpu 105e04000
+[mtlr]   out: 0000010000800000 0000000105e04000 00000001010bc180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000003f1ca57c 000000000001ebf1
+[pin] === E1 alias-own-buffer: pinned 0x10000800000 ===
+[pin]   v0 create pinned 0x10000800000 sz 0x10000 -> kr 0x00000000 rid 3 GPUVA 0x10001000000 cpu 105e14000
+[pin]   out: 0000010001000000 0000000105e14000 00000001010bc240 0000000000000000
+[pin] E1 alias-own-buffer: OK rid 3 GPUVA 0x10001000000 (requested 0x10000800000) cpu 0x105e14000
+[pin] E1 alias-own-buffer: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E1 alias-own-buffer: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E1 alias-own-buffer: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] E1: own buffer[0..7] after alias write: 11 11 11 11 no alias
+[pin] === E2 svc-ptr-table: pinned 0x10001c000 ===
+[pin]   v0 create pinned 0x10001c000 sz 0x10000 -> kr 0x00000000 rid 4 GPUVA 0x10100820000 cpu 105e9c000
+[pin]   out: 0000010100820000 0000000105e9c000 00000001010bc300 0000000000000000
+[pin] E2 svc-ptr-table: OK rid 4 GPUVA 0x10100820000 (requested 0x10001c000) cpu 0x105e9c000
+[pin] E2 svc-ptr-table: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E2 svc-ptr-table: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E2 svc-ptr-table: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E3 svc-page: pinned 0x10000c000 ===
+[pin]   v0 create pinned 0x10000c000 sz 0x10000 -> kr 0x00000000 rid 5 GPUVA 0x10100840000 cpu 105eac000
+[pin]   out: 0000010100840000 0000000105eac000 00000001010bc3c0 0000000000000000
+[pin] E3 svc-page: OK rid 5 GPUVA 0x10100840000 (requested 0x10000c000) cpu 0x105eac000
+[pin] E3 svc-page: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E3 svc-page: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E3 svc-page: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E4 svc-desc: pinned 0x100110000 ===
+[pin]   v0 create pinned 0x100110000 sz 0x10000 -> kr 0x00000000 rid 6 GPUVA 0x10100a00000 cpu 105ebc000
+[pin]   out: 0000010100a00000 0000000105ebc000 00000001010bc480 0000000000000000
+[pin] E4 svc-desc: OK rid 6 GPUVA 0x10100a00000 (requested 0x100110000) cpu 0x105ebc000
+[pin] E4 svc-desc: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E4 svc-desc: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E4 svc-desc: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E5 svc-desc2: pinned 0x100120000 ===
+[pin]   v0 create pinned 0x100120000 sz 0x10000 -> kr 0x00000000 rid 7 GPUVA 0x10100c00000 cpu 105ecc000
+[pin]   out: 0000010100c00000 0000000105ecc000 00000001010bc540 0000000000000000
+[pin] E5 svc-desc2: OK rid 7 GPUVA 0x10100c00000 (requested 0x100120000) cpu 0x105ecc000
+[pin] E5 svc-desc2: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E5 svc-desc2: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E5 svc-desc2: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E6 sp0x10-base: pinned 0x1000000000 ===
+[pin]   v0 create pinned 0x1000000000 sz 0x10000 -> kr 0x00000000 rid 8 GPUVA 0x11000860000 cpu 105edc000
+[pin]   out: 0000011000860000 0000000105edc000 00000001010bc600 0000000000000000
+[pin] E6 sp0x10-base: OK rid 8 GPUVA 0x11000860000 (requested 0x1000000000) cpu 0x105edc000
+[pin] E6 sp0x10-base: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E6 sp0x10-base: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E6 sp0x10-base: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E7 sp0x10-packed: pinned 0x1000004000 ===
+[pin]   v0 create pinned 0x1000004000 sz 0x10000 -> kr 0x00000000 rid 9 GPUVA 0x11000878000 cpu 105eec000
+[pin]   out: 0000011000878000 0000000105eec000 00000001010bc6c0 0000000000000000
+[pin] E7 sp0x10-packed: OK rid 9 GPUVA 0x11000878000 (requested 0x1000004000) cpu 0x105eec000
+[pin] E7 sp0x10-packed: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E7 sp0x10-packed: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E7 sp0x10-packed: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E8 wild-fatalread: pinned 0x40000 ===
+[pin]   v0 create pinned 0x40000 sz 0x10000 -> kr 0x00000000 rid 10 GPUVA 0x100008c0000 cpu 105efc000
+[pin]   out: 00000100008c0000 0000000105efc000 00000001010bc780 0000000000000000
+[pin] E8 wild-fatalread: OK rid 10 GPUVA 0x100008c0000 (requested 0x40000) cpu 0x105efc000
+[pin] E8 wild-fatalread: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E8 wild-fatalread: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E8 wild-fatalread: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E9 wild-fatalread: pinned 0x100004000 ===
+[pin]   v0 create pinned 0x100004000 sz 0x10000 -> kr 0x00000000 rid 11 GPUVA 0x10100890000 cpu 105f0c000
+[pin]   out: 0000010100890000 0000000105f0c000 00000001010bc840 0000000000000000
+[pin] E9 wild-fatalread: OK rid 11 GPUVA 0x10100890000 (requested 0x100004000) cpu 0x105f0c000
+[pin] E9 wild-fatalread: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E9 wild-fatalread: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E9 wild-fatalread: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E10 wild-low: pinned 0x100001000 ===
+[pin]   v0 create pinned 0x100001000 sz 0x10000 -> kr 0x00000000 rid 12 GPUVA 0x101008a8000 cpu 105f1c000
+[pin]   out: 00000101008a8000 0000000105f1c000 00000001010bc900 0000000000000000
+[pin] E10 wild-low: OK rid 12 GPUVA 0x101008a8000 (requested 0x100001000) cpu 0x105f1c000
+[pin] E10 wild-low: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E10 wild-low: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E10 wild-low: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] === E11 sp0x100: pinned 0x10000000000 ===
+[pin]   v0 create pinned 0x10000000000 sz 0x10000 -> kr 0x00000000 rid 13 GPUVA 0x10000900000 cpu 105f2c000
+[pin]   out: 0000010000900000 0000000105f2c000 00000001010bc9c0 0000000000000000
+[pin] E11 sp0x100: OK rid 13 GPUVA 0x10000900000 (requested 0x10000000000) cpu 0x105f2c000
+[pin] E11 sp0x100: GPU-probe slots 0, B[0..15] 00 00 00 00 00 00 00 00
+[pin] E11 sp0x100: CPU alias[0..15] 00 00 00 00 00 00 00 00
+[pin] E11 sp0x100: CPU-write -> GPU-probe markers 0/512 (slots 0) 
+[pin] done (alive)
+[probe13] pinned-only mode, stop

