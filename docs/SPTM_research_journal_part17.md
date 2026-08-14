@@ -37,6 +37,47 @@ fileset-extract теряет chained fixups → таблица externalMethod н
 LC_DYLD_CHAINED_FIXUPS или анализировать newUserClient на предмет entitlement-веток
 (строки гейтов известны).
 
+## 90. Полная карта IOKit-поверхности из App-Sandbox (v97, фаза p_iosweep)
+
+Перечислено **1309 сервисов** (IOServiceMatching("IOService"), name|class|path —
+полный дамп в results/run-v97b.log). Open-probe types 0..3 + selector-probe 0..20
+(struct 0x80 нулей) на всём открывшемся.
+
+### Reachable из sandbox (iOS 27 b4, iPhone 15 Pro Max)
+
+| сервис | types | живые селекторы (struct-form) | статус |
+|---|---|---|---|
+| AGXAcceleratorG16P | 1 | sel8=0x2be (есть, bad arg) | known (GPU-трек) |
+| AppleM2ScalerCSCDriver | 0-3 | **sel11 = kr 0** (getter?), остальные 0x2c7 | known (наш 0-day) |
+| AppleJPEGDriver | 0-3 | нет (всё 0x2c2, v93) | known, gated |
+| **AppleKeyStore** | 0-3 | **sel0, sel1, sel16 = kr 0** (нулевой struct принят!); sel5/6=0x2c1, sel8/19=0x2e2, sel17=0x2f0, sel20=0x2c1 | НОВЫЙ, крипто-keybag |
+| **AppleCLCD2** | 0-3 | нет struct-methods 0..20 (нужны async/scalar/trap формы) | НОВЫЙ, display pipe (disp0/dispext0) |
+| AppleSPUVD6287 | 2 | none in 0..20 | HID/камера-хаб |
+| AppleSPUHIDDriver | 2 | none | HID |
+| IOHIDEventDriver | 2 | none | HID events |
+| AppleSphinxProxHIDEventDriver | 2 | none | prox sensor |
+| AppleM68Buttons | 2 | none | кнопки |
+| AppleARMPMUPowerSensor / AppleARMPMUTempSensor / AppleEmbeddedNVMeTemperatureSensor / AHSTemperaturePowerSMCReporter | 2 | none | сенсоры |
+
+### Замечания
+- **IOSurfaceRoot на iOS 27 переименован/переехал**: instance = `IOCoreSurfaceRoot`
+  (class IOSurfaceRoot) — open types 0..3 НЕ работает с нашими entitlements
+  (IOSurfaceCreate в приложении идёт, видимо, через другой путь).
+- **IOMobileFramebufferAP в реестре ОТСУТСТВУЕТ** (iOS 27): ни сервиса, ни
+  похожего имени (проверены Mobile/FrameBuffer/DisplayPipe паттерны) — дисплейный
+  стек реорганизован (ср. AppleCLCD2 на disp0).
+- 600→1309: первый прогон (run-v97) обрезался моим лимитом массива — урок учтён.
+
+### Топ-3 кандидата для фаззинга
+1. **AppleKeyStore** — реально живые методы (sel0/1/16 принимают нулевой struct
+   с kr 0): keybag/крипто, исторически богатый на баги, валидация struct-контента
+   не разведана. Осторожно: затрагивает ключи — только фазз размеров/форм, не данных.
+2. **AppleCLCD2** — дисплейный пайплайн (dispext0/disp0), открывается широко
+   (types 0-3), методы не в struct-форме — следующий шаг: форм-свип
+   (async/scalar/trap) + размеры; display-драйверы = классическая поверхность.
+3. **IOHIDEventDriver / AppleSPUHIDDriver (type 2)** — HID event path, вечнозелёный
+   класс (IOHIDFamily CVEs); методы не в struct-форме 0..20 — нужен форм-свип.
+
 ## 87. DART-домен скейлера: PERSISTENT + SHARED, cross-request write подтверждён (v94)
 
 Фаза `p_dartmap` (env FUZZ_DARTMAP=1, FUZZ_DART_STEP=0..3, run-v94{,b,c,d}.log).

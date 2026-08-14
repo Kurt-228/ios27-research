@@ -1,0 +1,685 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7303
+[scaler] conn 0x7303, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[sweep] v97: full IOKit surface sweep
+[sweep] svc: IODTNVRAMDiags | IODTNVRAMDiags | IOService:/options/IODTNVRAMDiags
+[sweep] svc: IODTNVRAMPlatformNotifier | IODTNVRAMPlatformNotifier | IOService:/options/IODTNVRAMPlatformNotifier
+[sweep] svc: D84AP | IOPlatformExpertDevice | IOService:/
+[sweep] svc: IOSystemStateNotification | IOSystemStateNotification | IOService:/AppleARMPE/IOSystemStateNotification
+[sweep] svc: IOResources | IOResources | IOService:/IOResources
+[sweep] svc: options-common | IODTNVRAMVariables | IOService:/options/options-common
+[sweep] svc: IOPMrootDomain | IOPMrootDomain | IOService:/AppleARMPE/IOPMrootDomain
+[sweep] svc: options | IODTNVRAM | IOService:/options
+[sweep] svc: cpu3 | IOPlatformDevice | IOService:/AppleARMPE/cpu3@3
+[sweep] svc: cpu4 | IOPlatformDevice | IOService:/AppleARMPE/cpu4@100
+[sweep] svc: vram | IOPlatformDevice | IOService:/AppleARMPE/vram@F2C20000
+[sweep] svc: buttons | IOPlatformDevice | IOService:/AppleARMPE/buttons
+[sweep] svc: cpu0 | IOPlatformDevice | IOService:/AppleARMPE/cpu0@0
+[sweep] svc: socd-trace-ram | IOPlatformDevice | IOService:/AppleARMPE/socd-trace-ram@EDE89014
+[sweep] svc: sacm-general | IOPlatformDevice | IOService:/AppleARMPE/sacm-general
+[sweep] svc: defaults | IOPlatformDevice | IOService:/AppleARMPE/defaults
+[sweep] svc: iboot-syscfg | IOPlatformDevice | IOService:/AppleARMPE/iboot-syscfg
+[sweep] svc: port-usb-c-1 | IOPlatformDevice | IOService:/AppleARMPE/port-usb-c-1
+[sweep] svc: backlight | IOPlatformDevice | IOService:/AppleARMPE/backlight
+[sweep] svc: core-brightness | IOPlatformDevice | IOService:/AppleARMPE/core-brightness
+[sweep] svc: baseband | IOPlatformDevice | IOService:/AppleARMPE/baseband
+[sweep] svc: amfm | IOPlatformDevice | IOService:/AppleARMPE/amfm
+[sweep] svc: sacm-jasper | IOPlatformDevice | IOService:/AppleARMPE/sacm-jasper
+[sweep] svc: product | IOPlatformDevice | IOService:/AppleARMPE/product
+[sweep] svc: filesystems | IOPlatformDevice | IOService:/AppleARMPE/filesystems
+[sweep] svc: fillmore | IOPlatformDevice | IOService:/AppleARMPE/fillmore
+[sweep] svc: cpu5 | IOPlatformDevice | IOService:/AppleARMPE/cpu5@101
+[sweep] svc: cpu2 | IOPlatformDevice | IOService:/AppleARMPE/cpu2@2
+[sweep] svc: arm-io | IOPlatformDevice | IOService:/AppleARMPE/arm-io@10F00000
+[sweep] svc: pram | IOPlatformDevice | IOService:/AppleARMPE/pram@FFEAC000
+[sweep] svc: cpu1 | IOPlatformDevice | IOService:/AppleARMPE/cpu1@1
+[sweep] svc: port-magsafe-1 | IOPlatformDevice | IOService:/AppleARMPE/port-magsafe-1
+[sweep] svc: cpus | IOPlatformDevice | IOService:/AppleARMPE/cpus
+[sweep] svc: AppleARMSlowAdaptiveClockingManager | AppleARMSlowAdaptiveClockingManager | IOService:/AppleARMPE/sacm-general/AppleARMSlowAdaptiveClockingManager
+[sweep] svc: AppleARMSlowAdaptiveClockingManager | AppleARMSlowAdaptiveClockingManager | IOService:/AppleARMPE/sacm-jasper/AppleARMSlowAdaptiveClockingManager
+[sweep] svc: AppleARMPE | AppleARMPE | IOService:/AppleARMPE
+[sweep] svc: PassthruInterruptController | PassthruInterruptController | IOService:/AppleARMPE/PassthruInterruptController
+[sweep] svc: AppleInterruptControllerV3 | AppleInterruptControllerV3 | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aic@C1000000/AppleInterruptControllerV3
+[sweep] svc: AppleT8101GPIOIC | AppleT8101GPIOIC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-gpio@E4824000/AppleT8101GPIOIC
+[sweep] svc: AppleT8101GPIOIC | AppleT8101GPIOIC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc-gpio@DC820000/AppleT8101GPIOIC
+[sweep] svc: AppleT8101GPIOIC | AppleT8101GPIOIC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gpio@B7100000/AppleT8101GPIOIC
+[sweep] svc: AppleT8101GPIOIC | AppleT8101GPIOIC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp-gpio@EA820000/AppleT8101GPIOIC
+[sweep] svc: AppleT8101GPIOIC | AppleT8101GPIOIC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-gpio@D41F0000/AppleT8101GPIOIC
+[sweep] svc: ApplePCIEMSIController-apcie | ApplePCIEMSIController | IOService:/AppleARMPE/ApplePCIEMSIController-apcie
+[sweep] svc: AppleSPMIController | AppleSPMIController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000/AppleSPMIController
+[sweep] svc: AppleSPMIController | AppleSPMIController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi1@D4614000/AppleSPMIController
+[sweep] svc: AppleSPMIController | AppleSPMIController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController
+[sweep] svc: AppleSPMIController | AppleSPMIController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi0@D4714000/AppleSPMIController
+[sweep] svc: AppleSPMIController | AppleSPMIController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController
+[sweep] svc: aon-ptd@DC840000/ApplePTD | ApplePTD | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aon-ptd@DC840000/aon-ptd@DC840000/ApplePTD
+[sweep] svc: AppleSMCPMU | AppleSMCPMU | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/smc-pmu/AppleSMCPMU
+[sweep] svc: com_apple_driver_FairPlayIOKit | com_apple_driver_FairPlayIOKit | IOService:/IOResources/com_apple_driver_FairPlayIOKit
+[sweep] svc: AKSAnalytics | AKSAnalytics | IOService:/IOResources/AKSAnalytics
+[sweep] svc: ASIOKit | ASIOKit | IOService:/IOResources/ASIOKit
+[sweep] svc: AUC | AUC | IOService:/IOResources/AUC
+[sweep] svc: AppleDiskImagesController | AppleDiskImagesController | IOService:/IOResources/AppleDiskImagesController
+[sweep] svc: ANEDriverRoot | H1xANELoadBalancer | IOService:/IOResources/ANEDriverRoot
+[sweep] svc: ANEClientHints | ANEClientHints | IOService:/IOResources/ANEDriverRoot/ANEClientHints
+[sweep] svc: AppleIPAppender | AppleIPAppender | IOService:/IOResources/AppleIPAppender
+[sweep] svc: AppleSARService | AppleSARService | IOService:/IOResources/AppleSARService
+[sweep] svc: aic-timebase | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aic-timebase@D1180000
+[sweep] svc: aic | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aic@C1000000
+[sweep] svc: pmgr | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000
+[sweep] svc: wdt | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/wdt@D42B0000
+[sweep] svc: mcc | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mcc@10100000
+[sweep] svc: dwi | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dwi@C0200000
+[sweep] svc: event-log-handler | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/event-log-handler@C0700000
+[sweep] svc: aop | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000
+[sweep] svc: aop-gpio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-gpio@E4824000
+[sweep] svc: smc-gpio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc-gpio@DC820000
+[sweep] svc: pmp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000
+[sweep] svc: sep | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sep@92400000
+[sweep] svc: sio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000
+[sweep] svc: ans | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000
+[sweep] svc: smc | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000
+[sweep] svc: pmgrtools | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgrtools
+[sweep] svc: dockchannel-mtp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-mtp@EAB00000
+[sweep] svc: mtp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp@EA400000
+[sweep] svc: nco | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nco@C0044000
+[sweep] svc: gpio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gpio@B7100000
+[sweep] svc: error-handler | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/error-handler@10100000
+[sweep] svc: pwm | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pwm@95040000
+[sweep] svc: aes | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aes@9500C000
+[sweep] svc: dart-aop | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000
+[sweep] svc: nub-gpio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-gpio@D41F0000
+[sweep] svc: mtp-gpio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp-gpio@EA820000
+[sweep] svc: dart-pmp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-pmp@C0300000
+[sweep] svc: dart-sep | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sep@90CC0000
+[sweep] svc: dart-sio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000
+[sweep] svc: sart-ans | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sart-ans@FDC50000
+[sweep] svc: aon-ptd | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aon-ptd@DC840000
+[sweep] svc: dockchannel-uart | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-uart@D4128000
+[sweep] svc: mtp-aop-mux | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp-aop-mux
+[sweep] svc: spi3 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/spi3@9510C000
+[sweep] svc: i2c3 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/i2c3@9501C000
+[sweep] svc: nub-spmi1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi1@D4614000
+[sweep] svc: dart-mtp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-mtp@EA808000
+[sweep] svc: uart0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/uart0@95200000
+[sweep] svc: i2c2 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/i2c2@95018000
+[sweep] svc: nub-spmi0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi0@D4714000
+[sweep] svc: aop-spmi0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000
+[sweep] svc: display-crossbar0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/display-crossbar0
+[sweep] svc: atc0-dpphy | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/atc0-dpphy
+[sweep] svc: dart-usb | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-usb@2F00000
+[sweep] svc: dcp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000
+[sweep] svc: disp0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/disp0@7C000000
+[sweep] svc: dart-disp0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-disp0@7D304000
+[sweep] svc: nub-spmi-a0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000
+[sweep] svc: aop-spmi1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000
+[sweep] svc: atc0-dpxbar | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/atc0-dpxbar@304C000
+[sweep] svc: atc-phy0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/atc-phy0@2A90000
+[sweep] svc: usb-drd | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/usb-drd@2280000
+[sweep] svc: dcp0-expert | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp0-expert@D42B8044
+[sweep] svc: dart-dcp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcp@7D30C000
+[sweep] svc: dart-dispgrt | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispgrt@7D350000
+[sweep] svc: dcp-sac-controller | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp-sac-controller
+[sweep] svc: dispext0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dispext0@8000000
+[sweep] svc: dcpext-expert | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext-expert@D42B8044
+[sweep] svc: dp-audio1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dp-audio1
+[sweep] svc: dart-dcpext0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcpext0@930C000
+[sweep] svc: dart-dispext0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispext0@9304000
+[sweep] svc: dcpext | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000
+[sweep] svc: alc0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/alc0
+[sweep] svc: aop-mca2 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-mca2@E4808000
+[sweep] svc: aop-mca-switch | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-mca-switch@E4800000
+[sweep] svc: sio-mca-switch | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca-switch@97400000
+[sweep] svc: admac-sio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000
+[sweep] svc: admac-aop-base | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000
+[sweep] svc: apple-processor-trace | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apple-processor-trace
+[sweep] svc: gpio-canary | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gpio-canary
+[sweep] svc: msg | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/msg@B7500000
+[sweep] svc: aop-mca-pmgr | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-mca-pmgr@D4240014
+[sweep] svc: sio-mca2 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca2@97408000
+[sweep] svc: admac-aop-audio | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000
+[sweep] svc: gfx-asc | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000
+[sweep] svc: sgx | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sgx@80000000
+[sweep] svc: grimaldi | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/grimaldi
+[sweep] svc: bluetooth | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/bluetooth@F
+[sweep] svc: wlan | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/wlan
+[sweep] svc: dart-apr | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apr@7008000
+[sweep] svc: apr | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apr@7000000
+[sweep] svc: dart-avd | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000
+[sweep] svc: dart-ave | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ave@5030000
+[sweep] svc: ave | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ave@5100000
+[sweep] svc: mapper-gfx-asc | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mapper-gfx-asc
+[sweep] svc: sio-mca1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca1@97404000
+[sweep] svc: sio-mca-pmgr | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca-pmgr@C00400B4
+[sweep] svc: avd | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/avd@78000000
+[sweep] svc: dart-ane | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ane@1800000
+[sweep] svc: ane | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ane@1400000
+[sweep] svc: sio-mca0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca0@97400000
+[sweep] svc: smctempsensor0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smctempsensor0
+[sweep] svc: dart-apcie1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie1@95000000
+[sweep] svc: apcie1-piodma | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apcie1-piodma@95010000
+[sweep] svc: pearl-sep | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pearl-sep
+[sweep] svc: aod3 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aod3
+[sweep] svc: apcie0-piodma | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apcie0-piodma@94010000
+[sweep] svc: dart-isp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-isp@8A4AC000
+[sweep] svc: isp | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/isp@88000000
+[sweep] svc: audio-resource-manager | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/audio-resource-manager
+[sweep] svc: haptics-support-interface | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/haptics-support-interface
+[sweep] svc: dart-jpeg0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg0@8D004000
+[sweep] svc: jpeg0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/jpeg0@8D000000
+[sweep] svc: aop-mca3 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-mca3@E480C000
+[sweep] svc: aod2 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aod2
+[sweep] svc: dart-jpeg1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg1@8D010000
+[sweep] svc: dart-scaler | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-scaler@D200000
+[sweep] svc: scaler0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/scaler0@D000000
+[sweep] svc: cpu-debug-interface | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/cpu-debug-interface
+[sweep] svc: jpeg1 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/jpeg1@8D00C000
+[sweep] svc: dart-apcie0 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000
+[sweep] svc: alc4 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/alc4
+[sweep] svc: apcie | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apcie@80000000
+[sweep] svc: alc2 | AppleARMIODevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/alc2
+[sweep] svc: Port-MagSafe | IOAccessoryDock0PinBuiltin | IOService:/AppleARMPE/port-magsafe-1/Port-MagSafe@1
+[sweep] svc: Port-USB-C | AppleHPMInterfaceType14 | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C/Port-USB-C@1
+[sweep] svc: LDCM | AppleHPMLDCMType2 | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C/Port-USB-C@1/LDCM
+[sweep] svc: Power In | IOPortFeaturePowerIn | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C/Port-USB-C@1/Power In
+[sweep] svc: RF CoEx | IOPortFeatureRFCoEx | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C/Port-USB-C@1/RF CoEx
+[sweep] svc: Brick ID | IOPortFeaturePowerSource | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C/Port-USB-C@1/Power In/Brick ID
+[sweep] svc: TypeC [*] | IOPortFeaturePowerSource | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C/Port-USB-C@1/Power In/TypeC [*]
+[sweep] svc: AppleDockChannel | AppleDockChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-mtp@EAB00000/AppleDockChannel
+[sweep] svc: mtp-transport | AppleDockChannelDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-mtp@EAB00000/AppleDockChannel/mtp-transport
+[sweep] svc: AppleCredentialManager | AppleCredentialManager | IOService:/IOResources/AppleCredentialManager
+[sweep] svc: AppleS5L8940XI2CController | AppleS5L8940XI2CController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/i2c3@9501C000/AppleS5L8940XI2CController
+[sweep] svc: AppleS5L8940XI2CController | AppleS5L8940XI2CController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/i2c2@95018000/AppleS5L8940XI2CController
+[sweep] svc: AppleHapticsSupportLEAP | AppleHapticsSupportLEAP | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/haptics-support-interface/AppleHapticsSupportLEAP
+[sweep] svc: AppleFirmwareUpdateKext | AppleFirmwareUpdateKext | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/haptics-support-interface/AppleHapticsSupportLEAP/AppleFirmwareUpdateKext
+[sweep] svc: AppleFirmwareUpdateKext | AppleFirmwareUpdateKext | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/haptics-support-interface/AppleHapticsSupportLEAP/AppleFirmwareUpdateKext
+[sweep] svc: DCPAVSACController | DCPAVSACController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp-sac-controller/DCPAVSACController
+[sweep] svc: AppleH16PlatformErrorHandler | AppleH16PlatformErrorHandler | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/error-handler@10100000/AppleH16PlatformErrorHandler
+[sweep] svc: CoreAnalyticsHub | CoreAnalyticsHub | IOService:/IOResources/CoreAnalyticsHub
+[sweep] svc: IOAudioCodecs | IOAudioCodecs | IOService:/IOResources/IOAudioCodecs
+[sweep] svc: CoreAnalyticsMessenger | CoreAnalyticsMessenger | IOService:/IOResources/CoreAnalyticsHub/CoreAnalyticsMessenger
+[sweep] svc: IOHDIXController | IOHDIXController | IOService:/IOResources/IOHDIXController
+[sweep] svc: CCDataStream | CCDataStream | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/bluetooth@F/BTDebug/CCPipe/CCDataStream
+[sweep] svc: CCLogStream | CCLogStream | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/wlan/AppleOLYHAL/CCPipe/CCLogStream
+[sweep] svc: CCLogStream | CCLogStream | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/wlan/AppleOLYHAL/CCPipe/CCLogStream
+[sweep] svc: CCPipe | CCDataPipe | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/bluetooth@F/BTDebug/CCPipe
+[sweep] svc: CCPipe | CCLogPipe | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/wlan/AppleOLYHAL/CCPipe
+[sweep] svc: CCPipe | CCLogPipe | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/wlan/AppleOLYHAL/CCPipe
+[sweep] svc: BTDebug | BTDebug | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/bluetooth@F/BTDebug
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcpext0@930C000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sep@90CC0000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-usb@2F00000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-disp0@7D304000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ave@5030000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-pmp@C0300000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispext0@9304000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispgrt@7D350000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcp@7D30C000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apr@7008000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ane@1800000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg0@8D004000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-isp@8A4AC000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg1@8D010000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-scaler@D200000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-mtp@EA808000/AppleT8110DART
+[sweep] svc: AppleT8110DART | AppleT8110DART | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie1@95000000/AppleT8110DART
+[sweep] svc: mapper-dcpext0 | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcpext0@930C000/AppleT8110DART/mapper-dcpext0@5
+[sweep] svc: mapper-sep | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sep@90CC0000/AppleT8110DART/mapper-sep@0
+[sweep] svc: mapper-sep-mpm | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sep@90CC0000/AppleT8110DART/mapper-sep-mpm@1
+[sweep] svc: mapper-usb | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-usb@2F00000/AppleT8110DART/mapper-usb@1
+[sweep] svc: mapper-disp0 | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-disp0@7D304000/AppleT8110DART/mapper-disp0@0
+[sweep] svc: mapper-disp0-piodma | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-disp0@7D304000/AppleT8110DART/mapper-disp0-piodma@4
+[sweep] svc: mapper-ave | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ave@5030000/AppleT8110DART/mapper-ave@0
+[sweep] svc: mapper-pmp | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-pmp@C0300000/AppleT8110DART/mapper-pmp@0
+[sweep] svc: mapper-pmp-ptd-fwd | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-pmp@C0300000/AppleT8110DART/mapper-pmp-ptd-fwd@2
+[sweep] svc: mapper-aop | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-aop@0
+[sweep] svc: mapper-aop-audio-admac | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-aop-audio-admac@A
+[sweep] svc: mapper-dispext0-piodma | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispext0@9304000/AppleT8110DART/mapper-dispext0-piodma@4
+[sweep] svc: mapper-apcie0-wlan | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART/mapper-apcie0-wlan
+[sweep] svc: mapper-apcie0-bt | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART/mapper-apcie0-bt
+[sweep] svc: mapper-aop-base-admac | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-aop-base-admac@9
+[sweep] svc: mapper-dispext0 | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispext0@9304000/AppleT8110DART/mapper-dispext0@0
+[sweep] svc: mapper-dcp | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcp@7D30C000/AppleT8110DART/mapper-dcp@5
+[sweep] svc: mapper-dispgrt | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispgrt@7D350000/AppleT8110DART/mapper-dispgrt@0
+[sweep] svc: mapper-apcie0-piodma | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART/mapper-apcie0-piodma@F
+[sweep] svc: mapper-apr | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apr@7008000/AppleT8110DART/mapper-apr@0
+[sweep] svc: mapper-scm | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-scm@1
+[sweep] svc: mapper-ane | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ane@1800000/AppleT8110DART/mapper-ane@0
+[sweep] svc: mapper-ane-mpm | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ane@1800000/AppleT8110DART/mapper-ane-mpm@B
+[sweep] svc: mapper-jpeg0 | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg0@8D004000/AppleT8110DART/mapper-jpeg0@0
+[sweep] svc: mapper-sio | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART/mapper-sio@0
+[sweep] svc: mapper-aes | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART/mapper-aes@1
+[sweep] svc: mapper-admac | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART/mapper-admac@2
+[sweep] svc: mapper-isp | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-isp@8A4AC000/AppleT8110DART/mapper-isp@0
+[sweep] svc: mapper-isp-mpm | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-isp@8A4AC000/AppleT8110DART/mapper-isp-mpm@B
+[sweep] svc: mapper-avd | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART/mapper-avd@0
+[sweep] svc: mapper-avd-piodma | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART/mapper-avd-piodma@1
+[sweep] svc: mapper-avd-adsbuf | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART/mapper-avd-adsbuf@2
+[sweep] svc: mapper-jpeg1 | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg1@8D010000/AppleT8110DART/mapper-jpeg1@0
+[sweep] svc: mapper-scaler | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-scaler@D200000/AppleT8110DART/mapper-scaler@0
+[sweep] svc: mapper-scaler-piodma | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-scaler@D200000/AppleT8110DART/mapper-scaler-piodma@1
+[sweep] svc: mapper-mtp | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-mtp@EA808000/AppleT8110DART/mapper-mtp@1
+[sweep] svc: mapper-apcie1 | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie1@95000000/AppleT8110DART/mapper-apcie1
+[sweep] svc: mapper-apcie1-piodma | IODARTMapperNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie1@95000000/AppleT8110DART/mapper-apcie1-piodma@F
+[sweep] svc: AppleKeyStore | AppleKeyStore | IOService:/IOResources/AppleKeyStore
+[sweep] svc: AppleUSBHostResourcesTypeC | AppleUSBHostResourcesTypeC | IOService:/IOResources/AppleUSBHostResourcesTypeC
+[sweep] svc: IOUSBMassStorageResource | IOUSBMassStorageResource | IOService:/IOResources/IOUSBMassStorageResource
+[sweep] svc: IOUserEthernetResource | IOUserEthernetResource | IOService:/IOResources/IOUserEthernetResource
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sep@90CC0000/AppleT8110DART/mapper-sep-mpm@1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcpext0@930C000/AppleT8110DART/mapper-dcpext0@5/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-disp0@7D304000/AppleT8110DART/mapper-disp0@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-aop@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-aop-audio-admac@A/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sep@90CC0000/AppleT8110DART/mapper-sep@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispext0@9304000/AppleT8110DART/mapper-dispext0-piodma@4/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART/mapper-apcie0-bt/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-disp0@7D304000/AppleT8110DART/mapper-disp0-piodma@4/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ane@1800000/AppleT8110DART/mapper-ane-mpm@B/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apr@7008000/AppleT8110DART/mapper-apr@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispext0@9304000/AppleT8110DART/mapper-dispext0@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-pmp@C0300000/AppleT8110DART/mapper-pmp@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-pmp@C0300000/AppleT8110DART/mapper-pmp-ptd-fwd@2/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dispgrt@7D350000/AppleT8110DART/mapper-dispgrt@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART/mapper-sio@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART/mapper-apcie0-piodma@F/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART/mapper-admac@2/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-aop-base-admac@9/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-isp@8A4AC000/AppleT8110DART/mapper-isp-mpm@B/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg0@8D004000/AppleT8110DART/mapper-jpeg0@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ave@5030000/AppleT8110DART/mapper-ave@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie0@94000000/AppleT8110DART/mapper-apcie0-wlan/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-ane@1800000/AppleT8110DART/mapper-ane@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-sio@95004000/AppleT8110DART/mapper-aes@1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-mtp@EA808000/AppleT8110DART/mapper-mtp@1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie1@95000000/AppleT8110DART/mapper-apcie1-piodma@F/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-apcie1@95000000/AppleT8110DART/mapper-apcie1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-aop@E4818000/AppleT8110DART/mapper-scm@1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-jpeg1@8D010000/AppleT8110DART/mapper-jpeg1@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-scaler@D200000/AppleT8110DART/mapper-scaler@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART/mapper-avd-piodma@1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-scaler@D200000/AppleT8110DART/mapper-scaler-piodma@1/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART/mapper-avd@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-isp@8A4AC000/AppleT8110DART/mapper-isp@0/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-dcp@7D30C000/AppleT8110DART/mapper-dcp@5/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-avd@79010000/AppleT8110DART/mapper-avd-adsbuf@2/IODARTMapper
+[sweep] svc: IODARTMapper | IODARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dart-usb@2F00000/AppleT8110DART/mapper-usb@1/IODARTMapper
+[sweep] svc: AGXArmFirmwareMapper | AGXArmFirmwareMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mapper-gfx-asc/AGXArmFirmwareMapper
+[sweep] svc: IOCoastGuardSARTMapper | IOCoastGuardSARTMapper | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sart-ans@FDC50000/IOCoastGuardSARTMapper
+[sweep] svc: IOReportHub | IOReportHub | IOService:/IOResources/IOReportHub
+[sweep] svc: sio/AppleMCA2PMGRDeviceImpl | AppleMCA2PMGRDeviceImpl | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca-pmgr@C00400B4/sio/AppleMCA2PMGRDeviceImpl
+[sweep] svc: aop/AppleMCA2PMGRDeviceImpl | AppleMCA2PMGRDeviceImpl | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-mca-pmgr@D4240014/aop/AppleMCA2PMGRDeviceImpl
+[sweep] svc: uwb-idc | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000/AppleSPMIController/uwb-idc@F
+[sweep] svc: wlan-idc | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000/AppleSPMIController/wlan-idc@E
+[sweep] svc: baseband-idc | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000/AppleSPMIController/baseband-idc@D
+[sweep] svc: dotaralc | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi1@D4614000/AppleSPMIController/dotaralc@C
+[sweep] svc: stonehenge | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi1@D4614000/AppleSPMIController/stonehenge@F
+[sweep] svc: uwb-heb | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/uwb-heb@F
+[sweep] svc: wlan-heb | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/wlan-heb@E
+[sweep] svc: baseband-heb | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/baseband-heb@D
+[sweep] svc: pmu-main | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi0@D4714000/AppleSPMIController/pmu-main@E
+[sweep] svc: stockholm-spmi | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/stockholm-spmi@8
+[sweep] svc: spmi-allAce | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-allAce@E
+[sweep] svc: spmi-hpm0 | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C
+[sweep] svc: btm | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi0@D4714000/AppleSPMIController/btm@E
+[sweep] svc: hammerfest-spmi | AppleARMSPMIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/hammerfest-spmi@C
+[sweep] svc: AppleSARSPMIIDCWLAN | AppleSARSPMIIDCWLAN | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000/AppleSPMIController/wlan-idc@E/AppleSARSPMIIDCWLAN
+[sweep] svc: AppleSARSPMIIDC | AppleSARSPMIIDC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi1@E48D4000/AppleSPMIController/baseband-idc@D/AppleSARSPMIIDC
+[sweep] svc: AppleSARSPMIHEB | AppleSARSPMIHEB | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/baseband-heb@D/AppleSARSPMIHEB
+[sweep] svc: iop-dcpext-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub
+[sweep] svc: iop-gfx-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000/AppleASCWrapV6/iop-gfx-nub
+[sweep] svc: iop-smc-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub
+[sweep] svc: iop-aop-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub
+[sweep] svc: iop-pmp-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000/AppleASCWrapV6/iop-pmp-nub
+[sweep] svc: iop-sio-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000/AppleASCWrapV6/iop-sio-nub
+[sweep] svc: iop-ane-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ane@1400000/AppleASCWrapV6/iop-ane-nub
+[sweep] svc: iop-mtp-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp@EA400000/AppleASCWrapV6/iop-mtp-nub
+[sweep] svc: iop-ans-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub
+[sweep] svc: iop-sep-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sep@92400000/AppleASCWrapV6SEP/iop-sep-nub
+[sweep] svc: iop-dcp-nub | AppleA7IOPNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub
+[sweep] svc: AppleS5L8960XNCO | AppleS5L8960XNCO | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nco@C0044000/AppleS5L8960XNCO
+[sweep] svc: AppleT602XDisplayCrossbar(display-crossbar0) | AppleT602XDisplayCrossbar | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/display-crossbar0/AppleT602XDisplayCrossbar(display-crossbar0)
+[sweep] svc: RTBuddy(DCPEXT) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)
+[sweep] svc: RTBuddy(SMC) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)
+[sweep] svc: RTBuddy(GFX) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000/AppleASCWrapV6/iop-gfx-nub/RTBuddy(GFX)
+[sweep] svc: RTBuddy(AOP) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)
+[sweep] svc: RTBuddy(PMP) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000/AppleASCWrapV6/iop-pmp-nub/RTBuddy(PMP)
+[sweep] svc: RTBuddy(ANE) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ane@1400000/AppleASCWrapV6/iop-ane-nub/RTBuddy(ANE)
+[sweep] svc: RTBuddy(SIO) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000/AppleASCWrapV6/iop-sio-nub/RTBuddy(SIO)
+[sweep] svc: RTBuddy(MTP) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp@EA400000/AppleASCWrapV6/iop-mtp-nub/RTBuddy(MTP)
+[sweep] svc: RTBuddy(DCP) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)
+[sweep] svc: RTBuddy(ANS2) | RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)
+[sweep] svc: AppleSEPManager | AppleSEPManager | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sep@92400000/AppleASCWrapV6SEP/iop-sep-nub/AppleSEPManager
+[sweep] svc: AppleS5L8920XPWM | AppleS5L8920XPWM | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pwm@95040000/AppleS5L8920XPWM
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000/AppleASCWrapV6/iop-gfx-nub/RTBuddy(GFX)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000/AppleASCWrapV6/iop-pmp-nub/RTBuddy(PMP)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ane@1400000/AppleASCWrapV6/iop-ane-nub/RTBuddy(ANE)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000/AppleASCWrapV6/iop-sio-nub/RTBuddy(SIO)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)/RTBuddyService
+[sweep] svc: RTBuddyService | RTBuddyService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp@EA400000/AppleASCWrapV6/iop-mtp-nub/RTBuddy(MTP)/RTBuddyService
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000/AppleASCWrapV6/iop-pmp-nub/RTBuddy(PMP)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000/AppleASCWrapV6/iop-sio-nub/RTBuddy(SIO)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp@EA400000/AppleASCWrapV6/iop-mtp-nub/RTBuddy(MTP)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyIOReportingEndpoint | RTBuddyIOReportingEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/RTBuddyIOReportingEndpoint
+[sweep] svc: RTBuddyTraceKitEndpoint | RTBuddyTraceKitEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/RTBuddyTraceKitEndpoint
+[sweep] svc: RTBuddyTraceKitEndpoint | RTBuddyTraceKitEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mtp@EA400000/AppleASCWrapV6/iop-mtp-nub/RTBuddy(MTP)/RTBuddyTraceKitEndpoint
+[sweep] svc: RTBuddyTraceKitEndpoint | RTBuddyTraceKitEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/RTBuddyTraceKitEndpoint
+[sweep] svc: RTBuddyTraceKitEndpoint | RTBuddyTraceKitEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)/RTBuddyTraceKitEndpoint
+[sweep] svc: RTBuddyTraceKitEndpoint | RTBuddyTraceKitEndpoint | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/RTBuddyTraceKitEndpoint
+[sweep] svc: SMCEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1
+[sweep] svc: SMCEndpoint2 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint2
+[sweep] svc: DCPEXTEndpoint2 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint2
+[sweep] svc: DCPEXTEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint1
+[sweep] svc: DCPEXTEndpoint3 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint3
+[sweep] svc: PMPEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000/AppleASCWrapV6/iop-pmp-nub/RTBuddy(PMP)/PMPEndpoint1
+[sweep] svc: DCPEXTEndpoint5 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint5
+[sweep] svc: DCPEXTEndpoint4 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint4
+[sweep] svc: DCPEXTEndpoint6 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint6
+[sweep] svc: DCPEXTEndpoint9 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint9
+[sweep] svc: DCPEXTEndpoint10 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint10
+[sweep] svc: DCPEXTEndpoint14 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint14
+[sweep] svc: DCPEXTEndpoint11 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint11
+[sweep] svc: DCPEXTEndpoint13 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint13
+[sweep] svc: DCPEXTEndpoint24 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint24
+[sweep] svc: DCPEXTEndpoint16 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint16
+[sweep] svc: DCPEXTEndpoint12 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint12
+[sweep] svc: DCPEXTEndpoint15 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint15
+[sweep] svc: SIOEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000/AppleASCWrapV6/iop-sio-nub/RTBuddy(SIO)/SIOEndpoint1
+[sweep] svc: DCPEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint1
+[sweep] svc: ANS2Endpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)/ANS2Endpoint1
+[sweep] svc: DCPEndpoint2 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint2
+[sweep] svc: ANS2Endpoint2 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)/ANS2Endpoint2
+[sweep] svc: DCPEndpoint3 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint3
+[sweep] svc: DCPEndpoint4 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint4
+[sweep] svc: DCPEndpoint5 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint5
+[sweep] svc: DCPEndpoint6 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint6
+[sweep] svc: DCPEndpoint9 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint9
+[sweep] svc: DCPEndpoint10 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint10
+[sweep] svc: DCPEndpoint11 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint11
+[sweep] svc: DCPEndpoint12 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint12
+[sweep] svc: DCPEndpoint13 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint13
+[sweep] svc: DCPEndpoint14 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint14
+[sweep] svc: DCPEndpoint15 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint15
+[sweep] svc: DCPEndpoint16 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint16
+[sweep] svc: DCPEndpoint24 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint24
+[sweep] svc: AOPEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint1
+[sweep] svc: AOPEndpoint2 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint2
+[sweep] svc: AOPEndpoint3 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint3
+[sweep] svc: AOPEndpoint4 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint4
+[sweep] svc: AOPEndpoint5 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint5
+[sweep] svc: AOPEndpoint8 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint8
+[sweep] svc: AOPEndpoint9 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint9
+[sweep] svc: AOPEndpoint10 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint10
+[sweep] svc: AOPEndpoint11 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint11
+[sweep] svc: AOPEndpoint13 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint13
+[sweep] svc: AOPEndpoint15 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint15
+[sweep] svc: AOPEndpoint16 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint16
+[sweep] svc: AOPEndpoint6 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint6
+[sweep] svc: AOPEndpoint7 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint7
+[sweep] svc: AOPEndpoint19 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint19
+[sweep] svc: AOPEndpoint20 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint20
+[sweep] svc: AOPEndpoint21 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint21
+[sweep] svc: AOPEndpoint22 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint22
+[sweep] svc: AOPEndpoint25 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint25
+[sweep] svc: AOPEndpoint27 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint27
+[sweep] svc: AOPEndpoint26 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint26
+[sweep] svc: AOPEndpoint28 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint28
+[sweep] svc: AOPEndpoint17 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint17
+[sweep] svc: AOPEndpoint24 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint24
+[sweep] svc: AOPEndpoint23 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint23
+[sweep] svc: AOPEndpoint29 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint29
+[sweep] svc: AOPEndpoint30 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint30
+[sweep] svc: AOPEndpoint31 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint31
+[sweep] svc: AOPEndpoint32 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint32
+[sweep] svc: AOPEndpoint14 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint14
+[sweep] svc: AOPEndpoint12 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint12
+[sweep] svc: AOPEndpoint18 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint18
+[sweep] svc: GFXEndpoint1 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000/AppleASCWrapV6/iop-gfx-nub/RTBuddy(GFX)/GFXEndpoint1
+[sweep] svc: GFXEndpoint2 | RTBuddyEndpointService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000/AppleASCWrapV6/iop-gfx-nub/RTBuddy(GFX)/GFXEndpoint2
+[sweep] svc: AppleT602XATCDPXBAR(atc0-dpxbar) | AppleT602XATCDPXBAR | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/atc0-dpxbar@304C000/AppleT602XATCDPXBAR(atc0-dpxbar)
+[sweep] svc: AppleBasebandSPMIHEB | AppleBasebandSPMIHEB | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/baseband-heb@D/AppleBasebandSPMIHEB
+[sweep] svc: AppleDisplayConnectionManager | AppleDisplayConnectionManager | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/display-crossbar0/AppleT602XDisplayCrossbar(display-crossbar0)/AppleDisplayConnectionManager
+[sweep] svc: debug-console | AppleSimpleUARTSync | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/uart0@95200000/AppleSamsungSerial/debug-console
+[sweep] svc: AppleSerialShim | AppleSerialShim | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-uart@D4128000/AppleSerialShim
+[sweep] svc: AppleSPUTimesyncV2 | AppleSPUTimesyncV2 | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/AppleSPUTimesyncV2
+[sweep] svc: APA1TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA1TX
+[sweep] svc: APA2TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA2TX
+[sweep] svc: APA3TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA3TX
+[sweep] svc: APA0TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA0TX
+[sweep] svc: APA4TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA4TX
+[sweep] svc: APA5TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA5TX
+[sweep] svc: APA6TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA6TX
+[sweep] svc: APA7TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA7TX
+[sweep] svc: APA8TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA8TX
+[sweep] svc: APA9TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA9TX
+[sweep] svc: APABTX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APABTX
+[sweep] svc: APACTX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APACTX
+[sweep] svc: APADTX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APADTX
+[sweep] svc: APAETX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APAETX
+[sweep] svc: APAFTX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APAFTX
+[sweep] svc: APA0RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA0RX
+[sweep] svc: APA1RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA1RX
+[sweep] svc: APA2RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA2RX
+[sweep] svc: APAATX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APAATX
+[sweep] svc: APA3RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA3RX
+[sweep] svc: APA4RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA4RX
+[sweep] svc: APA5RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA5RX
+[sweep] svc: APA6RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA6RX
+[sweep] svc: APA7RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA7RX
+[sweep] svc: APA8RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA8RX
+[sweep] svc: APA9RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APA9RX
+[sweep] svc: APAARX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APAARX
+[sweep] svc: APABRX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APABRX
+[sweep] svc: APACRX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APACRX
+[sweep] svc: APADRX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APADRX
+[sweep] svc: APAERX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APAERX
+[sweep] svc: APAFRX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED/APAFRX
+[sweep] svc: APB0TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB0TX
+[sweep] svc: APB1TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB1TX
+[sweep] svc: APB2TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB2TX
+[sweep] svc: APB3TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB3TX
+[sweep] svc: SIO0TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO0TX
+[sweep] svc: APB4TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB4TX
+[sweep] svc: SIO1TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO1TX
+[sweep] svc: APB5TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB5TX
+[sweep] svc: APB6TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB6TX
+[sweep] svc: SIO2TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO2TX
+[sweep] svc: SIO3TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO3TX
+[sweep] svc: SIO6TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO6TX
+[sweep] svc: SIO7TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO7TX
+[sweep] svc: SIO8TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO8TX
+[sweep] svc: SIO4TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO4TX
+[sweep] svc: SIO5TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO5TX
+[sweep] svc: SIO9TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO9TX
+[sweep] svc: APB7TX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB7TX
+[sweep] svc: SIOATX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIOATX
+[sweep] svc: APB0RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB0RX
+[sweep] svc: SIOBTX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIOBTX
+[sweep] svc: APB1RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB1RX
+[sweep] svc: SIO0RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO0RX
+[sweep] svc: APB2RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB2RX
+[sweep] svc: SIO1RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO1RX
+[sweep] svc: APB3RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB3RX
+[sweep] svc: SIO2RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO2RX
+[sweep] svc: SIO3RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO3RX
+[sweep] svc: APB4RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB4RX
+[sweep] svc: SIO4RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO4RX
+[sweep] svc: APB5RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB5RX
+[sweep] svc: SIO5RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO5RX
+[sweep] svc: APB6RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB6RX
+[sweep] svc: SIO6RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO6RX
+[sweep] svc: APB7RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE/APB7RX
+[sweep] svc: SIO7RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO7RX
+[sweep] svc: SIO8RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO8RX
+[sweep] svc: SIO9RX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIO9RX
+[sweep] svc: SIOARX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIOARX
+[sweep] svc: SIOBRX | AudioDMAChannel | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF/SIOBRX
+[sweep] svc: AppleH16MemCacheController | AppleH16MemCacheController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/mcc@10100000/AppleH16MemCacheController
+[sweep] svc: soc-tuner | ApplePMGRNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000/AppleT8130PMGR/soc-tuner
+[sweep] svc: clpc | ApplePMGRNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000/AppleT8130PMGR/clpc
+[sweep] svc: ppm | ApplePMGRNub | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000/AppleT8130PMGR/ppm
+[sweep] svc: AppleT8030SOCTuner | AppleT8030SOCTuner | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000/AppleT8130PMGR/soc-tuner/AppleT8030SOCTuner
+[sweep] svc: AppleDialogSPMIPMU | AppleDialogSPMIPMU | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi0@D4714000/AppleSPMIController/pmu-main@E/AppleDialogSPMIPMU
+[sweep] svc: AppleDialogSPMIPMURTC | AppleDialogSPMIPMURTC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi0@D4714000/AppleSPMIController/pmu-main@E/AppleDialogSPMIPMU/AppleDialogSPMIPMURTC
+[sweep] svc: AppleT6020PCIePIODMA | AppleT6020PCIePIODMA | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apcie0-piodma@94010000/AppleT6020PCIePIODMA@0
+[sweep] svc: AppleT6020PCIePIODMA | AppleT6020PCIePIODMA | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/apcie1-piodma@95010000/AppleT6020PCIePIODMA@1
+[sweep] svc: ApplePMPFirmware | ApplePMPFirmware | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmp@C0C00000/AppleASCWrapV6/iop-pmp-nub/RTBuddy(PMP)/ApplePMPFirmware
+[sweep] svc: AppleSPUFirmwareService | AppleSPUFirmwareService | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/RTBuddyService/AppleSPUFirmwareService
+[sweep] svc: AppleT8130PMGR | AppleT8130PMGR | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000/AppleT8130PMGR
+[sweep] svc: IOSerialBSDClient | IOSerialBSDClient | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/uart0@95200000/AppleSamsungSerial/debug-console/IOSerialBSDClient
+[sweep] svc: ApplePPMCPMS | ApplePPMCPMS | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/pmgr@C0700000/AppleT8130PMGR/ppm/ApplePPMCPMS
+[sweep] svc: IODMAController000000ED | AudioDMAController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-audio@E4980000/IODMAController000000ED
+[sweep] svc: IODMAController000000EE | AudioDMAController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-aop-base@E4900000/IODMAController000000EE
+[sweep] svc: IODMAController000000EF | AudioDMAController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/admac-sio@97200000/IODMAController000000EF
+[sweep] svc: IODMAController00000069 | AppleSmartIODMAController | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio@95C00000/AppleASCWrapV6/iop-sio-nub/RTBuddy(SIO)/SIOEndpoint1/AppleSmartIO/sio-dma/IODMAController00000069
+[sweep] svc: AppleMCA2Switch | AppleMCA2Switch | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/sio-mca-switch@97400000/AppleMCA2Switch
+[sweep] svc: AppleMCA2Switch | AppleMCA2Switch | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-mca-switch@E4800000/AppleMCA2Switch
+[sweep] svc: AppleMSGKext | AppleMSGKext | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/msg@B7500000/AppleMSGKext
+[sweep] svc: AppleH16IO | AppleH16IO | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO
+[sweep] svc: AppleS8000DWI | AppleS8000DWI | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dwi@C0200000/AppleS8000DWI
+[sweep] svc: AIDImageDownloader | AIDImageDownloader | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-mtp@EAB00000/AppleDockChannel/mtp-transport/AIDImageDownloader
+[sweep] svc: AIDImageDownloader | AIDImageDownloader | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dockchannel-mtp@EAB00000/AppleDockChannel/mtp-transport/AIDImageDownloader
+[sweep] svc: audio-speaker-top | AppleARMIICDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/i2c2@95018000/AppleS5L8940XI2CController/audio-speaker-top@40
+[sweep] svc: display-eeprom | AppleARMIICDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/i2c3@9501C000/AppleS5L8940XI2CController/display-eeprom@51
+[sweep] svc: audio-codec | AppleARMSPIDevice | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/spi3@9510C000/AppleSPIMCController/audio-codec@0
+[sweep] svc: AFKResource | AFKResource | IOService:/IOResources/AFKResource
+[sweep] svc: AppleMobileFileIntegrity | AppleMobileFileIntegrity | IOService:/IOResources/AppleMobileFileIntegrity
+[sweep] svc: IOHIDResource | IOHIDResource | IOService:/IOResources/IOHIDResource
+[sweep] svc: IONetworkStack | IONetworkStack | IOService:/IOResources/IONetworkStack
+[sweep] svc: AGXFirmwareKextG16RTBuddy | AGXFirmwareKextG16RTBuddy | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/gfx-asc@82400000/AppleASCWrapV6/iop-gfx-nub/RTBuddy(GFX)/RTBuddyService/AGXFirmwareKextG16RTBuddy
+[sweep] svc: IOCoreSurfaceRoot | IOSurfaceRoot | IOService:/IOResources/IOCoreSurfaceRoot
+[sweep] svc: com_apple_filesystems_lifs | com_apple_filesystems_lifs | IOService:/IOResources/com_apple_filesystems_lifs
+[sweep] svc: AppleDCPLinkServiceSoC | AppleDCPLinkServiceSoC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcpext@AC00000/AppleASCWrapV6/iop-dcpext-nub/RTBuddy(DCPEXT)/DCPEXTEndpoint24/AppleDCPLinkServiceSoC
+[sweep] svc: AppleDCPLinkServiceSoC | AppleDCPLinkServiceSoC | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/dcp@7EC00000/AppleASCWrapV6/iop-dcp-nub/RTBuddy(DCP)/DCPEndpoint24/AppleDCPLinkServiceSoC
+[sweep] svc: AppleStockholmSPMI | AppleStockholmSPMI | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/stockholm-spmi@8/AppleStockholmSPMI
+[sweep] svc: AppleHammerfestSPMI | AppleStockholmSPMI | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop-spmi0@E4894000/AppleSPMIController/hammerfest-spmi@C/AppleHammerfestSPMI
+[sweep] svc: AppleHPMDeviceHALType3 | AppleHPMDeviceHALType3 | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI/AppleHPMDeviceHALType3@C
+[sweep] svc: AppleHPMARMSPMI | AppleHPMARMSPMI | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/nub-spmi-a0@D4908000/AppleSPMIController/spmi-hpm0@C/AppleHPMARMSPMI
+[sweep] svc: VCPDRMService | VCPDRMService | IOService:/IOResources/VCPDRMService
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUPowerSensor | AppleARMPMUPowerSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUPowerSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleARMPMUTempSensor | AppleARMPMUTempSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/smc@DC400000/AppleASCWrapV6/iop-smc-nub/RTBuddy(SMC)/SMCEndpoint1/AppleSMCKeysEndpoint/AppleARMPMUTempSensor
+[sweep] svc: AppleM68Buttons | AppleM68Buttons | IOService:/AppleARMPE/buttons/AppleM68Buttons
+[sweep] svc: AppleEmbeddedNVMeTemperatureSensor | AppleEmbeddedNVMeTemperatureSensor | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/ans@F9400000/AppleASCWrapV6/iop-ans-nub/RTBuddy(ANS2)/RTBuddyService/AppleANS3CGv2Controller/AppleEmbeddedNVMeTemperatureSensor
+[sweep] svc: AppleSPUHIDDriver | AppleSPUHIDDriver | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint6/AppleSPU@10000029/gesture/AppleSPUHIDDevice/IOHIDInterface/AppleSPUHIDDriver
+[sweep] svc: AppleSPUHIDDriver | AppleSPUHIDDriver | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint6/AppleSPU@10000029/wakehint/AppleSPUHIDDevice/IOHIDInterface/AppleSPUHIDDriver
+[sweep] svc: AppleSPUHIDDriver | AppleSPUHIDDriver | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint1/AppleSPU@10000012/imu/AppleSPUHIDDevice/IOHIDInterface/AppleSPUHIDDriver
+[sweep] svc: AppleSPUHIDDriver | AppleSPUHIDDriver | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint5/AppleSPU@10000014/pressure/AppleSPUHIDDevice/IOHIDInterface/AppleSPUHIDDriver
+[sweep] svc: AppleSPUHIDDriver | AppleSPUHIDDriver | IOService:/AppleARMPE/arm-io@10F00000/AppleH16IO/aop@E4400000/AppleASCWrapV6/iop-aop-nub/RTBuddy(AOP)/AOPEndpoint24/AppleSPU@10000017/hgaccel/AppleSPUHIDDevice/IOHIDInterface/AppleSPUHIDDriver
+[sweep] enumerated 600 services
+[sweep] REACHABLE: AppleKeyStore types=0,1,2,3
+[sweep]   AppleKeyStore methods: sel0=00000000 sel1=00000000 sel5=e00002c1 sel6=e00002c1 sel8=e00002e2 sel16=00000000 sel17=e00002f0 sel19=e00002e2 sel20=e00002c1
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUPowerSensor types=2
+[sweep]   AppleARMPMUPowerSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleARMPMUTempSensor types=2
+[sweep]   AppleARMPMUTempSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleM68Buttons types=2
+[sweep]   AppleM68Buttons methods: none(0x2c2)
+[sweep] REACHABLE: AppleEmbeddedNVMeTemperatureSensor types=2
+[sweep]   AppleEmbeddedNVMeTemperatureSensor methods: none(0x2c2)
+[sweep] REACHABLE: AppleSPUHIDDriver types=2
+[sweep]   AppleSPUHIDDriver methods: none(0x2c2)
+[sweep] REACHABLE: AppleSPUHIDDriver types=2
+[sweep]   AppleSPUHIDDriver methods: none(0x2c2)
+[sweep] REACHABLE: AppleSPUHIDDriver types=2
+[sweep]   AppleSPUHIDDriver methods: none(0x2c2)
+[sweep] REACHABLE: AppleSPUHIDDriver types=2
+[sweep]   AppleSPUHIDDriver methods: none(0x2c2)
+[sweep] REACHABLE: AppleSPUHIDDriver types=2
+[sweep]   AppleSPUHIDDriver methods: none(0x2c2)
+[sweep] done (alive)
+[probe13] iosweep-only mode, stop

