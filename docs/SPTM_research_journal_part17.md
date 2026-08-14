@@ -509,3 +509,30 @@ invalidate serializes reuse). Вектор стоит на: UAF-write есть, 
 Следующие идеи по статике: точный путь возврата страниц из AGXUAT::process
 (какой free-list/arena), и кто аллоцирует из неё синхронно (возможно — только
 кernel-side потребители: page tables, command buffers).
+
+## 102. IOCoreSurfaceRoot (IOSurfaceRootUserClient) — базис + фазз (v109)
+
+Статика (BootKC): 60 селекторов, записи 0x28 {func, scalarIn, structIn,
+scalarOut, structOut}; async только sel 17/40. Открывается type 0 из sandbox.
+
+### Базис (run-v109.log)
+open type 0 kr 0 → sel13 init (out 0x28) → sel6 create_fast_path 64×64 BGRA
+(kr 0, sid) → sel2 lock → sel3 unlock — всё kr 0. sel1 release скалярной формой
+→ 0x2c2 (форма другая; некритично). Базис работает, поверхность создаётся и
+локается через raw-селекторы.
+
+### Фазз (197 кейсов, 0 крашей/паник)
+- **sel6 dims**: w=0, w=1, h=1, bpe=0, bpe=1, bpr=0, allocsize=0 — ПРИНЯТО
+  (создаётся sid; валидация рыхлая, но без падений); 0x7fffffff+ — чистый reject.
+- **sel7 client_mem** (2 scalar addr/size): size 1 и 0x1000 приняты; 0,
+  0x7fffffff, 0x80000000, 0xffffffff, 0x100000000 и addr+size overflow — чистый
+  0x2c2. OOB-обёртки не получилось.
+- **sel27 bulk_attachments** (160 байт): нулевой базис уже невалиден (0x2c2),
+  все 160 пофоловых мутаций — 0x2c2 (нужен валидный каркас attachments).
+- **set_value через публичный API** (фреймворк сериализует): NSData 1MB,
+  вложенный словарь глубиной 500, u64max — всё принято без краша ядра.
+
+Вывод: IOSurfaceRoot-таблица открыта и рабочая, но простейшие экстремумы
+отражаются корректно; для дальнейшего — валидный каркас sel27 (attachments
+формат из реверса IOSurface.framework) и глубокий фазз сериализации sel9
+(публичный API её не достигает — нужен ручной OSUnserialize-блоб).

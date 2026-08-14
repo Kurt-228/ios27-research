@@ -17246,6 +17246,171 @@ static void p_uat(void) {
     LOG("[uat] done (alive)");
 }
 
+// V109: IOCoreSurfaceRoot (type 0, IOSurfaceRootUserClient, 60 sels).
+// Basis: sel13 init, sel6 create_fast_path, sel2 lock, sel3 unlock, sel1 release.
+// Fuzz: sel7 client_mem (addr/size extremes), sel6 dims, sel27 bulk_attachments,
+// set_value via public IOSurface.framework API with wild values.
+static void p_coresurf(void) {
+    LOG("[csurf] v109: IOCoreSurfaceRoot probe");
+    int skip = atoi(getenv("FUZZ_CORESURF_SKIP") ?: "0");
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOCoreSurfaceRoot"));
+    if (!s) s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[csurf] service not found"); return; }
+    io_connect_t c = 0;
+    kern_return_t ko = IOServiceOpen(s, mach_task_self(), 0, &c);
+    IOObjectRelease(s);
+    LOG("[csurf] open type 0 -> kr 0x%08x conn 0x%x", ko, c);
+    if (ko || !c) return;
+    uint8_t *inb = must_map(0x1000);
+    uint8_t *outb = must_map(0x2000);
+    uint64_t osc[4] = {0,0,0,0};
+
+    // sel13 init (out 40)
+    memset(outb, 0, 0x2000);
+    size_t osz = 40; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 13, NULL, 0, NULL, 0, osc, &nosc, outb, &osz);
+    LOG("[csurf] sel13 init -> kr 0x%08x osz 0x%zx out: %02x %02x %02x %02x %02x %02x %02x %02x",
+        kr, osz, outb[0], outb[1], outb[2], outb[3], outb[4], outb[5], outb[6], outb[7]);
+
+    // sel6 create_fast_path: {u64 addr; u32 w,h,pixfmt,bpe,bpr,allocsize}
+    memset(inb, 0, 0x1000); memset(outb, 0, 0x2000);
+    *(uint64_t *)(inb + 0x00) = 0;              // addr (0 = alloc)
+    *(uint32_t *)(inb + 0x08) = 64;             // w
+    *(uint32_t *)(inb + 0x0c) = 64;             // h
+    *(uint32_t *)(inb + 0x10) = 0x42475241;     // BGRA
+    *(uint32_t *)(inb + 0x14) = 4;              // bpe
+    *(uint32_t *)(inb + 0x18) = 256;            // bpr
+    *(uint32_t *)(inb + 0x1c) = 0x4000;         // allocsize
+    osz = 3176; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, inb, 32, osc, &nosc, outb, &osz);
+    uint32_t sid = *(uint32_t *)(outb + 0x18);
+    LOG("[csurf] sel6 create 64x64 BGRA -> kr 0x%08x osz 0x%zx sid %u", kr, osz, sid);
+    if (!kr && sid) {
+        // lock
+        memset(inb, 0, 0x1000); memset(outb, 0, 0x2000);
+        *(uint32_t *)(inb + 0) = sid;
+        *(uint64_t *)(inb + 4) = 0;
+        osz = 3176; nosc = 0;
+        kern_return_t kl = IOConnectCallMethod(c, 2, NULL, 0, inb, 12, osc, &nosc, outb, &osz);
+        LOG("[csurf] sel2 lock sid %u -> kr 0x%08x osz 0x%zx", sid, kl, osz);
+        // unlock
+        osz = 4; nosc = 0;
+        kern_return_t ku = IOConnectCallMethod(c, 3, NULL, 0, inb, 12, osc, &nosc, outb, &osz);
+        LOG("[csurf] sel3 unlock -> kr 0x%08x", ku);
+        // release
+        uint64_t rid64 = sid;
+        kern_return_t krel = IOConnectCallScalarMethod(c, 1, &rid64, 1, NULL, NULL);
+        LOG("[csurf] sel1 release -> kr 0x%08x", krel);
+    }
+
+    long caseidx = 0;
+    if (getenv("FUZZ_CORESURF_STEP") && atoi(getenv("FUZZ_CORESURF_STEP")) == 7)
+        goto sel7fuzz;
+    // ---- sel6 dims fuzz
+    {
+        static const uint32_t ex[] = { 0, 1, 0x7fffffff, 0x80000000, 0xfffffffe, 0xffffffff };
+        // fields: w@8 h@0xc bpe@0x14 bpr@0x18 alloc@0x1c
+        static const int foffs[] = { 0x08, 0x0c, 0x14, 0x18, 0x1c };
+        for (unsigned fi = 0; fi < 5; fi++) {
+            for (unsigned vi = 0; vi < 6; vi++) {
+                caseidx++;
+                if (caseidx <= skip) continue;
+                memset(inb, 0, 0x1000); memset(outb, 0, 0x2000);
+                *(uint32_t *)(inb + 0x08) = 64; *(uint32_t *)(inb + 0x0c) = 64;
+                *(uint32_t *)(inb + 0x10) = 0x42475241;
+                *(uint32_t *)(inb + 0x14) = 4; *(uint32_t *)(inb + 0x18) = 256;
+                *(uint32_t *)(inb + 0x1c) = 0x4000;
+                *(uint32_t *)(inb + foffs[fi]) = ex[vi];
+                LOG("[csurf] sel6 c%ld f%d=0x%08x ...", caseidx, foffs[fi], ex[vi]);
+                fsync(fileno(stderr));
+                osz = 3176; nosc = 0;
+                kr = IOConnectCallMethod(c, 6, NULL, 0, inb, 32, osc, &nosc, outb, &osz);
+                uint32_t nsid = *(uint32_t *)(outb + 0x18);
+                if (kr != 0xe00002c2 && kr != 0xe00002bc)
+                    LOG("[csurf] sel6 c%ld -> kr 0x%08x sid %u %s", caseidx, kr, nsid,
+                        kr == 0 ? "ACCEPTED" : "");
+                if (!kr && nsid) {
+                    uint64_t r64 = nsid;
+                    IOConnectCallScalarMethod(c, 1, &r64, 1, NULL, NULL);
+                }
+                usleep(2000);
+            }
+        }
+    }
+sel7fuzz:
+    // ---- sel7 client_mem: 2 scalars (addr, size) extremes
+    {
+        uint8_t *buf = must_map(0x10000);
+        memset(buf, 0x42, 0x10000);
+        static const uint64_t szs[] = { 0, 1, 0x1000, 0x7fffffff, 0x80000000, 0xffffffff, 0x100000000ULL };
+        for (unsigned vi = 0; vi < sizeof(szs)/sizeof(szs[0]); vi++) {
+            caseidx++;
+            if (caseidx <= skip) continue;
+            uint64_t a2[2] = { (uint64_t)(uintptr_t)buf, szs[vi] };
+            memset(outb, 0, 0x2000);
+            LOG("[csurf] sel7 c%ld size 0x%llx ...", caseidx, szs[vi]);
+            fsync(fileno(stderr));
+            osz = 3176; nosc = 0;
+            kr = IOConnectCallMethod(c, 7, a2, 2, NULL, 0, osc, &nosc, outb, &osz);
+            uint32_t nsid = *(uint32_t *)(outb + 0x18);
+            LOG("[csurf] sel7 c%ld -> kr 0x%08x sid %u", caseidx, kr, nsid);
+            if (!kr && nsid) {
+                uint64_t r64 = nsid;
+                IOConnectCallScalarMethod(c, 1, &r64, 1, NULL, NULL);
+            }
+        }
+        // overflow combo: high addr + huge size
+        uint64_t a2[2] = { 0xfffffffff000ULL, 0x2000 };
+        LOG("[csurf] sel7 overflow combo addr+size ...");
+        fsync(fileno(stderr));
+        osz = 3176; nosc = 0;
+        kr = IOConnectCallMethod(c, 7, a2, 2, NULL, 0, osc, &nosc, outb, &osz);
+        LOG("[csurf] sel7 overflow -> kr 0x%08x", kr);
+    }
+    // ---- sel27 bulk_attachments: 160-byte basis + mutations
+    {
+        memset(inb, 0, 0x1000);
+        osz = 0x100; nosc = 0;
+        kr = IOConnectCallMethod(c, 27, NULL, 0, inb, 160, osc, &nosc, outb, &osz);
+        LOG("[csurf] sel27 zeros 160 -> kr 0x%08x", kr);
+        static const uint32_t ex[] = { 1, 0x7fffffff, 0x80000000, 0xffffffff };
+        for (long off = 0; off < 160; off += 4) {
+            for (unsigned vi = 0; vi < 4; vi++) {
+                caseidx++;
+                if (caseidx <= skip) continue;
+                memset(inb, 0, 0x1000);
+                *(uint32_t *)(inb + off) = ex[vi];
+                LOG("[csurf] sel27 c%ld off 0x%lx val 0x%08x ...", caseidx, off, ex[vi]);
+                fsync(fileno(stderr));
+                osz = 0x100; nosc = 0;
+                kr = IOConnectCallMethod(c, 27, NULL, 0, inb, 160, osc, &nosc, outb, &osz);
+                if (kr != 0xe00002c2)
+                    LOG("[csurf] sel27 c%ld -> kr 0x%08x %s", caseidx, kr, kr == 0 ? "ACCEPTED" : "");
+                usleep(1000);
+            }
+        }
+    }
+    // ---- set_value via public API with wild values
+    {
+        IOSurfaceRef sf = make_surface(64, 64);
+        if (sf) {
+            IOSurfaceID isid = IOSurfaceGetID(sf);
+            NSData *big = [NSData dataWithBytes:must_map(0x100000) length:0x100000];  // 1MB (10MB was slow)
+            IOSurfaceSetValue(sf, CFSTR("big"), (__bridge CFTypeRef)big);
+            LOG("[csurf] set_value 1MB data on sid %u done", isid);
+            NSMutableDictionary *deep = [NSMutableDictionary new];
+            NSMutableDictionary *cur = deep;
+            for (int i = 0; i < 500; i++) { NSMutableDictionary *nx = [NSMutableDictionary new]; cur[@"k"] = nx; cur = nx; }
+            IOSurfaceSetValue(sf, CFSTR("deep"), (__bridge CFTypeRef)deep);
+            LOG("[csurf] set_value deep-500 dict done");
+            IOSurfaceSetValue(sf, CFSTR("n"), (__bridge CFTypeRef)@(0xffffffffffffffffULL));
+            LOG("[csurf] set_value u64max done (alive)");
+        }
+    }
+    LOG("[csurf] done (alive), cases %ld", caseidx);
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -17376,6 +17541,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
