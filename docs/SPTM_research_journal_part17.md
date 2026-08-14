@@ -37,4 +37,43 @@ fileset-extract теряет chained fixups → таблица externalMethod н
 LC_DYLD_CHAINED_FIXUPS или анализировать newUserClient на предмет entitlement-веток
 (строки гейтов известны).
 
+## 87. DART-домен скейлера: PERSISTENT + SHARED, cross-request write подтверждён (v94)
+
+Фаза `p_dartmap` (env FUZZ_DARTMAP=1, FUZZ_DART_STEP=0..3, run-v94{,b,c,d}.log).
+База: killshot-пейлоад (sel1, dst rect 32×32 в 64×64 BGRA, flags bit28,
+border X=Y=32 W=H=0xFFFFFFE0, цвета 0xff) — baseline: panic (bug 210) в 30–50%
+выстрелов, иначе 0xe00002d6.
+
+### Эксперименты
+
+- **E1 (step 0)**: легитимный scale 2048×2048 (2×16MB поверхности) → kr 0;
+  затем 10 killshot'ов на ТОМ ЖЕ коннекте: **10/10 recoverable (0xe00002d6),
+  ни одной паники** (baseline 30–50%/shot → p≈0.001 за чистую удачу).
+  Маппинги переживают запрос — домен НЕ per-request.
+- **E2 (step 1)**: то же, но killshot'ы на СВЕЖЕМ втором коннекте (после big-map
+  на первом): **10/10 recoverable** — маппинги первого коннекта видны второму:
+  домен **shared между коннектами** (общий DART context скейлера).
+- **E4 (step 3)**: большая dst (16MB) заполнена page-маркерами (байт = номер
+  страницы), легально замаплена нормальным scale; затем 6 killshot'ов с
+  маленьким dst. CPU-readback: **4080/4096 страниц повреждены** (первая — уже
+  страница 1, оффсет 0x1000) — *** CROSS-REQUEST WRITE CONFIRMED ***.
+  Паттерн записи: страницы **зануляются** (ff 0 / zero 4096 / other 0) — цвета
+  0xff из пейлоада НЕ проходят (видимо, premultiply/format path), пишется 0x00.
+  Охват — практически весь extent легального маппинга (~16MB).
+
+### Вердикт
+
+DART-домен AppleM2ScalerCSCDriver — **persistent + shared**: маппинги живут
+после завершения запроса и общие между userclient-коннектами. wraparound-запись
+попадает в страницы, замапленные ДРУГИМИ запросами (и, потенциально, другими
+клиентами скейлера — WindowServer!, у него постоянные scale-операции). Примитив:
+**массовое зануление (~16MB за вызов) страниц чужого маппинга** — классический
+ингредиент эскалации (zeroing страницы, которую ядро переиспользует; дальше —
+угадывание/поджим страницы под kernel object). Значение записи пока 0x00 —
+подбор color-полей для controlled value — следующий шаг (color pipeline).
+
+Не сделано: E3 (extent vs dst size серия с замером fault-DVA из panic-логов) —
+код есть (FUZZ_DART_STEP=2, FUZZ_DART_SIZE=W), паники не понадобились для
+вердикта; оставлено на потом (extent-слэк за пределами поверхности не измерен).
+
 

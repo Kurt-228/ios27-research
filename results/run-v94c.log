@@ -1,0 +1,25 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6a03
+[scaler] conn 0x6a03, s1 282 s2 295
+[probe12] SetNotificationPort -> 0x00000000
+[dart] v94 DART map probe, step 3
+[open] AppleM2ScalerCSCDriver -> conn 0xa903
+[dart] E4-A big marker map -> kr 0x00000000
+[dart] E4-B shot 0 (PANIC possible)
+[dart] E4-B shot 0 -> kr 0xe00002d6
+[dart] E4-B shot 1 (PANIC possible)
+[dart] E4-B shot 1 -> kr 0xe00002d6
+[dart] E4-B shot 2 (PANIC possible)
+[dart] E4-B shot 2 -> kr 0xe00002d6
+[dart] E4-B shot 3 (PANIC possible)
+[dart] E4-B shot 3 -> kr 0xe00002d6
+[dart] E4-B shot 4 (PANIC possible)
+[dart] E4-B shot 4 -> kr 0xe00002d6
+[dart] E4-B shot 5 (PANIC possible)
+[dart] E4-B shot 5 -> kr 0xe00002d6
+[dart] E4: marker pages corrupted: 4080 (first @0x1000) *** CROSS-REQUEST WRITE CONFIRMED ***
+[dart] E4 first corrupt page bytes: 00 00 00 00 00 00 00 00 (expected 01)
+[dart] E4 done (alive)
+[dart] done (alive)
+[probe13] dartmap-only mode, stop

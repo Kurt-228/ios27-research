@@ -1,0 +1,34 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6a03
+[scaler] conn 0x6a03, s1 282 s2 295
+[probe12] SetNotificationPort -> 0x00000000
+[dart] v94 DART map probe, step 1
+[open] AppleM2ScalerCSCDriver -> conn 0x8003
+[dart] E2-A big map 2048x2048 normal scale -> kr 0x00000000
+[open] AppleM2ScalerCSCDriver -> conn 0xa903
+[dart] E2: fresh submit conn 0xa903 (c1 was 0x8003)
+[dart] E2-B wire -> kr 0x00000000
+[dart] E2-B shot 0 submitting (PANIC possible)
+[dart] E2-B shot 0 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 1 submitting (PANIC possible)
+[dart] E2-B shot 1 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 2 submitting (PANIC possible)
+[dart] E2-B shot 2 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 3 submitting (PANIC possible)
+[dart] E2-B shot 3 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 4 submitting (PANIC possible)
+[dart] E2-B shot 4 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 5 submitting (PANIC possible)
+[dart] E2-B shot 5 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 6 submitting (PANIC possible)
+[dart] E2-B shot 6 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 7 submitting (PANIC possible)
+[dart] E2-B shot 7 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 8 submitting (PANIC possible)
+[dart] E2-B shot 8 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2-B shot 9 submitting (PANIC possible)
+[dart] E2-B shot 9 -> kr 0xe00002d6 (0xe00002d6=recoverable)
+[dart] E2 done (alive): 10 recoverable shots after big map => PERSISTENT (and SHARED across conns)
+[dart] done (alive)
+[probe13] dartmap-only mode, stop
