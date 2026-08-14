@@ -1,0 +1,10 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6f03
+[scaler] conn 0x6f03, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan] v90: GPU VM scan via patched-blit read
+[gscan] gpuA 0x10000080000 gpuB 0x10000098000
+[gscan] scan done: -21 probes, 0 data hits
+[gscan] done (alive)
+[probe13] gpuvmscan2-only mode, stop

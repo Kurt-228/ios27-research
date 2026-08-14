@@ -1,0 +1,103 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7403
+[scaler] conn 0x7403, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan] v90: GPU VM scan via patched-blit read
+[gscan] gpuA 0x10000080000 gpuB 0x10000098000
+[gscan] #1 X 0x10000080000 (calib-self) -> slots 14 | B nz 65536 41 65536 A-passthrough?
+[gscan] #2 X 0x1deadbeef0000 (calib-unmapped) -> slots 13 | B nz 0 41 0 unmapped/zero
+[gscan] #3 X 0x10000110000 (kcmd-internal) -> slots 13 | B nz 0 41 0 unmapped/zero
+[gscan] #4 X 0x10000120000 (kcmd-internal) -> slots 19 | B nz 12 41 0 DATA-HIT
+[mtls] DATA+10000120000: 00 00 00 00 40 00 00 01 00 34 00 00 01 00 00 40
+[mtls] DATA+10000120010: 00 10 00 00 01 00 00 00 01 00 00 00 00 04 00 00
+[mtls] DATA+10000120020: 01 00 00 00 01 00 00 00 00 00 00 40 00 00 00 00
+[mtls] DATA+10000120030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] #5 X 0x10000098000 (kcmd-internal) -> slots 25 | B nz 9 41 0 DATA-HIT
+[mtls] DATA+10000098000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] #6 X 0x10000c000 (A-dump) -> slots 31 | B nz 0 41 0 unmapped/zero
+[gscan] #7 X 0x100010000 (A-dump) -> slots 33 | B nz 0 41 0 unmapped/zero
+[gscan] #8 X 0x100014000 (A-dump) -> slots 34 | B nz 0 41 0 unmapped/zero
+[gscan] #9 X 0x100018000 (A-dump) -> slots 34 | B nz 0 41 0 unmapped/zero
+[gscan] #10 X 0x10001c000 (A-dump) -> slots 34 | B nz 0 41 0 unmapped/zero
+[gscan] #11 X 0x100020000 (A-dump) -> slots 34 | B nz 0 41 0 unmapped/zero
+[gscan] #12 X 0x100024000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #13 X 0x100028000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #14 X 0x10002c000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #15 X 0x100030000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #16 X 0x100034000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #17 X 0x100038000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #18 X 0x10003c000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #19 X 0x100040000 (A-dump) -> slots 36 | B nz 0 41 0 unmapped/zero
+[gscan] #20 X 0x1000000000 (A-dump-0x10) -> slots 37 | B nz 0 41 0 unmapped/zero
+[gscan] #21 X 0x1000004000 (A-dump-0x10) -> slots 144 | B nz 0 41 0 unmapped/zero
+[gscan] #22 X 0x1000008000 (A-dump-0x10) -> slots 150 | B nz 0 41 0 unmapped/zero
+[gscan] #23 X 0x100044000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #24 X 0x100048000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #25 X 0x10004c000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #26 X 0x100050000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #27 X 0x100054000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #28 X 0x100058000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #29 X 0x10005c000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #30 X 0x100060000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #31 X 0x100064000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #32 X 0x100068000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #33 X 0x10006c000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #34 X 0x100070000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #35 X 0x100074000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #36 X 0x100078000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #37 X 0x10007c000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #38 X 0x100080000 (B-ext) -> slots 156 | B nz 0 41 0 unmapped/zero
+[gscan] #39 X 0x100084000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #40 X 0x100088000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #41 X 0x10008c000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #42 X 0x100090000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #43 X 0x100094000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #44 X 0x100098000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #45 X 0x10009c000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #46 X 0x1000a0000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #47 X 0x1000a4000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #48 X 0x1000a8000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #49 X 0x1000ac000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #50 X 0x1000b0000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #51 X 0x1000b4000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #52 X 0x1000b8000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #53 X 0x1000bc000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #54 X 0x1000c0000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #55 X 0x1000c4000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #56 X 0x1000c8000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #57 X 0x1000cc000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #58 X 0x1000d0000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #59 X 0x1000d4000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #60 X 0x1000d8000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #61 X 0x1000dc000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #62 X 0x1000e0000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #63 X 0x1000e4000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #64 X 0x1000e8000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #65 X 0x1000ec000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #66 X 0x1000f0000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #67 X 0x1000f4000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #68 X 0x1000f8000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #69 X 0x1000fc000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #70 X 0x100100000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #71 X 0x100104000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #72 X 0x100108000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #73 X 0x10010c000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #74 X 0x100110000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #75 X 0x100114000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #76 X 0x100118000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #77 X 0x10011c000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #78 X 0x100120000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #79 X 0x100124000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #80 X 0x100128000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #81 X 0x10012c000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #82 X 0x100130000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #83 X 0x100134000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #84 X 0x100138000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #85 X 0x10013c000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #86 X 0x100140000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #87 X 0x100144000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero
+[gscan] #88 X 0x100148000 (B-ext) -> slots 157 | B nz 0 41 0 unmapped/zero

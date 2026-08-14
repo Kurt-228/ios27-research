@@ -1,0 +1,28 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7203
+[scaler] conn 0x7203, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan2] v91: page dumps + write matrix + extended scan
+[gscan2] A#1 page 0x10000c000 -> slots 8 nz 0 
+[gscan2] A#2 page 0x100010000 -> slots 0 nz 0 
+[gscan2] A#3 page 0x100014000 -> slots 0 nz 0 
+[gscan2] A#4 page 0x100018000 -> slots 0 nz 0 
+[gscan2] A#5 page 0x10001c000 -> slots 0 nz 0 
+[gscan2] A#6 page 0x100020000 -> slots 0 nz 0 
+[gscan2] A#7 page 0x100024000 -> slots 0 nz 0 
+[gscan2] A#8 page 0x100028000 -> slots 0 nz 0 
+[gscan2] A#9 page 0x10002c000 -> slots 0 nz 0 
+[gscan2] A#10 page 0x100030000 -> slots 0 nz 0 
+[gscan2] A#11 page 0x100034000 -> slots 0 nz 0 
+[gscan2] A#12 page 0x100038000 -> slots 0 nz 0 
+[gscan2] A#13 page 0x10003c000 -> slots 0 nz 0 
+[gscan2] A#14 page 0x100040000 -> slots 0 nz 0 
+[gscan2] A#15 page 0x1000000000 -> slots 0 nz 0 
+[gscan2] A#16 page 0x1000004000 -> slots 0 nz 0 
+[gscan2] A#17 page 0x1000008000 -> slots 0 nz 0 
+[gscan2] B#32 alive (x 0x10007c000)
+[gscan2] B#64 alive (x 0x1000fc000)
+[gscan2] read phases done: 64 ops, 0 mapped pages
+[gscan2] done (alive), total ops 64
+[probe13] gpuvmscan2-only mode, stop

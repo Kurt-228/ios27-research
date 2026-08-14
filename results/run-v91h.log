@@ -1,0 +1,47 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6503
+[scaler] conn 0x6503, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[gscan] v90: GPU VM scan via patched-blit read
+[gscan] gpuA 0x10000080000 gpuB 0x10000098000
+[gscan] #1 X 0x10000080000 (calib-self) -> slots 14 | B nz 65536 41 65536 A-passthrough?
+[gscan] #2 X 0x1deadbeef0000 (calib-unmapped) -> slots 13 | B nz 0 41 0 unmapped/zero
+[gscan] #3 X 0x10000110000 (kcmd-internal) -> slots 13 | B nz 0 41 0 unmapped/zero
+[gscan] #4 X 0x10000120000 (kcmd-internal) -> slots 19 | B nz 12 41 0 DATA-HIT
+[mtls] DATA+10000120000: 00 00 00 00 40 00 00 01 00 34 00 00 01 00 00 40
+[mtls] DATA+10000120010: 00 10 00 00 01 00 00 00 01 00 00 00 00 04 00 00
+[mtls] DATA+10000120020: 01 00 00 00 01 00 00 00 00 00 00 40 00 00 00 00
+[mtls] DATA+10000120030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] #5 X 0x10000098000 (kcmd-internal) -> slots 25 | B nz 9 41 0 DATA-HIT
+[mtls] DATA+10000098000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] DATA+10000098030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[gscan] scan done: 5 probes, 2 data hits
+[gscan] write-probe X 0x10000120000: dest slots patched 27, committed
+[gscan] write-probe X 0x10000120000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x10000120000: dest slots patched 31, committed
+[gscan] write-probe X 0x10000120000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x10000c000: dest slots patched 30, committed
+[gscan] write-probe X 0x10000c000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x100010000: dest slots patched 31, committed
+[gscan] write-probe X 0x100010000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x10001c000: dest slots patched 32, committed
+[gscan] write-probe X 0x10001c000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x100020000: dest slots patched 33, committed
+[gscan] write-probe X 0x100020000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x100034000: dest slots patched 36, committed
+[gscan] write-probe X 0x100034000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x100040000: dest slots patched 37, committed
+[gscan] write-probe X 0x100040000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x100110000: dest slots patched 38, committed
+[gscan] write-probe X 0x100110000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x100120000: dest slots patched 39, committed
+[gscan] write-probe X 0x100120000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x1000000000: dest slots patched 40, committed
+[gscan] write-probe X 0x1000000000 -> DROPPED (marker qwords 0/8192)
+[gscan] write-probe X 0x1000004000: dest slots patched 151, committed
+[gscan] write-probe X 0x1000004000 -> DROPPED (marker qwords 0/8192)
+[gscan] done (alive)
+[probe13] gpuvmscan2-only mode, stop
