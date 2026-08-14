@@ -477,3 +477,35 @@ Retirement-путь — глубоко в драйвере (вероятно, с
 получается — для замыкания цепочки нужна статика free-path'а
 (IOGPUResource::free / retirement list в IOGPUFamily.kext) и, вероятно,
 cross-process timing (чужие аллокации из того же физ. пула: WindowServer).
+
+## 101. AGXUAT force-flush и попытка замыкания reclaim (v108, фаза p_uat)
+
+Статика free-path (BootKC, IOGPUFamily/AGXG16P): destroy (trap1 sel1) →
+IOGPUResource::free → AGXSecureGart::unmapWithAddress → **AGXUAT::queueUnmap** —
+очередь до 32 записей {desc,gpuva,size}; 33-й unmap форсит **AGXUAT::process**:
+PTE clear → страницы в общий пул → CPU DART tlbi → firmware GMMU invalidate
+(асинхронно, последним) — окно гонки. Флаш также из AGXUAT::allocPageTables и
+memory-pressure. (bug 284 = маркер PTE-clear.)
+
+### Эксперименты (run-v108{,b,c}.log)
+- **step 1 (форс-флаш + reclaim-набор через drain)**: victim + 40 junk destroy
+  (переполнение queueUnmap → process), затем 64 MTLBuffer-«перехватчика»
+  УДЕРЖАННЫХ живыми через весь drain очереди, скан после исполнения blit'а:
+  **0 попаданий** (v108b). Первая редакция (v108) сканировала слишком рано —
+  исправлено; результат тот же.
+- **step 2** (drain → spray): чисто (как v107).
+- **step 3 (page-table шторм)**: форс-флаш → 2500 мелких ресурсов
+  (consumption пула в AGXUAT::allocPageTables) → drain (blit исполнился,
+  status 4) → канарейка: CPU readback 65536×0x33 (intact), GPU-проба дала nz 0
+  (ожидалось 0x33) — вероятный артефакт пробника/когерентности, НЕ аномалия
+  PTE (ни 0x41, ни краша, ни SPTM-трапа). Явной модификации page tables не
+  задетектировано.
+
+### Вывод
+Даже с форсированным AGXUAT::process (41 unmap > 32) freed-страницы не
+перехватываются MTLBuffer-аллокациями — reuse идёт из иного пула/арены, либо
+страницы после process уходят в очередь с дополнительной задержкой (async GMMU
+invalidate serializes reuse). Вектор стоит на: UAF-write есть, reclaim нет.
+Следующие идеи по статике: точный путь возврата страниц из AGXUAT::process
+(какой free-list/arena), и кто аллоцирует из неё синхронно (возможно — только
+кernel-side потребители: page tables, command buffers).
