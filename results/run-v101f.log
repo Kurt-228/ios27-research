@@ -1,0 +1,30 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7603
+[scaler] conn 0x7603, s1 330 s2 339
+[probe12] SetNotificationPort -> 0x00000000
+[valh] v101 step 2
+[open] AppleM2ScalerCSCDriver -> conn 0x7103
+[valh] wire -> kr 0x00000000
+[valh] span baseline: X 00000020 Y fffffff0 W ffffffe0 H 00000020 shot
+[valh] span baseline       -> kr 0xe00002d6 bad qwords 77792 (extent ~0x4bf80) first 00 00 00 00
+[valh] span H 0x10: X 00000020 Y fffffff0 W ffffffe0 H 00000010 shot
+[valh] span H 0x10         -> kr 0xe00002c7 bad qwords 0 (extent ~0x0) first 00 00 00 00
+[valh] span H 0x40: X 00000020 Y fffffff0 W ffffffe0 H 00000040 shot
+[valh] span H 0x40         -> kr 0xe00002d6 bad qwords 77792 (extent ~0x4bf80) first 00 00 00 00
+[valh] span H 0x100: X 00000020 Y fffffff0 W ffffffe0 H 00000100 shot
+[valh] span H 0x100        -> kr 0xe00002d6 bad qwords 77792 (extent ~0x4bf80) first 00 00 00 00
+[valh] span W 0x10 X wrap: X 00000000 Y fffffff0 W 00000010 H 00000020 shot
+[valh] span W 0x10 X wrap  -> kr 0xe00002c2 bad qwords 0 (extent ~0x0) first 00 00 00 00
+[valh] span W 0x20 X wrap: X fffffff0 Y fffffff0 W 00000020 H 00000020 shot
+[valh] span W 0x20 X wrap  -> kr 0x00000000 bad qwords 4032 (extent ~0x3f00) first 00 00 00 00
+[valh] span W 0x40 X wrap: X ffffffd0 Y fffffff0 W 00000040 H 00000020 shot
+[valh] span W 0x40 X wrap  -> kr 0x00000000 bad qwords 6048 (extent ~0x5e80) first 00 00 00 00
+[valh] span W 0x80 X wrap: X ffffff90 Y fffffff0 W 00000080 H 00000020 shot
+[valh] span W 0x80 X wrap  -> kr 0x00000000 bad qwords 10080 (extent ~0x9d80) first 00 00 00 00
+[valh] span W fffffff0: X 00000020 Y fffffff0 W fffffff0 H 00000020 shot
+[valh] span W fffffff0     -> kr 0xe00002c7 bad qwords 0 (extent ~0x0) first 00 00 00 00
+[valh] span W ffffffc0: X 00000020 Y fffffff0 W ffffffc0 H 00000020 shot
+[valh] span W ffffffc0     -> kr 0xe00002c2 bad qwords 0 (extent ~0x0) first 00 00 00 00
+[valh] done (alive)
+[probe13] valhunt-only mode, stop
