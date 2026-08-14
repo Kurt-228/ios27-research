@@ -1,0 +1,50 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6503
+[scaler] conn 0x6503, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[xyw] v100: X/Y-wrap sweep (skip 0)
+[open] AppleM2ScalerCSCDriver -> conn 0x6e03
+[xyw] wire -> kr 0x00000000
+[xyw] #1 X=0xfffffff0 W=0x00000020: shot (PANIC possible)
+[xyw] #1 -> kr 0xe00002d6 | no corruption
+[xyw] #2 X=0xffffff00 W=0x00000110: shot (PANIC possible)
+[xyw] #2 -> kr 0xe00002c7 | no corruption
+[xyw] #3 X=0xfffff000 W=0x00001010: shot (PANIC possible)
+[xyw] #3 -> kr 0xe00002c2 | no corruption
+[xyw] #4 X=0xffff0000 W=0x00010010: shot (PANIC possible)
+[xyw] #4 -> kr 0xe00002c2 | no corruption
+[xyw] #5 X=0xff000000 W=0x01000010: shot (PANIC possible)
+[xyw] #5 -> kr 0xe00002c2 | no corruption
+[xyw] #6 X=0xf0000000 W=0x10000010: shot (PANIC possible)
+[xyw] #6 -> kr 0xe00002c2 | no corruption
+[xyw] #7 X=0xc0000000 W=0x40000010: shot (PANIC possible)
+[xyw] #7 -> kr 0xe00002c2 | no corruption
+[xyw] #8 X=0x80000000 W=0x80000010: shot (PANIC possible)
+[xyw] #8 -> kr 0xe00002c2 | no corruption
+[xyw] #9 X=0x40000000 W=0xc0000010: shot (PANIC possible)
+[xyw] #9 -> kr 0xe00002c2 | no corruption
+[xyw] #10 X=0x10000000 W=0xf0000010: shot (PANIC possible)
+[xyw] #10 -> kr 0xe00002c2 | no corruption
+[xyw] #11 Y=0xfffffff0 W=0x00000020: shot (PANIC possible)
+[xyw] #11 -> kr 0xe00002d6 | CORRUPT ~77792 qwords, pages 0x0..0x4b000, first bytes 00 00 00 00
+[xyw] #12 Y=0xffffff00 W=0x00000110: shot (PANIC possible)
+[xyw] #12 -> kr 0xe00002c7 | no corruption
+[xyw] #13 Y=0xfffff000 W=0x00001010: shot (PANIC possible)
+[xyw] #13 -> kr 0xe00002c2 | no corruption
+[xyw] #14 Y=0xffff0000 W=0x00010010: shot (PANIC possible)
+[xyw] #14 -> kr 0xe00002c2 | no corruption
+[xyw] #15 Y=0xff000000 W=0x01000010: shot (PANIC possible)
+[xyw] #15 -> kr 0xe00002c2 | no corruption
+[xyw] #16 Y=0xf0000000 W=0x10000010: shot (PANIC possible)
+[xyw] #16 -> kr 0xe00002c2 | no corruption
+[xyw] #17 Y=0xc0000000 W=0x40000010: shot (PANIC possible)
+[xyw] #17 -> kr 0xe00002c2 | no corruption
+[xyw] #18 Y=0x80000000 W=0x80000010: shot (PANIC possible)
+[xyw] #18 -> kr 0xe00002c2 | no corruption
+[xyw] #19 Y=0x40000000 W=0xc0000010: shot (PANIC possible)
+[xyw] #19 -> kr 0xe00002c2 | no corruption
+[xyw] #20 Y=0x10000000 W=0xf0000010: shot (PANIC possible)
+[xyw] #20 -> kr 0xe00002c2 | no corruption
+[xyw] done (alive)
+[probe13] xywrap-only mode, stop
