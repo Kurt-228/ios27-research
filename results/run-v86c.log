@@ -1,0 +1,181 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6c03
+[scaler] conn 0x6c03, s1 296 s2 297
+[probe12] SetNotificationPort -> 0x00000000
+[mtls] v86: Metal self-reference discrimination
+[mtls] device: Apple A17 Pro GPU
+[mtls] queue class AGXG16PFamilyCommandQueue
+[mtls] cb class AGXG16PFamilyCommandBuffer
+[mtls]   cb ivar _previousBlitCommandEncoder @680
+[mtls]   cb ivar _previousComputeCommandEncoder @688
+[mtls]   cb ivar _previousRenderCommandEncoder @696
+[mtls]   cb ivar _telemetryUsage @704
+[mtls]   cb ivar _impl @720
+[mtls]   cb ivar _disableDeferredEndEncoding @728
+[mtls]   cb ivar texturesToEvaluate @736
+[mtls]   cb ivar _captureProgramAddressTable @760
+[mtls]   cb ivar _cloneIntersectionFunctionTablesPerDispatch @761
+[mtls]   cb ivar hasEncoded @762
+[mtls]   cb ivar enableContentProtection @763
+[mtls]   cb ivar needsProtectedContentBarrier @764
+[mtls]   cb ivar oldProtectionOptions @768
+[mtls]   cb ivar deadline_namespace_id @776
+[mtls]   cb ivar deadline @784
+[mtls]   cb ivar _device @608
+[mtls]   cb ivar _storage @616
+[mtls]   cb ivar _submitToHardwareTimeStampPointer @624
+[mtls]   cb ivar _protectionOptions @632
+[mtls]   cb ivar _scheduledCallbackBlockPtr @640
+[mtls]   cb ivar _completedCallbackBlockPtr @648
+[mtls]   cb ivar _commitAndResetSem @656
+[mtls]   cb ivar _purgedResources @664
+[mtls]   cb ivar _gpuFaultAddress @672
+[mtls] storage 0x107a6b000
+[mtls] storage: kcmdVA 1073d8000 (shmem id 2) seglistVA 1073d4000 (shmem id 1)
+[mtls] REF-kcmd+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] REF-kcmd+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+120: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+130: 00 00 00 00 04 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+140: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+150: 68 02 00 00 03 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+170: 00 00 00 00 00 00 11 00 00 01 00 00 00 00 00 00
+[mtls] REF-kcmd+180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+190: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 12 00
+[mtls] REF-kcmd+1d0: 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1e0: 00 00 00 00 80 14 12 00 00 01 00 00 88 14 12 00
+[mtls] REF-kcmd+1f0: 00 01 00 00 90 14 12 00 00 01 00 00 98 14 12 00
+[mtls] REF-kcmd+200: 00 01 00 00 01 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+210: 00 00 00 00 00 00 00 00 1c 00 00 00 00 00 00 00
+[mtls] REF-kcmd+220: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+230: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+240: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+250: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+260: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+270: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+290: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2c0: 00 00 00 00 00 80 b2 00 00 00 00 00 00 80 05 01
+[mtls] REF-kcmd+2d0: 00 00 00 00 02 02 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+310: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+330: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+340: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+350: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+360: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+370: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+390: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +000: 0d 9d 1a 1a 00 00 00 00 01 00 00 00 01 00 00 40
+[mtls] REF-seg +010: 00 00 00 00 ac 00 00 00 0d 9d 1a 1a 00 00 00 00
+[mtls] REF-seg +020: 00 00 00 00 00 00 00 00 0e 9d 1a 1a 00 00 00 00
+[mtls] REF-seg +030: ac 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +040: 00 00 00 00 00 00 00 00 17 00 00 00 18 00 00 00
+[mtls] REF-seg +050: 19 00 00 00 1a 00 00 00 1b 00 00 00 1c 00 00 00
+[mtls] REF-seg +060: 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00
+[mtls] REF-seg +070: 20 00 00 00 20 00 00 00 01 00 01 00 04 00 01 00
+[mtls] REF-seg +080: 04 00 04 00 00 00 06 00 1d 00 00 00 1e 00 00 00
+[mtls] REF-seg +090: 1f 00 00 00 20 00 00 00 21 00 00 00 01 00 00 00
+[mtls] REF-seg +0a0: 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00
+[mtls] REF-seg +0b0: 30 00 00 00 40 00 00 00 01 00 04 00 01 00 01 00
+[mtls] REF-seg +0c0: 01 00 80 00 00 00 06 00 22 00 00 00 11 00 00 00
+[mtls] REF-seg +0d0: 14 00 00 00 0c 00 00 00 0b 00 00 00 10 00 00 00
+[mtls] REF-seg +0e0: 30 00 00 00 40 00 00 00 80 00 00 00 80 00 00 00
+[mtls] REF-seg +0f0: 80 00 00 00 40 00 00 00 01 00 80 00 80 00 80 00
+[mtls] REF-seg +100: 80 00 80 00 00 00 06 00 15 00 00 00 16 00 00 00
+[mtls] REF-seg +110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +120: 40 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +130: 00 00 00 00 00 00 00 00 01 00 03 00 00 00 00 00
+[mtls] REF-seg +140: 00 00 00 00 00 00 02 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +150: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +170: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +190: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF vs agx_A4_image: 59/0x400 bytes differ (first at b0,144,168,175,176,1cd)
+[mtls] REF vs agx_B4_image: 82/0x200 bytes differ
+[mtls] committing...
+[mtls] committed, waiting...
+[mtls] waitUntilCompleted returned
+[mtls] bufB contents ptr 0x1073c4000
+[mtls] bufB scan done, 0x41 bytes 65536
+[mtls] cb status 4
+[mtls] cb error @
+[mtls] Metal commit: bufB 0x41 bytes 65536/0x10000 GPU WRITE OK (sanity)
+[mtls] POST-kcmd+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] POST-kcmd+0b0: 58 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[open] IOGPU -> conn 0xa003
+[mtls] our queue: qid 1 nqid 1 nqVA 109ed0000 bind 0x00000000 notif 0x00000000
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 109ed8000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 109edc000 id 2
+[mtls] RAW-REPLAY ref bytes -> kr 0x00000000 outU32 00000009 wrIdx 58 statuses {9, 9} other
+[mtls] nq +000: 14 14 00 00 00 00 00 00 58 00 00 00 28 00 00 00
+[mtls] nq +010: 00 40 ee 09 01 00 00 00 8a c0 2d 3d 7a 12 00 00
+[mtls] nq +020: 9f 02 2e 3d 7a 12 00 00 09 00 00 00 00 00 00 00
+[mtls] nq +030: 00 00 00 00 00 00 00 00 28 00 00 00 30 40 ee 09
+[mtls] nq +040: 01 00 00 00 b7 05 2e 3d 7a 12 00 00 b1 06 2e 3d
+[mtls] nq +050: 7a 12 00 00 09 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] post-replay bufB non-0x41 bytes 0
+[mtls] done (alive)
+[probe13] mtlself-only mode, stop

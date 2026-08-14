@@ -19,6 +19,7 @@
 #include "fuzz.h"
 #include <IOSurface/IOSurfaceRef.h>
 #include <Foundation/Foundation.h>
+#include <objc/runtime.h>
 #include <sys/mman.h>
 #include <stdarg.h>
 
@@ -13714,6 +13715,542 @@ static void p_mtlreplay2(void) {
     LOG("[mtlr2] done (alive)");
 }
 
+
+// V86: Metal self-reference discrimination. Build a REAL Metal blit copy
+// command buffer in-process, dump its commandBufferStorage shmems (the exact
+// bytes the kernel accepts at execution stage), commit+verify (GPU sanity),
+// then raw-replay those bytes through OUR sel6 queue and read the completion
+// status. status 0/0 -> our hand-crafted bytes are the problem; status 5
+// again -> the queue/context is the problem.
+#import <Metal/Metal.h>
+
+static void mtl_hexdump(const char *tag, long base, const uint8_t *p, long n) {
+    for (long o = 0; o < n; o += 0x10)
+        LOG("[mtls] %s+%03lx: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+            tag, base + o, p[o], p[o+1], p[o+2], p[o+3], p[o+4], p[o+5], p[o+6], p[o+7],
+            p[o+8], p[o+9], p[o+10], p[o+11], p[o+12], p[o+13], p[o+14], p[o+15]);
+}
+
+// find an object-typed ivar whose name contains substr; logs all ivars when logall
+static void *find_ivar_obj(id obj, const char *substr, int logall, const char *tag) {
+    Class cls = object_getClass(obj);
+    while (cls) {
+        unsigned ni = 0;
+        Ivar *ivs = class_copyIvarList(cls, &ni);
+        void *hit = NULL;
+        for (unsigned i = 0; i < ni; i++) {
+            const char *nm = ivar_getName(ivs[i]);
+            if (logall) LOG("[mtls]   %s ivar %s @%td", tag, nm, ivar_getOffset(ivs[i]));
+            if (!hit && nm && strstr(nm, substr))
+                hit = *(void **)((uint8_t *)(__bridge void *)obj + ivar_getOffset(ivs[i]));
+        }
+        free(ivs);
+        if (hit) return hit;
+        cls = class_getSuperclass(cls);
+    }
+    return NULL;
+}
+static uint32_t find_ivar_u32(id obj, const char *substr) {
+    Class cls = object_getClass(obj);
+    while (cls) {
+        unsigned ni = 0;
+        Ivar *ivs = class_copyIvarList(cls, &ni);
+        uint32_t hit = 0; int found = 0;
+        for (unsigned i = 0; i < ni; i++) {
+            const char *nm = ivar_getName(ivs[i]);
+            if (nm && strstr(nm, substr)) {
+                hit = *(uint32_t *)((uint8_t *)(__bridge void *)obj + ivar_getOffset(ivs[i]));
+                found = 1; break;
+            }
+        }
+        free(ivs);
+        if (found) return hit;
+        cls = class_getSuperclass(cls);
+    }
+    return 0;
+}
+
+static void p_mtlself(void) {
+    LOG("[mtls] v86: Metal self-reference discrimination");
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[mtls] no MTLDevice"); return; }
+    LOG("[mtls] device: %s", [[dev name] UTF8String]);
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!mq || !bufA || !bufB) { LOG("[mtls] queue/buffers failed"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    LOG("[mtls] queue class %s", class_getName(object_getClass(mq)));
+    // dump queue internals (looking for io_connect_t + qid for a Metal-queue submit test)
+    {
+        Class qc = object_getClass(mq);
+        while (qc) {
+            unsigned ni = 0;
+            Ivar *ivs = class_copyIvarList(qc, &ni);
+            for (unsigned i = 0; i < ni; i++) {
+                const char *nm = ivar_getName(ivs[i]);
+                ptrdiff_t off = ivar_getOffset(ivs[i]);
+                uint64_t v = *(uint64_t *)((uint8_t *)(__bridge void *)mq + off);
+                LOG("[mtls]   mq ivar %s @%td = 0x%llx", nm ? nm : "?", off, v);
+            }
+            free(ivs);
+            qc = class_getSuperclass(qc);
+        }
+    }
+    // dump the IOGPUMetalCommandQueue object (find io_connect + qid)
+    {
+        uint8_t *cqo = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 384);
+        if (cqo) {
+            id cqid = (__bridge id)(void *)cqo;
+            LOG("[mtls] cqobj class %s", class_getName(object_getClass(cqid)));
+            Class qc = object_getClass(cqid);
+            while (qc) {
+                unsigned ni = 0;
+                Ivar *ivs = class_copyIvarList(qc, &ni);
+                for (unsigned i = 0; i < ni; i++) {
+                    const char *nm = ivar_getName(ivs[i]);
+                    ptrdiff_t off = ivar_getOffset(ivs[i]);
+                    uint64_t v = *(uint64_t *)(cqo + off);
+                    LOG("[mtls]   cq ivar %s @%td = 0x%llx", nm ? nm : "?", off, v);
+                }
+                free(ivs);
+                qc = class_getSuperclass(qc);
+            }
+        }
+    }
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    LOG("[mtls] cb class %s", class_getName(object_getClass(cb)));
+
+    // --- introspect commandBufferStorage
+    void *storage = find_ivar_obj(cb, "torage", 1, "cb");
+    LOG("[mtls] storage %p", storage);
+    if (!storage) { LOG("[mtls] no storage ivar, abort"); return; }
+    uint64_t kva = *(uint64_t *)((uint8_t *)storage + 0x28);   // kernel cmd shmem VA
+    uint64_t sva = *(uint64_t *)((uint8_t *)storage + 0x68);   // segment list shmem VA
+    id shmK = (__bridge id)(*(void **)((uint8_t *)storage + 0x20));
+    id shmS = (__bridge id)(*(void **)((uint8_t *)storage + 0x60));
+    uint32_t kid = shmK ? find_ivar_u32(shmK, "hmemID") : 0;
+    uint32_t sid = shmS ? find_ivar_u32(shmS, "hmemID") : 0;
+    // dump shmem-object and device-object ivars with values (hunt: io_connect_t)
+    {
+        id targets[2]; const char *tn[2];
+        targets[0] = shmK; tn[0] = "shmK";
+        targets[1] = (__bridge id)(*(void **)((uint8_t *)(__bridge void *)mq + 392)); tn[1] = "dev";   // _device
+        for (int ti = 0; ti < 2; ti++) {
+            if (!targets[ti]) continue;
+            Class xc = object_getClass(targets[ti]);
+            LOG("[mtls] %s class %s", tn[ti], class_getName(xc));
+            while (xc) {
+                unsigned ni = 0;
+                Ivar *ivs = class_copyIvarList(xc, &ni);
+                for (unsigned i = 0; i < ni; i++) {
+                    const char *nm = ivar_getName(ivs[i]);
+                    ptrdiff_t off = ivar_getOffset(ivs[i]);
+                    uint64_t v = *(uint64_t *)((uint8_t *)(__bridge void *)targets[ti] + off);
+                    LOG("[mtls]   %s ivar %s @%td = 0x%llx", tn[ti], nm ? nm : "?", off, v);
+                }
+                free(ivs);
+                xc = class_getSuperclass(xc);
+            }
+        }
+    }
+    LOG("[mtls] storage: kcmdVA %llx (shmem id %u) seglistVA %llx (shmem id %u)",
+        kva, kid, sva, sid);
+    if (!kva || !sva) { LOG("[mtls] storage map mismatch, abort"); return; }
+    mtl_hexdump("REF-kcmd", 0, (const uint8_t *)(uintptr_t)kva, 0x400);
+    mtl_hexdump("REF-seg ", 0, (const uint8_t *)(uintptr_t)sva, 0x200);
+    // diff vs our captured templates
+    {
+        long dk = 0, ds = 0; long fk[6] = {0,0,0,0,0,0}; int nf = 0;
+        char fb[96] = "-";
+        for (long o = 0; o < 0x400; o++)
+            if (((uint8_t *)(uintptr_t)kva)[o] != agx_A4_image[o]) { dk++; if (nf < 6) fk[nf++] = o; }
+        for (long o = 0; o < 0x200; o++)
+            if (((uint8_t *)(uintptr_t)sva)[o] != agx_B4_image[o]) ds++;
+        if (nf) {
+            fb[0] = 0;
+            for (int i = 0; i < nf; i++) { char t[14]; snprintf(t, sizeof t, "%s%lx", i ? "," : "", fk[i]); strlcat(fb, t, sizeof fb); }
+        }
+        LOG("[mtls] REF vs agx_A4_image: %ld/0x400 bytes differ (first at %s)", dk, fb);
+        LOG("[mtls] REF vs agx_B4_image: %ld/0x200 bytes differ", ds);
+    }
+
+    // --- Metal commit (GPU sanity) — verify the copy actually lands
+    LOG("[mtls] committing...");
+    @try {
+        [cb commit];
+        LOG("[mtls] committed, waiting...");
+        [cb waitUntilCompleted];
+        LOG("[mtls] waitUntilCompleted returned");
+    } @catch (NSException *e) {
+        LOG("[mtls] EXCEPTION at commit/wait: %s %s", [[e name] UTF8String], [[e reason] UTF8String]);
+        return;
+    }
+    long c41 = 0;
+    LOG("[mtls] bufB contents ptr %p", [bufB contents]);
+    uint8_t *bb = (uint8_t *)[bufB contents];
+    for (long i = 0; i < 0x10000; i++) if (bb[i] == 0x41) c41++;
+    LOG("[mtls] bufB scan done, 0x41 bytes %ld", c41);
+    LOG("[mtls] cb status %ld", (long)[cb status]);
+    NSError *cberr = [cb error];
+    LOG("[mtls] cb error %@", cberr);
+    LOG("[mtls] Metal commit: bufB 0x41 bytes %ld/0x10000 %s",
+        c41, c41 ? "GPU WRITE OK (sanity)" : "NO WRITE?!");
+    // re-dump reference shmems post-commit (kernel/finalize may patch them)
+    mtl_hexdump("POST-kcmd", 0, (const uint8_t *)(uintptr_t)kva, 0x100);
+    mtl_hexdump("POST-seg ", 0, (const uint8_t *)(uintptr_t)sva, 0x200);
+    uint64_t mtlGpuA = [bufA gpuAddress];
+    uint64_t mtlGpuB = [bufB gpuAddress];
+    LOG("[mtls] Metal gpuAddress: bufA 0x%llx bufB 0x%llx", mtlGpuA, mtlGpuB);
+
+    // --- raw replay of the reference bytes through OUR queue
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) return;
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqVA = *(uint64_t *)out;
+    uint32_t nqid = *(uint32_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    const char *pn = getprogname();
+    strncpy((char *)in, pn, 0x1f);
+    *(uint32_t *)(in + 0x400) = 2;
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    kern_return_t kb = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+    kern_return_t kn = IOConnectSetNotificationPort(c, 0, mach_reply_port(), nqid);
+    LOG("[mtls] our queue: qid %llu nqid %u nqVA %llx bind 0x%08x notif 0x%08x",
+        qid, nqid, nqVA, kb, kn);
+    if (!qid || kb) return;
+    uint8_t *vaSeg, *vaCmd;
+    uint32_t idSeg = gpu_shmem_t(c, 0x4000, 0, &vaSeg);
+    uint32_t idCmd = gpu_shmem_t(c, 0x4000, 1, &vaCmd);
+    if (!idSeg || !idCmd) return;
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    uint8_t *comp = must_map(0x1000);
+    volatile uint8_t *nq = (volatile uint8_t *)(uintptr_t)nqVA;
+    // our stand-in resources for the two Metal buffers
+    uint64_t gpuvaA2 = 0, gpuvaB2 = 0;
+    uint8_t *cpuA2 = NULL, *cpuB2 = NULL;
+    uint32_t ridA2 = gpu_resource2(c, 0x10000, &gpuvaA2, &cpuA2);
+    uint32_t ridB2 = gpu_resource2(c, 0x10000, &gpuvaB2, &cpuB2);
+    if (cpuA2) memset(cpuA2, 0x41, 0x10000);
+    if (cpuB2) memset(cpuB2, 0, 0x10000);
+    LOG("[mtls] our resources: ridA %u gpuva %llx | ridB %u gpuva %llx",
+        ridA2, gpuvaA2, ridB2, gpuvaB2);
+
+    // Raw-replay variants of the reference (post-commit) bytes:
+    //  R1: verbatim; R2: count-2 6-pack group rids -> ours + bufA/bufB GPUVAs -> ours;
+    //  R3: R2 + recreate EVERY group's resources (matching sizeKB) and patch all rids.
+    for (int var = 1; var <= 3; var++) {
+        memcpy(vaCmd, (void *)(uintptr_t)kva, 0x4000);
+        memcpy(vaSeg, (void *)(uintptr_t)sva, 0x4000);
+        int nextra = 0;
+        if (var >= 2) {
+            for (long o = 0x48; o + 0x40 <= 0x1000; o += 0x40) {
+                if (*(uint16_t *)(vaSeg + o + 0x3e) == 2 &&
+                    *(uint32_t *)(vaSeg + o + 0x18) == 0x40 &&
+                    *(uint32_t *)(vaSeg + o + 0x1c) == 0x40) {
+                    *(uint32_t *)(vaSeg + o + 0x00) = ridA2;
+                    *(uint32_t *)(vaSeg + o + 0x04) = ridB2;
+                    LOG("[mtls] R%d: count-2 group @%lx rids -> %u,%u", var, o, ridA2, ridB2);
+                }
+            }
+            for (long o = 0; o < 0x4000 - 8; o += 4) {
+                uint64_t q = *(uint64_t *)(vaCmd + o);
+                if (q == mtlGpuA) *(uint64_t *)(vaCmd + o) = gpuvaA2;
+                else if (q == mtlGpuB) *(uint64_t *)(vaCmd + o) = gpuvaB2;
+                q = *(uint64_t *)(vaSeg + o);
+                if (q == mtlGpuA) *(uint64_t *)(vaSeg + o) = gpuvaA2;
+                else if (q == mtlGpuB) *(uint64_t *)(vaSeg + o) = gpuvaB2;
+            }
+        }
+        if (var >= 3) {
+            // recreate every 6-pack group's resources with matching sizes
+            for (long o = 0x48; o + 0x40 <= 0x1000; o += 0x40) {
+                uint16_t cnt = *(uint16_t *)(vaSeg + o + 0x3e);
+                if (cnt < 1 || cnt > 6) break;
+                for (int i = 0; i < cnt; i++) {
+                    uint32_t kb = *(uint32_t *)(vaSeg + o + 0x18 + i * 4);
+                    uint64_t sz = (uint64_t)(kb ? kb : 4) << 10;
+                    // keep our two buffer rids in the count-2 group
+                    if (cnt == 2 && kb == 0x40 && i == 0 &&
+                        *(uint32_t *)(vaSeg + o + 0x00) == ridA2) { nextra++; continue; }
+                    if (cnt == 2 && kb == 0x40 && i == 1 &&
+                        *(uint32_t *)(vaSeg + o + 0x04) == ridB2) { nextra++; continue; }
+                    uint64_t g2 = 0; uint8_t *c2 = NULL;
+                    uint32_t r2 = gpu_resource2(c, sz, &g2, &c2);
+                    if (r2 && c2) memset(c2, 0, sz > 0x10000 ? 0x10000 : sz);
+                    *(uint32_t *)(vaSeg + o + i * 4) = r2;
+                    nextra++;
+                }
+            }
+            LOG("[mtls] R3: recreated/patched %d resource slots", nextra);
+        }
+        memset(comp, 0, 0x1000);
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = idCmd;
+        *(uint32_t *)(entry + 0x04) = idSeg;
+        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+        *outw = 0xdeadbeef;
+        if (cpuB2) memset(cpuB2, 0, 0x10000);
+        kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        usleep(50000);
+        uint32_t wr = nqVA ? *(volatile uint32_t *)(nq + 0x08) : 0;
+        uint32_t s1 = 0xffff, s2 = 0xffff;
+        if (nqVA && wr >= 0x2c) {
+            s2 = *(volatile uint32_t *)(nq + 0x10 + wr - 0x2c + 0x18);
+            if (wr >= 0x58) s1 = *(volatile uint32_t *)(nq + 0x10 + wr - 0x58 + 0x18);
+        }
+        long b41 = 0, bnz = 0;
+        if (cpuB2) for (long i = 0; i < 0x10000; i++) { if (cpuB2[i]) bnz++; if (cpuB2[i] == 0x41) b41++; }
+        LOG("[mtls] R%d -> kr 0x%08x outU32 %08x wrIdx %x statuses {%u, %u} | ourB nz %ld 0x41 %ld %s%s",
+            var, kt, *outw, wr, s1, s2, bnz, b41,
+            (s1 == 0 && s2 == 0) ? "ACCEPTED" : "",
+            b41 ? " *** GPU WRITE INTO OUR BUFFER ***" : "");
+    }
+    // R5: queue-create blob variants on OUR connection — does any variant get
+    // past execution-stage status 5? Same captured-fill config throughout.
+    {
+        const char *fullpath = [[[NSBundle mainBundle] executablePath] UTF8String];
+        static const struct { int nameMode; uint32_t prio; int fast; const char *n; } qv[] = {
+            { 0, 0, 0, "zero-blob" },
+            { 1, 2, 0, "name+prio2" },
+            { 2, 2, 0, "path+prio2" },
+            { 2, 0, 0, "path+prio0" },
+            { 2, 2, 1, "path+prio2+fast" },
+        };
+        // build the fill config once (verbatim template, capture GPUVAs match)
+        memcpy(vaCmd, agx_A4_image, 0x4000);
+        if (gpuvaB2 != 0x10000018000ULL) {
+            for (long o = 0; o < 0x1000 - 8; o += 4) {
+                uint64_t q = *(uint64_t *)(vaCmd + o);
+                if ((q >> 32) == 0x100) {
+                    if ((q & 0xffffffff) == 0x18000) *(uint64_t *)(vaCmd + o) = gpuvaB2;
+                    else *(uint64_t *)(vaCmd + o) = gpuvaA2 + (q & 0x3fff);
+                }
+            }
+        }
+        memcpy(vaSeg, agx_B4_image, 0x4000);
+        *(uint32_t *)(vaSeg + 0x40) = 2;
+        *(uint32_t *)(vaSeg + 0x44) = 1;
+        uint8_t *g6 = vaSeg + 0x48;
+        memset(g6, 0, 0x40);
+        *(uint32_t *)(g6 + 0x00) = ridA2;
+        *(uint32_t *)(g6 + 0x04) = ridB2;
+        *(uint32_t *)(g6 + 0x18) = 0x40;
+        *(uint32_t *)(g6 + 0x1c) = 0x40;
+        *(uint16_t *)(g6 + 0x30) = 3;
+        *(uint16_t *)(g6 + 0x32) = 3;
+        *(uint16_t *)(g6 + 0x3e) = 2;
+        for (unsigned v = 0; v < sizeof(qv)/sizeof(qv[0]); v++) {
+            uint8_t *o5 = must_map(0x1000);
+            memset(o5, 0, 0x1000);
+            uint64_t a14b[2] = { 0x100, 0x10 };
+            size_t oz5 = 0x10;
+            uint64_t oc5[4] = {0,0,0,0}; uint32_t noc5 = 0;
+            kern_return_t knq = IOConnectCallMethod(c, 14, a14b, 2, NULL, 0, oc5, &noc5, o5, &oz5);
+            uint64_t nqVA2 = *(uint64_t *)o5;
+            uint32_t nqid2 = *(uint32_t *)(o5 + 8);
+            memset(in, 0, 0x2000);
+            memset(o5, 0, 0x1000);
+            if (qv[v].nameMode == 1) strncpy((char *)in, pn, 0x1f);
+            if (qv[v].nameMode == 2) strncpy((char *)in, fullpath, 0x3f);
+            *(uint32_t *)(in + 0x400) = qv[v].prio;
+            if (qv[v].fast) in[0x405] = 1;
+            oz5 = 0x10; noc5 = 0;
+            kern_return_t kq = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, oc5, &noc5, o5, &oz5);
+            uint64_t qid2 = *(uint64_t *)o5;
+            uint64_t a24b[2] = { qid2, nqid2 };
+            kern_return_t kb2 = IOConnectCallScalarMethod(c, 24, a24b, 2, NULL, NULL);
+            vm_deallocate(mach_task_self(), (vm_address_t)o5, 0x1000);
+            if (knq || kq || !qid2 || kb2) {
+                LOG("[mtls] R5 %s: setup fail (nq 0x%08x q 0x%08x bind 0x%08x)", qv[v].n, knq, kq, kb2);
+                continue;
+            }
+            memset(entry, 0, 0x1000);
+            *(uint32_t *)(entry + 0x00) = idCmd;
+            *(uint32_t *)(entry + 0x04) = idSeg;
+            *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+            *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+            *outw = 0xdeadbeef;
+            if (cpuB2) memset(cpuB2, 0, 0x10000);
+            kern_return_t kt5 = ioconnect_trap4(c, 0, qid2, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+            usleep(50000);
+            uint32_t wr = nqVA2 ? *(volatile uint32_t *)((volatile uint8_t *)(uintptr_t)nqVA2 + 0x08) : 0;
+            uint32_t s1 = 0xffff, s2 = 0xffff;
+            volatile uint8_t *nq2 = (volatile uint8_t *)(uintptr_t)nqVA2;
+            if (nqVA2 && wr >= 0x2c) {
+                s2 = *(volatile uint32_t *)(nq2 + 0x10 + wr - 0x2c + 0x18);
+                if (wr >= 0x58) s1 = *(volatile uint32_t *)(nq2 + 0x10 + wr - 0x58 + 0x18);
+            }
+            long b5 = 0, bnz = 0;
+            if (cpuB2) for (long i = 0; i < 0x10000; i += 0x10) { if (cpuB2[i]) bnz++; if (cpuB2[i] == 0x5A) b5++; }
+            LOG("[mtls] R5 %-16s -> kr 0x%08x outU32 %08x statuses {%u, %u} | B nz %ld 5A %ld %s",
+                qv[v].n, kt5, *outw, s1, s2, bnz, b5, b5 ? "*** GPU WRITE ***" : "");
+        }
+    }
+    if (nqVA) mtl_hexdump("nq ", 0, (const uint8_t *)nq, 0x100);
+
+    // R4: find Metal's real command connection (raw-dump IOGPUDevice /
+    // _deviceRef / _impl, harvest port-like u32s, probe each with harmless
+    // shmem-create in both numberings), then submit our captured fill through
+    // Metal's queue (qid from cqobj+0x18).
+    {
+        uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+        uint8_t *cqo = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 384);
+        uint64_t mqid = cqo ? *(uint64_t *)(cqo + 0x18) : 1;
+        if (!mqid || mqid > 0x1000) mqid = 1;
+        uint8_t *objs[6];
+        objs[0] = shmK ? *(uint8_t **)((uint8_t *)(__bridge void *)shmK + 120) : NULL;  // IOGPUDevice
+        objs[1] = devObj ? *(uint8_t **)(devObj + 656) : NULL;   // _deviceRef
+        objs[2] = devObj ? *(uint8_t **)(devObj + 872) : NULL;   // _impl
+        objs[3] = shmK ? *(uint8_t **)((uint8_t *)(__bridge void *)shmK + 8) : NULL;    // shmem _priv
+        objs[4] = devObj ? *(uint8_t **)(devObj + 672) : NULL;   // _storageCreateParams
+        objs[5] = cqo;                                           // command queue CF obj
+        uint32_t accel = devObj ? *(uint32_t *)(devObj + 664) : 0;  // _acceleratorPort
+        uint32_t cand[64]; int ncand = 0;
+        if (accel) cand[ncand++] = accel;
+        for (int oi = 0; oi < 6; oi++) {
+            if (!objs[oi]) continue;
+            for (long off = 0; off < 0x200; off += 4) {
+                uint32_t v = *(uint32_t *)(objs[oi] + off);
+                if (v > 0x1000 && v < 0x100000 && (v & 3) == 3) {
+                    int dup = 0;
+                    for (int k = 0; k < ncand; k++) if (cand[k] == v) dup = 1;
+                    if (!dup && ncand < 56) { cand[ncand++] = v; LOG("[mtls] R4: obj%d +%lx port-like 0x%x", oi, off, v); }
+                }
+            }
+        }
+        // direct opens: Metal-grade userclient candidates
+        static const char *svcNames[] = { "AGXAcceleratorG16P", "AGXAcceleratorG16", "AGXAccelerator", "IOGPU" };
+        static const uint32_t svcTypes[] = { 0x100005, 5, 1, 0 };
+        for (unsigned sn = 0; sn < sizeof(svcNames)/sizeof(svcNames[0]); sn++) {
+            for (unsigned st = 0; st < sizeof(svcTypes)/sizeof(svcTypes[0]); st++) {
+                io_connect_t cc = open_service(svcNames[sn], svcTypes[st]);
+                if (cc) {
+                    LOG("[mtls] R4: open %s type 0x%x -> conn 0x%x", svcNames[sn], svcTypes[st], cc);
+                    if (ncand < 60) cand[ncand++] = cc;
+                }
+            }
+        }
+        LOG("[mtls] R4: %d candidate ports, qid-cand %llu", ncand, mqid);
+        io_connect_t mconn = 0;
+        int useSelRes = 8, useSelShm = 12;
+        for (int k = 0; k < ncand && !mconn; k++) {
+            uint8_t *o12 = must_map(0x1000);
+            memset(o12, 0, 0x1000);
+            uint64_t a2[2] = { 0x1000, 0 };
+            size_t oz = 0x10;
+            uint64_t oc[4] = {0,0,0,0}; uint32_t noc = 0;
+            kern_return_t k12 = IOConnectCallMethod(cand[k], 12, a2, 2, NULL, 0, oc, &noc, o12, &oz);
+            if (k12 == 0) { mconn = cand[k]; useSelRes = 8; useSelShm = 12; }
+            else {
+                memset(o12, 0, 0x1000); oz = 0x10; noc = 0;
+                kern_return_t k14 = IOConnectCallMethod(cand[k], 14, a2, 2, NULL, 0, oc, &noc, o12, &oz);
+                LOG("[mtls] R4: port 0x%x sel12 0x%08x sel14 0x%08x", cand[k], k12, k14);
+                if (k14 == 0) { mconn = cand[k]; useSelRes = 9; useSelShm = 14; }
+            }
+            vm_deallocate(mach_task_self(), (vm_address_t)o12, 0x1000);
+            if (mconn) LOG("[mtls] R4: Metal command conn = 0x%x (res sel %d, shmem sel %d)",
+                           mconn, useSelRes, useSelShm);
+        }
+        if (mconn) {
+            const uint64_t BSZ4 = 0x10000;
+            uint64_t gA = 0, gB = 0;
+            uint8_t *cA = NULL, *cB = NULL;
+            uint32_t rA = gpu_resource2(mconn, BSZ4, &gA, &cA);   // tries sel 8 then 9
+            uint32_t rB = gpu_resource2(mconn, BSZ4, &gB, &cB);
+            uint8_t *vS = NULL, *vC = NULL;
+            uint32_t iS = 0, iC = 0;
+            if (useSelShm == 12) {
+                iS = gpu_shmem_t(mconn, 0x4000, 0, &vS);
+                iC = gpu_shmem_t(mconn, 0x4000, 1, &vC);
+            } else {
+                // macOS numbering: sel 14 {size, type}, out {VA, ?, size, id@hi dword of q1}
+                for (int ty = 0; ty < 2; ty++) {
+                    uint8_t *o14 = must_map(0x1000);
+                    memset(o14, 0, 0x1000);
+                    uint64_t a2[2] = { 0x4000, (uint64_t)ty };
+                    size_t oz = 0x20;
+                    uint64_t oc[4] = {0,0,0,0}; uint32_t noc = 0;
+                    kern_return_t k14 = IOConnectCallMethod(mconn, 14, a2, 2, NULL, 0, oc, &noc, o14, &oz);
+                    uint64_t va = *(uint64_t *)o14;
+                    uint32_t id = (uint32_t)(*(uint64_t *)(o14 + 8) >> 32);
+                    LOG("[mtls] R4: sel14 type %d -> kr 0x%08x va %llx id %u", ty, k14, va, id);
+                    if (k14 == 0) {
+                        if (ty == 0) { iS = id; vS = (uint8_t *)(uintptr_t)va; }
+                        else { iC = id; vC = (uint8_t *)(uintptr_t)va; }
+                    }
+                    vm_deallocate(mach_task_self(), (vm_address_t)o14, 0x1000);
+                }
+            }
+            LOG("[mtls] R4: resA rid %u gpuva %llx | resB rid %u gpuva %llx | shmem %u/%u",
+                rA, gA, rB, gB, iS, iC);
+            if (rA && rB && cA && cB && iS && iC) {
+                memset(cA, 0x41, BSZ4);
+                memset(cB, 0, BSZ4);
+                memcpy(vC, agx_A4_image, 0x4000);   // captured fill (writes 0x5A)
+                for (long o = 0; o < 0x1000 - 8; o += 4) {
+                    uint64_t q = *(uint64_t *)(vC + o);
+                    if ((q >> 32) == 0x100) {
+                        if ((q & 0xffffffff) == 0x18000) *(uint64_t *)(vC + o) = gB;
+                        else *(uint64_t *)(vC + o) = gA + (q & 0x3fff);
+                    }
+                }
+                memcpy(vS, agx_B4_image, 0x4000);
+                *(uint32_t *)(vS + 0x40) = 2;       // numResources
+                *(uint32_t *)(vS + 0x44) = 1;       // numResourceGroups
+                uint8_t *g6 = vS + 0x48;
+                memset(g6, 0, 0x40);
+                *(uint32_t *)(g6 + 0x00) = rA;
+                *(uint32_t *)(g6 + 0x04) = rB;
+                *(uint32_t *)(g6 + 0x18) = (uint32_t)(BSZ4 >> 10);
+                *(uint32_t *)(g6 + 0x1c) = (uint32_t)(BSZ4 >> 10);
+                *(uint16_t *)(g6 + 0x30) = 3;
+                *(uint16_t *)(g6 + 0x32) = 3;
+                *(uint16_t *)(g6 + 0x3e) = 2;
+                memset(entry, 0, 0x1000);
+                *(uint32_t *)(entry + 0x00) = iC;
+                *(uint32_t *)(entry + 0x04) = iS;
+                *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+                *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+                *outw = 0xdeadbeef;
+                LOG("[mtls] R4 submitting via Metal conn 0x%x qid %llu...", mconn, mqid);
+                kern_return_t k4 = ioconnect_trap4(mconn, 0, mqid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+                LOG("[mtls] R4 trap returned kr 0x%08x outU32 %08x", k4, *outw);
+                usleep(5000);
+                long q5 = 0, qnz = 0;
+                for (long i = 0; i < (long)BSZ4; i += 0x10) { if (cB[i]) qnz++; if (cB[i] == 0x5A) q5++; }
+                LOG("[mtls] R4 EARLY resB(sampled) nz %ld 5A %ld | [0..15] %02x %02x %02x %02x %02x %02x %02x %02x",
+                    qnz, q5, cB[0], cB[1], cB[2], cB[3], cB[4], cB[5], cB[6], cB[7]);
+                usleep(300000);
+                LOG("[mtls] R4 post-wait alive");
+                long f5 = 0, bnz = 0;
+                for (long i = 0; i < (long)BSZ4; i++) { if (cB[i]) bnz++; if (cB[i] == 0x5A) f5++; }
+                LOG("[mtls] R4 Metal-queue submit -> kr 0x%08x outU32 %08x | resB nz %ld 0x5A %ld %s",
+                    k4, *outw, bnz, f5, f5 ? "*** GPU WRITE VIA METAL QUEUE ***" : "");
+                LOG("[mtls] R4 resB[0..15] %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x",
+                    cB[0], cB[1], cB[2], cB[3], cB[4], cB[5], cB[6], cB[7],
+                    cB[8], cB[9], cB[10], cB[11], cB[12], cB[13], cB[14], cB[15]);
+            }
+        }
+    }
+    IOServiceClose(c);
+    LOG("[mtls] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -13844,6 +14381,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }
         p_mtlreplay2();     // v84: nq diagnostics matrix FIRST
         if (getenv("FUZZ_MTLR_ONLY")) { LOG("[probe13] mtlr-only mode, stop"); return NULL; }
         p_mtlreplay();      // v83: Metal-format replay (format-B resources + 6-pack seglist)

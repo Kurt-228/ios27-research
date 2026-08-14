@@ -1,0 +1,444 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x640f
+[scaler] conn 0x640f, s1 278 s2 282
+[probe12] SetNotificationPort -> 0x00000000
+[mtls] v86: Metal self-reference discrimination
+[mtls] device: Apple A17 Pro GPU
+[mtls] queue class AGXG16PFamilyCommandQueue
+[mtls]   mq ivar _telemetryInternalClientMask @444 = 0x500000000
+[mtls]   mq ivar _commandQueueBTInfo @448 = 0x5
+[mtls]   mq ivar _hasLoggedBacktraceTelemetry @968 = 0x0
+[mtls]   mq ivar _currentPriority @972 = 0x0
+[mtls]   mq ivar _commandQueue @384 = 0x10585e4a0
+[mtls]   mq ivar _device @392 = 0x105b9ca00
+[mtls]   mq ivar _disableAsyncCompletionDispatch @400 = 0x0
+[mtls]   mq ivar _priority @408 = 0x1
+[mtls]   mq ivar _backgroundPriority @416 = 0x3
+[mtls]   mq ivar _resourceGroups @424 = 0x0
+[mtls]   mq ivar _resourceGroupsLock @440 = 0x0
+[mtls]   mq ivar _dev @24 = 0x105b9ca00
+[mtls]   mq ivar _pendingQueue @32 = 0x105b0d8f0
+[mtls]   mq ivar _submittedQueue @40 = 0x105b0d6b0
+[mtls]   mq ivar _pendingQueueLock @48 = 0x4d55545a
+[mtls]   mq ivar _submittedQueueLock @112 = 0x4d55545a
+[mtls]   mq ivar _submittedGroup @176 = 0x10594f340
+[mtls]   mq ivar _commandQueueDispatch @184 = 0x105ba5500
+[mtls]   mq ivar _completionQueueDispatch @192 = 0x105ba5580
+[mtls]   mq ivar _commandQueueEventSource @200 = 0x105ba5d00
+[mtls]   mq ivar _commandBufferSemaphore @208 = 0x10594caf0
+[mtls]   mq ivar _backgroundTrackingPID @216 = 0x1168
+[mtls]   mq ivar _globalTraceObjectID @224 = 0x221b1ba1
+[mtls]   mq ivar _labelTraceID @232 = 0x0
+[mtls]   mq ivar _profilingEnabled @240 = 0x0
+[mtls]   mq ivar _logState @248 = 0x0
+[mtls]   mq ivar _StatEnabled @256 = 0x0
+[mtls]   mq ivar _StatOptions @264 = 0x0
+[mtls]   mq ivar _StatLocations @272 = 0x0
+[mtls]   mq ivar _numCommandBuffers @280 = 0x0
+[mtls]   mq ivar _perfSampleHandlerBlock @288 = 0x0
+[mtls]   mq ivar _listIndex @296 = 0x0
+[mtls]   mq ivar _maxCommandBufferCount @304 = 0x40
+[mtls]   mq ivar _qosLevel @312 = 0x2
+[mtls]   mq ivar _commitQueue @320 = 0x0
+[mtls]   mq ivar _commitSynchronously @328 = 0x0
+[mtls]   mq ivar _completionQueue @336 = 0x0
+[mtls]   mq ivar _disableCrossQueueHazardTracking @344 = 0x100
+[mtls]   mq ivar _executionEnabled @345 = 0xd000000000000001
+[mtls]   mq ivar _skipRender @346 = 0xefd0000000000000
+[mtls]   mq ivar _openGLQueue @347 = 0x94efd00000000000
+[mtls]   mq ivar _presentScheduledSemaphore @352 = 0x10594efd0
+[mtls]   mq ivar _forceImmediateSubmissionOnCommitThread @360 = 0x0
+[mtls]   mq ivar _privateDataTable @368 = 0x105998760
+[mtls]   mq ivar _commitsWithQoS @376 = 0x0
+[mtls]   mq ivar _label @8 = 0x0
+[mtls]   mq ivar _labelLock @16 = 0x0
+[mtls]   mq ivar isa @0 = 0x1000002951cb3c1
+[mtls] cqobj class __NSCFType
+[mtls]   cq ivar isa @0 = 0x100000202a41779
+[mtls] cb class AGXG16PFamilyCommandBuffer
+[mtls]   cb ivar _previousBlitCommandEncoder @680
+[mtls]   cb ivar _previousComputeCommandEncoder @688
+[mtls]   cb ivar _previousRenderCommandEncoder @696
+[mtls]   cb ivar _telemetryUsage @704
+[mtls]   cb ivar _impl @720
+[mtls]   cb ivar _disableDeferredEndEncoding @728
+[mtls]   cb ivar texturesToEvaluate @736
+[mtls]   cb ivar _captureProgramAddressTable @760
+[mtls]   cb ivar _cloneIntersectionFunctionTablesPerDispatch @761
+[mtls]   cb ivar hasEncoded @762
+[mtls]   cb ivar enableContentProtection @763
+[mtls]   cb ivar needsProtectedContentBarrier @764
+[mtls]   cb ivar oldProtectionOptions @768
+[mtls]   cb ivar deadline_namespace_id @776
+[mtls]   cb ivar deadline @784
+[mtls]   cb ivar _device @608
+[mtls]   cb ivar _storage @616
+[mtls]   cb ivar _submitToHardwareTimeStampPointer @624
+[mtls]   cb ivar _protectionOptions @632
+[mtls]   cb ivar _scheduledCallbackBlockPtr @640
+[mtls]   cb ivar _completedCallbackBlockPtr @648
+[mtls]   cb ivar _commitAndResetSem @656
+[mtls]   cb ivar _purgedResources @664
+[mtls]   cb ivar _gpuFaultAddress @672
+[mtls] storage 0x105b8d000
+[mtls] shmK class IOGPUMetalDeviceShmem
+[mtls]   shmK ivar _priv @8 = 0x105847740
+[mtls]   shmK ivar _device @120 = 0x105b9ca00
+[mtls]   shmK ivar _shmemID @128 = 0x400000000002
+[mtls]   shmK ivar _shmemSize @132 = 0x75400000004000
+[mtls]   shmK ivar _virtualAddress @136 = 0x100754000
+[mtls]   shmK ivar purgeable @144 = 0x0
+[mtls]   shmK ivar isa @0 = 0x3000002940f7471
+[mtls] dev class AGXG16Device
+[mtls]   dev ivar _impl @872 = 0x105a39000
+[mtls]   dev ivar _telemetry @880 = 0x21
+[mtls]   dev ivar cdmSubstreamProcessor @2296 = 0x105935b90
+[mtls]   dev ivar _pipelineStates @2304 = 0x10594f390
+[mtls]   dev ivar _pipelineStatesLock @2312 = 0x0
+[mtls]   dev ivar _signpostEnablementCallback @2320 = 0x105935a70
+[mtls]   dev ivar _compatDeviceName @2328 = 0x0
+[mtls]   dev ivar _compatDeviceVendor @2336 = 0x0
+[mtls]   dev ivar performance_state_assertion @2344 = 0x0
+[mtls]   dev ivar _metalAssertionsEnabled @2360 = 0x0
+[mtls]   dev ivar _disableComputeEncoderCoalescing @2361 = 0x0
+[mtls]   dev ivar _disableBlitEncoderCoalescing @2362 = 0x0
+[mtls]   dev ivar _disableEncoderCoalescing @2363 = 0x0
+[mtls]   dev ivar _deviceRef @656 = 0x10589c810
+[mtls]   dev ivar _acceleratorPort @664 = 0x6b03
+[mtls]   dev ivar _storageCreateParams @672 = 0x105847980
+[mtls]   dev ivar _commandBufferStoragePool @736 = 0x105adc1e0
+[mtls]   dev ivar _configBits @744 = 0x4340
+[mtls]   dev ivar _deviceBits @748 = 0x0
+[mtls]   dev ivar _textureRam @752 = 0x0
+[mtls]   dev ivar _videoRam @760 = 0x0
+[mtls]   dev ivar _sharedMemorySize @768 = 0x155558000
+[mtls]   dev ivar _accelID @776 = 0x100000002
+[mtls]   dev ivar _numCommandBuffers @780 = 0xde78800000000001
+[mtls]   dev ivar _segmentByteThreshold @784 = 0x1de788000
+[mtls]   dev ivar _ioKernelCommandListShmemPool @792 = 0x105846d00
+[mtls]   dev ivar _disableGPUIO @800 = 0x0
+[mtls]   dev ivar _buffer_suballocator @808 = 0x105894c00
+[mtls]   dev ivar _device_dispatch_queue @816 = 0x105ba4d80
+[mtls]   dev ivar _device_pool_cleanup_queue @824 = 0x105ba4e00
+[mtls]   dev ivar _device_pool_cleanup_source @832 = 0x105ba4e80
+[mtls]   dev ivar _device_pool_cleanup_lock @840 = 0x0
+[mtls]   dev ivar _device_pool_cleanup_scheduled @844 = 0x34600000000
+[mtls]   dev ivar _device_pool_cleanup_requested @845 = 0x100000346000000
+[mtls]   dev ivar _registryID @848 = 0x100000346
+[mtls]   dev ivar _deviceWrapper @856 = 0x0
+[mtls]   dev ivar _mappingQueue @864 = 0x0
+[mtls]   dev ivar _limits @8 = 0x1000000200
+[mtls]   dev ivar _serialQueue @272 = 0x105a25880
+[mtls]   dev ivar _pipelineSerializationQueue @280 = 0x105a27180
+[mtls]   dev ivar _concurrentQueue @288 = 0x105a25a00
+[mtls]   dev ivar _hasInitSerializationPaths @296 = 0x1
+[mtls]   dev ivar _shaderDebugInfoCaching @297 = 0xc000000000000000
+[mtls]   dev ivar _compilerConnectionManager @304 = 0x105a0d2c0
+[mtls]   dev ivar _progressTrackBufferStack @312 = 0x105b0d8c0
+[mtls]   dev ivar _needsEncoderTypeMatchingProgressBlits @320 = 0x0
+[mtls]   dev ivar _progressTrackRenderPipeline @328 = 0x0
+[mtls]   dev ivar _progressTrackComputePipeline @336 = 0x0
+[mtls]   dev ivar _logStateDescriptor @344 = 0x0
+[mtls]   dev ivar _logBufferResidencyLock @352 = 0x0
+[mtls]   dev ivar _globalTraceObjectID @360 = 0x221b1b9e
+[mtls]   dev ivar _acquireCount @368 = 0x100000001
+[mtls]   dev ivar _commandQueueCount @372 = 0x100000001
+[mtls]   dev ivar _commandQueueID @376 = 0x1
+[mtls]   dev ivar _commandQueueWaitLock @380 = 0x5b0e6d000000000
+[mtls]   dev ivar _nextCommandQueueAllowedDateBuffer @384 = 0x105b0e6d0
+[mtls]   dev ivar _kRateLimitCriticalCommandQueues @392 = 0x20
+[mtls]   dev ivar _kRateLimitTimePenalty @400 = 0x3fe0000000000000
+[mtls]   dev ivar _kRateLimitEnabled @408 = 0x0
+[mtls]   dev ivar _kRateLimitShouldOnlyLogOnce @409 = 0xc800000000000000
+[mtls]   dev ivar _commandQueueLimit @416 = 0xc8
+[mtls]   dev ivar _libraryBuilder @424 = 0x1059a92c0
+[mtls]   dev ivar _pipelineLibraryBuilder @432 = 0x1059390a0
+[mtls]   dev ivar _pipelineCollection @440 = 0x0
+[mtls]   dev ivar _pipelineDescriptorsOutputFile @448 = 0x0
+[mtls]   dev ivar _librariesOutputDirectory @456 = 0x0
+[mtls]   dev ivar _collectAllLibraries @464 = 0x0
+[mtls]   dev ivar _gpuAssertionsEnabled @465 = 0x8000000000000000
+[mtls]   dev ivar _writableHeapsEnabled @466 = 0x7380000000000000
+[mtls]   dev ivar _dynamicLoader @472 = 0x105847380
+[mtls]   dev ivar _GPUBVHBuilderLock @480 = 0x0
+[mtls]   dev ivar _GPUBVHBuilder @488 = 0x0
+[mtls]   dev ivar _akIOResourceListPool @496 = 0x105b0e6a0
+[mtls]   dev ivar _gpuFamiliyInitLock @504 = 0x0
+[mtls]   dev ivar _initProgressTrackingOnceToken @512 = 0x0
+[mtls]   dev ivar _pluginData @520 = 0x0
+[mtls]   dev ivar _serializedPluginData @528 = 0x0
+[mtls]   dev ivar _recompiledBinaryArchiveMap @536 = 0x0
+[mtls]   dev ivar _binaryArchiveUsage @544 = 0x0
+[mtls]   dev ivar _isFirstParty @552 = 0x10000
+[mtls]   dev ivar _isPlugin @553 = 0x100
+[mtls]   dev ivar _enableAssetUpgraderDaemon @554 = 0x1
+[mtls]   dev ivar _architecture @560 = 0x0
+[mtls]   dev ivar _initConnectionOnceToken @568 = 0xffffffffffffffff
+[mtls]   dev ivar _workaroundNewLibraryWithSourceImplicitInvariantPosition @576 = 0x0
+[mtls]   dev ivar _workaroundNewLibraryWithSourceReplaceFastMathWithRelaxedMath @577 = 0x0
+[mtls]   dev ivar _initDefaultLogState @584 = 0x0
+[mtls]   dev ivar _supportedGPUFamilies @592 = 0x105404000
+[mtls]   dev ivar _requiresLegacyCompilerProcessesCount @616 = 0x0
+[mtls]   dev ivar _featureQueries @624 = 0x105908000
+[mtls]   dev ivar _defaultLogState @632 = 0x0
+[mtls]   dev ivar _internalLogBufferResidencySet @640 = 0x0
+[mtls]   dev ivar _commandBufferErrorOptions @648 = 0x0
+[mtls]   dev ivar isa @0 = 0x2d000002951cb501
+[mtls] storage: kcmdVA 100754000 (shmem id 2) seglistVA 100750000 (shmem id 1)
+[mtls] REF-kcmd+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] REF-kcmd+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+100: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+120: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+130: 00 00 00 00 04 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+140: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+150: 68 02 00 00 03 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+170: 00 00 00 00 00 00 11 00 00 01 00 00 00 00 00 00
+[mtls] REF-kcmd+180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+190: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 12 00
+[mtls] REF-kcmd+1d0: 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+1e0: 00 00 00 00 80 14 12 00 00 01 00 00 88 14 12 00
+[mtls] REF-kcmd+1f0: 00 01 00 00 90 14 12 00 00 01 00 00 98 14 12 00
+[mtls] REF-kcmd+200: 00 01 00 00 01 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+210: 00 00 00 00 00 00 00 00 1c 00 00 00 00 00 00 00
+[mtls] REF-kcmd+220: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+230: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+240: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+250: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+260: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+270: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+280: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+290: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2c0: 00 00 00 00 00 80 b2 00 00 00 00 00 00 80 05 01
+[mtls] REF-kcmd+2d0: 00 00 00 00 02 02 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+2f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+300: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+310: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+320: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+330: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+340: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+350: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+360: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+370: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+380: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+390: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-kcmd+3f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +000: b9 1b 1b 22 00 00 00 00 01 00 00 00 01 00 00 40
+[mtls] REF-seg +010: 00 00 00 00 ac 00 00 00 b9 1b 1b 22 00 00 00 00
+[mtls] REF-seg +020: 00 00 00 00 00 00 00 00 ba 1b 1b 22 00 00 00 00
+[mtls] REF-seg +030: ac 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +040: 00 00 00 00 00 00 00 00 17 00 00 00 18 00 00 00
+[mtls] REF-seg +050: 19 00 00 00 1a 00 00 00 1b 00 00 00 1c 00 00 00
+[mtls] REF-seg +060: 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00
+[mtls] REF-seg +070: 20 00 00 00 20 00 00 00 01 00 01 00 04 00 01 00
+[mtls] REF-seg +080: 04 00 04 00 00 00 06 00 1d 00 00 00 1e 00 00 00
+[mtls] REF-seg +090: 1f 00 00 00 20 00 00 00 21 00 00 00 01 00 00 00
+[mtls] REF-seg +0a0: 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00
+[mtls] REF-seg +0b0: 30 00 00 00 40 00 00 00 01 00 04 00 01 00 01 00
+[mtls] REF-seg +0c0: 01 00 80 00 00 00 06 00 22 00 00 00 11 00 00 00
+[mtls] REF-seg +0d0: 14 00 00 00 0c 00 00 00 0b 00 00 00 10 00 00 00
+[mtls] REF-seg +0e0: 30 00 00 00 40 00 00 00 80 00 00 00 80 00 00 00
+[mtls] REF-seg +0f0: 80 00 00 00 40 00 00 00 01 00 80 00 80 00 80 00
+[mtls] REF-seg +100: 80 00 80 00 00 00 06 00 15 00 00 00 16 00 00 00
+[mtls] REF-seg +110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +120: 40 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +130: 00 00 00 00 00 00 00 00 01 00 03 00 00 00 00 00
+[mtls] REF-seg +140: 00 00 00 00 00 00 02 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +150: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +170: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +190: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF-seg +1f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] REF vs agx_A4_image: 59/0x400 bytes differ (first at b0,144,168,175,176,1cd)
+[mtls] REF vs agx_B4_image: 82/0x200 bytes differ
+[mtls] committing...
+[mtls] committed, waiting...
+[mtls] waitUntilCompleted returned
+[mtls] bufB contents ptr 0x100b78000
+[mtls] bufB scan done, 0x41 bytes 65536
+[mtls] cb status 4
+[mtls] cb error @
+[mtls] Metal commit: bufB 0x41 bytes 65536/0x10000 GPU WRITE OK (sanity)
+[mtls] POST-kcmd+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] POST-kcmd+0b0: 58 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-kcmd+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +000: b9 1b 1b 22 00 00 00 00 01 00 00 00 01 00 00 40
+[mtls] POST-seg +010: 00 00 00 00 ac 00 00 00 b9 1b 1b 22 00 00 00 00
+[mtls] POST-seg +020: 01 00 00 00 30 01 00 80 ba 1b 1b 22 00 00 00 00
+[mtls] POST-seg +030: ac 00 00 00 04 04 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +040: 14 00 00 00 04 00 00 00 17 00 00 00 18 00 00 00
+[mtls] POST-seg +050: 19 00 00 00 1a 00 00 00 1b 00 00 00 1c 00 00 00
+[mtls] POST-seg +060: 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00
+[mtls] POST-seg +070: 20 00 00 00 20 00 00 00 01 00 01 00 04 00 01 00
+[mtls] POST-seg +080: 04 00 04 00 00 00 06 00 1d 00 00 00 1e 00 00 00
+[mtls] POST-seg +090: 1f 00 00 00 20 00 00 00 21 00 00 00 01 00 00 00
+[mtls] POST-seg +0a0: 20 00 00 00 20 00 00 00 20 00 00 00 20 00 00 00
+[mtls] POST-seg +0b0: 30 00 00 00 40 00 00 00 01 00 04 00 01 00 01 00
+[mtls] POST-seg +0c0: 01 00 80 00 00 00 06 00 22 00 00 00 11 00 00 00
+[mtls] POST-seg +0d0: 14 00 00 00 0c 00 00 00 0b 00 00 00 10 00 00 00
+[mtls] POST-seg +0e0: 30 00 00 00 40 00 00 00 80 00 00 00 80 00 00 00
+[mtls] POST-seg +0f0: 80 00 00 00 40 00 00 00 01 00 80 00 80 00 80 00
+[mtls] POST-seg +100: 80 00 80 00 00 00 06 00 15 00 00 00 16 00 00 00
+[mtls] POST-seg +110: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +120: 40 00 00 00 40 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +130: 00 00 00 00 00 00 00 00 01 00 03 00 00 00 00 00
+[mtls] POST-seg +140: 00 00 00 00 00 00 02 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +150: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +160: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +170: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +180: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +190: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +1a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +1b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +1c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +1d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +1e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] POST-seg +1f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] Metal gpuAddress: bufA 0x10000080000 bufB 0x10000098000
+[open] IOGPU -> conn 0xa803
+[mtls] our queue: qid 1 nqid 1 nqVA 105388000 bind 0x00000000 notif 0x00000000
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 105390000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 105394000 id 2
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 1053a8000
+[mtlr]   out: 0000010000000000 00000001053a8000 00000001053740c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000231b1bea 0000000000018921
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 1053b8000
+[mtlr]   out: 0000010000018000 00000001053b8000 0000000105374180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000231b1beb 0000000000018922
+[mtls] our resources: ridA 1 gpuva 10000000000 | ridB 2 gpuva 10000018000
+[mtls] R1 -> kr 0x00000000 outU32 00000009 wrIdx 58 statuses {9, 9} | ourB nz 0 0x41 0 
+[mtls] R2: count-2 group @108 rids -> 1,2
+[mtls] R2 -> kr 0x00000000 outU32 00000009 wrIdx b0 statuses {9, 9} | ourB nz 0 0x41 0 
+[mtls] R3: count-2 group @108 rids -> 1,2
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 1053c8000
+[mtlr]   out: 0000010000030000 00000001053c8000 0000000105374240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000008000 00000000231b1da4 000000000001895b
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 4 GPUVA 0x10000040000 cpu 1053d0000
+[mtlr]   out: 0000010000040000 00000001053d0000 0000000105374300 0000000000000000
+[mtlr]   out: 0000000400000000 0000000000008000 00000000231b1da5 000000000001895c
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 5 GPUVA 0x10000050000 cpu 1053d8000
+[mtlr]   out: 0000010000050000 00000001053d8000 00000001053743c0 0000000000000000
+[mtlr]   out: 0000000500000000 0000000000008000 00000000231b1da6 000000000001895d
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 6 GPUVA 0x10000060000 cpu 1053e0000
+[mtlr]   out: 0000010000060000 00000001053e0000 0000000105374480 0000000000000000
+[mtlr]   out: 0000000600000000 0000000000008000 00000000231b1da7 000000000001895e
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 7 GPUVA 0x10000070000 cpu 1053e8000
+[mtlr]   out: 0000010000070000 00000001053e8000 0000000105374540 0000000000000000
+[mtlr]   out: 0000000700000000 0000000000008000 00000000231b1da8 000000000001895f
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 8 GPUVA 0x10000080000 cpu 1053f0000
+[mtlr]   out: 0000010000080000 00000001053f0000 0000000105374600 0000000000000000
+[mtlr]   out: 0000000800000000 0000000000008000 00000000231b1da9 0000000000018960
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 9 GPUVA 0x10000090000 cpu 1053f8000
+[mtlr]   out: 0000010000090000 00000001053f8000 00000001053746c0 0000000000000000
+[mtlr]   out: 0000000900000000 0000000000008000 00000000231b1daa 0000000000018961
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 10 GPUVA 0x100000a0000 cpu 107ee8000
+[mtlr]   out: 00000100000a0000 0000000107ee8000 0000000105374780 0000000000000000
+[mtlr]   out: 0000000a00000000 0000000000008000 00000000231b1dab 0000000000018962
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 11 GPUVA 0x100000b0000 cpu 107ef0000
+[mtlr]   out: 00000100000b0000 0000000107ef0000 0000000105374840 0000000000000000
+[mtlr]   out: 0000000b00000000 0000000000008000 00000000231b1dac 0000000000018963
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 12 GPUVA 0x100000c0000 cpu 107ef8000
+[mtlr]   out: 00000100000c0000 0000000107ef8000 0000000105374900 0000000000000000
+[mtlr]   out: 0000000c00000000 0000000000008000 00000000231b1dad 0000000000018964
+[mtlr] resource2 sel8 flags 470 sz 0xc000 -> kr 0x00000000 rid 13 GPUVA 0x100000d0000 cpu 107f00000
+[mtlr]   out: 00000100000d0000 0000000107f00000 00000001053749c0 0000000000000000
+[mtlr]   out: 0000000d00000000 000000000000c000 00000000231b1dae 0000000000018965
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 14 GPUVA 0x100000e0000 cpu 107f0c000
+[mtlr]   out: 00000100000e0000 0000000107f0c000 0000000105374a80 0000000000000000
+[mtlr]   out: 0000000e00000000 0000000000010000 00000000231b1daf 0000000000018966
+[mtlr] resource2 sel8 flags 470 sz 0xc000 -> kr 0x00000000 rid 15 GPUVA 0x100000f8000 cpu 107f1c000
+[mtlr]   out: 00000100000f8000 0000000107f1c000 0000000105374b40 0000000000000000
+[mtlr]   out: 0000000f00000000 000000000000c000 00000000231b1db0 0000000000018967
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 16 GPUVA 0x10000108000 cpu 107f28000
+[mtlr]   out: 0000010000108000 0000000107f28000 0000000105374c00 0000000000000000
+[mtlr]   out: 0000001000000000 0000000000010000 00000000231b1db1 0000000000018968
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 17 GPUVA 0x10000120000 cpu 107f38000
+[mtlr]   out: 0000010000120000 0000000107f38000 0000000105374cc0 0000000000000000
+[mtlr]   out: 0000001100000000 0000000000020000 00000000231b1db2 0000000000018969
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 18 GPUVA 0x10000148000 cpu 107f58000
+[mtlr]   out: 0000010000148000 0000000107f58000 0000000105374d80 0000000000000000
+[mtlr]   out: 0000001200000000 0000000000020000 00000000231b1db3 000000000001896a
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 19 GPUVA 0x10000170000 cpu 107f78000
+[mtlr]   out: 0000010000170000 0000000107f78000 0000000105374e40 0000000000000000
+[mtlr]   out: 0000001300000000 0000000000020000 00000000231b1db4 000000000001896b
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 20 GPUVA 0x10000198000 cpu 107f98000
+[mtlr]   out: 0000010000198000 0000000107f98000 0000000105374f00 0000000000000000
+[mtlr]   out: 0000001400000000 0000000000010000 00000000231b1db5 000000000001896c
+[mtls] R3: recreated/patched 20 resource slots
+[mtls] R3 -> kr 0x00000000 outU32 00000000 wrIdx 108 statuses {0, 5} | ourB nz 0 0x41 0 
+[mtls] nq +000: 14 14 00 00 00 00 00 00 08 01 00 00 28 00 00 00
+[mtls] nq +010: 00 c0 39 05 01 00 00 00 8b 9a a9 71 68 13 00 00
+[mtls] nq +020: 59 c5 a9 71 68 13 00 00 09 00 00 00 00 00 00 00
+[mtls] nq +030: 00 00 00 00 00 00 00 00 28 00 00 00 30 c0 39 05
+[mtls] nq +040: 01 00 00 00 77 c7 a9 71 68 13 00 00 47 c8 a9 71
+[mtls] nq +050: 68 13 00 00 09 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +060: 00 00 00 00 28 00 00 00 00 c0 39 05 01 00 00 00
+[mtls] nq +070: 4e 7e f3 74 68 13 00 00 a0 9a f3 74 68 13 00 00
+[mtls] nq +080: 09 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +090: 28 00 00 00 30 c0 39 05 01 00 00 00 ee 9b f3 74
+[mtls] nq +0a0: 68 13 00 00 17 9c f3 74 68 13 00 00 09 00 00 00
+[mtls] nq +0b0: 00 00 00 00 00 00 00 00 00 00 00 00 28 00 00 00
+[mtls] nq +0c0: 00 c0 39 05 01 00 00 00 65 54 69 78 68 13 00 00
+[mtls] nq +0d0: aa 91 91 78 68 13 00 00 00 00 00 00 00 00 00 00
+[mtls] nq +0e0: 00 00 00 00 00 00 00 00 28 00 00 00 30 c0 39 05
+[mtls] nq +0f0: 01 00 00 00 33 97 91 78 68 13 00 00 42 4d bb 78
+[mtls] R4: Metal conn 0x6b03 qid-candidate 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel8 flags 1000470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel9 flags 470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel9 flags 1000470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel8 flags 1000470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel9 flags 470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] resource2 sel9 flags 1000470 sz 0x10000 -> kr 0xe00002c2 rid 0 GPUVA 0x0 cpu 0
+[mtlr] sel12 size 0x4000 type 0 -> kr 0xe00002c2 va 0 id 0
+[mtlr] sel12 size 0x4000 type 1 -> kr 0xe00002c2 va 0 id 0
+[mtls] R4: resA rid 0 gpuva 0 | resB rid 0 gpuva 0 | shmem 0/0
+[mtls] done (alive)
+[probe13] mtlself-only mode, stop

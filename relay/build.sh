@@ -16,7 +16,7 @@ mkdir -p "$OUT"
 $CLANG -arch arm64 \
     -isysroot "$SDK" -miphoneos-version-min=17.0 \
     -fobjc-arc -O1 \
-    -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface \
+    -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface -framework Metal \
     fuzzer/*.m -o "$OUT/fuzz27"
 
 cp fuzzer/Info.plist "$OUT/Info.plist"
