@@ -8,7 +8,7 @@ This repository is both a runnable on-device fuzzing harness and a research note
 
 ## Current research state
 
-Current head: **v110**.
+Research state summarized here: **v110**.
 
 | Area | Current state |
 |---|---|
