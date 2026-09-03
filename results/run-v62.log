@@ -1,0 +1,72 @@
+23:03:51  Acquired tunnel connection to device.
+23:03:51  Enabling developer disk image services.
+23:03:57  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6e03
+[scaler] conn 0x6e03, s1 11 s2 12
+[probe12] SetNotificationPort -> 0x00000000
+[v61] AGX command crafting
+[open] IOGPU -> conn 0x6a03
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1029a4000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1029ac000 id 2
+[gx] subtype 1 tailLen 0x4 -> kr 0x00000000 outw 0000000a
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[gx] subtype 1 tailLen 0x10 -> kr 0x00000000 outw 0000000a
+[gx] subtype 1 tailLen 0x40 -> kr 0x00000000 outw 0000000a
+[gx] subtype 1 tailLen 0x80 -> kr 0x00000000 outw 0000000a
+[gx] subtype 1 tailLen 0xc0 -> kr 0x00000000 outw 0000000a
+[gx] subtype 1 tailLen 0x100 -> kr 0x00000000 outw 0000000a
+[gx] subtype 2 tailLen 0x4 -> kr 0x00000000 outw 0000000a
+[gx] subtype 2 tailLen 0x10 -> kr 0x00000000 outw 0000000a
+[gx] subtype 2 tailLen 0x40 -> kr 0x00000000 outw 0000000a
+[gx] subtype 2 tailLen 0x80 -> kr 0x00000000 outw 0000000a
+[gx] subtype 2 tailLen 0xc0 -> kr 0x00000000 outw 0000000a
+[gx] subtype 2 tailLen 0x100 -> kr 0x00000000 outw 0000000a
+[gx] subtype 3 tailLen 0x4 -> kr 0x00000000 outw 0000000a
+[gx] subtype 3 tailLen 0x10 -> kr 0x00000000 outw 0000000a
+[gx] subtype 3 tailLen 0x40 -> kr 0x00000000 outw 0000000a
+[gx] subtype 3 tailLen 0x80 -> kr 0x00000000 outw 0000000a
+[gx] subtype 3 tailLen 0xc0 -> kr 0x00000000 outw 0000000a
+[gx] subtype 3 tailLen 0x100 -> kr 0x00000000 outw 0000000a
+[gx] subtype 6 tailLen 0x4 -> kr 0x00000000 outw 0000000a
+[gx] subtype 6 tailLen 0x10 -> kr 0x00000000 outw 0000000a
+[gx] subtype 6 tailLen 0x40 -> kr 0x00000000 outw 0000000a
+[gx] subtype 6 tailLen 0x80 -> kr 0x00000000 outw 0000000a
+[gx] subtype 6 tailLen 0xc0 -> kr 0x00000000 outw 0000000a
+[gx] subtype 6 tailLen 0x100 -> kr 0x00000000 outw 0000000a
+[gx] subtype 7 tailLen 0x4 -> kr 0x00000000 outw 0000000a
+[gx] subtype 7 tailLen 0x10 -> kr 0x00000000 outw 0000000a
+[gx] subtype 7 tailLen 0x40 -> kr 0x00000000 outw 0000000a
+[gx] subtype 7 tailLen 0x80 -> kr 0x00000000 outw 0000000a
+[gx] subtype 7 tailLen 0xc0 -> kr 0x00000000 outw 0000000a
+[gx] subtype 7 tailLen 0x100 -> kr 0x00000000 outw 0000000a
+[v61] done (alive)
+[v58] stateful command sequences, 1000000 rounds
+[open] IOGPU -> conn 0x4957
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 102c60000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 102c68000 id 2
+[v58] done (alive)
+[v57] IOMFB crop wrap test
+[open] IOMobileFramebufferAP -> conn 0x5313
+[mfb] sel5 iter 0 swap 2 -> kr 0xe00002d1
+[mfb] sel5 iter 1 swap 3 -> kr 0xe00002d1
+[mfb] sel5 iter 2 swap 4 -> kr 0xe00002d1
+[mfb] sel5 iter 3 swap 5 -> kr 0xe00002d1
+[mfb] sel5 iter 4 swap 6 -> kr 0xe00002d1
+[mfb] sel5 iter 5 swap 7 -> kr 0xe00002d1
+[mfb] sel5 iter 6 swap 8 -> kr 0xe00002d1
+[mfb] sel5 iter 7 swap 9 -> kr 0xe00002d1
+[v57] done (alive)
+[v56] grammar-aware command fuzz, 2000000 rounds
+[open] IOGPU -> conn 0x7c0f
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 109e34000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 109e3c000 id 2
+[s6] created 16 events
+[s6] sanity type2 -> kr 0x00000000 outw 00000000 (expect 0)
+App terminated due to signal 9.

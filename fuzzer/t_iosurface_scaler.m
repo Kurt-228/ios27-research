@@ -15022,6 +15022,255 @@ static void p_gpuvmscan2(void) {
     LOG("[gscan2] done (alive), total ops %ld", op);
 }
 
+// V93: in-place MUTATIONAL fuzz of a live Metal command buffer (follow-up to
+// v89 mtpatch). For every case: encode a fresh blit copy A->B (size 0x10000,
+// the v89 encoding path), snapshot kcmd shmem + seglist, apply ONE mutation,
+// commit, wait (2s cap), read back B + canary tail. Case numbers are
+// deterministic (no frand): ph1 = dword dictionary sweep over kcmd[0..kclen),
+// ph2 = qword bit-flips of nonzero baseline qwords, ph3 = pool-slot GPUVA
+// substitution (OOB read/write candidates, gscan slot patcher + restore),
+// ph4 = seglist rid substitution, ph5 = copy-size OOB (size fields that hold
+// 0x10000 in the baseline -> 0x20000/0x100000/0xffffffff/0).
+// Env: FUZZ_MTLMUT=1 gate, FUZZ_MTLMUT_SKIP=N resume after crash,
+// FUZZ_MTLMUT_MAX=N cap executed cases, FUZZ_MTLMUT_ONLY=0x<off> replay all
+// cases at one kcmd offset (ph1/2/5).
+static void p_mtlmut(void) {
+    const char *sk = getenv("FUZZ_MTLMUT_SKIP");
+    long skip = sk ? atol(sk) : 0;
+    const char *mx = getenv("FUZZ_MTLMUT_MAX");
+    long maxc = mx ? atol(mx) : 0;
+    const char *on = getenv("FUZZ_MTLMUT_ONLY");
+    long onlyoff = on ? strtol(on, NULL, 0) : -1;
+    LOG("[mtlmut] v93: live Metal cmdbuf mutator (skip %ld max %ld only 0x%lx)",
+        skip, maxc, onlyoff);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[mtlmut] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    // buffers carry a 0x4000 canary tail past the 0x10000 copy area: OOB
+    // copies that stay inside the buffer mapping are detectable on CPU,
+    // bigger ones fault at GPU level.
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    if (!mq || !bufA || !bufB) { LOG("[mtlmut] alloc fail"); return; }
+    uint8_t *ap = (uint8_t *)[bufA contents];
+    uint8_t *bp = (uint8_t *)[bufB contents];
+    memset(ap, 0x41, 0x10000);
+    memset(ap + 0x10000, 0x42, 0x4000);
+    memset(bp, 0, 0x10000);
+    memset(bp + 0x10000, 0xCC, 0x4000);
+    uint64_t gpuA = [bufA gpuAddress];
+    uint64_t gpuB = [bufB gpuAddress];
+    g_srcx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;   // xor-masked: the slot patcher
+    g_dstx = gpuB ^ 0x5a5a5a5a5a5a5a5aULL;   // rewrites any raw in-VM copy
+    LOG("[mtlmut] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+
+    // ---- baseline snapshot from a reference cb (encoded, never committed)
+    static uint8_t base_kc[0x1000];
+    static uint8_t base_sg[0x400];
+    id<MTLCommandBuffer> rcb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> renc = [rcb blitCommandEncoder];
+    [renc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [renc endEncoding];
+    void *rst = find_ivar_obj(rcb, "torage", 0, "cb");
+    if (!rst) { LOG("[mtlmut] no storage ivar"); return; }
+    uint64_t rkva = *(uint64_t *)((uint8_t *)rst + 0x28);
+    uint64_t rsva = *(uint64_t *)((uint8_t *)rst + 0x68);
+    if (!rkva || !rsva) { LOG("[mtlmut] no kcmd/seg ptrs"); return; }
+    memcpy(base_kc, (void *)(uintptr_t)rkva, 0x1000);
+    memcpy(base_sg, (void *)(uintptr_t)rsva, 0x400);
+    // command length: last nonzero dword, clamped to [0x40, 0x1000]
+    long kclen = 0x40;
+    for (long o = 0x1000 - 4; o >= 0; o -= 4)
+        if (*(uint32_t *)(base_kc + o)) { kclen = o + 4; break; }
+    LOG("[mtlmut] baseline kcmd len 0x%lx (scan window 0x1000)", kclen);
+    mtl_hexdump("mtlmut-base", 0, base_kc, 0x100);
+    // stability: a second encode must produce identical bytes — case numbering
+    // (and thus SKIP-based resume) relies on it
+    {
+        id<MTLCommandBuffer> r2 = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> e2 = [r2 blitCommandEncoder];
+        [e2 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [e2 endEncoding];
+        void *s2 = find_ivar_obj(r2, "torage", 0, "cb");
+        uint64_t k2 = s2 ? *(uint64_t *)((uint8_t *)s2 + 0x28) : 0;
+        long diff = 0, first = -1;
+        if (k2) for (long o = 0; o < kclen; o += 4)
+            if (*(uint32_t *)((uint8_t *)(uintptr_t)k2 + o) != *(uint32_t *)(base_kc + o)) {
+                if (first < 0) first = o;
+                diff++;
+            }
+        LOG("[mtlmut] baseline stability: %ld differing dwords (first @0x%lx)%s",
+            diff, first, diff ? " — CASE NUMBERING MAY DRIFT" : "");
+    }
+    // rids of our buffers inside the segment list (v90 introspection helpers)
+    char pathA[160] = {0}, pathB[160] = {0};
+    uint32_t ridA = mtl_find_rid(bufA, base_sg, 0x400, pathA, sizeof pathA);
+    uint32_t ridB = mtl_find_rid(bufB, base_sg, 0x400, pathB, sizeof pathB);
+    LOG("[mtlmut] rids: A %u (%s) B %u (%s)", ridA, pathA, ridB, pathB);
+    // copy-size field candidates: dwords == 0x10000 in the baseline
+    long szoff[16]; int nsz = 0;
+    for (long o = 0; o + 4 <= kclen && nsz < 16; o += 4)
+        if (*(uint32_t *)(base_kc + o) == 0x10000) szoff[nsz++] = o;
+    LOG("[mtlmut] size-field candidates (dword==0x10000): %d", nsz);
+    // plan size estimate (lets the operator verify determinism between runs)
+    long nq_nz = 0;
+    for (long o = 0; o + 8 <= kclen; o += 8) if (*(uint64_t *)(base_kc + o)) nq_nz++;
+    long ph4n = (ridA ? 5 : 0) + (ridB ? 5 : 0);
+    LOG("[mtlmut] plan: ph1 %ld ph2 %ld ph3 8 ph4 %ld ph5 %d (total ~%ld cases)",
+        (kclen / 4) * 11, nq_nz * 64, ph4n, nsz * 4,
+        (kclen / 4) * 11 + nq_nz * 64 + 8 + ph4n + nsz * 4);
+
+    __block long cn = 0, done = 0;
+    __block int stop = 0;
+    void (^runcase)(int, long, int, uint64_t, uint64_t, const char *) =
+    ^(int ph, long off, int width, uint64_t oldv, uint64_t newv, const char *desc) {
+        if (stop) return;
+        cn++;
+        if (cn <= skip) return;
+        if (onlyoff >= 0 && !((ph == 1 || ph == 2 || ph == 5) && off == onlyoff)) return;
+        if (maxc && done >= maxc) { stop = 1; LOG("[mtlmut] MAX reached (%ld)", maxc); return; }
+        done++;
+        // fresh live command buffer: real blit copy A->B, 0x10000 (v89 path)
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [enc endEncoding];
+        void *st = find_ivar_obj(cb, "torage", 0, "cb");
+        uint64_t kva = st ? *(uint64_t *)((uint8_t *)st + 0x28) : 0;
+        uint64_t sva = st ? *(uint64_t *)((uint8_t *)st + 0x68) : 0;
+        if (!kva || !sva) {
+            LOG("[mtlmut] case #%ld: no storage ptrs, stopping", cn);
+            stop = 1; return;
+        }
+        uint8_t *kc = (uint8_t *)(uintptr_t)kva;
+        uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+        uint64_t old2 = oldv;
+        long nslot = -1;
+        if (ph == 1 || ph == 2 || ph == 5) {
+            old2 = width == 8 ? *(uint64_t *)(kc + off) : (uint64_t)*(uint32_t *)(kc + off);
+            if (width == 8) *(uint64_t *)(kc + off) = newv;
+            else *(uint32_t *)(kc + off) = (uint32_t)newv;
+        } else if (ph == 3) {
+            uint64_t from = off == 0 ? gpuA : gpuB;
+            old2 = from;
+            nslot = gscan_patch(from, newv);   // rewrites pool slots (+buf ivar)
+        } else if (ph == 4) {
+            nslot = 0;
+            for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                if (*(uint32_t *)(sg + o) == (uint32_t)oldv) {
+                    *(uint32_t *)(sg + o) = (uint32_t)newv;
+                    nslot++;
+                }
+        }
+        LOG("[mtlmut] case #%ld ph%d off 0x%lx w%d old 0x%llx -> new 0x%llx slots %ld (%s) commit",
+            cn, ph, off, width, old2, newv, nslot, desc);
+        @try {
+            [cb commit];
+        } @catch (NSException *ex) {
+            NSString *exn = [ex name];
+            LOG("[mtlmut] case #%ld commit EXCEPTION %s", cn, [exn UTF8String]);
+            if (ph == 3) gscan_patch(newv, old2);   // restore pool slots
+            memset(bp, 0, 0x10000); memset(bp + 0x10000, 0xCC, 0x4000);
+            return;
+        }
+        long cst = -1;
+        for (int w = 0; w < 200; w++) {
+            cst = (long)[cb status];
+            if (cst >= 4) break;   // Completed=4 / Error=5
+            usleep(10000);
+        }
+        if (ph == 3) {
+            long nr = gscan_patch(newv, old2);   // restore pool slots + buf ivar
+            LOG("[mtlmut] case #%ld pool restore slots %ld", cn, nr);
+        }
+        if (cst < 4) {
+            LOG("[mtlmut] [HIT] case #%ld TIMEOUT status %ld — GPU wedged? stop "
+                "(resume: FUZZ_MTLMUT_SKIP=%ld)", cn, cst, cn);
+            stop = 1;
+            return;
+        }
+        NSError *cberr = [cb error];   // via intermediate var (v86 lesson)
+        long b41 = 0, bnz = 0, bad = 0;
+        for (long i = 0; i < 0x10000; i++) { if (bp[i] == 0x41) b41++; if (bp[i]) bnz++; }
+        for (long i = 0x10000; i < 0x14000; i++) if (bp[i] != 0xCC) bad++;
+        int hit = (cst != 4) || cberr != nil || bad > 0;
+        if (ph == 3 && off == 0 && bnz > 0 && b41 < 0x8000) hit = 1;  // foreign data read
+        if (cberr) {
+            NSString *ed = [cberr description];
+            LOG("[mtlmut] case #%ld -> status %ld err '%s' | B 41 %ld nz %ld canary-bad %ld [HIT]",
+                cn, cst, [ed UTF8String], b41, bnz, bad);
+        } else {
+            LOG("[mtlmut] case #%ld -> status %ld | B 41 %ld nz %ld canary-bad %ld%s",
+                cn, cst, b41, bnz, bad, hit ? " [HIT]" : "");
+        }
+        // reset B + canary for the next case
+        memset(bp, 0, 0x10000);
+        memset(bp + 0x10000, 0xCC, 0x4000);
+    };
+
+    // ---- ph1: dword dictionary sweep over the whole kcmd command area
+    static const uint32_t dabs[] = {0, 1, 0xff, 0xffff, 0xffffffff, 0x7fffffff, 0x80000000};
+    for (long o = 0; o + 4 <= kclen && !stop; o += 4) {
+        uint32_t bv = *(uint32_t *)(base_kc + o);
+        for (unsigned d = 0; d < sizeof(dabs)/sizeof(dabs[0]); d++)
+            runcase(1, o, 4, bv, dabs[d], "dict");
+        runcase(1, o, 4, bv, bv + 1, "old+1");
+        runcase(1, o, 4, bv, bv - 1, "old-1");
+        runcase(1, o, 4, bv, bv << 4, "old<<4");
+        runcase(1, o, 4, bv, bv << 8, "old<<8");
+    }
+    LOG("[mtlmut] ph1 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph2: bit-flip every bit of each nonzero baseline qword
+    for (long o = 0; o + 8 <= kclen && !stop; o += 8) {
+        uint64_t q = *(uint64_t *)(base_kc + o);
+        if (!q) continue;
+        for (int b = 0; b < 64; b++)
+            runcase(2, o, 8, q, q ^ (1ULL << b), "bitflip");
+    }
+    LOG("[mtlmut] ph2 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph3: pool-slot GPUVA substitution (OOB read / write candidates).
+    // Calibration first (v91 lesson: the FIRST gscan patch must be a
+    // self-patch — it builds the slot-region cache without rewriting pool
+    // slots or the MTLBuffer gpuAddress ivars to a foreign value).
+    long c1 = gscan_patch(gpuA, gpuA);
+    long c2 = gscan_patch(gpuB, gpuB);
+    LOG("[mtlmut] ph3 calib self-patch: A slots %ld B slots %ld (regions %d)",
+        c1, c2, g_nsreg);
+    {
+        uint64_t pv[] = { 0x1deadbeef0000ULL, 0xffffffff0000ULL, 0x1000000000ULL, 0 };
+        pv[3] = gpuA + 0x100000;   // unmapped, just past A's space (v89 OOB addr)
+        for (int i = 0; i < 4 && !stop; i++)
+            runcase(3, 0, 8, gpuA, pv[i], "pool-src-oob");
+        pv[3] = gpuB + 0x100000;
+        for (int i = 0; i < 4 && !stop; i++)
+            runcase(3, 1, 8, gpuB, pv[i], "pool-dst-oob-WRITE");
+    }
+    LOG("[mtlmut] ph3 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph4: seglist rid substitution (residency confusion candidates)
+    {
+        uint32_t rids[2] = { ridA, ridB };
+        const char *rtag[2] = { "ridA-sub", "ridB-sub" };
+        for (int r = 0; r < 2 && !stop; r++) {
+            if (!rids[r]) continue;
+            uint32_t rv[5] = { 0, 0xffffffff, 0xdead, 0x10000, rids[r] + 0x100 };
+            for (int i = 0; i < 5; i++)
+                runcase(4, r, 4, rids[r], rv[i], rtag[r]);
+        }
+    }
+    LOG("[mtlmut] ph4 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph5: copy-size OOB (baseline dword 0x10000 -> bigger/garbage)
+    static const uint32_t szv[] = {0x20000, 0x100000, 0xffffffff, 0};
+    for (int i = 0; i < nsz && !stop; i++)
+        for (int j = 0; j < 4; j++)
+            runcase(5, szoff[i], 4, 0x10000, szv[j], "size-oob");
+    LOG("[mtlmut] done: total cases %ld executed %ld (alive)%s",
+        cn, done, stop ? " STOPPED-EARLY" : "");
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -17716,6 +17965,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_GPUVMSCAN2")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUVMSCAN")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_MTLMUT")) { p_mtlmut(); LOG("[probe13] mtlmut-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

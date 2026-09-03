@@ -31,5 +31,6 @@ void *must_map(mach_vm_size_t sz);
 void *t_vcpdrm(void *arg);
 void *t_iosurface_scaler(void *arg);
 void *t_migscan(void *arg);
+void *t_xpleak(void *arg);
 
 #endif

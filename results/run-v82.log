@@ -1,0 +1,238 @@
+02:46:42  Acquired tunnel connection to device.
+02:46:42  Enabling developer disk image services.
+02:46:42  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5e03
+[scaler] conn 0x5e03, s1 78 s2 316
+[probe12] SetNotificationPort -> 0x00000000
+[v80] GPUVA-correct blit redirect
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOGPU -> conn 0x730b
+[gw] flagged resource: kr 0x00000000 rid 1 GPUVA 0x10000000000 (cpuptr 0)
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 109e7c000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 109e84000 id 2
+[gw] submit GPUVA 0x10000000000 -> kr 0x00000000 outw 00000000
+[gw] *** target 0x5A bytes: 0 / 0x10000 (no write)
+[v80] done (alive)
+[v79] isolated kill-shot loop (watch screen!)
+[open] AppleM2ScalerCSCDriver -> conn 0x43a3
+[ks] shot 0 -> kr 0xe00002d6
+[ks] shot 1 -> kr 0xe00002d6
+[ks] shot 2 -> kr 0xe00002d6
+[ks] shot 3 -> kr 0xe00002d6
+[ks] shot 4 -> kr 0xe00002d6
+[ks] shot 5 -> kr 0xe00002d6
+[ks] shot 6 -> kr 0xe00002d6
+[ks] shot 7 -> kr 0xe00002d6
+[ks] shot 8 -> kr 0xe00002d6
+[ks] shot 9 -> kr 0xe00002d6
+[ks] shot 10 -> kr 0xe00002d6
+[ks] shot 11 -> kr 0xe00002d6
+[ks] shot 12 -> kr 0xe00002d6
+[ks] shot 13 -> kr 0xe00002d6
+[ks] shot 14 -> kr 0xe00002d6
+[ks] shot 15 -> kr 0xe00002d6
+[ks] shot 16 -> kr 0xe00002d6
+[ks] shot 17 -> kr 0xe00002d6
+[ks] shot 18 -> kr 0xe00002d6
+[ks] shot 19 -> kr 0xe00002d6
+[ks] shot 20 -> kr 0xe00002d6
+[ks] shot 21 -> kr 0xe00002d6
+[ks] shot 22 -> kr 0xe00002d6
+[ks] shot 23 -> kr 0xe00002d6
+[ks] shot 24 -> kr 0xe00002d6
+[ks] shot 25 -> kr 0xe00002d6
+[ks] shot 26 -> kr 0xe00002d6
+[ks] shot 27 -> kr 0xe00002d6
+[ks] shot 28 -> kr 0xe00002d6
+[ks] shot 29 -> kr 0xe00002d6
+[ks] shot 30 -> kr 0xe00002d6
+[ks] shot 31 -> kr 0xe00002d6
+[ks] shot 32 -> kr 0xe00002d6
+[ks] shot 33 -> kr 0xe00002d6
+[ks] shot 34 -> kr 0xe00002d6
+[ks] shot 35 -> kr 0xe00002d6
+[ks] shot 36 -> kr 0xe00002d6
+[ks] shot 37 -> kr 0xe00002d6
+[ks] shot 38 -> kr 0xe00002d6
+[ks] shot 39 -> kr 0xe00002d6
+[v79] done (alive)
+[v76] blit with prepared resource + fine GPUVA sweep
+[open] IOGPU -> conn 0x5983
+[sm] resource buf 0x109ec0000 sz 0x40000 -> kr 0x00000000 rid 1 off32 40000
+[bh] target rid 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 109f04000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 109f0c000 id 2
+[bh] all-slots=rid 1, candidate GPUVA 0x100040000
+[bh] slot 0 alive
+[v76] sweep done (alive)
+[v74] sel45 GPU mapping
+[open] IOGPU -> conn 0x2a2b
+[m45] nqid 1 vmid 1 attach 0x00000000
+[m45] f16 00 rid 1: sel45 -> kr 0xe00002c2
+[m45] f16 01 rid 2: sel45 -> kr 0xe00002c2
+[m45] f16 02 rid 3: sel45 -> kr 0xe00002c2
+[m45] f16 03 rid 4: sel45 -> kr 0xe00002c2
+[m45] f16 06 rid 5: sel45 -> kr 0xe00002c2
+[m45] f16 07 rid 6: sel45 -> kr 0xe00002c2
+[m45] f16 40 rid 7: sel45 -> kr 0xe00002c2
+[m45] f16 42 rid 8: sel45 -> kr 0xe00002c2
+[v74] done (alive)
+[v73] IORegistry IOGPUResource dump
+[rg] IOGPUResource: none
+[rg] IOGPUSysMemory: none
+[rg] AGXDevice: none
+[rg] IOGPUDevice: none
+[v73] done
+[v72] resource GPUVA discovery
+[open] IOGPU -> conn 0x7d0f
+[gv] f16 00 -> kr 0x00000000 out:
+[gv]   +00: 0000010000004000 0000000000000000 0000000109f880c0 0000000000000000
+[gv]   +20: 0000000100000000 0000000000004000 00000000171734ab 00000000000114e3
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 01 -> kr 0x00000000 out:
+[gv]   +00: 000001000000c000 0000000000000000 0000000109f88180 0000000000000000
+[gv]   +20: 0000000200000000 0000000000004000 00000000171734ac 00000000000114e4
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 02 -> kr 0x00000000 out:
+[gv]   +00: 0000010000014000 0000000000000000 0000000109f88240 0000000000000000
+[gv]   +20: 0000000300000000 0000000000004000 00000000171734ad 00000000000114e5
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 03 -> kr 0x00000000 out:
+[gv]   +00: 000001000001c000 0000000000000000 0000000109f88300 0000000000000000
+[gv]   +20: 0000000400000000 0000000000004000 00000000171734ae 00000000000114e6
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 06 -> kr 0x00000000 out:
+[gv]   +00: 0000010000024000 0000000000000000 0000000109f883c0 0000000000000000
+[gv]   +20: 0000000500000000 0000000000004000 00000000171734af 00000000000114e7
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 07 -> kr 0x00000000 out:
+[gv]   +00: 000001000002c000 0000000000000000 0000000109f88480 0000000000000000
+[gv]   +20: 0000000600000000 0000000000004000 00000000171734b0 00000000000114e8
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[v72] done
+[v70] blit write replay
+[open] IOGPU -> conn 0x4433
+[sm] resource buf 0x109fb8000 sz 0x4000 -> kr 0x00000000 rid 1 off32 4000
+[sm] resource buf 0x109fbc000 sz 0x4000 -> kr 0x00000000 rid 2 off32 c000
+[sm] resource buf 0x109fc0000 sz 0x4000 -> kr 0x00000000 rid 3 off32 14000
+[sm] resource buf 0x109fc4000 sz 0x4000 -> kr 0x00000000 rid 4 off32 1c000
+[sm] resource buf 0x109fc8000 sz 0x4000 -> kr 0x00000000 rid 5 off32 24000
+[sm] resource buf 0x109fcc000 sz 0x4000 -> kr 0x00000000 rid 6 off32 2c000
+[sm] resource buf 0x109fd0000 sz 0x4000 -> kr 0x00000000 rid 7 off32 34000
+[sm] resource buf 0x109fd4000 sz 0x4000 -> kr 0x00000000 rid 8 off32 3c000
+[sm] resource buf 0x109fd8000 sz 0x4000 -> kr 0x00000000 rid 9 off32 44000
+[sm] resource buf 0x109fdc000 sz 0x4000 -> kr 0x00000000 rid 10 off32 4c000
+[sm] resource buf 0x109fe0000 sz 0x4000 -> kr 0x00000000 rid 11 off32 54000
+[sm] resource buf 0x109fe4000 sz 0x4000 -> kr 0x00000000 rid 12 off32 5c000
+[sm] resource buf 0x109fe8000 sz 0x4000 -> kr 0x00000000 rid 13 off32 64000
+[sm] resource buf 0x109fec000 sz 0x4000 -> kr 0x00000000 rid 14 off32 6c000
+[sm] resource buf 0x109ff0000 sz 0x4000 -> kr 0x00000000 rid 15 off32 74000
+[sm] resource buf 0x10abf0000 sz 0x4000 -> kr 0x00000000 rid 16 off32 7c000
+[sm] resource buf 0x10ad50000 sz 0x4000 -> kr 0x00000000 rid 17 off32 84000
+[sm] resource buf 0x10ad54000 sz 0x4000 -> kr 0x00000000 rid 18 off32 8c000
+[sm] resource buf 0x10ad58000 sz 0x4000 -> kr 0x00000000 rid 19 off32 94000
+[sm] resource buf 0x10ad5c000 sz 0x4000 -> kr 0x00000000 rid 20 off32 9c000
+[sm] resource buf 0x10ad60000 sz 0x4000 -> kr 0x00000000 rid 21 off32 a4000
+[sm] resource buf 0x10ad64000 sz 0x4000 -> kr 0x00000000 rid 22 off32 ac000
+[sm] resource buf 0x10ad68000 sz 0x4000 -> kr 0x00000000 rid 23 off32 b4000
+[sm] resource buf 0x10ad6c000 sz 0x4000 -> kr 0x00000000 rid 24 off32 bc000
+[sm] resource buf 0x10ad70000 sz 0x4000 -> kr 0x00000000 rid 25 off32 c4000
+[sm] resource buf 0x10ad74000 sz 0x4000 -> kr 0x00000000 rid 26 off32 cc000
+[sm] resource buf 0x10ad78000 sz 0x4000 -> kr 0x00000000 rid 27 off32 d4000
+[sm] resource buf 0x10ad7c000 sz 0x4000 -> kr 0x00000000 rid 28 off32 dc000
+[sm] resource buf 0x10ad80000 sz 0x4000 -> kr 0x00000000 rid 29 off32 e4000
+[sm] resource buf 0x10ad84000 sz 0x4000 -> kr 0x00000000 rid 30 off32 ec000
+[sm] resource buf 0x10ad88000 sz 0x4000 -> kr 0x00000000 rid 31 off32 f4000
+[sm] resource buf 0x10ad8c000 sz 0x4000 -> kr 0x00000000 rid 32 off32 fc000
+[sm] resource buf 0x10ad90000 sz 0x4000 -> kr 0x00000000 rid 33 off32 104000
+[sm] resource buf 0x10ad94000 sz 0x4000 -> kr 0x00000000 rid 34 off32 10c000
+[sm] resource buf 0x10ad98000 sz 0x4000 -> kr 0x00000000 rid 35 off32 114000
+[sm] resource buf 0x10ad9c000 sz 0x4000 -> kr 0x00000000 rid 36 off32 11c000
+[sm] resource buf 0x10ada0000 sz 0x4000 -> kr 0x00000000 rid 37 off32 124000
+[sm] resource buf 0x10ada4000 sz 0x4000 -> kr 0x00000000 rid 38 off32 12c000
+[sm] resource buf 0x10ada8000 sz 0x4000 -> kr 0x00000000 rid 39 off32 134000
+[sm] resource buf 0x10adac000 sz 0x4000 -> kr 0x00000000 rid 40 off32 13c000
+[bw] created 40 target resources
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10adb4000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10adbc000 id 2
+[bw] sweep at 0x100000000 alive
+[bw] sweep at 0x100100000 alive
+[v70b] blit loop start (watch the screen)
+[v70b] r5000 alive
+[v70b] r10000 alive
+[v70b] r15000 alive
+[v70b] blit loop done
+[v70] sweep done (alive)
+[v70] done (alive)
+[v68] full AGFI submit
+[open] IOGPU -> conn 0x83e7
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10adf4000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10adfc000 id 2
+[sm] resource buf 0x10ae00000 sz 0x10000 -> kr 0x00000000 rid 1 off32 10000
+[fu] target resource rid 1, candidate GPUVA 0x100010000
+[fu] GPUVA 0x100010000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100020000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100030000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100040000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100008000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x10000c000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100000000 -> kr 0x00000000 outw 00000000, target 5A 0
+[v69] done (alive)
+[v67] faithful AGFI replay
+[open] IOGPU -> conn 0x16cb
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10ae44000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10ae4c000 id 2
+[sm] resource buf 0x10ae54000 sz 0x10000 -> kr 0x00000000 rid 1 off32 10000
+[fu] target resource rid 1, candidate GPUVA 0x100010000
+[fr] observer nq va 0x10ae74000
+[fr] faithful submit -> kr 0x00000000 outw 00000000
+[fr] nq dump after submit:
+[fr]   +00: 14 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[v67] done (alive)
+[v66] AGFI reconstruction submit
+[open] IOGPU -> conn 0x76ff
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10ae9c000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10aea4000 id 2
+[rc] recon submit -> kr 0x00000000 outw 0000000a
+[v66] done (alive)
+[v65] AGX command replay
+[open] IOGPU -> conn 0x126b
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10aed4000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10aedc000 id 2
+[rp] replay submit -> kr 0x00000000 outw 0000000a
+[v65] done (alive)
+[v64] AGX tail crafting
+[open] IOGPU -> conn 0x15f3
+[s4] sel12 size 0x8000 -> kr 0x00000000 va 10af0c000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10af18000 id 2
+[tl] r0 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r1 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r2 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r3 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r200000 alive
+[tl] r400000 alive
+[tl] r600000 alive
+[tl] r800000 alive
+[tl] r1000000 alive
+[tl] r1200000 alive
+[tl] r1400000 alive
+[tl] r1600000 alive
+[tl] r1800000 alive
+[tl] r2000000 alive
+[tl] r2200000 alive
+[tl] r2400000 alive
+[tl] r2600000 alive
+[tl] r2800000 alive
+[tl] r3000000 alive
+[tl] r3200000 alive
+App terminated due to signal 9.

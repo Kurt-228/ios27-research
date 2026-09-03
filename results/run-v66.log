@@ -1,0 +1,87 @@
+23:58:16  Acquired tunnel connection to device.
+23:58:16  Enabling developer disk image services.
+23:58:16  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x6e0f
+[scaler] conn 0x6e0f, s1 160 s2 161
+[probe12] SetNotificationPort -> 0x00000000
+[v66] AGFI reconstruction submit
+[open] IOGPU -> conn 0x6803
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100518000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100520000 id 2
+[rc] recon submit -> kr 0x00000000 outw 0000000a
+[v66] done (alive)
+[v65] AGX command replay
+[open] IOGPU -> conn 0x7663
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10055c000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100564000 id 2
+[rp] replay submit -> kr 0x00000000 outw 0000000a
+[v65] done (alive)
+[v64] AGX tail crafting
+[open] IOGPU -> conn 0x593f
+[s4] sel12 size 0x8000 -> kr 0x00000000 va 10064c000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100658000 id 2
+[tl] r0 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r1 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r2 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r3 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r200000 alive
+[tl] r400000 alive
+[tl] r600000 alive
+[tl] r800000 alive
+[tl] r1000000 alive
+[tl] r1200000 alive
+[tl] r1400000 alive
+[tl] r1600000 alive
+[tl] r1800000 alive
+[tl] r2000000 alive
+[tl] r2200000 alive
+[tl] r2400000 alive
+[tl] r2600000 alive
+[tl] r2800000 alive
+[tl] r3000000 alive
+[tl] r3200000 alive
+[tl] r3400000 alive
+[tl] r3600000 alive
+[tl] r3800000 alive
+[tl] r4000000 alive
+[tl] r4200000 alive
+[tl] r4400000 alive
+[tl] r4600000 alive
+[tl] r4800000 alive
+[tl] r5000000 alive
+[tl] r5200000 alive
+[tl] r5400000 alive
+[tl] r5600000 alive
+[tl] r5800000 alive
+[tl] r6000000 alive
+[tl] r6200000 alive
+[tl] r6400000 alive
+[tl] r6600000 alive
+[tl] r6800000 alive
+[tl] r7000000 alive
+[tl] r7200000 alive
+[tl] r7400000 alive
+[tl] r7600000 alive
+[tl] r7800000 alive
+[tl] r8000000 alive
+[tl] r8200000 alive
+[tl] r8400000 alive
+[tl] r8600000 alive
+[tl] r8800000 alive
+[tl] r9000000 alive
+[tl] r9200000 alive
+[tl] r9400000 alive
+[tl] r9600000 alive
+[tl] r9800000 alive
+[tl] r10000000 alive
+[tl] r10200000 alive
+[tl] r10400000 alive
+App terminated due to signal 9.

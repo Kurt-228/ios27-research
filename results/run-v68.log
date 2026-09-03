@@ -1,0 +1,138 @@
+00:23:52  Acquired tunnel connection to device.
+00:23:52  Enabling developer disk image services.
+00:23:52  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6b03
+[scaler] conn 0x6b03, s1 160 s2 161
+[probe12] SetNotificationPort -> 0x00000000
+[v68] full AGFI submit
+[open] IOGPU -> conn 0x6f03
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100cf0000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100cf8000 id 2
+[fu] full submit -> kr 0x00000000 outw 00000000
+[v68] done (alive)
+[v67] faithful AGFI replay
+[open] IOGPU -> conn 0xa713
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100e90000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100e98000 id 2
+[fr] observer nq va 0x100eb0000
+[fr] faithful submit -> kr 0x00000000 outw 00000000
+[fr] nq dump after submit:
+[fr]   +00: 14 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[v67] done (alive)
+[v66] AGFI reconstruction submit
+[open] IOGPU -> conn 0x7d4b
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100ed8000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100ee0000 id 2
+[rc] recon submit -> kr 0x00000000 outw 0000000a
+[v66] done (alive)
+[v65] AGX command replay
+[open] IOGPU -> conn 0xa94b
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100f10000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100f18000 id 2
+[rp] replay submit -> kr 0x00000000 outw 0000000a
+[v65] done (alive)
+[v64] AGX tail crafting
+[open] IOGPU -> conn 0x5b53
+[s4] sel12 size 0x8000 -> kr 0x00000000 va 101000000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10100c000 id 2
+[tl] r0 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r1 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r2 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r3 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r200000 alive
+[tl] r400000 alive
+[tl] r600000 alive
+[tl] r800000 alive
+[tl] r1000000 alive
+[tl] r1200000 alive
+[tl] r1400000 alive
+[tl] r1600000 alive
+[tl] r1800000 alive
+[tl] r2000000 alive
+[tl] r2200000 alive
+[tl] r2400000 alive
+[tl] r2600000 alive
+[tl] r2800000 alive
+[tl] r3000000 alive
+[tl] r3200000 alive
+[tl] r3400000 alive
+[tl] r3600000 alive
+[tl] r3800000 alive
+[tl] r4000000 alive
+[tl] r4200000 alive
+[tl] r4400000 alive
+[tl] r4600000 alive
+[tl] r4800000 alive
+[tl] r5000000 alive
+[tl] r5200000 alive
+[tl] r5400000 alive
+[tl] r5600000 alive
+[tl] r5800000 alive
+[tl] r6000000 alive
+[tl] r6200000 alive
+[tl] r6400000 alive
+[tl] r6600000 alive
+[tl] r6800000 alive
+[tl] r7000000 alive
+[tl] r7200000 alive
+[tl] r7400000 alive
+[tl] r7600000 alive
+[tl] r7800000 alive
+[tl] r8000000 alive
+[tl] r8200000 alive
+[tl] r8400000 alive
+[tl] r8600000 alive
+[tl] r8800000 alive
+[tl] r9000000 alive
+[tl] r9200000 alive
+[tl] r9400000 alive
+[tl] r9600000 alive
+[tl] r9800000 alive
+[tl] r10000000 alive
+[tl] r10200000 alive
+[tl] r10400000 alive
+[tl] r10600000 alive
+[tl] r10800000 alive
+[tl] r11000000 alive
+[tl] r11200000 alive
+[tl] r11400000 alive
+[tl] r11600000 alive
+[tl] r11800000 alive
+[tl] r12000000 alive
+[tl] r12200000 alive
+[tl] r12400000 alive
+[tl] r12600000 alive
+[tl] r12800000 alive
+[tl] r13000000 alive
+[tl] r13200000 alive
+[tl] r13400000 alive
+[tl] r13600000 alive
+[tl] r13800000 alive
+[tl] r14000000 alive
+[tl] r14200000 alive
+[tl] r14400000 alive
+[tl] r14600000 alive
+[tl] r14800000 alive
+[tl] r15000000 alive
+[tl] r15200000 alive
+[tl] r15400000 alive
+[tl] r15600000 alive
+[tl] r15800000 alive
+[tl] r16000000 alive
+[tl] r16200000 alive
+[tl] r16400000 alive
+[tl] r16600000 alive
+[tl] r16800000 alive
+[tl] r17000000 alive
+App terminated due to signal 9.

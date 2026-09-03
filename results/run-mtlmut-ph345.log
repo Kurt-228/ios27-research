@@ -1,0 +1,50 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7f0b
+[scaler] conn 0x7f0b, s1 13 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[mtlmut] v93: live Metal cmdbuf mutator (skip 3154 max 0 only 0xffffffffffffffff)
+[mtlmut] gpuA 0x10000080000 gpuB 0x10000098000
+[mtlmut] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtls] mtlmut-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtlmut-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlmut] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtlmut] rids: A 1 (next:_allocationType) B 1 (next:_allocationType)
+[mtlmut] size-field candidates (dword==0x10000): 1
+[mtlmut] plan: ph1 2002 ph2 1152 ph3 8 ph4 10 ph5 4 (total ~3176 cases)
+[mtlmut] ph1 done: cn 2002 executed 0
+[mtlmut] ph2 done: cn 3154 executed 0
+[mtlmut] ph3 calib self-patch: A slots 17 B slots 16 (regions 5)
+[mtlmut] case #3155 ph3 off 0x0 w8 old 0x1deadbeef0000 -> new 0x1deadbeef0000 slots 19 (pool-src-oob) commit
+[mtlmut] case #3155 pool restore slots 26
+[mtlmut] case #3155 -> status 4 | B 41 0 nz 0 canary-bad 0
+[mtlmut] case #3156 ph3 off 0x0 w8 old 0xffffffff0000 -> new 0xffffffff0000 slots 19 (pool-src-oob) commit
+[mtlmut] case #3156 pool restore slots 25
+[mtlmut] case #3156 -> status 4 | B 41 0 nz 0 canary-bad 0
+[mtlmut] case #3157 ph3 off 0x0 w8 old 0x1000000000 -> new 0x1000000000 slots 20 (pool-src-oob) commit
+[mtlmut] case #3157 pool restore slots 110
+[mtlmut] case #3157 -> status 4 | B 41 0 nz 8 canary-bad 0 [HIT]
+[mtlmut] case #3158 ph3 off 0x0 w8 old 0x10000180000 -> new 0x10000180000 slots 108 (pool-src-oob) commit
+[mtlmut] case #3158 pool restore slots 115
+[mtlmut] case #3158 -> status 4 | B 41 0 nz 0 canary-bad 0
+[mtlmut] case #3159 ph3 off 0x1 w8 old 0x10000180000 -> new 0x10000180000 slots 25 (pool-dst-oob-WRITE) commit
+[mtlmut] case #3159 pool restore slots 137
+[mtlmut] case #3159 -> status 4 | B 41 0 nz 0 canary-bad 0
+[mtlmut] case #3160 ph3 off 0x1 w8 old 0x10000180000 -> new 0x10000180000 slots 128 (pool-dst-oob-WRITE) commit
+[mtlmut] case #3160 pool restore slots 130
+[mtlmut] case #3160 -> status 4 | B 41 0 nz 0 canary-bad 0
+[mtlmut] case #3161 ph3 off 0x1 w8 old 0x10000180000 -> new 0x10000180000 slots 127 (pool-dst-oob-WRITE) commit

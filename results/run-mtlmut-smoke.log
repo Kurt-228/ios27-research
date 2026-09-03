@@ -1,0 +1,136 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6003
+[scaler] conn 0x6003, s1 33 s2 45
+[probe12] SetNotificationPort -> 0x00000000
+[mtlmut] v93: live Metal cmdbuf mutator (skip 0 max 50 only 0xffffffffffffffff)
+[mtlmut] gpuA 0x10000080000 gpuB 0x10000098000
+[mtlmut] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtls] mtlmut-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtlmut-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlmut] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtlmut] rids: A 1 (next:_allocationType) B 1 (next:_allocationType)
+[mtlmut] size-field candidates (dword==0x10000): 1
+[mtlmut] plan: ph1 2002 ph2 1152 ph3 8 ph4 10 ph5 4 (total ~3176 cases)
+[mtlmut] case #1 ph1 off 0x0 w4 old 0xf -> new 0x0 slots -1 (dict) commit
+[mtlmut] case #1 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59470 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2 ph1 off 0x0 w4 old 0xf -> new 0x1 slots -1 (dict) commit
+[mtlmut] case #2 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58b70 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3 ph1 off 0x0 w4 old 0xf -> new 0xff slots -1 (dict) commit
+[mtlmut] case #3 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58ba0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #4 ph1 off 0x0 w4 old 0xf -> new 0xffff slots -1 (dict) commit
+[mtlmut] case #4 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f595c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #5 ph1 off 0x0 w4 old 0xf -> new 0xffffffff slots -1 (dict) commit
+[mtlmut] case #5 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59590 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #6 ph1 off 0x0 w4 old 0xf -> new 0x7fffffff slots -1 (dict) commit
+[mtlmut] case #6 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59bf0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #7 ph1 off 0x0 w4 old 0xf -> new 0x80000000 slots -1 (dict) commit
+[mtlmut] case #7 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59c50 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #8 ph1 off 0x0 w4 old 0xf -> new 0x10 slots -1 (old+1) commit
+[mtlmut] case #8 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59cb0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #9 ph1 off 0x0 w4 old 0xf -> new 0xe slots -1 (old-1) commit
+[mtlmut] case #9 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #10 ph1 off 0x0 w4 old 0xf -> new 0xf0 slots -1 (old<<4) commit
+[mtlmut] case #10 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59230 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #11 ph1 off 0x0 w4 old 0xf -> new 0xf00 slots -1 (old<<8) commit
+[mtlmut] case #11 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f592f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #12 ph1 off 0x4 w4 old 0xac -> new 0x0 slots -1 (dict) commit
+[mtlmut] case #12 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59d70 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #13 ph1 off 0x4 w4 old 0xac -> new 0x1 slots -1 (dict) commit
+[mtlmut] case #13 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58300 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #14 ph1 off 0x4 w4 old 0xac -> new 0xff slots -1 (dict) commit
+[mtlmut] case #14 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58360 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #15 ph1 off 0x4 w4 old 0xac -> new 0xffff slots -1 (dict) commit
+[mtlmut] case #15 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58bd0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #16 ph1 off 0x4 w4 old 0xac -> new 0xffffffff slots -1 (dict) commit
+[mtlmut] case #16 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f581b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #17 ph1 off 0x4 w4 old 0xac -> new 0x7fffffff slots -1 (dict) commit
+[mtlmut] case #17 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58420 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #18 ph1 off 0x4 w4 old 0xac -> new 0x80000000 slots -1 (dict) commit
+[mtlmut] case #18 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58540 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #19 ph1 off 0x4 w4 old 0xac -> new 0xad slots -1 (old+1) commit
+[mtlmut] case #19 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f584e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #20 ph1 off 0x4 w4 old 0xac -> new 0xab slots -1 (old-1) commit
+[mtlmut] case #20 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f582a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #21 ph1 off 0x4 w4 old 0xac -> new 0xac0 slots -1 (old<<4) commit
+[mtlmut] case #21 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59d40 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #22 ph1 off 0x4 w4 old 0xac -> new 0xac00 slots -1 (old<<8) commit
+[mtlmut] case #22 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59dd0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #23 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtlmut] case #23 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #24 ph1 off 0x8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtlmut] case #24 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59350 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #25 ph1 off 0x8 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtlmut] case #25 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59ec0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #26 ph1 off 0x8 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtlmut] case #26 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59020 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #27 ph1 off 0x8 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtlmut] case #27 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59a40 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #28 ph1 off 0x8 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtlmut] case #28 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f59290 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #29 ph1 off 0x8 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtlmut] case #29 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f58ff0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #30 ph1 off 0x8 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtlmut] case #30 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f5a7c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #31 ph1 off 0x8 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtlmut] case #31 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x109f5a0a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #32 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtlmut] case #32 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #33 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtlmut] case #33 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #34 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtlmut] case #34 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #35 ph1 off 0xc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtlmut] case #35 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #36 ph1 off 0xc w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtlmut] case #36 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #37 ph1 off 0xc w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtlmut] case #37 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #38 ph1 off 0xc w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtlmut] case #38 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #39 ph1 off 0xc w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtlmut] case #39 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #40 ph1 off 0xc w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtlmut] case #40 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #41 ph1 off 0xc w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtlmut] case #41 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #42 ph1 off 0xc w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtlmut] case #42 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #43 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtlmut] case #43 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #44 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtlmut] case #44 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #45 ph1 off 0x10 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtlmut] case #45 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #46 ph1 off 0x10 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtlmut] case #46 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #47 ph1 off 0x10 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtlmut] case #47 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #48 ph1 off 0x10 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtlmut] case #48 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #49 ph1 off 0x10 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtlmut] case #49 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] case #50 ph1 off 0x10 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtlmut] case #50 -> status 4 | B 41 65536 nz 65536 canary-bad 0
+[mtlmut] MAX reached (50)
+[mtlmut] ph1 done: cn 51 executed 50
+[mtlmut] ph2 done: cn 51 executed 50
+[mtlmut] ph3 calib self-patch: A slots 20 B slots 20 (regions 5)
+[mtlmut] ph3 done: cn 51 executed 50
+[mtlmut] ph4 done: cn 51 executed 50
+[mtlmut] done: total cases 51 executed 50 (alive) STOPPED-EARLY
+[probe13] mtlmut-only mode, stop

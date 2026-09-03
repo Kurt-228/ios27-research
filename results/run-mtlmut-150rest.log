@@ -1,0 +1,29 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x600b
+[scaler] conn 0x600b, s1 13 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[mtlmut] v93: live Metal cmdbuf mutator (skip 929 max 0 only 0x150)
+[mtlmut] gpuA 0x10000080000 gpuB 0x10000098000
+[mtlmut] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtls] mtlmut-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtlmut-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlmut] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtlmut] rids: A 1 (next:_allocationType) B 1 (next:_allocationType)
+[mtlmut] size-field candidates (dword==0x10000): 1
+[mtlmut] plan: ph1 2002 ph2 1152 ph3 8 ph4 10 ph5 4 (total ~3176 cases)
+[mtlmut] case #930 ph1 off 0x150 w4 old 0x268 -> new 0x7fffffff slots -1 (dict) commit

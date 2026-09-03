@@ -1,0 +1,37 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5607
+[scaler] conn 0x5607, s1 27 s2 30
+[probe12] SetNotificationPort -> 0x00000000
+[mtlmut] v93: live Metal cmdbuf mutator (skip 0 max 0 only 0x150)
+[mtlmut] gpuA 0x10000080000 gpuB 0x10000098000
+[mtlmut] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtls] mtlmut-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtlmut-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlmut] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtlmut] rids: A 1 (next:_allocationType) B 1 (next:_allocationType)
+[mtlmut] size-field candidates (dword==0x10000): 1
+[mtlmut] plan: ph1 2002 ph2 1152 ph3 8 ph4 10 ph5 4 (total ~3176 cases)
+[mtlmut] case #925 ph1 off 0x150 w4 old 0x268 -> new 0x0 slots -1 (dict) commit
+[mtlmut] case #925 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x1445a8ff0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #926 ph1 off 0x150 w4 old 0x268 -> new 0x1 slots -1 (dict) commit
+[mtlmut] case #926 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x144771410 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #927 ph1 off 0x150 w4 old 0x268 -> new 0xff slots -1 (dict) commit
+[mtlmut] case #927 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x144770ea0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #928 ph1 off 0x150 w4 old 0x268 -> new 0xffff slots -1 (dict) commit
+[mtlmut] case #928 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x144771050 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #929 ph1 off 0x150 w4 old 0x268 -> new 0xffffffff slots -1 (dict) commit

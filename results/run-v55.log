@@ -1,0 +1,49 @@
+20:08:39  Acquired tunnel connection to device.
+20:08:39  Enabling developer disk image services.
+20:08:39  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5907
+[scaler] conn 0x5907, s1 26 s2 77
+[probe12] SetNotificationPort -> 0x00000000
+[v55] kernel command fuzz, 500000 rounds
+[open] IOGPU -> conn 0x6303
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 104ec0000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 104ec8000 id 2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[v55] done (alive)
+[v54] valid-stream submit
+[open] IOGPU -> conn 0x6f1b
+[s4] setup: nq 1 qid 1 bind 0x00000000
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 104efc000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 104f04000 id 2
+[s4] T1 type2-end -> kr 0x00000000 outw 00000000
+[s4] T2 seglist(0,0x10) -> kr 0x00000000 outw 0000000a
+[s4] T3 type0 -> kr 0x00000000 outw 00000000
+[v54] done (alive)
+[v52] submit with notif-queue bound
+[open] IOGPU -> conn 0x681b
+[s2] sel14 count 0x100 -> kr 0x00000000 out {104fe4000, 1}
+[s2] sel6 -> kr 0x00000000 qid 1
+[s2] sel24 bind -> kr 0x00000000
+[sm] resource buf 0x104fe8000 sz 0x4000 -> kr 0x00000000 rid 1
+[sm] resource buf 0x104fec000 sz 0x4000 -> kr 0x00000000 rid 2
+[s2] resB f14 00 f16 00 rid 3 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 02 rid 4 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 06 rid 5 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 04 rid 6 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 40 f16 02 rid 7 -> trap0 kr 0x00000000 outw 00000009
+[s2] resB f14 00 f16 03 rid 8 -> trap0 kr 0x00000000 outw 00000009
+[s2] trap0 null-ptrs -> kr 0x00000000 outw 00000009
+[s2] trap0 both-valid -> kr 0x00000000 outw 00000009
+[s2] trap0 only-18 -> kr 0x00000000 outw 00000009
+[s2] trap0 only-10 -> kr 0x00000000 outw 00000009
+[s2] sel25 submit -> kr 0x00000000
+[v52] done (alive)
+[v53] submit path open — fuzzing command stream
+App terminated due to signal 9.

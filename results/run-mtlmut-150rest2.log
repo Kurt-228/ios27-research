@@ -1,0 +1,76 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c03
+[scaler] conn 0x7c03, s1 13 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[mtlmut] v93: live Metal cmdbuf mutator (skip 931 max 0 only 0x150)
+[mtlmut] gpuA 0x10000080000 gpuB 0x10000098000
+[mtlmut] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtls] mtlmut-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtlmut-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlmut] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtlmut] rids: A 1 (next:_allocationType) B 1 (next:_allocationType)
+[mtlmut] size-field candidates (dword==0x10000): 1
+[mtlmut] plan: ph1 2002 ph2 1152 ph3 8 ph4 10 ph5 4 (total ~3176 cases)
+[mtlmut] case #932 ph1 off 0x150 w4 old 0x268 -> new 0x269 slots -1 (old+1) commit
+[mtlmut] case #932 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c43b270 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #933 ph1 off 0x150 w4 old 0x268 -> new 0x267 slots -1 (old-1) commit
+[mtlmut] case #933 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774c90 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #934 ph1 off 0x150 w4 old 0x268 -> new 0x2680 slots -1 (old<<4) commit
+[mtlmut] case #934 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c7750b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #935 ph1 off 0x150 w4 old 0x268 -> new 0x26800 slots -1 (old<<8) commit
+[mtlmut] case #935 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c7747e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] ph1 done: cn 2002 executed 4
+[mtlmut] case #2259 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000269 slots -1 (bitflip) commit
+[mtlmut] case #2259 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775aa0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2260 ph2 off 0x150 w8 old 0x300000268 -> new 0x30000026a slots -1 (bitflip) commit
+[mtlmut] case #2260 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775530 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2261 ph2 off 0x150 w8 old 0x300000268 -> new 0x30000026c slots -1 (bitflip) commit
+[mtlmut] case #2261 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775590 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2262 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000260 slots -1 (bitflip) commit
+[mtlmut] case #2262 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775bc0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2263 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000278 slots -1 (bitflip) commit
+[mtlmut] case #2263 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775c20 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2264 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000248 slots -1 (bitflip) commit
+[mtlmut] case #2264 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775c80 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2265 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000228 slots -1 (bitflip) commit
+[mtlmut] case #2265 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c7748a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2266 ph2 off 0x150 w8 old 0x300000268 -> new 0x3000002e8 slots -1 (bitflip) commit
+[mtlmut] case #2266 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c7749f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2267 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000368 slots -1 (bitflip) commit
+[mtlmut] case #2267 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774900 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2268 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000068 slots -1 (bitflip) commit
+[mtlmut] case #2268 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774960 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2269 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000668 slots -1 (bitflip) commit
+[mtlmut] case #2269 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774990 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2270 ph2 off 0x150 w8 old 0x300000268 -> new 0x300000a68 slots -1 (bitflip) commit
+[mtlmut] case #2270 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774ab0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2271 ph2 off 0x150 w8 old 0x300000268 -> new 0x300001268 slots -1 (bitflip) commit
+[mtlmut] case #2271 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774a50 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2272 ph2 off 0x150 w8 old 0x300000268 -> new 0x300002268 slots -1 (bitflip) commit
+[mtlmut] case #2272 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c774840 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2273 ph2 off 0x150 w8 old 0x300000268 -> new 0x300004268 slots -1 (bitflip) commit
+[mtlmut] case #2273 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775ce0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2274 ph2 off 0x150 w8 old 0x300000268 -> new 0x300008268 slots -1 (bitflip) commit
+[mtlmut] case #2274 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775d70 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2275 ph2 off 0x150 w8 old 0x300000268 -> new 0x300010268 slots -1 (bitflip) commit
+[mtlmut] case #2275 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775dd0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2276 ph2 off 0x150 w8 old 0x300000268 -> new 0x300020268 slots -1 (bitflip) commit
+[mtlmut] case #2276 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775e30 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2277 ph2 off 0x150 w8 old 0x300000268 -> new 0x300040268 slots -1 (bitflip) commit
+[mtlmut] case #2277 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x11c775e90 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #2278 ph2 off 0x150 w8 old 0x300000268 -> new 0x300080268 slots -1 (bitflip) commit

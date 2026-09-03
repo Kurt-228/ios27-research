@@ -1,0 +1,400 @@
+[main] fuzz harness up, mode=xpleak
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[xpleak] mode=victim kind=both pid 19655
+[xp-victim] fill start, target 256 MB, kind mtl=1 iosurf=1
+[xp-victim] alloc MTLBuffer #0 size 0x4000
+[xp-victim] alloc IOSurface #1 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #2 size 0x10000
+[xp-victim] alloc IOSurface #3 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #4 size 0x40000
+[xp-victim] alloc IOSurface #5 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #6 size 0x100000
+[xp-victim] alloc IOSurface #7 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #8 size 0x8000
+[xp-victim] alloc IOSurface #9 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #10 size 0x20000
+[xp-victim] alloc IOSurface #11 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #12 size 0x80000
+[xp-victim] alloc IOSurface #13 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #14 size 0x4000
+[xp-victim] alloc IOSurface #15 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #16 size 0x10000
+[xp-victim] alloc IOSurface #17 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #18 size 0x40000
+[xp-victim] alloc IOSurface #19 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #20 size 0x100000
+[xp-victim] alloc IOSurface #21 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #22 size 0x8000
+[xp-victim] alloc IOSurface #23 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #24 size 0x20000
+[xp-victim] alloc IOSurface #25 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #26 size 0x80000
+[xp-victim] alloc IOSurface #27 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #28 size 0x4000
+[xp-victim] alloc IOSurface #29 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #30 size 0x10000
+[xp-victim] alloc IOSurface #31 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #32 size 0x40000
+[xp-victim] alloc IOSurface #33 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #34 size 0x100000
+[xp-victim] alloc IOSurface #35 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #36 size 0x8000
+[xp-victim] alloc IOSurface #37 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #38 size 0x20000
+[xp-victim] alloc IOSurface #39 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #40 size 0x80000
+[xp-victim] alloc IOSurface #41 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #42 size 0x4000
+[xp-victim] alloc IOSurface #43 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #44 size 0x10000
+[xp-victim] alloc IOSurface #45 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #46 size 0x40000
+[xp-victim] alloc IOSurface #47 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #48 size 0x100000
+[xp-victim] alloc IOSurface #49 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #50 size 0x8000
+[xp-victim] alloc IOSurface #51 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #52 size 0x20000
+[xp-victim] alloc IOSurface #53 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #54 size 0x80000
+[xp-victim] alloc IOSurface #55 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #56 size 0x4000
+[xp-victim] alloc IOSurface #57 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #58 size 0x10000
+[xp-victim] alloc IOSurface #59 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #60 size 0x40000
+[xp-victim] alloc IOSurface #61 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #62 size 0x100000
+[xp-victim] alloc IOSurface #63 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #64 size 0x8000
+[xp-victim] alloc IOSurface #65 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #66 size 0x20000
+[xp-victim] alloc IOSurface #67 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #68 size 0x80000
+[xp-victim] alloc IOSurface #69 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #70 size 0x4000
+[xp-victim] alloc IOSurface #71 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #72 size 0x10000
+[xp-victim] alloc IOSurface #73 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #74 size 0x40000
+[xp-victim] alloc IOSurface #75 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #76 size 0x100000
+[xp-victim] alloc IOSurface #77 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #78 size 0x8000
+[xp-victim] alloc IOSurface #79 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #80 size 0x20000
+[xp-victim] alloc IOSurface #81 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #82 size 0x80000
+[xp-victim] alloc IOSurface #83 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #84 size 0x4000
+[xp-victim] alloc IOSurface #85 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #86 size 0x10000
+[xp-victim] alloc IOSurface #87 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #88 size 0x40000
+[xp-victim] alloc IOSurface #89 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #90 size 0x100000
+[xp-victim] alloc IOSurface #91 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #92 size 0x8000
+[xp-victim] alloc IOSurface #93 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #94 size 0x20000
+[xp-victim] alloc IOSurface #95 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #96 size 0x80000
+[xp-victim] alloc IOSurface #97 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #98 size 0x4000
+[xp-victim] alloc IOSurface #99 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #100 size 0x10000
+[xp-victim] alloc IOSurface #101 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #102 size 0x40000
+[xp-victim] alloc IOSurface #103 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #104 size 0x100000
+[xp-victim] alloc IOSurface #105 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #106 size 0x8000
+[xp-victim] alloc IOSurface #107 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #108 size 0x20000
+[xp-victim] alloc IOSurface #109 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #110 size 0x80000
+[xp-victim] alloc IOSurface #111 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #112 size 0x4000
+[xp-victim] alloc IOSurface #113 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #114 size 0x10000
+[xp-victim] alloc IOSurface #115 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #116 size 0x40000
+[xp-victim] alloc IOSurface #117 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #118 size 0x100000
+[xp-victim] alloc IOSurface #119 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #120 size 0x8000
+[xp-victim] alloc IOSurface #121 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #122 size 0x20000
+[xp-victim] alloc IOSurface #123 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #124 size 0x80000
+[xp-victim] alloc IOSurface #125 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #126 size 0x4000
+[xp-victim] alloc IOSurface #127 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #128 size 0x10000
+[xp-victim] alloc IOSurface #129 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #130 size 0x40000
+[xp-victim] alloc IOSurface #131 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #132 size 0x100000
+[xp-victim] alloc IOSurface #133 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #134 size 0x8000
+[xp-victim] alloc IOSurface #135 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #136 size 0x20000
+[xp-victim] alloc IOSurface #137 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #138 size 0x80000
+[xp-victim] alloc IOSurface #139 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #140 size 0x4000
+[xp-victim] alloc IOSurface #141 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #142 size 0x10000
+[xp-victim] alloc IOSurface #143 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #144 size 0x40000
+[xp-victim] alloc IOSurface #145 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #146 size 0x100000
+[xp-victim] alloc IOSurface #147 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #148 size 0x8000
+[xp-victim] alloc IOSurface #149 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #150 size 0x20000
+[xp-victim] alloc IOSurface #151 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #152 size 0x80000
+[xp-victim] alloc IOSurface #153 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #154 size 0x4000
+[xp-victim] alloc IOSurface #155 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #156 size 0x10000
+[xp-victim] alloc IOSurface #157 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #158 size 0x40000
+[xp-victim] alloc IOSurface #159 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #160 size 0x100000
+[xp-victim] alloc IOSurface #161 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #162 size 0x8000
+[xp-victim] alloc IOSurface #163 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #164 size 0x20000
+[xp-victim] alloc IOSurface #165 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #166 size 0x80000
+[xp-victim] alloc IOSurface #167 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #168 size 0x4000
+[xp-victim] alloc IOSurface #169 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #170 size 0x10000
+[xp-victim] alloc IOSurface #171 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #172 size 0x40000
+[xp-victim] alloc IOSurface #173 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #174 size 0x100000
+[xp-victim] alloc IOSurface #175 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #176 size 0x8000
+[xp-victim] alloc IOSurface #177 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #178 size 0x20000
+[xp-victim] alloc IOSurface #179 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #180 size 0x80000
+[xp-victim] alloc IOSurface #181 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #182 size 0x4000
+[xp-victim] alloc IOSurface #183 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #184 size 0x10000
+[xp-victim] alloc IOSurface #185 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #186 size 0x40000
+[xp-victim] alloc IOSurface #187 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #188 size 0x100000
+[xp-victim] alloc IOSurface #189 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #190 size 0x8000
+[xp-victim] alloc IOSurface #191 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #192 size 0x20000
+[xp-victim] alloc IOSurface #193 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #194 size 0x80000
+[xp-victim] alloc IOSurface #195 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #196 size 0x4000
+[xp-victim] alloc IOSurface #197 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #198 size 0x10000
+[xp-victim] alloc IOSurface #199 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #200 size 0x40000
+[xp-victim] alloc IOSurface #201 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #202 size 0x100000
+[xp-victim] alloc IOSurface #203 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #204 size 0x8000
+[xp-victim] alloc IOSurface #205 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #206 size 0x20000
+[xp-victim] alloc IOSurface #207 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #208 size 0x80000
+[xp-victim] alloc IOSurface #209 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #210 size 0x4000
+[xp-victim] alloc IOSurface #211 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #212 size 0x10000
+[xp-victim] alloc IOSurface #213 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #214 size 0x40000
+[xp-victim] alloc IOSurface #215 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #216 size 0x100000
+[xp-victim] alloc IOSurface #217 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #218 size 0x8000
+[xp-victim] alloc IOSurface #219 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #220 size 0x20000
+[xp-victim] alloc IOSurface #221 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #222 size 0x80000
+[xp-victim] alloc IOSurface #223 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #224 size 0x4000
+[xp-victim] alloc IOSurface #225 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #226 size 0x10000
+[xp-victim] alloc IOSurface #227 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #228 size 0x40000
+[xp-victim] alloc IOSurface #229 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #230 size 0x100000
+[xp-victim] alloc IOSurface #231 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #232 size 0x8000
+[xp-victim] alloc IOSurface #233 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #234 size 0x20000
+[xp-victim] alloc IOSurface #235 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #236 size 0x80000
+[xp-victim] alloc IOSurface #237 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #238 size 0x4000
+[xp-victim] alloc IOSurface #239 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #240 size 0x10000
+[xp-victim] alloc IOSurface #241 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #242 size 0x40000
+[xp-victim] alloc IOSurface #243 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #244 size 0x100000
+[xp-victim] alloc IOSurface #245 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #246 size 0x8000
+[xp-victim] alloc IOSurface #247 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #248 size 0x20000
+[xp-victim] alloc IOSurface #249 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #250 size 0x80000
+[xp-victim] alloc IOSurface #251 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #252 size 0x4000
+[xp-victim] alloc IOSurface #253 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #254 size 0x10000
+[xp-victim] alloc IOSurface #255 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #256 size 0x40000
+[xp-victim] alloc IOSurface #257 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #258 size 0x100000
+[xp-victim] alloc IOSurface #259 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #260 size 0x8000
+[xp-victim] alloc IOSurface #261 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #262 size 0x20000
+[xp-victim] alloc IOSurface #263 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #264 size 0x80000
+[xp-victim] alloc IOSurface #265 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #266 size 0x4000
+[xp-victim] alloc IOSurface #267 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #268 size 0x10000
+[xp-victim] alloc IOSurface #269 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #270 size 0x40000
+[xp-victim] alloc IOSurface #271 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #272 size 0x100000
+[xp-victim] alloc IOSurface #273 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #274 size 0x8000
+[xp-victim] alloc IOSurface #275 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #276 size 0x20000
+[xp-victim] alloc IOSurface #277 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #278 size 0x80000
+[xp-victim] alloc IOSurface #279 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #280 size 0x4000
+[xp-victim] alloc IOSurface #281 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #282 size 0x10000
+[xp-victim] alloc IOSurface #283 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #284 size 0x40000
+[xp-victim] alloc IOSurface #285 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #286 size 0x100000
+[xp-victim] alloc IOSurface #287 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #288 size 0x8000
+[xp-victim] alloc IOSurface #289 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #290 size 0x20000
+[xp-victim] alloc IOSurface #291 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #292 size 0x80000
+[xp-victim] alloc IOSurface #293 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #294 size 0x4000
+[xp-victim] alloc IOSurface #295 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #296 size 0x10000
+[xp-victim] alloc IOSurface #297 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #298 size 0x40000
+[xp-victim] alloc IOSurface #299 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #300 size 0x100000
+[xp-victim] alloc IOSurface #301 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #302 size 0x8000
+[xp-victim] alloc IOSurface #303 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #304 size 0x20000
+[xp-victim] alloc IOSurface #305 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #306 size 0x80000
+[xp-victim] alloc IOSurface #307 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #308 size 0x4000
+[xp-victim] alloc IOSurface #309 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #310 size 0x10000
+[xp-victim] alloc IOSurface #311 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #312 size 0x40000
+[xp-victim] alloc IOSurface #313 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #314 size 0x100000
+[xp-victim] alloc IOSurface #315 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #316 size 0x8000
+[xp-victim] alloc IOSurface #317 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #318 size 0x20000
+[xp-victim] alloc IOSurface #319 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #320 size 0x80000
+[xp-victim] alloc IOSurface #321 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #322 size 0x4000
+[xp-victim] alloc IOSurface #323 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #324 size 0x10000
+[xp-victim] alloc IOSurface #325 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #326 size 0x40000
+[xp-victim] alloc IOSurface #327 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #328 size 0x100000
+[xp-victim] alloc IOSurface #329 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #330 size 0x8000
+[xp-victim] alloc IOSurface #331 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #332 size 0x20000
+[xp-victim] alloc IOSurface #333 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #334 size 0x80000
+[xp-victim] alloc IOSurface #335 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #336 size 0x4000
+[xp-victim] alloc IOSurface #337 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #338 size 0x10000
+[xp-victim] alloc IOSurface #339 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #340 size 0x40000
+[xp-victim] alloc IOSurface #341 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #342 size 0x100000
+[xp-victim] alloc IOSurface #343 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #344 size 0x8000
+[xp-victim] alloc IOSurface #345 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #346 size 0x20000
+[xp-victim] alloc IOSurface #347 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #348 size 0x80000
+[xp-victim] alloc IOSurface #349 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #350 size 0x4000
+[xp-victim] alloc IOSurface #351 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #352 size 0x10000
+[xp-victim] alloc IOSurface #353 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #354 size 0x40000
+[xp-victim] alloc IOSurface #355 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #356 size 0x100000
+[xp-victim] alloc IOSurface #357 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #358 size 0x8000
+[xp-victim] alloc IOSurface #359 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #360 size 0x20000
+[xp-victim] alloc IOSurface #361 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #362 size 0x80000
+[xp-victim] alloc IOSurface #363 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #364 size 0x4000
+[xp-victim] alloc IOSurface #365 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #366 size 0x10000
+[xp-victim] alloc IOSurface #367 1920x1080 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #368 size 0x40000
+[xp-victim] alloc IOSurface #369 64x64 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #370 size 0x100000
+[xp-victim] alloc IOSurface #371 256x256 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #372 size 0x8000
+[xp-victim] alloc IOSurface #373 512x512 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #374 size 0x20000
+[xp-victim] alloc IOSurface #375 1024x1024 bpe 4 fmt ARGB
+[xp-victim] alloc MTLBuffer #376 size 0x80000
+[xp-victim] alloc IOSurface #377 128x128 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #378 size 0x4000
+[xp-victim] alloc IOSurface #379 640x480 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #380 size 0x10000
+[xp-victim] alloc IOSurface #381 1280x720 bpe 1 fmt v024
+[xp-victim] alloc MTLBuffer #382 size 0x40000
+[xp-victim] alloc IOSurface #383 1920x1080 bpe 1 fmt v024
+[xp-victim] fill done: 384 buffers, 268689408 bytes (256.2 MB)
+[xp-victim] mtl marker[0]: 00000000cafeb0ba 0000000000000000 deadbeefcafef00d 000000006a99e38d
+[xp-victim] mtl marker[1]: 00000000cafeb0ba 0000000000000002 deadbeefcafef00f 000000006a99e38d
+[xp-victim] mtl marker[2]: 00000000cafeb0ba 0000000000000004 deadbeefcafef009 000000006a99e38d
+[xp-victim] mtl marker[3]: 00000000cafeb0ba 0000000000000006 deadbeefcafef00b 000000006a99e38d
+[xp-victim] surf marker[4]: 00000000cafeb0ba 0000000000000001 deadbeefcafef00c 000000006a99e38d
+[xp-victim] surf marker[5]: 00000000cafeb0ba 0000000000000003 deadbeefcafef00e 000000006a99e38d
+[xp-victim] surf marker[6]: 00000000cafeb0ba 0000000000000005 deadbeefcafef008 000000006a99e38d
+[xp-victim] surf marker[7]: 00000000cafeb0ba 0000000000000007 deadbeefcafef00a 000000006a99e38d
+[xp-victim] holding 268689408 bytes for 2s before kill
+[xp-victim] SIGKILL now (no free) pid 19655 — next run: FUZZ_XPLEAK=obs
+[xp-victim] ERROR: survived SIGKILL?!

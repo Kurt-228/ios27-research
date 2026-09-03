@@ -1,0 +1,20 @@
+20:21:28  Acquired tunnel connection to device.
+20:21:28  Enabling developer disk image services.
+20:21:28  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6603
+[scaler] conn 0x6603, s1 26 s2 77
+[probe12] SetNotificationPort -> 0x00000000
+[v56] grammar-aware command fuzz, 2000000 rounds
+[open] IOGPU -> conn 0x6903
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 104cfc000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 104d04000 id 2
+[s6] created 16 events
+[s6] sanity type2 -> kr 0x00000000 outw 00000000 (expect 0)
+[mig] bootstrap-name phase done; add learned names to cand_names[]

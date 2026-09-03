@@ -1,0 +1,30 @@
+02:43:13  Acquired tunnel connection to device.
+02:43:13  Enabling developer disk image services.
+02:43:13  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7003
+[scaler] conn 0x7003, s1 22 s2 24
+[probe12] SetNotificationPort -> 0x00000000
+[v80] GPUVA-correct blit redirect
+[open] IOGPU -> conn 0x6c03
+[gw] flagged resource: kr 0x00000000 rid 1 GPUVA 0x10000000000 (cpuptr 0)
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1071a8000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1071b0000 id 2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[gw] submit GPUVA 0x10000000000 -> kr 0x00000000 outw 00000000
+[gw] *** target 0x5A bytes: 0 / 0x10000 (no write)
+[v80] done (alive)
+[v79] isolated kill-shot loop (watch screen!)
+[open] AppleM2ScalerCSCDriver -> conn 0x4e1b
+[ks] shot 0 -> kr 0xe00002d6
+[ks] shot 1 -> kr 0xe00002d6
+[ks] shot 2 -> kr 0xe00002d6
+[ks] shot 3 -> kr 0xe00002d6
+[ks] shot 4 -> kr 0xe00002d6
+App terminated due to signal 9.

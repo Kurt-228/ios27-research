@@ -1,0 +1,63 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c03
+[scaler] conn 0x7c03, s1 13 s2 21
+[probe12] SetNotificationPort -> 0x00000000
+[mtlmut] v93: live Metal cmdbuf mutator (skip 3162 max 0 only 0xffffffffffffffff)
+[mtlmut] gpuA 0x10000080000 gpuB 0x10000098000
+[mtlmut] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtls] mtlmut-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtlmut-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtlmut-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlmut] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtlmut] rids: A 1 (next:_allocationType) B 1 (next:_allocationType)
+[mtlmut] size-field candidates (dword==0x10000): 1
+[mtlmut] plan: ph1 2002 ph2 1152 ph3 8 ph4 10 ph5 4 (total ~3176 cases)
+[mtlmut] ph1 done: cn 2002 executed 0
+[mtlmut] ph2 done: cn 3154 executed 0
+[mtlmut] ph3 calib self-patch: A slots 17 B slots 16 (regions 5)
+[mtlmut] ph3 done: cn 3162 executed 0
+[mtlmut] case #3163 ph4 off 0x0 w4 old 0x1 -> new 0x0 slots 1 (ridA-sub) commit
+[mtlmut] case #3163 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106774bd0 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3164 ph4 off 0x0 w4 old 0x1 -> new 0xffffffff slots 1 (ridA-sub) commit
+[mtlmut] case #3164 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106774f60 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3165 ph4 off 0x0 w4 old 0x1 -> new 0xdead slots 1 (ridA-sub) commit
+[mtlmut] case #3165 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106774030 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3166 ph4 off 0x0 w4 old 0x1 -> new 0x10000 slots 1 (ridA-sub) commit
+[mtlmut] case #3166 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106774f90 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3167 ph4 off 0x0 w4 old 0x1 -> new 0x101 slots 1 (ridA-sub) commit
+[mtlmut] case #3167 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x1067753b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3168 ph4 off 0x1 w4 old 0x1 -> new 0x0 slots 1 (ridB-sub) commit
+[mtlmut] case #3168 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106775aa0 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3169 ph4 off 0x1 w4 old 0x1 -> new 0xffffffff slots 1 (ridB-sub) commit
+[mtlmut] case #3169 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106775530 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3170 ph4 off 0x1 w4 old 0x1 -> new 0xdead slots 1 (ridB-sub) commit
+[mtlmut] case #3170 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106775590 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3171 ph4 off 0x1 w4 old 0x1 -> new 0x10000 slots 1 (ridB-sub) commit
+[mtlmut] case #3171 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106775bc0 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3172 ph4 off 0x1 w4 old 0x1 -> new 0x101 slots 1 (ridB-sub) commit
+[mtlmut] case #3172 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x106775c20 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] ph4 done: cn 3172 executed 10
+[mtlmut] case #3173 ph5 off 0xac w4 old 0x10000 -> new 0x20000 slots -1 (size-oob) commit
+[mtlmut] case #3173 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106775c80 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3174 ph5 off 0xac w4 old 0x10000 -> new 0x100000 slots -1 (size-oob) commit
+[mtlmut] case #3174 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106774720 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3175 ph5 off 0xac w4 old 0x10000 -> new 0xffffffff slots -1 (size-oob) commit
+[mtlmut] case #3175 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106774750 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | B 41 0 nz 0 canary-bad 0 [HIT]
+[mtlmut] case #3176 ph5 off 0xac w4 old 0x10000 -> new 0x0 slots -1 (size-oob) commit
+[mtlmut] case #3176 -> status 4 | B 41 0 nz 0 canary-bad 0
+[mtlmut] done: total cases 3176 executed 14 (alive)
+[probe13] mtlmut-only mode, stop

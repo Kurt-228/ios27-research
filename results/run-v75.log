@@ -1,0 +1,1074 @@
+01:56:39  Acquired tunnel connection to device.
+01:56:39  Enabling developer disk image services.
+01:56:39  Acquired usage assertion.
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7533
+[scaler] conn 0x7533, s1 22 s2 24
+[probe12] SetNotificationPort -> 0x00000000
+[v74] sel45 GPU mapping
+[open] IOGPU -> conn 0xa903
+[m45] nqid 1 vmid 1 attach 0x00000000
+[m45] f16 00 rid 1: sel45 -> kr 0xe00002c2
+[m45] f16 01 rid 2: sel45 -> kr 0xe00002c2
+[m45] f16 02 rid 3: sel45 -> kr 0xe00002c2
+[m45] f16 03 rid 4: sel45 -> kr 0xe00002c2
+[m45] f16 06 rid 5: sel45 -> kr 0xe00002c2
+[m45] f16 07 rid 6: sel45 -> kr 0xe00002c2
+[m45] f16 40 rid 7: sel45 -> kr 0xe00002c2
+[m45] f16 42 rid 8: sel45 -> kr 0xe00002c2
+[v74] done (alive)
+[v73] IORegistry IOGPUResource dump
+[rg] IOGPUResource: none
+[rg] IOGPUSysMemory: none
+[rg] AGXDevice: none
+[rg] IOGPUDevice: none
+[v73] done
+[v72] resource GPUVA discovery
+[open] IOGPU -> conn 0xa60f
+[gv] f16 00 -> kr 0x00000000 out:
+[gv]   +00: 0000010000004000 0000000000000000 0000000102b200c0 0000000000000000
+[gv]   +20: 0000000100000000 0000000000004000 000000001005060b 000000000000aee6
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 01 -> kr 0x00000000 out:
+[gv]   +00: 000001000000c000 0000000000000000 0000000102b20180 0000000000000000
+[gv]   +20: 0000000200000000 0000000000004000 000000001005060c 000000000000aee7
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 02 -> kr 0x00000000 out:
+[gv]   +00: 0000010000014000 0000000000000000 0000000102b20240 0000000000000000
+[gv]   +20: 0000000300000000 0000000000004000 000000001005060d 000000000000aee8
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 03 -> kr 0x00000000 out:
+[gv]   +00: 000001000001c000 0000000000000000 0000000102b20300 0000000000000000
+[gv]   +20: 0000000400000000 0000000000004000 000000001005060e 000000000000aee9
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 06 -> kr 0x00000000 out:
+[gv]   +00: 0000010000024000 0000000000000000 0000000102b203c0 0000000000000000
+[gv]   +20: 0000000500000000 0000000000004000 000000001005060f 000000000000aeea
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[gv] f16 07 -> kr 0x00000000 out:
+[gv]   +00: 000001000002c000 0000000000000000 0000000102b20480 0000000000000000
+[gv]   +20: 0000000600000000 0000000000004000 0000000010050610 000000000000aeeb
+[gv]   +40: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[v72] done
+[v70] blit write replay
+[open] IOGPU -> conn 0x8133
+[sm] resource buf 0x102d90000 sz 0x4000 -> kr 0x00000000 rid 1 off32 4000
+[sm] resource buf 0x102d94000 sz 0x4000 -> kr 0x00000000 rid 2 off32 c000
+[sm] resource buf 0x102d98000 sz 0x4000 -> kr 0x00000000 rid 3 off32 14000
+[sm] resource buf 0x102d9c000 sz 0x4000 -> kr 0x00000000 rid 4 off32 1c000
+[sm] resource buf 0x102da0000 sz 0x4000 -> kr 0x00000000 rid 5 off32 24000
+[sm] resource buf 0x102da4000 sz 0x4000 -> kr 0x00000000 rid 6 off32 2c000
+[sm] resource buf 0x102da8000 sz 0x4000 -> kr 0x00000000 rid 7 off32 34000
+[sm] resource buf 0x102dac000 sz 0x4000 -> kr 0x00000000 rid 8 off32 3c000
+[sm] resource buf 0x102db0000 sz 0x4000 -> kr 0x00000000 rid 9 off32 44000
+[sm] resource buf 0x102db4000 sz 0x4000 -> kr 0x00000000 rid 10 off32 4c000
+[sm] resource buf 0x102db8000 sz 0x4000 -> kr 0x00000000 rid 11 off32 54000
+[sm] resource buf 0x102dbc000 sz 0x4000 -> kr 0x00000000 rid 12 off32 5c000
+[sm] resource buf 0x102dc0000 sz 0x4000 -> kr 0x00000000 rid 13 off32 64000
+[sm] resource buf 0x102dc4000 sz 0x4000 -> kr 0x00000000 rid 14 off32 6c000
+[sm] resource buf 0x102dc8000 sz 0x4000 -> kr 0x00000000 rid 15 off32 74000
+[sm] resource buf 0x1075dc000 sz 0x4000 -> kr 0x00000000 rid 16 off32 7c000
+[sm] resource buf 0x1075e0000 sz 0x4000 -> kr 0x00000000 rid 17 off32 84000
+[sm] resource buf 0x1075e4000 sz 0x4000 -> kr 0x00000000 rid 18 off32 8c000
+[sm] resource buf 0x1075e8000 sz 0x4000 -> kr 0x00000000 rid 19 off32 94000
+[sm] resource buf 0x1075ec000 sz 0x4000 -> kr 0x00000000 rid 20 off32 9c000
+[sm] resource buf 0x1075f0000 sz 0x4000 -> kr 0x00000000 rid 21 off32 a4000
+[sm] resource buf 0x1075f4000 sz 0x4000 -> kr 0x00000000 rid 22 off32 ac000
+[sm] resource buf 0x1075f8000 sz 0x4000 -> kr 0x00000000 rid 23 off32 b4000
+[sm] resource buf 0x1075fc000 sz 0x4000 -> kr 0x00000000 rid 24 off32 bc000
+[sm] resource buf 0x107600000 sz 0x4000 -> kr 0x00000000 rid 25 off32 c4000
+[sm] resource buf 0x107604000 sz 0x4000 -> kr 0x00000000 rid 26 off32 cc000
+[sm] resource buf 0x107608000 sz 0x4000 -> kr 0x00000000 rid 27 off32 d4000
+[sm] resource buf 0x10760c000 sz 0x4000 -> kr 0x00000000 rid 28 off32 dc000
+[sm] resource buf 0x107610000 sz 0x4000 -> kr 0x00000000 rid 29 off32 e4000
+[sm] resource buf 0x107614000 sz 0x4000 -> kr 0x00000000 rid 30 off32 ec000
+[sm] resource buf 0x107618000 sz 0x4000 -> kr 0x00000000 rid 31 off32 f4000
+[sm] resource buf 0x10761c000 sz 0x4000 -> kr 0x00000000 rid 32 off32 fc000
+[sm] resource buf 0x107620000 sz 0x4000 -> kr 0x00000000 rid 33 off32 104000
+[sm] resource buf 0x107624000 sz 0x4000 -> kr 0x00000000 rid 34 off32 10c000
+[sm] resource buf 0x107628000 sz 0x4000 -> kr 0x00000000 rid 35 off32 114000
+[sm] resource buf 0x10762c000 sz 0x4000 -> kr 0x00000000 rid 36 off32 11c000
+[sm] resource buf 0x107630000 sz 0x4000 -> kr 0x00000000 rid 37 off32 124000
+[sm] resource buf 0x107634000 sz 0x4000 -> kr 0x00000000 rid 38 off32 12c000
+[sm] resource buf 0x107638000 sz 0x4000 -> kr 0x00000000 rid 39 off32 134000
+[sm] resource buf 0x10763c000 sz 0x4000 -> kr 0x00000000 rid 40 off32 13c000
+[bw] created 40 target resources
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107644000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10764c000 id 2
+[bw] sweep at 0x100000000 alive
+[bw] sweep at 0x100100000 alive
+[v70b] blit loop start (watch the screen)
+[v70b] r5000 alive
+[v70b] r10000 alive
+[v70b] r15000 alive
+[v70b] blit loop done
+[v70] sweep done (alive)
+[v70] done (alive)
+[v68] full AGFI submit
+[open] IOGPU -> conn 0x7b0f
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107688000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107690000 id 2
+[sm] resource buf 0x107694000 sz 0x10000 -> kr 0x00000000 rid 1 off32 10000
+[fu] target resource rid 1, candidate GPUVA 0x100010000
+[fu] GPUVA 0x100010000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100020000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100030000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100040000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100008000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x10000c000 -> kr 0x00000000 outw 00000000, target 5A 0
+[fu] GPUVA 0x100000000 -> kr 0x00000000 outw 00000000, target 5A 0
+[v69] done (alive)
+[v67] faithful AGFI replay
+[open] IOGPU -> conn 0x170f
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1076d8000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1076e0000 id 2
+[sm] resource buf 0x1076e8000 sz 0x10000 -> kr 0x00000000 rid 1 off32 10000
+[fu] target resource rid 1, candidate GPUVA 0x100010000
+[fr] observer nq va 0x107708000
+[fr] faithful submit -> kr 0x00000000 outw 00000000
+[fr] nq dump after submit:
+[fr]   +00: 14 14 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +10: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +20: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[fr]   +30: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[v67] done (alive)
+[v66] AGFI reconstruction submit
+[open] IOGPU -> conn 0x1607
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107730000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107738000 id 2
+[rc] recon submit -> kr 0x00000000 outw 0000000a
+[v66] done (alive)
+[v65] AGX command replay
+[open] IOGPU -> conn 0x440b
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107768000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 107770000 id 2
+[rp] replay submit -> kr 0x00000000 outw 0000000a
+[v65] done (alive)
+[v64] AGX tail crafting
+[open] IOGPU -> conn 0x3413
+[s4] sel12 size 0x8000 -> kr 0x00000000 va 1077a0000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1077ac000 id 2
+[tl] r0 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r1 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r2 subtype 1 -> kr 0x00000000 outw 0000000a
+[tl] r3 subtype 2 -> kr 0x00000000 outw 0000000a
+[tl] r200000 alive
+[tl] r400000 alive
+[tl] r600000 alive
+[tl] r800000 alive
+[tl] r1000000 alive
+[tl] r1200000 alive
+[tl] r1400000 alive
+[tl] r1600000 alive
+[tl] r1800000 alive
+[tl] r2000000 alive
+[tl] r2200000 alive
+[tl] r2400000 alive
+[tl] r2600000 alive
+[tl] r2800000 alive
+[tl] r3000000 alive
+[tl] r3200000 alive
+[tl] r3400000 alive
+[tl] r3600000 alive
+[tl] r3800000 alive
+[tl] r4000000 alive
+[tl] r4200000 alive
+[tl] r4400000 alive
+[tl] r4600000 alive
+[tl] r4800000 alive
+[tl] r5000000 alive
+[tl] r5200000 alive
+[tl] r5400000 alive
+[tl] r5600000 alive
+[tl] r5800000 alive
+[tl] r6000000 alive
+[tl] r6200000 alive
+[tl] r6400000 alive
+[tl] r6600000 alive
+[tl] r6800000 alive
+[tl] r7000000 alive
+[tl] r7200000 alive
+[tl] r7400000 alive
+[tl] r7600000 alive
+[tl] r7800000 alive
+[tl] r8000000 alive
+[tl] r8200000 alive
+[tl] r8400000 alive
+[tl] r8600000 alive
+[tl] r8800000 alive
+[tl] r9000000 alive
+[tl] r9200000 alive
+[tl] r9400000 alive
+[tl] r9600000 alive
+[tl] r9800000 alive
+[tl] r10000000 alive
+[tl] r10200000 alive
+[tl] r10400000 alive
+[tl] r10600000 alive
+[tl] r10800000 alive
+[tl] r11000000 alive
+[tl] r11200000 alive
+[tl] r11400000 alive
+[tl] r11600000 alive
+[tl] r11800000 alive
+[tl] r12000000 alive
+[tl] r12200000 alive
+[tl] r12400000 alive
+[tl] r12600000 alive
+[tl] r12800000 alive
+[tl] r13000000 alive
+[tl] r13200000 alive
+[tl] r13400000 alive
+[tl] r13600000 alive
+[tl] r13800000 alive
+[tl] r14000000 alive
+[tl] r14200000 alive
+[tl] r14400000 alive
+[tl] r14600000 alive
+[tl] r14800000 alive
+[tl] r15000000 alive
+[tl] r15200000 alive
+[tl] r15400000 alive
+[tl] r15600000 alive
+[tl] r15800000 alive
+[tl] r16000000 alive
+[tl] r16200000 alive
+[tl] r16400000 alive
+[tl] r16600000 alive
+[tl] r16800000 alive
+[tl] r17000000 alive
+[tl] r17200000 alive
+[tl] r17400000 alive
+[tl] r17600000 alive
+[tl] r17800000 alive
+[tl] r18000000 alive
+[tl] r18200000 alive
+[tl] r18400000 alive
+[tl] r18600000 alive
+[tl] r18800000 alive
+[tl] r19000000 alive
+[tl] r19200000 alive
+[tl] r19400000 alive
+[tl] r19600000 alive
+[tl] r19800000 alive
+[tl] r20000000 alive
+[tl] r20200000 alive
+[tl] r20400000 alive
+[tl] r20600000 alive
+[tl] r20800000 alive
+[tl] r21000000 alive
+[tl] r21200000 alive
+[tl] r21400000 alive
+[tl] r21600000 alive
+[tl] r21800000 alive
+[tl] r22000000 alive
+[tl] r22200000 alive
+[tl] r22400000 alive
+[tl] r22600000 alive
+[tl] r22800000 alive
+[tl] r23000000 alive
+[tl] r23200000 alive
+[tl] r23400000 alive
+[tl] r23600000 alive
+[tl] r23800000 alive
+[tl] r24000000 alive
+[tl] r24200000 alive
+[tl] r24400000 alive
+[tl] r24600000 alive
+[tl] r24800000 alive
+[tl] r25000000 alive
+[tl] r25200000 alive
+[tl] r25400000 alive
+[tl] r25600000 alive
+[tl] r25800000 alive
+[tl] r26000000 alive
+[tl] r26200000 alive
+[tl] r26400000 alive
+[tl] r26600000 alive
+[tl] r26800000 alive
+[tl] r27000000 alive
+[tl] r27200000 alive
+[tl] r27400000 alive
+[tl] r27600000 alive
+[tl] r27800000 alive
+[tl] r28000000 alive
+[tl] r28200000 alive
+[tl] r28400000 alive
+[tl] r28600000 alive
+[tl] r28800000 alive
+[tl] r29000000 alive
+[tl] r29200000 alive
+[tl] r29400000 alive
+[tl] r29600000 alive
+[tl] r29800000 alive
+[tl] r30000000 alive
+[tl] r30200000 alive
+[tl] r30400000 alive
+[tl] r30600000 alive
+[tl] r30800000 alive
+[tl] r31000000 alive
+[tl] r31200000 alive
+[tl] r31400000 alive
+[tl] r31600000 alive
+[tl] r31800000 alive
+[tl] r32000000 alive
+[tl] r32200000 alive
+[tl] r32400000 alive
+[tl] r32600000 alive
+[tl] r32800000 alive
+[tl] r33000000 alive
+[tl] r33200000 alive
+[tl] r33400000 alive
+[tl] r33600000 alive
+[tl] r33800000 alive
+[tl] r34000000 alive
+[tl] r34200000 alive
+[tl] r34400000 alive
+[tl] r34600000 alive
+[tl] r34800000 alive
+[tl] r35000000 alive
+[tl] r35200000 alive
+[tl] r35400000 alive
+[tl] r35600000 alive
+[tl] r35800000 alive
+[tl] r36000000 alive
+[tl] r36200000 alive
+[tl] r36400000 alive
+[tl] r36600000 alive
+[tl] r36800000 alive
+[tl] r37000000 alive
+[tl] r37200000 alive
+[tl] r37400000 alive
+[tl] r37600000 alive
+[tl] r37800000 alive
+[tl] r38000000 alive
+[tl] r38200000 alive
+[tl] r38400000 alive
+[tl] r38600000 alive
+[tl] r38800000 alive
+[tl] r39000000 alive
+[tl] r39200000 alive
+[tl] r39400000 alive
+[tl] r39600000 alive
+[tl] r39800000 alive
+[tl] r40000000 alive
+[tl] r40200000 alive
+[tl] r40400000 alive
+[tl] r40600000 alive
+[tl] r40800000 alive
+[tl] r41000000 alive
+[tl] r41200000 alive
+[tl] r41400000 alive
+[tl] r41600000 alive
+[tl] r41800000 alive
+[tl] r42000000 alive
+[tl] r42200000 alive
+[tl] r42400000 alive
+[tl] r42600000 alive
+[tl] r42800000 alive
+[tl] r43000000 alive
+[tl] r43200000 alive
+[tl] r43400000 alive
+[tl] r43600000 alive
+[tl] r43800000 alive
+[tl] r44000000 alive
+[tl] r44200000 alive
+[tl] r44400000 alive
+[tl] r44600000 alive
+[tl] r44800000 alive
+[tl] r45000000 alive
+[tl] r45200000 alive
+[tl] r45400000 alive
+[tl] r45600000 alive
+[tl] r45800000 alive
+[tl] r46000000 alive
+[tl] r46200000 alive
+[tl] r46400000 alive
+[tl] r46600000 alive
+[tl] r46800000 alive
+[tl] r47000000 alive
+[tl] r47200000 alive
+[tl] r47400000 alive
+[tl] r47600000 alive
+[tl] r47800000 alive
+[tl] r48000000 alive
+[tl] r48200000 alive
+[tl] r48400000 alive
+[tl] r48600000 alive
+[tl] r48800000 alive
+[tl] r49000000 alive
+[tl] r49200000 alive
+[tl] r49400000 alive
+[tl] r49600000 alive
+[tl] r49800000 alive
+[tl] r50000000 alive
+[tl] r50200000 alive
+[tl] r50400000 alive
+[tl] r50600000 alive
+[tl] r50800000 alive
+[tl] r51000000 alive
+[tl] r51200000 alive
+[tl] r51400000 alive
+[tl] r51600000 alive
+[tl] r51800000 alive
+[tl] r52000000 alive
+[tl] r52200000 alive
+[tl] r52400000 alive
+[tl] r52600000 alive
+[tl] r52800000 alive
+[tl] r53000000 alive
+[tl] r53200000 alive
+[tl] r53400000 alive
+[tl] r53600000 alive
+[tl] r53800000 alive
+[tl] r54000000 alive
+[tl] r54200000 alive
+[tl] r54400000 alive
+[tl] r54600000 alive
+[tl] r54800000 alive
+[tl] r55000000 alive
+[tl] r55200000 alive
+[tl] r55400000 alive
+[tl] r55600000 alive
+[tl] r55800000 alive
+[tl] r56000000 alive
+[tl] r56200000 alive
+[tl] r56400000 alive
+[tl] r56600000 alive
+[tl] r56800000 alive
+[tl] r57000000 alive
+[tl] r57200000 alive
+[tl] r57400000 alive
+[tl] r57600000 alive
+[tl] r57800000 alive
+[tl] r58000000 alive
+[tl] r58200000 alive
+[tl] r58400000 alive
+[tl] r58600000 alive
+[tl] r58800000 alive
+[tl] r59000000 alive
+[tl] r59200000 alive
+[tl] r59400000 alive
+[tl] r59600000 alive
+[tl] r59800000 alive
+[tl] r60000000 alive
+[tl] r60200000 alive
+[tl] r60400000 alive
+[tl] r60600000 alive
+[tl] r60800000 alive
+[tl] r61000000 alive
+[tl] r61200000 alive
+[tl] r61400000 alive
+[tl] r61600000 alive
+[tl] r61800000 alive
+[tl] r62000000 alive
+[tl] r62200000 alive
+[tl] r62400000 alive
+[tl] r62600000 alive
+[tl] r62800000 alive
+[tl] r63000000 alive
+[tl] r63200000 alive
+[tl] r63400000 alive
+[tl] r63600000 alive
+[tl] r63800000 alive
+[tl] r64000000 alive
+[tl] r64200000 alive
+[tl] r64400000 alive
+[tl] r64600000 alive
+[tl] r64800000 alive
+[tl] r65000000 alive
+[tl] r65200000 alive
+[tl] r65400000 alive
+[tl] r65600000 alive
+[tl] r65800000 alive
+[tl] r66000000 alive
+[tl] r66200000 alive
+[tl] r66400000 alive
+[tl] r66600000 alive
+[tl] r66800000 alive
+[tl] r67000000 alive
+[tl] r67200000 alive
+[tl] r67400000 alive
+[tl] r67600000 alive
+[tl] r67800000 alive
+[tl] r68000000 alive
+[tl] r68200000 alive
+[tl] r68400000 alive
+[tl] r68600000 alive
+[tl] r68800000 alive
+[tl] r69000000 alive
+[tl] r69200000 alive
+[tl] r69400000 alive
+[tl] r69600000 alive
+[tl] r69800000 alive
+[tl] r70000000 alive
+[tl] r70200000 alive
+[tl] r70400000 alive
+[tl] r70600000 alive
+[tl] r70800000 alive
+[tl] r71000000 alive
+[tl] r71200000 alive
+[tl] r71400000 alive
+[tl] r71600000 alive
+[tl] r71800000 alive
+[tl] r72000000 alive
+[tl] r72200000 alive
+[tl] r72400000 alive
+[tl] r72600000 alive
+[tl] r72800000 alive
+[tl] r73000000 alive
+[tl] r73200000 alive
+[tl] r73400000 alive
+[tl] r73600000 alive
+[tl] r73800000 alive
+[tl] r74000000 alive
+[tl] r74200000 alive
+[tl] r74400000 alive
+[tl] r74600000 alive
+[tl] r74800000 alive
+[tl] r75000000 alive
+[tl] r75200000 alive
+[tl] r75400000 alive
+[tl] r75600000 alive
+[tl] r75800000 alive
+[tl] r76000000 alive
+[tl] r76200000 alive
+[tl] r76400000 alive
+[tl] r76600000 alive
+[tl] r76800000 alive
+[tl] r77000000 alive
+[tl] r77200000 alive
+[tl] r77400000 alive
+[tl] r77600000 alive
+[tl] r77800000 alive
+[tl] r78000000 alive
+[tl] r78200000 alive
+[tl] r78400000 alive
+[tl] r78600000 alive
+[tl] r78800000 alive
+[tl] r79000000 alive
+[tl] r79200000 alive
+[tl] r79400000 alive
+[tl] r79600000 alive
+[tl] r79800000 alive
+[tl] r80000000 alive
+[tl] r80200000 alive
+[tl] r80400000 alive
+[tl] r80600000 alive
+[tl] r80800000 alive
+[tl] r81000000 alive
+[tl] r81200000 alive
+[tl] r81400000 alive
+[tl] r81600000 alive
+[tl] r81800000 alive
+[tl] r82000000 alive
+[tl] r82200000 alive
+[tl] r82400000 alive
+[tl] r82600000 alive
+[tl] r82800000 alive
+[tl] r83000000 alive
+[tl] r83200000 alive
+[tl] r83400000 alive
+[tl] r83600000 alive
+[tl] r83800000 alive
+[tl] r84000000 alive
+[tl] r84200000 alive
+[tl] r84400000 alive
+[tl] r84600000 alive
+[tl] r84800000 alive
+[tl] r85000000 alive
+[tl] r85200000 alive
+[tl] r85400000 alive
+[tl] r85600000 alive
+[tl] r85800000 alive
+[tl] r86000000 alive
+[tl] r86200000 alive
+[tl] r86400000 alive
+[tl] r86600000 alive
+[tl] r86800000 alive
+[tl] r87000000 alive
+[tl] r87200000 alive
+[tl] r87400000 alive
+[tl] r87600000 alive
+[tl] r87800000 alive
+[tl] r88000000 alive
+[tl] r88200000 alive
+[tl] r88400000 alive
+[tl] r88600000 alive
+[tl] r88800000 alive
+[tl] r89000000 alive
+[tl] r89200000 alive
+[tl] r89400000 alive
+[tl] r89600000 alive
+[tl] r89800000 alive
+[tl] r90000000 alive
+[tl] r90200000 alive
+[tl] r90400000 alive
+[tl] r90600000 alive
+[tl] r90800000 alive
+[tl] r91000000 alive
+[tl] r91200000 alive
+[tl] r91400000 alive
+[tl] r91600000 alive
+[tl] r91800000 alive
+[tl] r92000000 alive
+[tl] r92200000 alive
+[tl] r92400000 alive
+[tl] r92600000 alive
+[tl] r92800000 alive
+[tl] r93000000 alive
+[tl] r93200000 alive
+[tl] r93400000 alive
+[tl] r93600000 alive
+[tl] r93800000 alive
+[tl] r94000000 alive
+[tl] r94200000 alive
+[tl] r94400000 alive
+[tl] r94600000 alive
+[tl] r94800000 alive
+[tl] r95000000 alive
+[tl] r95200000 alive
+[tl] r95400000 alive
+[tl] r95600000 alive
+[tl] r95800000 alive
+[tl] r96000000 alive
+[tl] r96200000 alive
+[tl] r96400000 alive
+[tl] r96600000 alive
+[tl] r96800000 alive
+[tl] r97000000 alive
+[tl] r97200000 alive
+[tl] r97400000 alive
+[tl] r97600000 alive
+[tl] r97800000 alive
+[tl] r98000000 alive
+[tl] r98200000 alive
+[tl] r98400000 alive
+[tl] r98600000 alive
+[tl] r98800000 alive
+[tl] r99000000 alive
+[tl] r99200000 alive
+[tl] r99400000 alive
+[tl] r99600000 alive
+[tl] r99800000 alive
+[tl] r100000000 alive
+[tl] r100200000 alive
+[tl] r100400000 alive
+[tl] r100600000 alive
+[tl] r100800000 alive
+[tl] r101000000 alive
+[tl] r101200000 alive
+[tl] r101400000 alive
+[tl] r101600000 alive
+[tl] r101800000 alive
+[tl] r102000000 alive
+[tl] r102200000 alive
+[tl] r102400000 alive
+[tl] r102600000 alive
+[tl] r102800000 alive
+[tl] r103000000 alive
+[tl] r103200000 alive
+[tl] r103400000 alive
+[tl] r103600000 alive
+[tl] r103800000 alive
+[tl] r104000000 alive
+[tl] r104200000 alive
+[tl] r104400000 alive
+[tl] r104600000 alive
+[tl] r104800000 alive
+[tl] r105000000 alive
+[tl] r105200000 alive
+[tl] r105400000 alive
+[tl] r105600000 alive
+[tl] r105800000 alive
+[tl] r106000000 alive
+[tl] r106200000 alive
+[tl] r106400000 alive
+[tl] r106600000 alive
+[tl] r106800000 alive
+[tl] r107000000 alive
+[tl] r107200000 alive
+[tl] r107400000 alive
+[tl] r107600000 alive
+[tl] r107800000 alive
+[tl] r108000000 alive
+[tl] r108200000 alive
+[tl] r108400000 alive
+[tl] r108600000 alive
+[tl] r108800000 alive
+[tl] r109000000 alive
+[tl] r109200000 alive
+[tl] r109400000 alive
+[tl] r109600000 alive
+[tl] r109800000 alive
+[tl] r110000000 alive
+[tl] r110200000 alive
+[tl] r110400000 alive
+[tl] r110600000 alive
+[tl] r110800000 alive
+[tl] r111000000 alive
+[tl] r111200000 alive
+[tl] r111400000 alive
+[tl] r111600000 alive
+[tl] r111800000 alive
+[tl] r112000000 alive
+[tl] r112200000 alive
+[tl] r112400000 alive
+[tl] r112600000 alive
+[tl] r112800000 alive
+[tl] r113000000 alive
+[tl] r113200000 alive
+[tl] r113400000 alive
+[tl] r113600000 alive
+[tl] r113800000 alive
+[tl] r114000000 alive
+[tl] r114200000 alive
+[tl] r114400000 alive
+[tl] r114600000 alive
+[tl] r114800000 alive
+[tl] r115000000 alive
+[tl] r115200000 alive
+[tl] r115400000 alive
+[tl] r115600000 alive
+[tl] r115800000 alive
+[tl] r116000000 alive
+[tl] r116200000 alive
+[tl] r116400000 alive
+[tl] r116600000 alive
+[tl] r116800000 alive
+[tl] r117000000 alive
+[tl] r117200000 alive
+[tl] r117400000 alive
+[tl] r117600000 alive
+[tl] r117800000 alive
+[tl] r118000000 alive
+[tl] r118200000 alive
+[tl] r118400000 alive
+[tl] r118600000 alive
+[tl] r118800000 alive
+[tl] r119000000 alive
+[tl] r119200000 alive
+[tl] r119400000 alive
+[tl] r119600000 alive
+[tl] r119800000 alive
+[tl] r120000000 alive
+[tl] r120200000 alive
+[tl] r120400000 alive
+[tl] r120600000 alive
+[tl] r120800000 alive
+[tl] r121000000 alive
+[tl] r121200000 alive
+[tl] r121400000 alive
+[tl] r121600000 alive
+[tl] r121800000 alive
+[tl] r122000000 alive
+[tl] r122200000 alive
+[tl] r122400000 alive
+[tl] r122600000 alive
+[tl] r122800000 alive
+[tl] r123000000 alive
+[tl] r123200000 alive
+[tl] r123400000 alive
+[tl] r123600000 alive
+[tl] r123800000 alive
+[tl] r124000000 alive
+[tl] r124200000 alive
+[tl] r124400000 alive
+[tl] r124600000 alive
+[tl] r124800000 alive
+[tl] r125000000 alive
+[tl] r125200000 alive
+[tl] r125400000 alive
+[tl] r125600000 alive
+[tl] r125800000 alive
+[tl] r126000000 alive
+[tl] r126200000 alive
+[tl] r126400000 alive
+[tl] r126600000 alive
+[tl] r126800000 alive
+[tl] r127000000 alive
+[tl] r127200000 alive
+[tl] r127400000 alive
+[tl] r127600000 alive
+[tl] r127800000 alive
+[tl] r128000000 alive
+[tl] r128200000 alive
+[tl] r128400000 alive
+[tl] r128600000 alive
+[tl] r128800000 alive
+[tl] r129000000 alive
+[tl] r129200000 alive
+[tl] r129400000 alive
+[tl] r129600000 alive
+[tl] r129800000 alive
+[tl] r130000000 alive
+[tl] r130200000 alive
+[tl] r130400000 alive
+[tl] r130600000 alive
+[tl] r130800000 alive
+[tl] r131000000 alive
+[tl] r131200000 alive
+[tl] r131400000 alive
+[tl] r131600000 alive
+[tl] r131800000 alive
+[tl] r132000000 alive
+[tl] r132200000 alive
+[tl] r132400000 alive
+[tl] r132600000 alive
+[tl] r132800000 alive
+[tl] r133000000 alive
+[tl] r133200000 alive
+[tl] r133400000 alive
+[tl] r133600000 alive
+[tl] r133800000 alive
+[tl] r134000000 alive
+[tl] r134200000 alive
+[tl] r134400000 alive
+[tl] r134600000 alive
+[tl] r134800000 alive
+[tl] r135000000 alive
+[tl] r135200000 alive
+[tl] r135400000 alive
+[tl] r135600000 alive
+[tl] r135800000 alive
+[tl] r136000000 alive
+[tl] r136200000 alive
+[tl] r136400000 alive
+[tl] r136600000 alive
+[tl] r136800000 alive
+[tl] r137000000 alive
+[tl] r137200000 alive
+[tl] r137400000 alive
+[tl] r137600000 alive
+[tl] r137800000 alive
+[tl] r138000000 alive
+[tl] r138200000 alive
+[tl] r138400000 alive
+[tl] r138600000 alive
+[tl] r138800000 alive
+[tl] r139000000 alive
+[tl] r139200000 alive
+[tl] r139400000 alive
+[tl] r139600000 alive
+[tl] r139800000 alive
+[tl] r140000000 alive
+[tl] r140200000 alive
+[tl] r140400000 alive
+[tl] r140600000 alive
+[tl] r140800000 alive
+[tl] r141000000 alive
+[tl] r141200000 alive
+[tl] r141400000 alive
+[tl] r141600000 alive
+[tl] r141800000 alive
+[tl] r142000000 alive
+[tl] r142200000 alive
+[tl] r142400000 alive
+[tl] r142600000 alive
+[tl] r142800000 alive
+[tl] r143000000 alive
+[tl] r143200000 alive
+[tl] r143400000 alive
+[tl] r143600000 alive
+[tl] r143800000 alive
+[tl] r144000000 alive
+[tl] r144200000 alive
+[tl] r144400000 alive
+[tl] r144600000 alive
+[tl] r144800000 alive
+[tl] r145000000 alive
+[tl] r145200000 alive
+[tl] r145400000 alive
+[tl] r145600000 alive
+[tl] r145800000 alive
+[tl] r146000000 alive
+[tl] r146200000 alive
+[tl] r146400000 alive
+[tl] r146600000 alive
+[tl] r146800000 alive
+[tl] r147000000 alive
+[tl] r147200000 alive
+[tl] r147400000 alive
+[tl] r147600000 alive
+[tl] r147800000 alive
+[tl] r148000000 alive
+[tl] r148200000 alive
+[tl] r148400000 alive
+[tl] r148600000 alive
+[tl] r148800000 alive
+[tl] r149000000 alive
+[tl] r149200000 alive
+[tl] r149400000 alive
+[tl] r149600000 alive
+[tl] r149800000 alive
+[tl] r150000000 alive
+[tl] r150200000 alive
+[tl] r150400000 alive
+[tl] r150600000 alive
+[tl] r150800000 alive
+[tl] r151000000 alive
+[tl] r151200000 alive
+[tl] r151400000 alive
+[tl] r151600000 alive
+[tl] r151800000 alive
+[tl] r152000000 alive
+[tl] r152200000 alive
+[tl] r152400000 alive
+[tl] r152600000 alive
+[tl] r152800000 alive
+[tl] r153000000 alive
+[tl] r153200000 alive
+[tl] r153400000 alive
+[tl] r153600000 alive
+[tl] r153800000 alive
+[tl] r154000000 alive
+[tl] r154200000 alive
+[tl] r154400000 alive
+[tl] r154600000 alive
+[tl] r154800000 alive
+[tl] r155000000 alive
+[tl] r155200000 alive
+[tl] r155400000 alive
+[tl] r155600000 alive
+[tl] r155800000 alive
+[tl] r156000000 alive
+[tl] r156200000 alive
+[tl] r156400000 alive
+[tl] r156600000 alive
+[tl] r156800000 alive
+[tl] r157000000 alive
+[tl] r157200000 alive
+[tl] r157400000 alive
+[tl] r157600000 alive
+[tl] r157800000 alive
+[tl] r158000000 alive
+[tl] r158200000 alive
+[tl] r158400000 alive
+[tl] r158600000 alive
+[tl] r158800000 alive
+[tl] r159000000 alive
+[tl] r159200000 alive
+[tl] r159400000 alive
+[tl] r159600000 alive
+[tl] r159800000 alive
+[tl] r160000000 alive
+[tl] r160200000 alive
+[tl] r160400000 alive
+[tl] r160600000 alive
+[tl] r160800000 alive
+[tl] r161000000 alive
+[tl] r161200000 alive
+[tl] r161400000 alive
+[tl] r161600000 alive
+[tl] r161800000 alive
+[tl] r162000000 alive
+[tl] r162200000 alive
+[tl] r162400000 alive
+[tl] r162600000 alive
+[tl] r162800000 alive
+[tl] r163000000 alive
+[tl] r163200000 alive
+[tl] r163400000 alive
+[tl] r163600000 alive
+[tl] r163800000 alive
+[tl] r164000000 alive
+[tl] r164200000 alive
+[tl] r164400000 alive
+[tl] r164600000 alive
+[tl] r164800000 alive
+[tl] r165000000 alive
+[tl] r165200000 alive
+[tl] r165400000 alive
+[tl] r165600000 alive
+[tl] r165800000 alive
+[tl] r166000000 alive
+[tl] r166200000 alive
+[tl] r166400000 alive
+[tl] r166600000 alive
+[tl] r166800000 alive
+[tl] r167000000 alive
+[tl] r167200000 alive
+[tl] r167400000 alive
+[tl] r167600000 alive
+[tl] r167800000 alive
+[tl] r168000000 alive
+[tl] r168200000 alive
+[tl] r168400000 alive
+[tl] r168600000 alive
+[tl] r168800000 alive
+[tl] r169000000 alive
+[tl] r169200000 alive
+[tl] r169400000 alive
+[tl] r169600000 alive
+[tl] r169800000 alive
+[tl] r170000000 alive
+[tl] r170200000 alive
+[tl] r170400000 alive
+[tl] r170600000 alive
+[tl] r170800000 alive
+[tl] r171000000 alive
+[tl] r171200000 alive
+[tl] r171400000 alive
+[tl] r171600000 alive
+[tl] r171800000 alive
+[tl] r172000000 alive
+[tl] r172200000 alive
+[tl] r172400000 alive
+[tl] r172600000 alive
+[tl] r172800000 alive
+[tl] r173000000 alive
+[tl] r173200000 alive
+[tl] r173400000 alive
+[tl] r173600000 alive
+[tl] r173800000 alive
+[tl] r174000000 alive
+[tl] r174200000 alive
+[tl] r174400000 alive
+[tl] r174600000 alive
+[tl] r174800000 alive
+[tl] r175000000 alive
+[tl] r175200000 alive
+[tl] r175400000 alive
+[tl] r175600000 alive
+[tl] r175800000 alive
+[tl] r176000000 alive
+[tl] r176200000 alive
+[tl] r176400000 alive
+[tl] r176600000 alive
+[tl] r176800000 alive
+[tl] r177000000 alive
+[tl] r177200000 alive
+[tl] r177400000 alive
+[tl] r177600000 alive
+[tl] r177800000 alive
+[tl] r178000000 alive
+[tl] r178200000 alive
+[tl] r178400000 alive
+[tl] r178600000 alive
+[tl] r178800000 alive
+[tl] r179000000 alive
+[tl] r179200000 alive
+[tl] r179400000 alive
+[tl] r179600000 alive
+[tl] r179800000 alive
+[tl] r180000000 alive
+[tl] r180200000 alive
+[tl] r180400000 alive
+[tl] r180600000 alive
+[tl] r180800000 alive
+[tl] r181000000 alive
+[tl] r181200000 alive
+[tl] r181400000 alive
+[tl] r181600000 alive
+[tl] r181800000 alive
+[tl] r182000000 alive
+[tl] r182200000 alive
+[tl] r182400000 alive
+App terminated due to signal 9.
