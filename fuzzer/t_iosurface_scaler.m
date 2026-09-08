@@ -16462,6 +16462,157 @@ static void p_iocmd(void) {
     LOG("[ioc] done (alive)");
 }
 
+// V121: p_hidfuzz — first contact with the HID userclients that the v97
+// sweep found reachable from the App Sandbox with type 2 (run-v97b.log):
+// IOHIDEventDriver, AppleSPUHIDDriver, AppleSPUVD6287,
+// AppleSphinxProxHIDEventDriver, AppleM68Buttons. v97 only tried the struct
+// form with selectors 0..20 (all dead); the scalar/async/trap forms and
+// selectors 21..40 were never tried. IOHIDFamily is a historically rich bug
+// source. This phase is zero-payload: every input is zeros, only selector
+// numbers and buffer SIZES vary (async form skipped — it needs a live port).
+// Live = kr outside {0xe00002c2, 0xe00002c7}. For live selectors a size
+// sweep logs any nonzero stOut on kr 0 (infoleak check).
+// Env: FUZZ_HIDFUZZ_SKIP=N (deterministic numbering). Tag [hid].
+extern kern_return_t ioconnect_trap0(io_connect_t, uint32_t)
+    __asm("_IOConnectTrap0");
+extern kern_return_t ioconnect_trap2(io_connect_t, uint32_t, uintptr_t, uintptr_t)
+    __asm("_IOConnectTrap2");
+extern kern_return_t ioconnect_trap3(io_connect_t, uint32_t, uintptr_t, uintptr_t, uintptr_t)
+    __asm("_IOConnectTrap3");
+static void p_hidfuzz(void) {
+    long skip = atol(getenv("FUZZ_HIDFUZZ_SKIP") ?: "0");
+    long caseidx = 0;
+    LOG("[hid] v121 HID userclient form sweep, skip %ld", skip);
+    static const char *svcs[] = {
+        "IOHIDEventDriver", "AppleSPUHIDDriver", "AppleSPUVD6287",
+        "AppleSphinxProxHIDEventDriver", "AppleM68Buttons"
+    };
+    uint8_t *inb = must_map(0x2000);
+    uint8_t *outb = must_map(0x2000);
+    memset(inb, 0, 0x2000);
+    io_connect_t conns[5] = {0,0,0,0,0};
+    uint8_t live[5][41];
+    memset(live, 0, sizeof live);
+    int nopen = 0;
+    for (int si = 0; si < 5; si++) {
+        conns[si] = open_service(svcs[si], 2);
+        LOG("[hid] open %-28s type 2 -> conn 0x%x%s", svcs[si], conns[si],
+            conns[si] ? "" : " (FAILED, skip)");
+        if (conns[si]) nopen++;
+    }
+    if (!nopen) {
+        LOG("[hid] no conns opened, done");
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x2000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
+        return;
+    }
+    // ---- form sweep: sel 0..40 x {struct 100/100, scalar x4, trap0..3}
+    for (int si = 0; si < 5; si++) {
+        if (!conns[si]) continue;
+        for (uint32_t sel = 0; sel <= 40; sel++) {
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            size_t osz = 0x100;
+            kern_return_t kr;
+            // struct form
+            caseidx++;
+            if (caseidx > skip) {
+                memset(outb, 0, 0x100);
+                LOG("[hid] c%ld %s sel %2u STRUCT100 ...", caseidx, svcs[si], sel);
+                fsync(fileno(stderr));
+                kr = IOConnectCallMethod(conns[si], sel, NULL, 0, inb, 0x100,
+                                         osc, &nosc, outb, &osz);
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    live[si][sel] = 1;
+                    LOG("[hid] c%ld %s sel %2u STRUCT100 -> kr 0x%08x osz 0x%zx LIVE",
+                        caseidx, svcs[si], sel, kr, osz);
+                }
+            }
+            // scalar x4 form
+            caseidx++;
+            if (caseidx > skip) {
+                uint64_t sv[4] = {0,0,0,0};
+                uint32_t sc = 4;
+                LOG("[hid] c%ld %s sel %2u SCALARx4 ...", caseidx, svcs[si], sel);
+                fsync(fileno(stderr));
+                kr = IOConnectCallScalarMethod(conns[si], sel, sv, 4, sv, &sc);
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    live[si][sel] = 1;
+                    LOG("[hid] c%ld %s sel %2u SCALARx4 -> kr 0x%08x outcnt %u LIVE",
+                        caseidx, svcs[si], sel, kr, sc);
+                }
+            }
+            // trap forms 0..3 (all-zero args)
+            for (uint32_t t = 0; t <= 3; t++) {
+                caseidx++;
+                if (caseidx <= skip) continue;
+                LOG("[hid] c%ld %s sel %2u TRAP%u ...", caseidx, svcs[si], sel, t);
+                fsync(fileno(stderr));
+                switch (t) {
+                case 0: kr = ioconnect_trap0(conns[si], sel); break;
+                case 1: kr = ioconnect_trap1(conns[si], sel, 0); break;
+                case 2: kr = ioconnect_trap2(conns[si], sel, 0, 0); break;
+                default: kr = ioconnect_trap3(conns[si], sel, 0, 0, 0); break;
+                }
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    live[si][sel] = 1;
+                    LOG("[hid] c%ld %s sel %2u TRAP%u -> kr 0x%08x LIVE",
+                        caseidx, svcs[si], sel, t, kr);
+                }
+            }
+        }
+    }
+    {   // per-service live summary
+        for (int si = 0; si < 5; si++) {
+            if (!conns[si]) continue;
+            char lst[168] = {0};
+            int p = 0;
+            for (uint32_t sel = 0; sel <= 40 && p < (int)sizeof(lst) - 6; sel++)
+                if (live[si][sel]) p += snprintf(lst + p, sizeof(lst) - p, "%u,", sel);
+            LOG("[hid] %s live selectors: %s", svcs[si], lst[0] ? lst : "(none)");
+        }
+    }
+    // ---- size sweep on live selectors: stIn 0x8..0x2000 x stOut {0x100,0x1000}
+    static const size_t inszs[] = { 0x8, 0x10, 0x20, 0x40, 0x80, 0x100,
+                                    0x200, 0x400, 0x800, 0x1000, 0x2000 };
+    static const size_t outszs[] = { 0x100, 0x1000 };
+    for (int si = 0; si < 5; si++) {
+        if (!conns[si]) continue;
+        for (uint32_t sel = 0; sel <= 40; sel++) {
+            if (!live[si][sel]) continue;
+            for (unsigned ii = 0; ii < sizeof(inszs)/sizeof(inszs[0]); ii++) {
+                for (unsigned oi = 0; oi < sizeof(outszs)/sizeof(outszs[0]); oi++) {
+                    caseidx++;
+                    if (caseidx <= skip) continue;
+                    uint64_t osc[4] = {0,0,0,0};
+                    uint32_t nosc = 0;
+                    size_t osz = outszs[oi];
+                    memset(outb, 0, outszs[oi]);
+                    LOG("[hid] c%ld %s sel %2u SIZE stIn 0x%zx stOut 0x%zx ...",
+                        caseidx, svcs[si], sel, inszs[ii], outszs[oi]);
+                    fsync(fileno(stderr));
+                    kern_return_t kr = IOConnectCallMethod(conns[si], sel, NULL, 0,
+                            inb, inszs[ii], osc, &nosc, outb, &osz);
+                    if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                        long nz = 0;
+                        for (size_t o = 0; o < osz; o++)
+                            if (outb[o]) nz++;
+                        LOG("[hid] c%ld %s sel %2u stIn 0x%zx stOut 0x%zx -> kr 0x%08x "
+                            "osz 0x%zx out-nz %ld%s", caseidx, svcs[si], sel,
+                            inszs[ii], outszs[oi], kr, osz, nz,
+                            (!kr && nz) ? " *** NONZERO stOut — LEAK? ***" : "");
+                        if (!kr && nz) hexdump("hid-out", outb, 64);
+                    }
+                }
+            }
+        }
+    }
+    for (int si = 0; si < 5; si++) if (conns[si]) IOServiceClose(conns[si]);
+    vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x2000);
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
+    LOG("[hid] done (alive), cases %ld", caseidx);
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -21203,6 +21354,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_PAYFUZZ") || getenv("FUZZ_PAYFUZZ_LOCATE")) { p_payfuzz(); LOG("[probe13] payfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }
