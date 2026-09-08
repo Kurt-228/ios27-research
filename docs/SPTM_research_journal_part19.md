@@ -358,3 +358,14 @@ commit'а — таблица строится драйвером/ядром пр
 структуры (нужен уже готовый write-примитив), либо полного реверса
 resource-binding («уровень Asahi», многонедельная задача) с построением
 своего пайплайна исполнения.
+
+## 121. v128: qexec + iocmd — стены подтверждены
+
+qexec (results/run-qexec1.log): V1/V2 baseline no-op без изменений (3
+pre-queue ресурса sel8 формата B не открывают исполнение); sel40 vniodesc —
+GATED 0x2c2 (обе формы); sel41 — destroy-стаб (kr 0 обманчив — очередь не
+создаётся). iocmd (run-iocmd1.log): sel42 create_io_command_queue — GATED
+0x2c2 на девайсе (на macOS — открыт). IO-command path закрыт из нашего
+sandbox на создании очереди. Вывод: единственный исполняющий GPU-канал из
+App-Sandbox на iOS 27 — живая очередь Metal (confused-deputy патчинг);
+собственного исполнения без неё нет.

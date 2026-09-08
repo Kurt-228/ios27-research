@@ -16201,6 +16201,267 @@ static void p_qexec(void) {
     LOG("[qex] done (alive)");
 }
 
+// V120: p_iocmd — the REAL IO-command path (docs/agx_io_command_path.md).
+// sel41 turned out to be a destroy-stub (its kr 0 is a decoy); the true chain
+// is: sel42 create_io_command_queue {type<2, priority<=2} -> out {iocq_id,
+// aux} -> sel44 {iocq_id, nq_id} attach (mandatory, else submit 0x2bc) ->
+// sel46 create_io_command_buffer -> shmem (sel12) kernel commands {u32 type,
+// u32 len, payload}: type 0 = IO (vnio_read fd->user buffer!), 1 =
+// SignalEvent, 2 = Barrier (mach_port!), 3 = WaitSharedEvent -> sel45 submit
+// {count, {iocb, shmem, u64, u8}*24} -> sel48 perform_io (synchronous drain).
+// This path is CPU-side VFS — a potential bypass of the trap0 no-op wall.
+// Step 1: valid end-to-end chain (temp file -> vniodesc -> IO command ->
+// recv buffer + notification status 3). Step 2: deterministic descriptor
+// fuzz (types/lengths/wild user_addr/garbage ports/count mismatches) — the
+// kernel parses our shmem bytes; panic is a valid outcome.
+// Env: FUZZ_IOCMD_STEP (0=all, 1=sanity, 2=fuzz), FUZZ_IOCMD_SKIP=N. Tag [ioc].
+static void ioc_fill_shmem(uint8_t *shva, uint32_t ktype, uint32_t klen,
+                           uint32_t vnio, uint64_t foff, uint64_t flen,
+                           uint64_t uaddr, uint64_t notify, int hdr_bad) {
+    memset(shva, 0, 0x4000);
+    if (hdr_bad) {          // readOffset > writeOffset
+        *(uint32_t *)(shva + 0) = 0x100;
+        *(uint32_t *)(shva + 4) = 8;
+        return;
+    }
+    uint32_t clen = klen ? klen : 0x38;
+    *(uint32_t *)(shva + 0) = 8;            // readOffset
+    *(uint32_t *)(shva + 4) = 8 + clen;     // writeOffset
+    uint8_t *k = shva + 8;
+    *(uint32_t *)(k + 0) = ktype;
+    *(uint32_t *)(k + 4) = clen;
+    if (ktype == 0) {                       // IO: vnio_read
+        *(uint32_t *)(k + 0x08) = vnio;     // vniodesc_id
+        *(uint64_t *)(k + 0x10) = foff;     // file offset
+        *(uint64_t *)(k + 0x18) = flen;     // length
+        *(uint64_t *)(k + 0x20) = uaddr;    // user_addr
+        *(uint64_t *)(k + 0x30) = notify;   // notify_value
+    } else if (ktype == 1) {                // SignalEvent
+        *(uint64_t *)(k + 0x08) = foff;     // value
+        *(uint8_t  *)(k + 0x10) = (uint8_t)flen;   // flag
+    } else {                                // Barrier / WaitSharedEvent
+        *(uint32_t *)(k + 0x08) = vnio;     // mach_port_name
+        *(uint64_t *)(k + 0x10) = foff;     // value
+    }
+}
+// sel45 submit + sel48 drain + observation (recv buffer + nq records).
+// kr 0 here does NOT mean execution (doc §1) — the notifications are the
+// only trustworthy signal.
+static void ioc_run(io_connect_t c, uint32_t iocq, uint32_t iocb, uint32_t shid,
+                    uint8_t *recv, uint64_t nqva, long caseidx, const char *tag,
+                    int count_override, int shmid_mode, uint32_t shmid_val) {
+    uint8_t s45[0x40];
+    memset(s45, 0, sizeof s45);
+    *(uint32_t *)s45 = count_override > 0 ? (uint32_t)count_override : 1;
+    *(uint32_t *)(s45 + 0x08) = iocb;
+    *(uint32_t *)(s45 + 0x0c) = shmid_mode ? shmid_val : shid;
+    size_t s45sz = 8 + 24;   // count>1 with this size = intentional mismatch
+    uint64_t sc[1] = { iocq };
+    LOG("[ioc] c%ld %s: sel45 submit (PANIC possible)", caseidx, tag);
+    fsync(fileno(stderr));
+    kern_return_t k45 = IOConnectCallMethod(c, 45, sc, 1, s45, s45sz,
+                                            NULL, NULL, NULL, NULL);
+    usleep((useconds_t)20000);
+    uint64_t s48a[1] = { iocq };
+    kern_return_t k48 = IOConnectCallScalarMethod(c, 48, s48a, 1, NULL, NULL);
+    if (k48 == 0xe00002c2) {   // maybe sin=2 — retry with a zero second scalar
+        uint64_t s48b[2] = { iocq, 0 };
+        k48 = IOConnectCallScalarMethod(c, 48, s48b, 2, NULL, NULL);
+    }
+    long nz = 0, a41 = 0;
+    for (int i = 0; i < 0x400; i++) { if (recv[i]) nz++; if (recv[i] == 0x41) a41++; }
+    LOG("[ioc] c%ld %s -> sel45 0x%08x sel48 0x%08x | recv nz %ld 41 %ld %s",
+        caseidx, tag, k45, k48, nz, a41, nz ? "*** IOCMD WRITE ***" : "");
+    if (nqva) {
+        uint8_t *nq = (uint8_t *)(uintptr_t)nqva;
+        long nrec = 0;
+        uint64_t rv = 0;
+        uint32_t rs = 0;
+        for (int o = 0; o + 16 <= 0x400; o += 16) {
+            uint64_t v = *(uint64_t *)(nq + o);
+            uint32_t st = *(uint32_t *)(nq + o + 8);
+            if (v || st) { if (!nrec) { rv = v; rs = st; } nrec++; }
+        }
+        if (nrec)
+            LOG("[ioc] c%ld %s nq: %ld records, first {value 0x%llx status %u}",
+                caseidx, tag, nrec, rv, rs);
+    }
+}
+static void p_iocmd(void) {
+    int step = atoi(getenv("FUZZ_IOCMD_STEP") ?: "0");
+    long skip = atol(getenv("FUZZ_IOCMD_SKIP") ?: "0");
+    long caseidx = 0;
+    LOG("[ioc] v120 IO-command path, step %d skip %ld", step, skip);
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[ioc] open failed"); return; }
+    uint8_t *outb = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0};
+    uint32_t nosc = 0;
+    size_t osz;
+    // ---- sel14 notification queue (shared-data records land here)
+    memset(outb, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    kern_return_t k14 = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, outb, &osz);
+    uint64_t nqva = *(uint64_t *)outb;
+    uint64_t nqid = *(uint64_t *)(outb + 8);
+    LOG("[ioc] sel14 nq -> kr 0x%08x va 0x%llx nqid %llu", k14, nqva, nqid);
+    // ---- temp file with known content + sel40 vniodesc (fd -> GPU namespace)
+    NSString *tmp = [NSTemporaryDirectory() stringByAppendingPathComponent:@"iocmd_src.bin"];
+    NSMutableData *md = [NSMutableData dataWithLength:0x400];
+    memset(md.mutableBytes, 0x41, 0x400);
+    [md writeToFile:tmp atomically:YES];
+    int fd = open([tmp UTF8String], O_RDONLY);
+    uint32_t nsid = 0;
+    uint64_t ntok = 0;
+    LOG("[ioc] tmp file %s fd %d", [tmp UTF8String], fd);
+    if (fd >= 0) {
+        uint8_t st[0x40];
+        memset(st, 0, sizeof st);
+        *(uint32_t *)st = (uint32_t)fd;
+        uint64_t o40[2] = {0,0};
+        uint32_t n40 = 2;
+        kern_return_t k40 = IOConnectCallMethod(c, 40, NULL, 0, st, 0x40, o40, &n40,
+                                                NULL, NULL);
+        nsid = (uint32_t)o40[0];
+        ntok = o40[1];
+        LOG("[ioc] sel40 vniodesc -> kr 0x%08x nsid %u token 0x%llx%s", k40, nsid, ntok,
+            (k40 == 0xe00002c2 || k40 == 0xe00002c7) ? " (GATED)" : "");
+    }
+    // ---- sel42 create_io_command_queue {type 0, priority 0}
+    uint32_t iocq = 0;
+    {
+        uint64_t s42[2] = { 0, 0 };
+        uint8_t o42[16];
+        memset(o42, 0, sizeof o42);
+        osz = 16; nosc = 0;
+        memset(osc, 0, sizeof osc);
+        kern_return_t k42 = IOConnectCallMethod(c, 42, s42, 2, NULL, 0, osc, &nosc,
+                                                o42, &osz);
+        iocq = *(uint32_t *)o42;
+        LOG("[ioc] sel42 create {type0 prio0} -> kr 0x%08x iocq %u aux 0x%llx%s",
+            k42, iocq, *(uint64_t *)(o42 + 8),
+            (k42 == 0xe00002c2 || k42 == 0xe00002c7) ? " (GATED)" : "");
+        if (k42 || !iocq) {
+            LOG("[ioc] chain gated at sel42, abort");
+            close(fd);
+            vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x1000);
+            IOServiceClose(c);
+            return;
+        }
+    }
+    // ---- sel44 attach notification queue (struct {iocq, nqid})
+    {
+        uint8_t i44[16];
+        memset(i44, 0, sizeof i44);
+        *(uint64_t *)i44 = iocq;
+        *(uint64_t *)(i44 + 8) = nqid;
+        nosc = 0;
+        memset(osc, 0, sizeof osc);
+        kern_return_t k44 = IOConnectCallMethod(c, 44, NULL, 0, i44, 16, osc, &nosc,
+                                                NULL, NULL);
+        LOG("[ioc] sel44 attach {iocq %u, nqid %llu} -> kr 0x%08x", iocq, nqid, k44);
+    }
+    // ---- sel46 create_io_command_buffer
+    uint32_t iocb = 0;
+    uint64_t aux6 = 0;
+    {
+        uint64_t s46[1] = { iocq };
+        uint64_t o46[2] = {0,0};
+        uint32_t n46 = 2;
+        kern_return_t k46 = IOConnectCallScalarMethod(c, 46, s46, 1, o46, &n46);
+        iocb = (uint32_t)o46[0];
+        aux6 = o46[1];
+        LOG("[ioc] sel46 iocmd buffer -> kr 0x%08x iocb %u aux 0x%llx", k46, iocb, aux6);
+    }
+    // ---- shmem for kernel commands + recv buffer
+    uint8_t *shva = NULL;
+    uint32_t shid = gpu_shmem_t(c, 0x4000, 1, &shva);
+    uint8_t *recv = must_map(0x1000);
+    if (!shva || !iocb || !shid) {
+        LOG("[ioc] no shmem/iocb (shid %u iocb %u), abort", shid, iocb);
+        close(fd);
+        vm_deallocate(mach_task_self(), (vm_address_t)recv, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x1000);
+        IOServiceClose(c);
+        return;
+    }
+    // ---- step 1: sanity — valid IO command end to end
+    if (step == 0 || step == 1) {
+        LOG("[ioc] sanity: valid IO cmd (vnio %u off 0 len 0x100 -> recv)", nsid);
+        memset(recv, 0, 0x1000);
+        ioc_fill_shmem(shva, 0, 0x38, nsid, 0, 0x100, (uint64_t)(uintptr_t)recv,
+                       0x11223344, 0);
+        ioc_run(c, iocq, iocb, shid, recv, nqva, 0, "sanity", 0, 0, 0);
+        LOG("[ioc] sanity recv[0..15]: %02x %02x %02x %02x %02x %02x %02x %02x",
+            recv[0], recv[1], recv[2], recv[3], recv[4], recv[5], recv[6], recv[7]);
+    }
+    // ---- step 2: descriptor fuzz (deterministic)
+    if (step == 0 || step == 2) {
+        LOG("[ioc] fuzz: descriptor mutations (26 cases)");
+        static const struct {
+            const char *tag;
+            uint32_t ktype, klen;
+            int vnio_mode; uint32_t vnio;   // mode 0: real nsid / port literal
+            uint64_t foff, flen;
+            int ua_mode; uint64_t uaddr;    // mode 0: recv buffer
+            uint64_t notify;
+            int hdr_bad;
+            int shmid_mode; uint32_t shmid_val;
+            int count_override;
+        } fz[] = {
+            // kernel-command grammar
+            { "type4",            4, 0x38, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "type-ffffffff", 0xffffffff, 0x38, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "len-0x10",         0, 0x10, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "len-0x20",         0, 0x20, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "len-0x2c",         0, 0x2c, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "len-7",            0, 7,    0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "len-9",            0, 9,    0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "vnio-0",           0, 0x38, 1, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "vnio-deadbeef",    0, 0x38, 1, 0xdeadbeef, 0, 0x100, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "ua-0x1",           0, 0x38, 0, 0, 0, 0x100, 1, 0x1, 0x11223344, 0, 0,0, 0 },
+            { "ua-wild-high",     0, 0x38, 0, 0, 0, 0x100, 1, 0xdeadbeef0000ULL, 0x11223344, 0, 0,0, 0 },
+            { "ua-top",           0, 0x38, 0, 0, 0, 0x100, 1, 0xffffffff00000000ULL, 0x11223344, 0, 0,0, 0 },
+            { "len-0x7fffffff",   0, 0x38, 0, 0, 0, 0x7fffffff, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "len-u64max",       0, 0x38, 0, 0, 0, 0xffffffffffffffffULL, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "beyond-eof",       0, 0x38, 0, 0, 0, 0x100000, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "foff-wrap",        0, 0x38, 0, 0, 0xffffffffffffff00ULL, 0x200, 0, 0, 0x11223344, 0, 0,0, 0 },
+            { "hdr-rd>wr",        0, 0x38, 0, 0, 0, 0x100, 0, 0, 0x11223344, 1, 0,0, 0 },
+            // sel45 struct-level
+            { "shmid-0",          0, 0x38, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 1, 0, 0 },
+            { "shmid-foreign",    0, 0x38, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 1, 0xdeadbeef, 0 },
+            { "count-mismatch",   0, 0x38, 0, 0, 0, 0x100, 0, 0, 0x11223344, 0, 0, 0, 2 },
+            // event commands
+            { "sig-wild-value",   1, 0x10, 0, 0, 0xffffffffffffffffULL, 0, 0, 0, 0, 0, 0,0, 0 },
+            { "sig-flag1-noevent",1, 0x10, 0, 0, 1, 1, 0, 0, 0, 0, 0,0, 0 },
+            { "bar-port-garbage", 2, 0x10, 1, 0xdeadbeef, 0, 0, 0, 0, 0, 0, 0,0, 0 },
+            { "bar-port-null",    2, 0x10, 1, 0, 0, 0, 0, 0, 0, 0, 0,0, 0 },
+            { "wait-port-garbage",3, 0x10, 1, 0xdeadbeef, 0, 0, 0, 0, 0, 0, 0,0, 0 },
+            { "wait-null-wild",   3, 0x10, 1, 0, 0xffffffffffffffffULL, 0, 0, 0, 0, 0, 0,0, 0 },
+        };
+        for (unsigned i = 0; i < sizeof(fz)/sizeof(fz[0]); i++) {
+            caseidx++;
+            if (caseidx <= skip) continue;
+            memset(recv, 0, 0x1000);
+            ioc_fill_shmem(shva, fz[i].ktype, fz[i].klen,
+                           fz[i].vnio_mode ? fz[i].vnio : nsid,
+                           fz[i].foff, fz[i].flen,
+                           fz[i].ua_mode ? fz[i].uaddr : (uint64_t)(uintptr_t)recv,
+                           fz[i].notify, fz[i].hdr_bad);
+            ioc_run(c, iocq, iocb, shid, recv, nqva, caseidx, fz[i].tag,
+                    fz[i].count_override, fz[i].shmid_mode, fz[i].shmid_val);
+            usleep((useconds_t)20000);
+        }
+        LOG("[ioc] fuzz done: cases %ld", caseidx);
+    }
+    close(fd);
+    vm_deallocate(mach_task_self(), (vm_address_t)recv, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x1000);
+    IOServiceClose(c);
+    LOG("[ioc] done (alive)");
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -20941,6 +21202,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_KILLRACE")) { p_killrace(); LOG("[probe13] killrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PAYFUZZ") || getenv("FUZZ_PAYFUZZ_LOCATE")) { p_payfuzz(); LOG("[probe13] payfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

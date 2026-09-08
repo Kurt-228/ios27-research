@@ -1,0 +1,13 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5d03
+[scaler] conn 0x5d03, s1 178 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[ioc] v120 IO-command path, step 0 skip 0
+[open] IOGPU -> conn 0x5c1b
+[ioc] sel14 nq -> kr 0x00000000 va 0x100ba8000 nqid 1
+[ioc] tmp file /private/var/mobile/Containers/Data/Application/52151BA3-7813-4AC3-BB84-822159AE063B/tmp/iocmd_src.bin fd 3
+[ioc] sel40 vniodesc -> kr 0xe00002c2 nsid 0 token 0x0 (GATED)
+[ioc] sel42 create {type0 prio0} -> kr 0xe00002c2 iocq 0 aux 0x0 (GATED)
+[ioc] chain gated at sel42, abort
+[probe13] iocmd-only mode, stop
