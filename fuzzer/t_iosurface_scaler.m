@@ -14846,6 +14846,7 @@ static void dsr_marker_scan(const char *tag, const char *what, const uint8_t *bu
         }
     }
 }
+static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void p_dsrecon(void) {
     LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
     id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
@@ -14927,7 +14928,185 @@ static void p_dsrecon(void) {
         dsr_diff_log(tag, "seg", post[0].seg, post[cfg].seg, DSR_SNAP);
     }
     for (int cfg = 0; cfg < 3; cfg++) dsr_free_snap(&post[cfg]);
+    // N5 (docs/device_stream_builder.md): differential post-commit VM scan
+    if (getenv("FUZZ_DSRECON_POST")) dsr5_post_scan(dev, mq, docdir);
     LOG("[dsr] done (alive)");
+}
+
+// V125: FUZZ_DSRECON_POST — N5 dump (docs/device_stream_builder.md): does the
+// BlitComputeDriverTable (executable {size,threadgroups} fields) appear in
+// process VM AFTER a real commit? Differential VM walk around a legal blit
+// A->B 0x10000: qwords ==0x10000 / ==0x400 / ==gpuA / ==gpuB, pre-commit
+// snapshot vs post-commit. New regions / new hits logged as [dsr5] and dumped
+// to Documents/dsrecon-post-*.bin. Tag [dsr5].
+#define D5_MAXREG 768
+#define D5_MAXHIT 2048
+#define D5_KIND_SZ 1
+#define D5_KIND_TG 2
+#define D5_KIND_GA 3
+#define D5_KIND_GB 4
+typedef struct {
+    uint64_t addr, sz;
+    uint64_t *hits;   // (kind << 56) | offset
+    int nh;
+    int trunc;
+} dsr5_reg;
+
+static void dsr5_scan_region(uint8_t *base, mach_vm_size_t sz, uint64_t gpuA,
+                             uint64_t gpuB, dsr5_reg *r) {
+    for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+        uint64_t q = *(uint64_t *)(base + o);
+        int kind = 0;
+        if (q == 0x10000) kind = D5_KIND_SZ;
+        else if (q == 0x400) kind = D5_KIND_TG;
+        else if (q == gpuA) kind = D5_KIND_GA;
+        else if (q == gpuB) kind = D5_KIND_GB;
+        if (kind) {
+            if (!r->hits) r->hits = malloc(D5_MAXHIT * 8);
+            if (r->nh < D5_MAXHIT) r->hits[r->nh++] = ((uint64_t)kind << 56) | (uint64_t)o;
+            else { r->trunc = 1; break; }
+        }
+    }
+}
+static int dsr5_vm_walk(uint64_t gpuA, uint64_t gpuB, dsr5_reg *regs) {
+    int n = 0;
+    mach_vm_address_t addr = 0;
+    while (n < D5_MAXREG) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+            dsr5_reg *r = &regs[n];
+            memset(r, 0, sizeof *r);
+            r->addr = addr; r->sz = sz;
+            dsr5_scan_region((uint8_t *)addr, sz, gpuA, gpuB, r);
+            n++;
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    return n;
+}
+// {gpuA,gpuB} pair within 0x100 bytes = DriverTable +0x60 {srcBase,dstBase}
+// signature; size qword near a GPUVA hit = the other half of the signature.
+static int dsr5_pairs(const dsr5_reg *r, int logit, const char *tag) {
+    int pairs = 0;
+    for (int i = 0; i < r->nh; i++) {
+        int ki = (int)(r->hits[i] >> 56);
+        uint64_t oi = r->hits[i] & 0xffffffffULL;
+        for (int j = i + 1; j < r->nh; j++) {
+            int kj = (int)(r->hits[j] >> 56);
+            uint64_t oj = r->hits[j] & 0xffffffffULL;
+            uint64_t d = oi > oj ? oi - oj : oj - oi;
+            if (d > 0x100) continue;
+            int ga = (ki == D5_KIND_GA || kj == D5_KIND_GA);
+            int gb = (ki == D5_KIND_GB || kj == D5_KIND_GB);
+            int szk = (ki == D5_KIND_SZ || kj == D5_KIND_SZ);
+            if ((ga && gb) || (szk && (ga || gb))) {
+                if (logit && pairs < 8)
+                    LOG("[dsr5] %s region 0x%llx cluster: kinds %d/%d off 0x%llx/0x%llx (d 0x%llx)%s",
+                        tag, r->addr, ki, kj, oi, oj, d, r->trunc ? " TRUNC" : "");
+                pairs++;
+            }
+        }
+    }
+    return pairs;
+}
+static void dsr5_free(dsr5_reg *regs, int n) {
+    for (int i = 0; i < n; i++) if (regs[i].hits) free(regs[i].hits);
+    free(regs);
+}
+static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsr5] N5: post-commit DriverTable hunt (blit 0x10000)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsr5] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    LOG("[dsr5] gpuA 0x%llx gpuB 0x%llx — pre-commit scan", gpuA, gpuB);
+    dsr5_reg *pre = calloc(D5_MAXREG, sizeof(dsr5_reg));
+    dsr5_reg *post = calloc(D5_MAXREG, sizeof(dsr5_reg));
+    int npre = dsr5_vm_walk(gpuA, gpuB, pre);
+    long hpre = 0;
+    for (int i = 0; i < npre; i++) hpre += pre[i].nh;
+    LOG("[dsr5] pre: %d regions, %ld hits", npre, hpre);
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsr5] committed status %ld — post-commit scan", (long)[cb status]);
+    int npost = dsr5_vm_walk(gpuA, gpuB, post);
+    long hpost = 0;
+    for (int i = 0; i < npost; i++) hpost += post[i].nh;
+    LOG("[dsr5] post: %d regions, %ld hits", npost, hpost);
+    int logn = 0, dumps = 0, gone = 0;
+    long nnew_total = 0;
+    for (int i = 0; i < npost; i++) {
+        dsr5_reg *r = &post[i];
+        dsr5_reg *p = NULL;
+        for (int j = 0; j < npre; j++) if (pre[j].addr == r->addr) { p = &pre[j]; break; }
+        int newreg = (p == NULL);
+        // count + log new hits (kind+offset absent from the pre hit set)
+        int nnew = 0;
+        for (int k = 0; k < r->nh; k++) {
+            uint64_t h = r->hits[k];
+            int isnew = 1;
+            if (!newreg) {
+                for (int m = 0; m < p->nh; m++)
+                    if (p->hits[m] == h) { isnew = 0; break; }
+            }
+            if (!isnew) continue;
+            nnew++;
+            if (logn < 200) {
+                LOG("[dsr5] %sregion 0x%llx%s +0x%llx kind %d%s",
+                    newreg ? "NEW " : "", r->addr, r->trunc ? "(trunc)" : "",
+                    h & 0xffffffffULL, (int)(h >> 56),
+                    (h >> 56) == D5_KIND_SZ ? " [size]" : (h >> 56) == D5_KIND_TG ? " [tgroups]" :
+                    (h >> 56) == D5_KIND_GA ? " [gpuA]" : " [gpuB]");
+                logn++;
+            }
+        }
+        nnew_total += nnew;
+        if (!nnew) continue;
+        if (newreg)
+            LOG("[dsr5] NEW REGION 0x%llx sz 0x%llx with %d hits%s",
+                r->addr, r->sz, r->nh, r->trunc ? " (trunc)" : "");
+        dsr5_pairs(r, 1, newreg ? "NEW" : "diff");
+        if (dumps < 16) {
+            uint64_t off0 = r->hits[0] & 0xffffffffULL;
+            for (int k = 0; k < r->nh; k++) {
+                uint64_t h = r->hits[k];
+                int isnew = 1;
+                if (!newreg) {
+                    for (int m = 0; m < p->nh; m++)
+                        if (p->hits[m] == h) { isnew = 0; break; }
+                }
+                if (isnew) { off0 = h & 0xffffffffULL; break; }
+            }
+            mach_vm_size_t start = off0 > 0x800 ? (off0 - 0x800) & ~(mach_vm_size_t)0xff : 0;
+            mach_vm_size_t len = r->sz - start;
+            if (len > 0x4000) len = 0x4000;
+            char nm[96];
+            snprintf(nm, sizeof nm, "dsrecon-post-0x%llx-0x%llx.bin", r->addr, (uint64_t)start);
+            dsr_write_file(docdir, nm, (uint8_t *)(uintptr_t)r->addr + start, (long)len);
+            dumps++;
+        }
+    }
+    for (int j = 0; j < npre; j++) {
+        int found = 0;
+        for (int i = 0; i < npost; i++) if (post[i].addr == pre[j].addr) { found = 1; break; }
+        if (!found && pre[j].nh) { if (gone < 20) LOG("[dsr5] region 0x%llx GONE (had %d hits)", pre[j].addr, pre[j].nh); gone++; }
+    }
+    LOG("[dsr5] done: new-hits %ld, new regions dumped %d, gone regions %d%s",
+        nnew_total, dumps, gone, logn >= 200 ? " (hit log truncated)" : "");
+    dsr5_free(pre, npre);
+    dsr5_free(post, npost);
 }
 
 // V90: GPU VM map via patched-blit read primitive. Patch the copy SOURCE

@@ -391,3 +391,16 @@ GPU read/write своих ресурсов, UAF write-after-free (stale TLB, к�
 наш), cross-process дестабилизация в тёплых окнах. Для kernel-примитива
 не хватает наблюдаемой порчи чужой kernel-структуры — все структуры в
 fault/restart-путях недосягаемы для спрея (kalloc_type/dedicated shmem).
+
+## 124. v133-v134: dsrecon N1/N2/N5 — параметризатор blit почти собран
+
+N1/N2 (results/dsrecon/, run-dsrecon6.log): параметрических поля ровно 3 сайта
+(pool0+0x14a0/+0x14a8 = GPUVA src/dst; seg+0x108 = rid-пары; seg+0x120 =
+sizeKB=size>>10, линейность проверена). kcmd — статический шаблон.
+N5 (run-dsrecon-n5.log): post-commit в нашей VM материализуется структура
+(регион 0x124400000, ~+0x3a1f0) с size/gpuA/gpuB; kext сам дописывает блок
++0x3e0..+0x408 в kcmd после сабмита (lo32 dst, size>>8) — в шаблоне эти поля
+не обязаны быть корректными. Следующее: досдамп окна + write-probe, затем N3
+(как kcmd находит структуру). Операционно: девайс-канал после серии крашей
+впадает в crash-loop throttle (FrontBoard user-quit 0xdeadfa11) — лечится
+паузой ~10 минут (ребут не нужен).
