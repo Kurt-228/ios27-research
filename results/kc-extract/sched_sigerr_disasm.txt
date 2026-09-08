@@ -1,0 +1,114 @@
+
+com_apple_iokit_IOGPUFamily.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe000aba6e24 <__ZN14IOGPUScheduler19signalHardwareErrorE15eRestartRequesti>:
+fffffe000aba6e24: d503237f     	pacibsp
+fffffe000aba6e28: d10203ff     	sub	sp, sp, #0x80
+fffffe000aba6e2c: a90367fa     	stp	x26, x25, [sp, #0x30]
+fffffe000aba6e30: a9045ff8     	stp	x24, x23, [sp, #0x40]
+fffffe000aba6e34: a90557f6     	stp	x22, x21, [sp, #0x50]
+fffffe000aba6e38: a9064ff4     	stp	x20, x19, [sp, #0x60]
+fffffe000aba6e3c: a9077bfd     	stp	x29, x30, [sp, #0x70]
+fffffe000aba6e40: 9101c3fd     	add	x29, sp, #0x70
+fffffe000aba6e44: aa0103f4     	mov	x20, x1
+fffffe000aba6e48: aa0003f3     	mov	x19, x0
+fffffe000aba6e4c: 52801117     	mov	w23, #0x88      ; =136
+fffffe000aba6e50: 72b0a137     	movk	w23, #0x8509, lsl #16
+fffffe000aba6e54: 52800028     	mov	w8, #0x1        ; =1
+fffffe000aba6e58: 1ac12118     	lsl	w24, w8, w1
+fffffe000aba6e5c: 2a0103f6     	mov	w22, w1
+fffffe000aba6e60: f940d808     	ldr	x8, [x0, #0x1b0]
+fffffe000aba6e64: b9424104     	ldr	w4, [x8, #0x240]
+fffffe000aba6e68: 6b04005f     	cmp	w2, w4
+fffffe000aba6e6c: 1a843048     	csel	w8, w2, w4, lo
+fffffe000aba6e70: 7100005f     	cmp	w2, #0x0
+fffffe000aba6e74: 1a88b09a     	csel	w26, w4, w8, lt
+fffffe000aba6e78: 93407f55     	sxtw	x21, w26
+fffffe000aba6e7c: f9408008     	ldr	x8, [x0, #0x100]
+fffffe000aba6e80: 387ac903     	ldrb	w3, [x8, w26, sxtw]
+fffffe000aba6e84: 52801100     	mov	w0, #0x88       ; =136
+fffffe000aba6e88: 72b0a120     	movk	w0, #0x8509, lsl #16
+fffffe000aba6e8c: aa1503e1     	mov	x1, x21
+fffffe000aba6e90: aa1603e2     	mov	x2, x22
+fffffe000aba6e94: d2800005     	mov	x5, #0x0        ; =0
+fffffe000aba6e98: 94008ac3     	bl	0xfffffe000abc99a4 <_vnio_read+0xfffffe000abc99a4>
+fffffe000aba6e9c: f9408268     	ldr	x8, [x19, #0x100]
+fffffe000aba6ea0: 387ac908     	ldrb	w8, [x8, w26, sxtw]
+fffffe000aba6ea4: f940da69     	ldr	x9, [x19, #0x1b0]
+fffffe000aba6ea8: b9424129     	ldr	w9, [x9, #0x240]
+fffffe000aba6eac: a901a7e8     	stp	x8, x9, [sp, #0x18]
+fffffe000aba6eb0: a900d3fa     	stp	x26, x20, [sp, #0x8]
+fffffe000aba6eb4: 90fe7739     	adrp	x25, 0xfffffe0007a8a000 <_vnio_read+0xfffffe0007a8a000>
+fffffe000aba6eb8: 913a6b39     	add	x25, x25, #0xe9a
+fffffe000aba6ebc: f90003f9     	str	x25, [sp]
+fffffe000aba6ec0: 90fe7700     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba6ec4: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba6ec8: b0fecd81     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba6ecc: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba6ed0: d0fe7743     	adrp	x3, 0xfffffe0007a90000 <__ZZN14IOGPUScheduler4initEP5IOGPUE11_os_log_fmt+0x5>
+fffffe000aba6ed4: 910e0463     	add	x3, x3, #0x381
+fffffe000aba6ed8: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba6edc: 94008a6e     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba6ee0: f9407e60     	ldr	x0, [x19, #0xf8]
+fffffe000aba6ee4: 940087ec     	bl	0xfffffe000abc8e94 <_vnio_read+0xfffffe000abc8e94>
+fffffe000aba6ee8: f9408268     	ldr	x8, [x19, #0x100]
+fffffe000aba6eec: 387ac909     	ldrb	w9, [x8, w26, sxtw]
+fffffe000aba6ef0: 6a09031f     	tst	w24, w9
+fffffe000aba6ef4: 54000180     	b.eq	0xfffffe000aba6f24 <__ZN14IOGPUScheduler19signalHardwareErrorE15eRestartRequesti+0x100>
+fffffe000aba6ef8: a900d3f5     	stp	x21, x20, [sp, #0x8]
+fffffe000aba6efc: f90003f9     	str	x25, [sp]
+fffffe000aba6f00: 90fe7700     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba6f04: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba6f08: b0fecd81     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba6f0c: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba6f10: d0fe7743     	adrp	x3, 0xfffffe0007a90000 <__ZZN14IOGPUScheduler4initEP5IOGPUE11_os_log_fmt+0x5>
+fffffe000aba6f14: 910fc863     	add	x3, x3, #0x3f2
+fffffe000aba6f18: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba6f1c: 94008a5e     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba6f20: 14000021     	b	0xfffffe000aba6fa4 <__ZN14IOGPUScheduler19signalHardwareErrorE15eRestartRequesti+0x180>
+fffffe000aba6f24: 2a180129     	orr	w9, w9, w24
+fffffe000aba6f28: 38356909     	strb	w9, [x8, x21]
+fffffe000aba6f2c: f9408660     	ldr	x0, [x19, #0x108]
+fffffe000aba6f30: f9400010     	ldr	x16, [x0]
+fffffe000aba6f34: aa0003f1     	mov	x17, x0
+fffffe000aba6f38: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000aba6f3c: dac11a30     	autda	x16, x17
+fffffe000aba6f40: d2803f11     	mov	x17, #0x1f8     ; =504
+fffffe000aba6f44: 8b110210     	add	x16, x16, x17
+fffffe000aba6f48: f9400208     	ldr	x8, [x16]
+fffffe000aba6f4c: d2800001     	mov	x1, #0x0        ; =0
+fffffe000aba6f50: d2800002     	mov	x2, #0x0        ; =0
+fffffe000aba6f54: 52800003     	mov	w3, #0x0        ; =0
+fffffe000aba6f58: f2f45190     	movk	x16, #0xa28c, lsl #48
+fffffe000aba6f5c: d73f0910     	blraa	x8, x16
+fffffe000aba6f60: 110012e0     	add	w0, w23, #0x4
+fffffe000aba6f64: aa1503e1     	mov	x1, x21
+fffffe000aba6f68: aa1603e2     	mov	x2, x22
+fffffe000aba6f6c: d2800003     	mov	x3, #0x0        ; =0
+fffffe000aba6f70: d2800004     	mov	x4, #0x0        ; =0
+fffffe000aba6f74: d2800005     	mov	x5, #0x0        ; =0
+fffffe000aba6f78: 94008a8b     	bl	0xfffffe000abc99a4 <_vnio_read+0xfffffe000abc99a4>
+fffffe000aba6f7c: a900d3f5     	stp	x21, x20, [sp, #0x8]
+fffffe000aba6f80: f90003f9     	str	x25, [sp]
+fffffe000aba6f84: 90fe7700     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba6f88: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba6f8c: b0fecd81     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba6f90: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba6f94: d0fe7743     	adrp	x3, 0xfffffe0007a90000 <__ZZN14IOGPUScheduler4initEP5IOGPUE11_os_log_fmt+0x5>
+fffffe000aba6f98: 910f1863     	add	x3, x3, #0x3c6
+fffffe000aba6f9c: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba6fa0: 94008a3d     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba6fa4: f9407e60     	ldr	x0, [x19, #0xf8]
+fffffe000aba6fa8: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+fffffe000aba6fac: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+fffffe000aba6fb0: a94557f6     	ldp	x22, x21, [sp, #0x50]
+fffffe000aba6fb4: a9445ff8     	ldp	x24, x23, [sp, #0x40]
+fffffe000aba6fb8: a94367fa     	ldp	x26, x25, [sp, #0x30]
+fffffe000aba6fbc: 910203ff     	add	sp, sp, #0x80
+fffffe000aba6fc0: d50323ff     	autibsp
+fffffe000aba6fc4: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe000aba6fc8: b6f00050     	tbz	x16, #0x3e, 0xfffffe000aba6fd0 <__ZN14IOGPUScheduler19signalHardwareErrorE15eRestartRequesti+0x1ac>
+fffffe000aba6fcc: d4388e20     	brk	#0xc471
+fffffe000aba6fd0: 140087c1     	b	0xfffffe000abc8ed4 <_vnio_read+0xfffffe000abc8ed4>

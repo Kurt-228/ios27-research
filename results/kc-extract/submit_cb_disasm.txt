@@ -1,0 +1,440 @@
+
+com_apple_iokit_IOGPUFamily.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe000abbe4ac <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs>:
+fffffe000abbe4ac: d503237f     	pacibsp
+fffffe000abbe4b0: d10303ff     	sub	sp, sp, #0xc0
+fffffe000abbe4b4: a9066ffc     	stp	x28, x27, [sp, #0x60]
+fffffe000abbe4b8: a90767fa     	stp	x26, x25, [sp, #0x70]
+fffffe000abbe4bc: a9085ff8     	stp	x24, x23, [sp, #0x80]
+fffffe000abbe4c0: a90957f6     	stp	x22, x21, [sp, #0x90]
+fffffe000abbe4c4: a90a4ff4     	stp	x20, x19, [sp, #0xa0]
+fffffe000abbe4c8: a90b7bfd     	stp	x29, x30, [sp, #0xb0]
+fffffe000abbe4cc: 9102c3fd     	add	x29, sp, #0xb0
+fffffe000abbe4d0: aa0103f7     	mov	x23, x1
+fffffe000abbe4d4: aa0003f6     	mov	x22, x0
+fffffe000abbe4d8: f9424400     	ldr	x0, [x0, #0x488]
+fffffe000abbe4dc: b9400021     	ldr	w1, [x1]
+fffffe000abbe4e0: 97ffaeec     	bl	0xfffffe000abaa090 <__ZNK11IOGPUDevice17retainDeviceShmemEj>
+fffffe000abbe4e4: aa0003f4     	mov	x20, x0
+fffffe000abbe4e8: b9400ae1     	ldr	w1, [x23, #0x8]
+fffffe000abbe4ec: 340000a1     	cbz	w1, 0xfffffe000abbe500 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x54>
+fffffe000abbe4f0: f94246c0     	ldr	x0, [x22, #0x488]
+fffffe000abbe4f4: 97ffaee7     	bl	0xfffffe000abaa090 <__ZNK11IOGPUDevice17retainDeviceShmemEj>
+fffffe000abbe4f8: aa0003f3     	mov	x19, x0
+fffffe000abbe4fc: 14000002     	b	0xfffffe000abbe504 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x58>
+fffffe000abbe500: d2800013     	mov	x19, #0x0       ; =0
+fffffe000abbe504: f94246c0     	ldr	x0, [x22, #0x488]
+fffffe000abbe508: b94006e1     	ldr	w1, [x23, #0x4]
+fffffe000abbe50c: 97ffaee1     	bl	0xfffffe000abaa090 <__ZNK11IOGPUDevice17retainDeviceShmemEj>
+fffffe000abbe510: aa0003f5     	mov	x21, x0
+fffffe000abbe514: f100029f     	cmp	x20, #0x0
+fffffe000abbe518: fa401804     	ccmp	x0, #0x0, #0x4, ne
+fffffe000abbe51c: 54000281     	b.ne	0xfffffe000abbe56c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0xc0>
+fffffe000abbe520: d0fe7668     	adrp	x8, 0xfffffe0007a8c000 <__ZL31_ZN15IOGPUChannel210iMetaClassD+0x175f>
+fffffe000abbe524: 91345108     	add	x8, x8, #0xd14
+fffffe000abbe528: f90003e8     	str	x8, [sp]
+fffffe000abbe52c: 90fe7640     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000abbe530: 912bc000     	add	x0, x0, #0xaf0
+fffffe000abbe534: b0feccc1     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000abbe538: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000abbe53c: 90fe76a3     	adrp	x3, 0xfffffe0007a92000 <__ZZN17IOGPUCommandQueue20processKernelCommandEPK18IOGPUKernelCommandS2_E11_os_log_fmt__17_+0x29>
+fffffe000abbe540: 911fec63     	add	x3, x3, #0x7fb
+fffffe000abbe544: 52800222     	mov	w2, #0x11       ; =17
+fffffe000abbe548: 94002cd3     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000abbe54c: 52800128     	mov	w8, #0x9        ; =9
+fffffe000abbe550: b90522c8     	str	w8, [x22, #0x520]
+fffffe000abbe554: aa1603e0     	mov	x0, x22
+fffffe000abbe558: 94000187     	bl	0xfffffe000abbeb74 <__ZN17IOGPUCommandQueue38release_command_buffer_resource_groupsEv>
+fffffe000abbe55c: b4002b34     	cbz	x20, 0xfffffe000abbeac0 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x614>
+fffffe000abbe560: aa1403fa     	mov	x26, x20
+fffffe000abbe564: f2f9b43a     	movk	x26, #0xcda1, lsl #48
+fffffe000abbe568: 14000150     	b	0xfffffe000abbeaa8 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x5fc>
+fffffe000abbe56c: aa1403e0     	mov	x0, x20
+fffffe000abbe570: 97ff5fba     	bl	0xfffffe000ab96458 <__ZN16IOGPUDeviceShmem4lockEv>
+fffffe000abbe574: aa1503e0     	mov	x0, x21
+fffffe000abbe578: 97ff5fb8     	bl	0xfffffe000ab96458 <__ZN16IOGPUDeviceShmem4lockEv>
+fffffe000abbe57c: b4000073     	cbz	x19, 0xfffffe000abbe588 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0xdc>
+fffffe000abbe580: aa1303e0     	mov	x0, x19
+fffffe000abbe584: 97ff5fb5     	bl	0xfffffe000ab96458 <__ZN16IOGPUDeviceShmem4lockEv>
+fffffe000abbe588: f94002b0     	ldr	x16, [x21]
+fffffe000abbe58c: aa1503f8     	mov	x24, x21
+fffffe000abbe590: f2f9b438     	movk	x24, #0xcda1, lsl #48
+fffffe000abbe594: aa1503f1     	mov	x17, x21
+fffffe000abbe598: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbe59c: dac11a30     	autda	x16, x17
+fffffe000abbe5a0: d2802d11     	mov	x17, #0x168     ; =360
+fffffe000abbe5a4: 8b110210     	add	x16, x16, x17
+fffffe000abbe5a8: f9400208     	ldr	x8, [x16]
+fffffe000abbe5ac: aa1503e0     	mov	x0, x21
+fffffe000abbe5b0: f2e8d3b0     	movk	x16, #0x469d, lsl #48
+fffffe000abbe5b4: d73f0910     	blraa	x8, x16
+fffffe000abbe5b8: b7f80560     	tbnz	x0, #0x3f, 0xfffffe000abbe664 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x1b8>
+fffffe000abbe5bc: aa0003f9     	mov	x25, x0
+fffffe000abbe5c0: f94002b0     	ldr	x16, [x21]
+fffffe000abbe5c4: dac11b10     	autda	x16, x24
+fffffe000abbe5c8: d2802c11     	mov	x17, #0x160     ; =352
+fffffe000abbe5cc: 8b110210     	add	x16, x16, x17
+fffffe000abbe5d0: f9400208     	ldr	x8, [x16]
+fffffe000abbe5d4: aa1503e0     	mov	x0, x21
+fffffe000abbe5d8: f2e9f0d0     	movk	x16, #0x4f86, lsl #48
+fffffe000abbe5dc: d73f0910     	blraa	x8, x16
+fffffe000abbe5e0: aa0003fc     	mov	x28, x0
+fffffe000abbe5e4: aa1403f1     	mov	x17, x20
+fffffe000abbe5e8: aa1403fa     	mov	x26, x20
+fffffe000abbe5ec: f2f9b43a     	movk	x26, #0xcda1, lsl #48
+fffffe000abbe5f0: f9400290     	ldr	x16, [x20]
+fffffe000abbe5f4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbe5f8: dac11a30     	autda	x16, x17
+fffffe000abbe5fc: aa1003f1     	mov	x17, x16
+fffffe000abbe600: dac147f1     	xpacd	x17
+fffffe000abbe604: eb11021f     	cmp	x16, x17
+fffffe000abbe608: 54000040     	b.eq	0xfffffe000abbe610 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x164>
+fffffe000abbe60c: d4388e40     	brk	#0xc472
+fffffe000abbe610: 91050208     	add	x8, x16, #0x140
+fffffe000abbe614: f940a209     	ldr	x9, [x16, #0x140]
+fffffe000abbe618: aa1403e0     	mov	x0, x20
+fffffe000abbe61c: aa0803f1     	mov	x17, x8
+fffffe000abbe620: f2f100f1     	movk	x17, #0x8807, lsl #48
+fffffe000abbe624: d73f0931     	blraa	x9, x17
+fffffe000abbe628: f9002fe0     	str	x0, [sp, #0x58]
+fffffe000abbe62c: b4000413     	cbz	x19, 0xfffffe000abbe6ac <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x200>
+fffffe000abbe630: f9400270     	ldr	x16, [x19]
+fffffe000abbe634: aa1303f1     	mov	x17, x19
+fffffe000abbe638: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbe63c: dac11a30     	autda	x16, x17
+fffffe000abbe640: d2802811     	mov	x17, #0x140     ; =320
+fffffe000abbe644: 8b110210     	add	x16, x16, x17
+fffffe000abbe648: f9400208     	ldr	x8, [x16]
+fffffe000abbe64c: aa1303e0     	mov	x0, x19
+fffffe000abbe650: f2f100f0     	movk	x16, #0x8807, lsl #48
+fffffe000abbe654: d73f0910     	blraa	x8, x16
+fffffe000abbe658: f100001f     	cmp	x0, #0x0
+fffffe000abbe65c: 1a9f17e8     	cset	w8, eq
+fffffe000abbe660: 14000014     	b	0xfffffe000abbe6b0 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x204>
+fffffe000abbe664: 52800128     	mov	w8, #0x9        ; =9
+fffffe000abbe668: b90522c8     	str	w8, [x22, #0x520]
+fffffe000abbe66c: aa1503e0     	mov	x0, x21
+fffffe000abbe670: 97ff5f7d     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbe674: f94002b0     	ldr	x16, [x21]
+fffffe000abbe678: dac11b10     	autda	x16, x24
+fffffe000abbe67c: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbe680: aa1503e0     	mov	x0, x21
+fffffe000abbe684: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000abbe688: d73f0910     	blraa	x8, x16
+fffffe000abbe68c: aa1403e0     	mov	x0, x20
+fffffe000abbe690: 97ff5f75     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbe694: f9400290     	ldr	x16, [x20]
+fffffe000abbe698: aa1403f1     	mov	x17, x20
+fffffe000abbe69c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbe6a0: dac11a30     	autda	x16, x17
+fffffe000abbe6a4: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbe6a8: 14000016     	b	0xfffffe000abbe700 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x254>
+fffffe000abbe6ac: 52800008     	mov	w8, #0x0        ; =0
+fffffe000abbe6b0: f100039f     	cmp	x28, #0x0
+fffffe000abbe6b4: f9402fe9     	ldr	x9, [sp, #0x58]
+fffffe000abbe6b8: fa401924     	ccmp	x9, #0x0, #0x4, ne
+fffffe000abbe6bc: 7a401900     	ccmp	w8, #0x0, #0x0, ne
+fffffe000abbe6c0: 54000300     	b.eq	0xfffffe000abbe720 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x274>
+fffffe000abbe6c4: 52800108     	mov	w8, #0x8        ; =8
+fffffe000abbe6c8: b90522c8     	str	w8, [x22, #0x520]
+fffffe000abbe6cc: aa1503e0     	mov	x0, x21
+fffffe000abbe6d0: 97ff5f65     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbe6d4: f94002b0     	ldr	x16, [x21]
+fffffe000abbe6d8: dac11b10     	autda	x16, x24
+fffffe000abbe6dc: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbe6e0: aa1503e0     	mov	x0, x21
+fffffe000abbe6e4: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000abbe6e8: d73f0910     	blraa	x8, x16
+fffffe000abbe6ec: aa1403e0     	mov	x0, x20
+fffffe000abbe6f0: 97ff5f5d     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbe6f4: f9400290     	ldr	x16, [x20]
+fffffe000abbe6f8: dac11b50     	autda	x16, x26
+fffffe000abbe6fc: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbe700: aa1403e0     	mov	x0, x20
+fffffe000abbe704: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000abbe708: d73f0910     	blraa	x8, x16
+fffffe000abbe70c: b40021d3     	cbz	x19, 0xfffffe000abbeb44 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x698>
+fffffe000abbe710: aa1303e0     	mov	x0, x19
+fffffe000abbe714: 97ff5f54     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbe718: aa1303f5     	mov	x21, x19
+fffffe000abbe71c: 140000f4     	b	0xfffffe000abbeaec <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x640>
+fffffe000abbe720: f940039b     	ldr	x27, [x28]
+fffffe000abbe724: f9020edb     	str	x27, [x22, #0x418]
+fffffe000abbe728: b9444ec8     	ldr	w8, [x22, #0x44c]
+fffffe000abbe72c: 7100051f     	cmp	w8, #0x1
+fffffe000abbe730: f9002bfc     	str	x28, [sp, #0x50]
+fffffe000abbe734: f9000ff7     	str	x23, [sp, #0x18]
+fffffe000abbe738: f90023f8     	str	x24, [sp, #0x40]
+fffffe000abbe73c: b9003fe8     	str	w8, [sp, #0x3c]
+fffffe000abbe740: 54000081     	b.ne	0xfffffe000abbe750 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x2a4>
+fffffe000abbe744: b94452c8     	ldr	w8, [x22, #0x450]
+fffffe000abbe748: 53185d08     	lsl	w8, w8, #8
+fffffe000abbe74c: 14000002     	b	0xfffffe000abbe754 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x2a8>
+fffffe000abbe750: 52804008     	mov	w8, #0x200      ; =512
+fffffe000abbe754: b9003be8     	str	w8, [sp, #0x38]
+fffffe000abbe758: b94456c8     	ldr	w8, [x22, #0x454]
+fffffe000abbe75c: b90037e8     	str	w8, [sp, #0x34]
+fffffe000abbe760: f942aadc     	ldr	x28, [x22, #0x550]
+fffffe000abbe764: f9429ac0     	ldr	x0, [x22, #0x530]
+fffffe000abbe768: 94002aeb     	bl	0xfffffe000abc9314 <_vnio_read+0xfffffe000abc9314>
+fffffe000abbe76c: aa0003e3     	mov	x3, x0
+fffffe000abbe770: 52800020     	mov	w0, #0x1        ; =1
+fffffe000abbe774: 72b0a120     	movk	w0, #0x8509, lsl #16
+fffffe000abbe778: aa1c03e1     	mov	x1, x28
+fffffe000abbe77c: aa1b03e2     	mov	x2, x27
+fffffe000abbe780: d2800004     	mov	x4, #0x0        ; =0
+fffffe000abbe784: d2800005     	mov	x5, #0x0        ; =0
+fffffe000abbe788: 94002c87     	bl	0xfffffe000abc99a4 <_vnio_read+0xfffffe000abc99a4>
+fffffe000abbe78c: f100433f     	cmp	x25, #0x10
+fffffe000abbe790: f9402bfc     	ldr	x28, [sp, #0x50]
+fffffe000abbe794: 540010e3     	b.lo	0xfffffe000abbe9b0 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x504>
+fffffe000abbe798: d2800017     	mov	x23, #0x0       ; =0
+fffffe000abbe79c: 5280014c     	mov	w12, #0xa       ; =10
+fffffe000abbe7a0: aa1c03f8     	mov	x24, x28
+fffffe000abbe7a4: f9000bfa     	str	x26, [sp, #0x10]
+fffffe000abbe7a8: 911722c8     	add	x8, x22, #0x5c8
+fffffe000abbe7ac: 38bfc108     	ldaprb	w8, [x8]
+fffffe000abbe7b0: 37000fc8     	tbnz	w8, #0x0, 0xfffffe000abbe9a8 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x4fc>
+fffffe000abbe7b4: cb1c0308     	sub	x8, x24, x28
+fffffe000abbe7b8: eb0802ff     	cmp	x23, x8
+fffffe000abbe7bc: 54001d61     	b.ne	0xfffffe000abbeb68 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x6bc>
+fffffe000abbe7c0: b9400f08     	ldr	w8, [x24, #0xc]
+fffffe000abbe7c4: 531f7d0d     	lsr	w13, w8, #31
+fffffe000abbe7c8: 531f7909     	lsl	w9, w8, #1
+fffffe000abbe7cc: 1200750a     	and	w10, w8, #0x3fffffff
+fffffe000abbe7d0: 7202011f     	tst	w8, #0x40000000
+fffffe000abbe7d4: 1a9f015b     	csel	w27, w10, wzr, eq
+fffffe000abbe7d8: 0a897d48     	and	w8, w10, w9, asr #31
+fffffe000abbe7dc: 7100091f     	cmp	w8, #0x2
+fffffe000abbe7e0: 540002c0     	b.eq	0xfffffe000abbe838 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x38c>
+fffffe000abbe7e4: 7100051f     	cmp	w8, #0x1
+fffffe000abbe7e8: 54000160     	b.eq	0xfffffe000abbe814 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x368>
+fffffe000abbe7ec: 35000888     	cbnz	w8, 0xfffffe000abbe8fc <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x450>
+fffffe000abbe7f0: 3400085b     	cbz	w27, 0xfffffe000abbe8f8 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x44c>
+fffffe000abbe7f4: 7100437f     	cmp	w27, #0x10
+fffffe000abbe7f8: 54000823     	b.lo	0xfffffe000abbe8fc <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x450>
+fffffe000abbe7fc: eb1b033f     	cmp	x25, x27
+fffffe000abbe800: 540007eb     	b.lt	0xfffffe000abbe8fc <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x450>
+fffffe000abbe804: b9004fed     	str	w13, [sp, #0x4c]
+fffffe000abbe808: aa1703e1     	mov	x1, x23
+fffffe000abbe80c: f90017f9     	str	x25, [sp, #0x28]
+fffffe000abbe810: 14000043     	b	0xfffffe000abbe91c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x470>
+fffffe000abbe814: b9400b1c     	ldr	w28, [x24, #0x8]
+fffffe000abbe818: d37df388     	lsl	x8, x28, #3
+fffffe000abbe81c: 91004108     	add	x8, x8, #0x10
+fffffe000abbe820: eb080339     	subs	x25, x25, x8
+fffffe000abbe824: 540000e2     	b.hs	0xfffffe000abbe840 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x394>
+fffffe000abbe828: d2800019     	mov	x25, #0x0       ; =0
+fffffe000abbe82c: b90522cc     	str	w12, [x22, #0x520]
+fffffe000abbe830: f9402bfc     	ldr	x28, [sp, #0x50]
+fffffe000abbe834: 1400004e     	b	0xfffffe000abbe96c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x4c0>
+fffffe000abbe838: d2800019     	mov	x25, #0x0       ; =0
+fffffe000abbe83c: 1400004c     	b	0xfffffe000abbe96c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x4c0>
+fffffe000abbe840: a9025fe8     	stp	x8, x23, [sp, #0x20]
+fffffe000abbe844: b9004fed     	str	w13, [sp, #0x4c]
+fffffe000abbe848: f9400290     	ldr	x16, [x20]
+fffffe000abbe84c: dac11b50     	autda	x16, x26
+fffffe000abbe850: d2802b11     	mov	x17, #0x158     ; =344
+fffffe000abbe854: 8b110210     	add	x16, x16, x17
+fffffe000abbe858: f9400208     	ldr	x8, [x16]
+fffffe000abbe85c: aa1403e0     	mov	x0, x20
+fffffe000abbe860: f2e648d0     	movk	x16, #0x3246, lsl #48
+fffffe000abbe864: d73f0910     	blraa	x8, x16
+fffffe000abbe868: 340003dc     	cbz	w28, 0xfffffe000abbe8e0 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x434>
+fffffe000abbe86c: aa0003fb     	mov	x27, x0
+fffffe000abbe870: d2800017     	mov	x23, #0x0       ; =0
+fffffe000abbe874: 9100431a     	add	x26, x24, #0x10
+fffffe000abbe878: d37df2e8     	lsl	x8, x23, #3
+fffffe000abbe87c: eb28c11f     	cmp	x8, w8, sxtw
+fffffe000abbe880: 8b28c349     	add	x9, x26, w8, sxtw
+fffffe000abbe884: 8b080350     	add	x16, x26, x8
+fffffe000abbe888: f2e575b0     	movk	x16, #0x2bad, lsl #48
+fffffe000abbe88c: 9a900129     	csel	x9, x9, x16, eq
+fffffe000abbe890: 29402528     	ldp	w8, w9, [x9]
+fffffe000abbe894: eb09037f     	cmp	x27, x9
+fffffe000abbe898: 7a49a102     	ccmp	w8, w9, #0x2, ge
+fffffe000abbe89c: 540001c8     	b.hi	0xfffffe000abbe8d4 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x428>
+fffffe000abbe8a0: f9402fea     	ldr	x10, [sp, #0x58]
+fffffe000abbe8a4: 8b080141     	add	x1, x10, x8
+fffffe000abbe8a8: 8b090142     	add	x2, x10, x9
+fffffe000abbe8ac: f94002d0     	ldr	x16, [x22]
+fffffe000abbe8b0: aa1603f1     	mov	x17, x22
+fffffe000abbe8b4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbe8b8: dac11a30     	autda	x16, x17
+fffffe000abbe8bc: d2803111     	mov	x17, #0x188     ; =392
+fffffe000abbe8c0: 8b110210     	add	x16, x16, x17
+fffffe000abbe8c4: f9400208     	ldr	x8, [x16]
+fffffe000abbe8c8: aa1603e0     	mov	x0, x22
+fffffe000abbe8cc: f2e00db0     	movk	x16, #0x6d, lsl #48
+fffffe000abbe8d0: d73f0910     	blraa	x8, x16
+fffffe000abbe8d4: 910006f7     	add	x23, x23, #0x1
+fffffe000abbe8d8: f100079c     	subs	x28, x28, #0x1
+fffffe000abbe8dc: 54fffce1     	b.ne	0xfffffe000abbe878 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x3cc>
+fffffe000abbe8e0: a9425fe8     	ldp	x8, x23, [sp, #0x20]
+fffffe000abbe8e4: 8b180118     	add	x24, x8, x24
+fffffe000abbe8e8: 8b170117     	add	x23, x8, x23
+fffffe000abbe8ec: f9400bfa     	ldr	x26, [sp, #0x10]
+fffffe000abbe8f0: f9402bfc     	ldr	x28, [sp, #0x50]
+fffffe000abbe8f4: 1400001c     	b	0xfffffe000abbe964 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x4b8>
+fffffe000abbe8f8: b4000097     	cbz	x23, 0xfffffe000abbe908 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x45c>
+fffffe000abbe8fc: d2800019     	mov	x25, #0x0       ; =0
+fffffe000abbe900: b90522cc     	str	w12, [x22, #0x520]
+fffffe000abbe904: 1400001a     	b	0xfffffe000abbe96c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x4c0>
+fffffe000abbe908: d2800001     	mov	x1, #0x0        ; =0
+fffffe000abbe90c: d280001b     	mov	x27, #0x0       ; =0
+fffffe000abbe910: f90017ff     	str	xzr, [sp, #0x28]
+fffffe000abbe914: 52800028     	mov	w8, #0x1        ; =1
+fffffe000abbe918: b9004fe8     	str	w8, [sp, #0x4c]
+fffffe000abbe91c: aa1503e0     	mov	x0, x21
+fffffe000abbe920: aa1903e2     	mov	x2, x25
+fffffe000abbe924: 97ff5e89     	bl	0xfffffe000ab96348 <__ZN16IOGPUDeviceShmem18setKernelDataRangeEmm>
+fffffe000abbe928: f94002d0     	ldr	x16, [x22]
+fffffe000abbe92c: aa1603f1     	mov	x17, x22
+fffffe000abbe930: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbe934: dac11a30     	autda	x16, x17
+fffffe000abbe938: d2802d11     	mov	x17, #0x168     ; =360
+fffffe000abbe93c: 8b110210     	add	x16, x16, x17
+fffffe000abbe940: f9400208     	ldr	x8, [x16]
+fffffe000abbe944: aa1603e0     	mov	x0, x22
+fffffe000abbe948: f9400fe1     	ldr	x1, [sp, #0x18]
+fffffe000abbe94c: f2e67710     	movk	x16, #0x33b8, lsl #48
+fffffe000abbe950: d73f0910     	blraa	x8, x16
+fffffe000abbe954: 8b180378     	add	x24, x27, x24
+fffffe000abbe958: 8b1b02f7     	add	x23, x23, x27
+fffffe000abbe95c: f94017e8     	ldr	x8, [sp, #0x28]
+fffffe000abbe960: cb1b0119     	sub	x25, x8, x27
+fffffe000abbe964: 5280014c     	mov	w12, #0xa       ; =10
+fffffe000abbe968: b9404fed     	ldr	w13, [sp, #0x4c]
+fffffe000abbe96c: b9403aa8     	ldr	w8, [x21, #0x38]
+fffffe000abbe970: 7100011f     	cmp	w8, #0x0
+fffffe000abbe974: 54000fcd     	b.le	0xfffffe000abbeb6c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x6c0>
+fffffe000abbe978: b9403a88     	ldr	w8, [x20, #0x38]
+fffffe000abbe97c: 7100011f     	cmp	w8, #0x0
+fffffe000abbe980: 54000f2d     	b.le	0xfffffe000abbeb64 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x6b8>
+fffffe000abbe984: b4000093     	cbz	x19, 0xfffffe000abbe994 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x4e8>
+fffffe000abbe988: b9403a68     	ldr	w8, [x19, #0x38]
+fffffe000abbe98c: 7100011f     	cmp	w8, #0x0
+fffffe000abbe990: 54000f0d     	b.le	0xfffffe000abbeb70 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x6c4>
+fffffe000abbe994: f1003f3f     	cmp	x25, #0xf
+fffffe000abbe998: 520001a8     	eor	w8, w13, #0x1
+fffffe000abbe99c: 1a8893e8     	csel	w8, wzr, w8, ls
+fffffe000abbe9a0: 3707f048     	tbnz	w8, #0x0, 0xfffffe000abbe7a8 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x2fc>
+fffffe000abbe9a4: 14000003     	b	0xfffffe000abbe9b0 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x504>
+fffffe000abbe9a8: 52800148     	mov	w8, #0xa        ; =10
+fffffe000abbe9ac: b90522c8     	str	w8, [x22, #0x520]
+fffffe000abbe9b0: 2946abe8     	ldp	w8, w10, [sp, #0x34]
+fffffe000abbe9b4: 53103d08     	lsl	w8, w8, #16
+fffffe000abbe9b8: b9403fe9     	ldr	w9, [sp, #0x3c]
+fffffe000abbe9bc: 2a090149     	orr	w9, w10, w9
+fffffe000abbe9c0: 2a090117     	orr	w23, w8, w9
+fffffe000abbe9c4: aa1503e0     	mov	x0, x21
+fffffe000abbe9c8: 97ff5e63     	bl	0xfffffe000ab96354 <__ZN16IOGPUDeviceShmem20resetKernelDataRangeEv>
+fffffe000abbe9cc: f94002b0     	ldr	x16, [x21]
+fffffe000abbe9d0: f94023e8     	ldr	x8, [sp, #0x40]
+fffffe000abbe9d4: dac11910     	autda	x16, x8
+fffffe000abbe9d8: d2802911     	mov	x17, #0x148     ; =328
+fffffe000abbe9dc: 8b110210     	add	x16, x16, x17
+fffffe000abbe9e0: f9400208     	ldr	x8, [x16]
+fffffe000abbe9e4: aa1503e0     	mov	x0, x21
+fffffe000abbe9e8: f2e25c90     	movk	x16, #0x12e4, lsl #48
+fffffe000abbe9ec: d73f0910     	blraa	x8, x16
+fffffe000abbe9f0: b40002f3     	cbz	x19, 0xfffffe000abbea4c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x5a0>
+fffffe000abbe9f4: f9400270     	ldr	x16, [x19]
+fffffe000abbe9f8: aa1303f1     	mov	x17, x19
+fffffe000abbe9fc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbea00: dac11a30     	autda	x16, x17
+fffffe000abbea04: d2802911     	mov	x17, #0x148     ; =328
+fffffe000abbea08: 8b110210     	add	x16, x16, x17
+fffffe000abbea0c: f9400208     	ldr	x8, [x16]
+fffffe000abbea10: aa1303e0     	mov	x0, x19
+fffffe000abbea14: f2e25c90     	movk	x16, #0x12e4, lsl #48
+fffffe000abbea18: d73f0910     	blraa	x8, x16
+fffffe000abbea1c: f9400290     	ldr	x16, [x20]
+fffffe000abbea20: dac11b50     	autda	x16, x26
+fffffe000abbea24: d2802911     	mov	x17, #0x148     ; =328
+fffffe000abbea28: 8b110210     	add	x16, x16, x17
+fffffe000abbea2c: f9400208     	ldr	x8, [x16]
+fffffe000abbea30: aa1403e0     	mov	x0, x20
+fffffe000abbea34: f2e25c90     	movk	x16, #0x12e4, lsl #48
+fffffe000abbea38: d73f0910     	blraa	x8, x16
+fffffe000abbea3c: aa1503e0     	mov	x0, x21
+fffffe000abbea40: 97ff5e89     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbea44: aa1303e0     	mov	x0, x19
+fffffe000abbea48: 1400000a     	b	0xfffffe000abbea70 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x5c4>
+fffffe000abbea4c: f9400290     	ldr	x16, [x20]
+fffffe000abbea50: dac11b50     	autda	x16, x26
+fffffe000abbea54: d2802911     	mov	x17, #0x148     ; =328
+fffffe000abbea58: 8b110210     	add	x16, x16, x17
+fffffe000abbea5c: f9400208     	ldr	x8, [x16]
+fffffe000abbea60: aa1403e0     	mov	x0, x20
+fffffe000abbea64: f2e25c90     	movk	x16, #0x12e4, lsl #48
+fffffe000abbea68: d73f0910     	blraa	x8, x16
+fffffe000abbea6c: aa1503e0     	mov	x0, x21
+fffffe000abbea70: 97ff5e7d     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbea74: aa1403e0     	mov	x0, x20
+fffffe000abbea78: 97ff5e7b     	bl	0xfffffe000ab96464 <__ZN16IOGPUDeviceShmem6unlockEv>
+fffffe000abbea7c: f942aac1     	ldr	x1, [x22, #0x550]
+fffffe000abbea80: b98492c3     	ldrsw	x3, [x22, #0x490]
+fffffe000abbea84: b94522c4     	ldr	w4, [x22, #0x520]
+fffffe000abbea88: 52800028     	mov	w8, #0x1        ; =1
+fffffe000abbea8c: 72b0a128     	movk	w8, #0x8509, lsl #16
+fffffe000abbea90: 11000500     	add	w0, w8, #0x1
+fffffe000abbea94: aa1703e2     	mov	x2, x23
+fffffe000abbea98: d2800005     	mov	x5, #0x0        ; =0
+fffffe000abbea9c: 94002bc2     	bl	0xfffffe000abc99a4 <_vnio_read+0xfffffe000abc99a4>
+fffffe000abbeaa0: aa1603e0     	mov	x0, x22
+fffffe000abbeaa4: 94000034     	bl	0xfffffe000abbeb74 <__ZN17IOGPUCommandQueue38release_command_buffer_resource_groupsEv>
+fffffe000abbeaa8: f9400290     	ldr	x16, [x20]
+fffffe000abbeaac: dac11b50     	autda	x16, x26
+fffffe000abbeab0: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbeab4: aa1403e0     	mov	x0, x20
+fffffe000abbeab8: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000abbeabc: d73f0910     	blraa	x8, x16
+fffffe000abbeac0: b4000133     	cbz	x19, 0xfffffe000abbeae4 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x638>
+fffffe000abbeac4: f9400270     	ldr	x16, [x19]
+fffffe000abbeac8: aa1303f1     	mov	x17, x19
+fffffe000abbeacc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbead0: dac11a30     	autda	x16, x17
+fffffe000abbead4: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbead8: aa1303e0     	mov	x0, x19
+fffffe000abbeadc: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000abbeae0: d73f0910     	blraa	x8, x16
+fffffe000abbeae4: aa1503f3     	mov	x19, x21
+fffffe000abbeae8: b40002f5     	cbz	x21, 0xfffffe000abbeb44 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x698>
+fffffe000abbeaec: f9400270     	ldr	x16, [x19]
+fffffe000abbeaf0: aa1503f1     	mov	x17, x21
+fffffe000abbeaf4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abbeaf8: dac11a30     	autda	x16, x17
+fffffe000abbeafc: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000abbeb00: aa1003e1     	mov	x1, x16
+fffffe000abbeb04: aa0803f0     	mov	x16, x8
+fffffe000abbeb08: aa1303e0     	mov	x0, x19
+fffffe000abbeb0c: a94b7bfd     	ldp	x29, x30, [sp, #0xb0]
+fffffe000abbeb10: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+fffffe000abbeb14: a94957f6     	ldp	x22, x21, [sp, #0x90]
+fffffe000abbeb18: a9485ff8     	ldp	x24, x23, [sp, #0x80]
+fffffe000abbeb1c: a94767fa     	ldp	x26, x25, [sp, #0x70]
+fffffe000abbeb20: a9466ffc     	ldp	x28, x27, [sp, #0x60]
+fffffe000abbeb24: 910303ff     	add	sp, sp, #0xc0
+fffffe000abbeb28: d50323ff     	autibsp
+fffffe000abbeb2c: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe000abbeb30: b6f00051     	tbz	x17, #0x3e, 0xfffffe000abbeb38 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs+0x68c>
+fffffe000abbeb34: d4388e20     	brk	#0xc471
+fffffe000abbeb38: aa0103f1     	mov	x17, x1
+fffffe000abbeb3c: f2e750f1     	movk	x17, #0x3a87, lsl #48
+fffffe000abbeb40: d71f0a11     	braa	x16, x17
+fffffe000abbeb44: a94b7bfd     	ldp	x29, x30, [sp, #0xb0]
+fffffe000abbeb48: a94a4ff4     	ldp	x20, x19, [sp, #0xa0]
+fffffe000abbeb4c: a94957f6     	ldp	x22, x21, [sp, #0x90]
+fffffe000abbeb50: a9485ff8     	ldp	x24, x23, [sp, #0x80]
+fffffe000abbeb54: a94767fa     	ldp	x26, x25, [sp, #0x70]
+fffffe000abbeb58: a9466ffc     	ldp	x28, x27, [sp, #0x60]
+fffffe000abbeb5c: 910303ff     	add	sp, sp, #0xc0
+fffffe000abbeb60: d65f0fff     	retab
+fffffe000abbeb64: 94002863     	bl	0xfffffe000abc8cf0 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs.cold.3>
+fffffe000abbeb68: 9400284c     	bl	0xfffffe000abc8c98 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs.cold.1>
+fffffe000abbeb6c: 9400286c     	bl	0xfffffe000abc8d1c <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs.cold.4>
+fffffe000abbeb70: 94002855     	bl	0xfffffe000abc8cc4 <__ZN17IOGPUCommandQueue19submitCommandBufferEPK34IOGPUCommandQueueCommandBufferArgs.cold.2>

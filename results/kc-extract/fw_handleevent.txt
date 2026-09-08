@@ -1,0 +1,186 @@
+
+com_apple_AGXG16G.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe0008b2530c <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex>:
+fffffe0008b2530c: d503237f     	pacibsp
+fffffe0008b25310: d10143ff     	sub	sp, sp, #0x50
+fffffe0008b25314: a9015ff8     	stp	x24, x23, [sp, #0x10]
+fffffe0008b25318: a90257f6     	stp	x22, x21, [sp, #0x20]
+fffffe0008b2531c: a9034ff4     	stp	x20, x19, [sp, #0x30]
+fffffe0008b25320: a9047bfd     	stp	x29, x30, [sp, #0x40]
+fffffe0008b25324: 910103fd     	add	x29, sp, #0x40
+fffffe0008b25328: 71000c3f     	cmp	w1, #0x3
+fffffe0008b2532c: 5400030c     	b.gt	0xfffffe0008b2538c <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x80>
+fffffe0008b25330: 51000428     	sub	w8, w1, #0x1
+fffffe0008b25334: 71000d1f     	cmp	w8, #0x3
+fffffe0008b25338: 54000622     	b.hs	0xfffffe0008b253fc <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0xf0>
+fffffe0008b2533c: f9410800     	ldr	x0, [x0, #0x210]
+fffffe0008b25340: f9400010     	ldr	x16, [x0]
+fffffe0008b25344: aa0003f1     	mov	x17, x0
+fffffe0008b25348: f2f6cf31     	movk	x17, #0xb679, lsl #48
+fffffe0008b2534c: dac11a30     	autda	x16, x17
+fffffe0008b25350: f8420e08     	ldr	x8, [x16, #0x20]!
+fffffe0008b25354: aa1003e1     	mov	x1, x16
+fffffe0008b25358: aa0803f0     	mov	x16, x8
+fffffe0008b2535c: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008b25360: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008b25364: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008b25368: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+fffffe0008b2536c: 910143ff     	add	sp, sp, #0x50
+fffffe0008b25370: d50323ff     	autibsp
+fffffe0008b25374: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008b25378: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008b25380 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x74>
+fffffe0008b2537c: d4388e20     	brk	#0xc471
+fffffe0008b25380: aa0103f1     	mov	x17, x1
+fffffe0008b25384: f2f58ab1     	movk	x17, #0xac55, lsl #48
+fffffe0008b25388: d71f0a11     	braa	x16, x17
+fffffe0008b2538c: 7100103f     	cmp	w1, #0x4
+fffffe0008b25390: 54000700     	b.eq	0xfffffe0008b25470 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x164>
+fffffe0008b25394: 7100183f     	cmp	w1, #0x6
+fffffe0008b25398: 54000b00     	b.eq	0xfffffe0008b254f8 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x1ec>
+fffffe0008b2539c: 71001c3f     	cmp	w1, #0x7
+fffffe0008b253a0: 54000941     	b.ne	0xfffffe0008b254c8 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x1bc>
+fffffe0008b253a4: f9413c00     	ldr	x0, [x0, #0x278]
+fffffe0008b253a8: f9400010     	ldr	x16, [x0]
+fffffe0008b253ac: aa0003f1     	mov	x17, x0
+fffffe0008b253b0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008b253b4: dac11a30     	autda	x16, x17
+fffffe0008b253b8: d2818a11     	mov	x17, #0xc50     ; =3152
+fffffe0008b253bc: 8b110210     	add	x16, x16, x17
+fffffe0008b253c0: f9400208     	ldr	x8, [x16]
+fffffe0008b253c4: aa1003e1     	mov	x1, x16
+fffffe0008b253c8: aa0803f0     	mov	x16, x8
+fffffe0008b253cc: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008b253d0: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008b253d4: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008b253d8: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+fffffe0008b253dc: 910143ff     	add	sp, sp, #0x50
+fffffe0008b253e0: d50323ff     	autibsp
+fffffe0008b253e4: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008b253e8: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008b253f0 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0xe4>
+fffffe0008b253ec: d4388e20     	brk	#0xc471
+fffffe0008b253f0: aa0103f1     	mov	x17, x1
+fffffe0008b253f4: f2fd2fd1     	movk	x17, #0xe97e, lsl #48
+fffffe0008b253f8: d71f0a11     	braa	x16, x17
+fffffe0008b253fc: 35000661     	cbnz	w1, 0xfffffe0008b254c8 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x1bc>
+fffffe0008b25400: f9413c08     	ldr	x8, [x0, #0x278]
+fffffe0008b25404: 395c1508     	ldrb	w8, [x8, #0x705]
+fffffe0008b25408: 36000348     	tbz	w8, #0x0, 0xfffffe0008b25470 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x164>
+fffffe0008b2540c: f9400010     	ldr	x16, [x0]
+fffffe0008b25410: aa0003f1     	mov	x17, x0
+fffffe0008b25414: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008b25418: dac11a30     	autda	x16, x17
+fffffe0008b2541c: d2806c11     	mov	x17, #0x360     ; =864
+fffffe0008b25420: 8b110210     	add	x16, x16, x17
+fffffe0008b25424: f9400208     	ldr	x8, [x16]
+fffffe0008b25428: aa0003f3     	mov	x19, x0
+fffffe0008b2542c: f2f97b70     	movk	x16, #0xcbdb, lsl #48
+fffffe0008b25430: d73f0910     	blraa	x8, x16
+fffffe0008b25434: 34000160     	cbz	w0, 0xfffffe0008b25460 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x154>
+fffffe0008b25438: f9413e60     	ldr	x0, [x19, #0x278]
+fffffe0008b2543c: f9400010     	ldr	x16, [x0]
+fffffe0008b25440: aa0003f1     	mov	x17, x0
+fffffe0008b25444: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008b25448: dac11a30     	autda	x16, x17
+fffffe0008b2544c: d2818811     	mov	x17, #0xc40     ; =3136
+fffffe0008b25450: 8b110210     	add	x16, x16, x17
+fffffe0008b25454: f9400208     	ldr	x8, [x16]
+fffffe0008b25458: f2f0efd0     	movk	x16, #0x877e, lsl #48
+fffffe0008b2545c: d73f0910     	blraa	x8, x16
+fffffe0008b25460: d001fa88     	adrp	x8, 0xfffffe000ca77000 <__ZL29gPPMRegisterClientFunctionKey.6705>
+fffffe0008b25464: 39542508     	ldrb	w8, [x8, #0x509]
+fffffe0008b25468: aa1303e0     	mov	x0, x19
+fffffe0008b2546c: 37080ac8     	tbnz	w8, #0x1, 0xfffffe0008b255c4 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x2b8>
+fffffe0008b25470: f9400010     	ldr	x16, [x0]
+fffffe0008b25474: aa0003f1     	mov	x17, x0
+fffffe0008b25478: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008b2547c: dac11a30     	autda	x16, x17
+fffffe0008b25480: d2811311     	mov	x17, #0x898     ; =2200
+fffffe0008b25484: 8b110210     	add	x16, x16, x17
+fffffe0008b25488: f9400208     	ldr	x8, [x16]
+fffffe0008b2548c: aa0003f3     	mov	x19, x0
+fffffe0008b25490: f2fc3750     	movk	x16, #0xe1ba, lsl #48
+fffffe0008b25494: d73f0910     	blraa	x8, x16
+fffffe0008b25498: aa1303e0     	mov	x0, x19
+fffffe0008b2549c: 52800021     	mov	w1, #0x1        ; =1
+fffffe0008b254a0: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008b254a4: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008b254a8: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008b254ac: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+fffffe0008b254b0: 910143ff     	add	sp, sp, #0x50
+fffffe0008b254b4: d50323ff     	autibsp
+fffffe0008b254b8: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe0008b254bc: b6f00050     	tbz	x16, #0x3e, 0xfffffe0008b254c4 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x1b8>
+fffffe0008b254c0: d4388e20     	brk	#0xc471
+fffffe0008b254c4: 14000046     	b	0xfffffe0008b255dc <__ZN11AGXFirmware18drainFirmwareRingsEb>
+fffffe0008b254c8: b0ff3100     	adrp	x0, 0xfffffe0007146000 <_vsnprintf+0xfffffe0007146000>
+fffffe0008b254cc: 913fe000     	add	x0, x0, #0xff8
+fffffe0008b254d0: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008b254d4: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008b254d8: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008b254dc: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+fffffe0008b254e0: 910143ff     	add	sp, sp, #0x50
+fffffe0008b254e4: d50323ff     	autibsp
+fffffe0008b254e8: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe0008b254ec: b6f00050     	tbz	x16, #0x3e, 0xfffffe0008b254f4 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x1e8>
+fffffe0008b254f0: d4388e20     	brk	#0xc471
+fffffe0008b254f4: 14021233     	b	0xfffffe0008ba9dc0 <_vsnprintf+0xfffffe0008ba9dc0>
+fffffe0008b254f8: b9000fff     	str	wzr, [sp, #0xc]
+fffffe0008b254fc: aa0003f3     	mov	x19, x0
+fffffe0008b25500: f9413c00     	ldr	x0, [x0, #0x278]
+fffffe0008b25504: f9400010     	ldr	x16, [x0]
+fffffe0008b25508: aa0003f1     	mov	x17, x0
+fffffe0008b2550c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008b25510: dac11a30     	autda	x16, x17
+fffffe0008b25514: d2818911     	mov	x17, #0xc48     ; =3144
+fffffe0008b25518: 8b110210     	add	x16, x16, x17
+fffffe0008b2551c: f9400208     	ldr	x8, [x16]
+fffffe0008b25520: 910033e1     	add	x1, sp, #0xc
+fffffe0008b25524: f2e72ef0     	movk	x16, #0x3977, lsl #48
+fffffe0008b25528: d73f0910     	blraa	x8, x16
+fffffe0008b2552c: 340004c0     	cbz	w0, 0xfffffe0008b255c4 <__ZN11AGXFirmware11handleEventE17AGXInterruptIndex+0x2b8>
+fffffe0008b25530: f9413e73     	ldr	x19, [x19, #0x278]
+fffffe0008b25534: 91404674     	add	x20, x19, #0x11, lsl #12 ; =0x11000
+fffffe0008b25538: b9400ff5     	ldr	w21, [sp, #0xc]
+fffffe0008b2553c: 92401eb6     	and	x22, x21, #0xff
+fffffe0008b25540: f9460e80     	ldr	x0, [x20, #0xc18]
+fffffe0008b25544: 940211ab     	bl	0xfffffe0008ba9bf0 <_vsnprintf+0xfffffe0008ba9bf0>
+fffffe0008b25548: f9461288     	ldr	x8, [x20, #0xc20]
+fffffe0008b2554c: f942a909     	ldr	x9, [x8, #0x550]
+fffffe0008b25550: 9140466a     	add	x10, x19, #0x11, lsl #12 ; =0x11000
+fffffe0008b25554: 9131214a     	add	x10, x10, #0xc48
+fffffe0008b25558: 8b3506cb     	add	x11, x22, w21, uxtb #1
+fffffe0008b2555c: 8b0b1557     	add	x23, x10, x11, lsl #5
+fffffe0008b25560: b876793f     	ldr	wzr, [x9, x22, lsl #2]
+fffffe0008b25564: f940a100     	ldr	x0, [x8, #0x140]
+fffffe0008b25568: 910022e1     	add	x1, x23, #0x8
+fffffe0008b2556c: 940216f5     	bl	0xfffffe0008bab140 <_vsnprintf+0xfffffe0008bab140>
+fffffe0008b25570: 91405e68     	add	x8, x19, #0x17, lsl #12 ; =0x17000
+fffffe0008b25574: 9131a108     	add	x8, x8, #0xc68
+fffffe0008b25578: 52800029     	mov	w9, #0x1        ; =1
+fffffe0008b2557c: 9ad52136     	lsl	x22, x9, x21
+fffffe0008b25580: d343fea9     	lsr	x9, x21, #3
+fffffe0008b25584: 927d0535     	and	x21, x9, #0x18
+fffffe0008b25588: f8756909     	ldr	x9, [x8, x21]
+fffffe0008b2558c: 8a360129     	bic	x9, x9, x22
+fffffe0008b25590: f8356909     	str	x9, [x8, x21]
+fffffe0008b25594: b9004aff     	str	wzr, [x23, #0x48]
+fffffe0008b25598: b90002ff     	str	wzr, [x23]
+fffffe0008b2559c: f9002aff     	str	xzr, [x23, #0x50]
+fffffe0008b255a0: 910022e0     	add	x0, x23, #0x8
+fffffe0008b255a4: 9402143f     	bl	0xfffffe0008baa6a0 <_vsnprintf+0xfffffe0008baa6a0>
+fffffe0008b255a8: 91405e68     	add	x8, x19, #0x17, lsl #12 ; =0x17000
+fffffe0008b255ac: 91312108     	add	x8, x8, #0xc48
+fffffe0008b255b0: f8756909     	ldr	x9, [x8, x21]
+fffffe0008b255b4: aa160129     	orr	x9, x9, x22
+fffffe0008b255b8: f8356909     	str	x9, [x8, x21]
+fffffe0008b255bc: f9460e80     	ldr	x0, [x20, #0xc18]
+fffffe0008b255c0: 9402119c     	bl	0xfffffe0008ba9c30 <_vsnprintf+0xfffffe0008ba9c30>
+fffffe0008b255c4: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008b255c8: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008b255cc: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008b255d0: a9415ff8     	ldp	x24, x23, [sp, #0x10]
+fffffe0008b255d4: 910143ff     	add	sp, sp, #0x50
+fffffe0008b255d8: d65f0fff     	retab

@@ -28,3 +28,8 @@ results/panics-*/
 
 # raw idevicecrashreport dumps (unrelated system reports, hundreds of MB)
 results/crashes-*/
+
+# kc-extract: regenerable binaries/full disasms (commit only scripts + focused excerpts)
+results/kc-extract/*.kc
+results/kc-extract/*.macho
+results/kc-extract/*_full_disasm.txt

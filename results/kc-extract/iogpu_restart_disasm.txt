@@ -1,0 +1,36 @@
+
+com_apple_iokit_IOGPUFamily.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe000abba5ac <__ZN5IOGPU7restartEv>:
+fffffe000abba5ac: d503237f     	pacibsp
+fffffe000abba5b0: d10083ff     	sub	sp, sp, #0x20
+fffffe000abba5b4: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe000abba5b8: 910043fd     	add	x29, sp, #0x10
+fffffe000abba5bc: f9409c00     	ldr	x0, [x0, #0x138]
+fffffe000abba5c0: b4000160     	cbz	x0, 0xfffffe000abba5ec <__ZN5IOGPU7restartEv+0x40>
+fffffe000abba5c4: f9400010     	ldr	x16, [x0]
+fffffe000abba5c8: aa0003f1     	mov	x17, x0
+fffffe000abba5cc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000abba5d0: dac11a30     	autda	x16, x17
+fffffe000abba5d4: d2802d11     	mov	x17, #0x168     ; =360
+fffffe000abba5d8: 8b110210     	add	x16, x16, x17
+fffffe000abba5dc: f9400208     	ldr	x8, [x16]
+fffffe000abba5e0: f2e530f0     	movk	x16, #0x2987, lsl #48
+fffffe000abba5e4: d73f0910     	blraa	x8, x16
+fffffe000abba5e8: 14000003     	b	0xfffffe000abba5f4 <__ZN5IOGPU7restartEv+0x48>
+fffffe000abba5ec: b0fe7660     	adrp	x0, 0xfffffe0007a87000 <_vnio_read+0xfffffe0007a87000>
+fffffe000abba5f0: 91258000     	add	x0, x0, #0x960
+fffffe000abba5f4: f90003e0     	str	x0, [sp]
+fffffe000abba5f8: 90fe7660     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000abba5fc: 912bc000     	add	x0, x0, #0xaf0
+fffffe000abba600: b0fecce1     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000abba604: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000abba608: f0fe76a3     	adrp	x3, 0xfffffe0007a91000 <__ZZN5IOGPU5startEP9IOServiceE11_os_log_fmt__14_+0x5>
+fffffe000abba60c: 91147063     	add	x3, x3, #0x51c
+fffffe000abba610: 52800222     	mov	w2, #0x11       ; =17
+fffffe000abba614: 94003ca0     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000abba618: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe000abba61c: 910083ff     	add	sp, sp, #0x20
+fffffe000abba620: d65f0fff     	retab

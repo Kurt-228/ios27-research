@@ -1,0 +1,220 @@
+
+com_apple_iokit_IOGPUFamily.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe000aba1b00 <__ZN14IOGPUWorkQueue7restartEv>:
+fffffe000aba1b00: d503237f     	pacibsp
+fffffe000aba1b04: d10183ff     	sub	sp, sp, #0x60
+fffffe000aba1b08: a9025ff8     	stp	x24, x23, [sp, #0x20]
+fffffe000aba1b0c: a90357f6     	stp	x22, x21, [sp, #0x30]
+fffffe000aba1b10: a9044ff4     	stp	x20, x19, [sp, #0x40]
+fffffe000aba1b14: a9057bfd     	stp	x29, x30, [sp, #0x50]
+fffffe000aba1b18: 910143fd     	add	x29, sp, #0x50
+fffffe000aba1b1c: aa0003f3     	mov	x19, x0
+fffffe000aba1b20: f9400010     	ldr	x16, [x0]
+fffffe000aba1b24: aa0003f1     	mov	x17, x0
+fffffe000aba1b28: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000aba1b2c: dac11a30     	autda	x16, x17
+fffffe000aba1b30: d2802a11     	mov	x17, #0x150     ; =336
+fffffe000aba1b34: 8b110210     	add	x16, x16, x17
+fffffe000aba1b38: f9400208     	ldr	x8, [x16]
+fffffe000aba1b3c: f2f0c1f0     	movk	x16, #0x860f, lsl #48
+fffffe000aba1b40: d73f0910     	blraa	x8, x16
+fffffe000aba1b44: 34000460     	cbz	w0, 0xfffffe000aba1bd0 <__ZN14IOGPUWorkQueue7restartEv+0xd0>
+fffffe000aba1b48: b0fe7754     	adrp	x20, 0xfffffe0007a8a000 <_vnio_read+0xfffffe0007a8a000>
+fffffe000aba1b4c: 912a9a94     	add	x20, x20, #0xaa6
+fffffe000aba1b50: f90003f4     	str	x20, [sp]
+fffffe000aba1b54: b0fe7720     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba1b58: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba1b5c: d0fecda1     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba1b60: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba1b64: d0fe7763     	adrp	x3, 0xfffffe0007a8f000 <__ZZN13IOGPUResource24newResourceWithIOSurfaceEP5IOGPUP11IOGPUDeviceP9IOSurfacejjE11_os_log_fmt_1+0x33>
+fffffe000aba1b68: 913da463     	add	x3, x3, #0xf69
+fffffe000aba1b6c: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba1b70: 94009f49     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba1b74: f9402268     	ldr	x8, [x19, #0x40]
+fffffe000aba1b78: b40004c8     	cbz	x8, 0xfffffe000aba1c10 <__ZN14IOGPUWorkQueue7restartEv+0x110>
+fffffe000aba1b7c: f9406268     	ldr	x8, [x19, #0xc0]
+fffffe000aba1b80: b9423108     	ldr	w8, [x8, #0x230]
+fffffe000aba1b84: 37f80468     	tbnz	w8, #0x1f, 0xfffffe000aba1c10 <__ZN14IOGPUWorkQueue7restartEv+0x110>
+fffffe000aba1b88: 52801300     	mov	w0, #0x98       ; =152
+fffffe000aba1b8c: 72b0a120     	movk	w0, #0x8509, lsl #16
+fffffe000aba1b90: d2800001     	mov	x1, #0x0        ; =0
+fffffe000aba1b94: 92800002     	mov	x2, #-0x1       ; =-1
+fffffe000aba1b98: d2800003     	mov	x3, #0x0        ; =0
+fffffe000aba1b9c: d2800004     	mov	x4, #0x0        ; =0
+fffffe000aba1ba0: d2800005     	mov	x5, #0x0        ; =0
+fffffe000aba1ba4: 94009f80     	bl	0xfffffe000abc99a4 <_vnio_read+0xfffffe000abc99a4>
+fffffe000aba1ba8: f90003f4     	str	x20, [sp]
+fffffe000aba1bac: b0fe7720     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba1bb0: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba1bb4: d0fecda1     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba1bb8: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba1bbc: d0fe7763     	adrp	x3, 0xfffffe0007a8f000 <__ZZN13IOGPUResource24newResourceWithIOSurfaceEP5IOGPUP11IOGPUDeviceP9IOSurfacejjE11_os_log_fmt_1+0x33>
+fffffe000aba1bc0: 913e7863     	add	x3, x3, #0xf9e
+fffffe000aba1bc4: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba1bc8: 94009f33     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba1bcc: 1400008a     	b	0xfffffe000aba1df4 <__ZN14IOGPUWorkQueue7restartEv+0x2f4>
+fffffe000aba1bd0: f9402e68     	ldr	x8, [x19, #0x58]
+fffffe000aba1bd4: 91012269     	add	x9, x19, #0x48
+fffffe000aba1bd8: 88dffd29     	ldar	w9, [x9]
+fffffe000aba1bdc: b940566a     	ldr	w10, [x19, #0x54]
+fffffe000aba1be0: 1aca092b     	udiv	w11, w9, w10
+fffffe000aba1be4: 1b0aa569     	msub	w9, w11, w10, w9
+fffffe000aba1be8: d37d7d29     	ubfiz	x9, x9, #3, #32
+fffffe000aba1bec: eb29c13f     	cmp	x9, w9, sxtw
+fffffe000aba1bf0: 8b29c10a     	add	x10, x8, w9, sxtw
+fffffe000aba1bf4: 8b090110     	add	x16, x8, x9
+fffffe000aba1bf8: f2e575b0     	movk	x16, #0x2bad, lsl #48
+fffffe000aba1bfc: 9a90014a     	csel	x10, x10, x16, eq
+fffffe000aba1c00: f9400148     	ldr	x8, [x10]
+fffffe000aba1c04: f9408116     	ldr	x22, [x8, #0x100]
+fffffe000aba1c08: a9466114     	ldp	x20, x24, [x8, #0x60]
+fffffe000aba1c0c: 1400000d     	b	0xfffffe000aba1c40 <__ZN14IOGPUWorkQueue7restartEv+0x140>
+fffffe000aba1c10: f90003f4     	str	x20, [sp]
+fffffe000aba1c14: b0fe7720     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba1c18: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba1c1c: d0fecda1     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba1c20: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba1c24: d0fe7763     	adrp	x3, 0xfffffe0007a8f000 <__ZZN13IOGPUResource24newResourceWithIOSurfaceEP5IOGPUP11IOGPUDeviceP9IOSurfacejjE11_os_log_fmt_1+0x33>
+fffffe000aba1c28: 913ed463     	add	x3, x3, #0xfb5
+fffffe000aba1c2c: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba1c30: 94009f19     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba1c34: d2800018     	mov	x24, #0x0       ; =0
+fffffe000aba1c38: d2800016     	mov	x22, #0x0       ; =0
+fffffe000aba1c3c: d2800014     	mov	x20, #0x0       ; =0
+fffffe000aba1c40: aa1303f7     	mov	x23, x19
+fffffe000aba1c44: f2f9b437     	movk	x23, #0xcda1, lsl #48
+fffffe000aba1c48: b9001fff     	str	wzr, [sp, #0x1c]
+fffffe000aba1c4c: f9000bff     	str	xzr, [sp, #0x10]
+fffffe000aba1c50: f9400270     	ldr	x16, [x19]
+fffffe000aba1c54: dac11af0     	autda	x16, x23
+fffffe000aba1c58: d2803011     	mov	x17, #0x180     ; =384
+fffffe000aba1c5c: 8b110210     	add	x16, x16, x17
+fffffe000aba1c60: f9400208     	ldr	x8, [x16]
+fffffe000aba1c64: 910073e1     	add	x1, sp, #0x1c
+fffffe000aba1c68: 910043e2     	add	x2, sp, #0x10
+fffffe000aba1c6c: aa1303e0     	mov	x0, x19
+fffffe000aba1c70: f2e48850     	movk	x16, #0x2442, lsl #48
+fffffe000aba1c74: d73f0910     	blraa	x8, x16
+fffffe000aba1c78: aa0003f5     	mov	x21, x0
+fffffe000aba1c7c: b4000140     	cbz	x0, 0xfffffe000aba1ca4 <__ZN14IOGPUWorkQueue7restartEv+0x1a4>
+fffffe000aba1c80: f90003f5     	str	x21, [sp]
+fffffe000aba1c84: b0fe7720     	adrp	x0, 0xfffffe0007a86000 <_vnio_read+0xfffffe0007a86000>
+fffffe000aba1c88: 912bc000     	add	x0, x0, #0xaf0
+fffffe000aba1c8c: d0fecda1     	adrp	x1, 0xfffffe0008557000 <_vnio_read+0xfffffe0008557000>
+fffffe000aba1c90: f941cc21     	ldr	x1, [x1, #0x398]
+fffffe000aba1c94: d0fe7763     	adrp	x3, 0xfffffe0007a8f000 <__ZZN13IOGPUResource24newResourceWithIOSurfaceEP5IOGPUP11IOGPUDeviceP9IOSurfacejjE11_os_log_fmt_1+0x33>
+fffffe000aba1c98: 913fb063     	add	x3, x3, #0xfec
+fffffe000aba1c9c: 52800222     	mov	w2, #0x11       ; =17
+fffffe000aba1ca0: 94009efd     	bl	0xfffffe000abc9894 <_vnio_read+0xfffffe000abc9894>
+fffffe000aba1ca4: f9406268     	ldr	x8, [x19, #0xc0]
+fffffe000aba1ca8: f9409d00     	ldr	x0, [x8, #0x138]
+fffffe000aba1cac: b4000160     	cbz	x0, 0xfffffe000aba1cd8 <__ZN14IOGPUWorkQueue7restartEv+0x1d8>
+fffffe000aba1cb0: f9400010     	ldr	x16, [x0]
+fffffe000aba1cb4: aa0003f1     	mov	x17, x0
+fffffe000aba1cb8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000aba1cbc: dac11a30     	autda	x16, x17
+fffffe000aba1cc0: d2802d11     	mov	x17, #0x168     ; =360
+fffffe000aba1cc4: 8b110210     	add	x16, x16, x17
+fffffe000aba1cc8: f9400208     	ldr	x8, [x16]
+fffffe000aba1ccc: f2e530f0     	movk	x16, #0x2987, lsl #48
+fffffe000aba1cd0: d73f0910     	blraa	x8, x16
+fffffe000aba1cd4: 14000003     	b	0xfffffe000aba1ce0 <__ZN14IOGPUWorkQueue7restartEv+0x1e0>
+fffffe000aba1cd8: d0fe7720     	adrp	x0, 0xfffffe0007a87000 <_vnio_read+0xfffffe0007a87000>
+fffffe000aba1cdc: 91258000     	add	x0, x0, #0x960
+fffffe000aba1ce0: f90003e0     	str	x0, [sp]
+fffffe000aba1ce4: b0fe7740     	adrp	x0, 0xfffffe0007a8a000 <_vnio_read+0xfffffe0007a8a000>
+fffffe000aba1ce8: 912b3400     	add	x0, x0, #0xacd
+fffffe000aba1cec: 94009c82     	bl	0xfffffe000abc8ef4 <_vnio_read+0xfffffe000abc8ef4>
+fffffe000aba1cf0: b9401fe8     	ldr	w8, [sp, #0x1c]
+fffffe000aba1cf4: 35000108     	cbnz	w8, 0xfffffe000aba1d14 <__ZN14IOGPUWorkQueue7restartEv+0x214>
+fffffe000aba1cf8: f9400a68     	ldr	x8, [x19, #0x10]
+fffffe000aba1cfc: b940f108     	ldr	w8, [x8, #0xf0]
+fffffe000aba1d00: 51000908     	sub	w8, w8, #0x2
+fffffe000aba1d04: 71000d1f     	cmp	w8, #0x3
+fffffe000aba1d08: 52800048     	mov	w8, #0x2        ; =2
+fffffe000aba1d0c: 1a883508     	cinc	w8, w8, hs
+fffffe000aba1d10: b9001fe8     	str	w8, [sp, #0x1c]
+fffffe000aba1d14: f9406269     	ldr	x9, [x19, #0xc0]
+fffffe000aba1d18: 3948f129     	ldrb	w9, [x9, #0x23c]
+fffffe000aba1d1c: 370809c9     	tbnz	w9, #0x1, 0xfffffe000aba1e54 <__ZN14IOGPUWorkQueue7restartEv+0x354>
+fffffe000aba1d20: b4000778     	cbz	x24, 0xfffffe000aba1e0c <__ZN14IOGPUWorkQueue7restartEv+0x30c>
+fffffe000aba1d24: b900cb08     	str	w8, [x24, #0xc8]
+fffffe000aba1d28: f9406260     	ldr	x0, [x19, #0xc0]
+fffffe000aba1d2c: b9401fe3     	ldr	w3, [sp, #0x1c]
+fffffe000aba1d30: aa1403e1     	mov	x1, x20
+fffffe000aba1d34: aa1503e2     	mov	x2, x21
+fffffe000aba1d38: aa1603e4     	mov	x4, x22
+fffffe000aba1d3c: 940057dd     	bl	0xfffffe000abb7cb0 <__ZN5IOGPU16reportGPURestartEPK17IOGPUCommandQueuePKcjy>
+fffffe000aba1d40: b4000414     	cbz	x20, 0xfffffe000aba1dc0 <__ZN14IOGPUWorkQueue7restartEv+0x2c0>
+fffffe000aba1d44: 91012268     	add	x8, x19, #0x48
+fffffe000aba1d48: 88dffd16     	ldar	w22, [x8]
+fffffe000aba1d4c: 91013268     	add	x8, x19, #0x4c
+fffffe000aba1d50: 88dffd08     	ldar	w8, [x8]
+fffffe000aba1d54: 6b0802df     	cmp	w22, w8
+fffffe000aba1d58: 54000340     	b.eq	0xfffffe000aba1dc0 <__ZN14IOGPUWorkQueue7restartEv+0x2c0>
+fffffe000aba1d5c: f9402e68     	ldr	x8, [x19, #0x58]
+fffffe000aba1d60: b9405669     	ldr	w9, [x19, #0x54]
+fffffe000aba1d64: 1ac90aca     	udiv	w10, w22, w9
+fffffe000aba1d68: 1b09d949     	msub	w9, w10, w9, w22
+fffffe000aba1d6c: d37d7d29     	ubfiz	x9, x9, #3, #32
+fffffe000aba1d70: eb29c13f     	cmp	x9, w9, sxtw
+fffffe000aba1d74: 8b29c10a     	add	x10, x8, w9, sxtw
+fffffe000aba1d78: 8b090110     	add	x16, x8, x9
+fffffe000aba1d7c: f2e575b0     	movk	x16, #0x2bad, lsl #48
+fffffe000aba1d80: 9a90014a     	csel	x10, x10, x16, eq
+fffffe000aba1d84: f9400140     	ldr	x0, [x10]
+fffffe000aba1d88: f9403008     	ldr	x8, [x0, #0x60]
+fffffe000aba1d8c: eb14011f     	cmp	x8, x20
+fffffe000aba1d90: 54000141     	b.ne	0xfffffe000aba1db8 <__ZN14IOGPUWorkQueue7restartEv+0x2b8>
+fffffe000aba1d94: f9400010     	ldr	x16, [x0]
+fffffe000aba1d98: aa0003f1     	mov	x17, x0
+fffffe000aba1d9c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000aba1da0: dac11a30     	autda	x16, x17
+fffffe000aba1da4: d2802911     	mov	x17, #0x148     ; =328
+fffffe000aba1da8: 8b110210     	add	x16, x16, x17
+fffffe000aba1dac: f9400208     	ldr	x8, [x16]
+fffffe000aba1db0: f2fcc490     	movk	x16, #0xe624, lsl #48
+fffffe000aba1db4: d73f0910     	blraa	x8, x16
+fffffe000aba1db8: 110006d6     	add	w22, w22, #0x1
+fffffe000aba1dbc: 17ffffe4     	b	0xfffffe000aba1d4c <__ZN14IOGPUWorkQueue7restartEv+0x24c>
+fffffe000aba1dc0: f9400270     	ldr	x16, [x19]
+fffffe000aba1dc4: dac11af0     	autda	x16, x23
+fffffe000aba1dc8: d2802f11     	mov	x17, #0x178     ; =376
+fffffe000aba1dcc: 8b110210     	add	x16, x16, x17
+fffffe000aba1dd0: f9400208     	ldr	x8, [x16]
+fffffe000aba1dd4: aa1303e0     	mov	x0, x19
+fffffe000aba1dd8: f2e11a30     	movk	x16, #0x8d1, lsl #48
+fffffe000aba1ddc: d73f0910     	blraa	x8, x16
+fffffe000aba1de0: f900227f     	str	xzr, [x19, #0x40]
+fffffe000aba1de4: f9400be1     	ldr	x1, [sp, #0x10]
+fffffe000aba1de8: b4000061     	cbz	x1, 0xfffffe000aba1df4 <__ZN14IOGPUWorkQueue7restartEv+0x2f4>
+fffffe000aba1dec: aa1503e0     	mov	x0, x21
+fffffe000aba1df0: 94009c15     	bl	0xfffffe000abc8e44 <_vnio_read+0xfffffe000abc8e44>
+fffffe000aba1df4: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+fffffe000aba1df8: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+fffffe000aba1dfc: a94357f6     	ldp	x22, x21, [sp, #0x30]
+fffffe000aba1e00: a9425ff8     	ldp	x24, x23, [sp, #0x20]
+fffffe000aba1e04: 910183ff     	add	sp, sp, #0x60
+fffffe000aba1e08: d65f0fff     	retab
+fffffe000aba1e0c: b4fff8f4     	cbz	x20, 0xfffffe000aba1d28 <__ZN14IOGPUWorkQueue7restartEv+0x228>
+fffffe000aba1e10: b0fecd88     	adrp	x8, 0xfffffe0008552000 <__ZTV9IOGPUTask+0xa0>
+fffffe000aba1e14: 91348108     	add	x8, x8, #0xd20
+fffffe000aba1e18: f9400101     	ldr	x1, [x8]
+fffffe000aba1e1c: aa1403e0     	mov	x0, x20
+fffffe000aba1e20: 94009d41     	bl	0xfffffe000abc9324 <_vnio_read+0xfffffe000abc9324>
+fffffe000aba1e24: b40000e0     	cbz	x0, 0xfffffe000aba1e40 <__ZN14IOGPUWorkQueue7restartEv+0x340>
+fffffe000aba1e28: aa0003e1     	mov	x1, x0
+fffffe000aba1e2c: f9406268     	ldr	x8, [x19, #0xc0]
+fffffe000aba1e30: f940a900     	ldr	x0, [x8, #0x150]
+fffffe000aba1e34: b9401fe2     	ldr	w2, [sp, #0x1c]
+fffffe000aba1e38: 97ffcda3     	bl	0xfffffe000ab954c4 <__ZN17IOGPUFenceMachine22guiltyForHardwareResetEP17IOGPUCommandQueuej>
+fffffe000aba1e3c: 17ffffbb     	b	0xfffffe000aba1d28 <__ZN14IOGPUWorkQueue7restartEv+0x228>
+fffffe000aba1e40: f9400a60     	ldr	x0, [x19, #0x10]
+fffffe000aba1e44: b9401fe2     	ldr	w2, [sp, #0x1c]
+fffffe000aba1e48: aa1403e1     	mov	x1, x20
+fffffe000aba1e4c: 94001506     	bl	0xfffffe000aba7264 <__ZN14IOGPUScheduler28setGPURestartClientErrorCodeEPK17IOGPUCommandQueuej>
+fffffe000aba1e50: 17ffffb6     	b	0xfffffe000aba1d28 <__ZN14IOGPUWorkQueue7restartEv+0x228>
+fffffe000aba1e54: 94009a62     	bl	0xfffffe000abc87dc <__ZN14IOGPUWorkQueue7restartEv.cold.1>

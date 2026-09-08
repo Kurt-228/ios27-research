@@ -1,0 +1,71 @@
+
+com_apple_AGXG16G.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe0008ba6e44 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv>:
+fffffe0008ba6e44: d503237f     	pacibsp
+fffffe0008ba6e48: d10103ff     	sub	sp, sp, #0x40
+fffffe0008ba6e4c: a9024ff4     	stp	x20, x19, [sp, #0x20]
+fffffe0008ba6e50: a9037bfd     	stp	x29, x30, [sp, #0x30]
+fffffe0008ba6e54: 9100c3fd     	add	x29, sp, #0x30
+fffffe0008ba6e58: aa0003f3     	mov	x19, x0
+fffffe0008ba6e5c: f9406008     	ldr	x8, [x0, #0xc0]
+fffffe0008ba6e60: 91406108     	add	x8, x8, #0x18, lsl #12 ; =0x18000
+fffffe0008ba6e64: 9138d108     	add	x8, x8, #0xe34
+fffffe0008ba6e68: b9400108     	ldr	w8, [x8]
+fffffe0008ba6e6c: 7102011f     	cmp	w8, #0x80
+fffffe0008ba6e70: 540001c1     	b.ne	0xfffffe0008ba6ea8 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0x64>
+fffffe0008ba6e74: 94001063     	bl	0xfffffe0008bab000 <_vsnprintf+0xfffffe0008bab000>
+fffffe0008ba6e78: f001f681     	adrp	x1, 0xfffffe000ca79000 <__ZZN13AGXStatistics25updateAvmrOffsetHistogramER17AGFPowerAvmrStatsPVjE24avmr_stats_single_update+0x878>
+fffffe0008ba6e7c: 913ac021     	add	x1, x1, #0xeb0
+fffffe0008ba6e80: 94000d78     	bl	0xfffffe0008baa460 <_vsnprintf+0xfffffe0008baa460>
+fffffe0008ba6e84: b40000e0     	cbz	x0, 0xfffffe0008ba6ea0 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0x5c>
+fffffe0008ba6e88: aa0003f4     	mov	x20, x0
+fffffe0008ba6e8c: aa1303e0     	mov	x0, x19
+fffffe0008ba6e90: 94001058     	bl	0xfffffe0008baaff0 <_vsnprintf+0xfffffe0008baaff0>
+fffffe0008ba6e94: 91342281     	add	x1, x20, #0xd08
+fffffe0008ba6e98: 940010ae     	bl	0xfffffe0008bab150 <_vsnprintf+0xfffffe0008bab150>
+fffffe0008ba6e9c: 340002a0     	cbz	w0, 0xfffffe0008ba6ef0 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0xac>
+fffffe0008ba6ea0: 52804408     	mov	w8, #0x220      ; =544
+fffffe0008ba6ea4: 14000014     	b	0xfffffe0008ba6ef4 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0xb0>
+fffffe0008ba6ea8: 94001052     	bl	0xfffffe0008baaff0 <_vsnprintf+0xfffffe0008baaff0>
+fffffe0008ba6eac: f9406268     	ldr	x8, [x19, #0xc0]
+fffffe0008ba6eb0: 91406108     	add	x8, x8, #0x18, lsl #12 ; =0x18000
+fffffe0008ba6eb4: 9138d108     	add	x8, x8, #0xe34
+fffffe0008ba6eb8: b9400101     	ldr	w1, [x8]
+fffffe0008ba6ebc: 94001095     	bl	0xfffffe0008bab110 <_vsnprintf+0xfffffe0008bab110>
+fffffe0008ba6ec0: aa0003f4     	mov	x20, x0
+fffffe0008ba6ec4: f001f681     	adrp	x1, 0xfffffe000ca79000 <__ZZN13AGXStatistics25updateAvmrOffsetHistogramER17AGFPowerAvmrStatsPVjE24avmr_stats_single_update+0x878>
+fffffe0008ba6ec8: 91374021     	add	x1, x1, #0xdd0
+fffffe0008ba6ecc: 94000d65     	bl	0xfffffe0008baa460 <_vsnprintf+0xfffffe0008baa460>
+fffffe0008ba6ed0: f100029f     	cmp	x20, #0x0
+fffffe0008ba6ed4: fa401800     	ccmp	x0, #0x0, #0x0, ne
+fffffe0008ba6ed8: 540001c0     	b.eq	0xfffffe0008ba6f10 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0xcc>
+fffffe0008ba6edc: b4000100     	cbz	x0, 0xfffffe0008ba6efc <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0xb8>
+fffffe0008ba6ee0: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+fffffe0008ba6ee4: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+fffffe0008ba6ee8: 910103ff     	add	sp, sp, #0x40
+fffffe0008ba6eec: d65f0fff     	retab
+fffffe0008ba6ef0: 52804308     	mov	w8, #0x218      ; =536
+fffffe0008ba6ef4: f8686a60     	ldr	x0, [x19, x8]
+fffffe0008ba6ef8: b5ffff40     	cbnz	x0, 0xfffffe0008ba6ee0 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0x9c>
+fffffe0008ba6efc: f9406268     	ldr	x8, [x19, #0xc0]
+fffffe0008ba6f00: 91404508     	add	x8, x8, #0x11, lsl #12 ; =0x11000
+fffffe0008ba6f04: 911bc108     	add	x8, x8, #0x6f0
+fffffe0008ba6f08: f9400100     	ldr	x0, [x8]
+fffffe0008ba6f0c: 17fffff5     	b	0xfffffe0008ba6ee0 <__ZNK14AGX3DWorkQueue16getGuiltyChannelEv+0x9c>
+fffffe0008ba6f10: f9406268     	ldr	x8, [x19, #0xc0]
+fffffe0008ba6f14: 91406108     	add	x8, x8, #0x18, lsl #12 ; =0x18000
+fffffe0008ba6f18: 9138d108     	add	x8, x8, #0xe34
+fffffe0008ba6f1c: b9400108     	ldr	w8, [x8]
+fffffe0008ba6f20: f0ff2d49     	adrp	x9, 0xfffffe0007151000 <_vsnprintf+0xfffffe0007151000>
+fffffe0008ba6f24: 912aa129     	add	x9, x9, #0xaa8
+fffffe0008ba6f28: a90123e9     	stp	x9, x8, [sp, #0x10]
+fffffe0008ba6f2c: 528082e8     	mov	w8, #0x417      ; =1047
+fffffe0008ba6f30: f0ff2d49     	adrp	x9, 0xfffffe0007151000 <_vsnprintf+0xfffffe0007151000>
+fffffe0008ba6f34: 9122c929     	add	x9, x9, #0x8b2
+fffffe0008ba6f38: a90023e9     	stp	x9, x8, [sp]
+fffffe0008ba6f3c: f0ff2d40     	adrp	x0, 0xfffffe0007151000 <_vsnprintf+0xfffffe0007151000>
+fffffe0008ba6f40: 9128e800     	add	x0, x0, #0xa3a
+fffffe0008ba6f44: 9400114b     	bl	0xfffffe0008bab470 <_vsnprintf+0xfffffe0008bab470>

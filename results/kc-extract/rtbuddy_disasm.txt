@@ -1,0 +1,2930 @@
+
+com_apple_AGXFirmwareKextG16GRTBuddy.macho:	file format mach-o arm64
+
+Disassembly of section __TEXT_EXEC,__text:
+
+fffffe0008adc610 <__start>:
+fffffe0008adc610: d503245f     	bti	c
+fffffe0008adc614: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adc618: 91110108     	add	x8, x8, #0x440
+fffffe0008adc61c: f9400110     	ldr	x16, [x8]
+fffffe0008adc620: b4000070     	cbz	x16, 0xfffffe0008adc62c <__start+0x1c>
+fffffe0008adc624: d29c9fd1     	mov	x17, #0xe4fe    ; =58622
+fffffe0008adc628: d71f0a11     	braa	x16, x17
+fffffe0008adc62c: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adc630: d65f03c0     	ret
+
+fffffe0008adc634 <__stop>:
+fffffe0008adc634: d503245f     	bti	c
+fffffe0008adc638: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adc63c: 91112108     	add	x8, x8, #0x448
+fffffe0008adc640: f9400110     	ldr	x16, [x8]
+fffffe0008adc644: b4000070     	cbz	x16, 0xfffffe0008adc650 <__stop+0x1c>
+fffffe0008adc648: d29c9fd1     	mov	x17, #0xe4fe    ; =58622
+fffffe0008adc64c: d71f0a11     	braa	x16, x17
+fffffe0008adc650: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adc654: d65f03c0     	ret
+
+fffffe0008adc658 <__ZN25AGXFirmwareKextG16RTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole>:
+fffffe0008adc658: d503245f     	bti	c
+fffffe0008adc65c: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc660: 7100491f     	cmp	w8, #0x12
+fffffe0008adc664: 54000401     	b.ne	0xfffffe0008adc6e4 <__ZN25AGXFirmwareKextG16RTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole+0x8c>
+fffffe0008adc668: b940ac0a     	ldr	w10, [x0, #0xac]
+fffffe0008adc66c: b0ff32e8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adc670: 913e8108     	add	x8, x8, #0xfa0
+fffffe0008adc674: 7100115f     	cmp	w10, #0x4
+fffffe0008adc678: 54000061     	b.ne	0xfffffe0008adc684 <__ZN25AGXFirmwareKextG16RTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole+0x2c>
+fffffe0008adc67c: 52800149     	mov	w9, #0xa        ; =10
+fffffe0008adc680: 1400000d     	b	0xfffffe0008adc6b4 <__ZN25AGXFirmwareKextG16RTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole+0x5c>
+fffffe0008adc684: 7100055f     	cmp	w10, #0x1
+fffffe0008adc688: b0ff32e9     	adrp	x9, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adc68c: 913d4129     	add	x9, x9, #0xf50
+fffffe0008adc690: 9a8913eb     	csel	x11, xzr, x9, ne
+fffffe0008adc694: 7a431944     	ccmp	w10, #0x3, #0x4, ne
+fffffe0008adc698: 52800149     	mov	w9, #0xa        ; =10
+fffffe0008adc69c: 9a8913e9     	csel	x9, xzr, x9, ne
+fffffe0008adc6a0: 71000d5f     	cmp	w10, #0x3
+fffffe0008adc6a4: 9a881168     	csel	x8, x11, x8, ne
+fffffe0008adc6a8: 321f014a     	orr	w10, w10, #0x2
+fffffe0008adc6ac: 71000d5f     	cmp	w10, #0x3
+fffffe0008adc6b0: 540001a1     	b.ne	0xfffffe0008adc6e4 <__ZN25AGXFirmwareKextG16RTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole+0x8c>
+fffffe0008adc6b4: d37df129     	lsl	x9, x9, #3
+fffffe0008adc6b8: d1002129     	sub	x9, x9, #0x8
+fffffe0008adc6bc: 8b09010a     	add	x10, x8, x9
+fffffe0008adc6c0: ca0a0110     	eor	x16, x8, x10
+fffffe0008adc6c4: f24a261f     	tst	x16, #0xffc0000000000000
+fffffe0008adc6c8: 54000040     	b.eq	0xfffffe0008adc6d0 <__ZN25AGXFirmwareKextG16RTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole+0x78>
+fffffe0008adc6cc: f2f9144a     	movk	x10, #0xc8a2, lsl #48
+fffffe0008adc6d0: b9400108     	ldr	w8, [x8]
+fffffe0008adc6d4: 29402949     	ldp	w9, w10, [x10]
+fffffe0008adc6d8: 4b080128     	sub	w8, w9, w8
+fffffe0008adc6dc: 0b0a0100     	add	w0, w8, w10
+fffffe0008adc6e0: d65f03c0     	ret
+fffffe0008adc6e4: d503237f     	pacibsp
+fffffe0008adc6e8: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc6ec: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc6f0: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc6f4: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc6f8: 910d710a     	add	x10, x8, #0x35c
+fffffe0008adc6fc: 52804dc8     	mov	w8, #0x26e      ; =622
+fffffe0008adc700: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc704: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc708: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc70c: f90003e9     	str	x9, [sp]
+fffffe0008adc710: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc714: 91015400     	add	x0, x0, #0x55
+fffffe0008adc718: 94000a88     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc71c <__ZN25AGXFirmwareKextG16RTBuddy32getFirmwareTextSectionBaseOffsetE16AGFIFirmwareRole>:
+fffffe0008adc71c: d503245f     	bti	c
+fffffe0008adc720: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc724: 7100491f     	cmp	w8, #0x12
+fffffe0008adc728: 54000101     	b.ne	0xfffffe0008adc748 <__ZN25AGXFirmwareKextG16RTBuddy32getFirmwareTextSectionBaseOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc72c: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc730: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc734: 7100093f     	cmp	w9, #0x2
+fffffe0008adc738: 7a412904     	ccmp	w8, #0x1, #0x4, hs
+fffffe0008adc73c: 54000061     	b.ne	0xfffffe0008adc748 <__ZN25AGXFirmwareKextG16RTBuddy32getFirmwareTextSectionBaseOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc740: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adc744: d65f03c0     	ret
+fffffe0008adc748: d503237f     	pacibsp
+fffffe0008adc74c: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc750: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc754: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc758: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc75c: 910bf50a     	add	x10, x8, #0x2fd
+fffffe0008adc760: 528047c8     	mov	w8, #0x23e      ; =574
+fffffe0008adc764: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc768: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc76c: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc770: f90003e9     	str	x9, [sp]
+fffffe0008adc774: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc778: 91015400     	add	x0, x0, #0x55
+fffffe0008adc77c: 94000a6f     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc780 <__ZN25AGXFirmwareKextG16RTBuddy28getFWPdumpBinPatchDataOffsetE16AGFIFirmwareRole>:
+fffffe0008adc780: d503245f     	bti	c
+fffffe0008adc784: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc788: 7100491f     	cmp	w8, #0x12
+fffffe0008adc78c: 54000101     	b.ne	0xfffffe0008adc7ac <__ZN25AGXFirmwareKextG16RTBuddy28getFWPdumpBinPatchDataOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc790: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc794: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc798: 7100093f     	cmp	w9, #0x2
+fffffe0008adc79c: 7a412904     	ccmp	w8, #0x1, #0x4, hs
+fffffe0008adc7a0: 54000061     	b.ne	0xfffffe0008adc7ac <__ZN25AGXFirmwareKextG16RTBuddy28getFWPdumpBinPatchDataOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc7a4: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adc7a8: d65f03c0     	ret
+fffffe0008adc7ac: d503237f     	pacibsp
+fffffe0008adc7b0: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc7b4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc7b8: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc7bc: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc7c0: 910a890a     	add	x10, x8, #0x2a2
+fffffe0008adc7c4: 52804708     	mov	w8, #0x238      ; =568
+fffffe0008adc7c8: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc7cc: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc7d0: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc7d4: f90003e9     	str	x9, [sp]
+fffffe0008adc7d8: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc7dc: 91015400     	add	x0, x0, #0x55
+fffffe0008adc7e0: 94000a56     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc7e4 <__ZN25AGXFirmwareKextG16RTBuddy21getFWResumeFlagOffsetE16AGFIFirmwareRole>:
+fffffe0008adc7e4: d503245f     	bti	c
+fffffe0008adc7e8: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc7ec: 7100491f     	cmp	w8, #0x12
+fffffe0008adc7f0: 54000101     	b.ne	0xfffffe0008adc810 <__ZN25AGXFirmwareKextG16RTBuddy21getFWResumeFlagOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc7f4: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc7f8: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc7fc: 7100093f     	cmp	w9, #0x2
+fffffe0008adc800: 7a412904     	ccmp	w8, #0x1, #0x4, hs
+fffffe0008adc804: 54000061     	b.ne	0xfffffe0008adc810 <__ZN25AGXFirmwareKextG16RTBuddy21getFWResumeFlagOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc808: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adc80c: d65f03c0     	ret
+fffffe0008adc810: d503237f     	pacibsp
+fffffe0008adc814: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc818: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc81c: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc820: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc824: 9109390a     	add	x10, x8, #0x24e
+fffffe0008adc828: 52804648     	mov	w8, #0x232      ; =562
+fffffe0008adc82c: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc830: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc834: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc838: f90003e9     	str	x9, [sp]
+fffffe0008adc83c: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc840: 91015400     	add	x0, x0, #0x55
+fffffe0008adc844: 94000a3d     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc848 <__ZN25AGXFirmwareKextG16RTBuddy17getRuntimeBinSizeE16AGFIFirmwareRole>:
+fffffe0008adc848: d503245f     	bti	c
+fffffe0008adc84c: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc850: 7100491f     	cmp	w8, #0x12
+fffffe0008adc854: 54000121     	b.ne	0xfffffe0008adc878 <__ZN25AGXFirmwareKextG16RTBuddy17getRuntimeBinSizeE16AGFIFirmwareRole+0x30>
+fffffe0008adc858: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc85c: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc860: 7100093f     	cmp	w9, #0x2
+fffffe0008adc864: 7a412904     	ccmp	w8, #0x1, #0x4, hs
+fffffe0008adc868: 54000081     	b.ne	0xfffffe0008adc878 <__ZN25AGXFirmwareKextG16RTBuddy17getRuntimeBinSizeE16AGFIFirmwareRole+0x30>
+fffffe0008adc86c: 52980000     	mov	w0, #0xc000     ; =49152
+fffffe0008adc870: 72a00260     	movk	w0, #0x13, lsl #16
+fffffe0008adc874: d65f03c0     	ret
+fffffe0008adc878: d503237f     	pacibsp
+fffffe0008adc87c: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc880: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc884: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc888: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc88c: 9108010a     	add	x10, x8, #0x200
+fffffe0008adc890: 52804588     	mov	w8, #0x22c      ; =556
+fffffe0008adc894: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc898: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc89c: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc8a0: f90003e9     	str	x9, [sp]
+fffffe0008adc8a4: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc8a8: 91015400     	add	x0, x0, #0x55
+fffffe0008adc8ac: 94000a23     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc8b0 <__ZN25AGXFirmwareKextG16RTBuddy10getVersionE16AGFIFirmwareRole>:
+fffffe0008adc8b0: d503245f     	bti	c
+fffffe0008adc8b4: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc8b8: 7100491f     	cmp	w8, #0x12
+fffffe0008adc8bc: 540001a1     	b.ne	0xfffffe0008adc8f0 <__ZN25AGXFirmwareKextG16RTBuddy10getVersionE16AGFIFirmwareRole+0x40>
+fffffe0008adc8c0: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc8c4: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc8c8: 7100093f     	cmp	w9, #0x2
+fffffe0008adc8cc: 54000082     	b.hs	0xfffffe0008adc8dc <__ZN25AGXFirmwareKextG16RTBuddy10getVersionE16AGFIFirmwareRole+0x2c>
+fffffe0008adc8d0: b0ff32e0     	adrp	x0, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adc8d4: 913d2000     	add	x0, x0, #0xf48
+fffffe0008adc8d8: d65f03c0     	ret
+fffffe0008adc8dc: 7100051f     	cmp	w8, #0x1
+fffffe0008adc8e0: 54000081     	b.ne	0xfffffe0008adc8f0 <__ZN25AGXFirmwareKextG16RTBuddy10getVersionE16AGFIFirmwareRole+0x40>
+fffffe0008adc8e4: b0ff32e0     	adrp	x0, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adc8e8: 913d0000     	add	x0, x0, #0xf40
+fffffe0008adc8ec: d65f03c0     	ret
+fffffe0008adc8f0: d503237f     	pacibsp
+fffffe0008adc8f4: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc8f8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc8fc: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc900: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc904: 9106d10a     	add	x10, x8, #0x1b4
+fffffe0008adc908: 528044c8     	mov	w8, #0x226      ; =550
+fffffe0008adc90c: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc910: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc914: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc918: f90003e9     	str	x9, [sp]
+fffffe0008adc91c: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc920: 91015400     	add	x0, x0, #0x55
+fffffe0008adc924: 94000a05     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc928 <__ZN25AGXFirmwareKextG16RTBuddy8getBuildE16AGFIFirmwareRole>:
+fffffe0008adc928: d503245f     	bti	c
+fffffe0008adc92c: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc930: 7100491f     	cmp	w8, #0x12
+fffffe0008adc934: 540001a1     	b.ne	0xfffffe0008adc968 <__ZN25AGXFirmwareKextG16RTBuddy8getBuildE16AGFIFirmwareRole+0x40>
+fffffe0008adc938: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc93c: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc940: 7100093f     	cmp	w9, #0x2
+fffffe0008adc944: 54000082     	b.hs	0xfffffe0008adc954 <__ZN25AGXFirmwareKextG16RTBuddy8getBuildE16AGFIFirmwareRole+0x2c>
+fffffe0008adc948: b0ff32e0     	adrp	x0, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adc94c: 913ce000     	add	x0, x0, #0xf38
+fffffe0008adc950: d65f03c0     	ret
+fffffe0008adc954: 7100051f     	cmp	w8, #0x1
+fffffe0008adc958: 54000081     	b.ne	0xfffffe0008adc968 <__ZN25AGXFirmwareKextG16RTBuddy8getBuildE16AGFIFirmwareRole+0x40>
+fffffe0008adc95c: b0ff32e0     	adrp	x0, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adc960: 913cc000     	add	x0, x0, #0xf30
+fffffe0008adc964: d65f03c0     	ret
+fffffe0008adc968: d503237f     	pacibsp
+fffffe0008adc96c: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc970: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc974: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc978: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc97c: 9105a90a     	add	x10, x8, #0x16a
+fffffe0008adc980: 52804408     	mov	w8, #0x220      ; =544
+fffffe0008adc984: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc988: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc98c: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc990: f90003e9     	str	x9, [sp]
+fffffe0008adc994: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc998: 91015400     	add	x0, x0, #0x55
+fffffe0008adc99c: 940009e7     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adc9a0 <__ZN25AGXFirmwareKextG16RTBuddy19getBootConfigOffsetE16AGFIFirmwareRole>:
+fffffe0008adc9a0: d503245f     	bti	c
+fffffe0008adc9a4: b940a808     	ldr	w8, [x0, #0xa8]
+fffffe0008adc9a8: 7100491f     	cmp	w8, #0x12
+fffffe0008adc9ac: 54000101     	b.ne	0xfffffe0008adc9cc <__ZN25AGXFirmwareKextG16RTBuddy19getBootConfigOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc9b0: b940ac08     	ldr	w8, [x0, #0xac]
+fffffe0008adc9b4: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adc9b8: 7100093f     	cmp	w9, #0x2
+fffffe0008adc9bc: 7a412904     	ccmp	w8, #0x1, #0x4, hs
+fffffe0008adc9c0: 54000061     	b.ne	0xfffffe0008adc9cc <__ZN25AGXFirmwareKextG16RTBuddy19getBootConfigOffsetE16AGFIFirmwareRole+0x2c>
+fffffe0008adc9c4: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adc9c8: d65f03c0     	ret
+fffffe0008adc9cc: d503237f     	pacibsp
+fffffe0008adc9d0: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adc9d4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adc9d8: 910083fd     	add	x29, sp, #0x20
+fffffe0008adc9dc: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc9e0: 9104610a     	add	x10, x8, #0x118
+fffffe0008adc9e4: 52804348     	mov	w8, #0x21a      ; =538
+fffffe0008adc9e8: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc9ec: 9101e129     	add	x9, x9, #0x78
+fffffe0008adc9f0: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adc9f4: f90003e9     	str	x9, [sp]
+fffffe0008adc9f8: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adc9fc: 91015400     	add	x0, x0, #0x55
+fffffe0008adca00: 940009ce     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adca04 <__ZN25AGXFirmwareKextG16RTBuddy21requestFirmwareBinaryEPPKhPmRK16AGXGPUCoreConfig16AGFIFirmwareRole>:
+fffffe0008adca04: d503245f     	bti	c
+fffffe0008adca08: 9102a008     	add	x8, x0, #0xa8
+fffffe0008adca0c: f9400069     	ldr	x9, [x3]
+fffffe0008adca10: f9004409     	str	x9, [x0, #0x88]
+fffffe0008adca14: f9400469     	ldr	x9, [x3, #0x8]
+fffffe0008adca18: f9004809     	str	x9, [x0, #0x90]
+fffffe0008adca1c: f9400869     	ldr	x9, [x3, #0x10]
+fffffe0008adca20: f9004c09     	str	x9, [x0, #0x98]
+fffffe0008adca24: f9400c69     	ldr	x9, [x3, #0x18]
+fffffe0008adca28: f9005009     	str	x9, [x0, #0xa0]
+fffffe0008adca2c: ad410460     	ldp	q0, q1, [x3, #0x20]
+fffffe0008adca30: ad420c62     	ldp	q2, q3, [x3, #0x40]
+fffffe0008adca34: 3c8d8003     	stur	q3, [x0, #0xd8]
+fffffe0008adca38: 3c8c8002     	stur	q2, [x0, #0xc8]
+fffffe0008adca3c: 3c8b8001     	stur	q1, [x0, #0xb8]
+fffffe0008adca40: 3c8a8000     	stur	q0, [x0, #0xa8]
+fffffe0008adca44: ad430460     	ldp	q0, q1, [x3, #0x60]
+fffffe0008adca48: 3dc02062     	ldr	q2, [x3, #0x80]
+fffffe0008adca4c: f848e069     	ldur	x9, [x3, #0x8e]
+fffffe0008adca50: f806e109     	stur	x9, [x8, #0x6e]
+fffffe0008adca54: 3d801902     	str	q2, [x8, #0x60]
+fffffe0008adca58: 3c8f8001     	stur	q1, [x0, #0xf8]
+fffffe0008adca5c: 3c8e8000     	stur	q0, [x0, #0xe8]
+fffffe0008adca60: b9402468     	ldr	w8, [x3, #0x24]
+fffffe0008adca64: 51000d09     	sub	w9, w8, #0x3
+fffffe0008adca68: 7100093f     	cmp	w9, #0x2
+fffffe0008adca6c: 7a412904     	ccmp	w8, #0x1, #0x4, hs
+fffffe0008adca70: 540000c1     	b.ne	0xfffffe0008adca88 <__ZN25AGXFirmwareKextG16RTBuddy21requestFirmwareBinaryEPPKhPmRK16AGXGPUCoreConfig16AGFIFirmwareRole+0x84>
+fffffe0008adca74: f900003f     	str	xzr, [x1]
+fffffe0008adca78: 52800108     	mov	w8, #0x8        ; =8
+fffffe0008adca7c: f9000048     	str	x8, [x2]
+fffffe0008adca80: 52800020     	mov	w0, #0x1        ; =1
+fffffe0008adca84: d65f03c0     	ret
+fffffe0008adca88: d503237f     	pacibsp
+fffffe0008adca8c: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008adca90: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008adca94: 910083fd     	add	x29, sp, #0x20
+fffffe0008adca98: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adca9c: 9102490a     	add	x10, x8, #0x92
+fffffe0008adcaa0: 52804088     	mov	w8, #0x204      ; =516
+fffffe0008adcaa4: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcaa8: 9101e129     	add	x9, x9, #0x78
+fffffe0008adcaac: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adcab0: f90003e9     	str	x9, [sp]
+fffffe0008adcab4: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcab8: 91015400     	add	x0, x0, #0x55
+fffffe0008adcabc: 9400099f     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adcac0 <__ZNK25AGXFirmwareKextG16RTBuddy12getMetaClassEv>:
+fffffe0008adcac0: d503245f     	bti	c
+fffffe0008adcac4: 9001fcc0     	adrp	x0, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcac8: 91130000     	add	x0, x0, #0x4c0
+fffffe0008adcacc: d65f03c0     	ret
+
+fffffe0008adcad0 <__ZN25AGXFirmwareKextG16RTBuddyD0Ev>:
+fffffe0008adcad0: d503237f     	pacibsp
+fffffe0008adcad4: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008adcad8: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008adcadc: 910043fd     	add	x29, sp, #0x10
+fffffe0008adcae0: aa0003f3     	mov	x19, x0
+fffffe0008adcae4: 94000981     	bl	0xfffffe0008adf0e8 <_thread_set_thread_name+0xfffffe0008adf0e8>
+fffffe0008adcae8: d0ffa300     	adrp	x0, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adcaec: 91384000     	add	x0, x0, #0xe10
+fffffe0008adcaf0: aa1303e1     	mov	x1, x19
+fffffe0008adcaf4: 52803202     	mov	w2, #0x190      ; =400
+fffffe0008adcaf8: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008adcafc: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008adcb00: d50323ff     	autibsp
+fffffe0008adcb04: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe0008adcb08: b6f00050     	tbz	x16, #0x3e, 0xfffffe0008adcb10 <__ZN25AGXFirmwareKextG16RTBuddyD0Ev+0x40>
+fffffe0008adcb0c: d4388e20     	brk	#0xc471
+fffffe0008adcb10: 14000926     	b	0xfffffe0008adefa8 <_thread_set_thread_name+0xfffffe0008adefa8>
+
+fffffe0008adcb14 <__ZN25AGXFirmwareKextG16RTBuddyD1Ev>:
+fffffe0008adcb14: d503245f     	bti	c
+fffffe0008adcb18: 14000974     	b	0xfffffe0008adf0e8 <_thread_set_thread_name+0xfffffe0008adf0e8>
+
+fffffe0008adcb1c <__ZNK25AGXFirmwareKextG16RTBuddy9MetaClass5allocEv>:
+fffffe0008adcb1c: d503237f     	pacibsp
+fffffe0008adcb20: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008adcb24: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008adcb28: 910043fd     	add	x29, sp, #0x10
+fffffe0008adcb2c: d0ffa300     	adrp	x0, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adcb30: 91384000     	add	x0, x0, #0xe10
+fffffe0008adcb34: 52803201     	mov	w1, #0x190      ; =400
+fffffe0008adcb38: 94000920     	bl	0xfffffe0008adefb8 <_thread_set_thread_name+0xfffffe0008adefb8>
+fffffe0008adcb3c: aa0003f3     	mov	x19, x0
+fffffe0008adcb40: 9001fcd4     	adrp	x20, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcb44: 91130294     	add	x20, x20, #0x4c0
+fffffe0008adcb48: aa1403e1     	mov	x1, x20
+fffffe0008adcb4c: 940008ac     	bl	0xfffffe0008adedfc <__ZN22AGXFirmwareKextRTBuddyC2EPK11OSMetaClass>
+fffffe0008adcb50: b0ffa310     	adrp	x16, 0xfffffe0007f3d000 <_thread_set_thread_name+0xfffffe0007f3d000>
+fffffe0008adcb54: 91250210     	add	x16, x16, #0x940
+fffffe0008adcb58: 91004210     	add	x16, x16, #0x10
+fffffe0008adcb5c: aa0003f1     	mov	x17, x0
+fffffe0008adcb60: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcb64: dac10a30     	pacda	x16, x17
+fffffe0008adcb68: f9000010     	str	x16, [x0]
+fffffe0008adcb6c: aa1403e0     	mov	x0, x20
+fffffe0008adcb70: 94000966     	bl	0xfffffe0008adf108 <_thread_set_thread_name+0xfffffe0008adf108>
+fffffe0008adcb74: aa1303e0     	mov	x0, x19
+fffffe0008adcb78: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008adcb7c: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008adcb80: d65f0fff     	retab
+
+fffffe0008adcb84 <__ZN25AGXFirmwareKextG16RTBuddy9MetaClassD0Ev>:
+fffffe0008adcb84: d503245f     	bti	c
+fffffe0008adcb88: 14000918     	b	0xfffffe0008adefe8 <_thread_set_thread_name+0xfffffe0008adefe8>
+
+fffffe0008adcb8c <__ZN25AGXFirmwareKextG16RTBuddy9MetaClassD1Ev>:
+fffffe0008adcb8c: d503245f     	bti	c
+fffffe0008adcb90: 14000916     	b	0xfffffe0008adefe8 <_thread_set_thread_name+0xfffffe0008adefe8>
+
+fffffe0008adcb94 <__GLOBAL__sub_I_agxp_kext_g16_rtbuddy.cpp>:
+fffffe0008adcb94: d503237f     	pacibsp
+fffffe0008adcb98: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adcb9c: 910003fd     	mov	x29, sp
+fffffe0008adcba0: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcba4: 910ed400     	add	x0, x0, #0x3b5
+fffffe0008adcba8: 94000940     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcbac: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcbb0: f9023d00     	str	x0, [x8, #0x478]
+fffffe0008adcbb4: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcbb8: 910f7c00     	add	x0, x0, #0x3df
+fffffe0008adcbbc: 9400093b     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcbc0: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcbc4: f9024100     	str	x0, [x8, #0x480]
+fffffe0008adcbc8: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcbcc: 910ffc00     	add	x0, x0, #0x3ff
+fffffe0008adcbd0: 94000936     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcbd4: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcbd8: f9024500     	str	x0, [x8, #0x488]
+fffffe0008adcbdc: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcbe0: 91105800     	add	x0, x0, #0x416
+fffffe0008adcbe4: 94000931     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcbe8: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcbec: f9024900     	str	x0, [x8, #0x490]
+fffffe0008adcbf0: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcbf4: 9110c000     	add	x0, x0, #0x430
+fffffe0008adcbf8: 9400092c     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcbfc: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc00: f9024d00     	str	x0, [x8, #0x498]
+fffffe0008adcc04: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcc08: 91113000     	add	x0, x0, #0x44c
+fffffe0008adcc0c: 94000927     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcc10: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc14: f9025100     	str	x0, [x8, #0x4a0]
+fffffe0008adcc18: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcc1c: 91119400     	add	x0, x0, #0x465
+fffffe0008adcc20: 94000922     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcc24: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc28: f9025500     	str	x0, [x8, #0x4a8]
+fffffe0008adcc2c: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcc30: 91121400     	add	x0, x0, #0x485
+fffffe0008adcc34: 9400091d     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcc38: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc3c: f9025900     	str	x0, [x8, #0x4b0]
+fffffe0008adcc40: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcc44: 91125c00     	add	x0, x0, #0x497
+fffffe0008adcc48: 94000918     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adcc4c: 9001fcc8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc50: f9025d00     	str	x0, [x8, #0x4b8]
+fffffe0008adcc54: 9001fcc0     	adrp	x0, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc58: 91130000     	add	x0, x0, #0x4c0
+fffffe0008adcc5c: d0ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcc60: 91007021     	add	x1, x1, #0x1c
+fffffe0008adcc64: 9001fcc2     	adrp	x2, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcc68: 91114042     	add	x2, x2, #0x450
+fffffe0008adcc6c: 52803203     	mov	w3, #0x190      ; =400
+fffffe0008adcc70: 940008da     	bl	0xfffffe0008adefd8 <_thread_set_thread_name+0xfffffe0008adefd8>
+fffffe0008adcc74: d0ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adcc78: 910a2210     	add	x16, x16, #0x288
+fffffe0008adcc7c: 91004210     	add	x16, x16, #0x10
+fffffe0008adcc80: aa0003f1     	mov	x17, x0
+fffffe0008adcc84: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcc88: dac10a30     	pacda	x16, x17
+fffffe0008adcc8c: f9000010     	str	x16, [x0]
+fffffe0008adcc90: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adcc94: d65f0fff     	retab
+
+fffffe0008adcc98 <__GLOBAL__D_a>:
+fffffe0008adcc98: d503245f     	bti	c
+fffffe0008adcc9c: 9001fcc0     	adrp	x0, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adcca0: 91130000     	add	x0, x0, #0x4c0
+fffffe0008adcca4: 140008d1     	b	0xfffffe0008adefe8 <_thread_set_thread_name+0xfffffe0008adefe8>
+
+fffffe0008adcca8 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm>:
+fffffe0008adcca8: d503237f     	pacibsp
+fffffe0008adccac: d10203ff     	sub	sp, sp, #0x80
+fffffe0008adccb0: a90557f6     	stp	x22, x21, [sp, #0x50]
+fffffe0008adccb4: a9064ff4     	stp	x20, x19, [sp, #0x60]
+fffffe0008adccb8: a9077bfd     	stp	x29, x30, [sp, #0x70]
+fffffe0008adccbc: 9101c3fd     	add	x29, sp, #0x70
+fffffe0008adccc0: aa0203f5     	mov	x21, x2
+fffffe0008adccc4: aa0103f4     	mov	x20, x1
+fffffe0008adccc8: aa0003f3     	mov	x19, x0
+fffffe0008adcccc: f100083f     	cmp	x1, #0x2
+fffffe0008adccd0: fa401824     	ccmp	x1, #0x0, #0x4, ne
+fffffe0008adccd4: fa410840     	ccmp	x2, #0x1, #0x0, eq
+fffffe0008adccd8: 540000a0     	b.eq	0xfffffe0008adccec <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x44>
+fffffe0008adccdc: f100069f     	cmp	x20, #0x1
+fffffe0008adcce0: 54000221     	b.ne	0xfffffe0008adcd24 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x7c>
+fffffe0008adcce4: 927efaa8     	and	x8, x21, #0xfffffffffffffffd
+fffffe0008adcce8: b50001e8     	cbnz	x8, 0xfffffe0008adcd24 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x7c>
+fffffe0008adccec: f100029f     	cmp	x20, #0x0
+fffffe0008adccf0: fa401aa4     	ccmp	x21, #0x0, #0x4, ne
+fffffe0008adccf4: 1a9f17e2     	cset	w2, eq
+fffffe0008adccf8: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adccfc: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008adcd00: f9400010     	ldr	x16, [x0]
+fffffe0008adcd04: aa0003f1     	mov	x17, x0
+fffffe0008adcd08: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcd0c: dac11a30     	autda	x16, x17
+fffffe0008adcd10: d2816611     	mov	x17, #0xb30     ; =2864
+fffffe0008adcd14: 8b110210     	add	x16, x16, x17
+fffffe0008adcd18: f9400208     	ldr	x8, [x16]
+fffffe0008adcd1c: f2f93cb0     	movk	x16, #0xc9e5, lsl #48
+fffffe0008adcd20: d73f0910     	blraa	x8, x16
+fffffe0008adcd24: f940be68     	ldr	x8, [x19, #0x178]
+fffffe0008adcd28: f941e900     	ldr	x0, [x8, #0x3d0]
+fffffe0008adcd2c: 910063e8     	add	x8, sp, #0x18
+fffffe0008adcd30: d0ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adcd34: f947be10     	ldr	x16, [x16, #0xf78]
+fffffe0008adcd38: aa0803f1     	mov	x17, x8
+fffffe0008adcd3c: f2ed5c31     	movk	x17, #0x6ae1, lsl #48
+fffffe0008adcd40: dac10a30     	pacda	x16, x17
+fffffe0008adcd44: f9000ff0     	str	x16, [sp, #0x18]
+fffffe0008adcd48: b0ff32e9     	adrp	x9, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adcd4c: fd477920     	ldr	d0, [x9, #0xef0]
+fffffe0008adcd50: fd0013e0     	str	d0, [sp, #0x20]
+fffffe0008adcd54: 91004109     	add	x9, x8, #0x10
+fffffe0008adcd58: 90000010     	adrp	x16, 0xfffffe0008adc000 <_thread_set_thread_name+0xfffffe0008adc000>
+fffffe0008adcd5c: 913d5210     	add	x16, x16, #0xf54
+fffffe0008adcd60: dac10130     	pacia	x16, x9
+fffffe0008adcd64: f90017f0     	str	x16, [sp, #0x28]
+fffffe0008adcd68: 91006108     	add	x8, x8, #0x18
+fffffe0008adcd6c: d0ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adcd70: 9137c210     	add	x16, x16, #0xdf0
+fffffe0008adcd74: aa0803f1     	mov	x17, x8
+fffffe0008adcd78: f2f81771     	movk	x17, #0xc0bb, lsl #48
+fffffe0008adcd7c: dac10a30     	pacda	x16, x17
+fffffe0008adcd80: a9034ff0     	stp	x16, x19, [sp, #0x30]
+fffffe0008adcd84: a90457f4     	stp	x20, x21, [sp, #0x40]
+fffffe0008adcd88: 910063e1     	add	x1, sp, #0x18
+fffffe0008adcd8c: 9400089f     	bl	0xfffffe0008adf008 <_thread_set_thread_name+0xfffffe0008adf008>
+fffffe0008adcd90: f1000a9f     	cmp	x20, #0x2
+fffffe0008adcd94: fa420aa0     	ccmp	x21, #0x2, #0x0, eq
+fffffe0008adcd98: 1a9f17e8     	cset	w8, eq
+fffffe0008adcd9c: f10006bf     	cmp	x21, #0x1
+fffffe0008adcda0: fa410a80     	ccmp	x20, #0x1, #0x0, eq
+fffffe0008adcda4: 54000080     	b.eq	0xfffffe0008adcdb4 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x10c>
+fffffe0008adcda8: aa1402a9     	orr	x9, x21, x20
+fffffe0008adcdac: b4000049     	cbz	x9, 0xfffffe0008adcdb4 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x10c>
+fffffe0008adcdb0: 34000328     	cbz	w8, 0xfffffe0008adce14 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x16c>
+fffffe0008adcdb4: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adcdb8: f9400010     	ldr	x16, [x0]
+fffffe0008adcdbc: aa0003f1     	mov	x17, x0
+fffffe0008adcdc0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcdc4: dac11a30     	autda	x16, x17
+fffffe0008adcdc8: d280e211     	mov	x17, #0x710     ; =1808
+fffffe0008adcdcc: 8b110210     	add	x16, x16, x17
+fffffe0008adcdd0: f9400208     	ldr	x8, [x16]
+fffffe0008adcdd4: f2faf630     	movk	x16, #0xd7b1, lsl #48
+fffffe0008adcdd8: d73f0910     	blraa	x8, x16
+fffffe0008adcddc: 35000940     	cbnz	w0, 0xfffffe0008adcf04 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x25c>
+fffffe0008adcde0: f100069f     	cmp	x20, #0x1
+fffffe0008adcde4: 1a9f17e2     	cset	w2, eq
+fffffe0008adcde8: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adcdec: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008adcdf0: f9400010     	ldr	x16, [x0]
+fffffe0008adcdf4: aa0003f1     	mov	x17, x0
+fffffe0008adcdf8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcdfc: dac11a30     	autda	x16, x17
+fffffe0008adce00: d2816711     	mov	x17, #0xb38     ; =2872
+fffffe0008adce04: 8b110210     	add	x16, x16, x17
+fffffe0008adce08: f9400208     	ldr	x8, [x16]
+fffffe0008adce0c: f2f343b0     	movk	x16, #0x9a1d, lsl #48
+fffffe0008adce10: d73f0910     	blraa	x8, x16
+fffffe0008adce14: f10006bf     	cmp	x21, #0x1
+fffffe0008adce18: 540006a1     	b.ne	0xfffffe0008adceec <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x244>
+fffffe0008adce1c: f100069f     	cmp	x20, #0x1
+fffffe0008adce20: 54000661     	b.ne	0xfffffe0008adceec <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x244>
+fffffe0008adce24: b9412268     	ldr	w8, [x19, #0x120]
+fffffe0008adce28: 35000628     	cbnz	w8, 0xfffffe0008adceec <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x244>
+fffffe0008adce2c: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adce30: f9400010     	ldr	x16, [x0]
+fffffe0008adce34: aa0003f1     	mov	x17, x0
+fffffe0008adce38: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adce3c: dac11a30     	autda	x16, x17
+fffffe0008adce40: d2816511     	mov	x17, #0xb28     ; =2856
+fffffe0008adce44: 8b110210     	add	x16, x16, x17
+fffffe0008adce48: f9400208     	ldr	x8, [x16]
+fffffe0008adce4c: f2fe8a30     	movk	x16, #0xf451, lsl #48
+fffffe0008adce50: d73f0910     	blraa	x8, x16
+fffffe0008adce54: 37000180     	tbnz	w0, #0x0, 0xfffffe0008adce84 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x1dc>
+fffffe0008adce58: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adce5c: f9400010     	ldr	x16, [x0]
+fffffe0008adce60: aa0003f1     	mov	x17, x0
+fffffe0008adce64: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adce68: dac11a30     	autda	x16, x17
+fffffe0008adce6c: d2816211     	mov	x17, #0xb10     ; =2832
+fffffe0008adce70: 8b110210     	add	x16, x16, x17
+fffffe0008adce74: f9400208     	ldr	x8, [x16]
+fffffe0008adce78: f2f045b0     	movk	x16, #0x822d, lsl #48
+fffffe0008adce7c: d73f0910     	blraa	x8, x16
+fffffe0008adce80: 35000560     	cbnz	w0, 0xfffffe0008adcf2c <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x284>
+fffffe0008adce84: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adce88: f9400010     	ldr	x16, [x0]
+fffffe0008adce8c: aa0003f1     	mov	x17, x0
+fffffe0008adce90: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adce94: dac11a30     	autda	x16, x17
+fffffe0008adce98: d2816411     	mov	x17, #0xb20     ; =2848
+fffffe0008adce9c: 8b110210     	add	x16, x16, x17
+fffffe0008adcea0: f9400208     	ldr	x8, [x16]
+fffffe0008adcea4: 52800021     	mov	w1, #0x1        ; =1
+fffffe0008adcea8: f2feea70     	movk	x16, #0xf753, lsl #48
+fffffe0008adceac: d73f0910     	blraa	x8, x16
+fffffe0008adceb0: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008adceb4: aa0003f1     	mov	x17, x0
+fffffe0008adceb8: f9400010     	ldr	x16, [x0]
+fffffe0008adcebc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcec0: dac11a30     	autda	x16, x17
+fffffe0008adcec4: aa1003f1     	mov	x17, x16
+fffffe0008adcec8: dac147f1     	xpacd	x17
+fffffe0008adcecc: eb11021f     	cmp	x16, x17
+fffffe0008adced0: 54000040     	b.eq	0xfffffe0008adced8 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm+0x230>
+fffffe0008adced4: d4388e40     	brk	#0xc472
+fffffe0008adced8: 912c6208     	add	x8, x16, #0xb18
+fffffe0008adcedc: f9458e09     	ldr	x9, [x16, #0xb18]
+fffffe0008adcee0: aa0803f1     	mov	x17, x8
+fffffe0008adcee4: f2eb89d1     	movk	x17, #0x5c4e, lsl #48
+fffffe0008adcee8: d73f0931     	blraa	x9, x17
+fffffe0008adceec: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adcef0: a9477bfd     	ldp	x29, x30, [sp, #0x70]
+fffffe0008adcef4: a9464ff4     	ldp	x20, x19, [sp, #0x60]
+fffffe0008adcef8: a94557f6     	ldp	x22, x21, [sp, #0x50]
+fffffe0008adcefc: 910203ff     	add	sp, sp, #0x80
+fffffe0008adcf00: d65f0fff     	retab
+fffffe0008adcf04: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcf08: 9118d90a     	add	x10, x8, #0x636
+fffffe0008adcf0c: 52803f68     	mov	w8, #0x1fb      ; =507
+fffffe0008adcf10: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcf14: 91146529     	add	x9, x9, #0x519
+fffffe0008adcf18: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adcf1c: f90003e9     	str	x9, [sp]
+fffffe0008adcf20: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcf24: 9117cc00     	add	x0, x0, #0x5f3
+fffffe0008adcf28: 94000884     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+fffffe0008adcf2c: d0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcf30: 9118d90a     	add	x10, x8, #0x636
+fffffe0008adcf34: 52804228     	mov	w8, #0x211      ; =529
+fffffe0008adcf38: d0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcf3c: 91146529     	add	x9, x9, #0x519
+fffffe0008adcf40: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008adcf44: f90003e9     	str	x9, [sp]
+fffffe0008adcf48: d0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adcf4c: 911a3800     	add	x0, x0, #0x68e
+fffffe0008adcf50: 9400087a     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008adcf54 <____ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm_block_invoke>:
+fffffe0008adcf54: d503237f     	pacibsp
+fffffe0008adcf58: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adcf5c: 910003fd     	mov	x29, sp
+fffffe0008adcf60: a9420808     	ldp	x8, x2, [x0, #0x20]
+fffffe0008adcf64: f940a508     	ldr	x8, [x8, #0x148]
+fffffe0008adcf68: f9401803     	ldr	x3, [x0, #0x30]
+fffffe0008adcf6c: f9400110     	ldr	x16, [x8]
+fffffe0008adcf70: aa0803f1     	mov	x17, x8
+fffffe0008adcf74: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcf78: dac11a30     	autda	x16, x17
+fffffe0008adcf7c: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008adcf80: 8b110210     	add	x16, x16, x17
+fffffe0008adcf84: f940020a     	ldr	x10, [x16]
+fffffe0008adcf88: aa1003e9     	mov	x9, x16
+fffffe0008adcf8c: 90000010     	adrp	x16, 0xfffffe0008adc000 <_thread_set_thread_name+0xfffffe0008adc000>
+fffffe0008adcf90: 913f1210     	add	x16, x16, #0xfc4
+fffffe0008adcf94: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008adcf98: dac10230     	pacia	x16, x17
+fffffe0008adcf9c: aa1003e1     	mov	x1, x16
+fffffe0008adcfa0: aa0803e0     	mov	x0, x8
+fffffe0008adcfa4: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008adcfa8: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008adcfac: aa0903f1     	mov	x17, x9
+fffffe0008adcfb0: f2ff3ff1     	movk	x17, #0xf9ff, lsl #48
+fffffe0008adcfb4: d73f0951     	blraa	x10, x17
+fffffe0008adcfb8: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adcfbc: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adcfc0: d65f0fff     	retab
+
+fffffe0008adcfc4 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm>:
+fffffe0008adcfc4: d503237f     	pacibsp
+fffffe0008adcfc8: d10143ff     	sub	sp, sp, #0x50
+fffffe0008adcfcc: a90257f6     	stp	x22, x21, [sp, #0x20]
+fffffe0008adcfd0: a9034ff4     	stp	x20, x19, [sp, #0x30]
+fffffe0008adcfd4: a9047bfd     	stp	x29, x30, [sp, #0x40]
+fffffe0008adcfd8: 910103fd     	add	x29, sp, #0x40
+fffffe0008adcfdc: aa0203f4     	mov	x20, x2
+fffffe0008adcfe0: aa0103f5     	mov	x21, x1
+fffffe0008adcfe4: aa0003f3     	mov	x19, x0
+fffffe0008adcfe8: f940b800     	ldr	x0, [x0, #0x170]
+fffffe0008adcfec: f9400010     	ldr	x16, [x0]
+fffffe0008adcff0: aa0003f1     	mov	x17, x0
+fffffe0008adcff4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adcff8: dac11a30     	autda	x16, x17
+fffffe0008adcffc: d2806811     	mov	x17, #0x340     ; =832
+fffffe0008add000: 8b110210     	add	x16, x16, x17
+fffffe0008add004: f9400208     	ldr	x8, [x16]
+fffffe0008add008: 528061c1     	mov	w1, #0x30e      ; =782
+fffffe0008add00c: aa1503e2     	mov	x2, x21
+fffffe0008add010: aa1403e3     	mov	x3, x20
+fffffe0008add014: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008add018: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008add01c: d2800006     	mov	x6, #0x0        ; =0
+fffffe0008add020: f2f7bc30     	movk	x16, #0xbde1, lsl #48
+fffffe0008add024: d73f0910     	blraa	x8, x16
+fffffe0008add028: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add02c: aa0003f1     	mov	x17, x0
+fffffe0008add030: f9400010     	ldr	x16, [x0]
+fffffe0008add034: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add038: dac11a30     	autda	x16, x17
+fffffe0008add03c: aa1003f1     	mov	x17, x16
+fffffe0008add040: dac147f1     	xpacd	x17
+fffffe0008add044: eb11021f     	cmp	x16, x17
+fffffe0008add048: 54000040     	b.eq	0xfffffe0008add050 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x8c>
+fffffe0008add04c: d4388e40     	brk	#0xc472
+fffffe0008add050: 910ec208     	add	x8, x16, #0x3b0
+fffffe0008add054: f941da09     	ldr	x9, [x16, #0x3b0]
+fffffe0008add058: aa0803f1     	mov	x17, x8
+fffffe0008add05c: f2e29d31     	movk	x17, #0x14e9, lsl #48
+fffffe0008add060: d73f0931     	blraa	x9, x17
+fffffe0008add064: 36000740     	tbz	w0, #0x0, 0xfffffe0008add14c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x188>
+fffffe0008add068: f1000abf     	cmp	x21, #0x2
+fffffe0008add06c: fa401aa4     	ccmp	x21, #0x0, #0x4, ne
+fffffe0008add070: 540008e1     	b.ne	0xfffffe0008add18c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x1c8>
+fffffe0008add074: f100069f     	cmp	x20, #0x1
+fffffe0008add078: 540008a1     	b.ne	0xfffffe0008add18c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x1c8>
+fffffe0008add07c: 52800028     	mov	w8, #0x1        ; =1
+fffffe0008add080: 39062668     	strb	w8, [x19, #0x189]
+fffffe0008add084: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add088: f9400010     	ldr	x16, [x0]
+fffffe0008add08c: aa0003f1     	mov	x17, x0
+fffffe0008add090: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add094: dac11a30     	autda	x16, x17
+fffffe0008add098: d2816a11     	mov	x17, #0xb50     ; =2896
+fffffe0008add09c: 8b110210     	add	x16, x16, x17
+fffffe0008add0a0: f9400208     	ldr	x8, [x16]
+fffffe0008add0a4: f2f50750     	movk	x16, #0xa83a, lsl #48
+fffffe0008add0a8: d73f0910     	blraa	x8, x16
+fffffe0008add0ac: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add0b0: aa0003f1     	mov	x17, x0
+fffffe0008add0b4: f9400010     	ldr	x16, [x0]
+fffffe0008add0b8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add0bc: dac11a30     	autda	x16, x17
+fffffe0008add0c0: aa1003f1     	mov	x17, x16
+fffffe0008add0c4: dac147f1     	xpacd	x17
+fffffe0008add0c8: eb11021f     	cmp	x16, x17
+fffffe0008add0cc: 54000040     	b.eq	0xfffffe0008add0d4 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x110>
+fffffe0008add0d0: d4388e40     	brk	#0xc472
+fffffe0008add0d4: 912ba208     	add	x8, x16, #0xae8
+fffffe0008add0d8: f9457609     	ldr	x9, [x16, #0xae8]
+fffffe0008add0dc: 52800001     	mov	w1, #0x0        ; =0
+fffffe0008add0e0: aa0803f1     	mov	x17, x8
+fffffe0008add0e4: f2f568f1     	movk	x17, #0xab47, lsl #48
+fffffe0008add0e8: d73f0931     	blraa	x9, x17
+fffffe0008add0ec: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add0f0: aa0003f1     	mov	x17, x0
+fffffe0008add0f4: f9400010     	ldr	x16, [x0]
+fffffe0008add0f8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add0fc: dac11a30     	autda	x16, x17
+fffffe0008add100: aa1003f1     	mov	x17, x16
+fffffe0008add104: dac147f1     	xpacd	x17
+fffffe0008add108: eb11021f     	cmp	x16, x17
+fffffe0008add10c: 54000040     	b.eq	0xfffffe0008add114 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x150>
+fffffe0008add110: d4388e40     	brk	#0xc472
+fffffe0008add114: 910da202     	add	x2, x16, #0x368
+fffffe0008add118: f941b610     	ldr	x16, [x16, #0x368]
+fffffe0008add11c: 52800001     	mov	w1, #0x0        ; =0
+fffffe0008add120: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008add124: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008add128: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008add12c: 910143ff     	add	sp, sp, #0x50
+fffffe0008add130: d50323ff     	autibsp
+fffffe0008add134: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008add138: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008add140 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x17c>
+fffffe0008add13c: d4388e20     	brk	#0xc471
+fffffe0008add140: aa0203f1     	mov	x17, x2
+fffffe0008add144: f2f3f4b1     	movk	x17, #0x9fa5, lsl #48
+fffffe0008add148: d71f0a11     	braa	x16, x17
+fffffe0008add14c: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add150: f9400010     	ldr	x16, [x0]
+fffffe0008add154: aa0003f1     	mov	x17, x0
+fffffe0008add158: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add15c: dac11a30     	autda	x16, x17
+fffffe0008add160: d2816811     	mov	x17, #0xb40     ; =2880
+fffffe0008add164: 8b110210     	add	x16, x16, x17
+fffffe0008add168: f9400208     	ldr	x8, [x16]
+fffffe0008add16c: f2fb0af0     	movk	x16, #0xd857, lsl #48
+fffffe0008add170: d73f0910     	blraa	x8, x16
+fffffe0008add174: 36001100     	tbz	w0, #0x0, 0xfffffe0008add394 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x3d0>
+fffffe0008add178: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008add17c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008add180: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008add184: 910143ff     	add	sp, sp, #0x50
+fffffe0008add188: d65f0fff     	retab
+fffffe0008add18c: f10006bf     	cmp	x21, #0x1
+fffffe0008add190: 54000761     	b.ne	0xfffffe0008add27c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x2b8>
+fffffe0008add194: f100069f     	cmp	x20, #0x1
+fffffe0008add198: 54000720     	b.eq	0xfffffe0008add27c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x2b8>
+fffffe0008add19c: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add1a0: f9400010     	ldr	x16, [x0]
+fffffe0008add1a4: aa0003f1     	mov	x17, x0
+fffffe0008add1a8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add1ac: dac11a30     	autda	x16, x17
+fffffe0008add1b0: d280ec11     	mov	x17, #0x760     ; =1888
+fffffe0008add1b4: 8b110210     	add	x16, x16, x17
+fffffe0008add1b8: f9400208     	ldr	x8, [x16]
+fffffe0008add1bc: f2e3c590     	movk	x16, #0x1e2c, lsl #48
+fffffe0008add1c0: d73f0910     	blraa	x8, x16
+fffffe0008add1c4: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add1c8: aa0003f1     	mov	x17, x0
+fffffe0008add1cc: f9400010     	ldr	x16, [x0]
+fffffe0008add1d0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add1d4: dac11a30     	autda	x16, x17
+fffffe0008add1d8: aa1003f1     	mov	x17, x16
+fffffe0008add1dc: dac147f1     	xpacd	x17
+fffffe0008add1e0: eb11021f     	cmp	x16, x17
+fffffe0008add1e4: 54000040     	b.eq	0xfffffe0008add1ec <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x228>
+fffffe0008add1e8: d4388e40     	brk	#0xc472
+fffffe0008add1ec: 912ba208     	add	x8, x16, #0xae8
+fffffe0008add1f0: f9457609     	ldr	x9, [x16, #0xae8]
+fffffe0008add1f4: 52800021     	mov	w1, #0x1        ; =1
+fffffe0008add1f8: aa0803f1     	mov	x17, x8
+fffffe0008add1fc: f2f568f1     	movk	x17, #0xab47, lsl #48
+fffffe0008add200: d73f0931     	blraa	x9, x17
+fffffe0008add204: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add208: aa0003f1     	mov	x17, x0
+fffffe0008add20c: f9400010     	ldr	x16, [x0]
+fffffe0008add210: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add214: dac11a30     	autda	x16, x17
+fffffe0008add218: aa1003f1     	mov	x17, x16
+fffffe0008add21c: dac147f1     	xpacd	x17
+fffffe0008add220: eb11021f     	cmp	x16, x17
+fffffe0008add224: 54000040     	b.eq	0xfffffe0008add22c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x268>
+fffffe0008add228: d4388e40     	brk	#0xc472
+fffffe0008add22c: 912d6208     	add	x8, x16, #0xb58
+fffffe0008add230: f945ae09     	ldr	x9, [x16, #0xb58]
+fffffe0008add234: aa0803f1     	mov	x17, x8
+fffffe0008add238: f2fc76d1     	movk	x17, #0xe3b6, lsl #48
+fffffe0008add23c: d73f0931     	blraa	x9, x17
+fffffe0008add240: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add244: f9413c08     	ldr	x8, [x0, #0x278]
+fffffe0008add248: b9468908     	ldr	w8, [x8, #0x688]
+fffffe0008add24c: 3707f968     	tbnz	w8, #0x0, 0xfffffe0008add178 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x1b4>
+fffffe0008add250: f9400010     	ldr	x16, [x0]
+fffffe0008add254: aa0003f1     	mov	x17, x0
+fffffe0008add258: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add25c: dac11a30     	autda	x16, x17
+fffffe0008add260: d2806d11     	mov	x17, #0x368     ; =872
+fffffe0008add264: 8b110210     	add	x16, x16, x17
+fffffe0008add268: f9400208     	ldr	x8, [x16]
+fffffe0008add26c: aa1003e2     	mov	x2, x16
+fffffe0008add270: aa0803f0     	mov	x16, x8
+fffffe0008add274: 52800021     	mov	w1, #0x1        ; =1
+fffffe0008add278: 17ffffaa     	b	0xfffffe0008add120 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x15c>
+fffffe0008add27c: f10006bf     	cmp	x21, #0x1
+fffffe0008add280: 540004c1     	b.ne	0xfffffe0008add318 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x354>
+fffffe0008add284: f100069f     	cmp	x20, #0x1
+fffffe0008add288: 54000481     	b.ne	0xfffffe0008add318 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x354>
+fffffe0008add28c: 3906267f     	strb	wzr, [x19, #0x189]
+fffffe0008add290: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008add294: 35000181     	cbnz	w1, 0xfffffe0008add2c4 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x300>
+fffffe0008add298: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add29c: f9400010     	ldr	x16, [x0]
+fffffe0008add2a0: aa0003f1     	mov	x17, x0
+fffffe0008add2a4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add2a8: dac11a30     	autda	x16, x17
+fffffe0008add2ac: d2816011     	mov	x17, #0xb00     ; =2816
+fffffe0008add2b0: 8b110210     	add	x16, x16, x17
+fffffe0008add2b4: f9400208     	ldr	x8, [x16]
+fffffe0008add2b8: f2f1b590     	movk	x16, #0x8dac, lsl #48
+fffffe0008add2bc: d73f0910     	blraa	x8, x16
+fffffe0008add2c0: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008add2c4: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add2c8: f9400010     	ldr	x16, [x0]
+fffffe0008add2cc: aa0003f1     	mov	x17, x0
+fffffe0008add2d0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add2d4: dac11a30     	autda	x16, x17
+fffffe0008add2d8: d2802911     	mov	x17, #0x148     ; =328
+fffffe0008add2dc: 8b110210     	add	x16, x16, x17
+fffffe0008add2e0: f9400208     	ldr	x8, [x16]
+fffffe0008add2e4: aa1003e2     	mov	x2, x16
+fffffe0008add2e8: aa0803f0     	mov	x16, x8
+fffffe0008add2ec: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008add2f0: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008add2f4: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008add2f8: 910143ff     	add	sp, sp, #0x50
+fffffe0008add2fc: d50323ff     	autibsp
+fffffe0008add300: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008add304: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008add30c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x348>
+fffffe0008add308: d4388e20     	brk	#0xc471
+fffffe0008add30c: aa0203f1     	mov	x17, x2
+fffffe0008add310: f2f38891     	movk	x17, #0x9c44, lsl #48
+fffffe0008add314: d71f0a11     	braa	x16, x17
+fffffe0008add318: aa150288     	orr	x8, x20, x21
+fffffe0008add31c: b40000c8     	cbz	x8, 0xfffffe0008add334 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x370>
+fffffe0008add320: f1000abf     	cmp	x21, #0x2
+fffffe0008add324: 54fff2a1     	b.ne	0xfffffe0008add178 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x1b4>
+fffffe0008add328: f1000a9f     	cmp	x20, #0x2
+fffffe0008add32c: 54fff261     	b.ne	0xfffffe0008add178 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x1b4>
+fffffe0008add330: 14000003     	b	0xfffffe0008add33c <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x378>
+fffffe0008add334: b9412268     	ldr	w8, [x19, #0x120]
+fffffe0008add338: 35fff208     	cbnz	w8, 0xfffffe0008add178 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x1b4>
+fffffe0008add33c: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008add340: f9400010     	ldr	x16, [x0]
+fffffe0008add344: aa0003f1     	mov	x17, x0
+fffffe0008add348: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add34c: dac11a30     	autda	x16, x17
+fffffe0008add350: d2816011     	mov	x17, #0xb00     ; =2816
+fffffe0008add354: 8b110210     	add	x16, x16, x17
+fffffe0008add358: f9400208     	ldr	x8, [x16]
+fffffe0008add35c: aa1003e2     	mov	x2, x16
+fffffe0008add360: aa0803f0     	mov	x16, x8
+fffffe0008add364: 52800021     	mov	w1, #0x1        ; =1
+fffffe0008add368: a9447bfd     	ldp	x29, x30, [sp, #0x40]
+fffffe0008add36c: a9434ff4     	ldp	x20, x19, [sp, #0x30]
+fffffe0008add370: a94257f6     	ldp	x22, x21, [sp, #0x20]
+fffffe0008add374: 910143ff     	add	sp, sp, #0x50
+fffffe0008add378: d50323ff     	autibsp
+fffffe0008add37c: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008add380: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008add388 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x3c4>
+fffffe0008add384: d4388e20     	brk	#0xc471
+fffffe0008add388: aa0203f1     	mov	x17, x2
+fffffe0008add38c: f2f1b591     	movk	x17, #0x8dac, lsl #48
+fffffe0008add390: d71f0a11     	braa	x16, x17
+fffffe0008add394: b0ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008add398: 911d290a     	add	x10, x8, #0x74a
+fffffe0008add39c: 528048e8     	mov	w8, #0x247      ; =583
+fffffe0008add3a0: b0ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008add3a4: 91146529     	add	x9, x9, #0x519
+fffffe0008add3a8: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008add3ac: f90003e9     	str	x9, [sp]
+fffffe0008add3b0: b0ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008add3b4: 911ba800     	add	x0, x0, #0x6ea
+fffffe0008add3b8: 94000760     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008add3bc <__ZN22AGXFirmwareKextRTBuddy14getFWUUIDBlockEPKhP16RTK_uuid_block_t>:
+fffffe0008add3bc: d503245f     	bti	c
+fffffe0008add3c0: d2800008     	mov	x8, #0x0        ; =0
+fffffe0008add3c4: 6f00e400     	movi.2d	v0, #0000000000000000
+fffffe0008add3c8: ad010040     	stp	q0, q0, [x2, #0x20]
+fffffe0008add3cc: ad000040     	stp	q0, q0, [x2]
+fffffe0008add3d0: 52800109     	mov	w9, #0x8        ; =8
+fffffe0008add3d4: 90ff32ea     	adrp	x10, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008add3d8: 913ff14a     	add	x10, x10, #0xffc
+fffffe0008add3dc: 528eaeab     	mov	w11, #0x7575    ; =30069
+fffffe0008add3e0: 72ac8d2b     	movk	w11, #0x6469, lsl #16
+fffffe0008add3e4: b868794c     	ldr	w12, [x10, x8, lsl #2]
+fffffe0008add3e8: 8b0c002c     	add	x12, x1, x12
+fffffe0008add3ec: b940018d     	ldr	w13, [x12]
+fffffe0008add3f0: 6b0b01bf     	cmp	w13, w11
+fffffe0008add3f4: 54000081     	b.ne	0xfffffe0008add404 <__ZN22AGXFirmwareKextRTBuddy14getFWUUIDBlockEPKhP16RTK_uuid_block_t+0x48>
+fffffe0008add3f8: b940058d     	ldr	w13, [x12, #0x4]
+fffffe0008add3fc: 710015bf     	cmp	w13, #0x5
+fffffe0008add400: 540000c0     	b.eq	0xfffffe0008add418 <__ZN22AGXFirmwareKextRTBuddy14getFWUUIDBlockEPKhP16RTK_uuid_block_t+0x5c>
+fffffe0008add404: 91000508     	add	x8, x8, #0x1
+fffffe0008add408: f1000529     	subs	x9, x9, #0x1
+fffffe0008add40c: 54fffec1     	b.ne	0xfffffe0008add3e4 <__ZN22AGXFirmwareKextRTBuddy14getFWUUIDBlockEPKhP16RTK_uuid_block_t+0x28>
+fffffe0008add410: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008add414: d65f03c0     	ret
+fffffe0008add418: ad400580     	ldp	q0, q1, [x12]
+fffffe0008add41c: ad410d82     	ldp	q2, q3, [x12, #0x20]
+fffffe0008add420: ad010c42     	stp	q2, q3, [x2, #0x20]
+fffffe0008add424: ad000440     	stp	q0, q1, [x2]
+fffffe0008add428: 52800020     	mov	w0, #0x1        ; =1
+fffffe0008add42c: d65f03c0     	ret
+
+fffffe0008add430 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv>:
+fffffe0008add430: d503237f     	pacibsp
+fffffe0008add434: a9bd57f6     	stp	x22, x21, [sp, #-0x30]!
+fffffe0008add438: a9014ff4     	stp	x20, x19, [sp, #0x10]
+fffffe0008add43c: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008add440: 910083fd     	add	x29, sp, #0x20
+fffffe0008add444: f9409c00     	ldr	x0, [x0, #0x138]
+fffffe0008add448: b4000960     	cbz	x0, 0xfffffe0008add574 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0x144>
+fffffe0008add44c: f9400010     	ldr	x16, [x0]
+fffffe0008add450: aa0003f1     	mov	x17, x0
+fffffe0008add454: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add458: dac11a30     	autda	x16, x17
+fffffe0008add45c: d280d611     	mov	x17, #0x6b0     ; =1712
+fffffe0008add460: 8b110210     	add	x16, x16, x17
+fffffe0008add464: f9400208     	ldr	x8, [x16]
+fffffe0008add468: f2f276f0     	movk	x16, #0x93b7, lsl #48
+fffffe0008add46c: d73f0910     	blraa	x8, x16
+fffffe0008add470: f9400010     	ldr	x16, [x0]
+fffffe0008add474: aa0003f1     	mov	x17, x0
+fffffe0008add478: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add47c: dac11a30     	autda	x16, x17
+fffffe0008add480: d280d611     	mov	x17, #0x6b0     ; =1712
+fffffe0008add484: 8b110210     	add	x16, x16, x17
+fffffe0008add488: f9400208     	ldr	x8, [x16]
+fffffe0008add48c: f2f276f0     	movk	x16, #0x93b7, lsl #48
+fffffe0008add490: d73f0910     	blraa	x8, x16
+fffffe0008add494: b4000700     	cbz	x0, 0xfffffe0008add574 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0x144>
+fffffe0008add498: f9400010     	ldr	x16, [x0]
+fffffe0008add49c: aa0003f1     	mov	x17, x0
+fffffe0008add4a0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add4a4: dac11a30     	autda	x16, x17
+fffffe0008add4a8: d2805b11     	mov	x17, #0x2d8     ; =728
+fffffe0008add4ac: 8b110210     	add	x16, x16, x17
+fffffe0008add4b0: f9400208     	ldr	x8, [x16]
+fffffe0008add4b4: b0ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008add4b8: 91152421     	add	x1, x1, #0x549
+fffffe0008add4bc: f2e6f4b0     	movk	x16, #0x37a5, lsl #48
+fffffe0008add4c0: d73f0910     	blraa	x8, x16
+fffffe0008add4c4: b4000260     	cbz	x0, 0xfffffe0008add510 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0xe0>
+fffffe0008add4c8: aa0003f3     	mov	x19, x0
+fffffe0008add4cc: f9400010     	ldr	x16, [x0]
+fffffe0008add4d0: aa0003f1     	mov	x17, x0
+fffffe0008add4d4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add4d8: dac11a30     	autda	x16, x17
+fffffe0008add4dc: f8420e08     	ldr	x8, [x16, #0x20]!
+fffffe0008add4e0: f2e5c950     	movk	x16, #0x2e4a, lsl #48
+fffffe0008add4e4: d73f0910     	blraa	x8, x16
+fffffe0008add4e8: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008add4ec: f947c908     	ldr	x8, [x8, #0xf90]
+fffffe0008add4f0: f9400101     	ldr	x1, [x8]
+fffffe0008add4f4: aa1303e0     	mov	x0, x19
+fffffe0008add4f8: 940006cc     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008add4fc: b5000140     	cbnz	x0, 0xfffffe0008add524 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0xf4>
+fffffe0008add500: 52800014     	mov	w20, #0x0       ; =0
+fffffe0008add504: aa1303f5     	mov	x21, x19
+fffffe0008add508: f2f9b435     	movk	x21, #0xcda1, lsl #48
+fffffe0008add50c: 14000013     	b	0xfffffe0008add558 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0x128>
+fffffe0008add510: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008add514: f947c908     	ldr	x8, [x8, #0xf90]
+fffffe0008add518: f9400101     	ldr	x1, [x8]
+fffffe0008add51c: 940006c3     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008add520: b40002a0     	cbz	x0, 0xfffffe0008add574 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0x144>
+fffffe0008add524: aa0003f3     	mov	x19, x0
+fffffe0008add528: f9400010     	ldr	x16, [x0]
+fffffe0008add52c: aa0003f5     	mov	x21, x0
+fffffe0008add530: f2f9b435     	movk	x21, #0xcda1, lsl #48
+fffffe0008add534: aa0003f1     	mov	x17, x0
+fffffe0008add538: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add53c: dac11a30     	autda	x16, x17
+fffffe0008add540: d2803311     	mov	x17, #0x198     ; =408
+fffffe0008add544: 8b110210     	add	x16, x16, x17
+fffffe0008add548: f9400208     	ldr	x8, [x16]
+fffffe0008add54c: f2fa4810     	movk	x16, #0xd240, lsl #48
+fffffe0008add550: d73f0910     	blraa	x8, x16
+fffffe0008add554: b9400014     	ldr	w20, [x0]
+fffffe0008add558: f9400270     	ldr	x16, [x19]
+fffffe0008add55c: dac11ab0     	autda	x16, x21
+fffffe0008add560: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008add564: aa1303e0     	mov	x0, x19
+fffffe0008add568: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008add56c: d73f0910     	blraa	x8, x16
+fffffe0008add570: 14000002     	b	0xfffffe0008add578 <__ZNK22AGXFirmwareKextRTBuddy32getCoredumpCopyBufferEDTPropertyEv+0x148>
+fffffe0008add574: 52800014     	mov	w20, #0x0       ; =0
+fffffe0008add578: aa1403e0     	mov	x0, x20
+fffffe0008add57c: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008add580: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008add584: a8c357f6     	ldp	x22, x21, [sp], #0x30
+fffffe0008add588: d65f0fff     	retab
+
+fffffe0008add58c <__ZN22AGXFirmwareKextRTBuddy26getFirmwareTextSectionSizeE16AGFIFirmwareRole>:
+fffffe0008add58c: d503245f     	bti	c
+fffffe0008add590: d2800000     	mov	x0, #0x0        ; =0
+fffffe0008add594: d65f03c0     	ret
+
+fffffe0008add598 <__ZN22AGXFirmwareKextRTBuddy32getFirmwareTextSectionBaseOffsetE16AGFIFirmwareRole>:
+fffffe0008add598: d503245f     	bti	c
+fffffe0008add59c: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008add5a0: d65f03c0     	ret
+
+fffffe0008add5a4 <__ZN22AGXFirmwareKextRTBuddy28getFWPdumpBinPatchDataOffsetE16AGFIFirmwareRole>:
+fffffe0008add5a4: d503245f     	bti	c
+fffffe0008add5a8: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008add5ac: d65f03c0     	ret
+
+fffffe0008add5b0 <__ZN22AGXFirmwareKextRTBuddy21getFWResumeFlagOffsetE16AGFIFirmwareRole>:
+fffffe0008add5b0: d503245f     	bti	c
+fffffe0008add5b4: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008add5b8: d65f03c0     	ret
+
+fffffe0008add5bc <__ZN22AGXFirmwareKextRTBuddy17getRuntimeBinSizeE16AGFIFirmwareRole>:
+fffffe0008add5bc: d503245f     	bti	c
+fffffe0008add5c0: d2800000     	mov	x0, #0x0        ; =0
+fffffe0008add5c4: d65f03c0     	ret
+
+fffffe0008add5c8 <__ZN22AGXFirmwareKextRTBuddy10getVersionE16AGFIFirmwareRole>:
+fffffe0008add5c8: d503245f     	bti	c
+fffffe0008add5cc: d2800000     	mov	x0, #0x0        ; =0
+fffffe0008add5d0: d65f03c0     	ret
+
+fffffe0008add5d4 <__ZN22AGXFirmwareKextRTBuddy8getBuildE16AGFIFirmwareRole>:
+fffffe0008add5d4: d503245f     	bti	c
+fffffe0008add5d8: d2800000     	mov	x0, #0x0        ; =0
+fffffe0008add5dc: d65f03c0     	ret
+
+fffffe0008add5e0 <__ZN22AGXFirmwareKextRTBuddy19getBootConfigOffsetE16AGFIFirmwareRole>:
+fffffe0008add5e0: d503245f     	bti	c
+fffffe0008add5e4: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008add5e8: d65f03c0     	ret
+
+fffffe0008add5ec <__ZN22AGXFirmwareKextRTBuddy21requestFirmwareBinaryEPPKhPmRK16AGXGPUCoreConfig16AGFIFirmwareRole>:
+fffffe0008add5ec: d503245f     	bti	c
+fffffe0008add5f0: 52800020     	mov	w0, #0x1        ; =1
+fffffe0008add5f4: d65f03c0     	ret
+
+fffffe0008add5f8 <__ZN22AGXFirmwareKextRTBuddy21joinPMPowerManagementEP9IOServiceS1_b>:
+fffffe0008add5f8: d503245f     	bti	c
+fffffe0008add5fc: f9409c00     	ldr	x0, [x0, #0x138]
+fffffe0008add600: f9400010     	ldr	x16, [x0]
+fffffe0008add604: aa0003f1     	mov	x17, x0
+fffffe0008add608: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add60c: dac11a30     	autda	x16, x17
+fffffe0008add610: d280fa11     	mov	x17, #0x7d0     ; =2000
+fffffe0008add614: 8b110210     	add	x16, x16, x17
+fffffe0008add618: f9400208     	ldr	x8, [x16]
+fffffe0008add61c: aa1003e2     	mov	x2, x16
+fffffe0008add620: aa0803f0     	mov	x16, x8
+fffffe0008add624: aa0203f1     	mov	x17, x2
+fffffe0008add628: f2e97811     	movk	x17, #0x4bc0, lsl #48
+fffffe0008add62c: d71f0a11     	braa	x16, x17
+
+fffffe0008add630 <__ZN22AGXFirmwareKextRTBuddy18changePowerStateToEm>:
+fffffe0008add630: d503237f     	pacibsp
+fffffe0008add634: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008add638: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008add63c: 910043fd     	add	x29, sp, #0x10
+fffffe0008add640: aa0103f3     	mov	x19, x1
+fffffe0008add644: aa0003f4     	mov	x20, x0
+fffffe0008add648: f9409400     	ldr	x0, [x0, #0x128]
+fffffe0008add64c: 94000687     	bl	0xfffffe0008adf068 <_thread_set_thread_name+0xfffffe0008adf068>
+fffffe0008add650: f9400010     	ldr	x16, [x0]
+fffffe0008add654: aa0003f1     	mov	x17, x0
+fffffe0008add658: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add65c: dac11a30     	autda	x16, x17
+fffffe0008add660: d2810311     	mov	x17, #0x818     ; =2072
+fffffe0008add664: 8b110210     	add	x16, x16, x17
+fffffe0008add668: f9400208     	ldr	x8, [x16]
+fffffe0008add66c: aa1003e3     	mov	x3, x16
+fffffe0008add670: aa0803f0     	mov	x16, x8
+fffffe0008add674: aa1303e1     	mov	x1, x19
+fffffe0008add678: aa1403e2     	mov	x2, x20
+fffffe0008add67c: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008add680: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008add684: d50323ff     	autibsp
+fffffe0008add688: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008add68c: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008add694 <__ZN22AGXFirmwareKextRTBuddy18changePowerStateToEm+0x64>
+fffffe0008add690: d4388e20     	brk	#0xc471
+fffffe0008add694: aa0303f1     	mov	x17, x3
+fffffe0008add698: f2ed33d1     	movk	x17, #0x699e, lsl #48
+fffffe0008add69c: d71f0a11     	braa	x16, x17
+
+fffffe0008add6a0 <__ZN22AGXFirmwareKextRTBuddy18readMessageFromAKFEPy>:
+fffffe0008add6a0: d503237f     	pacibsp
+fffffe0008add6a4: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008add6a8: 910003fd     	mov	x29, sp
+fffffe0008add6ac: f9409400     	ldr	x0, [x0, #0x128]
+fffffe0008add6b0: 52800002     	mov	w2, #0x0        ; =0
+fffffe0008add6b4: 94000669     	bl	0xfffffe0008adf058 <_thread_set_thread_name+0xfffffe0008adf058>
+fffffe0008add6b8: 7100001f     	cmp	w0, #0x0
+fffffe0008add6bc: 1a9f17e0     	cset	w0, eq
+fffffe0008add6c0: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008add6c4: d65f0fff     	retab
+
+fffffe0008add6c8 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb>:
+fffffe0008add6c8: d503237f     	pacibsp
+fffffe0008add6cc: a9bd57f6     	stp	x22, x21, [sp, #-0x30]!
+fffffe0008add6d0: a9014ff4     	stp	x20, x19, [sp, #0x10]
+fffffe0008add6d4: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008add6d8: 910083fd     	add	x29, sp, #0x20
+fffffe0008add6dc: aa0203f3     	mov	x19, x2
+fffffe0008add6e0: aa0003f5     	mov	x21, x0
+fffffe0008add6e4: f9409800     	ldr	x0, [x0, #0x130]
+fffffe0008add6e8: b4000340     	cbz	x0, 0xfffffe0008add750 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x88>
+fffffe0008add6ec: aa0103f4     	mov	x20, x1
+fffffe0008add6f0: 394626a8     	ldrb	w8, [x21, #0x189]
+fffffe0008add6f4: 370006c8     	tbnz	w8, #0x0, 0xfffffe0008add7cc <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x104>
+fffffe0008add6f8: f9400010     	ldr	x16, [x0]
+fffffe0008add6fc: aa0003f1     	mov	x17, x0
+fffffe0008add700: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add704: dac11a30     	autda	x16, x17
+fffffe0008add708: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008add70c: 8b110210     	add	x16, x16, x17
+fffffe0008add710: f9400208     	ldr	x8, [x16]
+fffffe0008add714: aa1003e4     	mov	x4, x16
+fffffe0008add718: aa0803f0     	mov	x16, x8
+fffffe0008add71c: aa1403e1     	mov	x1, x20
+fffffe0008add720: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008add724: 52800023     	mov	w3, #0x1        ; =1
+fffffe0008add728: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008add72c: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008add730: a8c357f6     	ldp	x22, x21, [sp], #0x30
+fffffe0008add734: d50323ff     	autibsp
+fffffe0008add738: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008add73c: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008add744 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x7c>
+fffffe0008add740: d4388e20     	brk	#0xc471
+fffffe0008add744: aa0403f1     	mov	x17, x4
+fffffe0008add748: f2f56111     	movk	x17, #0xab08, lsl #48
+fffffe0008add74c: d71f0a11     	braa	x16, x17
+fffffe0008add750: f940bab4     	ldr	x20, [x21, #0x170]
+fffffe0008add754: 394626b5     	ldrb	w21, [x21, #0x189]
+fffffe0008add758: f9400290     	ldr	x16, [x20]
+fffffe0008add75c: aa1403f1     	mov	x17, x20
+fffffe0008add760: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add764: dac11a30     	autda	x16, x17
+fffffe0008add768: d2815f11     	mov	x17, #0xaf8     ; =2808
+fffffe0008add76c: 8b110210     	add	x16, x16, x17
+fffffe0008add770: f9400208     	ldr	x8, [x16]
+fffffe0008add774: aa1403e0     	mov	x0, x20
+fffffe0008add778: f2f10b50     	movk	x16, #0x885a, lsl #48
+fffffe0008add77c: d73f0910     	blraa	x8, x16
+fffffe0008add780: aa1403f1     	mov	x17, x20
+fffffe0008add784: 2a0003e4     	mov	w4, w0
+fffffe0008add788: 39400268     	ldrb	w8, [x19]
+fffffe0008add78c: f9400290     	ldr	x16, [x20]
+fffffe0008add790: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add794: dac11a30     	autda	x16, x17
+fffffe0008add798: aa1003f1     	mov	x17, x16
+fffffe0008add79c: dac147f1     	xpacd	x17
+fffffe0008add7a0: eb11021f     	cmp	x16, x17
+fffffe0008add7a4: 54000040     	b.eq	0xfffffe0008add7ac <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0xe4>
+fffffe0008add7a8: d4388e40     	brk	#0xc472
+fffffe0008add7ac: 910d0207     	add	x7, x16, #0x340
+fffffe0008add7b0: f941a210     	ldr	x16, [x16, #0x340]
+fffffe0008add7b4: 924002a3     	and	x3, x21, #0x1
+fffffe0008add7b8: 92400105     	and	x5, x8, #0x1
+fffffe0008add7bc: aa1403e0     	mov	x0, x20
+fffffe0008add7c0: 528065e1     	mov	w1, #0x32f      ; =815
+fffffe0008add7c4: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008add7c8: 1400003c     	b	0xfffffe0008add8b8 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x1f0>
+fffffe0008add7cc: 39400268     	ldrb	w8, [x19]
+fffffe0008add7d0: 360001c8     	tbz	w8, #0x0, 0xfffffe0008add808 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x140>
+fffffe0008add7d4: f940baa0     	ldr	x0, [x21, #0x170]
+fffffe0008add7d8: f9400010     	ldr	x16, [x0]
+fffffe0008add7dc: aa0003f1     	mov	x17, x0
+fffffe0008add7e0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add7e4: dac11a30     	autda	x16, x17
+fffffe0008add7e8: d2815f11     	mov	x17, #0xaf8     ; =2808
+fffffe0008add7ec: 8b110210     	add	x16, x16, x17
+fffffe0008add7f0: f9400208     	ldr	x8, [x16]
+fffffe0008add7f4: f2f10b50     	movk	x16, #0x885a, lsl #48
+fffffe0008add7f8: d73f0910     	blraa	x8, x16
+fffffe0008add7fc: 34000060     	cbz	w0, 0xfffffe0008add808 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x140>
+fffffe0008add800: f9409aa0     	ldr	x0, [x21, #0x130]
+fffffe0008add804: 17ffffbd     	b	0xfffffe0008add6f8 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x30>
+fffffe0008add808: f940baa0     	ldr	x0, [x21, #0x170]
+fffffe0008add80c: f9400010     	ldr	x16, [x0]
+fffffe0008add810: aa0003f1     	mov	x17, x0
+fffffe0008add814: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add818: dac11a30     	autda	x16, x17
+fffffe0008add81c: d2815f11     	mov	x17, #0xaf8     ; =2808
+fffffe0008add820: 8b110210     	add	x16, x16, x17
+fffffe0008add824: f9400208     	ldr	x8, [x16]
+fffffe0008add828: f2f10b50     	movk	x16, #0x885a, lsl #48
+fffffe0008add82c: d73f0910     	blraa	x8, x16
+fffffe0008add830: f940bab4     	ldr	x20, [x21, #0x170]
+fffffe0008add834: aa1403f1     	mov	x17, x20
+fffffe0008add838: f9400290     	ldr	x16, [x20]
+fffffe0008add83c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add840: dac11a30     	autda	x16, x17
+fffffe0008add844: aa1003f1     	mov	x17, x16
+fffffe0008add848: dac147f1     	xpacd	x17
+fffffe0008add84c: eb11021f     	cmp	x16, x17
+fffffe0008add850: 54000040     	b.eq	0xfffffe0008add858 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x190>
+fffffe0008add854: d4388e40     	brk	#0xc472
+fffffe0008add858: 912be208     	add	x8, x16, #0xaf8
+fffffe0008add85c: f9457e09     	ldr	x9, [x16, #0xaf8]
+fffffe0008add860: aa1403e0     	mov	x0, x20
+fffffe0008add864: aa0803f1     	mov	x17, x8
+fffffe0008add868: f2f10b51     	movk	x17, #0x885a, lsl #48
+fffffe0008add86c: d73f0931     	blraa	x9, x17
+fffffe0008add870: aa1403f1     	mov	x17, x20
+fffffe0008add874: 2a0003e4     	mov	w4, w0
+fffffe0008add878: 39400268     	ldrb	w8, [x19]
+fffffe0008add87c: f9400290     	ldr	x16, [x20]
+fffffe0008add880: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add884: dac11a30     	autda	x16, x17
+fffffe0008add888: aa1003f1     	mov	x17, x16
+fffffe0008add88c: dac147f1     	xpacd	x17
+fffffe0008add890: eb11021f     	cmp	x16, x17
+fffffe0008add894: 54000040     	b.eq	0xfffffe0008add89c <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x1d4>
+fffffe0008add898: d4388e40     	brk	#0xc472
+fffffe0008add89c: 910d0207     	add	x7, x16, #0x340
+fffffe0008add8a0: f941a210     	ldr	x16, [x16, #0x340]
+fffffe0008add8a4: 92400105     	and	x5, x8, #0x1
+fffffe0008add8a8: aa1403e0     	mov	x0, x20
+fffffe0008add8ac: 528065e1     	mov	w1, #0x32f      ; =815
+fffffe0008add8b0: 52800022     	mov	w2, #0x1        ; =1
+fffffe0008add8b4: 52800023     	mov	w3, #0x1        ; =1
+fffffe0008add8b8: d2800006     	mov	x6, #0x0        ; =0
+fffffe0008add8bc: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008add8c0: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008add8c4: a8c357f6     	ldp	x22, x21, [sp], #0x30
+fffffe0008add8c8: d50323ff     	autibsp
+fffffe0008add8cc: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008add8d0: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008add8d8 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb+0x210>
+fffffe0008add8d4: d4388e20     	brk	#0xc471
+fffffe0008add8d8: aa0703f1     	mov	x17, x7
+fffffe0008add8dc: f2f7bc31     	movk	x17, #0xbde1, lsl #48
+fffffe0008add8e0: d71f0a11     	braa	x16, x17
+
+fffffe0008add8e4 <__ZN22AGXFirmwareKextRTBuddy23sendAsyncNoteToFirmwareEyb>:
+fffffe0008add8e4: d503237f     	pacibsp
+fffffe0008add8e8: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008add8ec: a9014ff4     	stp	x20, x19, [sp, #0x10]
+fffffe0008add8f0: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008add8f4: 910083fd     	add	x29, sp, #0x20
+fffffe0008add8f8: f90007e1     	str	x1, [sp, #0x8]
+fffffe0008add8fc: 39001fe2     	strb	w2, [sp, #0x7]
+fffffe0008add900: f940a413     	ldr	x19, [x0, #0x148]
+fffffe0008add904: f9400010     	ldr	x16, [x0]
+fffffe0008add908: aa0003f1     	mov	x17, x0
+fffffe0008add90c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add910: dac11a30     	autda	x16, x17
+fffffe0008add914: d2811611     	mov	x17, #0x8b0     ; =2224
+fffffe0008add918: 8b110210     	add	x16, x16, x17
+fffffe0008add91c: f9400208     	ldr	x8, [x16]
+fffffe0008add920: aa1003f1     	mov	x17, x16
+fffffe0008add924: aa0803f0     	mov	x16, x8
+fffffe0008add928: f2ecd0d1     	movk	x17, #0x6686, lsl #48
+fffffe0008add92c: dac11230     	autia	x16, x17
+fffffe0008add930: aa1003f1     	mov	x17, x16
+fffffe0008add934: dac143f1     	xpaci	x17
+fffffe0008add938: eb11021f     	cmp	x16, x17
+fffffe0008add93c: 54000040     	b.eq	0xfffffe0008add944 <__ZN22AGXFirmwareKextRTBuddy23sendAsyncNoteToFirmwareEyb+0x60>
+fffffe0008add940: d4388e00     	brk	#0xc470
+fffffe0008add944: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008add948: dac10230     	pacia	x16, x17
+fffffe0008add94c: aa1003e1     	mov	x1, x16
+fffffe0008add950: b50002d0     	cbnz	x16, 0xfffffe0008add9a8 <__ZN22AGXFirmwareKextRTBuddy23sendAsyncNoteToFirmwareEyb+0xc4>
+fffffe0008add954: 90000010     	adrp	x16, 0xfffffe0008add000 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x3c>
+fffffe0008add958: 9127c210     	add	x16, x16, #0x9f0
+fffffe0008add95c: d29507b1     	mov	x17, #0xa83d    ; =43069
+fffffe0008add960: dac10230     	pacia	x16, x17
+fffffe0008add964: aa1003e1     	mov	x1, x16
+fffffe0008add968: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008add96c: 940005b3     	bl	0xfffffe0008adf038 <_thread_set_thread_name+0xfffffe0008adf038>
+fffffe0008add970: b40001a0     	cbz	x0, 0xfffffe0008add9a4 <__ZN22AGXFirmwareKextRTBuddy23sendAsyncNoteToFirmwareEyb+0xc0>
+fffffe0008add974: aa0003f0     	mov	x16, x0
+fffffe0008add978: d28944f1     	mov	x17, #0x4a27    ; =18983
+fffffe0008add97c: dac11230     	autia	x16, x17
+fffffe0008add980: aa1003f1     	mov	x17, x16
+fffffe0008add984: dac143f1     	xpaci	x17
+fffffe0008add988: eb11021f     	cmp	x16, x17
+fffffe0008add98c: 54000040     	b.eq	0xfffffe0008add994 <__ZN22AGXFirmwareKextRTBuddy23sendAsyncNoteToFirmwareEyb+0xb0>
+fffffe0008add990: d4388e00     	brk	#0xc470
+fffffe0008add994: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008add998: dac10230     	pacia	x16, x17
+fffffe0008add99c: aa1003e1     	mov	x1, x16
+fffffe0008add9a0: 14000002     	b	0xfffffe0008add9a8 <__ZN22AGXFirmwareKextRTBuddy23sendAsyncNoteToFirmwareEyb+0xc4>
+fffffe0008add9a4: d2800001     	mov	x1, #0x0        ; =0
+fffffe0008add9a8: f9400270     	ldr	x16, [x19]
+fffffe0008add9ac: aa1303f1     	mov	x17, x19
+fffffe0008add9b0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008add9b4: dac11a30     	autda	x16, x17
+fffffe0008add9b8: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008add9bc: 8b110210     	add	x16, x16, x17
+fffffe0008add9c0: f9400208     	ldr	x8, [x16]
+fffffe0008add9c4: 910023e2     	add	x2, sp, #0x8
+fffffe0008add9c8: 91001fe3     	add	x3, sp, #0x7
+fffffe0008add9cc: aa1303e0     	mov	x0, x19
+fffffe0008add9d0: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008add9d4: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008add9d8: f2ff3ff0     	movk	x16, #0xf9ff, lsl #48
+fffffe0008add9dc: d73f0910     	blraa	x8, x16
+fffffe0008add9e0: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008add9e4: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008add9e8: 9100c3ff     	add	sp, sp, #0x30
+fffffe0008add9ec: d65f0fff     	retab
+
+fffffe0008add9f0 <__ZN22AGXFirmwareKextRTBuddy28sendAsyncNoteToFirmwareGatedEPyPb_vfpthunk_>:
+fffffe0008add9f0: d503245f     	bti	c
+fffffe0008add9f4: f9400010     	ldr	x16, [x0]
+fffffe0008add9f8: aa0003f1     	mov	x17, x0
+fffffe0008add9fc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adda00: dac11a30     	autda	x16, x17
+fffffe0008adda04: d2811611     	mov	x17, #0x8b0     ; =2224
+fffffe0008adda08: 8b110210     	add	x16, x16, x17
+fffffe0008adda0c: f9400208     	ldr	x8, [x16]
+fffffe0008adda10: aa1003e3     	mov	x3, x16
+fffffe0008adda14: aa0803f0     	mov	x16, x8
+fffffe0008adda18: aa0303f1     	mov	x17, x3
+fffffe0008adda1c: f2ecd0d1     	movk	x17, #0x6686, lsl #48
+fffffe0008adda20: d71f0a11     	braa	x16, x17
+
+fffffe0008adda24 <__ZN22AGXFirmwareKextRTBuddy26sendMessageToFirmwareGatedEPy>:
+fffffe0008adda24: d503245f     	bti	c
+fffffe0008adda28: aa0003e8     	mov	x8, x0
+fffffe0008adda2c: f9409400     	ldr	x0, [x0, #0x128]
+fffffe0008adda30: 39462509     	ldrb	w9, [x8, #0x189]
+fffffe0008adda34: b4000200     	cbz	x0, 0xfffffe0008adda74 <__ZN22AGXFirmwareKextRTBuddy26sendMessageToFirmwareGatedEPy+0x50>
+fffffe0008adda38: 370001e9     	tbnz	w9, #0x0, 0xfffffe0008adda74 <__ZN22AGXFirmwareKextRTBuddy26sendMessageToFirmwareGatedEPy+0x50>
+fffffe0008adda3c: f9400010     	ldr	x16, [x0]
+fffffe0008adda40: aa0003f1     	mov	x17, x0
+fffffe0008adda44: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adda48: dac11a30     	autda	x16, x17
+fffffe0008adda4c: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008adda50: 8b110210     	add	x16, x16, x17
+fffffe0008adda54: f9400208     	ldr	x8, [x16]
+fffffe0008adda58: aa1003e4     	mov	x4, x16
+fffffe0008adda5c: aa0803f0     	mov	x16, x8
+fffffe0008adda60: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008adda64: 52800023     	mov	w3, #0x1        ; =1
+fffffe0008adda68: aa0403f1     	mov	x17, x4
+fffffe0008adda6c: f2f56111     	movk	x17, #0xab08, lsl #48
+fffffe0008adda70: d71f0a11     	braa	x16, x17
+fffffe0008adda74: 92401d29     	and	x9, x9, #0xff
+fffffe0008adda78: f940b908     	ldr	x8, [x8, #0x170]
+fffffe0008adda7c: f100001f     	cmp	x0, #0x0
+fffffe0008adda80: 1a9f07e2     	cset	w2, ne
+fffffe0008adda84: f9400110     	ldr	x16, [x8]
+fffffe0008adda88: aa0803f1     	mov	x17, x8
+fffffe0008adda8c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adda90: dac11a30     	autda	x16, x17
+fffffe0008adda94: d2806811     	mov	x17, #0x340     ; =832
+fffffe0008adda98: 8b110210     	add	x16, x16, x17
+fffffe0008adda9c: f940020a     	ldr	x10, [x16]
+fffffe0008addaa0: aa1003e7     	mov	x7, x16
+fffffe0008addaa4: 92400123     	and	x3, x9, #0x1
+fffffe0008addaa8: aa0a03f0     	mov	x16, x10
+fffffe0008addaac: aa0803e0     	mov	x0, x8
+fffffe0008addab0: 528061e1     	mov	w1, #0x30f      ; =783
+fffffe0008addab4: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008addab8: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008addabc: d2800006     	mov	x6, #0x0        ; =0
+fffffe0008addac0: aa0703f1     	mov	x17, x7
+fffffe0008addac4: f2f7bc31     	movk	x17, #0xbde1, lsl #48
+fffffe0008addac8: d71f0a11     	braa	x16, x17
+
+fffffe0008addacc <__ZN22AGXFirmwareKextRTBuddy21sendMessageToFirmwareEy>:
+fffffe0008addacc: d503237f     	pacibsp
+fffffe0008addad0: d100c3ff     	sub	sp, sp, #0x30
+fffffe0008addad4: a9014ff4     	stp	x20, x19, [sp, #0x10]
+fffffe0008addad8: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008addadc: 910083fd     	add	x29, sp, #0x20
+fffffe0008addae0: f90007e1     	str	x1, [sp, #0x8]
+fffffe0008addae4: f940a413     	ldr	x19, [x0, #0x148]
+fffffe0008addae8: f9400010     	ldr	x16, [x0]
+fffffe0008addaec: aa0003f1     	mov	x17, x0
+fffffe0008addaf0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addaf4: dac11a30     	autda	x16, x17
+fffffe0008addaf8: d2811411     	mov	x17, #0x8a0     ; =2208
+fffffe0008addafc: 8b110210     	add	x16, x16, x17
+fffffe0008addb00: f9400208     	ldr	x8, [x16]
+fffffe0008addb04: aa1003f1     	mov	x17, x16
+fffffe0008addb08: aa0803f0     	mov	x16, x8
+fffffe0008addb0c: f2fd0a71     	movk	x17, #0xe853, lsl #48
+fffffe0008addb10: dac11230     	autia	x16, x17
+fffffe0008addb14: aa1003f1     	mov	x17, x16
+fffffe0008addb18: dac143f1     	xpaci	x17
+fffffe0008addb1c: eb11021f     	cmp	x16, x17
+fffffe0008addb20: 54000040     	b.eq	0xfffffe0008addb28 <__ZN22AGXFirmwareKextRTBuddy21sendMessageToFirmwareEy+0x5c>
+fffffe0008addb24: d4388e00     	brk	#0xc470
+fffffe0008addb28: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008addb2c: dac10230     	pacia	x16, x17
+fffffe0008addb30: aa1003e1     	mov	x1, x16
+fffffe0008addb34: b50002d0     	cbnz	x16, 0xfffffe0008addb8c <__ZN22AGXFirmwareKextRTBuddy21sendMessageToFirmwareEy+0xc0>
+fffffe0008addb38: 90000010     	adrp	x16, 0xfffffe0008add000 <__ZN22AGXFirmwareKextRTBuddy21powerStateChangeGatedEmm+0x3c>
+fffffe0008addb3c: 912f5210     	add	x16, x16, #0xbd4
+fffffe0008addb40: d29507b1     	mov	x17, #0xa83d    ; =43069
+fffffe0008addb44: dac10230     	pacia	x16, x17
+fffffe0008addb48: aa1003e1     	mov	x1, x16
+fffffe0008addb4c: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008addb50: 9400053a     	bl	0xfffffe0008adf038 <_thread_set_thread_name+0xfffffe0008adf038>
+fffffe0008addb54: b40001a0     	cbz	x0, 0xfffffe0008addb88 <__ZN22AGXFirmwareKextRTBuddy21sendMessageToFirmwareEy+0xbc>
+fffffe0008addb58: aa0003f0     	mov	x16, x0
+fffffe0008addb5c: d28944f1     	mov	x17, #0x4a27    ; =18983
+fffffe0008addb60: dac11230     	autia	x16, x17
+fffffe0008addb64: aa1003f1     	mov	x17, x16
+fffffe0008addb68: dac143f1     	xpaci	x17
+fffffe0008addb6c: eb11021f     	cmp	x16, x17
+fffffe0008addb70: 54000040     	b.eq	0xfffffe0008addb78 <__ZN22AGXFirmwareKextRTBuddy21sendMessageToFirmwareEy+0xac>
+fffffe0008addb74: d4388e00     	brk	#0xc470
+fffffe0008addb78: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008addb7c: dac10230     	pacia	x16, x17
+fffffe0008addb80: aa1003e1     	mov	x1, x16
+fffffe0008addb84: 14000002     	b	0xfffffe0008addb8c <__ZN22AGXFirmwareKextRTBuddy21sendMessageToFirmwareEy+0xc0>
+fffffe0008addb88: d2800001     	mov	x1, #0x0        ; =0
+fffffe0008addb8c: f9400270     	ldr	x16, [x19]
+fffffe0008addb90: aa1303f1     	mov	x17, x19
+fffffe0008addb94: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addb98: dac11a30     	autda	x16, x17
+fffffe0008addb9c: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008addba0: 8b110210     	add	x16, x16, x17
+fffffe0008addba4: f9400208     	ldr	x8, [x16]
+fffffe0008addba8: 910023e2     	add	x2, sp, #0x8
+fffffe0008addbac: aa1303e0     	mov	x0, x19
+fffffe0008addbb0: d2800003     	mov	x3, #0x0        ; =0
+fffffe0008addbb4: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008addbb8: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008addbbc: f2ff3ff0     	movk	x16, #0xf9ff, lsl #48
+fffffe0008addbc0: d73f0910     	blraa	x8, x16
+fffffe0008addbc4: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008addbc8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008addbcc: 9100c3ff     	add	sp, sp, #0x30
+fffffe0008addbd0: d65f0fff     	retab
+
+fffffe0008addbd4 <__ZN22AGXFirmwareKextRTBuddy26sendMessageToFirmwareGatedEPy_vfpthunk_>:
+fffffe0008addbd4: d503245f     	bti	c
+fffffe0008addbd8: f9400010     	ldr	x16, [x0]
+fffffe0008addbdc: aa0003f1     	mov	x17, x0
+fffffe0008addbe0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addbe4: dac11a30     	autda	x16, x17
+fffffe0008addbe8: d2811411     	mov	x17, #0x8a0     ; =2208
+fffffe0008addbec: 8b110210     	add	x16, x16, x17
+fffffe0008addbf0: f9400208     	ldr	x8, [x16]
+fffffe0008addbf4: aa1003e2     	mov	x2, x16
+fffffe0008addbf8: aa0803f0     	mov	x16, x8
+fffffe0008addbfc: aa0203f1     	mov	x17, x2
+fffffe0008addc00: f2fd0a71     	movk	x17, #0xe853, lsl #48
+fffffe0008addc04: d71f0a11     	braa	x16, x17
+
+fffffe0008addc08 <__ZN22AGXFirmwareKextRTBuddy17isFirmwareStartedEv>:
+fffffe0008addc08: d503245f     	bti	c
+fffffe0008addc0c: f9409408     	ldr	x8, [x0, #0x128]
+fffffe0008addc10: b40000a8     	cbz	x8, 0xfffffe0008addc24 <__ZN22AGXFirmwareKextRTBuddy17isFirmwareStartedEv+0x1c>
+fffffe0008addc14: f9409808     	ldr	x8, [x0, #0x130]
+fffffe0008addc18: f100011f     	cmp	x8, #0x0
+fffffe0008addc1c: 1a9f07e0     	cset	w0, ne
+fffffe0008addc20: d65f03c0     	ret
+fffffe0008addc24: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008addc28: d65f03c0     	ret
+
+fffffe0008addc2c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap>:
+fffffe0008addc2c: d503237f     	pacibsp
+fffffe0008addc30: d102c3ff     	sub	sp, sp, #0xb0
+fffffe0008addc34: a90667fa     	stp	x26, x25, [sp, #0x60]
+fffffe0008addc38: a9075ff8     	stp	x24, x23, [sp, #0x70]
+fffffe0008addc3c: a90857f6     	stp	x22, x21, [sp, #0x80]
+fffffe0008addc40: a9094ff4     	stp	x20, x19, [sp, #0x90]
+fffffe0008addc44: a90a7bfd     	stp	x29, x30, [sp, #0xa0]
+fffffe0008addc48: 910283fd     	add	x29, sp, #0xa0
+fffffe0008addc4c: aa0103f4     	mov	x20, x1
+fffffe0008addc50: aa0003f3     	mov	x19, x0
+fffffe0008addc54: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008addc58: f947d908     	ldr	x8, [x8, #0xfb0]
+fffffe0008addc5c: f9400108     	ldr	x8, [x8]
+fffffe0008addc60: f81b83a8     	stur	x8, [x29, #-0x48]
+fffffe0008addc64: f9409c00     	ldr	x0, [x0, #0x138]
+fffffe0008addc68: 9400052c     	bl	0xfffffe0008adf118 <_thread_set_thread_name+0xfffffe0008adf118>
+fffffe0008addc6c: aa0003f5     	mov	x21, x0
+fffffe0008addc70: f9409e60     	ldr	x0, [x19, #0x138]
+fffffe0008addc74: f9400010     	ldr	x16, [x0]
+fffffe0008addc78: aa0003f1     	mov	x17, x0
+fffffe0008addc7c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addc80: dac11a30     	autda	x16, x17
+fffffe0008addc84: d280d611     	mov	x17, #0x6b0     ; =1712
+fffffe0008addc88: 8b110210     	add	x16, x16, x17
+fffffe0008addc8c: f9400208     	ldr	x8, [x16]
+fffffe0008addc90: f2f276f0     	movk	x16, #0x93b7, lsl #48
+fffffe0008addc94: d73f0910     	blraa	x8, x16
+fffffe0008addc98: aa0003f1     	mov	x17, x0
+fffffe0008addc9c: f9400010     	ldr	x16, [x0]
+fffffe0008addca0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addca4: dac11a30     	autda	x16, x17
+fffffe0008addca8: aa1003f1     	mov	x17, x16
+fffffe0008addcac: dac147f1     	xpacd	x17
+fffffe0008addcb0: eb11021f     	cmp	x16, x17
+fffffe0008addcb4: 54000040     	b.eq	0xfffffe0008addcbc <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x90>
+fffffe0008addcb8: d4388e40     	brk	#0xc472
+fffffe0008addcbc: 910b6208     	add	x8, x16, #0x2d8
+fffffe0008addcc0: f9416e09     	ldr	x9, [x16, #0x2d8]
+fffffe0008addcc4: b0ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008addcc8: 91145021     	add	x1, x1, #0x514
+fffffe0008addccc: aa0803f1     	mov	x17, x8
+fffffe0008addcd0: f2e6f4b1     	movk	x17, #0x37a5, lsl #48
+fffffe0008addcd4: d73f0931     	blraa	x9, x17
+fffffe0008addcd8: aa0003f6     	mov	x22, x0
+fffffe0008addcdc: 36000235     	tbz	w21, #0x0, 0xfffffe0008addd20 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0xf4>
+fffffe0008addce0: b4000536     	cbz	x22, 0xfffffe0008addd84 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x158>
+fffffe0008addce4: f94002d0     	ldr	x16, [x22]
+fffffe0008addce8: aa1603f1     	mov	x17, x22
+fffffe0008addcec: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addcf0: dac11a30     	autda	x16, x17
+fffffe0008addcf4: f8420e08     	ldr	x8, [x16, #0x20]!
+fffffe0008addcf8: aa1603e0     	mov	x0, x22
+fffffe0008addcfc: f2e5c950     	movk	x16, #0x2e4a, lsl #48
+fffffe0008addd00: d73f0910     	blraa	x8, x16
+fffffe0008addd04: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008addd08: f947cd08     	ldr	x8, [x8, #0xf98]
+fffffe0008addd0c: f9400101     	ldr	x1, [x8]
+fffffe0008addd10: aa1603e0     	mov	x0, x22
+fffffe0008addd14: 940004c5     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008addd18: b4000220     	cbz	x0, 0xfffffe0008addd5c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x130>
+fffffe0008addd1c: 14000020     	b	0xfffffe0008addd9c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x170>
+fffffe0008addd20: b4000696     	cbz	x22, 0xfffffe0008adddf0 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x1c4>
+fffffe0008addd24: f94002d0     	ldr	x16, [x22]
+fffffe0008addd28: aa1603f1     	mov	x17, x22
+fffffe0008addd2c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addd30: dac11a30     	autda	x16, x17
+fffffe0008addd34: f8420e08     	ldr	x8, [x16, #0x20]!
+fffffe0008addd38: aa1603e0     	mov	x0, x22
+fffffe0008addd3c: f2e5c950     	movk	x16, #0x2e4a, lsl #48
+fffffe0008addd40: d73f0910     	blraa	x8, x16
+fffffe0008addd44: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008addd48: f947cd08     	ldr	x8, [x8, #0xf98]
+fffffe0008addd4c: f9400101     	ldr	x1, [x8]
+fffffe0008addd50: aa1603e0     	mov	x0, x22
+fffffe0008addd54: 940004b5     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008addd58: b5000580     	cbnz	x0, 0xfffffe0008adde08 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x1dc>
+fffffe0008addd5c: aa1603e8     	mov	x8, x22
+fffffe0008addd60: f2f9b428     	movk	x8, #0xcda1, lsl #48
+fffffe0008addd64: f94002d0     	ldr	x16, [x22]
+fffffe0008addd68: dac11910     	autda	x16, x8
+fffffe0008addd6c: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008addd70: aa1603e0     	mov	x0, x22
+fffffe0008addd74: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008addd78: d73f0910     	blraa	x8, x16
+fffffe0008addd7c: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008addd80: 14000121     	b	0xfffffe0008ade204 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5d8>
+fffffe0008addd84: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008addd88: f947cd08     	ldr	x8, [x8, #0xf98]
+fffffe0008addd8c: f9400101     	ldr	x1, [x8]
+fffffe0008addd90: d2800000     	mov	x0, #0x0        ; =0
+fffffe0008addd94: 940004a5     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008addd98: b4002360     	cbz	x0, 0xfffffe0008ade204 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5d8>
+fffffe0008addd9c: aa0003f4     	mov	x20, x0
+fffffe0008addda0: f9400010     	ldr	x16, [x0]
+fffffe0008addda4: aa0003f1     	mov	x17, x0
+fffffe0008addda8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adddac: dac11a30     	autda	x16, x17
+fffffe0008adddb0: d2802d11     	mov	x17, #0x168     ; =360
+fffffe0008adddb4: 8b110210     	add	x16, x16, x17
+fffffe0008adddb8: f9400208     	ldr	x8, [x16]
+fffffe0008adddbc: f2e530f0     	movk	x16, #0x2987, lsl #48
+fffffe0008adddc0: d73f0910     	blraa	x8, x16
+fffffe0008adddc4: f900c260     	str	x0, [x19, #0x180]
+fffffe0008adddc8: f9400290     	ldr	x16, [x20]
+fffffe0008adddcc: aa1403f1     	mov	x17, x20
+fffffe0008adddd0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adddd4: dac11a30     	autda	x16, x17
+fffffe0008adddd8: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008addddc: aa1403e0     	mov	x0, x20
+fffffe0008addde0: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008addde4: d73f0910     	blraa	x8, x16
+fffffe0008addde8: 52800014     	mov	w20, #0x0       ; =0
+fffffe0008adddec: 140000a0     	b	0xfffffe0008ade06c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x440>
+fffffe0008adddf0: b0ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adddf4: f947cd08     	ldr	x8, [x8, #0xf98]
+fffffe0008adddf8: f9400101     	ldr	x1, [x8]
+fffffe0008adddfc: d2800000     	mov	x0, #0x0        ; =0
+fffffe0008adde00: 9400048a     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008adde04: b4002000     	cbz	x0, 0xfffffe0008ade204 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5d8>
+fffffe0008adde08: aa0003f5     	mov	x21, x0
+fffffe0008adde0c: f9400010     	ldr	x16, [x0]
+fffffe0008adde10: aa0003f1     	mov	x17, x0
+fffffe0008adde14: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adde18: dac11a30     	autda	x16, x17
+fffffe0008adde1c: d2802d11     	mov	x17, #0x168     ; =360
+fffffe0008adde20: 8b110210     	add	x16, x16, x17
+fffffe0008adde24: f9400208     	ldr	x8, [x16]
+fffffe0008adde28: f2e530f0     	movk	x16, #0x2987, lsl #48
+fffffe0008adde2c: d73f0910     	blraa	x8, x16
+fffffe0008adde30: aa1303f1     	mov	x17, x19
+fffffe0008adde34: f900c260     	str	x0, [x19, #0x180]
+fffffe0008adde38: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008adde3c: f9400270     	ldr	x16, [x19]
+fffffe0008adde40: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adde44: dac11a30     	autda	x16, x17
+fffffe0008adde48: aa1003f1     	mov	x17, x16
+fffffe0008adde4c: dac147f1     	xpacd	x17
+fffffe0008adde50: eb11021f     	cmp	x16, x17
+fffffe0008adde54: 54000040     	b.eq	0xfffffe0008adde5c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x230>
+fffffe0008adde58: d4388e40     	brk	#0xc472
+fffffe0008adde5c: 91238208     	add	x8, x16, #0x8e0
+fffffe0008adde60: f9447209     	ldr	x9, [x16, #0x8e0]
+fffffe0008adde64: aa1303e0     	mov	x0, x19
+fffffe0008adde68: aa0803f1     	mov	x17, x8
+fffffe0008adde6c: f2ef6eb1     	movk	x17, #0x7b75, lsl #48
+fffffe0008adde70: d73f0931     	blraa	x9, x17
+fffffe0008adde74: aa0003f6     	mov	x22, x0
+fffffe0008adde78: b4000e60     	cbz	x0, 0xfffffe0008ade044 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x418>
+fffffe0008adde7c: b4001e54     	cbz	x20, 0xfffffe0008ade244 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x618>
+fffffe0008adde80: aa1303f9     	mov	x25, x19
+fffffe0008adde84: f2f9b439     	movk	x25, #0xcda1, lsl #48
+fffffe0008adde88: f9400290     	ldr	x16, [x20]
+fffffe0008adde8c: aa1403f1     	mov	x17, x20
+fffffe0008adde90: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adde94: dac11a30     	autda	x16, x17
+fffffe0008adde98: d2802711     	mov	x17, #0x138     ; =312
+fffffe0008adde9c: 8b110210     	add	x16, x16, x17
+fffffe0008addea0: f9400208     	ldr	x8, [x16]
+fffffe0008addea4: aa1403e0     	mov	x0, x20
+fffffe0008addea8: f2e69ed0     	movk	x16, #0x34f6, lsl #48
+fffffe0008addeac: d73f0910     	blraa	x8, x16
+fffffe0008addeb0: aa0003f7     	mov	x23, x0
+fffffe0008addeb4: f9400290     	ldr	x16, [x20]
+fffffe0008addeb8: aa1403f1     	mov	x17, x20
+fffffe0008addebc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addec0: dac11a30     	autda	x16, x17
+fffffe0008addec4: d2802911     	mov	x17, #0x148     ; =328
+fffffe0008addec8: 8b110210     	add	x16, x16, x17
+fffffe0008addecc: f9400208     	ldr	x8, [x16]
+fffffe0008added0: aa1403e0     	mov	x0, x20
+fffffe0008added4: f2ffa230     	movk	x16, #0xfd11, lsl #48
+fffffe0008added8: d73f0910     	blraa	x8, x16
+fffffe0008addedc: aa0003e1     	mov	x1, x0
+fffffe0008addee0: aa1703e0     	mov	x0, x23
+fffffe0008addee4: 94000469     	bl	0xfffffe0008adf088 <_thread_set_thread_name+0xfffffe0008adf088>
+fffffe0008addee8: aa0003f7     	mov	x23, x0
+fffffe0008addeec: aa1903f1     	mov	x17, x25
+fffffe0008addef0: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008addef4: f9400270     	ldr	x16, [x19]
+fffffe0008addef8: dac11a30     	autda	x16, x17
+fffffe0008addefc: aa1003f1     	mov	x17, x16
+fffffe0008addf00: dac147f1     	xpacd	x17
+fffffe0008addf04: eb11021f     	cmp	x16, x17
+fffffe0008addf08: 54000040     	b.eq	0xfffffe0008addf10 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x2e4>
+fffffe0008addf0c: d4388e40     	brk	#0xc472
+fffffe0008addf10: 9123a208     	add	x8, x16, #0x8e8
+fffffe0008addf14: f9447609     	ldr	x9, [x16, #0x8e8]
+fffffe0008addf18: aa1303e0     	mov	x0, x19
+fffffe0008addf1c: aa0803f1     	mov	x17, x8
+fffffe0008addf20: f2e9e351     	movk	x17, #0x4f1a, lsl #48
+fffffe0008addf24: d73f0931     	blraa	x9, x17
+fffffe0008addf28: 9400045c     	bl	0xfffffe0008adf098 <_thread_set_thread_name+0xfffffe0008adf098>
+fffffe0008addf2c: aa0003f8     	mov	x24, x0
+fffffe0008addf30: aa1903f1     	mov	x17, x25
+fffffe0008addf34: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008addf38: f9400270     	ldr	x16, [x19]
+fffffe0008addf3c: dac11a30     	autda	x16, x17
+fffffe0008addf40: aa1003f1     	mov	x17, x16
+fffffe0008addf44: dac147f1     	xpacd	x17
+fffffe0008addf48: eb11021f     	cmp	x16, x17
+fffffe0008addf4c: 54000040     	b.eq	0xfffffe0008addf54 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x328>
+fffffe0008addf50: d4388e40     	brk	#0xc472
+fffffe0008addf54: 91238208     	add	x8, x16, #0x8e0
+fffffe0008addf58: f9447209     	ldr	x9, [x16, #0x8e0]
+fffffe0008addf5c: aa1303e0     	mov	x0, x19
+fffffe0008addf60: aa0803f1     	mov	x17, x8
+fffffe0008addf64: f2ef6eb1     	movk	x17, #0x7b75, lsl #48
+fffffe0008addf68: d73f0931     	blraa	x9, x17
+fffffe0008addf6c: 9400044b     	bl	0xfffffe0008adf098 <_thread_set_thread_name+0xfffffe0008adf098>
+fffffe0008addf70: aa0003fa     	mov	x26, x0
+fffffe0008addf74: aa1903f1     	mov	x17, x25
+fffffe0008addf78: f9409e74     	ldr	x20, [x19, #0x138]
+fffffe0008addf7c: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008addf80: f9400270     	ldr	x16, [x19]
+fffffe0008addf84: dac11a30     	autda	x16, x17
+fffffe0008addf88: aa1003f1     	mov	x17, x16
+fffffe0008addf8c: dac147f1     	xpacd	x17
+fffffe0008addf90: eb11021f     	cmp	x16, x17
+fffffe0008addf94: 54000040     	b.eq	0xfffffe0008addf9c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x370>
+fffffe0008addf98: d4388e40     	brk	#0xc472
+fffffe0008addf9c: 91236208     	add	x8, x16, #0x8d8
+fffffe0008addfa0: f9446e09     	ldr	x9, [x16, #0x8d8]
+fffffe0008addfa4: aa1303e0     	mov	x0, x19
+fffffe0008addfa8: aa0803f1     	mov	x17, x8
+fffffe0008addfac: f2f6e6d1     	movk	x17, #0xb736, lsl #48
+fffffe0008addfb0: d73f0931     	blraa	x9, x17
+fffffe0008addfb4: 2a0003e5     	mov	w5, w0
+fffffe0008addfb8: aa1403e0     	mov	x0, x20
+fffffe0008addfbc: aa1703e1     	mov	x1, x23
+fffffe0008addfc0: aa1503e2     	mov	x2, x21
+fffffe0008addfc4: aa1803e3     	mov	x3, x24
+fffffe0008addfc8: aa1a03e4     	mov	x4, x26
+fffffe0008addfcc: 94000413     	bl	0xfffffe0008adf018 <_thread_set_thread_name+0xfffffe0008adf018>
+fffffe0008addfd0: aa0003f4     	mov	x20, x0
+fffffe0008addfd4: b400013a     	cbz	x26, 0xfffffe0008addff8 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3cc>
+fffffe0008addfd8: f9400350     	ldr	x16, [x26]
+fffffe0008addfdc: aa1a03f1     	mov	x17, x26
+fffffe0008addfe0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008addfe4: dac11a30     	autda	x16, x17
+fffffe0008addfe8: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008addfec: aa1a03e0     	mov	x0, x26
+fffffe0008addff0: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008addff4: d73f0910     	blraa	x8, x16
+fffffe0008addff8: b4000138     	cbz	x24, 0xfffffe0008ade01c <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3f0>
+fffffe0008addffc: f9400310     	ldr	x16, [x24]
+fffffe0008ade000: aa1803f1     	mov	x17, x24
+fffffe0008ade004: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade008: dac11a30     	autda	x16, x17
+fffffe0008ade00c: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade010: aa1803e0     	mov	x0, x24
+fffffe0008ade014: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade018: d73f0910     	blraa	x8, x16
+fffffe0008ade01c: b4000177     	cbz	x23, 0xfffffe0008ade048 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x41c>
+fffffe0008ade020: f94002f0     	ldr	x16, [x23]
+fffffe0008ade024: aa1703f1     	mov	x17, x23
+fffffe0008ade028: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade02c: dac11a30     	autda	x16, x17
+fffffe0008ade030: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade034: aa1703e0     	mov	x0, x23
+fffffe0008ade038: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade03c: d73f0910     	blraa	x8, x16
+fffffe0008ade040: 14000002     	b	0xfffffe0008ade048 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x41c>
+fffffe0008ade044: 52800014     	mov	w20, #0x0       ; =0
+fffffe0008ade048: aa1503e8     	mov	x8, x21
+fffffe0008ade04c: f2f9b428     	movk	x8, #0xcda1, lsl #48
+fffffe0008ade050: f94002b0     	ldr	x16, [x21]
+fffffe0008ade054: dac11910     	autda	x16, x8
+fffffe0008ade058: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade05c: aa1503e0     	mov	x0, x21
+fffffe0008ade060: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade064: d73f0910     	blraa	x8, x16
+fffffe0008ade068: b4000e96     	cbz	x22, 0xfffffe0008ade238 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x60c>
+fffffe0008ade06c: 39462268     	ldrb	w8, [x19, #0x188]
+fffffe0008ade070: 37000c68     	tbnz	w8, #0x0, 0xfffffe0008ade1fc <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5d0>
+fffffe0008ade074: a903ffff     	stp	xzr, xzr, [sp, #0x38]
+fffffe0008ade078: f804e3ff     	stur	xzr, [sp, #0x4e]
+fffffe0008ade07c: f90027ff     	str	xzr, [sp, #0x48]
+fffffe0008ade080: a901ffff     	stp	xzr, xzr, [sp, #0x18]
+fffffe0008ade084: f802e3ff     	stur	xzr, [sp, #0x2e]
+fffffe0008ade088: f940c261     	ldr	x1, [x19, #0x180]
+fffffe0008ade08c: f90017ff     	str	xzr, [sp, #0x28]
+fffffe0008ade090: 9100e3e0     	add	x0, sp, #0x38
+fffffe0008ade094: 528003c2     	mov	w2, #0x1e       ; =30
+fffffe0008ade098: 94000430     	bl	0xfffffe0008adf158 <_thread_set_thread_name+0xfffffe0008adf158>
+fffffe0008ade09c: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008ade0a0: 91176421     	add	x1, x1, #0x5d9
+fffffe0008ade0a4: 9100e3e0     	add	x0, sp, #0x38
+fffffe0008ade0a8: 528003c2     	mov	w2, #0x1e       ; =30
+fffffe0008ade0ac: 94000427     	bl	0xfffffe0008adf148 <_thread_set_thread_name+0xfffffe0008adf148>
+fffffe0008ade0b0: f940c261     	ldr	x1, [x19, #0x180]
+fffffe0008ade0b4: 910063e0     	add	x0, sp, #0x18
+fffffe0008ade0b8: 528003c2     	mov	w2, #0x1e       ; =30
+fffffe0008ade0bc: 94000427     	bl	0xfffffe0008adf158 <_thread_set_thread_name+0xfffffe0008adf158>
+fffffe0008ade0c0: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008ade0c4: 91178c21     	add	x1, x1, #0x5e3
+fffffe0008ade0c8: 910063e0     	add	x0, sp, #0x18
+fffffe0008ade0cc: 528003c2     	mov	w2, #0x1e       ; =30
+fffffe0008ade0d0: 9400041e     	bl	0xfffffe0008adf148 <_thread_set_thread_name+0xfffffe0008adf148>
+fffffe0008ade0d4: 9100e3e0     	add	x0, sp, #0x38
+fffffe0008ade0d8: d2800001     	mov	x1, #0x0        ; =0
+fffffe0008ade0dc: 940003f7     	bl	0xfffffe0008adf0b8 <_thread_set_thread_name+0xfffffe0008adf0b8>
+fffffe0008ade0e0: aa0003f5     	mov	x21, x0
+fffffe0008ade0e4: 910063e0     	add	x0, sp, #0x18
+fffffe0008ade0e8: d2800001     	mov	x1, #0x0        ; =0
+fffffe0008ade0ec: 940003f3     	bl	0xfffffe0008adf0b8 <_thread_set_thread_name+0xfffffe0008adf0b8>
+fffffe0008ade0f0: aa0003f6     	mov	x22, x0
+fffffe0008ade0f4: 90ffa319     	adrp	x25, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade0f8: f947e339     	ldr	x25, [x25, #0xfc0]
+fffffe0008ade0fc: f9400320     	ldr	x0, [x25]
+fffffe0008ade100: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade104: 91182210     	add	x16, x16, #0x608
+fffffe0008ade108: d28c3bd1     	mov	x17, #0x61de    ; =25054
+fffffe0008ade10c: dac10230     	pacia	x16, x17
+fffffe0008ade110: aa1003f7     	mov	x23, x16
+fffffe0008ade114: aa1503e1     	mov	x1, x21
+fffffe0008ade118: aa1003e2     	mov	x2, x16
+fffffe0008ade11c: aa1303e3     	mov	x3, x19
+fffffe0008ade120: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade124: 52800005     	mov	w5, #0x0        ; =0
+fffffe0008ade128: 940003e8     	bl	0xfffffe0008adf0c8 <_thread_set_thread_name+0xfffffe0008adf0c8>
+fffffe0008ade12c: f900aa60     	str	x0, [x19, #0x150]
+fffffe0008ade130: 90ffa31a     	adrp	x26, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade134: f947df5a     	ldr	x26, [x26, #0xfb8]
+fffffe0008ade138: f9400340     	ldr	x0, [x26]
+fffffe0008ade13c: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade140: 9109b210     	add	x16, x16, #0x26c
+fffffe0008ade144: d28c3bd1     	mov	x17, #0x61de    ; =25054
+fffffe0008ade148: dac10230     	pacia	x16, x17
+fffffe0008ade14c: aa1003f8     	mov	x24, x16
+fffffe0008ade150: aa1503e1     	mov	x1, x21
+fffffe0008ade154: aa1003e2     	mov	x2, x16
+fffffe0008ade158: aa1303e3     	mov	x3, x19
+fffffe0008ade15c: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade160: 52800005     	mov	w5, #0x0        ; =0
+fffffe0008ade164: 940003d9     	bl	0xfffffe0008adf0c8 <_thread_set_thread_name+0xfffffe0008adf0c8>
+fffffe0008ade168: f900ae60     	str	x0, [x19, #0x158]
+fffffe0008ade16c: f9400320     	ldr	x0, [x25]
+fffffe0008ade170: aa1603e1     	mov	x1, x22
+fffffe0008ade174: aa1703e2     	mov	x2, x23
+fffffe0008ade178: aa1303e3     	mov	x3, x19
+fffffe0008ade17c: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade180: 52800005     	mov	w5, #0x0        ; =0
+fffffe0008ade184: 940003d1     	bl	0xfffffe0008adf0c8 <_thread_set_thread_name+0xfffffe0008adf0c8>
+fffffe0008ade188: f900b260     	str	x0, [x19, #0x160]
+fffffe0008ade18c: f9400340     	ldr	x0, [x26]
+fffffe0008ade190: aa1603e1     	mov	x1, x22
+fffffe0008ade194: aa1803e2     	mov	x2, x24
+fffffe0008ade198: aa1303e3     	mov	x3, x19
+fffffe0008ade19c: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade1a0: 52800005     	mov	w5, #0x0        ; =0
+fffffe0008ade1a4: 940003c9     	bl	0xfffffe0008adf0c8 <_thread_set_thread_name+0xfffffe0008adf0c8>
+fffffe0008ade1a8: 52800028     	mov	w8, #0x1        ; =1
+fffffe0008ade1ac: f900b660     	str	x0, [x19, #0x168]
+fffffe0008ade1b0: 39062268     	strb	w8, [x19, #0x188]
+fffffe0008ade1b4: b4000136     	cbz	x22, 0xfffffe0008ade1d8 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5ac>
+fffffe0008ade1b8: f94002d0     	ldr	x16, [x22]
+fffffe0008ade1bc: aa1603f1     	mov	x17, x22
+fffffe0008ade1c0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade1c4: dac11a30     	autda	x16, x17
+fffffe0008ade1c8: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade1cc: aa1603e0     	mov	x0, x22
+fffffe0008ade1d0: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade1d4: d73f0910     	blraa	x8, x16
+fffffe0008ade1d8: b4000135     	cbz	x21, 0xfffffe0008ade1fc <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5d0>
+fffffe0008ade1dc: f94002b0     	ldr	x16, [x21]
+fffffe0008ade1e0: aa1503f1     	mov	x17, x21
+fffffe0008ade1e4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade1e8: dac11a30     	autda	x16, x17
+fffffe0008ade1ec: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade1f0: aa1503e0     	mov	x0, x21
+fffffe0008ade1f4: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade1f8: d73f0910     	blraa	x8, x16
+fffffe0008ade1fc: 7100029f     	cmp	w20, #0x0
+fffffe0008ade200: 1a9f17e0     	cset	w0, eq
+fffffe0008ade204: f85b83a8     	ldur	x8, [x29, #-0x48]
+fffffe0008ade208: 90ffa309     	adrp	x9, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade20c: f947d929     	ldr	x9, [x9, #0xfb0]
+fffffe0008ade210: f9400129     	ldr	x9, [x9]
+fffffe0008ade214: eb08013f     	cmp	x9, x8
+fffffe0008ade218: 54000141     	b.ne	0xfffffe0008ade240 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x614>
+fffffe0008ade21c: a94a7bfd     	ldp	x29, x30, [sp, #0xa0]
+fffffe0008ade220: a9494ff4     	ldp	x20, x19, [sp, #0x90]
+fffffe0008ade224: a94857f6     	ldp	x22, x21, [sp, #0x80]
+fffffe0008ade228: a9475ff8     	ldp	x24, x23, [sp, #0x70]
+fffffe0008ade22c: a94667fa     	ldp	x26, x25, [sp, #0x60]
+fffffe0008ade230: 9102c3ff     	add	sp, sp, #0xb0
+fffffe0008ade234: d65f0fff     	retab
+fffffe0008ade238: 52800020     	mov	w0, #0x1        ; =1
+fffffe0008ade23c: 17fffff2     	b	0xfffffe0008ade204 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x5d8>
+fffffe0008ade240: 940003ba     	bl	0xfffffe0008adf128 <_thread_set_thread_name+0xfffffe0008adf128>
+fffffe0008ade244: 90ff32e8     	adrp	x8, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008ade248: 9115790a     	add	x10, x8, #0x55e
+fffffe0008ade24c: 52802968     	mov	w8, #0x14b      ; =331
+fffffe0008ade250: 90ff32e9     	adrp	x9, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008ade254: 91146529     	add	x9, x9, #0x519
+fffffe0008ade258: a900abe8     	stp	x8, x10, [sp, #0x8]
+fffffe0008ade25c: f90003e9     	str	x9, [sp]
+fffffe0008ade260: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008ade264: 91167c00     	add	x0, x0, #0x59f
+fffffe0008ade268: 940003b4     	bl	0xfffffe0008adf138 <_thread_set_thread_name+0xfffffe0008adf138>
+
+fffffe0008ade26c <__ZN22AGXFirmwareKextRTBuddy18matchedGFXEndpointEPvP9IOServiceP10IONotifier>:
+fffffe0008ade26c: d503237f     	pacibsp
+fffffe0008ade270: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008ade274: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008ade278: 910043fd     	add	x29, sp, #0x10
+fffffe0008ade27c: f940a413     	ldr	x19, [x0, #0x148]
+fffffe0008ade280: 90ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade284: f947c508     	ldr	x8, [x8, #0xf88]
+fffffe0008ade288: f9400101     	ldr	x1, [x8]
+fffffe0008ade28c: aa0203e0     	mov	x0, x2
+fffffe0008ade290: 94000366     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008ade294: f9404402     	ldr	x2, [x0, #0x88]
+fffffe0008ade298: f9400270     	ldr	x16, [x19]
+fffffe0008ade29c: aa1303f1     	mov	x17, x19
+fffffe0008ade2a0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade2a4: dac11a30     	autda	x16, x17
+fffffe0008ade2a8: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008ade2ac: 8b110210     	add	x16, x16, x17
+fffffe0008ade2b0: f9400208     	ldr	x8, [x16]
+fffffe0008ade2b4: aa1003e6     	mov	x6, x16
+fffffe0008ade2b8: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade2bc: 910c1210     	add	x16, x16, #0x304
+fffffe0008ade2c0: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008ade2c4: dac10230     	pacia	x16, x17
+fffffe0008ade2c8: aa1003e1     	mov	x1, x16
+fffffe0008ade2cc: aa0803f0     	mov	x16, x8
+fffffe0008ade2d0: aa1303e0     	mov	x0, x19
+fffffe0008ade2d4: d2800003     	mov	x3, #0x0        ; =0
+fffffe0008ade2d8: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade2dc: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008ade2e0: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008ade2e4: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008ade2e8: d50323ff     	autibsp
+fffffe0008ade2ec: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008ade2f0: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008ade2f8 <__ZN22AGXFirmwareKextRTBuddy18matchedGFXEndpointEPvP9IOServiceP10IONotifier+0x8c>
+fffffe0008ade2f4: d4388e20     	brk	#0xc471
+fffffe0008ade2f8: aa0603f1     	mov	x17, x6
+fffffe0008ade2fc: f2ff3ff1     	movk	x17, #0xf9ff, lsl #48
+fffffe0008ade300: d71f0a11     	braa	x16, x17
+
+fffffe0008ade304 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv>:
+fffffe0008ade304: d503237f     	pacibsp
+fffffe0008ade308: a9bd57f6     	stp	x22, x21, [sp, #-0x30]!
+fffffe0008ade30c: a9014ff4     	stp	x20, x19, [sp, #0x10]
+fffffe0008ade310: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe0008ade314: 910083fd     	add	x29, sp, #0x20
+fffffe0008ade318: aa0103f4     	mov	x20, x1
+fffffe0008ade31c: aa0003f3     	mov	x19, x0
+fffffe0008ade320: b9408828     	ldr	w8, [x1, #0x88]
+fffffe0008ade324: 7100851f     	cmp	w8, #0x21
+fffffe0008ade328: 540006e0     	b.eq	0xfffffe0008ade404 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x100>
+fffffe0008ade32c: 7100811f     	cmp	w8, #0x20
+fffffe0008ade330: 54000c21     	b.ne	0xfffffe0008ade4b4 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x1b0>
+fffffe0008ade334: f9009674     	str	x20, [x19, #0x128]
+fffffe0008ade338: aa1403e0     	mov	x0, x20
+fffffe0008ade33c: aa1303e1     	mov	x1, x19
+fffffe0008ade340: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008ade344: d2800003     	mov	x3, #0x0        ; =0
+fffffe0008ade348: 94000340     	bl	0xfffffe0008adf048 <_thread_set_thread_name+0xfffffe0008adf048>
+fffffe0008ade34c: 36000600     	tbz	w0, #0x0, 0xfffffe0008ade40c <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x108>
+fffffe0008ade350: f9409675     	ldr	x21, [x19, #0x128]
+fffffe0008ade354: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade358: 91172210     	add	x16, x16, #0x5c8
+fffffe0008ade35c: d28a18f1     	mov	x17, #0x50c7    ; =20679
+fffffe0008ade360: dac10230     	pacia	x16, x17
+fffffe0008ade364: f9005ab0     	str	x16, [x21, #0xb0]
+fffffe0008ade368: f9400270     	ldr	x16, [x19]
+fffffe0008ade36c: aa1303f1     	mov	x17, x19
+fffffe0008ade370: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade374: dac11a30     	autda	x16, x17
+fffffe0008ade378: d2812511     	mov	x17, #0x928     ; =2344
+fffffe0008ade37c: 8b110210     	add	x16, x16, x17
+fffffe0008ade380: f9400208     	ldr	x8, [x16]
+fffffe0008ade384: aa1003f1     	mov	x17, x16
+fffffe0008ade388: aa0803f0     	mov	x16, x8
+fffffe0008ade38c: f2f67771     	movk	x17, #0xb3bb, lsl #48
+fffffe0008ade390: dac11230     	autia	x16, x17
+fffffe0008ade394: aa1003f1     	mov	x17, x16
+fffffe0008ade398: dac143f1     	xpaci	x17
+fffffe0008ade39c: eb11021f     	cmp	x16, x17
+fffffe0008ade3a0: 54000040     	b.eq	0xfffffe0008ade3a8 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0xa4>
+fffffe0008ade3a4: d4388e00     	brk	#0xc470
+fffffe0008ade3a8: d29fdc71     	mov	x17, #0xfee3    ; =65251
+fffffe0008ade3ac: dac10230     	pacia	x16, x17
+fffffe0008ade3b0: b5000350     	cbnz	x16, 0xfffffe0008ade418 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x114>
+fffffe0008ade3b4: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade3b8: 91165210     	add	x16, x16, #0x594
+fffffe0008ade3bc: d29507b1     	mov	x17, #0xa83d    ; =43069
+fffffe0008ade3c0: dac10230     	pacia	x16, x17
+fffffe0008ade3c4: aa1003e1     	mov	x1, x16
+fffffe0008ade3c8: aa1303e0     	mov	x0, x19
+fffffe0008ade3cc: d2800002     	mov	x2, #0x0        ; =0
+fffffe0008ade3d0: 9400031a     	bl	0xfffffe0008adf038 <_thread_set_thread_name+0xfffffe0008adf038>
+fffffe0008ade3d4: b4000200     	cbz	x0, 0xfffffe0008ade414 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x110>
+fffffe0008ade3d8: aa0003f0     	mov	x16, x0
+fffffe0008ade3dc: d28944f1     	mov	x17, #0x4a27    ; =18983
+fffffe0008ade3e0: dac11230     	autia	x16, x17
+fffffe0008ade3e4: aa1003f1     	mov	x17, x16
+fffffe0008ade3e8: dac143f1     	xpaci	x17
+fffffe0008ade3ec: eb11021f     	cmp	x16, x17
+fffffe0008ade3f0: 54000040     	b.eq	0xfffffe0008ade3f8 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0xf4>
+fffffe0008ade3f4: d4388e00     	brk	#0xc470
+fffffe0008ade3f8: d29fdc71     	mov	x17, #0xfee3    ; =65251
+fffffe0008ade3fc: dac10230     	pacia	x16, x17
+fffffe0008ade400: 14000006     	b	0xfffffe0008ade418 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x114>
+fffffe0008ade404: f9009a74     	str	x20, [x19, #0x130]
+fffffe0008ade408: 14000007     	b	0xfffffe0008ade424 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x120>
+fffffe0008ade40c: f900967f     	str	xzr, [x19, #0x128]
+fffffe0008ade410: 14000029     	b	0xfffffe0008ade4b4 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x1b0>
+fffffe0008ade414: d2800010     	mov	x16, #0x0       ; =0
+fffffe0008ade418: aa1503e0     	mov	x0, x21
+fffffe0008ade41c: aa1003e1     	mov	x1, x16
+fffffe0008ade420: 94000316     	bl	0xfffffe0008adf078 <_thread_set_thread_name+0xfffffe0008adf078>
+fffffe0008ade424: f940a260     	ldr	x0, [x19, #0x140]
+fffffe0008ade428: f9400010     	ldr	x16, [x0]
+fffffe0008ade42c: aa0003f1     	mov	x17, x0
+fffffe0008ade430: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade434: dac11a30     	autda	x16, x17
+fffffe0008ade438: d2802c11     	mov	x17, #0x160     ; =352
+fffffe0008ade43c: 8b110210     	add	x16, x16, x17
+fffffe0008ade440: f9400208     	ldr	x8, [x16]
+fffffe0008ade444: aa1403e1     	mov	x1, x20
+fffffe0008ade448: f2e23d10     	movk	x16, #0x11e8, lsl #48
+fffffe0008ade44c: d73f0910     	blraa	x8, x16
+fffffe0008ade450: aa1303f1     	mov	x17, x19
+fffffe0008ade454: f9400270     	ldr	x16, [x19]
+fffffe0008ade458: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade45c: dac11a30     	autda	x16, x17
+fffffe0008ade460: aa1003f1     	mov	x17, x16
+fffffe0008ade464: dac147f1     	xpacd	x17
+fffffe0008ade468: eb11021f     	cmp	x16, x17
+fffffe0008ade46c: 54000040     	b.eq	0xfffffe0008ade474 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x170>
+fffffe0008ade470: d4388e40     	brk	#0xc472
+fffffe0008ade474: 91224208     	add	x8, x16, #0x890
+fffffe0008ade478: f9444a09     	ldr	x9, [x16, #0x890]
+fffffe0008ade47c: aa1303e0     	mov	x0, x19
+fffffe0008ade480: aa0803f1     	mov	x17, x8
+fffffe0008ade484: f2fc7ff1     	movk	x17, #0xe3ff, lsl #48
+fffffe0008ade488: d73f0931     	blraa	x9, x17
+fffffe0008ade48c: 34000140     	cbz	w0, 0xfffffe0008ade4b4 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x1b0>
+fffffe0008ade490: aa1303e0     	mov	x0, x19
+fffffe0008ade494: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008ade498: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008ade49c: a8c357f6     	ldp	x22, x21, [sp], #0x30
+fffffe0008ade4a0: d50323ff     	autibsp
+fffffe0008ade4a4: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe0008ade4a8: b6f00050     	tbz	x16, #0x3e, 0xfffffe0008ade4b0 <__ZN22AGXFirmwareKextRTBuddy23matchedGFXEndpointGatedEPv+0x1ac>
+fffffe0008ade4ac: d4388e20     	brk	#0xc471
+fffffe0008ade4b0: 14000005     	b	0xfffffe0008ade4c4 <__ZN22AGXFirmwareKextRTBuddy15enableEndpointsEv>
+fffffe0008ade4b4: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe0008ade4b8: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe0008ade4bc: a8c357f6     	ldp	x22, x21, [sp], #0x30
+fffffe0008ade4c0: d65f0fff     	retab
+
+fffffe0008ade4c4 <__ZN22AGXFirmwareKextRTBuddy15enableEndpointsEv>:
+fffffe0008ade4c4: d503237f     	pacibsp
+fffffe0008ade4c8: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008ade4cc: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008ade4d0: 910043fd     	add	x29, sp, #0x10
+fffffe0008ade4d4: aa0003f3     	mov	x19, x0
+fffffe0008ade4d8: f9409400     	ldr	x0, [x0, #0x128]
+fffffe0008ade4dc: f9400010     	ldr	x16, [x0]
+fffffe0008ade4e0: aa0003f1     	mov	x17, x0
+fffffe0008ade4e4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade4e8: dac11a30     	autda	x16, x17
+fffffe0008ade4ec: d2802e11     	mov	x17, #0x170     ; =368
+fffffe0008ade4f0: 8b110210     	add	x16, x16, x17
+fffffe0008ade4f4: f9400208     	ldr	x8, [x16]
+fffffe0008ade4f8: f2f362d0     	movk	x16, #0x9b16, lsl #48
+fffffe0008ade4fc: d73f0910     	blraa	x8, x16
+fffffe0008ade500: f9409a60     	ldr	x0, [x19, #0x130]
+fffffe0008ade504: aa0003f1     	mov	x17, x0
+fffffe0008ade508: f9400010     	ldr	x16, [x0]
+fffffe0008ade50c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade510: dac11a30     	autda	x16, x17
+fffffe0008ade514: aa1003f1     	mov	x17, x16
+fffffe0008ade518: dac147f1     	xpacd	x17
+fffffe0008ade51c: eb11021f     	cmp	x16, x17
+fffffe0008ade520: 54000040     	b.eq	0xfffffe0008ade528 <__ZN22AGXFirmwareKextRTBuddy15enableEndpointsEv+0x64>
+fffffe0008ade524: d4388e40     	brk	#0xc472
+fffffe0008ade528: 9105c208     	add	x8, x16, #0x170
+fffffe0008ade52c: f940ba09     	ldr	x9, [x16, #0x170]
+fffffe0008ade530: aa0803f1     	mov	x17, x8
+fffffe0008ade534: f2f362d1     	movk	x17, #0x9b16, lsl #48
+fffffe0008ade538: d73f0931     	blraa	x9, x17
+fffffe0008ade53c: f940ba60     	ldr	x0, [x19, #0x170]
+fffffe0008ade540: b9412261     	ldr	w1, [x19, #0x120]
+fffffe0008ade544: f9400010     	ldr	x16, [x0]
+fffffe0008ade548: aa0003f1     	mov	x17, x0
+fffffe0008ade54c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade550: dac11a30     	autda	x16, x17
+fffffe0008ade554: aa1003f1     	mov	x17, x16
+fffffe0008ade558: dac147f1     	xpacd	x17
+fffffe0008ade55c: eb11021f     	cmp	x16, x17
+fffffe0008ade560: 54000040     	b.eq	0xfffffe0008ade568 <__ZN22AGXFirmwareKextRTBuddy15enableEndpointsEv+0xa4>
+fffffe0008ade564: d4388e40     	brk	#0xc472
+fffffe0008ade568: 912c2202     	add	x2, x16, #0xb08
+fffffe0008ade56c: f9458610     	ldr	x16, [x16, #0xb08]
+fffffe0008ade570: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008ade574: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008ade578: d50323ff     	autibsp
+fffffe0008ade57c: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008ade580: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008ade588 <__ZN22AGXFirmwareKextRTBuddy15enableEndpointsEv+0xc4>
+fffffe0008ade584: d4388e20     	brk	#0xc471
+fffffe0008ade588: aa0203f1     	mov	x17, x2
+fffffe0008ade58c: f2ee8971     	movk	x17, #0x744b, lsl #48
+fffffe0008ade590: d71f0a11     	braa	x16, x17
+
+fffffe0008ade594 <__ZN22AGXFirmwareKextRTBuddy16powerStateChangeEmm_vfpthunk_>:
+fffffe0008ade594: d503245f     	bti	c
+fffffe0008ade598: f9400010     	ldr	x16, [x0]
+fffffe0008ade59c: aa0003f1     	mov	x17, x0
+fffffe0008ade5a0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade5a4: dac11a30     	autda	x16, x17
+fffffe0008ade5a8: d2812511     	mov	x17, #0x928     ; =2344
+fffffe0008ade5ac: 8b110210     	add	x16, x16, x17
+fffffe0008ade5b0: f9400208     	ldr	x8, [x16]
+fffffe0008ade5b4: aa1003e3     	mov	x3, x16
+fffffe0008ade5b8: aa0803f0     	mov	x16, x8
+fffffe0008ade5bc: aa0303f1     	mov	x17, x3
+fffffe0008ade5c0: f2f67771     	movk	x17, #0xb3bb, lsl #48
+fffffe0008ade5c4: d71f0a11     	braa	x16, x17
+
+fffffe0008ade5c8 <__ZN22AGXFirmwareKextRTBuddy22receivedMessageFromAKFEy>:
+fffffe0008ade5c8: d503245f     	bti	c
+fffffe0008ade5cc: f940b808     	ldr	x8, [x0, #0x170]
+fffffe0008ade5d0: b9412002     	ldr	w2, [x0, #0x120]
+fffffe0008ade5d4: f9400110     	ldr	x16, [x8]
+fffffe0008ade5d8: aa0803f1     	mov	x17, x8
+fffffe0008ade5dc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade5e0: dac11a30     	autda	x16, x17
+fffffe0008ade5e4: d2815c11     	mov	x17, #0xae0     ; =2784
+fffffe0008ade5e8: 8b110210     	add	x16, x16, x17
+fffffe0008ade5ec: f9400209     	ldr	x9, [x16]
+fffffe0008ade5f0: aa1003e3     	mov	x3, x16
+fffffe0008ade5f4: aa0903f0     	mov	x16, x9
+fffffe0008ade5f8: aa0803e0     	mov	x0, x8
+fffffe0008ade5fc: aa0303f1     	mov	x17, x3
+fffffe0008ade600: f2eec651     	movk	x17, #0x7632, lsl #48
+fffffe0008ade604: d71f0a11     	braa	x16, x17
+
+fffffe0008ade608 <__ZN22AGXFirmwareKextRTBuddy20terminateGFXEndpointEPvP9IOServiceP10IONotifier>:
+fffffe0008ade608: d503237f     	pacibsp
+fffffe0008ade60c: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008ade610: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008ade614: 910043fd     	add	x29, sp, #0x10
+fffffe0008ade618: f940a413     	ldr	x19, [x0, #0x148]
+fffffe0008ade61c: 90ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade620: f947c508     	ldr	x8, [x8, #0xf88]
+fffffe0008ade624: f9400101     	ldr	x1, [x8]
+fffffe0008ade628: aa0203e0     	mov	x0, x2
+fffffe0008ade62c: 9400027f     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008ade630: f9404402     	ldr	x2, [x0, #0x88]
+fffffe0008ade634: f9400270     	ldr	x16, [x19]
+fffffe0008ade638: aa1303f1     	mov	x17, x19
+fffffe0008ade63c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade640: dac11a30     	autda	x16, x17
+fffffe0008ade644: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008ade648: 8b110210     	add	x16, x16, x17
+fffffe0008ade64c: f9400208     	ldr	x8, [x16]
+fffffe0008ade650: aa1003e6     	mov	x6, x16
+fffffe0008ade654: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade658: 911a8210     	add	x16, x16, #0x6a0
+fffffe0008ade65c: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008ade660: dac10230     	pacia	x16, x17
+fffffe0008ade664: aa1003e1     	mov	x1, x16
+fffffe0008ade668: aa0803f0     	mov	x16, x8
+fffffe0008ade66c: aa1303e0     	mov	x0, x19
+fffffe0008ade670: d2800003     	mov	x3, #0x0        ; =0
+fffffe0008ade674: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade678: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008ade67c: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008ade680: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008ade684: d50323ff     	autibsp
+fffffe0008ade688: ca1e07d1     	eor	x17, x30, x30, lsl #1
+fffffe0008ade68c: b6f00051     	tbz	x17, #0x3e, 0xfffffe0008ade694 <__ZN22AGXFirmwareKextRTBuddy20terminateGFXEndpointEPvP9IOServiceP10IONotifier+0x8c>
+fffffe0008ade690: d4388e20     	brk	#0xc471
+fffffe0008ade694: aa0603f1     	mov	x17, x6
+fffffe0008ade698: f2ff3ff1     	movk	x17, #0xf9ff, lsl #48
+fffffe0008ade69c: d71f0a11     	braa	x16, x17
+
+fffffe0008ade6a0 <__ZN22AGXFirmwareKextRTBuddy25terminateGFXEndpointGatedEPv>:
+fffffe0008ade6a0: d503245f     	bti	c
+fffffe0008ade6a4: b9408828     	ldr	w8, [x1, #0x88]
+fffffe0008ade6a8: 7100811f     	cmp	w8, #0x20
+fffffe0008ade6ac: 540000a0     	b.eq	0xfffffe0008ade6c0 <__ZN22AGXFirmwareKextRTBuddy25terminateGFXEndpointGatedEPv+0x20>
+fffffe0008ade6b0: 7100851f     	cmp	w8, #0x21
+fffffe0008ade6b4: 54000241     	b.ne	0xfffffe0008ade6fc <__ZN22AGXFirmwareKextRTBuddy25terminateGFXEndpointGatedEPv+0x5c>
+fffffe0008ade6b8: 52802608     	mov	w8, #0x130      ; =304
+fffffe0008ade6bc: 14000002     	b	0xfffffe0008ade6c4 <__ZN22AGXFirmwareKextRTBuddy25terminateGFXEndpointGatedEPv+0x24>
+fffffe0008ade6c0: 52802508     	mov	w8, #0x128      ; =296
+fffffe0008ade6c4: f828681f     	str	xzr, [x0, x8]
+fffffe0008ade6c8: f940a000     	ldr	x0, [x0, #0x140]
+fffffe0008ade6cc: f9400010     	ldr	x16, [x0]
+fffffe0008ade6d0: aa0003f1     	mov	x17, x0
+fffffe0008ade6d4: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade6d8: dac11a30     	autda	x16, x17
+fffffe0008ade6dc: d2802d11     	mov	x17, #0x168     ; =360
+fffffe0008ade6e0: 8b110210     	add	x16, x16, x17
+fffffe0008ade6e4: f9400208     	ldr	x8, [x16]
+fffffe0008ade6e8: aa1003e2     	mov	x2, x16
+fffffe0008ade6ec: aa0803f0     	mov	x16, x8
+fffffe0008ade6f0: aa0203f1     	mov	x17, x2
+fffffe0008ade6f4: f2f44ab1     	movk	x17, #0xa255, lsl #48
+fffffe0008ade6f8: d71f0a11     	braa	x16, x17
+fffffe0008ade6fc: d65f03c0     	ret
+
+fffffe0008ade700 <__ZN22AGXFirmwareKextRTBuddy21setAccelAndFWPointersEP14AGXAcceleratorP14AGXArmFirmware>:
+fffffe0008ade700: d503245f     	bti	c
+fffffe0008ade704: aa0203e3     	mov	x3, x2
+fffffe0008ade708: aa0103e2     	mov	x2, x1
+fffffe0008ade70c: f940a400     	ldr	x0, [x0, #0x148]
+fffffe0008ade710: f9400010     	ldr	x16, [x0]
+fffffe0008ade714: aa0003f1     	mov	x17, x0
+fffffe0008ade718: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade71c: dac11a30     	autda	x16, x17
+fffffe0008ade720: d2803d11     	mov	x17, #0x1e8     ; =488
+fffffe0008ade724: 8b110210     	add	x16, x16, x17
+fffffe0008ade728: f9400208     	ldr	x8, [x16]
+fffffe0008ade72c: aa1003e6     	mov	x6, x16
+fffffe0008ade730: 90000010     	adrp	x16, 0xfffffe0008ade000 <__ZN22AGXFirmwareKextRTBuddy12bootFirmwareEP11IOMemoryMap+0x3d4>
+fffffe0008ade734: 911d7210     	add	x16, x16, #0x75c
+fffffe0008ade738: d297a831     	mov	x17, #0xbd41    ; =48449
+fffffe0008ade73c: dac10230     	pacia	x16, x17
+fffffe0008ade740: aa1003e1     	mov	x1, x16
+fffffe0008ade744: aa0803f0     	mov	x16, x8
+fffffe0008ade748: d2800004     	mov	x4, #0x0        ; =0
+fffffe0008ade74c: d2800005     	mov	x5, #0x0        ; =0
+fffffe0008ade750: aa0603f1     	mov	x17, x6
+fffffe0008ade754: f2ff3ff1     	movk	x17, #0xf9ff, lsl #48
+fffffe0008ade758: d71f0a11     	braa	x16, x17
+
+fffffe0008ade75c <__ZN22AGXFirmwareKextRTBuddy26setAccelAndFWPointersGatedEP14AGXAcceleratorP14AGXArmFirmware>:
+fffffe0008ade75c: d503245f     	bti	c
+fffffe0008ade760: a9170402     	stp	x2, x1, [x0, #0x170]
+fffffe0008ade764: d65f03c0     	ret
+
+fffffe0008ade768 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService>:
+fffffe0008ade768: d503237f     	pacibsp
+fffffe0008ade76c: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008ade770: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008ade774: 910043fd     	add	x29, sp, #0x10
+fffffe0008ade778: aa0003f3     	mov	x19, x0
+fffffe0008ade77c: f940a008     	ldr	x8, [x0, #0x140]
+fffffe0008ade780: b40005c8     	cbz	x8, 0xfffffe0008ade838 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0xd0>
+fffffe0008ade784: f940a660     	ldr	x0, [x19, #0x148]
+fffffe0008ade788: f9400010     	ldr	x16, [x0]
+fffffe0008ade78c: aa0003f1     	mov	x17, x0
+fffffe0008ade790: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade794: dac11a30     	autda	x16, x17
+fffffe0008ade798: d2802f11     	mov	x17, #0x178     ; =376
+fffffe0008ade79c: 8b110210     	add	x16, x16, x17
+fffffe0008ade7a0: f9400208     	ldr	x8, [x16]
+fffffe0008ade7a4: f2f35330     	movk	x16, #0x9a99, lsl #48
+fffffe0008ade7a8: d73f0910     	blraa	x8, x16
+fffffe0008ade7ac: a9540660     	ldp	x0, x1, [x19, #0x140]
+fffffe0008ade7b0: f9400010     	ldr	x16, [x0]
+fffffe0008ade7b4: aa0003f1     	mov	x17, x0
+fffffe0008ade7b8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade7bc: dac11a30     	autda	x16, x17
+fffffe0008ade7c0: aa1003f1     	mov	x17, x16
+fffffe0008ade7c4: dac147f1     	xpacd	x17
+fffffe0008ade7c8: eb11021f     	cmp	x16, x17
+fffffe0008ade7cc: 54000040     	b.eq	0xfffffe0008ade7d4 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0x6c>
+fffffe0008ade7d0: d4388e40     	brk	#0xc472
+fffffe0008ade7d4: 9105a208     	add	x8, x16, #0x168
+fffffe0008ade7d8: f940b609     	ldr	x9, [x16, #0x168]
+fffffe0008ade7dc: aa0803f1     	mov	x17, x8
+fffffe0008ade7e0: f2f44ab1     	movk	x17, #0xa255, lsl #48
+fffffe0008ade7e4: d73f0931     	blraa	x9, x17
+fffffe0008ade7e8: f940a660     	ldr	x0, [x19, #0x148]
+fffffe0008ade7ec: b4000100     	cbz	x0, 0xfffffe0008ade80c <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0xa4>
+fffffe0008ade7f0: f9400010     	ldr	x16, [x0]
+fffffe0008ade7f4: aa0003f1     	mov	x17, x0
+fffffe0008ade7f8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade7fc: dac11a30     	autda	x16, x17
+fffffe0008ade800: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade804: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade808: d73f0910     	blraa	x8, x16
+fffffe0008ade80c: f900a67f     	str	xzr, [x19, #0x148]
+fffffe0008ade810: f940a260     	ldr	x0, [x19, #0x140]
+fffffe0008ade814: b4000100     	cbz	x0, 0xfffffe0008ade834 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0xcc>
+fffffe0008ade818: f9400010     	ldr	x16, [x0]
+fffffe0008ade81c: aa0003f1     	mov	x17, x0
+fffffe0008ade820: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade824: dac11a30     	autda	x16, x17
+fffffe0008ade828: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008ade82c: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008ade830: d73f0910     	blraa	x8, x16
+fffffe0008ade834: f900a27f     	str	xzr, [x19, #0x140]
+fffffe0008ade838: 39462268     	ldrb	w8, [x19, #0x188]
+fffffe0008ade83c: 36000648     	tbz	w8, #0x0, 0xfffffe0008ade904 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0x19c>
+fffffe0008ade840: f940aa60     	ldr	x0, [x19, #0x150]
+fffffe0008ade844: b4000160     	cbz	x0, 0xfffffe0008ade870 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0x108>
+fffffe0008ade848: f9400010     	ldr	x16, [x0]
+fffffe0008ade84c: aa0003f1     	mov	x17, x0
+fffffe0008ade850: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade854: dac11a30     	autda	x16, x17
+fffffe0008ade858: d2802711     	mov	x17, #0x138     ; =312
+fffffe0008ade85c: 8b110210     	add	x16, x16, x17
+fffffe0008ade860: f9400208     	ldr	x8, [x16]
+fffffe0008ade864: f2e716b0     	movk	x16, #0x38b5, lsl #48
+fffffe0008ade868: d73f0910     	blraa	x8, x16
+fffffe0008ade86c: f900aa7f     	str	xzr, [x19, #0x150]
+fffffe0008ade870: f940ae60     	ldr	x0, [x19, #0x158]
+fffffe0008ade874: b4000160     	cbz	x0, 0xfffffe0008ade8a0 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0x138>
+fffffe0008ade878: f9400010     	ldr	x16, [x0]
+fffffe0008ade87c: aa0003f1     	mov	x17, x0
+fffffe0008ade880: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade884: dac11a30     	autda	x16, x17
+fffffe0008ade888: d2802711     	mov	x17, #0x138     ; =312
+fffffe0008ade88c: 8b110210     	add	x16, x16, x17
+fffffe0008ade890: f9400208     	ldr	x8, [x16]
+fffffe0008ade894: f2e716b0     	movk	x16, #0x38b5, lsl #48
+fffffe0008ade898: d73f0910     	blraa	x8, x16
+fffffe0008ade89c: f900ae7f     	str	xzr, [x19, #0x158]
+fffffe0008ade8a0: f940b260     	ldr	x0, [x19, #0x160]
+fffffe0008ade8a4: b4000160     	cbz	x0, 0xfffffe0008ade8d0 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0x168>
+fffffe0008ade8a8: f9400010     	ldr	x16, [x0]
+fffffe0008ade8ac: aa0003f1     	mov	x17, x0
+fffffe0008ade8b0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade8b4: dac11a30     	autda	x16, x17
+fffffe0008ade8b8: d2802711     	mov	x17, #0x138     ; =312
+fffffe0008ade8bc: 8b110210     	add	x16, x16, x17
+fffffe0008ade8c0: f9400208     	ldr	x8, [x16]
+fffffe0008ade8c4: f2e716b0     	movk	x16, #0x38b5, lsl #48
+fffffe0008ade8c8: d73f0910     	blraa	x8, x16
+fffffe0008ade8cc: f900b27f     	str	xzr, [x19, #0x160]
+fffffe0008ade8d0: f940b660     	ldr	x0, [x19, #0x168]
+fffffe0008ade8d4: b4000160     	cbz	x0, 0xfffffe0008ade900 <__ZN22AGXFirmwareKextRTBuddy4stopEP9IOService+0x198>
+fffffe0008ade8d8: f9400010     	ldr	x16, [x0]
+fffffe0008ade8dc: aa0003f1     	mov	x17, x0
+fffffe0008ade8e0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade8e4: dac11a30     	autda	x16, x17
+fffffe0008ade8e8: d2802711     	mov	x17, #0x138     ; =312
+fffffe0008ade8ec: 8b110210     	add	x16, x16, x17
+fffffe0008ade8f0: f9400208     	ldr	x8, [x16]
+fffffe0008ade8f4: f2e716b0     	movk	x16, #0x38b5, lsl #48
+fffffe0008ade8f8: d73f0910     	blraa	x8, x16
+fffffe0008ade8fc: f900b67f     	str	xzr, [x19, #0x168]
+fffffe0008ade900: 3906227f     	strb	wzr, [x19, #0x188]
+fffffe0008ade904: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008ade908: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008ade90c: d65f0fff     	retab
+
+fffffe0008ade910 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService>:
+fffffe0008ade910: d503237f     	pacibsp
+fffffe0008ade914: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008ade918: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008ade91c: 910043fd     	add	x29, sp, #0x10
+fffffe0008ade920: aa0103f4     	mov	x20, x1
+fffffe0008ade924: aa0003f3     	mov	x19, x0
+fffffe0008ade928: 90ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade92c: f947d508     	ldr	x8, [x8, #0xfa8]
+fffffe0008ade930: 91180109     	add	x9, x8, #0x600
+fffffe0008ade934: f9430108     	ldr	x8, [x8, #0x600]
+fffffe0008ade938: aa0903f1     	mov	x17, x9
+fffffe0008ade93c: f2e78d11     	movk	x17, #0x3c68, lsl #48
+fffffe0008ade940: d73f0911     	blraa	x8, x17
+fffffe0008ade944: 34000d00     	cbz	w0, 0xfffffe0008adeae4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1d4>
+fffffe0008ade948: 90ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade94c: f947c108     	ldr	x8, [x8, #0xf80]
+fffffe0008ade950: f9400101     	ldr	x1, [x8]
+fffffe0008ade954: aa1403e0     	mov	x0, x20
+fffffe0008ade958: 940001b4     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008ade95c: f9009e60     	str	x0, [x19, #0x138]
+fffffe0008ade960: b4000c20     	cbz	x0, 0xfffffe0008adeae4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1d4>
+fffffe0008ade964: f9400290     	ldr	x16, [x20]
+fffffe0008ade968: aa1403f1     	mov	x17, x20
+fffffe0008ade96c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade970: dac11a30     	autda	x16, x17
+fffffe0008ade974: d2805b11     	mov	x17, #0x2d8     ; =728
+fffffe0008ade978: 8b110210     	add	x16, x16, x17
+fffffe0008ade97c: f9400208     	ldr	x8, [x16]
+fffffe0008ade980: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008ade984: 91145021     	add	x1, x1, #0x514
+fffffe0008ade988: aa1403e0     	mov	x0, x20
+fffffe0008ade98c: f2e6f4b0     	movk	x16, #0x37a5, lsl #48
+fffffe0008ade990: d73f0910     	blraa	x8, x16
+fffffe0008ade994: 90ffa308     	adrp	x8, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008ade998: f947cd08     	ldr	x8, [x8, #0xf98]
+fffffe0008ade99c: f9400101     	ldr	x1, [x8]
+fffffe0008ade9a0: 940001a2     	bl	0xfffffe0008adf028 <_thread_set_thread_name+0xfffffe0008adf028>
+fffffe0008ade9a4: b4000a00     	cbz	x0, 0xfffffe0008adeae4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1d4>
+fffffe0008ade9a8: f9400010     	ldr	x16, [x0]
+fffffe0008ade9ac: aa0003f1     	mov	x17, x0
+fffffe0008ade9b0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008ade9b4: dac11a30     	autda	x16, x17
+fffffe0008ade9b8: d2802f11     	mov	x17, #0x178     ; =376
+fffffe0008ade9bc: 8b110210     	add	x16, x16, x17
+fffffe0008ade9c0: f9400208     	ldr	x8, [x16]
+fffffe0008ade9c4: f0ff32c1     	adrp	x1, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008ade9c8: 913fc021     	add	x1, x1, #0xff0
+fffffe0008ade9cc: f2e7e410     	movk	x16, #0x3f20, lsl #48
+fffffe0008ade9d0: d73f0910     	blraa	x8, x16
+fffffe0008ade9d4: 34000880     	cbz	w0, 0xfffffe0008adeae4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1d4>
+fffffe0008ade9d8: b901227f     	str	wzr, [x19, #0x120]
+fffffe0008ade9dc: a912fe7f     	stp	xzr, xzr, [x19, #0x128]
+fffffe0008ade9e0: 3906227f     	strb	wzr, [x19, #0x188]
+fffffe0008ade9e4: 3906267f     	strb	wzr, [x19, #0x189]
+fffffe0008ade9e8: 94000178     	bl	0xfffffe0008adefc8 <_thread_set_thread_name+0xfffffe0008adefc8>
+fffffe0008ade9ec: f900a260     	str	x0, [x19, #0x140]
+fffffe0008ade9f0: b4000800     	cbz	x0, 0xfffffe0008adeaf0 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1e0>
+fffffe0008ade9f4: f9400010     	ldr	x16, [x0]
+fffffe0008ade9f8: aa0003f1     	mov	x17, x0
+fffffe0008ade9fc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adea00: dac11a30     	autda	x16, x17
+fffffe0008adea04: d2802911     	mov	x17, #0x148     ; =328
+fffffe0008adea08: 8b110210     	add	x16, x16, x17
+fffffe0008adea0c: f9400208     	ldr	x8, [x16]
+fffffe0008adea10: f2e8b690     	movk	x16, #0x45b4, lsl #48
+fffffe0008adea14: d73f0910     	blraa	x8, x16
+fffffe0008adea18: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adea1c: 9114bc21     	add	x1, x1, #0x52f
+fffffe0008adea20: 940001d2     	bl	0xfffffe0008adf168 <_thread_set_thread_name+0xfffffe0008adf168>
+fffffe0008adea24: aa1303e0     	mov	x0, x19
+fffffe0008adea28: d2800001     	mov	x1, #0x0        ; =0
+fffffe0008adea2c: 94000173     	bl	0xfffffe0008adeff8 <_thread_set_thread_name+0xfffffe0008adeff8>
+fffffe0008adea30: aa0003e1     	mov	x1, x0
+fffffe0008adea34: f900a660     	str	x0, [x19, #0x148]
+fffffe0008adea38: f940a260     	ldr	x0, [x19, #0x140]
+fffffe0008adea3c: b4000701     	cbz	x1, 0xfffffe0008adeb1c <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x20c>
+fffffe0008adea40: f9400010     	ldr	x16, [x0]
+fffffe0008adea44: aa0003f1     	mov	x17, x0
+fffffe0008adea48: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adea4c: dac11a30     	autda	x16, x17
+fffffe0008adea50: d2802c11     	mov	x17, #0x160     ; =352
+fffffe0008adea54: 8b110210     	add	x16, x16, x17
+fffffe0008adea58: f9400208     	ldr	x8, [x16]
+fffffe0008adea5c: f2e23d10     	movk	x16, #0x11e8, lsl #48
+fffffe0008adea60: d73f0910     	blraa	x8, x16
+fffffe0008adea64: f940a660     	ldr	x0, [x19, #0x148]
+fffffe0008adea68: aa0003f1     	mov	x17, x0
+fffffe0008adea6c: f9400010     	ldr	x16, [x0]
+fffffe0008adea70: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adea74: dac11a30     	autda	x16, x17
+fffffe0008adea78: aa1003f1     	mov	x17, x16
+fffffe0008adea7c: dac147f1     	xpacd	x17
+fffffe0008adea80: eb11021f     	cmp	x16, x17
+fffffe0008adea84: 54000040     	b.eq	0xfffffe0008adea8c <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x17c>
+fffffe0008adea88: d4388e40     	brk	#0xc472
+fffffe0008adea8c: 9105c208     	add	x8, x16, #0x170
+fffffe0008adea90: f940ba09     	ldr	x9, [x16, #0x170]
+fffffe0008adea94: aa0803f1     	mov	x17, x8
+fffffe0008adea98: f2f362d1     	movk	x17, #0x9b16, lsl #48
+fffffe0008adea9c: d73f0931     	blraa	x9, x17
+fffffe0008adeaa0: aa1303f1     	mov	x17, x19
+fffffe0008adeaa4: f9400270     	ldr	x16, [x19]
+fffffe0008adeaa8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adeaac: dac11a30     	autda	x16, x17
+fffffe0008adeab0: aa1003f1     	mov	x17, x16
+fffffe0008adeab4: dac147f1     	xpacd	x17
+fffffe0008adeab8: eb11021f     	cmp	x16, x17
+fffffe0008adeabc: 54000040     	b.eq	0xfffffe0008adeac4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1b4>
+fffffe0008adeac0: d4388e40     	brk	#0xc472
+fffffe0008adeac4: 91178208     	add	x8, x16, #0x5e0
+fffffe0008adeac8: f942f209     	ldr	x9, [x16, #0x5e0]
+fffffe0008adeacc: aa1303e0     	mov	x0, x19
+fffffe0008adead0: 52800001     	mov	w1, #0x0        ; =0
+fffffe0008adead4: aa0803f1     	mov	x17, x8
+fffffe0008adead8: f2efab31     	movk	x17, #0x7d59, lsl #48
+fffffe0008adeadc: d73f0931     	blraa	x9, x17
+fffffe0008adeae0: 52800020     	mov	w0, #0x1        ; =1
+fffffe0008adeae4: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008adeae8: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008adeaec: d65f0fff     	retab
+fffffe0008adeaf0: f9400270     	ldr	x16, [x19]
+fffffe0008adeaf4: aa1303f1     	mov	x17, x19
+fffffe0008adeaf8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adeafc: dac11a30     	autda	x16, x17
+fffffe0008adeb00: f8438e08     	ldr	x8, [x16, #0x38]!
+fffffe0008adeb04: aa1303e0     	mov	x0, x19
+fffffe0008adeb08: f2ffff90     	movk	x16, #0xfffc, lsl #48
+fffffe0008adeb0c: d73f0910     	blraa	x8, x16
+fffffe0008adeb10: 9400017a     	bl	0xfffffe0008adf0f8 <_thread_set_thread_name+0xfffffe0008adf0f8>
+fffffe0008adeb14: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adeb18: 17fffff3     	b	0xfffffe0008adeae4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1d4>
+fffffe0008adeb1c: b4000100     	cbz	x0, 0xfffffe0008adeb3c <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x22c>
+fffffe0008adeb20: f9400010     	ldr	x16, [x0]
+fffffe0008adeb24: aa0003f1     	mov	x17, x0
+fffffe0008adeb28: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adeb2c: dac11a30     	autda	x16, x17
+fffffe0008adeb30: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe0008adeb34: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe0008adeb38: d73f0910     	blraa	x8, x16
+fffffe0008adeb3c: 52800000     	mov	w0, #0x0        ; =0
+fffffe0008adeb40: f900a27f     	str	xzr, [x19, #0x140]
+fffffe0008adeb44: 17ffffe8     	b	0xfffffe0008adeae4 <__ZN22AGXFirmwareKextRTBuddy5startEP9IOService+0x1d4>
+
+fffffe0008adeb48 <__ZNK22AGXFirmwareKextRTBuddy12getMetaClassEv>:
+fffffe0008adeb48: d503245f     	bti	c
+fffffe0008adeb4c: d001fca0     	adrp	x0, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adeb50: 91114000     	add	x0, x0, #0x450
+fffffe0008adeb54: d65f03c0     	ret
+
+fffffe0008adeb58 <__ZN22AGXFirmwareKextRTBuddyD0Ev>:
+fffffe0008adeb58: d503237f     	pacibsp
+fffffe0008adeb5c: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008adeb60: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008adeb64: 910043fd     	add	x29, sp, #0x10
+fffffe0008adeb68: aa0003f3     	mov	x19, x0
+fffffe0008adeb6c: 9400015f     	bl	0xfffffe0008adf0e8 <_thread_set_thread_name+0xfffffe0008adf0e8>
+fffffe0008adeb70: 90ffa300     	adrp	x0, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adeb74: 91394000     	add	x0, x0, #0xe50
+fffffe0008adeb78: aa1303e1     	mov	x1, x19
+fffffe0008adeb7c: 52803202     	mov	w2, #0x190      ; =400
+fffffe0008adeb80: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008adeb84: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008adeb88: d50323ff     	autibsp
+fffffe0008adeb8c: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe0008adeb90: b6f00050     	tbz	x16, #0x3e, 0xfffffe0008adeb98 <__ZN22AGXFirmwareKextRTBuddyD0Ev+0x40>
+fffffe0008adeb94: d4388e20     	brk	#0xc471
+fffffe0008adeb98: 14000104     	b	0xfffffe0008adefa8 <_thread_set_thread_name+0xfffffe0008adefa8>
+
+fffffe0008adeb9c <__ZN22AGXFirmwareKextRTBuddyD1Ev>:
+fffffe0008adeb9c: d503245f     	bti	c
+fffffe0008adeba0: 14000152     	b	0xfffffe0008adf0e8 <_thread_set_thread_name+0xfffffe0008adf0e8>
+
+fffffe0008adeba4 <__ZNK22AGXFirmwareKextRTBuddy9MetaClass5allocEv>:
+fffffe0008adeba4: d503237f     	pacibsp
+fffffe0008adeba8: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adebac: 910003fd     	mov	x29, sp
+fffffe0008adebb0: 90ffa300     	adrp	x0, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adebb4: 91394000     	add	x0, x0, #0xe50
+fffffe0008adebb8: 52803201     	mov	w1, #0x190      ; =400
+fffffe0008adebbc: 940000ff     	bl	0xfffffe0008adefb8 <_thread_set_thread_name+0xfffffe0008adefb8>
+fffffe0008adebc0: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adebc4: d50323ff     	autibsp
+fffffe0008adebc8: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe0008adebcc: b6f00050     	tbz	x16, #0x3e, 0xfffffe0008adebd4 <__ZNK22AGXFirmwareKextRTBuddy9MetaClass5allocEv+0x30>
+fffffe0008adebd0: d4388e20     	brk	#0xc471
+fffffe0008adebd4: 14000001     	b	0xfffffe0008adebd8 <__ZN22AGXFirmwareKextRTBuddyC2Ev>
+
+fffffe0008adebd8 <__ZN22AGXFirmwareKextRTBuddyC2Ev>:
+fffffe0008adebd8: d503237f     	pacibsp
+fffffe0008adebdc: a9be4ff4     	stp	x20, x19, [sp, #-0x20]!
+fffffe0008adebe0: a9017bfd     	stp	x29, x30, [sp, #0x10]
+fffffe0008adebe4: 910043fd     	add	x29, sp, #0x10
+fffffe0008adebe8: aa0003f3     	mov	x19, x0
+fffffe0008adebec: d001fcb4     	adrp	x20, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adebf0: 91114294     	add	x20, x20, #0x450
+fffffe0008adebf4: aa1403e1     	mov	x1, x20
+fffffe0008adebf8: 94000138     	bl	0xfffffe0008adf0d8 <_thread_set_thread_name+0xfffffe0008adf0d8>
+fffffe0008adebfc: 90ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adec00: 910e8210     	add	x16, x16, #0x3a0
+fffffe0008adec04: 91004210     	add	x16, x16, #0x10
+fffffe0008adec08: aa0003f1     	mov	x17, x0
+fffffe0008adec0c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adec10: dac10a30     	pacda	x16, x17
+fffffe0008adec14: f9000010     	str	x16, [x0]
+fffffe0008adec18: 6f00e400     	movi.2d	v0, #0000000000000000
+fffffe0008adec1c: 3c888000     	stur	q0, [x0, #0x88]
+fffffe0008adec20: 3c898000     	stur	q0, [x0, #0x98]
+fffffe0008adec24: fd005400     	str	d0, [x0, #0xa8]
+fffffe0008adec28: b900b01f     	str	wzr, [x0, #0xb0]
+fffffe0008adec2c: a90bfc1f     	stp	xzr, xzr, [x0, #0xb8]
+fffffe0008adec30: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adec34: 3dc3c101     	ldr	q1, [x8, #0xf00]
+fffffe0008adec38: 3c8c8001     	stur	q1, [x0, #0xc8]
+fffffe0008adec3c: 4f000421     	movi.4s	v1, #0x1
+fffffe0008adec40: 3c8d8001     	stur	q1, [x0, #0xd8]
+fffffe0008adec44: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adec48: 3dc3c501     	ldr	q1, [x8, #0xf10]
+fffffe0008adec4c: 3c8e8001     	stur	q1, [x0, #0xe8]
+fffffe0008adec50: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adec54: 3dc3c901     	ldr	q1, [x8, #0xf20]
+fffffe0008adec58: 3c8f8001     	stur	q1, [x0, #0xf8]
+fffffe0008adec5c: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adec60: fd477d01     	ldr	d1, [x8, #0xef8]
+fffffe0008adec64: 6d108400     	stp	d0, d1, [x0, #0x108]
+fffffe0008adec68: 7902301f     	strh	wzr, [x0, #0x118]
+fffffe0008adec6c: 91046808     	add	x8, x0, #0x11a
+fffffe0008adec70: 52800029     	mov	w9, #0x1        ; =1
+fffffe0008adec74: b9000109     	str	w9, [x8]
+fffffe0008adec78: aa1403e0     	mov	x0, x20
+fffffe0008adec7c: 94000123     	bl	0xfffffe0008adf108 <_thread_set_thread_name+0xfffffe0008adf108>
+fffffe0008adec80: aa1303e0     	mov	x0, x19
+fffffe0008adec84: a9417bfd     	ldp	x29, x30, [sp, #0x10]
+fffffe0008adec88: a8c24ff4     	ldp	x20, x19, [sp], #0x20
+fffffe0008adec8c: d65f0fff     	retab
+
+fffffe0008adec90 <__ZN22AGXFirmwareKextRTBuddy9MetaClassD0Ev>:
+fffffe0008adec90: d503245f     	bti	c
+fffffe0008adec94: 140000d5     	b	0xfffffe0008adefe8 <_thread_set_thread_name+0xfffffe0008adefe8>
+
+fffffe0008adec98 <__ZN22AGXFirmwareKextRTBuddy9MetaClassD1Ev>:
+fffffe0008adec98: d503245f     	bti	c
+fffffe0008adec9c: 140000d3     	b	0xfffffe0008adefe8 <_thread_set_thread_name+0xfffffe0008adefe8>
+
+fffffe0008adeca0 <__GLOBAL__sub_I_agxp_kext_rtbuddy.cpp>:
+fffffe0008adeca0: d503237f     	pacibsp
+fffffe0008adeca4: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adeca8: 910003fd     	mov	x29, sp
+fffffe0008adecac: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adecb0: 910ed400     	add	x0, x0, #0x3b5
+fffffe0008adecb4: 940000fd     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adecb8: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adecbc: f9027500     	str	x0, [x8, #0x4e8]
+fffffe0008adecc0: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adecc4: 910f7c00     	add	x0, x0, #0x3df
+fffffe0008adecc8: 940000f8     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adeccc: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adecd0: f9027900     	str	x0, [x8, #0x4f0]
+fffffe0008adecd4: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adecd8: 910ffc00     	add	x0, x0, #0x3ff
+fffffe0008adecdc: 940000f3     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adece0: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adece4: f9027d00     	str	x0, [x8, #0x4f8]
+fffffe0008adece8: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adecec: 91105800     	add	x0, x0, #0x416
+fffffe0008adecf0: 940000ee     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008adecf4: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adecf8: f9028100     	str	x0, [x8, #0x500]
+fffffe0008adecfc: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008aded00: 9110c000     	add	x0, x0, #0x430
+fffffe0008aded04: 940000e9     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008aded08: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008aded0c: f9028500     	str	x0, [x8, #0x508]
+fffffe0008aded10: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008aded14: 91113000     	add	x0, x0, #0x44c
+fffffe0008aded18: 940000e4     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008aded1c: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008aded20: f9028900     	str	x0, [x8, #0x510]
+fffffe0008aded24: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008aded28: 91119400     	add	x0, x0, #0x465
+fffffe0008aded2c: 940000df     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008aded30: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008aded34: f9028d00     	str	x0, [x8, #0x518]
+fffffe0008aded38: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008aded3c: 91121400     	add	x0, x0, #0x485
+fffffe0008aded40: 940000da     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008aded44: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008aded48: f9029100     	str	x0, [x8, #0x520]
+fffffe0008aded4c: 90ff32e0     	adrp	x0, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008aded50: 91125c00     	add	x0, x0, #0x497
+fffffe0008aded54: 940000d5     	bl	0xfffffe0008adf0a8 <_thread_set_thread_name+0xfffffe0008adf0a8>
+fffffe0008aded58: d001fca8     	adrp	x8, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008aded5c: f9029500     	str	x0, [x8, #0x528]
+fffffe0008aded60: d001fca0     	adrp	x0, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008aded64: 91114000     	add	x0, x0, #0x450
+fffffe0008aded68: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008aded6c: 9112b821     	add	x1, x1, #0x4ae
+fffffe0008aded70: 90ffa302     	adrp	x2, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008aded74: f947d042     	ldr	x2, [x2, #0xfa0]
+fffffe0008aded78: 52803203     	mov	w3, #0x190      ; =400
+fffffe0008aded7c: 94000097     	bl	0xfffffe0008adefd8 <_thread_set_thread_name+0xfffffe0008adefd8>
+fffffe0008aded80: 90ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008aded84: 9133a210     	add	x16, x16, #0xce8
+fffffe0008aded88: 91004210     	add	x16, x16, #0x10
+fffffe0008aded8c: aa0003f1     	mov	x17, x0
+fffffe0008aded90: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008aded94: dac10a30     	pacda	x16, x17
+fffffe0008aded98: f9000010     	str	x16, [x0]
+fffffe0008aded9c: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adeda0: d65f0fff     	retab
+
+fffffe0008adeda4 <__GLOBAL__D_a.356>:
+fffffe0008adeda4: d503245f     	bti	c
+fffffe0008adeda8: d001fca0     	adrp	x0, 0xfffffe000ca74000 <_thread_set_thread_name+0xfffffe000ca74000>
+fffffe0008adedac: 91114000     	add	x0, x0, #0x450
+fffffe0008adedb0: 1400008e     	b	0xfffffe0008adefe8 <_thread_set_thread_name+0xfffffe0008adefe8>
+
+fffffe0008adedb4 <__ZN22AGXFirmwareKextRTBuddy9MetaClassC1Ev>:
+fffffe0008adedb4: d503237f     	pacibsp
+fffffe0008adedb8: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adedbc: 910003fd     	mov	x29, sp
+fffffe0008adedc0: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adedc4: 9112b821     	add	x1, x1, #0x4ae
+fffffe0008adedc8: 90ffa302     	adrp	x2, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adedcc: f947d042     	ldr	x2, [x2, #0xfa0]
+fffffe0008adedd0: 52803203     	mov	w3, #0x190      ; =400
+fffffe0008adedd4: 94000081     	bl	0xfffffe0008adefd8 <_thread_set_thread_name+0xfffffe0008adefd8>
+fffffe0008adedd8: 90ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adeddc: 9133a210     	add	x16, x16, #0xce8
+fffffe0008adede0: 91004210     	add	x16, x16, #0x10
+fffffe0008adede4: aa0003f1     	mov	x17, x0
+fffffe0008adede8: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adedec: dac10a30     	pacda	x16, x17
+fffffe0008adedf0: f9000010     	str	x16, [x0]
+fffffe0008adedf4: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adedf8: d65f0fff     	retab
+
+fffffe0008adedfc <__ZN22AGXFirmwareKextRTBuddyC2EPK11OSMetaClass>:
+fffffe0008adedfc: d503237f     	pacibsp
+fffffe0008adee00: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adee04: 910003fd     	mov	x29, sp
+fffffe0008adee08: 940000b4     	bl	0xfffffe0008adf0d8 <_thread_set_thread_name+0xfffffe0008adf0d8>
+fffffe0008adee0c: 90ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adee10: 910e8210     	add	x16, x16, #0x3a0
+fffffe0008adee14: 91004210     	add	x16, x16, #0x10
+fffffe0008adee18: aa0003f1     	mov	x17, x0
+fffffe0008adee1c: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adee20: dac10a30     	pacda	x16, x17
+fffffe0008adee24: f9000010     	str	x16, [x0]
+fffffe0008adee28: 6f00e400     	movi.2d	v0, #0000000000000000
+fffffe0008adee2c: 3c888000     	stur	q0, [x0, #0x88]
+fffffe0008adee30: 3c898000     	stur	q0, [x0, #0x98]
+fffffe0008adee34: fd005400     	str	d0, [x0, #0xa8]
+fffffe0008adee38: b900b01f     	str	wzr, [x0, #0xb0]
+fffffe0008adee3c: a90bfc1f     	stp	xzr, xzr, [x0, #0xb8]
+fffffe0008adee40: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adee44: 3dc3c101     	ldr	q1, [x8, #0xf00]
+fffffe0008adee48: 3c8c8001     	stur	q1, [x0, #0xc8]
+fffffe0008adee4c: 4f000421     	movi.4s	v1, #0x1
+fffffe0008adee50: 3c8d8001     	stur	q1, [x0, #0xd8]
+fffffe0008adee54: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adee58: 3dc3c501     	ldr	q1, [x8, #0xf10]
+fffffe0008adee5c: 3c8e8001     	stur	q1, [x0, #0xe8]
+fffffe0008adee60: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adee64: 3dc3c901     	ldr	q1, [x8, #0xf20]
+fffffe0008adee68: 3c8f8001     	stur	q1, [x0, #0xf8]
+fffffe0008adee6c: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adee70: fd477d01     	ldr	d1, [x8, #0xef8]
+fffffe0008adee74: 6d108400     	stp	d0, d1, [x0, #0x108]
+fffffe0008adee78: 7902301f     	strh	wzr, [x0, #0x118]
+fffffe0008adee7c: 91046808     	add	x8, x0, #0x11a
+fffffe0008adee80: 52800029     	mov	w9, #0x1        ; =1
+fffffe0008adee84: b9000109     	str	w9, [x8]
+fffffe0008adee88: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adee8c: d65f0fff     	retab
+
+fffffe0008adee90 <__ZN22AGXFirmwareKextRTBuddyC1EPK11OSMetaClass>:
+fffffe0008adee90: d503237f     	pacibsp
+fffffe0008adee94: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adee98: 910003fd     	mov	x29, sp
+fffffe0008adee9c: 9400008f     	bl	0xfffffe0008adf0d8 <_thread_set_thread_name+0xfffffe0008adf0d8>
+fffffe0008adeea0: 90ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adeea4: 910e8210     	add	x16, x16, #0x3a0
+fffffe0008adeea8: 91004210     	add	x16, x16, #0x10
+fffffe0008adeeac: aa0003f1     	mov	x17, x0
+fffffe0008adeeb0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adeeb4: dac10a30     	pacda	x16, x17
+fffffe0008adeeb8: f9000010     	str	x16, [x0]
+fffffe0008adeebc: 6f00e400     	movi.2d	v0, #0000000000000000
+fffffe0008adeec0: 3c888000     	stur	q0, [x0, #0x88]
+fffffe0008adeec4: 3c898000     	stur	q0, [x0, #0x98]
+fffffe0008adeec8: fd005400     	str	d0, [x0, #0xa8]
+fffffe0008adeecc: b900b01f     	str	wzr, [x0, #0xb0]
+fffffe0008adeed0: a90bfc1f     	stp	xzr, xzr, [x0, #0xb8]
+fffffe0008adeed4: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adeed8: 3dc3c101     	ldr	q1, [x8, #0xf00]
+fffffe0008adeedc: 3c8c8001     	stur	q1, [x0, #0xc8]
+fffffe0008adeee0: 4f000421     	movi.4s	v1, #0x1
+fffffe0008adeee4: 3c8d8001     	stur	q1, [x0, #0xd8]
+fffffe0008adeee8: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adeeec: 3dc3c501     	ldr	q1, [x8, #0xf10]
+fffffe0008adeef0: 3c8e8001     	stur	q1, [x0, #0xe8]
+fffffe0008adeef4: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adeef8: 3dc3c901     	ldr	q1, [x8, #0xf20]
+fffffe0008adeefc: 3c8f8001     	stur	q1, [x0, #0xf8]
+fffffe0008adef00: f0ff32c8     	adrp	x8, 0xfffffe0007139000 <_thread_set_thread_name+0xfffffe0007139000>
+fffffe0008adef04: fd477d01     	ldr	d1, [x8, #0xef8]
+fffffe0008adef08: 6d108400     	stp	d0, d1, [x0, #0x108]
+fffffe0008adef0c: 7902301f     	strh	wzr, [x0, #0x118]
+fffffe0008adef10: 91046808     	add	x8, x0, #0x11a
+fffffe0008adef14: 52800029     	mov	w9, #0x1        ; =1
+fffffe0008adef18: b9000109     	str	w9, [x8]
+fffffe0008adef1c: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adef20: d65f0fff     	retab
+
+fffffe0008adef24 <__ZN22AGXFirmwareKextRTBuddyD2Ev>:
+fffffe0008adef24: d503245f     	bti	c
+fffffe0008adef28: 14000070     	b	0xfffffe0008adf0e8 <_thread_set_thread_name+0xfffffe0008adf0e8>
+
+fffffe0008adef2c <__ZN22AGXFirmwareKextRTBuddydlEPvm>:
+fffffe0008adef2c: d503245f     	bti	c
+fffffe0008adef30: aa0103e2     	mov	x2, x1
+fffffe0008adef34: aa0003e1     	mov	x1, x0
+fffffe0008adef38: 90ffa300     	adrp	x0, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adef3c: 91394000     	add	x0, x0, #0xe50
+fffffe0008adef40: 1400001a     	b	0xfffffe0008adefa8 <_thread_set_thread_name+0xfffffe0008adefa8>
+
+fffffe0008adef44 <__ZN22AGXFirmwareKextRTBuddy9MetaClassC2Ev>:
+fffffe0008adef44: d503237f     	pacibsp
+fffffe0008adef48: a9bf7bfd     	stp	x29, x30, [sp, #-0x10]!
+fffffe0008adef4c: 910003fd     	mov	x29, sp
+fffffe0008adef50: 90ff32e1     	adrp	x1, 0xfffffe000713a000 <__ZL22RTK_uuid_block_offsets+0x4>
+fffffe0008adef54: 9112b821     	add	x1, x1, #0x4ae
+fffffe0008adef58: 90ffa302     	adrp	x2, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adef5c: f947d042     	ldr	x2, [x2, #0xfa0]
+fffffe0008adef60: 52803203     	mov	w3, #0x190      ; =400
+fffffe0008adef64: 9400001d     	bl	0xfffffe0008adefd8 <_thread_set_thread_name+0xfffffe0008adefd8>
+fffffe0008adef68: 90ffa310     	adrp	x16, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adef6c: 9133a210     	add	x16, x16, #0xce8
+fffffe0008adef70: 91004210     	add	x16, x16, #0x10
+fffffe0008adef74: aa0003f1     	mov	x17, x0
+fffffe0008adef78: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe0008adef7c: dac10a30     	pacda	x16, x17
+fffffe0008adef80: f9000010     	str	x16, [x0]
+fffffe0008adef84: a8c17bfd     	ldp	x29, x30, [sp], #0x10
+fffffe0008adef88: d65f0fff     	retab
+
+fffffe0008adef8c <__ZN22AGXFirmwareKextRTBuddynwEm>:
+fffffe0008adef8c: d503245f     	bti	c
+fffffe0008adef90: aa0003e1     	mov	x1, x0
+fffffe0008adef94: 90ffa300     	adrp	x0, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adef98: 91394000     	add	x0, x0, #0xe50
+fffffe0008adef9c: 14000007     	b	0xfffffe0008adefb8 <_thread_set_thread_name+0xfffffe0008adefb8>
+
+fffffe0008adefa0 <__ZN22AGXFirmwareKextRTBuddyC1Ev>:
+fffffe0008adefa0: d503245f     	bti	c
+fffffe0008adefa4: 17ffff0d     	b	0xfffffe0008adebd8 <__ZN22AGXFirmwareKextRTBuddyC2Ev>
+
+Disassembly of section __TEXT_EXEC,__auth_stubs:
+
+fffffe0008adefa8 <__auth_stubs>:
+fffffe0008adefa8: 90ffa311     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adefac: 913a4231     	add	x17, x17, #0xe90
+fffffe0008adefb0: f9400230     	ldr	x16, [x17]
+fffffe0008adefb4: d71f0a11     	braa	x16, x17
+fffffe0008adefb8: 90ffa311     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adefbc: 913a6231     	add	x17, x17, #0xe98
+fffffe0008adefc0: f9400230     	ldr	x16, [x17]
+fffffe0008adefc4: d71f0a11     	braa	x16, x17
+fffffe0008adefc8: 90ffa311     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adefcc: 913a8231     	add	x17, x17, #0xea0
+fffffe0008adefd0: f9400230     	ldr	x16, [x17]
+fffffe0008adefd4: d71f0a11     	braa	x16, x17
+fffffe0008adefd8: 90ffa311     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adefdc: 913aa231     	add	x17, x17, #0xea8
+fffffe0008adefe0: f9400230     	ldr	x16, [x17]
+fffffe0008adefe4: d71f0a11     	braa	x16, x17
+fffffe0008adefe8: 90ffa311     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adefec: 913ac231     	add	x17, x17, #0xeb0
+fffffe0008adeff0: f9400230     	ldr	x16, [x17]
+fffffe0008adeff4: d71f0a11     	braa	x16, x17
+fffffe0008adeff8: 90ffa311     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adeffc: 913ae231     	add	x17, x17, #0xeb8
+fffffe0008adf000: f9400230     	ldr	x16, [x17]
+fffffe0008adf004: d71f0a11     	braa	x16, x17
+fffffe0008adf008: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf00c: 913b0231     	add	x17, x17, #0xec0
+fffffe0008adf010: f9400230     	ldr	x16, [x17]
+fffffe0008adf014: d71f0a11     	braa	x16, x17
+fffffe0008adf018: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf01c: 913b2231     	add	x17, x17, #0xec8
+fffffe0008adf020: f9400230     	ldr	x16, [x17]
+fffffe0008adf024: d71f0a11     	braa	x16, x17
+fffffe0008adf028: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf02c: 913b4231     	add	x17, x17, #0xed0
+fffffe0008adf030: f9400230     	ldr	x16, [x17]
+fffffe0008adf034: d71f0a11     	braa	x16, x17
+fffffe0008adf038: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf03c: 913b6231     	add	x17, x17, #0xed8
+fffffe0008adf040: f9400230     	ldr	x16, [x17]
+fffffe0008adf044: d71f0a11     	braa	x16, x17
+fffffe0008adf048: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf04c: 913b8231     	add	x17, x17, #0xee0
+fffffe0008adf050: f9400230     	ldr	x16, [x17]
+fffffe0008adf054: d71f0a11     	braa	x16, x17
+fffffe0008adf058: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf05c: 913ba231     	add	x17, x17, #0xee8
+fffffe0008adf060: f9400230     	ldr	x16, [x17]
+fffffe0008adf064: d71f0a11     	braa	x16, x17
+fffffe0008adf068: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf06c: 913bc231     	add	x17, x17, #0xef0
+fffffe0008adf070: f9400230     	ldr	x16, [x17]
+fffffe0008adf074: d71f0a11     	braa	x16, x17
+fffffe0008adf078: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf07c: 913be231     	add	x17, x17, #0xef8
+fffffe0008adf080: f9400230     	ldr	x16, [x17]
+fffffe0008adf084: d71f0a11     	braa	x16, x17
+fffffe0008adf088: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf08c: 913c0231     	add	x17, x17, #0xf00
+fffffe0008adf090: f9400230     	ldr	x16, [x17]
+fffffe0008adf094: d71f0a11     	braa	x16, x17
+fffffe0008adf098: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf09c: 913c2231     	add	x17, x17, #0xf08
+fffffe0008adf0a0: f9400230     	ldr	x16, [x17]
+fffffe0008adf0a4: d71f0a11     	braa	x16, x17
+fffffe0008adf0a8: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf0ac: 913c4231     	add	x17, x17, #0xf10
+fffffe0008adf0b0: f9400230     	ldr	x16, [x17]
+fffffe0008adf0b4: d71f0a11     	braa	x16, x17
+fffffe0008adf0b8: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf0bc: 913c6231     	add	x17, x17, #0xf18
+fffffe0008adf0c0: f9400230     	ldr	x16, [x17]
+fffffe0008adf0c4: d71f0a11     	braa	x16, x17
+fffffe0008adf0c8: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf0cc: 913c8231     	add	x17, x17, #0xf20
+fffffe0008adf0d0: f9400230     	ldr	x16, [x17]
+fffffe0008adf0d4: d71f0a11     	braa	x16, x17
+fffffe0008adf0d8: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf0dc: 913ca231     	add	x17, x17, #0xf28
+fffffe0008adf0e0: f9400230     	ldr	x16, [x17]
+fffffe0008adf0e4: d71f0a11     	braa	x16, x17
+fffffe0008adf0e8: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf0ec: 913cc231     	add	x17, x17, #0xf30
+fffffe0008adf0f0: f9400230     	ldr	x16, [x17]
+fffffe0008adf0f4: d71f0a11     	braa	x16, x17
+fffffe0008adf0f8: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf0fc: 913ce231     	add	x17, x17, #0xf38
+fffffe0008adf100: f9400230     	ldr	x16, [x17]
+fffffe0008adf104: d71f0a11     	braa	x16, x17
+fffffe0008adf108: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf10c: 913d0231     	add	x17, x17, #0xf40
+fffffe0008adf110: f9400230     	ldr	x16, [x17]
+fffffe0008adf114: d71f0a11     	braa	x16, x17
+fffffe0008adf118: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf11c: 913d2231     	add	x17, x17, #0xf48
+fffffe0008adf120: f9400230     	ldr	x16, [x17]
+fffffe0008adf124: d71f0a11     	braa	x16, x17
+fffffe0008adf128: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf12c: 913d4231     	add	x17, x17, #0xf50
+fffffe0008adf130: f9400230     	ldr	x16, [x17]
+fffffe0008adf134: d71f0a11     	braa	x16, x17
+fffffe0008adf138: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf13c: 913d6231     	add	x17, x17, #0xf58
+fffffe0008adf140: f9400230     	ldr	x16, [x17]
+fffffe0008adf144: d71f0a11     	braa	x16, x17
+fffffe0008adf148: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf14c: 913d8231     	add	x17, x17, #0xf60
+fffffe0008adf150: f9400230     	ldr	x16, [x17]
+fffffe0008adf154: d71f0a11     	braa	x16, x17
+fffffe0008adf158: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf15c: 913da231     	add	x17, x17, #0xf68
+fffffe0008adf160: f9400230     	ldr	x16, [x17]
+fffffe0008adf164: d71f0a11     	braa	x16, x17
+fffffe0008adf168: f0ffa2f1     	adrp	x17, 0xfffffe0007f3e000 <__ZTV25AGXFirmwareKextG16RTBuddy+0x6c0>
+fffffe0008adf16c: 913dc231     	add	x17, x17, #0xf70
+fffffe0008adf170: f9400230     	ldr	x16, [x17]
+fffffe0008adf174: d71f0a11     	braa	x16, x17
