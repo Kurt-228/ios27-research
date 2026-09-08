@@ -249,3 +249,15 @@ restart-счётчики → panic (статика IOGPUFamily: эскалаци
   экран) спрей-эффекты не воспроизводятся — freed-страницы не забираются
   чужими клиентами, когда система простаивает. Спрей-кампании имеет смысл
   гонять при активном пользователе.
+
+## 112. v120: p_mtlmutc — compute-энкодер, полный план (3162 кейса)
+
+Compute-двойник mtlmut (runtime-компилированный kernel b[i]=0x42, grid 4096,
+dispatchThreads; sanity-гейт с порогом 4096 0x42-байт — баг порога чинился
+в ходе). Результат (run-mtlmutc-smoke3/full1-4): compute kcmd envelope
+БАЙТ-В-БАЙТ структурно идентичен blit (kclen 0x2d8, len-поле 0x150=0x268,
+те же kill-точки: #929 0xffffffff kill, ph2 bitflip 0x150 kill, off 0x170
+bitflips → GPU error/«innocent victim»/wedge). Вывод: мы фаззим envelope
+сабмита, а не AGX-payload (он в pool/device-stream — недостижим без
+полного реверса resource binding). Compute-поверхность envelope'а чиста
+так же, как blit. Паник нет, краши — только app-kill класса v78.

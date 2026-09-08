@@ -55,8 +55,8 @@ page-granular спреем напрямую), S = shared page / AGFI (карта
 | bar [accel+0x11c20]+0x10000 | +0x5b8/+0x5bc | ring read/write idx | нет | HW/S | значения пишет GPU; гонка индексов → произвольный выбор записи кольца |
 | ring entry accel+0x11c48+i*0x60 | +0x50 (ptr) | ptr → `[ptr+0x48]+0x15bc` (u32 read), `[ptr+0x178]+2*i` (u16 write 0) | нет (только liveness-битмапы accel+0x17c48/0x17c68) | K (записи встроены в accel; ptr — per-DM kext-объект) | низкая для записей; **средняя для ptr**, если ptr-объекты аллоцируются из shmem/GPUVM |
 | ring entry | +0x58 (u16) | stamp idx (<=0xff gate) | сравнение с 0xff | K/HW | — |
-| [wq+0xd8] → +0x88+i*16 | entry (u64+ptr) | элемент в `stub@0x8bab250`, бит63 → stuck-detect; затем retain/массив | **нет** | **S/G — ТРЕБУЕТ ПРОВЕРКИ** (§5) | **цель №1 при подтверждении shared-backed** |
-| [wq+0xd8] → +0x288 | count | граница циклов | нет | как выше | контроль count → OOB-итерация по +0x88, если массив короче |
+| [wq+0xd8] → +0x88+i*16 | entry {IOSurface* @+0, u32 @+8} | элемент в `stub@0x8bab250` = IOSurface::getDetachModeCode, бит63 → stuck-detect; затем createFenceDebugDictionary/retain/массив | **нет** | **K — AGXIOFenceData, kalloc_type 664 B (§4-(d), §5.1 решён)** | **phys-spray мимо**; только UAF + kalloc-zone spray |
+| [wq+0xd8] → +0x288 | count | граница циклов | **нет (vs 0x20)** | как выше | контроль count → OOB-итерация за пределы 664 B |
 | [fence+0x1e8] (из [x27+0x3f0]+0x1d0) | stamp idx | индексация `[A+0x418/0x420/0x428/0x430]` | только >=1 и маска из `[A+0x400]`; **верхней границы по типу нет** | K (IOFence-объекты), значение шлёт пользователь в command buffer | **средняя-высокая**: значения fence/stamp приходят из пользовательских командных буферов; перекос маски → OOB в kalloc-массивы трекера |
 | [channel+0x60] → queue | +0x490 (u32) | **pid** → proc info → имя в `'GPU Hang: '` | cbz на queue; **pid не валидируется** | K | pid не контролируется спреем, но неконтролируемый pid → чтение чужого proc — не наша цель |
 | [channel+0x60] → queue | +0x0/+0x30/+0x40 | progress counters | нет | K | значения счётчиков влияют на reason-код (7/8/9/10/11) |
@@ -256,15 +256,128 @@ userland. Прямого контроля idx (через command buffer, hint d
   `[ptr+0x178]+2*i` (write u16 0) — мощный примитив, но только при подтверждении, что
   ptr аллоцируется из shmem/GPUVM, а не kalloc.
 
+### (d) Stamp-ring `[wq+0xd8]` = **AGXIOFenceData** (fence-data master) — полный разбор, §5.1 решён
+
+Объект по `[wq+0xd8]` идентифицирован: это **AGXIOFenceData** (vtable `__ZTV14AGXIOFenceData`
+@ 0x7f4eb80 ставится в allocIOFenceData @ 0x8b6abb8). Ответы на пять вопросов — по дизасму
+(все адреса macOS-27 AGXG16G).
+
+#### Q1. Кто / когда / каким аллокатором
+
+- **Аллокатор**: `AGXIOFenceManager::allocIOFenceData` @ 0x8b6ab64 →
+  `OSObject_typed_operator_new(AGXIOFenceData_ktv, 0x298)` (stub@0x8ba9db0, резолвится в
+  `_OSObject_typed_operator_new`). Это **kalloc_type** с выделенным view `site.AGXIOFenceData`
+  (ktv @ 0x7f59010; поле размера в ktv = 0x298 = **664 байта**, совпадает с непосредственным
+  аргументом 0x298 в вызове). Обычная kalloc-зона: **не shmem, не boot-time, не GPUVM**.
+  Сигнатура типа в ktv: '121122111222221111212121212121212121212121212121' (48 символов,
+  укорочена — кап kalloc_type-sig).
+- **Когда**: менеджер встроен в AGXAccelerator @ +0x11b28 и создаётся в `AGXAccelerator::start`
+  (вызов `createIOFenceDataStructures` @ 0x8b6ac48 от 0x8af2280), которая **преаллоцирует 16
+  мастеров** в LIFO-стек (manager+0x10, count [manager+0x88], lock [manager+0x8] =
+  lck_mtx_lock/unlock stub@0x8ba9bf0/0x8ba9c30). Дальше `AGXAccelerator::
+  createIOFenceWithTransaction` @ 0x8aeccb8: под lock берёт мастер из стека; при пустом стеке
+  — `allocIOFenceData`; результат пишет в `desc+0x140` (0x8aecd8c). Освобождённые мастера
+  возвращаются в стек `handleIOFenceCallback` @ 0x8afa158 / `handleIOFenceDataStash`
+  @ 0x8afa544; при переполнении стека (count > 0xf, ветки 0x8afa5dc/0x8afa328) — release()
+  через vtable+0x28 → `AGXIOFenceData::free`.
+- **Связь с workqueue**: [wq+0xd8] = master-slot; [wq+0xe0] = &wq[0xd8] (self-pointer,
+  ставится в init); обратный указатель **[master+0x70] = AGXWorkQueue\*** (доказано в
+  handleIOFenceCallback: `x21=[master+0x70]; ldr x24,[x21+0xd8]; cmp x19,x24`).
+  Init-пути (AGXWorkQueue::init 0x8ba65fc, AGX3DWorkQueue::init 0x8ba6de0, AGXCLWorkQueue::
+  init 0x8ba7b48) пишут в +0xd8 только xzr. Прямая инструкция «[wq+0xd8] = master» в статике
+  не найдена — запись, по всей видимости, идёт через &slot из [wq+0xe0] (регистровая
+  адресация, grep'ом не ловится); [открыто] локализовать динамически (KTRAP/патч).
+
+#### Q2. Layout объекта и entry
+
+| Смещение | Поле |
+|---|---|
+| +0x00 | vtable (AGXIOFenceData) |
+| +0x10 | AGXAccelerator* (back-ptr; [+0x10]+0x1b09c — бит ослога, +0x1b0a0 — os_log) |
+| +0x18 | lck_mtx (IOLockAlloc; lock/unlock = stub@0x8ba9bf0/0x8ba9c30) |
+| +0x20 | u64 (reset → 0) |
+| +0x24 | 2×u32 stats (createFence инкрементирует векторно add.2s; печатаются в диагностике) |
+| +0x28 | u32 fNumPendingFences (active count; free паникует при !=0: «Verification failed: fNumPendingFences == 0», agxk_iofence.cpp:76) |
+| +0x30 | u64 generation (reset: ++) |
+| +0x38/+0x40 | list-узел (stash-list accel+0x11bc8, flag byte [+0xc]) |
+| +0x48..+0x6c | подструктура: биты +0x48/49/4a, qword-битмапы +0x4c/+0x5c, +0x6c = -1 |
+| +0x70 | AGXWorkQueue* back-ptr |
+| +0x78/+0x80 | второй list-узел |
+| +0x88 | **inline array 32×16B** `{ IOSurface* @+0, u32 @+8 }`; init-значение {0, 15} (reset) |
+| +0x288 | u32 count (≤ 0x20; createFence: `cmp w8,#0x20; b.hi` → «fSavedIOSurfaces <= AGXK_IOFENCE_DEBUG_MAX_SURFACE_COUNT», agxk_iofence.cpp:366) |
+| +0x28c | u32 total (монотонный счётчик saveIOSurfaceInfo) |
+
+Entry = сохранённый IOSurface + u32 (массив именно «saved IOSurfaces», имя из строки
+паники). **IOFence* в entry не хранится** — `IOSurface::createFenceWithTransaction`
+(stub@0x8baae60) возвращает IOFence* наружу ([sp+0x38] → caller); дедуп в createFence
+(0x8b6aa14) сравнивает пару {IOSurface*, u32}. «Queue ptr» в entry тоже нет — очередь
+достижима только через master+0x70.
+
+#### Q3. Валидация перед разыменованием (restartWorkQueue)
+
+- Единственная проверка перед циклами: `cbz x21` ([wq+0xd8] != NULL), 0x8ae6eac.
+- `count = [master+0x288]` — граница обоих циклов, **проверки count ≤ 0x20 нет**
+  (загружается по 0x8ae6eb8/0x8ae6ed8/0x8ae703c...). count > 32 → OOB-чтение за пределами
+  664-байтного объекта.
+- Валидации указателей entry нет: `entry+0` (IOSurface*) напрямую идёт в
+  `IOSurface::getDetachModeCode()` (stub@0x8bab250; bit63 возврата = stuck-флаг), затем в
+  `IOSurface::createFenceDebugDictionary()` (stub@0x8baae50) → retain → OSArray
+  'iofence_list' (OSArray::withCapacity / OSNumber::withNumber([+0x28c],32); строки
+  'Fences\n' 0x714c791, '%d %d, %d %d\n' 0x714c799).
+- Итог: type-confusion чтения sprayed-указателя как IOSurface* — краш/логика внутри
+  getDetachModeCode (deref [x0+…]).
+
+#### Q4. Доступен ли ring для GPU-записи (GPUVM)?
+
+**Нет.** Объект — kalloc_type (Q1); ни в allocIOFenceData, ни в createFence/reset/free
+нет обращений к FW/GPU-маппингам; адрес мастера как контекст уходит только в
+`IOSurface::createFenceWithTransaction` (x6 = master, arg5 = PAC-колбэк
+`AGXIOFenceData::agxIOFenceCallback` @ 0x8b6a7bc). GPU доводит событие косвенно:
+firmware → IOSurface-fence completion → kernel-колбэк. Память кольца GPU недоступна.
+**Сценарий (б) «GPUVM-запись» закрыт.**
+
+#### Q5. Вердикт «спреябельно ли»
+
+**(а) phys-spray страницы — НЕТ.** 664 B → kalloc-зона (type zone по kt-view), объект не
+page-backed (kalloc_large — от ~16 KB), страницы из phys-spray не перерабатывают зонные
+чанки. Дополнительные гейты: kalloc_type группирует зоны по (size, signature), lifetime
+мастеров длинный (16 преаллоцированы при старте + кеш-стек до 16, переиспользуются между
+дескрипторами), churn — только создание/уничтожение command queue/каналов; и главное —
+alloc-путь (allocIOFenceData) зовёт `reset()`, который **переинициализирует** count/array/
+stats, т.е. «спрей содержимым при аллокации» до чтения restartWorkQueue не доживает.
+
+Реалистичный вектор — только **UAF**: free-путь (handleIOFenceDataStash → release при
+полном стеке) **не чистит [wq+0xd8]** (stores в free/stash не найдено; проверка
+fNumPendingFences==0 гарантирует лишь отсутствие активных фенсов, не отсутствие ссылки из
+wq). Если wq переживает мастера, restartWorkQueue читает освобождённый 664B-чанк:
+count/entries = переработанное спреем содержимое (kalloc-zone spray: массовая аллокация
+объектов того же size-class/сигнатуры, см. §4-A-D про churn очередей), а не phys-spray.
+[открыто] подтвердить динамически, что slot реально данглит (возможно, wq всегда умирает
+раньше мастера — тогда вектор только через heap-corruption из другого примитива).
+
+**(б) GPUVM-запись — закрыт** (Q4).
+
+План эксперимента на девайсе (если UAF подтвердится):
+1. Churn создания/уничтожения command queue + secure contexts (гарантировать проход
+   «stash full → release» — нужно >16 живых мастеров одновременно).
+2. Сразу после уничтожения — kalloc-zone спрей 664B-чанков с шаблоном
+   `{[ +0x288 ] = 0x40, entries = маркер}` (маркер либо 0x4141… для пойманного краша в
+   getDetachModeCode, либо указатель на фейк-IOSurface из второго спрея).
+3. Триггер GPU restart (штатный hang), ловить: panic-строки 'Fences\n'/'%d %d, %d %d\n'
+   с нашим count, fault-адрес = маркер в `IOSurface::getDetachModeCode`, 'iofence_list'
+   в диагностике. Признак успеха спрея — наши маркеры в panic-строке.
+
+Пометка про «[ent+0x100]/[ent+0x60]»: в кольце AGXIOFenceData таких смещений нет (entry —
+16 B). Чтения `[x0+0x60]` в restartWorkQueue (0x8ae6994/0x8ae6e78) идут из объекта,
+возвращённого вирт-вызовом wq vtable+0x190 (progress counters: сравнение [obj+0] vs
+[obj+0x30]); `[x0+0x100]` @ 0x8ae6c48 — поле объекта из lookup'а getGuiltyChannel
+(stub@0x8bab000, default -1). К stamp-ring отношения не имеют. Вопрос снят.
+
 ## 5. Что подтвердить следующим (проверки)
 
-1. **Аллокация `[wq+0xd8]`** (stamp-ring объект с +0x88 entries / +0x288 count). Кандидат по
-   символам: `AGXFirmwareResourceStack<_AGFITimeStampQueue, AGXTimeStampQueue,64,256>`
-   (`allocateNewBlock`/`replaceStorageArrays` — kalloc_type_view'ы). Если блоки этого стека
-   — kalloc большого размера, спрей возможен только если kalloc берёт свежие страницы из
-   общего пула; если это dedicated shmem — спрей напрямую невозможен, тогда весь §4-цель №1
-   сводится к event-ring варианту. Проверка: построчно `AGXWorkQueue4init` (0x8ba65fc, код
-   outlined) — что кладётся в +0xd8.
+1. ~~**Аллокация `[wq+0xd8]`**~~ — **РЕШЕНО**: объект = AGXIOFenceData (664 B, kalloc_type
+   `site.AGXIOFenceData`), см. §4-(d). Вердикт: kalloc-only, phys-spray мимо; единственный
+   живой вектор — UAF через неочищенный [wq+0xd8] (динамическая проверка в §4-(d)).
 2. **Тип `[accel+0x570]+0xd18`**: найти владельца поля +0xd18 объекта [accel+0x570] и его
    инициализацию (shmem vs kalloc).
 3. ~~Смещение guilty-индекса внутри firmware event entry~~ — **решено**: см.
@@ -283,14 +396,16 @@ userland. Прямого контроля idx (через command buffer, hint d
 ## 6. Приоритеты (по достижимости)
 
 1. **(c)+(a) panic через firmware guilty_stamp_index** — один достоверный путь, не требует
-   контроля указателей, только значение; блокируется только вопросом §5.1/§5.3.
+   контроля указателей, только значение; блокируется только вопросом §5.3 (спрей в event
+   ring; §5.1 снят — см. §4-(d): kalloc-only, на эту цель не влияет).
 2. **(a-вариант) OOB context-ID cleanup** — НЕ самостоятельный userland-вектор (см. §4-C):
    инвариант idx < capacity держится ядерной логикой. Ценность — как второй хоп/усилитель
    (один испорченный gart+0x1e8 → OOB-write указателя на gart через alloc fast path).
 3. **(b) infoleak через status block [[accel+0x570]+0xd18+0x50a8 / +0x4298]** — зависит от §5.2;
    ценность — утечка содержимого нашей страницы в лог (подтверждение спрея + адресная инфа).
-4. kalloc-only структуры (iofence OSArray, ring-entry ptr-цепочка) — только после
-   подтверждения shmem/GPUVM-аллокаций; иначе не тратить спрей.
+4. kalloc-only структуры: stamp-ring [wq+0xd8] (AGXIOFenceData) — **§5.1 решён: phys-spray
+   мимо** (§4-(d); единственный живой вектор — UAF + kalloc-zone spray, gated). ring-entry
+   ptr-цепочка accel+0x11c48 — только после подтверждения shmem/GPUVM-аллокаций ptr-объектов.
 
 ## 7. Побочные замечания
 
@@ -298,6 +413,6 @@ userland. Прямого контроля idx (через command buffer, hint d
 - `[accel+0x648]`, `[accel+0x640]` — счётчики рестартов; политика «2 рестарта → deny»
   (см. iogpu_restart_policy.md, queue+0x43a/0x43c/0x440) — в restartWorkQueue напрямую не
   читается, deny-логика живёт в вызывающем (processAllChannelCommands, блок за 0x8ae9768).
-- Lock-пары `stub@0x8ba9bf0`/`stub@0x8ba9c30` вокруг `[x27+0x448]` — стандартный
-  IOLockLock/Unlock; гонки в ring cleanup (GPU пишет индексы параллельно) возможны, но
-  символьно не подтверждены.
+- Lock-пары `stub@0x8ba9bf0`/`stub@0x8ba9c30` — резолвятся точно: `_lck_mtx_lock` /
+  `_lck_mtx_unlock` (IOLock == lck_mtx_t; в AGXIOFenceData мьютекс — поле +0x18). Гонки
+  в ring cleanup возможны, но символьно не подтверждены.

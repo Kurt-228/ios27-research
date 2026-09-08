@@ -1,0 +1,37 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5a0b
+[scaler] conn 0x5a0b, s1 187 s2 191
+[probe12] SetNotificationPort -> 0x00000000
+[mtc] v95: live Metal compute cmdbuf mutator (skip 0 max 40 only 0xffffffffffffffff)
+[mtc] library OK, pipeline OK: maxTotalThreadsPerThreadgroup 1024 threadExecutionWidth 32
+[mtc] gpuA 0x10000080000
+[mtc] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtc] baseline nonzero dwords: 24/0xb6
+[mtls] mtc-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtc-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtc] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtc] rid: A 1 (next:_allocationType)
+[mtc] geometry-field candidates (dword==0x40|0x1000): 0
+[mtc] plan: ph1 2002 ph2 1152 ph3 0 ph4 5 ph5 5 (total ~3164 cases)
+[mtc] sanity: dispatchThreads grid 4096x1x1 tpt 64x1x1, status 4, 0x42 bytes 4096/16384, canary-bad 0
+[mtls] mtc-sanity-A+000: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+010: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+020: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+030: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtc] sanity FAILED — compute path broken, aborting phase
+[probe13] mtlmutc-only mode, stop

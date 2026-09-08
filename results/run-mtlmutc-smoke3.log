@@ -1,0 +1,123 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5513
+[scaler] conn 0x5513, s1 13 s2 175
+[probe12] SetNotificationPort -> 0x00000000
+[mtc] v95: live Metal compute cmdbuf mutator (skip 0 max 40 only 0xffffffffffffffff)
+[mtc] library OK, pipeline OK: maxTotalThreadsPerThreadgroup 1024 threadExecutionWidth 32
+[mtc] gpuA 0x10000080000
+[mtc] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtc] baseline nonzero dwords: 24/0xb6
+[mtls] mtc-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtc-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtc] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtc] rid: A 1 (next:_allocationType)
+[mtc] geometry-field candidates (dword==0x40|0x1000): 0
+[mtc] plan: ph1 2002 ph2 1152 ph3 0 ph4 5 ph5 5 (total ~3164 cases)
+[mtc] sanity: dispatchThreads grid 4096x1x1 tpt 64x1x1, status 4, 0x42 bytes 4096/4096 (one 0x42 byte per uint32 written), canary-bad 0
+[mtls] mtc-sanity-A+000: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+010: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+020: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+030: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtc] case #1 ph1 off 0x0 w4 old 0xf -> new 0x0 slots -1 (dict) commit
+[mtc] case #1 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3c540 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #2 ph1 off 0x0 w4 old 0xf -> new 0x1 slots -1 (dict) commit
+[mtc] case #2 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e6d0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #3 ph1 off 0x0 w4 old 0xf -> new 0xff slots -1 (dict) commit
+[mtc] case #3 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e7f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #4 ph1 off 0x0 w4 old 0xf -> new 0xffff slots -1 (dict) commit
+[mtc] case #4 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e670 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #5 ph1 off 0x0 w4 old 0xf -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #5 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e5e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #6 ph1 off 0x0 w4 old 0xf -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #6 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3f120 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #7 ph1 off 0x0 w4 old 0xf -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #7 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3ee20 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #8 ph1 off 0x0 w4 old 0xf -> new 0x10 slots -1 (old+1) commit
+[mtc] case #8 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3f060 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #9 ph1 off 0x0 w4 old 0xf -> new 0xe slots -1 (old-1) commit
+[mtc] case #9 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #10 ph1 off 0x0 w4 old 0xf -> new 0xf0 slots -1 (old<<4) commit
+[mtc] case #10 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3f0f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #11 ph1 off 0x0 w4 old 0xf -> new 0xf00 slots -1 (old<<8) commit
+[mtc] case #11 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3f000 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #12 ph1 off 0x4 w4 old 0xac -> new 0x0 slots -1 (dict) commit
+[mtc] case #12 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3efa0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #13 ph1 off 0x4 w4 old 0xac -> new 0x1 slots -1 (dict) commit
+[mtc] case #13 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3ef10 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #14 ph1 off 0x4 w4 old 0xac -> new 0xff slots -1 (dict) commit
+[mtc] case #14 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3eeb0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #15 ph1 off 0x4 w4 old 0xac -> new 0xffff slots -1 (dict) commit
+[mtc] case #15 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3f630 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #16 ph1 off 0x4 w4 old 0xac -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #16 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e4f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #17 ph1 off 0x4 w4 old 0xac -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #17 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e580 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #18 ph1 off 0x4 w4 old 0xac -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #18 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3eac0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #19 ph1 off 0x4 w4 old 0xac -> new 0xad slots -1 (old+1) commit
+[mtc] case #19 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e9d0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #20 ph1 off 0x4 w4 old 0xac -> new 0xab slots -1 (old-1) commit
+[mtc] case #20 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3ea60 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #21 ph1 off 0x4 w4 old 0xac -> new 0xac0 slots -1 (old<<4) commit
+[mtc] case #21 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e7c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #22 ph1 off 0x4 w4 old 0xac -> new 0xac00 slots -1 (old<<8) commit
+[mtc] case #22 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3dfb0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #23 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #23 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #24 ph1 off 0x8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #24 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3c240 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #25 ph1 off 0x8 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #25 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e190 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #26 ph1 off 0x8 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #26 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3d9e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #27 ph1 off 0x8 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #27 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3d6b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #28 ph1 off 0x8 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #28 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3d200 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #29 ph1 off 0x8 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #29 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3d590 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #30 ph1 off 0x8 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #30 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3dec0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #31 ph1 off 0x8 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #31 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x105f3e010 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #32 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #32 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #33 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #33 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #34 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #34 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #35 ph1 off 0xc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #35 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #36 ph1 off 0xc w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #36 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #37 ph1 off 0xc w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #37 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #38 ph1 off 0xc w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #38 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #39 ph1 off 0xc w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #39 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #40 ph1 off 0xc w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #40 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] MAX reached (40)
+[mtc] ph1 done: cn 41 executed 40
+[mtc] ph2 done: cn 41 executed 40
+[mtc] ph3 done: cn 41 executed 40
+[mtc] ph4 calib self-patch: A slots 20 (regions 6)
+[mtc] ph4 done: cn 41 executed 40
+[mtc] done: total cases 41 executed 40 (alive) STOPPED-EARLY
+[probe13] mtlmutc-only mode, stop

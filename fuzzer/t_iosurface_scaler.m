@@ -15273,6 +15273,324 @@ static void p_mtlmut(void) {
         cn, done, stop ? " STOPPED-EARLY" : "");
 }
 
+// V95: p_mtlmutc — live Metal COMPUTE command-buffer mutator (p_mtlmut twin).
+// The reference cb is a compute dispatch (kernel writes 0x42 into bufA through
+// [[thread_position_in_grid]]), so the kcmd stream carries a compute-encoder
+// descriptor instead of the blit copy used by p_mtlmut. bufA body is zeroed
+// with a 0xCC canary tail past the written area: wild GPUVA writes that land
+// back in the mapping are detected on CPU, bigger ones fault at GPU level.
+// Env: FUZZ_MTLMUTC=1 gate, FUZZ_MTLMUTC_SKIP=N resume after crash,
+// FUZZ_MTLMUTC_MAX=N cap executed cases, FUZZ_MTLMUTC_ONLY=0x<off> replay all
+// cases at one kcmd offset (ph1/2/5).
+static void p_mtlmutc(void) {
+    const char *sk = getenv("FUZZ_MTLMUTC_SKIP");
+    long skip = sk ? atol(sk) : 0;
+    const char *mx = getenv("FUZZ_MTLMUTC_MAX");
+    long maxc = mx ? atol(mx) : 0;
+    const char *on = getenv("FUZZ_MTLMUTC_ONLY");
+    long onlyoff = on ? strtol(on, NULL, 0) : -1;
+    LOG("[mtc] v95: live Metal compute cmdbuf mutator (skip %ld max %ld only 0x%lx)",
+        skip, maxc, onlyoff);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[mtc] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[mtc] no queue"); return; }
+
+    // ---- compute setup: one-line kernel + pipeline state
+    const char *ksrc =
+        "kernel void k(device uint *b [[buffer(0)]],"
+        " uint i [[thread_position_in_grid]]) { b[i] = 0x42; }";
+    NSError *lerr = nil;
+    id<MTLLibrary> lib = [dev newLibraryWithSource:@(ksrc) options:nil error:&lerr];
+    if (!lib) {
+        NSString *ld = lerr ? [lerr description] : @"unknown";
+        LOG("[mtc] library compile FAILED: %s", [ld UTF8String]);
+        return;
+    }
+    id<MTLFunction> kfn = [lib newFunctionWithName:@"k"];
+    NSError *perr = nil;
+    id<MTLComputePipelineState> pso =
+        [dev newComputePipelineStateWithFunction:kfn error:&perr];
+    if (!pso) {
+        NSString *pd = perr ? [perr description] : @"unknown";
+        LOG("[mtc] pipeline state FAILED: %s", [pd UTF8String]);
+        return;
+    }
+    // pipeline caps — logged so a degenerate dispatch can be diagnosed from
+    // the log alone (smoke run showed only 16/4096 threads actually wrote)
+    long mtt = (long)[pso maxTotalThreadsPerThreadgroup];
+    long tew = (long)[pso threadExecutionWidth];
+    LOG("[mtc] library OK, pipeline OK: maxTotalThreadsPerThreadgroup %ld "
+        "threadExecutionWidth %ld", mtt, tew);
+    // v95: dispatchThreads form — grid 4096 threads flat, threadgroup hint
+    // min(64, maxTotal). The v94 dispatchThreadgroups(64,64 x 1) form only
+    // produced 16 active threads on device (16 uints written), so the G16P
+    // path may encode/expand threadgroup grids differently; flat dispatch
+    // removes that variable from the sanity signal.
+    long tgw = mtt > 0 && mtt < 64 ? mtt : 64;
+    MTLSize grid = MTLSizeMake(4096, 1, 1);
+    MTLSize tpt  = MTLSizeMake((NSUInteger)tgw, 1, 1);
+
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    if (!bufA) { LOG("[mtc] alloc fail"); return; }
+    uint8_t *ap = (uint8_t *)[bufA contents];
+    memset(ap, 0x00, 0x10000);
+    memset(ap + 0x10000, 0xCC, 0x4000);
+    uint64_t gpuA = [bufA gpuAddress];
+    g_srcx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;   // xor-masked: the slot patcher
+    g_dstx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;   // rewrites any raw in-VM copy
+    LOG("[mtc] gpuA 0x%llx", gpuA);
+
+    // ---- baseline snapshot from a reference cb (encoded, never committed)
+    static uint8_t base_kc[0x1000];
+    static uint8_t base_sg[0x400];
+    id<MTLCommandBuffer> rcb = [mq commandBuffer];
+    id<MTLComputeCommandEncoder> renc = [rcb computeCommandEncoder];
+    [renc setComputePipelineState:pso];
+    [renc setBuffer:bufA offset:0 atIndex:0];
+    [renc dispatchThreads:grid threadsPerThreadgroup:tpt];
+    [renc endEncoding];
+    void *rst = find_ivar_obj(rcb, "torage", 0, "cb");
+    if (!rst) { LOG("[mtc] no storage ivar"); return; }
+    uint64_t rkva = *(uint64_t *)((uint8_t *)rst + 0x28);
+    uint64_t rsva = *(uint64_t *)((uint8_t *)rst + 0x68);
+    if (!rkva || !rsva) { LOG("[mtc] no kcmd/seg ptrs"); return; }
+    memcpy(base_kc, (void *)(uintptr_t)rkva, 0x1000);
+    memcpy(base_sg, (void *)(uintptr_t)rsva, 0x400);
+    // command length: last nonzero dword, clamped to [0x40, 0x1000]
+    long kclen = 0x40;
+    for (long o = 0x1000 - 4; o >= 0; o -= 4)
+        if (*(uint32_t *)(base_kc + o)) { kclen = o + 4; break; }
+    LOG("[mtc] baseline kcmd len 0x%lx (scan window 0x1000)", kclen);
+    {   // snapshot validity: an all-zero / near-zero kcmd means we are
+        // looking at the wrong storage, not at a compute stream
+        long nnz = 0;
+        for (long o = 0; o < kclen; o += 4)
+            if (*(uint32_t *)(base_kc + o)) nnz++;
+        LOG("[mtc] baseline nonzero dwords: %ld/0x%lx", nnz, kclen / 4);
+    }
+    mtl_hexdump("mtc-base", 0, base_kc, 0x100);
+    // stability: a second encode must produce identical bytes — case numbering
+    // (and thus SKIP-based resume) relies on it
+    {
+        id<MTLCommandBuffer> r2 = [mq commandBuffer];
+        id<MTLComputeCommandEncoder> e2 = [r2 computeCommandEncoder];
+        [e2 setComputePipelineState:pso];
+        [e2 setBuffer:bufA offset:0 atIndex:0];
+        [e2 dispatchThreads:grid threadsPerThreadgroup:tpt];
+        [e2 endEncoding];
+        void *s2 = find_ivar_obj(r2, "torage", 0, "cb");
+        uint64_t k2 = s2 ? *(uint64_t *)((uint8_t *)s2 + 0x28) : 0;
+        long diff = 0, first = -1;
+        if (k2) for (long o = 0; o < kclen; o += 4)
+            if (*(uint32_t *)((uint8_t *)(uintptr_t)k2 + o) != *(uint32_t *)(base_kc + o)) {
+                if (first < 0) first = o;
+                diff++;
+            }
+        LOG("[mtc] baseline stability: %ld differing dwords (first @0x%lx)%s",
+            diff, first, diff ? " — CASE NUMBERING MAY DRIFT" : "");
+    }
+    // rid of bufA inside the segment list (v90 introspection helper)
+    char pathA[160] = {0};
+    uint32_t ridA = mtl_find_rid(bufA, base_sg, 0x400, pathA, sizeof pathA);
+    LOG("[mtc] rid: A %u (%s)", ridA, pathA);
+    // dispatch-geometry field candidates: dwords == 64/0x40 (old threadgroups
+    // form) or 4096/0x1000 (flat dispatchThreads grid X) in the baseline
+    long geo[16]; int ngeo = 0;
+    for (long o = 0; o + 4 <= kclen && ngeo < 16; o += 4) {
+        uint32_t dv = *(uint32_t *)(base_kc + o);
+        if (dv == 0x40 || dv == 0x1000) geo[ngeo++] = o;
+    }
+    LOG("[mtc] geometry-field candidates (dword==0x40|0x1000): %d", ngeo);
+    // plan size estimate (lets the operator verify determinism between runs)
+    long nq_nz = 0;
+    for (long o = 0; o + 8 <= kclen; o += 8) if (*(uint64_t *)(base_kc + o)) nq_nz++;
+    long ph4n = ridA ? 5 : 0;
+    LOG("[mtc] plan: ph1 %ld ph2 %ld ph3 %d ph4 %ld ph5 %d (total ~%ld cases)",
+        (kclen / 4) * 11, nq_nz * 64, ngeo * 4, ph4n, ridA ? 5 : 0,
+        (kclen / 4) * 11 + nq_nz * 64 + ngeo * 4 + ph4n + (ridA ? 5 : 0));
+
+    // ---- sanity: commit the unmodified reference pattern on a fresh cb and
+    // verify the kernel actually wrote 0x42 through the real pipeline
+    {
+        id<MTLCommandBuffer> scb = [mq commandBuffer];
+        id<MTLComputeCommandEncoder> senc = [scb computeCommandEncoder];
+        [senc setComputePipelineState:pso];
+        [senc setBuffer:bufA offset:0 atIndex:0];
+        [senc dispatchThreads:grid threadsPerThreadgroup:tpt];
+        [senc endEncoding];
+        [scb commit];
+        [scb waitUntilCompleted];   // readback must be after full completion
+        long sst = -1;
+        for (int w = 0; w < 200; w++) {
+            sst = (long)[scb status];
+            if (sst >= 4) break;
+            usleep((useconds_t)10000);
+        }
+        long s42 = 0;
+        for (long i = 0; i < 0x4000; i++) if (ap[i] == 0x42) s42++;
+        long scanary = 0;
+        for (long i = 0x10000; i < 0x14000; i++) if (ap[i] != 0xCC) scanary++;
+        LOG("[mtc] sanity: dispatchThreads grid 4096x1x1 tpt %ldx1x1, status %ld, "
+            "0x42 bytes %ld/4096 (one 0x42 byte per uint32 written), canary-bad %ld", tgw, sst, s42, scanary);
+        mtl_hexdump("mtc-sanity-A", 0, ap, 64);
+        if (sst != 4 || s42 != 4096 || scanary) {
+            LOG("[mtc] sanity FAILED — compute path broken, aborting phase");
+            return;
+        }
+        memset(ap, 0x00, 0x10000);
+        memset(ap + 0x10000, 0xCC, 0x4000);
+    }
+
+    __block long cn = 0, done = 0;
+    __block int stop = 0;
+    void (^runcase)(int, long, int, uint64_t, uint64_t, const char *) =
+    ^(int ph, long off, int width, uint64_t oldv, uint64_t newv, const char *desc) {
+        if (stop) return;
+        cn++;
+        if (cn <= skip) return;
+        if (onlyoff >= 0 && !(ph != 4 && off == onlyoff)) return;
+        if (maxc && done >= maxc) { stop = 1; LOG("[mtc] MAX reached (%ld)", maxc); return; }
+        done++;
+        // fresh live command buffer: real compute dispatch, b[i]=0x42
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLComputeCommandEncoder> enc = [cb computeCommandEncoder];
+        [enc setComputePipelineState:pso];
+        [enc setBuffer:bufA offset:0 atIndex:0];
+        [enc dispatchThreads:grid threadsPerThreadgroup:tpt];
+        [enc endEncoding];
+        void *st = find_ivar_obj(cb, "torage", 0, "cb");
+        uint64_t kva = st ? *(uint64_t *)((uint8_t *)st + 0x28) : 0;
+        uint64_t sva = st ? *(uint64_t *)((uint8_t *)st + 0x68) : 0;
+        if (!kva || !sva) {
+            LOG("[mtc] case #%ld: no storage ptrs, stopping", cn);
+            stop = 1; return;
+        }
+        uint8_t *kc = (uint8_t *)(uintptr_t)kva;
+        uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+        uint64_t old2 = oldv;
+        long nslot = -1;
+        if (ph == 1 || ph == 2 || ph == 3) {   // ph3 = geometry (kc dword)
+            old2 = width == 8 ? *(uint64_t *)(kc + off) : (uint64_t)*(uint32_t *)(kc + off);
+            if (width == 8) *(uint64_t *)(kc + off) = newv;
+            else *(uint32_t *)(kc + off) = (uint32_t)newv;
+        } else if (ph == 4) {   // pool-slot GPUVA substitution
+            old2 = gpuA;
+            nslot = gscan_patch(gpuA, newv);   // rewrites pool slots (+buf ivar)
+        } else {   // ph5: seglist rid substitution
+            nslot = 0;
+            for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                if (*(uint32_t *)(sg + o) == (uint32_t)oldv) {
+                    *(uint32_t *)(sg + o) = (uint32_t)newv;
+                    nslot++;
+                }
+        }
+        LOG("[mtc] case #%ld ph%d off 0x%lx w%d old 0x%llx -> new 0x%llx slots %ld (%s) commit",
+            cn, ph, off, width, old2, newv, nslot, desc);
+        @try {
+            [cb commit];
+        } @catch (NSException *ex) {
+            NSString *exn = [ex name];
+            LOG("[mtc] case #%ld commit EXCEPTION %s", cn, [exn UTF8String]);
+            if (ph == 4) gscan_patch(newv, old2);   // restore pool slots
+            memset(ap, 0x00, 0x10000); memset(ap + 0x10000, 0xCC, 0x4000);
+            return;
+        }
+        long cst = -1;
+        for (int w = 0; w < 200; w++) {
+            cst = (long)[cb status];
+            if (cst >= 4) break;   // Completed=4 / Error=5
+            usleep((useconds_t)10000);
+        }
+        if (ph == 4) {
+            long nr = gscan_patch(newv, old2);   // restore pool slots + buf ivar
+            LOG("[mtc] case #%ld pool restore slots %ld", cn, nr);
+        }
+        if (cst < 4) {
+            LOG("[mtc] [HIT] case #%ld TIMEOUT status %ld — GPU wedged? stop "
+                "(resume: FUZZ_MTLMUTC_SKIP=%ld)", cn, cst, cn);
+            stop = 1;
+            return;
+        }
+        NSError *cberr = [cb error];   // via intermediate var (v86 lesson)
+        long b42 = 0, bnz = 0, bad = 0;
+        for (long i = 0; i < 0x10000; i++) {
+            if (ap[i] == 0x42) b42++;
+            if (ap[i]) bnz++;
+        }
+        for (long i = 0x10000; i < 0x14000; i++) if (ap[i] != 0xCC) bad++;
+        int hit = (cst != 4) || cberr != nil || bad > 0;
+        if (ph == 4 && bnz > 0 && b42 < 0x2000) hit = 1;  // foreign data written
+        if (cberr) {
+            NSString *ed = [cberr description];
+            LOG("[mtc] case #%ld -> status %ld err '%s' | A 42 %ld nz %ld canary-bad %ld [HIT]",
+                cn, cst, [ed UTF8String], b42, bnz, bad);
+        } else {
+            LOG("[mtc] case #%ld -> status %ld | A 42 %ld nz %ld canary-bad %ld%s",
+                cn, cst, b42, bnz, bad, hit ? " [HIT]" : "");
+        }
+        // reset A + canary for the next case
+        memset(ap, 0x00, 0x10000);
+        memset(ap + 0x10000, 0xCC, 0x4000);
+    };
+
+    // ---- ph1: dword dictionary sweep over the whole kcmd command area
+    static const uint32_t dabs[] = {0, 1, 0xff, 0xffff, 0xffffffff, 0x7fffffff, 0x80000000};
+    for (long o = 0; o + 4 <= kclen && !stop; o += 4) {
+        uint32_t bv = *(uint32_t *)(base_kc + o);
+        for (unsigned d = 0; d < sizeof(dabs)/sizeof(dabs[0]); d++)
+            runcase(1, o, 4, bv, dabs[d], "dict");
+        runcase(1, o, 4, bv, bv + 1, "old+1");
+        runcase(1, o, 4, bv, bv - 1, "old-1");
+        runcase(1, o, 4, bv, bv << 4, "old<<4");
+        runcase(1, o, 4, bv, bv << 8, "old<<8");
+    }
+    LOG("[mtc] ph1 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph2: bit-flip every bit of each nonzero baseline qword
+    for (long o = 0; o + 8 <= kclen && !stop; o += 8) {
+        uint64_t q = *(uint64_t *)(base_kc + o);
+        if (!q) continue;
+        for (int b = 0; b < 64; b++)
+            runcase(2, o, 8, q, q ^ (1ULL << b), "bitflip");
+    }
+    LOG("[mtc] ph2 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph3: dispatch-geometry fields (baseline dwords 64/0x40) mutated to
+    // degenerate/oversized grids — broken threadgroup math on the compute path
+    {
+        static const uint32_t gv[] = {0, 1, 0xffffffff, 0x10000};
+        for (int i = 0; i < ngeo && !stop; i++)
+            for (int j = 0; j < 4; j++)
+                runcase(3, geo[i], 4, 0x40, gv[j], "geom-oob");
+    }
+    LOG("[mtc] ph3 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph4: pool-slot GPUVA substitution (wild-address write candidates —
+    // the compute kernel STORES through the patched pointer, so a foreign
+    // GPUVA becomes a kernel-level OOB write instead of a blit OOB read).
+    // Calibration first (v91 lesson: the FIRST gscan patch must be a
+    // self-patch — it builds the slot-region cache without rewriting pool
+    // slots or the MTLBuffer gpuAddress ivars to a foreign value).
+    long c1 = gscan_patch(gpuA, gpuA);
+    LOG("[mtc] ph4 calib self-patch: A slots %ld (regions %d)", c1, g_nsreg);
+    {
+        uint64_t pv[] = { 0x1deadbeef0000ULL, 0x1000000000ULL, gpuA + 0x100000 };
+        for (int i = 0; i < 3 && !stop; i++)
+            runcase(4, 0, 8, gpuA, pv[i], "pool-oob-WRITE");
+    }
+    LOG("[mtc] ph4 done: cn %ld executed %ld", cn, done);
+
+    // ---- ph5: seglist rid substitution (residency confusion candidates)
+    if (ridA && !stop) {
+        uint32_t rv[5] = { 0, 0xffffffff, 0xdead, 0x10000, ridA + 0x100 };
+        for (int i = 0; i < 5; i++)
+            runcase(5, 0, 4, ridA, rv[i], "ridA-sub");
+    }
+    LOG("[mtc] done: total cases %ld executed %ld (alive)%s",
+        cn, done, stop ? " STOPPED-EARLY" : "");
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -19411,6 +19729,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_GPUVMSCAN")) { p_gpuvmscan(); LOG("[probe13] gpuvmscan-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLMUT")) { p_mtlmut(); LOG("[probe13] mtlmut-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_MTLMUTC")) { p_mtlmutc(); LOG("[probe13] mtlmutc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

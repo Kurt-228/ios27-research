@@ -1,0 +1,1892 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x4a13
+[scaler] conn 0x4a13, s1 481 s2 530
+[probe12] SetNotificationPort -> 0x00000000
+[mtc] v95: live Metal compute cmdbuf mutator (skip 0 max 0 only 0xffffffffffffffff)
+[mtc] library OK, pipeline OK: maxTotalThreadsPerThreadgroup 1024 threadExecutionWidth 32
+[mtc] gpuA 0x10000080000
+[mtc] baseline kcmd len 0x2d8 (scan window 0x1000)
+[mtc] baseline nonzero dwords: 24/0xb6
+[mtls] mtc-base+000: 0f 00 00 00 ac 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 01 00
+[mtls] mtc-base+0b0: 30 03 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtls] mtc-base+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtc] baseline stability: 6 differing dwords (first @0x174) — CASE NUMBERING MAY DRIFT
+[mtc] rid: A 1 (next:_allocationType)
+[mtc] geometry-field candidates (dword==0x40|0x1000): 0
+[mtc] plan: ph1 2002 ph2 1152 ph3 0 ph4 5 ph5 5 (total ~3164 cases)
+[mtc] sanity: dispatchThreads grid 4096x1x1 tpt 64x1x1, status 4, 0x42 bytes 4096/4096 (one 0x42 byte per uint32 written), canary-bad 0
+[mtls] mtc-sanity-A+000: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+010: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+020: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtls] mtc-sanity-A+030: 42 00 00 00 42 00 00 00 42 00 00 00 42 00 00 00
+[mtc] case #1 ph1 off 0x0 w4 old 0xf -> new 0x0 slots -1 (dict) commit
+[mtc] case #1 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106217960 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #2 ph1 off 0x0 w4 old 0xf -> new 0x1 slots -1 (dict) commit
+[mtc] case #2 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106217ed0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #3 ph1 off 0x0 w4 old 0xf -> new 0xff slots -1 (dict) commit
+[mtc] case #3 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106217f30 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #4 ph1 off 0x0 w4 old 0xf -> new 0xffff slots -1 (dict) commit
+[mtc] case #4 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106217390 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #5 ph1 off 0x0 w4 old 0xf -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #5 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1062174e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #6 ph1 off 0x0 w4 old 0xf -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #6 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1062174b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #7 ph1 off 0x0 w4 old 0xf -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #7 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106217420 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #8 ph1 off 0x0 w4 old 0xf -> new 0x10 slots -1 (old+1) commit
+[mtc] case #8 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1062173c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #9 ph1 off 0x0 w4 old 0xf -> new 0xe slots -1 (old-1) commit
+[mtc] case #9 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #10 ph1 off 0x0 w4 old 0xf -> new 0xf0 slots -1 (old<<4) commit
+[mtc] case #10 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1062153b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #11 ph1 off 0x0 w4 old 0xf -> new 0xf00 slots -1 (old<<8) commit
+[mtc] case #11 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106217120 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #12 ph1 off 0x4 w4 old 0xac -> new 0x0 slots -1 (dict) commit
+[mtc] case #12 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378810 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #13 ph1 off 0x4 w4 old 0xac -> new 0x1 slots -1 (dict) commit
+[mtc] case #13 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378840 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #14 ph1 off 0x4 w4 old 0xac -> new 0xff slots -1 (dict) commit
+[mtc] case #14 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378ae0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #15 ph1 off 0x4 w4 old 0xac -> new 0xffff slots -1 (dict) commit
+[mtc] case #15 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378a80 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #16 ph1 off 0x4 w4 old 0xac -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #16 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378a20 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #17 ph1 off 0x4 w4 old 0xac -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #17 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063789c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #18 ph1 off 0x4 w4 old 0xac -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #18 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378960 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #19 ph1 off 0x4 w4 old 0xac -> new 0xad slots -1 (old+1) commit
+[mtc] case #19 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063788d0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #20 ph1 off 0x4 w4 old 0xac -> new 0xab slots -1 (old-1) commit
+[mtc] case #20 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063785a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #21 ph1 off 0x4 w4 old 0xac -> new 0xac0 slots -1 (old<<4) commit
+[mtc] case #21 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063784e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #22 ph1 off 0x4 w4 old 0xac -> new 0xac00 slots -1 (old<<8) commit
+[mtc] case #22 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378540 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #23 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #23 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #24 ph1 off 0x8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #24 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378450 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #25 ph1 off 0x8 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #25 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063786c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #26 ph1 off 0x8 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #26 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063780c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #27 ph1 off 0x8 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #27 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063790e0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #28 ph1 off 0x8 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #28 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063782a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #29 ph1 off 0x8 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #29 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063782d0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #30 ph1 off 0x8 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #30 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378120 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #31 ph1 off 0x8 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #31 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378060 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #32 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #32 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #33 ph1 off 0x8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #33 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #34 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #34 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #35 ph1 off 0xc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #35 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #36 ph1 off 0xc w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #36 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #37 ph1 off 0xc w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #37 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #38 ph1 off 0xc w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #38 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #39 ph1 off 0xc w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #39 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #40 ph1 off 0xc w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #40 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #41 ph1 off 0xc w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #41 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #42 ph1 off 0xc w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #42 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #43 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #43 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #44 ph1 off 0xc w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #44 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #45 ph1 off 0x10 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #45 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #46 ph1 off 0x10 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #46 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #47 ph1 off 0x10 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #47 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #48 ph1 off 0x10 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #48 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #49 ph1 off 0x10 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #49 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #50 ph1 off 0x10 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #50 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #51 ph1 off 0x10 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #51 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #52 ph1 off 0x10 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #52 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #53 ph1 off 0x10 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #53 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #54 ph1 off 0x10 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #54 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #55 ph1 off 0x10 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #55 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #56 ph1 off 0x14 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #56 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #57 ph1 off 0x14 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #57 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #58 ph1 off 0x14 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #58 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #59 ph1 off 0x14 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #59 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #60 ph1 off 0x14 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #60 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #61 ph1 off 0x14 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #61 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #62 ph1 off 0x14 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #62 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #63 ph1 off 0x14 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #63 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #64 ph1 off 0x14 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #64 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #65 ph1 off 0x14 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #65 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #66 ph1 off 0x14 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #66 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #67 ph1 off 0x18 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #67 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #68 ph1 off 0x18 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #68 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #69 ph1 off 0x18 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #69 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #70 ph1 off 0x18 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #70 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #71 ph1 off 0x18 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #71 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #72 ph1 off 0x18 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #72 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #73 ph1 off 0x18 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #73 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #74 ph1 off 0x18 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #74 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #75 ph1 off 0x18 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #75 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #76 ph1 off 0x18 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #76 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #77 ph1 off 0x18 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #77 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #78 ph1 off 0x1c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #78 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #79 ph1 off 0x1c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #79 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #80 ph1 off 0x1c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #80 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #81 ph1 off 0x1c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #81 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #82 ph1 off 0x1c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #82 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #83 ph1 off 0x1c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #83 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #84 ph1 off 0x1c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #84 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #85 ph1 off 0x1c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #85 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #86 ph1 off 0x1c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #86 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #87 ph1 off 0x1c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #87 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #88 ph1 off 0x1c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #88 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #89 ph1 off 0x20 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #89 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #90 ph1 off 0x20 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #90 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #91 ph1 off 0x20 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #91 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #92 ph1 off 0x20 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #92 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #93 ph1 off 0x20 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #93 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #94 ph1 off 0x20 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #94 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #95 ph1 off 0x20 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #95 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #96 ph1 off 0x20 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #96 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #97 ph1 off 0x20 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #97 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #98 ph1 off 0x20 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #98 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #99 ph1 off 0x20 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #99 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #100 ph1 off 0x24 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #100 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #101 ph1 off 0x24 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #101 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #102 ph1 off 0x24 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #102 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #103 ph1 off 0x24 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #103 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #104 ph1 off 0x24 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #104 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #105 ph1 off 0x24 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #105 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #106 ph1 off 0x24 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #106 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #107 ph1 off 0x24 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #107 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #108 ph1 off 0x24 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #108 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #109 ph1 off 0x24 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #109 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #110 ph1 off 0x24 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #110 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #111 ph1 off 0x28 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #111 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #112 ph1 off 0x28 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #112 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #113 ph1 off 0x28 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #113 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #114 ph1 off 0x28 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #114 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #115 ph1 off 0x28 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #115 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #116 ph1 off 0x28 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #116 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #117 ph1 off 0x28 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #117 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #118 ph1 off 0x28 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #118 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #119 ph1 off 0x28 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #119 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #120 ph1 off 0x28 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #120 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #121 ph1 off 0x28 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #121 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #122 ph1 off 0x2c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #122 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #123 ph1 off 0x2c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #123 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #124 ph1 off 0x2c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #124 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #125 ph1 off 0x2c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #125 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #126 ph1 off 0x2c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #126 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #127 ph1 off 0x2c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #127 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #128 ph1 off 0x2c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #128 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #129 ph1 off 0x2c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #129 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #130 ph1 off 0x2c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #130 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #131 ph1 off 0x2c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #131 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #132 ph1 off 0x2c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #132 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #133 ph1 off 0x30 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #133 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #134 ph1 off 0x30 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #134 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #135 ph1 off 0x30 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #135 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #136 ph1 off 0x30 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #136 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #137 ph1 off 0x30 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #137 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #138 ph1 off 0x30 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #138 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #139 ph1 off 0x30 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #139 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #140 ph1 off 0x30 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #140 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #141 ph1 off 0x30 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #141 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #142 ph1 off 0x30 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #142 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #143 ph1 off 0x30 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #143 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #144 ph1 off 0x34 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #144 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #145 ph1 off 0x34 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #145 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #146 ph1 off 0x34 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #146 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #147 ph1 off 0x34 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #147 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #148 ph1 off 0x34 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #148 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #149 ph1 off 0x34 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #149 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #150 ph1 off 0x34 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #150 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #151 ph1 off 0x34 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #151 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #152 ph1 off 0x34 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #152 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #153 ph1 off 0x34 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #153 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #154 ph1 off 0x34 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #154 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #155 ph1 off 0x38 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #155 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #156 ph1 off 0x38 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #156 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #157 ph1 off 0x38 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #157 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #158 ph1 off 0x38 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #158 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #159 ph1 off 0x38 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #159 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #160 ph1 off 0x38 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #160 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #161 ph1 off 0x38 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #161 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #162 ph1 off 0x38 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #162 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #163 ph1 off 0x38 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #163 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #164 ph1 off 0x38 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #164 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #165 ph1 off 0x38 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #165 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #166 ph1 off 0x3c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #166 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #167 ph1 off 0x3c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #167 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #168 ph1 off 0x3c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #168 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #169 ph1 off 0x3c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #169 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #170 ph1 off 0x3c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #170 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #171 ph1 off 0x3c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #171 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #172 ph1 off 0x3c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #172 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #173 ph1 off 0x3c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #173 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #174 ph1 off 0x3c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #174 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #175 ph1 off 0x3c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #175 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #176 ph1 off 0x3c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #176 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #177 ph1 off 0x40 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #177 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #178 ph1 off 0x40 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #178 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #179 ph1 off 0x40 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #179 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #180 ph1 off 0x40 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #180 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #181 ph1 off 0x40 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #181 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #182 ph1 off 0x40 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #182 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #183 ph1 off 0x40 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #183 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #184 ph1 off 0x40 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #184 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #185 ph1 off 0x40 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #185 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #186 ph1 off 0x40 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #186 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #187 ph1 off 0x40 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #187 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #188 ph1 off 0x44 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #188 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #189 ph1 off 0x44 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #189 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #190 ph1 off 0x44 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #190 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #191 ph1 off 0x44 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #191 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #192 ph1 off 0x44 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #192 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #193 ph1 off 0x44 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #193 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #194 ph1 off 0x44 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #194 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #195 ph1 off 0x44 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #195 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #196 ph1 off 0x44 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #196 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #197 ph1 off 0x44 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #197 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #198 ph1 off 0x44 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #198 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #199 ph1 off 0x48 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #199 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #200 ph1 off 0x48 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #200 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #201 ph1 off 0x48 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #201 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #202 ph1 off 0x48 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #202 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #203 ph1 off 0x48 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #203 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #204 ph1 off 0x48 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #204 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #205 ph1 off 0x48 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #205 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #206 ph1 off 0x48 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #206 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #207 ph1 off 0x48 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #207 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #208 ph1 off 0x48 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #208 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #209 ph1 off 0x48 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #209 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #210 ph1 off 0x4c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #210 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #211 ph1 off 0x4c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #211 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #212 ph1 off 0x4c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #212 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #213 ph1 off 0x4c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #213 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #214 ph1 off 0x4c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #214 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #215 ph1 off 0x4c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #215 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #216 ph1 off 0x4c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #216 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #217 ph1 off 0x4c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #217 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #218 ph1 off 0x4c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #218 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #219 ph1 off 0x4c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #219 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #220 ph1 off 0x4c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #220 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #221 ph1 off 0x50 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #221 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #222 ph1 off 0x50 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #222 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #223 ph1 off 0x50 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #223 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #224 ph1 off 0x50 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #224 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #225 ph1 off 0x50 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #225 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #226 ph1 off 0x50 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #226 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #227 ph1 off 0x50 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #227 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #228 ph1 off 0x50 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #228 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #229 ph1 off 0x50 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #229 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #230 ph1 off 0x50 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #230 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #231 ph1 off 0x50 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #231 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #232 ph1 off 0x54 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #232 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #233 ph1 off 0x54 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #233 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #234 ph1 off 0x54 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #234 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #235 ph1 off 0x54 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #235 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #236 ph1 off 0x54 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #236 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #237 ph1 off 0x54 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #237 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #238 ph1 off 0x54 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #238 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #239 ph1 off 0x54 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #239 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #240 ph1 off 0x54 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #240 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #241 ph1 off 0x54 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #241 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #242 ph1 off 0x54 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #242 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #243 ph1 off 0x58 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #243 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #244 ph1 off 0x58 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #244 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #245 ph1 off 0x58 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #245 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #246 ph1 off 0x58 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #246 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #247 ph1 off 0x58 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #247 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #248 ph1 off 0x58 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #248 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #249 ph1 off 0x58 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #249 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #250 ph1 off 0x58 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #250 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #251 ph1 off 0x58 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #251 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #252 ph1 off 0x58 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #252 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #253 ph1 off 0x58 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #253 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #254 ph1 off 0x5c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #254 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #255 ph1 off 0x5c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #255 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #256 ph1 off 0x5c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #256 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #257 ph1 off 0x5c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #257 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #258 ph1 off 0x5c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #258 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #259 ph1 off 0x5c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #259 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #260 ph1 off 0x5c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #260 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #261 ph1 off 0x5c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #261 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #262 ph1 off 0x5c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #262 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #263 ph1 off 0x5c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #263 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #264 ph1 off 0x5c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #264 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #265 ph1 off 0x60 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #265 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #266 ph1 off 0x60 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #266 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #267 ph1 off 0x60 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #267 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #268 ph1 off 0x60 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #268 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #269 ph1 off 0x60 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #269 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #270 ph1 off 0x60 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #270 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #271 ph1 off 0x60 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #271 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #272 ph1 off 0x60 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #272 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #273 ph1 off 0x60 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #273 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #274 ph1 off 0x60 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #274 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #275 ph1 off 0x60 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #275 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #276 ph1 off 0x64 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #276 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #277 ph1 off 0x64 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #277 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #278 ph1 off 0x64 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #278 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #279 ph1 off 0x64 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #279 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #280 ph1 off 0x64 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #280 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #281 ph1 off 0x64 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #281 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #282 ph1 off 0x64 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #282 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #283 ph1 off 0x64 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #283 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #284 ph1 off 0x64 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #284 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #285 ph1 off 0x64 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #285 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #286 ph1 off 0x64 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #286 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #287 ph1 off 0x68 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #287 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #288 ph1 off 0x68 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #288 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #289 ph1 off 0x68 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #289 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #290 ph1 off 0x68 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #290 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #291 ph1 off 0x68 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #291 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #292 ph1 off 0x68 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #292 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #293 ph1 off 0x68 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #293 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #294 ph1 off 0x68 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #294 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #295 ph1 off 0x68 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #295 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #296 ph1 off 0x68 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #296 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #297 ph1 off 0x68 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #297 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #298 ph1 off 0x6c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #298 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #299 ph1 off 0x6c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #299 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #300 ph1 off 0x6c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #300 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #301 ph1 off 0x6c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #301 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #302 ph1 off 0x6c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #302 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #303 ph1 off 0x6c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #303 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #304 ph1 off 0x6c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #304 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #305 ph1 off 0x6c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #305 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #306 ph1 off 0x6c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #306 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #307 ph1 off 0x6c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #307 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #308 ph1 off 0x6c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #308 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #309 ph1 off 0x70 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #309 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #310 ph1 off 0x70 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #310 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #311 ph1 off 0x70 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #311 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #312 ph1 off 0x70 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #312 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #313 ph1 off 0x70 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #313 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #314 ph1 off 0x70 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #314 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #315 ph1 off 0x70 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #315 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #316 ph1 off 0x70 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #316 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #317 ph1 off 0x70 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #317 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #318 ph1 off 0x70 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #318 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #319 ph1 off 0x70 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #319 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #320 ph1 off 0x74 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #320 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #321 ph1 off 0x74 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #321 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #322 ph1 off 0x74 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #322 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #323 ph1 off 0x74 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #323 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #324 ph1 off 0x74 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #324 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #325 ph1 off 0x74 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #325 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #326 ph1 off 0x74 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #326 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #327 ph1 off 0x74 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #327 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #328 ph1 off 0x74 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #328 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #329 ph1 off 0x74 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #329 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #330 ph1 off 0x74 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #330 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #331 ph1 off 0x78 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #331 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #332 ph1 off 0x78 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #332 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #333 ph1 off 0x78 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #333 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #334 ph1 off 0x78 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #334 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #335 ph1 off 0x78 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #335 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #336 ph1 off 0x78 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #336 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #337 ph1 off 0x78 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #337 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #338 ph1 off 0x78 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #338 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #339 ph1 off 0x78 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #339 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #340 ph1 off 0x78 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #340 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #341 ph1 off 0x78 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #341 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #342 ph1 off 0x7c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #342 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #343 ph1 off 0x7c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #343 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #344 ph1 off 0x7c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #344 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #345 ph1 off 0x7c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #345 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #346 ph1 off 0x7c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #346 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #347 ph1 off 0x7c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #347 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #348 ph1 off 0x7c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #348 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #349 ph1 off 0x7c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #349 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #350 ph1 off 0x7c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #350 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #351 ph1 off 0x7c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #351 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #352 ph1 off 0x7c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #352 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #353 ph1 off 0x80 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #353 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #354 ph1 off 0x80 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #354 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #355 ph1 off 0x80 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #355 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #356 ph1 off 0x80 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #356 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #357 ph1 off 0x80 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #357 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #358 ph1 off 0x80 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #358 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #359 ph1 off 0x80 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #359 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #360 ph1 off 0x80 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #360 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #361 ph1 off 0x80 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #361 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #362 ph1 off 0x80 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #362 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #363 ph1 off 0x80 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #363 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #364 ph1 off 0x84 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #364 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #365 ph1 off 0x84 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #365 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #366 ph1 off 0x84 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #366 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #367 ph1 off 0x84 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #367 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #368 ph1 off 0x84 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #368 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #369 ph1 off 0x84 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #369 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #370 ph1 off 0x84 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #370 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #371 ph1 off 0x84 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #371 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #372 ph1 off 0x84 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #372 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #373 ph1 off 0x84 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #373 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #374 ph1 off 0x84 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #374 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #375 ph1 off 0x88 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #375 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #376 ph1 off 0x88 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #376 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #377 ph1 off 0x88 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #377 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #378 ph1 off 0x88 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #378 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #379 ph1 off 0x88 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #379 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #380 ph1 off 0x88 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #380 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #381 ph1 off 0x88 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #381 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #382 ph1 off 0x88 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #382 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #383 ph1 off 0x88 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #383 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #384 ph1 off 0x88 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #384 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #385 ph1 off 0x88 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #385 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #386 ph1 off 0x8c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #386 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #387 ph1 off 0x8c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #387 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #388 ph1 off 0x8c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #388 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #389 ph1 off 0x8c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #389 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #390 ph1 off 0x8c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #390 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #391 ph1 off 0x8c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #391 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #392 ph1 off 0x8c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #392 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #393 ph1 off 0x8c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #393 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #394 ph1 off 0x8c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #394 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #395 ph1 off 0x8c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #395 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #396 ph1 off 0x8c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #396 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #397 ph1 off 0x90 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #397 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #398 ph1 off 0x90 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #398 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #399 ph1 off 0x90 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #399 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #400 ph1 off 0x90 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #400 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #401 ph1 off 0x90 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #401 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #402 ph1 off 0x90 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #402 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #403 ph1 off 0x90 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #403 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #404 ph1 off 0x90 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #404 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #405 ph1 off 0x90 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #405 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #406 ph1 off 0x90 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #406 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #407 ph1 off 0x90 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #407 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #408 ph1 off 0x94 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #408 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #409 ph1 off 0x94 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #409 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #410 ph1 off 0x94 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #410 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #411 ph1 off 0x94 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #411 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #412 ph1 off 0x94 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #412 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #413 ph1 off 0x94 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #413 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #414 ph1 off 0x94 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #414 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #415 ph1 off 0x94 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #415 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #416 ph1 off 0x94 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #416 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #417 ph1 off 0x94 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #417 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #418 ph1 off 0x94 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #418 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #419 ph1 off 0x98 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #419 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #420 ph1 off 0x98 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #420 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #421 ph1 off 0x98 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #421 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #422 ph1 off 0x98 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #422 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #423 ph1 off 0x98 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #423 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #424 ph1 off 0x98 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #424 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #425 ph1 off 0x98 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #425 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #426 ph1 off 0x98 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #426 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #427 ph1 off 0x98 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #427 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #428 ph1 off 0x98 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #428 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #429 ph1 off 0x98 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #429 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #430 ph1 off 0x9c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #430 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #431 ph1 off 0x9c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #431 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #432 ph1 off 0x9c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #432 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #433 ph1 off 0x9c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #433 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #434 ph1 off 0x9c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #434 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #435 ph1 off 0x9c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #435 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #436 ph1 off 0x9c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #436 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #437 ph1 off 0x9c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #437 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #438 ph1 off 0x9c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #438 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #439 ph1 off 0x9c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #439 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #440 ph1 off 0x9c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #440 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #441 ph1 off 0xa0 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #441 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #442 ph1 off 0xa0 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #442 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #443 ph1 off 0xa0 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #443 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #444 ph1 off 0xa0 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #444 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #445 ph1 off 0xa0 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #445 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #446 ph1 off 0xa0 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #446 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #447 ph1 off 0xa0 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #447 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #448 ph1 off 0xa0 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #448 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #449 ph1 off 0xa0 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #449 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #450 ph1 off 0xa0 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #450 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #451 ph1 off 0xa0 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #451 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #452 ph1 off 0xa4 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #452 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #453 ph1 off 0xa4 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #453 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #454 ph1 off 0xa4 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #454 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #455 ph1 off 0xa4 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #455 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #456 ph1 off 0xa4 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #456 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #457 ph1 off 0xa4 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #457 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #458 ph1 off 0xa4 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #458 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #459 ph1 off 0xa4 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #459 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #460 ph1 off 0xa4 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #460 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #461 ph1 off 0xa4 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #461 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #462 ph1 off 0xa4 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #462 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #463 ph1 off 0xa8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #463 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #464 ph1 off 0xa8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #464 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #465 ph1 off 0xa8 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #465 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #466 ph1 off 0xa8 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #466 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #467 ph1 off 0xa8 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #467 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #468 ph1 off 0xa8 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #468 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #469 ph1 off 0xa8 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #469 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #470 ph1 off 0xa8 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #470 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #471 ph1 off 0xa8 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #471 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #472 ph1 off 0xa8 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #472 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #473 ph1 off 0xa8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #473 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #474 ph1 off 0xac w4 old 0x10000 -> new 0x0 slots -1 (dict) commit
+[mtc] case #474 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #475 ph1 off 0xac w4 old 0x10000 -> new 0x1 slots -1 (dict) commit
+[mtc] case #475 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #476 ph1 off 0xac w4 old 0x10000 -> new 0xff slots -1 (dict) commit
+[mtc] case #476 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378240 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #477 ph1 off 0xac w4 old 0x10000 -> new 0xffff slots -1 (dict) commit
+[mtc] case #477 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378b10 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #478 ph1 off 0xac w4 old 0x10000 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #478 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378150 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #479 ph1 off 0xac w4 old 0x10000 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #479 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378210 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #480 ph1 off 0xac w4 old 0x10000 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #480 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378180 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #481 ph1 off 0xac w4 old 0x10000 -> new 0x10001 slots -1 (old+1) commit
+[mtc] case #481 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378390 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #482 ph1 off 0xac w4 old 0x10000 -> new 0xffff slots -1 (old-1) commit
+[mtc] case #482 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378750 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #483 ph1 off 0xac w4 old 0x10000 -> new 0x100000 slots -1 (old<<4) commit
+[mtc] case #483 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378720 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #484 ph1 off 0xac w4 old 0x10000 -> new 0x1000000 slots -1 (old<<8) commit
+[mtc] case #484 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378f30 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #485 ph1 off 0xb0 w4 old 0x330 -> new 0x0 slots -1 (dict) commit
+[mtc] case #485 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x106379020 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #486 ph1 off 0xb0 w4 old 0x330 -> new 0x1 slots -1 (dict) commit
+[mtc] case #486 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106378480 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #487 ph1 off 0xb0 w4 old 0x330 -> new 0xff slots -1 (dict) commit
+[mtc] case #487 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106379080 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #488 ph1 off 0xb0 w4 old 0x330 -> new 0xffff slots -1 (dict) commit
+[mtc] case #488 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106379410 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #489 ph1 off 0xb0 w4 old 0x330 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #489 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106379380 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #490 ph1 off 0xb0 w4 old 0x330 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #490 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106379230 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #491 ph1 off 0xb0 w4 old 0x330 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #491 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106379260 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #492 ph1 off 0xb0 w4 old 0x330 -> new 0x331 slots -1 (old+1) commit
+[mtc] case #492 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063792f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #493 ph1 off 0xb0 w4 old 0x330 -> new 0x32f slots -1 (old-1) commit
+[mtc] case #493 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063793b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #494 ph1 off 0xb0 w4 old 0x330 -> new 0x3300 slots -1 (old<<4) commit
+[mtc] case #494 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x106379110 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #495 ph1 off 0xb0 w4 old 0x330 -> new 0x33000 slots -1 (old<<8) commit
+[mtc] case #495 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput)" UserInfo={NSLocalizedDescription=Invalid Input (0000000a:kIOGPUCommandBufferCallbackErrorInvalidInput), NSUnderlyingError=0x1063791a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=10 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #496 ph1 off 0xb4 w4 old 0x80285600 -> new 0x0 slots -1 (dict) commit
+[mtc] case #496 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #497 ph1 off 0xb4 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #497 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #498 ph1 off 0xb4 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #498 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #499 ph1 off 0xb4 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #499 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #500 ph1 off 0xb4 w4 old 0xff00 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #500 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #501 ph1 off 0xb4 w4 old 0xffffff00 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #501 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #502 ph1 off 0xb4 w4 old 0x7fffff00 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #502 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #503 ph1 off 0xb4 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #503 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #504 ph1 off 0xb4 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #504 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #505 ph1 off 0xb4 w4 old 0xffffff00 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #505 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #506 ph1 off 0xb4 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #506 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #507 ph1 off 0xb8 w4 old 0x1044 -> new 0x0 slots -1 (dict) commit
+[mtc] case #507 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #508 ph1 off 0xb8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #508 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #509 ph1 off 0xb8 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #509 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #510 ph1 off 0xb8 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #510 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #511 ph1 off 0xb8 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #511 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #512 ph1 off 0xb8 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #512 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #513 ph1 off 0xb8 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #513 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #514 ph1 off 0xb8 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #514 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #515 ph1 off 0xb8 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #515 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #516 ph1 off 0xb8 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #516 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #517 ph1 off 0xb8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #517 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #518 ph1 off 0xbc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #518 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #519 ph1 off 0xbc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #519 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #520 ph1 off 0xbc w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #520 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #521 ph1 off 0xbc w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #521 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #522 ph1 off 0xbc w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #522 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #523 ph1 off 0xbc w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #523 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #524 ph1 off 0xbc w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #524 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #525 ph1 off 0xbc w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #525 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #526 ph1 off 0xbc w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #526 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #527 ph1 off 0xbc w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #527 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #528 ph1 off 0xbc w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #528 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #529 ph1 off 0xc0 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #529 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #530 ph1 off 0xc0 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #530 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #531 ph1 off 0xc0 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #531 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #532 ph1 off 0xc0 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #532 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #533 ph1 off 0xc0 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #533 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #534 ph1 off 0xc0 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #534 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #535 ph1 off 0xc0 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #535 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #536 ph1 off 0xc0 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #536 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #537 ph1 off 0xc0 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #537 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #538 ph1 off 0xc0 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #538 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #539 ph1 off 0xc0 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #539 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #540 ph1 off 0xc4 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #540 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #541 ph1 off 0xc4 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #541 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #542 ph1 off 0xc4 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #542 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #543 ph1 off 0xc4 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #543 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #544 ph1 off 0xc4 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #544 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #545 ph1 off 0xc4 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #545 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #546 ph1 off 0xc4 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #546 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #547 ph1 off 0xc4 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #547 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #548 ph1 off 0xc4 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #548 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #549 ph1 off 0xc4 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #549 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #550 ph1 off 0xc4 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #550 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #551 ph1 off 0xc8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #551 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #552 ph1 off 0xc8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #552 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #553 ph1 off 0xc8 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #553 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #554 ph1 off 0xc8 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #554 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #555 ph1 off 0xc8 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #555 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #556 ph1 off 0xc8 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #556 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #557 ph1 off 0xc8 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #557 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #558 ph1 off 0xc8 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #558 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #559 ph1 off 0xc8 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #559 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #560 ph1 off 0xc8 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #560 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #561 ph1 off 0xc8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #561 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #562 ph1 off 0xcc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #562 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #563 ph1 off 0xcc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #563 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #564 ph1 off 0xcc w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #564 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #565 ph1 off 0xcc w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #565 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #566 ph1 off 0xcc w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #566 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #567 ph1 off 0xcc w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #567 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #568 ph1 off 0xcc w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #568 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #569 ph1 off 0xcc w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #569 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #570 ph1 off 0xcc w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #570 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #571 ph1 off 0xcc w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #571 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #572 ph1 off 0xcc w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #572 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #573 ph1 off 0xd0 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #573 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #574 ph1 off 0xd0 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #574 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #575 ph1 off 0xd0 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #575 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #576 ph1 off 0xd0 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #576 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #577 ph1 off 0xd0 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #577 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #578 ph1 off 0xd0 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #578 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #579 ph1 off 0xd0 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #579 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #580 ph1 off 0xd0 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #580 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #581 ph1 off 0xd0 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #581 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #582 ph1 off 0xd0 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #582 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #583 ph1 off 0xd0 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #583 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #584 ph1 off 0xd4 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #584 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #585 ph1 off 0xd4 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #585 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #586 ph1 off 0xd4 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #586 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #587 ph1 off 0xd4 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #587 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #588 ph1 off 0xd4 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #588 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #589 ph1 off 0xd4 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #589 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #590 ph1 off 0xd4 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #590 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #591 ph1 off 0xd4 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #591 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #592 ph1 off 0xd4 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #592 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #593 ph1 off 0xd4 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #593 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #594 ph1 off 0xd4 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #594 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #595 ph1 off 0xd8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #595 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #596 ph1 off 0xd8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #596 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #597 ph1 off 0xd8 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #597 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #598 ph1 off 0xd8 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #598 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #599 ph1 off 0xd8 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #599 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #600 ph1 off 0xd8 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #600 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #601 ph1 off 0xd8 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #601 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #602 ph1 off 0xd8 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #602 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #603 ph1 off 0xd8 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #603 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #604 ph1 off 0xd8 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #604 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #605 ph1 off 0xd8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #605 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #606 ph1 off 0xdc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #606 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #607 ph1 off 0xdc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #607 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #608 ph1 off 0xdc w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #608 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #609 ph1 off 0xdc w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #609 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #610 ph1 off 0xdc w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #610 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #611 ph1 off 0xdc w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #611 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #612 ph1 off 0xdc w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #612 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #613 ph1 off 0xdc w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #613 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #614 ph1 off 0xdc w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #614 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #615 ph1 off 0xdc w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #615 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #616 ph1 off 0xdc w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #616 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #617 ph1 off 0xe0 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #617 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #618 ph1 off 0xe0 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #618 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #619 ph1 off 0xe0 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #619 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #620 ph1 off 0xe0 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #620 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #621 ph1 off 0xe0 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #621 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #622 ph1 off 0xe0 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #622 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #623 ph1 off 0xe0 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #623 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #624 ph1 off 0xe0 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #624 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #625 ph1 off 0xe0 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #625 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #626 ph1 off 0xe0 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #626 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #627 ph1 off 0xe0 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #627 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #628 ph1 off 0xe4 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #628 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #629 ph1 off 0xe4 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #629 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #630 ph1 off 0xe4 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #630 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #631 ph1 off 0xe4 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #631 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #632 ph1 off 0xe4 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #632 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #633 ph1 off 0xe4 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #633 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #634 ph1 off 0xe4 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #634 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #635 ph1 off 0xe4 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #635 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #636 ph1 off 0xe4 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #636 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #637 ph1 off 0xe4 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #637 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #638 ph1 off 0xe4 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #638 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #639 ph1 off 0xe8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #639 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #640 ph1 off 0xe8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #640 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #641 ph1 off 0xe8 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #641 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #642 ph1 off 0xe8 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #642 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #643 ph1 off 0xe8 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #643 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #644 ph1 off 0xe8 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #644 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #645 ph1 off 0xe8 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #645 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #646 ph1 off 0xe8 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #646 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #647 ph1 off 0xe8 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #647 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #648 ph1 off 0xe8 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #648 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #649 ph1 off 0xe8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #649 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #650 ph1 off 0xec w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #650 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #651 ph1 off 0xec w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #651 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #652 ph1 off 0xec w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #652 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #653 ph1 off 0xec w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #653 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #654 ph1 off 0xec w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #654 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #655 ph1 off 0xec w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #655 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #656 ph1 off 0xec w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #656 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #657 ph1 off 0xec w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #657 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #658 ph1 off 0xec w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #658 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #659 ph1 off 0xec w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #659 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #660 ph1 off 0xec w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #660 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #661 ph1 off 0xf0 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #661 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #662 ph1 off 0xf0 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #662 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #663 ph1 off 0xf0 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #663 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #664 ph1 off 0xf0 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #664 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #665 ph1 off 0xf0 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #665 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #666 ph1 off 0xf0 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #666 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #667 ph1 off 0xf0 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #667 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #668 ph1 off 0xf0 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #668 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #669 ph1 off 0xf0 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #669 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #670 ph1 off 0xf0 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #670 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #671 ph1 off 0xf0 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #671 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #672 ph1 off 0xf4 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #672 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #673 ph1 off 0xf4 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #673 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #674 ph1 off 0xf4 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #674 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #675 ph1 off 0xf4 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #675 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #676 ph1 off 0xf4 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #676 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #677 ph1 off 0xf4 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #677 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #678 ph1 off 0xf4 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #678 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #679 ph1 off 0xf4 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #679 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #680 ph1 off 0xf4 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #680 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #681 ph1 off 0xf4 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #681 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #682 ph1 off 0xf4 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #682 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #683 ph1 off 0xf8 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #683 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #684 ph1 off 0xf8 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #684 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #685 ph1 off 0xf8 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #685 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #686 ph1 off 0xf8 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #686 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #687 ph1 off 0xf8 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #687 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #688 ph1 off 0xf8 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #688 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #689 ph1 off 0xf8 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #689 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #690 ph1 off 0xf8 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #690 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #691 ph1 off 0xf8 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #691 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #692 ph1 off 0xf8 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #692 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #693 ph1 off 0xf8 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #693 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #694 ph1 off 0xfc w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #694 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #695 ph1 off 0xfc w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #695 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #696 ph1 off 0xfc w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #696 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #697 ph1 off 0xfc w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #697 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #698 ph1 off 0xfc w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #698 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #699 ph1 off 0xfc w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #699 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #700 ph1 off 0xfc w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #700 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #701 ph1 off 0xfc w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #701 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #702 ph1 off 0xfc w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #702 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #703 ph1 off 0xfc w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #703 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #704 ph1 off 0xfc w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #704 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #705 ph1 off 0x100 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #705 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #706 ph1 off 0x100 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #706 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #707 ph1 off 0x100 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #707 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #708 ph1 off 0x100 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #708 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #709 ph1 off 0x100 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #709 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #710 ph1 off 0x100 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #710 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #711 ph1 off 0x100 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #711 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #712 ph1 off 0x100 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #712 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #713 ph1 off 0x100 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #713 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #714 ph1 off 0x100 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #714 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #715 ph1 off 0x100 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #715 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #716 ph1 off 0x104 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #716 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #717 ph1 off 0x104 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #717 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #718 ph1 off 0x104 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #718 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #719 ph1 off 0x104 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #719 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #720 ph1 off 0x104 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #720 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #721 ph1 off 0x104 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #721 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #722 ph1 off 0x104 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #722 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #723 ph1 off 0x104 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #723 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #724 ph1 off 0x104 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #724 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #725 ph1 off 0x104 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #725 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #726 ph1 off 0x104 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #726 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #727 ph1 off 0x108 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #727 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #728 ph1 off 0x108 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #728 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #729 ph1 off 0x108 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #729 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #730 ph1 off 0x108 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #730 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #731 ph1 off 0x108 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #731 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #732 ph1 off 0x108 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #732 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #733 ph1 off 0x108 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #733 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #734 ph1 off 0x108 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #734 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #735 ph1 off 0x108 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #735 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #736 ph1 off 0x108 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #736 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #737 ph1 off 0x108 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #737 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #738 ph1 off 0x10c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #738 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #739 ph1 off 0x10c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #739 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #740 ph1 off 0x10c w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #740 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #741 ph1 off 0x10c w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #741 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #742 ph1 off 0x10c w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #742 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #743 ph1 off 0x10c w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #743 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #744 ph1 off 0x10c w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #744 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #745 ph1 off 0x10c w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #745 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #746 ph1 off 0x10c w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #746 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #747 ph1 off 0x10c w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #747 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #748 ph1 off 0x10c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #748 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #749 ph1 off 0x110 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #749 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #750 ph1 off 0x110 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #750 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #751 ph1 off 0x110 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #751 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #752 ph1 off 0x110 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #752 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #753 ph1 off 0x110 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #753 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #754 ph1 off 0x110 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #754 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #755 ph1 off 0x110 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #755 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #756 ph1 off 0x110 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #756 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #757 ph1 off 0x110 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #757 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #758 ph1 off 0x110 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #758 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #759 ph1 off 0x110 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #759 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #760 ph1 off 0x114 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #760 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #761 ph1 off 0x114 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #761 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #762 ph1 off 0x114 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #762 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #763 ph1 off 0x114 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #763 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #764 ph1 off 0x114 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #764 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #765 ph1 off 0x114 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #765 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #766 ph1 off 0x114 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #766 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #767 ph1 off 0x114 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #767 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #768 ph1 off 0x114 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #768 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #769 ph1 off 0x114 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #769 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #770 ph1 off 0x114 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #770 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #771 ph1 off 0x118 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #771 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #772 ph1 off 0x118 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #772 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #773 ph1 off 0x118 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #773 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #774 ph1 off 0x118 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #774 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #775 ph1 off 0x118 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #775 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #776 ph1 off 0x118 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #776 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #777 ph1 off 0x118 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #777 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #778 ph1 off 0x118 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #778 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #779 ph1 off 0x118 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #779 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #780 ph1 off 0x118 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #780 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #781 ph1 off 0x118 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #781 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #782 ph1 off 0x11c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #782 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #783 ph1 off 0x11c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #783 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #784 ph1 off 0x11c w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #784 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #785 ph1 off 0x11c w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #785 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #786 ph1 off 0x11c w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #786 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #787 ph1 off 0x11c w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #787 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #788 ph1 off 0x11c w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #788 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #789 ph1 off 0x11c w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #789 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #790 ph1 off 0x11c w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #790 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #791 ph1 off 0x11c w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #791 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #792 ph1 off 0x11c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #792 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #793 ph1 off 0x120 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #793 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #794 ph1 off 0x120 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #794 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #795 ph1 off 0x120 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #795 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #796 ph1 off 0x120 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #796 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #797 ph1 off 0x120 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #797 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #798 ph1 off 0x120 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #798 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #799 ph1 off 0x120 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #799 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #800 ph1 off 0x120 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #800 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #801 ph1 off 0x120 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #801 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #802 ph1 off 0x120 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #802 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #803 ph1 off 0x120 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #803 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #804 ph1 off 0x124 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #804 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #805 ph1 off 0x124 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #805 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #806 ph1 off 0x124 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #806 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #807 ph1 off 0x124 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #807 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #808 ph1 off 0x124 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #808 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #809 ph1 off 0x124 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #809 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #810 ph1 off 0x124 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #810 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #811 ph1 off 0x124 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #811 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #812 ph1 off 0x124 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #812 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #813 ph1 off 0x124 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #813 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #814 ph1 off 0x124 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #814 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #815 ph1 off 0x128 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #815 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #816 ph1 off 0x128 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #816 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #817 ph1 off 0x128 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #817 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #818 ph1 off 0x128 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #818 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #819 ph1 off 0x128 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #819 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #820 ph1 off 0x128 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #820 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #821 ph1 off 0x128 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #821 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #822 ph1 off 0x128 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #822 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #823 ph1 off 0x128 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #823 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #824 ph1 off 0x128 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #824 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #825 ph1 off 0x128 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #825 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #826 ph1 off 0x12c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #826 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #827 ph1 off 0x12c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #827 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #828 ph1 off 0x12c w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #828 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #829 ph1 off 0x12c w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #829 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #830 ph1 off 0x12c w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #830 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #831 ph1 off 0x12c w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #831 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #832 ph1 off 0x12c w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #832 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #833 ph1 off 0x12c w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #833 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #834 ph1 off 0x12c w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #834 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #835 ph1 off 0x12c w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #835 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #836 ph1 off 0x12c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #836 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #837 ph1 off 0x130 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #837 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #838 ph1 off 0x130 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #838 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #839 ph1 off 0x130 w4 old 0x1 -> new 0xff slots -1 (dict) commit
+[mtc] case #839 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #840 ph1 off 0x130 w4 old 0xff -> new 0xffff slots -1 (dict) commit
+[mtc] case #840 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #841 ph1 off 0x130 w4 old 0xffff -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #841 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #842 ph1 off 0x130 w4 old 0xffffffff -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #842 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #843 ph1 off 0x130 w4 old 0x7fffffff -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #843 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #844 ph1 off 0x130 w4 old 0x80000000 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #844 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #845 ph1 off 0x130 w4 old 0x1 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #845 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #846 ph1 off 0x130 w4 old 0xffffffff -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #846 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #847 ph1 off 0x130 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #847 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #848 ph1 off 0x134 w4 old 0x4 -> new 0x0 slots -1 (dict) commit
+[mtc] case #848 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #849 ph1 off 0x134 w4 old 0x4 -> new 0x1 slots -1 (dict) commit
+[mtc] case #849 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #850 ph1 off 0x134 w4 old 0x4 -> new 0xff slots -1 (dict) commit
+[mtc] case #850 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #851 ph1 off 0x134 w4 old 0x4 -> new 0xffff slots -1 (dict) commit
+[mtc] case #851 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #852 ph1 off 0x134 w4 old 0x4 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #852 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #853 ph1 off 0x134 w4 old 0x4 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #853 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #854 ph1 off 0x134 w4 old 0x4 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #854 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #855 ph1 off 0x134 w4 old 0x4 -> new 0x5 slots -1 (old+1) commit
+[mtc] case #855 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #856 ph1 off 0x134 w4 old 0x4 -> new 0x3 slots -1 (old-1) commit
+[mtc] case #856 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #857 ph1 off 0x134 w4 old 0x4 -> new 0x40 slots -1 (old<<4) commit
+[mtc] case #857 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #858 ph1 off 0x134 w4 old 0x4 -> new 0x400 slots -1 (old<<8) commit
+[mtc] case #858 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #859 ph1 off 0x138 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #859 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #860 ph1 off 0x138 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #860 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #861 ph1 off 0x138 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #861 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #862 ph1 off 0x138 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #862 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #863 ph1 off 0x138 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #863 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #864 ph1 off 0x138 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #864 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #865 ph1 off 0x138 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #865 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #866 ph1 off 0x138 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #866 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #867 ph1 off 0x138 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #867 -> status 4 | A 42 0 nz 0 canary-bad 0
+[mtc] case #868 ph1 off 0x138 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #868 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #869 ph1 off 0x138 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #869 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #870 ph1 off 0x13c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #870 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #871 ph1 off 0x13c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #871 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x1063794d0 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #872 ph1 off 0x13c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #872 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379530 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #873 ph1 off 0x13c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #873 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379590 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #874 ph1 off 0x13c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #874 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x1063795f0 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #875 ph1 off 0x13c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #875 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379650 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #876 ph1 off 0x13c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #876 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x1063796b0 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #877 ph1 off 0x13c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #877 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379740 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #878 ph1 off 0x13c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #878 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x1063797a0 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #879 ph1 off 0x13c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #879 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #880 ph1 off 0x13c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #880 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #881 ph1 off 0x140 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #881 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #882 ph1 off 0x140 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #882 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #883 ph1 off 0x140 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #883 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #884 ph1 off 0x140 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #884 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #885 ph1 off 0x140 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #885 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #886 ph1 off 0x140 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #886 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #887 ph1 off 0x140 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #887 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #888 ph1 off 0x140 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #888 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #889 ph1 off 0x140 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #889 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #890 ph1 off 0x140 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #890 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #891 ph1 off 0x140 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #891 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #892 ph1 off 0x144 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #892 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #893 ph1 off 0x144 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #893 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #894 ph1 off 0x144 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #894 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #895 ph1 off 0x144 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #895 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #896 ph1 off 0x144 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #896 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #897 ph1 off 0x144 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #897 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #898 ph1 off 0x144 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #898 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #899 ph1 off 0x144 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #899 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #900 ph1 off 0x144 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #900 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #901 ph1 off 0x144 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #901 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #902 ph1 off 0x144 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #902 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #903 ph1 off 0x148 w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #903 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #904 ph1 off 0x148 w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #904 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379800 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #905 ph1 off 0x148 w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #905 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379860 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #906 ph1 off 0x148 w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #906 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x1063798c0 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #907 ph1 off 0x148 w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #907 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379920 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #908 ph1 off 0x148 w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #908 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379980 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #909 ph1 off 0x148 w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #909 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379a70 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #910 ph1 off 0x148 w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #910 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106379a40 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #911 ph1 off 0x148 w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #911 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000102:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000102:Internal Error), NSUnderlyingError=0x106378780 {Error Domain=IOGPUCommandQueueErrorDomain Code=258 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #912 ph1 off 0x148 w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #912 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #913 ph1 off 0x148 w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #913 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #914 ph1 off 0x14c w4 old 0x0 -> new 0x0 slots -1 (dict) commit
+[mtc] case #914 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #915 ph1 off 0x14c w4 old 0x0 -> new 0x1 slots -1 (dict) commit
+[mtc] case #915 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #916 ph1 off 0x14c w4 old 0x0 -> new 0xff slots -1 (dict) commit
+[mtc] case #916 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #917 ph1 off 0x14c w4 old 0x0 -> new 0xffff slots -1 (dict) commit
+[mtc] case #917 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #918 ph1 off 0x14c w4 old 0x0 -> new 0xffffffff slots -1 (dict) commit
+[mtc] case #918 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #919 ph1 off 0x14c w4 old 0x0 -> new 0x7fffffff slots -1 (dict) commit
+[mtc] case #919 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #920 ph1 off 0x14c w4 old 0x0 -> new 0x80000000 slots -1 (dict) commit
+[mtc] case #920 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #921 ph1 off 0x14c w4 old 0x0 -> new 0x1 slots -1 (old+1) commit
+[mtc] case #921 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #922 ph1 off 0x14c w4 old 0x0 -> new 0xffffffff slots -1 (old-1) commit
+[mtc] case #922 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #923 ph1 off 0x14c w4 old 0x0 -> new 0x0 slots -1 (old<<4) commit
+[mtc] case #923 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #924 ph1 off 0x14c w4 old 0x0 -> new 0x0 slots -1 (old<<8) commit
+[mtc] case #924 -> status 4 | A 42 4096 nz 4096 canary-bad 0
+[mtc] case #925 ph1 off 0x150 w4 old 0x268 -> new 0x0 slots -1 (dict) commit
+[mtc] case #925 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x106379b30 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #926 ph1 off 0x150 w4 old 0x268 -> new 0x1 slots -1 (dict) commit
+[mtc] case #926 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x106379b90 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #927 ph1 off 0x150 w4 old 0x268 -> new 0xff slots -1 (dict) commit
+[mtc] case #927 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x106379bf0 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #928 ph1 off 0x150 w4 old 0x268 -> new 0xffff slots -1 (dict) commit
+[mtc] case #928 -> status 5 err 'Error Domain=MTLCommandBufferErrorDomain Code=1 "Internal Error (00000100:Internal Error)" UserInfo={NSLocalizedDescription=Internal Error (00000100:Internal Error), NSUnderlyingError=0x106379c50 {Error Domain=IOGPUCommandQueueErrorDomain Code=256 "(null)"}}' | A 42 0 nz 0 canary-bad 0 [HIT]
+[mtc] case #929 ph1 off 0x150 w4 old 0x268 -> new 0xffffffff slots -1 (dict) commit
