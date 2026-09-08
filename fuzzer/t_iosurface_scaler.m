@@ -25,6 +25,8 @@
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <sys/mman.h>
+#include <fcntl.h>
+#include <unistd.h>
 #include <stdarg.h>
 
 // exported by iOS IOKit binary but marked unavailable in SDK headers
@@ -15934,6 +15936,271 @@ static void p_payfuzz(void) {
         cn, done, stop ? " STOPPED-EARLY" : "");
 }
 
+// V119: p_qexec — semantic completion of the raw type-1 pipeline.
+// docs/agx_queue_execution.md: our type-1 pipeline (sel14 nq / sel6 queue
+// blob 0x410 / sel24 bind / sel12 shmems / trap0 submit) is ACCEPTED by the
+// kext but the GPU does not execute it — completion status 0/{0,5} with no
+// write. The doc's three semantic gaps, all inside the sandbox:
+//   (a) pre-queue internal resources — Metal does sel8 format B x3 (flags
+//       0x470/0x430/0xc30) BEFORE the queue create;
+//   (b) VM-attach via sel40 s_create_vniodesc (fd -> IOGPUVnioDesc ->
+//       namespace {nsid, token}) — the true fd->GPU attach;
+//   (c) IO-command path sel41 (create_io_command_queue) -> sel44
+//       (set_io_notification_queue) -> sel45 (submit_io_commands).
+// Variants: V1 baseline control (expect no-op), V2 +prequeue, V3 +vniodesc,
+// V4 both, V5 IO-command gate mapping. Success = real pattern write (0x41
+// fallback / 0x5A capture fill) in dst AND completion without status 5.
+// Env: FUZZ_QEXEC_VAR=0..N (0 = all in order). Tag [qex].
+typedef struct {
+    io_connect_t c;
+    uint64_t qid, nqid;
+    uint32_t ridA, ridB, ridC;
+    uint64_t gpuvaA, gpuvaB, gpuvaC;
+    uint8_t *cpuA, *cpuB, *cpuC;
+    uint32_t idSeg, idCmd, idCmd0;
+    uint8_t *vaSeg, *vaCmd, *vaCmd0;
+    uint8_t *entry, *outw, *comp;
+    int have_assets;
+} qex_ctx;
+
+// sel8 format B with explicit flags (pre-queue internal resources)
+static uint32_t qex_res8(io_connect_t c, uint64_t size, uint32_t flags) {
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x00;
+    *(uint32_t *)(in + 0x08) = 0x00010001;
+    *(uint32_t *)(in + 0x0c) = 1;
+    *(uint32_t *)(in + 0x10) = 0x01000101;
+    *(uint32_t *)(in + 0x14) = flags;
+    *(uint64_t *)(in + 0x30) = 1;
+    *(uint64_t *)(in + 0x48) = size;
+    size_t osz = 0x58;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint32_t rid = *(uint32_t *)(out + 0x24);
+    LOG("[qex] pre-queue res sel8 sz 0x%llx flags 0x%x -> kr 0x%08x rid %u",
+        size, flags, kr, rid);
+    vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    return kr ? 0 : rid;
+}
+
+static int qex_setup(qex_ctx *x, int prequeue) {
+    memset(x, 0, sizeof *x);
+    x->c = open_service("IOGPU", 1);
+    if (!x->c) { LOG("[qex] open failed"); return 0; }
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    // (a) Metal creates 3 internal resources BEFORE the queue
+    if (prequeue) {
+        qex_res8(x->c, 0x1000, 0x470);
+        qex_res8(x->c, 0x4000, 0x430);
+        qex_res8(x->c, 0x4000, 0xc30);
+    }
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(x->c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    x->nqid = *(uint64_t *)(out + 8);
+    LOG("[qex] sel14 nq -> kr 0x%08x nqid %llu", kr, x->nqid);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(x->c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    x->qid = *(uint64_t *)out;
+    LOG("[qex] sel6 queue blob 0x410 -> kr 0x%08x qid %llu", kr, x->qid);
+    if (kr || !x->qid) return 0;
+    uint64_t a24[2] = { x->qid, x->nqid };
+    kr = IOConnectCallScalarMethod(x->c, 24, a24, 2, NULL, NULL);
+    LOG("[qex] sel24 bind -> kr 0x%08x", kr);
+    // format-B resources (same slot discipline as p_mtlreplay)
+    x->ridA = gpu_resource2(x->c, 0x10000, &x->gpuvaA, &x->cpuA);
+    x->ridB = gpu_resource2(x->c, 0x10000, &x->gpuvaB, &x->cpuB);
+    x->ridC = gpu_resource2(x->c, 0x20000, &x->gpuvaC, &x->cpuC);
+    LOG("[qex] rids A %u (0x%llx %p) B %u (0x%llx %p) C %u (0x%llx %p)",
+        x->ridA, x->gpuvaA, x->cpuA, x->ridB, x->gpuvaB, x->cpuB,
+        x->ridC, x->gpuvaC, x->cpuC);
+    if (!x->ridA || !x->ridB || !x->cpuA || !x->cpuB) return 0;
+    // exact captured contents (bundled assets); fallback: 0x41 fill
+    NSBundle *mb = [NSBundle mainBundle];
+    NSString *p0 = [mb pathForResource:@"res0_metacache" ofType:@"bin"];
+    NSString *p1 = [mb pathForResource:@"res1_dest" ofType:@"bin"];
+    NSString *p2 = [mb pathForResource:@"res2_pool" ofType:@"bin"];
+    NSData *d0 = p0 ? [NSData dataWithContentsOfFile:p0] : nil;
+    NSData *d1 = p1 ? [NSData dataWithContentsOfFile:p1] : nil;
+    NSData *d2 = p2 ? [NSData dataWithContentsOfFile:p2] : nil;
+    if (d0.length == 0x10000 && d1.length == 0x10000 && d2.length == 0x20000 && x->cpuC) {
+        memcpy(x->cpuA, d0.bytes, 0x10000);
+        memcpy(x->cpuB, d1.bytes, 0x10000);
+        memcpy(x->cpuC, d2.bytes, 0x20000);
+        x->have_assets = 1;
+    } else {
+        memset(x->cpuA, 0x41, 0x10000);
+        memset(x->cpuB, 0, 0x10000);
+        if (x->cpuC) memset(x->cpuC, 0, 0x20000);
+    }
+    LOG("[qex] assets: %s", x->have_assets ? "captured contents" : "MISSING, 0x41 fallback");
+    // creation order mirrors the capture: segment list first (id 1), then the
+    // kernel command buffer (id 2) — the captured submit entry was {2, 1}
+    x->idSeg = gpu_shmem_t(x->c, 0x4000, 0, &x->vaSeg);
+    x->idCmd = gpu_shmem_t(x->c, 0x4000, 1, &x->vaCmd);
+    x->idCmd0 = gpu_shmem(x->c, 0x4000, &x->vaCmd0);
+    if (!x->idCmd || !x->idSeg || !x->idCmd0) return 0;
+    x->entry = must_map(0x1000);
+    x->outw = must_map(0x100);
+    x->comp = must_map(0x1000);
+    memset(x->comp, 0, 0x1000);
+    return 1;
+}
+static void qex_teardown(qex_ctx *x) {
+    if (x->entry) vm_deallocate(mach_task_self(), (vm_address_t)x->entry, 0x1000);
+    if (x->outw) vm_deallocate(mach_task_self(), (vm_address_t)x->outw, 0x100);
+    if (x->comp) vm_deallocate(mach_task_self(), (vm_address_t)x->comp, 0x1000);
+    if (x->c) IOServiceClose(x->c);
+}
+// capture-faithful submit + write/status detector
+static void qex_submit(qex_ctx *x, const char *tag) {
+    const uint64_t BSZ = 0x10000;
+    uint32_t ridA = x->ridA, ridB = x->ridB, ridC = x->ridC;   // macro locals
+    uint64_t gpuvaA = x->gpuvaA, gpuvaB = x->gpuvaB;           // (MTLR_ macros)
+    uint8_t *vc = x->vaCmd;      // typed cmd shmem; entry {2,1} like the capture
+    memcpy(vc, agx_A4_image, 0x4000);
+    for (long o = 0; o < 0x1000 - 8; o += 4) {
+        uint64_t q = *(uint64_t *)(vc + o);
+        if ((q >> 32) == 0x100) {
+            if ((q & 0xffffffff) == 0x18000) *(uint64_t *)(vc + o) = gpuvaB;
+            else *(uint64_t *)(vc + o) = gpuvaA + (q & 0x3fff);
+        }
+    }
+    uint8_t *sg = x->vaSeg;
+    memcpy(sg, agx_B4_image, 0x4000);
+    *(uint32_t *)(sg + 0x40) = 3;
+    *(uint32_t *)(sg + 0x44) = 1;
+    uint8_t *g6 = sg + 0x48;
+    memset(g6, 0, 0x40);
+    *(uint32_t *)(g6 + 0x00) = ridA;
+    *(uint32_t *)(g6 + 0x04) = ridB;
+    *(uint32_t *)(g6 + 0x08) = ridC;
+    *(uint32_t *)(g6 + 0x18) = (uint32_t)(BSZ >> 10);
+    *(uint32_t *)(g6 + 0x1c) = (uint32_t)(BSZ >> 10);
+    *(uint32_t *)(g6 + 0x20) = (uint32_t)(0x20000 >> 10);
+    *(uint16_t *)(g6 + 0x30) = 3;
+    *(uint16_t *)(g6 + 0x32) = 3;
+    *(uint16_t *)(g6 + 0x34) = 3;
+    *(uint16_t *)(g6 + 0x3e) = 3;
+    memset(x->entry, 0, 0x1000);
+    *(uint32_t *)(x->entry + 0x00) = x->idCmd;
+    *(uint32_t *)(x->entry + 0x04) = x->idSeg;
+    *(uint64_t *)(x->entry + 0x10) = (uint64_t)(uintptr_t)x->comp;
+    *(uint64_t *)(x->entry + 0x18) = (uint64_t)(uintptr_t)(x->comp + 0x30);
+    *(uint32_t *)x->outw = 0xdeadbeef;
+    memset(x->cpuB, 0, BSZ);
+    memset(x->comp, 0, 0x1000);
+    LOG("[qex] %s: submit qid %llu entry {cmd %u seg %u} (PANIC possible)",
+        tag, x->qid, x->idCmd, x->idSeg);
+    fsync(fileno(stderr));
+    kern_return_t kt = ioconnect_trap4(x->c, 0, x->qid, 0x40,
+                                       (uintptr_t)x->entry, (uintptr_t)x->outw);
+    // post-submit bookkeeping observed in the macOS Metal trace
+    uint64_t s17[1] = { 1 };
+    kern_return_t k17 = IOConnectCallScalarMethod(x->c, 17, s17, 1, NULL, NULL);
+    uint64_t s15[1] = { 2 };
+    kern_return_t k15a = IOConnectCallScalarMethod(x->c, 15, s15, 1, NULL, NULL);
+    s15[0] = 1;
+    kern_return_t k15b = IOConnectCallScalarMethod(x->c, 15, s15, 1, NULL, NULL);
+    long a41 = 0, nz = 0, f5 = 0;
+    for (int w = 0; w < 20; w++) {
+        usleep((useconds_t)100000);
+        a41 = nz = f5 = 0;
+        for (long i = 0; i < (long)BSZ; i += 0x40) {
+            if (x->cpuB[i]) nz++;
+            if (x->cpuB[i] == 0x41) a41++;
+            if (x->cpuB[i] == 0x5A) f5++;
+        }
+        if (nz) break;
+    }
+    uint64_t *cq = (uint64_t *)x->comp;
+    uint32_t st0 = *(uint32_t *)(x->comp + 0x18);
+    uint32_t st48 = *(uint32_t *)(x->comp + 0x48);
+    LOG("[qex] %s -> kr 0x%08x outw %08x post{17:%08x 15:%08x/%08x} | B: 41 %ld 5A %ld "
+        "nz %ld %s", tag, kt, *(uint32_t *)x->outw, k17, k15a, k15b, a41, f5, nz,
+        nz ? "*** QEXEC WRITE ***" : "(no write)");
+    LOG("[qex] %s comp: status@+18 %u status@+48 %u | %016llx %016llx %016llx %016llx",
+        tag, st0, st48, cq[0], cq[1], cq[2], cq[3]);
+}
+// (b) sel40 s_create_vniodesc — fd -> GPU namespace. Both call forms: the
+// macOS decode reads fd from structureInput; the iOS table says sin=1.
+static void qex_vniodesc(qex_ctx *x) {
+    int fd = open("/dev/null", O_RDONLY);
+    LOG("[qex] V3: sel40 create_vniodesc, fd %d", fd);
+    if (fd < 0) { LOG("[qex] open /dev/null failed"); return; }
+    uint8_t st[0x40];
+    memset(st, 0, sizeof st);
+    *(uint32_t *)st = (uint32_t)fd;
+    uint64_t osc[2] = {0,0}; uint32_t nosc = 2;
+    kern_return_t k1 = IOConnectCallMethod(x->c, 40, NULL, 0, st, 0x40,
+                                           osc, &nosc, NULL, NULL);
+    LOG("[qex] sel40 struct{fd} -> kr 0x%08x out {%llx %llx}%s", k1, osc[0], osc[1],
+        (k1 == 0xe00002c2 || k1 == 0xe00002c7) ? " (GATED)" : "");
+    uint64_t sfd[1] = { (uint64_t)(uint32_t)fd };
+    nosc = 2; osc[0] = osc[1] = 0;
+    kern_return_t k2 = IOConnectCallScalarMethod(x->c, 40, sfd, 1, osc, &nosc);
+    LOG("[qex] sel40 scalar{fd} -> kr 0x%08x out {%llx %llx}%s", k2, osc[0], osc[1],
+        (k2 == 0xe00002c2 || k2 == 0xe00002c7) ? " (GATED)" : "");
+    close(fd);
+}
+// (c) IO-command path gate mapping: sel41 -> sel44 -> sel45 with zero structs
+// (descriptor grammar unknown statically — this maps the 0x2c2 branches)
+static void qex_iopath(qex_ctx *x) {
+    LOG("[qex] V5: IO-command path probe (sel41/44/45)");
+    uint64_t s41[1] = { x->qid };
+    kern_return_t k41 = IOConnectCallScalarMethod(x->c, 41, s41, 1, NULL, NULL);
+    LOG("[qex] sel41 create_io_command_queue {qid} -> kr 0x%08x%s", k41,
+        (k41 == 0xe00002c2 || k41 == 0xe00002c7) ? " (GATED)" : "");
+    if (k41) return;
+    uint64_t iocq = x->qid;   // returned iocq id unknown (sout=0) — guess qid
+    uint64_t s44[2] = { iocq, x->nqid };
+    kern_return_t k44 = IOConnectCallScalarMethod(x->c, 44, s44, 2, NULL, NULL);
+    LOG("[qex] sel44 set_io_notification_queue {iocq=%llu, nqid} -> kr 0x%08x", iocq, k44);
+    static const size_t psz[] = { 0x8, 0x40, 0x100, 0x400 };
+    uint8_t *z = must_map(0x1000);
+    memset(z, 0, 0x1000);
+    for (unsigned i = 0; i < sizeof(psz)/sizeof(psz[0]); i++) {
+        uint64_t s45[1] = { iocq };
+        kern_return_t k45 = IOConnectCallMethod(x->c, 45, s45, 1, z, psz[i],
+                                                NULL, NULL, NULL, NULL);
+        LOG("[qex] sel45 submit_io_commands stIn 0x%zx zeros -> kr 0x%08x", psz[i], k45);
+    }
+    vm_deallocate(mach_task_self(), (vm_address_t)z, 0x1000);
+}
+static void p_qexec(void) {
+    int var = atoi(getenv("FUZZ_QEXEC_VAR") ?: "0");
+    LOG("[qex] v119 queue-execution semantics, var %d", var);
+    qex_ctx x;
+    if (var == 0 || var == 1) {
+        LOG("[qex] --- V1 baseline control (standard pipeline, expect no-op)");
+        if (qex_setup(&x, 0)) { qex_submit(&x, "V1"); qex_teardown(&x); }
+    }
+    if (var == 0 || var == 2) {
+        LOG("[qex] --- V2 + 3 pre-queue internal resources (sel8 fmt B)");
+        if (qex_setup(&x, 1)) { qex_submit(&x, "V2"); qex_teardown(&x); }
+    }
+    if (var == 0 || var == 3) {
+        LOG("[qex] --- V3 + sel40 vniodesc (fd -> GPU namespace)");
+        if (qex_setup(&x, 0)) { qex_vniodesc(&x); qex_submit(&x, "V3"); qex_teardown(&x); }
+    }
+    if (var == 0 || var == 4) {
+        LOG("[qex] --- V4 prequeue + vniodesc together");
+        if (qex_setup(&x, 1)) { qex_vniodesc(&x); qex_submit(&x, "V4"); qex_teardown(&x); }
+    }
+    if (var == 0 || var == 5) {
+        LOG("[qex] --- V5 IO-command path (sel41/44/45)");
+        if (qex_setup(&x, 0)) { qex_iopath(&x); qex_teardown(&x); }
+    }
+    LOG("[qex] done (alive)");
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -20673,6 +20940,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_MTLMUTC")) { p_mtlmutc(); LOG("[probe13] mtlmutc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_KILLRACE")) { p_killrace(); LOG("[probe13] killrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PAYFUZZ") || getenv("FUZZ_PAYFUZZ_LOCATE")) { p_payfuzz(); LOG("[probe13] payfuzz-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

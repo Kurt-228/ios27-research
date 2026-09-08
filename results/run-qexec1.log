@@ -1,0 +1,134 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5607
+[scaler] conn 0x5607, s1 178 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[qex] v119 queue-execution semantics, var 0
+[qex] --- V1 baseline control (standard pipeline, expect no-op)
+[open] IOGPU -> conn 0x7813
+[qex] sel14 nq -> kr 0x00000000 nqid 1
+[qex] sel6 queue blob 0x410 -> kr 0x00000000 qid 1
+[qex] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 100b64000
+[mtlr]   out: 0000010000000000 0000000100b64000 0000000100b440c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000b867305a 0000000000051502
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 100b74000
+[mtlr]   out: 0000010000018000 0000000100b74000 0000000100b44180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000b867305b 0000000000051503
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 100b84000
+[mtlr]   out: 0000010000030000 0000000100b84000 0000000100b44240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 00000000b867305c 0000000000051504
+[qex] rids A 1 (0x10000000000 0x100b64000) B 2 (0x10000018000 0x100b74000) C 3 (0x10000030000 0x100b84000)
+[qex] assets: captured contents
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 100b60000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 100ba4000 id 2
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100ba8000 id 3
+[qex] V1: submit qid 1 entry {cmd 2 seg 1} (PANIC possible)
+[qex] V1 -> kr 0x00000000 outw 00000000 post{17:e00002c2 15:e00002c2/00000000} | B: 41 0 5A 0 nz 0 (no write)
+[qex] V1 comp: status@+18 0 status@+48 0 | 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[qex] --- V2 + 3 pre-queue internal resources (sel8 fmt B)
+[open] IOGPU -> conn 0x711b
+[qex] pre-queue res sel8 sz 0x1000 flags 0x470 -> kr 0x00000000 rid 1
+[qex] pre-queue res sel8 sz 0x4000 flags 0x430 -> kr 0x00000000 rid 2
+[qex] pre-queue res sel8 sz 0x4000 flags 0xc30 -> kr 0xe00002c2 rid 0
+[qex] sel14 nq -> kr 0x00000000 nqid 1
+[qex] sel6 queue blob 0x410 -> kr 0x00000000 qid 1
+[qex] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 3 GPUVA 0x10000010000 cpu 100be0000
+[mtlr]   out: 0000010000010000 0000000100be0000 0000000100bbc240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000010000 00000000b8673ab4 0000000000051571
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 4 GPUVA 0x10000028000 cpu 100b68000
+[mtlr]   out: 0000010000028000 0000000100b68000 0000000100bbc300 0000000000000000
+[mtlr]   out: 0000000400000000 0000000000010000 00000000b8673ab5 0000000000051572
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 5 GPUVA 0x10000040000 cpu 100b78000
+[mtlr]   out: 0000010000040000 0000000100b78000 0000000100bbc3c0 0000000000000000
+[mtlr]   out: 0000000500000000 0000000000020000 00000000b8673ab6 0000000000051573
+[qex] rids A 3 (0x10000010000 0x100be0000) B 4 (0x10000028000 0x100b68000) C 5 (0x10000040000 0x100b78000)
+[qex] assets: captured contents
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 100b40000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 100b44000 id 2
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100b48000 id 3
+[qex] V2: submit qid 1 entry {cmd 2 seg 1} (PANIC possible)
+[qex] V2 -> kr 0x00000000 outw 00000000 post{17:e00002c2 15:e00002c2/00000000} | B: 41 0 5A 0 nz 0 (no write)
+[qex] V2 comp: status@+18 0 status@+48 0 | 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[qex] --- V3 + sel40 vniodesc (fd -> GPU namespace)
+[open] IOGPU -> conn 0x7057
+[qex] sel14 nq -> kr 0x00000000 nqid 1
+[qex] sel6 queue blob 0x410 -> kr 0x00000000 qid 1
+[qex] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 100bf0000
+[mtlr]   out: 0000010000000000 0000000100bf0000 0000000100b980c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000b8673d6a 00000000000515b0
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 100c00000
+[mtlr]   out: 0000010000018000 0000000100c00000 0000000100b98180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000b8673d6b 00000000000515b1
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 100c10000
+[mtlr]   out: 0000010000030000 0000000100c10000 0000000100b98240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 00000000b8673d6c 00000000000515b2
+[qex] rids A 1 (0x10000000000 0x100bf0000) B 2 (0x10000018000 0x100c00000) C 3 (0x10000030000 0x100c10000)
+[qex] assets: captured contents
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 100b44000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 100b48000 id 2
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100b68000 id 3
+[qex] V3: sel40 create_vniodesc, fd 3
+[qex] sel40 struct{fd} -> kr 0xe00002c2 out {0 0} (GATED)
+[qex] sel40 scalar{fd} -> kr 0xe00002c2 out {0 0} (GATED)
+[qex] V3: submit qid 1 entry {cmd 2 seg 1} (PANIC possible)
+[qex] V3 -> kr 0x00000000 outw 00000000 post{17:e00002c2 15:e00002c2/00000000} | B: 41 0 5A 0 nz 0 (no write)
+[qex] V3 comp: status@+18 0 status@+48 0 | 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[qex] --- V4 prequeue + vniodesc together
+[open] IOGPU -> conn 0x2913
+[qex] pre-queue res sel8 sz 0x1000 flags 0x470 -> kr 0x00000000 rid 1
+[qex] pre-queue res sel8 sz 0x4000 flags 0x430 -> kr 0x00000000 rid 2
+[qex] pre-queue res sel8 sz 0x4000 flags 0xc30 -> kr 0xe00002c2 rid 0
+[qex] sel14 nq -> kr 0x00000000 nqid 1
+[qex] sel6 queue blob 0x410 -> kr 0x00000000 qid 1
+[qex] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 3 GPUVA 0x10000010000 cpu 100bcc000
+[mtlr]   out: 0000010000010000 0000000100bcc000 0000000100b74240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000010000 00000000b8674021 00000000000515f5
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 4 GPUVA 0x10000028000 cpu 100bdc000
+[mtlr]   out: 0000010000028000 0000000100bdc000 0000000100b74300 0000000000000000
+[mtlr]   out: 0000000400000000 0000000000010000 00000000b8674022 00000000000515f6
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 5 GPUVA 0x10000040000 cpu 100bec000
+[mtlr]   out: 0000010000040000 0000000100bec000 0000000100b743c0 0000000000000000
+[mtlr]   out: 0000000500000000 0000000000020000 00000000b8674023 00000000000515f7
+[qex] rids A 3 (0x10000010000 0x100bcc000) B 4 (0x10000028000 0x100bdc000) C 5 (0x10000040000 0x100bec000)
+[qex] assets: captured contents
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 100b48000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 100b4c000 id 2
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100b58000 id 3
+[qex] V3: sel40 create_vniodesc, fd 3
+[qex] sel40 struct{fd} -> kr 0xe00002c2 out {0 0} (GATED)
+[qex] sel40 scalar{fd} -> kr 0xe00002c2 out {0 0} (GATED)
+[qex] V4: submit qid 1 entry {cmd 2 seg 1} (PANIC possible)
+[qex] V4 -> kr 0x00000000 outw 00000000 post{17:e00002c2 15:e00002c2/00000000} | B: 41 0 5A 0 nz 0 (no write)
+[qex] V4 comp: status@+18 0 status@+48 0 | 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[qex] --- V5 IO-command path (sel41/44/45)
+[open] IOGPU -> conn 0x706f
+[qex] sel14 nq -> kr 0x00000000 nqid 1
+[qex] sel6 queue blob 0x410 -> kr 0x00000000 qid 1
+[qex] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 100c0c000
+[mtlr]   out: 0000010000000000 0000000100c0c000 0000000100b980c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000b86742db 0000000000051638
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 100c1c000
+[mtlr]   out: 0000010000018000 0000000100c1c000 0000000100b98180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000b86742dc 0000000000051639
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 100c2c000
+[mtlr]   out: 0000010000030000 0000000100c2c000 0000000100b98240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 00000000b86742dd 000000000005163a
+[qex] rids A 1 (0x10000000000 0x100c0c000) B 2 (0x10000018000 0x100c1c000) C 3 (0x10000030000 0x100c2c000)
+[qex] assets: captured contents
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 100b4c000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 100b58000 id 2
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 100b6c000 id 3
+[qex] V5: IO-command path probe (sel41/44/45)
+[qex] sel41 create_io_command_queue {qid} -> kr 0x00000000
+[qex] sel44 set_io_notification_queue {iocq=1, nqid} -> kr 0xe00002c2
+[qex] sel45 submit_io_commands stIn 0x8 zeros -> kr 0xe00002c2
+[qex] sel45 submit_io_commands stIn 0x40 zeros -> kr 0xe00002c2
+[qex] sel45 submit_io_commands stIn 0x100 zeros -> kr 0xe00002c2
+[qex] sel45 submit_io_commands stIn 0x400 zeros -> kr 0xe00002c2
+[qex] done (alive)
+[probe13] qexec-only mode, stop
