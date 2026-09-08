@@ -177,12 +177,162 @@ crop-пути сравнения с размером поверхности от
    точный порядок 64-битной записи base DVA в дескриптор (каким cmd/offset).
 2. Точная железная математика span (2016+63·W — эмпирика; коэффициенты
    pitch/bpp внутри writer'а/HW).
-3. Детали ShadowMapperCache (TTL, shared vs per-client) — только строки и
-   точки входа; требуется дизасм соответствующих функций.
+3. ~~Детали ShadowMapperCache (TTL, shared vs per-client)~~ — закрыто в §6.
 4. Stub-карта импортов сохранена в /tmp/stub_map.json (189 стабов → target
    VA); при перезагрузке машины пересобирается из parent KC (см. §приложение).
 
-## Приложение. Инструменты разбора (для продолжателя)
+## 6. DART-домен: чей он, кэш маппингов, DVA-аллокатор (статика kc27)
+
+Разбор `results/kc27/com_apple_driver_AppleM2ScalerCSCDriver.macho` (дизасм
+`/tmp/scaler_disasm.txt`, 323990 строк). Отвечает на открытые вопросы §5.3 и
+формулирует условия cross-surface write. VA ниже сокращены до low-32.
+
+### 6.1 Вопрос 1: IOMMU-контекст, синглтон vs per-client — ДОМЕН ОБЩИЙ
+
+- **initMappers @ 0x8fdf19c** (cstring 'initMappers' @ 0x760f9a3): создаёт
+  ровно два маппера, один раз при загрузке. Цикл w25=0..1: индекс SID
+  выбирается по chip-id (ccmp по глобалям 0xb440b98 +0xe4/+0xa4, при
+  условии добавляется 2 — 'Defer reset (MSR Dart Ganging)' 0x760f44c,
+  'msr_multi_msr_dart_ganging' 0x7617895: два SID работают как ganged-пара),
+  затем `bl 0x90ac740` (импорт, x0 = provider `[x20+0x78]` из DT-свойства
+  'iommu-parent' 0x760f90b, x1 = sidIndex) → результат
+  `str x0, [x22, x25, lsl #3]`, **x22 = x20+0x80**. Т.е. мапперы лежат в
+  полях **драйвер-инстанса +0x80/+0x88**. Ошибка — '[IOSA][Boot ] Failed to
+  create mapper sid[%u]!!' 0x760f944, лог 'Mapper: SID[0]: %p, SID[1]: %p'
+  0x760f975. На каждый маппер вешается DART error handler (вирт. vtable+0x3a8
+  с PAC'd колбэком 0x8fdf410 = dartErrorHandlerCallback).
+- **Мап-ядро @ 0x8fed680** (вызывается из тела mapBufferOnDartGatedIfNeeded):
+  маппер берётся как `[obj+0x80 + mapperIdx·8]` (0x8fed9fc) — индекс = SID,
+  **никакой зависимости от клиента/процесса**. Второй массив `[obj+0x90 + idx·8]`
+  — «shadow mapper»-объекты (создаются лениво в 0x8fed904 fallback'ом через
+  импорт 0x90ac4f0 с page size 0x1000, оборачивая реальный маппер из +0x80).
+- Клиентская различность есть только в **ShadowMapperCache** (§6.2) и она
+  управляет временем жизни маппинга, а не адресным пространством.
+- Подтверждение shared-домена эмпирикой: журнал §87–97 (E1/E2) — маппинги
+  видны между двумя нашими коннектами.
+
+**Вердикт: DART-домен — один на инстанс драйвера (два SID ganged). Все
+userclients всех процессов (включая системные поверхности WindowServer/
+backboardd через IOMobileFramebuffer, строка 0x7619b96) мапятся в одно и то же
+DVA-aperture.** «Домен строго наш» — НЕ наш случай, задачу этим не закрыть.
+
+### 6.2 Вопрос 2: ShadowMapperCache — ключ, TTL, клиенты
+
+Функции (реальные, не стабы): map @ 0x8ff314c, updateTTL @ 0x8ff3424,
+unmap @ 0x8ff3564; обёртки через command gate 0x900c594 (map) / 0x900c61c
+(unmap) → action-заглушки 0x900c608 / 0x900c690.
+
+- **Кэш**: массив бакетов `[driver+0x178 + mapperIdx·0x28]`: +0x00 голова
+  LRU-списка, +0x10 count (лимит **0x41 = 65** на бакет), +0x18 суммарный
+  wired size.
+- **Entry** (kalloc 0x30, 'site.ShadowMapperCacheEntry' 0x7611faf):
+  +0x00 IOSurface\* (retained), **+0x08 u32 clientID**, +0x0c flags
+  (bit0 = активен/замаплен), +0x10 md/req ptr, +0x18 timestamp,
+  +0x20/+0x28 линки.
+- **Ключ = (surfaceID, clientID)**: surfaceID получается из md вирт. вызовом
+  vtable+0xb0 (0x8ff31e0), сравнение указателя с [entry]. clientID — аргумент
+  w3: при w3==0 lookup работает как wildcard (первый подходящий surface
+  независимо от clientID, 0x8ff31fc–0x8ff3208).
+- **Все внешние вызовы из кекста идут с clientID=0** (wildcard): 0x8fed600
+  (map после успешного DART-map) и 0x8fedb1c (unmap) — оба w3=0. Поле clientID
+  в энтри заложено, но per-client разделение кэша в наблюдаемых путях не
+  используется.
+- **TTL**: updateShadowMapperCacheTTL_gated: для энтри с flags bit0=0
+  (неактивных) `now − entry[+0x18] ≥ 0x77359400` нс (**≈ 2 с**) → evict +
+  release (0x90ac2f0), count--, вычитание wired size. now — clock_gettime
+  (0x90acd20/0x90acc70), лог-обёртка делит на 0x3B9ACA00 — TTL в секундах.
+  Sweep вызывается: на каждом map (0x8ff319c), из менеджера (0x8ff3394,
+  0x8ff3670) и из fast-path 0x900a99c.
+- **Продление жизни**: пока клиент активен, 0x900a99c (вызывается из тела
+  mapBufferOnDartGatedIfNeeded, когда у клиента выставлен байт [client+0x209],
+  т.е. клиент — «shadow-cache пользователь») обновляет TTL у всех энтри
+  клиентов запроса (по битмапу [req+0x440], слоты [driver+0x150 + i·8],
+  i = ffs([driver+0x1c0])) — маппинги не истекают, пока клиент шлёт запросы.
+  Строки 'ActiveDartStartTime'/'ActiveDartEndTime' 0x7618bf8/0x7618c0c.
+- **Клиенты драйвера**: 'clientOpened_gated %zu proc:%s' / 'clientClosed_gated
+  %zu proc:%s' (0x7617f93/0x7617fc6) — драйвер регистрирует процессы;
+  'IOMobileFramebuffer' 0x7619b96 — display pipeline идёт через этот драйвер,
+  т.е. поверхности WindowServer/backboardd гарантированно проходят через тот
+  же DART-домен; 'IOCoreSurfaceRoot'/'lookupSurfaces' 0x7619647.
+
+### 6.3 Вопрос 3: DVA-аллокатор — его НЕТ в этом кексте
+
+- В коде кекста **нет ни базы 0x10000000000** (ни одного `movk #0x1000, lsl
+  #32`; все `lsl #32` — другие константы), **ни бамп-аллокатора/холл-поиска**.
+- DVA назначает **IODARTMapper** (чужой кекст) при map: мап-вызов —
+  вирт. `vtable+0x3a8` объекта из `[+0x80 + idx·8]` с опциями-строками
+  'iomdEarlyReclaim'/'iomdEarlyPurge' (0x7611ca1/0x7611cb2, выбор по w2);
+  драйвер затем только забирает готовый DVA из md (хелпер 0x8fed83c, вирт.
+  vtable+0xb8, «getDmaCommandDva» 0x7611934) и кладёт в слот трекинг-структуры
+  (0x98/0xa0 по признаку [req+0x428]==[md+0x68]).
+- Константы 0x4000 в кексте — pitch/размерности в конфиге регистров
+  поверхностей, к DVA-размещению отношения не имеют.
+- Вывод: размещение в aperture — политика IODARTMapper (разрежённая карта).
+  Это согласуется с эмпирикой v102g/v103 (DVA поверхностей НЕ смежны, дыры).
+  База 0x10000000000/гранулярность 0x4000 — свойства DART-aperture этой
+  платформы, не алгоритма этого драйвера. Предсказуемость чужих DVA из
+  статики этого бинарня не следует — только эмпирика/груминг.
+
+### 6.4 Вопрос 4: вердикт по wrap-записи в чужую поверхность
+
+Wrap-путь (§3): start = dst_base + (Y&0x1FFFF)·pitch + (X&0x1FFFF)·bpp,
+строго **вперёд** от base, span контролируется W. Из §6.1–6.3:
+
+- Изоляции адресных пространств нет: чужие (WindowServer и др.) поверхности
+  живут в том же aperture; известные нам DVA (0x1000003c000/0x10000040000/
+  0x10000094000 — паники bug 210) попадают в один диапазон.
+- Запись идёт вперёд ⇒ достижимы только чужие маппинги с **DVA ≥ нашей
+  dst_base** и < dst_base + span.
+- Чужой маппинг должен быть **жив** в момент записи: неактивные эвиктятся
+  через ~2 с (§6.2); активный клиент продлевает TTL штатными запросами.
+- Размещение разрежённое (§6.3) ⇒ случайное попадание маловероятно; для
+  прицельного нужен либо груминг (поднять нашу поверхность выше цели нельзя —
+  запись только вперёд, значит цель должна оказаться выше нас и до неё должен
+  доставать span), либо утечка DVA цели (лог 'Scaler[%d] Request %d, %s
+  Surface %d DVA 0x%llx mapper[%d] %dx%d' 0x7618ab6 печатает DVA только в
+  system log — напрямую из юзерспейса не читается).
+- За пределами любого mapped-окна — DART fault → dartErrorHandlerCallback →
+  паника (bug 210), т.е. «залповая» запись через span — самоубийственна.
+
+**Вердикт: теоретически возможно, практически требует (а) знания/угадания
+DVA чужой живой поверхности выше нашей базы и (б) span, её достающего, без
+пересечения конца её окна — fault до края гасит запись (precise abort).
+Закрыть линию как «домен строго наш» нельзя — домен общий; реальная защита —
+разрежённость размещения IODARTMapper + 2-секундный TTL неактивных маппингов.
+Дальнейшая эмпирика: серия v102g-style с фиксацией DVA соседних поверхностей
+системных клиентов.**
+
+### 6.5 Вопрос 5: что значит «Gated» в mapBufferOnDartGatedIfNeeded
+
+- Тело: **mapBufferOnDartGatedIfNeeded @ 0x900c7c8** исполняет работу через
+  command gate: `[driver+0xb8]->vtable+0xe8` (сигнатура runAction: action,
+  arg0..arg3) с action = 0x900c6a4. Аналогично обёрнуты ShadowMapperCache
+  map/unmap (0x900c594/0x900c61c, gate у объекта `[x0+0xb8]`). Те же gated-имена
+  у всей обвязки ('activateDART_gatedContext', 'clientOpened_gated' и т.д.) —
+  это сериализация на workloop драйвера ('cannot create a workloop'
+  0x7623690), **не проверка безопасности**.
+- **Ungated-путь существует**: 0x900c878 — прямой `bl 0x900c6a4` без
+  runAction, когда у клиента байт [client+0x209]==0 (клиент не пользуется
+  shadow-кэшем) или выставлен бит [driver+0x638] (фича-флаг). Т.е. gated/ungated
+  — про взаимодействие с ShadowMapperCache, а не про доверие к аргументам.
+- Реальные проверки внутри action: mapper существует (иначе lazy-create),
+  power/трекинг-флаги ([md+0x1f8]==1 для fast-path TTL), retain/lock пары
+  (0x90aca60/0x90aca90). Проверок «start ≤ dst_base + size» нет (§3) —
+  контроль только со стороны DART.
+
+### 6.6 Адреса для продолжателя
+
+initMappers 0x8fdf19c; map-ядро 0x8fed680; getMapper 0x8fed904; DART-map
+0x8fed9fc (vtable+0x3a8, iomdEarlyReclaim/Purge); getDva 0x8fed83c
+(vtable+0xb8); wireAndMapBuffer-обёртка 0x8fed4e4; ShadowMapperCache:
+map 0x8ff314c / TTL 0x8ff3424 / unmap 0x8ff3564, gate-обёртки 0x900c594/
+0x900c61c, TTL-fastpath 0x900a99c; mapBufferOnDartGatedIfNeeded 0x900c7c8,
+action 0x900c6a4, ungated-прямой вызов 0x900c878; unmap-путь 0x9006278;
+трекинг-хелпер 0x90691f4 (md,idx)→ctx, mapper=[ctx+0x90]; клиентские поля
+driver: +0x150 слоты[8], +0x1c0 битмап, +0xb8 gate; req: +0x428 клиент,
++0x440 битмап клиентов, +0xd2c surface id.
+
+
 
 - Полный дизасм: `objdump -d results/kc27/com_apple_driver_AppleM2ScalerCSCDriver.macho`
   (в сессии жил в /tmp/scaler_disasm.txt).
