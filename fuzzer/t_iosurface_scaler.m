@@ -15375,6 +15375,7 @@ static void p_replay2(void) {
     uint32_t fnumGrp = 4;
     uint32_t mref[32], mour[32];
     int nmap = 0;
+    uint64_t poolBase = 0;
     if (fullm) {
         const uint8_t *gb = (const uint8_t *)dg.bytes;
         uint32_t numRes = *(const uint32_t *)(gb + 0x40);
@@ -15422,6 +15423,18 @@ static void p_replay2(void) {
         LOG("[rp2f] mapping: %d unique reference rids (target numResources %u)", nmap, numRes);
         if (nmap < (int)numRes)
             LOG("[rp2f] WARNING: mapped %d of %u — residency still incomplete", nmap, numRes);
+        // CDM-stream pool base: descriptor field kcmd+0x1cc ({off,0x100},
+        // page-aligned) or FUZZ_REPLAY2_POOL=0x1_xxxxxxxx override.
+        const char *ep = getenv("FUZZ_REPLAY2_POOL");
+        if (ep) poolBase = strtoull(ep, NULL, 0);
+        if (!poolBase) {
+            uint32_t lo = *(const uint32_t *)((const uint8_t *)dk.bytes + 0x1cc);
+            uint32_t hi = *(const uint32_t *)((const uint8_t *)dk.bytes + 0x1d0);
+            if (hi == 0x100 && lo >= 0x10000 && !(lo & 0xfff))
+                poolBase = 0x100000000ULL | lo;
+        }
+        LOG("[rp2f] pool base: 0x%llx%s", poolBase,
+            poolBase ? "" : " — NOT FOUND (pool refs will be UNMAPPED)");
     }
     uint8_t *entry = must_map(0x1000);
     uint32_t *outw = (uint32_t *)must_map(0x100);
@@ -15509,7 +15522,7 @@ static void p_replay2(void) {
             uint64_t q = *(uint64_t *)(vaCmd + o);
             if (q == refA) { *(uint64_t *)(vaCmd + o) = gpuA; np++; }
             else if (q == refB) { *(uint64_t *)(vaCmd + o) = gpuB; np++; }
-            else if (gpuC && q >= 0x1000128000ULL && q < 0x1000140000ULL) {
+            else if (!fullm && gpuC && q >= 0x1000128000ULL && q < 0x1000140000ULL) {
                 *(uint64_t *)(vaCmd + o) = gpuC + (q - 0x1000138000ULL);
                 nreb++;
             }
@@ -15551,6 +15564,49 @@ static void p_replay2(void) {
                 }
             }
             LOG("[rp2f] var%ld: group-slot subs %ld, global subs (rid>=0x10) %ld", v, nsrid, gsub);
+            // absolute space-0x1 GPUVA rebasing (post-commit kcmd carries NO
+            // full 0x1_xxxxxxxx qwords — every ref is the split-dword form
+            // {offset, 0x100}: u32[1]==0x100 (VA=0x1_off) or u32[0]==0x100
+            // (VA=0x1_off)). Classify: poolBase -> C; poolBase+delta -> C+delta
+            // (slot table); refA/refB -> A/B; rest -> UNMAPPED (log, left).
+            long nva = 0, nun = 0;
+            for (uint8_t *buf = vaCmd; ; buf = vaSeg) {
+                for (long o = 0; o + 8 <= 0x4000; o += 4) {
+                    uint32_t d0 = *(uint32_t *)(buf + o), d1 = *(uint32_t *)(buf + o + 4);
+                    uint32_t off; int form;
+                    if (d1 == 0x100 && d0 >= 0x1000) { off = d0; form = 0; }
+                    else if (d0 == 0x100 && d1 >= 0x1000) { off = d1; form = 1; }
+                    else continue;
+                    uint64_t va = 0x100000000ULL | off;
+                    uint64_t nv = 0;
+                    const char *cls = NULL;
+                    if (gpuC && poolBase && va == poolBase) { nv = gpuC; cls = "POOL->C"; }
+                    else if (gpuC && poolBase && va > poolBase && va < poolBase + 0x40000) {
+                        nv = gpuC + (va - poolBase); cls = "POOLSLOT->C+d";
+                    }
+                    else if (va == refA) { nv = gpuA; cls = "refA->A"; }
+                    else if (va == refB) { nv = gpuB; cls = "refB->B"; }
+                    if (nv) {
+                        if ((nv >> 32) != 0x100)
+                            LOG("[rp2f] WARNING: replacement VA 0x%llx not in space 0x100", nv);
+                        uint32_t nlo = (uint32_t)nv;   // keep tag dword, swap offset
+                        if (form == 0) *(uint32_t *)(buf + o) = nlo;
+                        else *(uint32_t *)(buf + o + 4) = nlo;
+                        if (nva < 24)
+                            LOG("[rp2f] var%ld %s+0x%04lx: 0x%llx -> 0x%llx (%s)",
+                                v, buf == vaCmd ? "kcmd" : "seg", o, va, nv, cls);
+                        nva++;
+                    } else if (nun < 12) {
+                        LOG("[rp2f] var%ld %s+0x%04lx: UNMAPPED space-0x1 ref 0x%llx"
+                            " (set FUZZ_REPLAY2_REFA/REFB/FUZZ_REPLAY2_POOL)",
+                            v, buf == vaCmd ? "kcmd" : "seg", o, va);
+                        nun++;
+                    }
+                }
+                if (buf == vaSeg) break;
+            }
+            LOG("[rp2f] var%ld: space-0x1 refs rebased %ld, unmapped %ld%s",
+                v, nva, nun, nun ? " — capture VM still referenced!" : " (clean)");
         } else {
             for (long o = 0; o + 4 <= 0x4000; o += 4) {
                 if (o == 0x108 || o == 0x10c) continue;
