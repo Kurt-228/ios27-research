@@ -1,0 +1,28 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7003
+[scaler] conn 0x7003, s1 191 s2 192
+[probe12] SetNotificationPort -> 0x00000000
+[rp2] v127: reference-dump hybrid replay on our type-1 queue
+[rp2] asset dsrecon-cfg1-kcmd: /private/var/containers/Bundle/Application/CB60B400-5D17-4D9D-9714-D4C8E6952EB6/fuzz27.app/dsrecon-cfg1-kcmd.bin (16384 bytes)
+[rp2] asset dsrecon-cfg1-seg: /private/var/containers/Bundle/Application/CB60B400-5D17-4D9D-9714-D4C8E6952EB6/fuzz27.app/dsrecon-cfg1-seg.bin (16384 bytes)
+[rp2] asset dsrecon-cfg1-pool0: /private/var/containers/Bundle/Application/CB60B400-5D17-4D9D-9714-D4C8E6952EB6/fuzz27.app/dsrecon-cfg1-pool0.bin (16384 bytes)
+[open] IOGPU -> conn 0x6603
+[rp2] sel14 nq -> kr 0x00000000 nqVA 102b78000 nqid 1
+[rp2] qid 1 sel24 bind 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 102b84000
+[mtlr]   out: 0000010000000000 0000000102b84000 0000000102b640c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000175421fa 0000000000005f55
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 102c58000
+[mtlr]   out: 0000010000018000 0000000102c58000 0000000102b64180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000175421fb 0000000000005f56
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 102c68000
+[mtlr]   out: 0000010000030000 0000000102c68000 0000000102b64240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 00000000175421fc 0000000000005f57
+[rp2] rids A 1 (0x10000000000) B 2 (0x10000018000) C 3 (0x10000030000)
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 102b80000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 102b94000 id 2
+[rp2] shmems: seg id 1 (type 0) cmd id 2 (type 1)
+[rp2] reference GPUVAs pool0+0x14a0/+0x14a8: refA 0x0 refB 0x0
+[rp2] reference GPUVAs unusable
+[probe13] replay2-only mode, stop

@@ -14848,6 +14848,7 @@ static void dsr_marker_scan(const char *tag, const char *what, const uint8_t *bu
 }
 static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_postseg(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void p_dsrecon(void) {
     LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
     id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
@@ -14932,6 +14933,7 @@ static void p_dsrecon(void) {
     // N5 (docs/device_stream_builder.md): differential post-commit VM scan
     if (getenv("FUZZ_DSRECON_POST")) dsr5_post_scan(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_N5B")) dsr5b_verify(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_POSTSEG")) dsr_postseg(dev, mq, docdir);
     LOG("[dsr] done (alive)");
 }
 
@@ -15220,6 +15222,60 @@ static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *do
     LOG("[dsr5b] done (alive)");
 }
 
+// V128: FUZZ_DSRECON_POSTSEG — post-commit snapshot for replay2. The seglist
+// is finalized AT commit (v77: pre-commit segCount/totalSize/cmdEnd/
+// numResources are zero), so replay2 needs the POST-commit image. cfg1 blit
+// 0x10000: snapshot after endEncoding (pre), real commit + waitUntilCompleted,
+// snapshot again (post); writes dsrecon-postcommit-{kcmd,seg,pool0}.bin and
+// logs [dsr-ps] with the seg pre/post diff (finalized offsets).
+static void dsr_postseg(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsr-ps] post-commit seglist snapshot (cfg1 blit 0x10000)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsr-ps] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    uint64_t kva = storage ? *(uint64_t *)((uint8_t *)storage + 0x28) : 0;
+    uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+    LOG("[dsr-ps] gpuA 0x%llx gpuB 0x%llx kcmd 0x%llx seg 0x%llx (pre-commit)",
+        gpuA, gpuB, kva, sva);
+    dsr_snap pre, post;
+    dsr_take_snap(&pre, kva, sva, gpuA, gpuB);
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsr-ps] committed status %ld", (long)[cb status]);
+    if (storage) {
+        uint64_t kva2 = *(uint64_t *)((uint8_t *)storage + 0x28);
+        uint64_t sva2 = *(uint64_t *)((uint8_t *)storage + 0x68);
+        if (kva2 && kva2 != kva) { LOG("[dsr-ps] kcmd VA moved 0x%llx -> 0x%llx", kva, kva2); kva = kva2; }
+        if (sva2 && sva2 != sva) { LOG("[dsr-ps] seg VA moved 0x%llx -> 0x%llx", sva, sva2); sva = sva2; }
+    }
+    dsr_take_snap(&post, kva, sva, gpuA, gpuB);
+    if (kva) dsr_diff_log("ps", "kcmd", pre.kcmd, post.kcmd, DSR_SNAP);
+    if (sva) dsr_diff_log("ps", "seg", pre.seg, post.seg, DSR_SNAP);
+    LOG("[dsr-ps] pre pool regions %d, post pool regions %d", pre.nreg, post.nreg);
+    for (int i = 0; i < post.nreg && i < pre.nreg; i++)
+        if (pre.regaddr[i] == post.regaddr[i])
+            dsr_diff_log("ps", "pool", pre.reg[i], post.reg[i], (long)post.regsz[i]);
+    if (kva) dsr_write_file(docdir, "dsrecon-postcommit-kcmd.bin", post.kcmd, DSR_SNAP);
+    if (sva) dsr_write_file(docdir, "dsrecon-postcommit-seg.bin", post.seg, DSR_SNAP);
+    if (post.nreg > 0) {
+        dsr_write_file(docdir, "dsrecon-postcommit-pool0.bin", post.reg[0], (long)post.regsz[0]);
+        LOG("[dsr-ps] pool0 = post region 0x%llx sz 0x%llx", post.regaddr[0], post.regsz[0]);
+    } else {
+        LOG("[dsr-ps] WARNING: no post pool region found (gpuA/gpuB qwords absent)");
+    }
+    dsr_free_snap(&pre);
+    dsr_free_snap(&post);
+    LOG("[dsr-ps] done (alive)");
+}
+
 // V127: p_replay2 — hybrid replay of the live-blitz reference dumps (fuzzer/
 // assets/dsrecon-cfg1-*.bin, captured by p_dsrecon N1) through OUR type-1
 // queue (C3, docs/device_stream_builder.md). Reference GPUVAs are read from
@@ -15228,8 +15284,17 @@ static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *do
 // resource; seg rid/sizeKB pair patched at +0x108/+0x120; absolute pool/bplist
 // GPUVA refs in kcmd rebased onto resource C. Status 5 in an nq record =
 // firmware reject (agx_queue_execution.md §8.7). Success = 0x41 in dst.
+// Submit entry: HISTORICAL v80 form by default ({aux1,aux2} residency pair +
+// ridB @entry+0x20 — the p_mtlreplay S-combo construction that reached
+// firmware); FUZZ_REPLAY2_OLDENTRY=1 selects the qex {comp,comp+0x30} form
+// for A/B. kcmd list header {type,len} @+0/+0x4 is validated + stream-walked;
+// a zero/broken header triggers a repair shift per variant. Post-submit
+// sel17/sel15 bookkeeping runs on both forms (Metal trace).
+// FUZZ_REPLAY2_FULL=1: parse the seglist resource table (numResources/
+// numGroups @+0x40/+0x44, six-pack groups @+0x48, count u16 @+0x3e) and
+// re-create EVERY reference rid (zero-filled, v78 R3) — full residency.
 // Env: FUZZ_REPLAY2_VAR=1|2|3 (cumulative ladder, each variant submitted).
-// Tag [rp2].
+// Tag [rp2]/[rp2f].
 static void rp2_load(NSBundle *mb, const char *name, NSData **d) {
     NSString *p = [mb pathForResource:[NSString stringWithUTF8String:name] ofType:nil];
     if (!p) p = [mb pathForResource:[NSString stringWithUTF8String:name] ofType:@"bin"];
@@ -15290,6 +15355,11 @@ static void p_replay2(void) {
     uint64_t refA = *(const uint64_t *)((const uint8_t *)dp0.bytes + 0x14a0);
     uint64_t refB = *(const uint64_t *)((const uint8_t *)dp0.bytes + 0x14a8);
     LOG("[rp2] reference GPUVAs pool0+0x14a0/+0x14a8: refA 0x%llx refB 0x%llx", refA, refB);
+    // env overrides when the pool0 dump lost the reference slots (post-commit
+    // capture may grab the wrong region): values from the capture session log
+    const char *eA = getenv("FUZZ_REPLAY2_REFA"), *eB = getenv("FUZZ_REPLAY2_REFB");
+    if (eA) { refA = strtoull(eA, NULL, 0); LOG("[rp2] refA override 0x%llx", refA); }
+    if (eB) { refB = strtoull(eB, NULL, 0); LOG("[rp2] refB override 0x%llx", refB); }
     if (!refA || !refB || refA == refB) { LOG("[rp2] reference GPUVAs unusable"); return; }
     uint32_t refRidA = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x108);
     uint32_t refRidB = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x10c);
@@ -15297,9 +15367,104 @@ static void p_replay2(void) {
     uint32_t refKB2 = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x124);
     LOG("[rp2] seg +0x108 rids {%u,%u} +0x120 sizeKB {%u,%u} -> {%u,%u} {0x40,0x40}",
         refRidA, refRidB, refKB1, refKB2, ridA, ridB);
+    // ---- FULL residency (FUZZ_REPLAY2_FULL, v78 R3 / part16 §77): the
+    // finalized seglist references numResources rids in numGroups six-pack
+    // groups; parse the table and re-create EVERY reference rid so the
+    // residency validates. Pair at +0x108/+0x10c (sizeKB 0x40) = our A/B.
+    int fullm = getenv("FUZZ_REPLAY2_FULL") != NULL;
+    uint32_t fnumGrp = 4;
+    uint32_t mref[32], mour[32];
+    int nmap = 0;
+    if (fullm) {
+        const uint8_t *gb = (const uint8_t *)dg.bytes;
+        uint32_t numRes = *(const uint32_t *)(gb + 0x40);
+        fnumGrp = *(const uint32_t *)(gb + 0x44);
+        LOG("[rp2f] FULL residency: numResources %u numGroups %u", numRes, fnumGrp);
+        if (!fnumGrp || fnumGrp > 8) {
+            LOG("[rp2f] bad numGroups — best-effort 4");
+            fnumGrp = 4;
+        }
+        for (uint32_t g = 0; g < fnumGrp && nmap < 32; g++) {
+            long go = 0x48 + (long)g * 0x40;
+            uint32_t gc = *(const uint16_t *)(gb + go + 0x3e);
+            if (!gc || gc > 6) {
+                LOG("[rp2f] group %u @+0x%lx count %u implausible — raw:", g, go, gc);
+                mtl_hexdump("rp2f-grp", (long)go, gb + go, 0x40);
+                continue;
+            }
+            LOG("[rp2f] group %u @+0x%lx count %u", g, go, gc);
+            for (uint32_t i = 0; i < gc && nmap < 32; i++) {
+                uint32_t rr = *(const uint32_t *)(gb + go + 0x00 + i * 4);
+                uint32_t rkb = *(const uint32_t *)(gb + go + 0x18 + i * 4);
+                int dup = -1;
+                for (int k = 0; k < nmap; k++) if (mref[k] == rr) { dup = k; break; }
+                if (dup >= 0) {
+                    LOG("[rp2f] ref rid %u (grp %u slot %u, %u KB) — dup of map #%d, skipped",
+                        rr, g, i, rkb, dup);
+                    continue;
+                }
+                uint32_t our;
+                uint64_t gva = 0;
+                uint8_t *cpu = NULL;
+                if (go == 0x108 && i == 0) our = ridA;
+                else if (go == 0x108 && i == 1) our = ridB;
+                else {
+                    long rsz = (long)rkb << 10;
+                    if (rsz < 0x1000) rsz = 0x1000;
+                    our = gpu_resource2(c, (uint64_t)rsz, &gva, &cpu);
+                    if (cpu) memset(cpu, 0, (size_t)rsz);   // Metal internal pools are zero
+                }
+                LOG("[rp2f] ref rid %u (grp %u slot %u, %u KB) -> our rid %u gpuva 0x%llx",
+                    rr, g, i, rkb, our, gva);
+                mref[nmap] = rr; mour[nmap] = our; nmap++;
+            }
+        }
+        LOG("[rp2f] mapping: %d unique reference rids (target numResources %u)", nmap, numRes);
+        if (nmap < (int)numRes)
+            LOG("[rp2f] WARNING: mapped %d of %u — residency still incomplete", nmap, numRes);
+    }
     uint8_t *entry = must_map(0x1000);
     uint32_t *outw = (uint32_t *)must_map(0x100);
     uint8_t *comp = must_map(0x1000);
+    // v80-style userspace completion/aux pair (historical working entry form,
+    // p_mtlreplay S-combos): aux2 carries the dst residency table, aux1 the
+    // table pointer + capacity. FUZZ_REPLAY2_OLDENTRY=1 selects the qex
+    // {comp, comp+0x30} form for A/B.
+    uint8_t *aux1 = must_map(0x1000);
+    uint8_t *aux2 = must_map(0x1000);
+    memset(aux1, 0, 0x1000); memset(aux2, 0, 0x1000);
+    *(uint64_t *)(aux1 + 0x300) = (uint64_t)(uintptr_t)aux2;   // resource table ptr
+    *(uint32_t *)(aux1 + 0x318) = 4;                           // table capacity
+    *(uint64_t *)(aux2 + 0x00) = gpuB;
+    *(uint64_t *)(aux2 + 0x08) = (uint64_t)(uintptr_t)cpuB;
+    *(uint64_t *)(aux2 + 0x10) = gpuB + 0x10000;
+    *(uint64_t *)(aux2 + 0x18) = (uint64_t)(uintptr_t)cpuB;
+    *(uint64_t *)(aux2 + 0x38) = ridB;
+    int oldentry = getenv("FUZZ_REPLAY2_OLDENTRY") != NULL;
+    LOG("[rp2] entry form: %s (A/B: FUZZ_REPLAY2_OLDENTRY=1)",
+        oldentry ? "OLD qex {comp,comp+0x30}" : "HISTORICAL v80 {aux1,aux2,+0x20 ridB}");
+    // kcmd list header sanity + stream walk (validator: stream/seglist
+    // underrun surfaces as outw 0xa). Header {type,len} @+0/+0x4.
+    {
+        const uint8_t *kb = (const uint8_t *)dk.bytes;
+        uint32_t ht = *(const uint32_t *)(kb + 0), hl = *(const uint32_t *)(kb + 4);
+        LOG("[rp2] kcmd header {type 0x%08x, len 0x%08x}", ht, hl);
+        int ok = ht && hl >= 8 && hl <= 0x1000 && !(hl & 3);
+        long off = 0, nrec = 0;
+        for (;;) {
+            uint32_t t = *(const uint32_t *)(kb + off);
+            uint32_t l = *(const uint32_t *)(kb + off + 4);
+            if (!t) break;
+            if (l < 8 || off + l > 0x4000) {
+                LOG("[rp2] stream walk: record@%ld {t %u l %u} OUT OF BOUNDS", off, t, l);
+                break;
+            }
+            off += l; nrec++;
+            if (off + 8 > 0x4000) break;
+        }
+        LOG("[rp2] stream walk: %ld records, end @0x%lx%s",
+            nrec, off, ok ? "" : " — header zero/broken, repair per variant");
+    }
     volatile uint8_t *nq = nqVA ? (volatile uint8_t *)(uintptr_t)nqVA : NULL;
     // ---- pool0 -> resource C. The dump was the Metal context's pool window;
     // it does not map onto any of our buffers, so re-create its content in
@@ -15319,6 +15484,25 @@ static void p_replay2(void) {
     for (long v = 1; v <= var; v++) {
         memcpy(vaCmd, dk.bytes, 0x4000);
         memcpy(vaSeg, dg.bytes, 0x4000);
+        // header repair (if the dump header was zero/broken): find the first
+        // plausible {type,len} record anchor and shift content to +0
+        {
+            uint32_t ht = *(uint32_t *)(vaCmd + 0), hl = *(uint32_t *)(vaCmd + 4);
+            if (!ht || hl < 8 || hl > 0x1000 || (hl & 3)) {
+                long fix = -1;
+                for (long o = 8; o + 8 <= 0x400; o += 4) {
+                    uint32_t t = *(uint32_t *)(vaCmd + o), l = *(uint32_t *)(vaCmd + o + 4);
+                    if (t && l >= 8 && l <= 0x800 && !(l & 3)) { fix = o; break; }
+                }
+                if (fix > 0) {
+                    memmove(vaCmd, vaCmd + fix, 0x4000 - fix);
+                    memset(vaCmd + 0x4000 - fix, 0, fix);
+                    LOG("[rp2] var%ld: header repaired, content shifted from +0x%lx", v, fix);
+                } else {
+                    LOG("[rp2] var%ld: no valid record anchor — submitting as-is", v);
+                }
+            }
+        }
         // kcmd: substitute reference GPUVAs, rebase absolute pool/bplist refs
         long np = 0, nreb = 0, nrid = 0;
         for (long o = 0; o + 8 <= 0x4000; o += 4) {
@@ -15335,17 +15519,45 @@ static void p_replay2(void) {
             if (w == refRidA && refRidA) { *(uint32_t *)(vaCmd + o) = ridA; nrid++; }
             else if (w == refRidB && refRidB) { *(uint32_t *)(vaCmd + o) = ridB; nrid++; }
         }
-        // seg: rid pair + sizeKB pair + every other rid occurrence
+        // seg: rid pair + sizeKB pair, then either FULL mapping substitution or
+        // the legacy pair-only substitution
         *(uint32_t *)(vaSeg + 0x108) = ridA;
         *(uint32_t *)(vaSeg + 0x10c) = ridB;
         *(uint32_t *)(vaSeg + 0x120) = 0x40;
         *(uint32_t *)(vaSeg + 0x124) = 0x40;
         long nsrid = 0;
-        for (long o = 0; o + 4 <= 0x4000; o += 4) {
-            if (o == 0x108 || o == 0x10c) continue;
-            uint32_t w = *(uint32_t *)(vaSeg + o);
-            if (w == refRidA && refRidA) { *(uint32_t *)(vaSeg + o) = ridA; nsrid++; }
-            else if (w == refRidB && refRidB) { *(uint32_t *)(vaSeg + o) = ridB; nsrid++; }
+        if (fullm) {
+            // group rid slots: exact per-slot substitution, always safe
+            const uint8_t *gb = (const uint8_t *)dg.bytes;
+            for (uint32_t g = 0; g < fnumGrp; g++) {
+                long go = 0x48 + (long)g * 0x40;
+                uint32_t gc = *(const uint16_t *)(gb + go + 0x3e);
+                if (!gc || gc > 6) continue;
+                for (uint32_t i = 0; i < gc; i++) {
+                    long so = go + 0x00 + (long)i * 4;
+                    uint32_t w = *(uint32_t *)(vaSeg + so);
+                    for (int k = 0; k < nmap; k++)
+                        if (mref[k] == w) { *(uint32_t *)(vaSeg + so) = mour[k]; nsrid++; break; }
+                }
+            }
+            // global pass for unambiguous rids (small values collide with
+            // ordinary dwords — those stay slot-only)
+            long gsub = 0;
+            for (int k = 0; k < nmap; k++) {
+                if (mref[k] < 0x10) continue;
+                for (long o = 0; o + 4 <= 0x4000; o += 4) {
+                    if (*(uint32_t *)(vaSeg + o) == mref[k]) { *(uint32_t *)(vaSeg + o) = mour[k]; gsub++; }
+                    if (*(uint32_t *)(vaCmd + o) == mref[k]) { *(uint32_t *)(vaCmd + o) = mour[k]; gsub++; }
+                }
+            }
+            LOG("[rp2f] var%ld: group-slot subs %ld, global subs (rid>=0x10) %ld", v, nsrid, gsub);
+        } else {
+            for (long o = 0; o + 4 <= 0x4000; o += 4) {
+                if (o == 0x108 || o == 0x10c) continue;
+                uint32_t w = *(uint32_t *)(vaSeg + o);
+                if (w == refRidA && refRidA) { *(uint32_t *)(vaSeg + o) = ridA; nsrid++; }
+                else if (w == refRidB && refRidB) { *(uint32_t *)(vaSeg + o) = ridB; nsrid++; }
+            }
         }
         LOG("[rp2] var%ld: kcmd gpuVA-sub %ld abs-rebase %ld rid-sub %ld | seg extra rid-sub %ld",
             v, np, nreb, nrid, nsrid);
@@ -15365,17 +15577,32 @@ static void p_replay2(void) {
         memset(entry, 0, 0x1000);
         *(uint32_t *)(entry + 0x00) = idCmd;
         *(uint32_t *)(entry + 0x04) = idSeg;
-        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
-        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+        if (oldentry) {
+            *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;      // qex form
+            *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+        } else {
+            *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)aux1;      // v80 historical form
+            *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)aux2;
+            *(uint32_t *)(entry + 0x20) = ridB;   // prepare/residency reference
+        }
         memset(cpuB, 0, 0x10000);
         memset(cpuA, 0x41, 0x10000);
         *outw = 0xdeadbeef;
         memset(comp, 0, 0x1000);
-        LOG("[rp2] var%ld: submit qid %llu entry {cmd %u seg %u} (PANIC possible)", v, qid, idCmd, idSeg);
+        memset(aux1, 0, 0x300);    // keep the residency table at +0x300..+0x31c
+        LOG("[rp2] var%ld: submit qid %llu entry {cmd %u seg %u} %s (PANIC possible)",
+            v, qid, idCmd, idSeg, oldentry ? "OLD" : "HIST");
         fflush(stderr);
         fsync(fileno(stderr));
         kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40,
                                            (uintptr_t)entry, (uintptr_t)outw);
+        // post-submit bookkeeping observed in the Metal trace
+        uint64_t s17[1] = { 1 };
+        kern_return_t k17 = IOConnectCallScalarMethod(c, 17, s17, 1, NULL, NULL);
+        uint64_t s15[1] = { 2 };
+        kern_return_t k15a = IOConnectCallScalarMethod(c, 15, s15, 1, NULL, NULL);
+        s15[0] = 1;
+        kern_return_t k15b = IOConnectCallScalarMethod(c, 15, s15, 1, NULL, NULL);
         // poll: cpuB readback + comp + nq completion records
         long a41 = 0, nz = 0;
         for (int w = 0; w < 20; w++) {
@@ -15388,6 +15615,7 @@ static void p_replay2(void) {
             if (nz) break;
         }
         int nrec = 0;
+        uint32_t st2 = 0;
         if (nq) {
             for (long o = 0; o + 16 <= 0x1000 && nrec < 4; o += 0x10) {
                 uint64_t q0 = *(volatile uint64_t *)(nq + o);
@@ -15395,14 +15623,26 @@ static void p_replay2(void) {
                 uint32_t st = *(volatile uint32_t *)(nq + o + 8);
                 LOG("[rp2] var%ld nq+%03lx: value %016llx status %u%s", v, o, q0, st,
                     st == 5 ? " FIRMWARE-REJECT" : "");
+                if (nrec == 1) st2 = st;
                 nrec++;
             }
         }
+        if (fullm) {
+            if (nrec >= 2)
+                LOG("[rp2f] var%ld: firmware status (2nd record) %u — %s", v, st2,
+                    st2 == 5 ? "reject (parser passed to validator — R3-like, residency accepted path)"
+                             : "NOT 5 — parse path CHANGED");
+            else
+                LOG("[rp2f] var%ld: fewer than 2 nq records (%d) — no firmware verdict", v, nrec);
+        }
         uint64_t *cq = (uint64_t *)comp;
-        LOG("[rp2] var%ld -> kr 0x%08x outw %08x comp st@+18 %u st@+48 %u | B: 41 %ld nz %ld %s",
+        LOG("[rp2] var%ld -> kr 0x%08x outw %08x comp st@+18 %u st@+48 %u post{17:%08x 15:%08x/%08x} | B: 41 %ld nz %ld %s",
             v, kt, *outw, *(uint32_t *)(comp + 0x18), *(uint32_t *)(comp + 0x48),
-            a41, nz, a41 ? "*** REPLAY2 WRITE CONFIRMED ***" : "(no write)");
-        LOG("[rp2] var%ld comp: %016llx %016llx %016llx %016llx", v, cq[0], cq[1], cq[2], cq[3]);
+            k17, k15a, k15b, a41, nz, a41 ? "*** REPLAY2 WRITE CONFIRMED ***" : "(no write)");
+        LOG("[rp2] var%ld comp: %016llx %016llx %016llx %016llx | aux1: %016llx %016llx aux2: %016llx %016llx",
+            v, cq[0], cq[1], cq[2], cq[3],
+            ((uint64_t *)aux1)[0], ((uint64_t *)aux1)[1],
+            ((uint64_t *)aux2)[0], ((uint64_t *)aux2)[1]);
         if (nz && !a41) LOG("[rp2] var%ld: dst written with NON-0x41 data (infoleak?)", v);
     }
     LOG("[rp2] done (alive)");
