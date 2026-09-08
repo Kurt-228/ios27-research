@@ -112,8 +112,13 @@ w2 = (w8_sp5c == -1) ? 0x80 : w8_sp5c
 [x12+0xe34] = w2                          // guilty_stamp_index -> accel+0x18e34
 ```
 
-Event ring — AGFI shared memory (пишется firmware/GPU). Значит индекс не валидируется ни по
-верхней границе, ни по типу: kernel верит, что по этому индексу существует канал.
+(схематично; точные смещения source-полей и условия — `docs/fw_event_ring.md` §6:
+записи происходят только если вирт-вызов fw vtable+0x1c8 вернул 0, значения — из
+status block [fw+0xd18]+0x5000, индекс — из entry+0xc)
+
+Event ring — AGFI shared memory (пишется firmware/GPU). Индекс **валидируется** в
+drainFirmwareEventRing: `idx == -1 ∨ 0 ≤ idx < count(stamp-слотов)` иначе failure-паника
+валидатора до записи в accel+0x18e34 (подробно — `docs/fw_event_ring.md` §5/§6).
 
 ## 4. Цели spray
 
@@ -126,16 +131,24 @@ lookup по индексу падает → **panic с нашим числом �
 
 Что нужно для срабатывания:
 1. Спрей-страница реально уходит в AGFI/event-ring пул (проверка — §5).
-2. Значение по смещению события, из которого парсится индекс (в drainFirmwareEventRing
-   читается `[ring+0x515c]`-цепочка; точное смещение поля индекса внутри события —
-   довычислить из 0x8b224b4 при необходимости) — кладём != 0x80 и != любого валидного индекса.
+2. Значение по смещению события, из которого парсится индекс: `u32 @ entry+0xc`
+   (см. `docs/fw_event_ring.md`). **Уточнение:** значение `idx ≥ count` отсекается
+   валидатором event ring ещё до записи в accel+0x18e34 → panic случается, но другой
+   («Ring entry contains bad data», без печати индекса). Для panic «Type confusion»
+   с печатью нашего числа нужно `0 ≤ idx < count` при пустом stamp-слоте (канал
+   уничтожен к моменту restartWorkQueue → lookup NULL).
 3. Hang с firmware-инициированным recovery (reason из accel+0x18e38 != «host detected»),
    т.е. ждём реального GPU lockup, а не только host timeout.
 
-Байт-карта (по записи события): u32 индекса = 0x0000dead (не 0x80, не <кол-во каналов>);
-соседние поля события — корректные reason/subtype, чтобы дойти именно до ветки guilty.
+Байт-карта (по записи события): type = 4 (u32 @ +0, в bitmap 0xa000ffd3), u32 индекса
+@ +0xc в диапазоне [0, count) (не 0x80 — это маппинг -1); соседние поля события —
+корректные reason/subtype, чтобы дойти именно до ветки guilty.
 Оговорка: restartWorkQueue рано выходит, если `[accel+0x18e38]`/гейт не пройдены — событие
 долно выставить и их (subtype byte accel+0x18e38 ∈ [2..7]).
+Достижимость спрея — главный гейт: память event ring — dedicated AGXInternalResource
+shared memory (boot-time, не kalloc-пул), напрямую спреем не перерабатывается; см.
+`docs/fw_event_ring.md` §8 и §5 (любой мусор в кольце panic'ит валидатор — для DoS
+достаточно менее точного попадания, чем для «Type confusion»).
 
 ### (b) infoleak — два варианта
 
@@ -254,8 +267,11 @@ userland. Прямого контроля idx (через command buffer, hint d
    outlined) — что кладётся в +0xd8.
 2. **Тип `[accel+0x570]+0xd18`**: найти владельца поля +0xd18 объекта [accel+0x570] и его
    инициализацию (shmem vs kalloc).
-3. **Смещение guilty-индекса внутри firmware event entry**: дочитать `drainFirmwareEventRing`
-   (0x8b224b4) до вычисления `[sp+0x5c]`.
+3. ~~Смещение guilty-индекса внутри firmware event entry~~ — **решено**: см.
+   `docs/fw_event_ring.md` §3/§6: индекс = `u32 @ entry+0xc` (72-байт запись,
+   `AGXFirmwareRingValidator::fetchNextEntry`), bounds-check `idx == -1 ∨ idx < count`
+   в type-4 case до записи в accel+0x18e34; failure-пути валидатора — panic-стиль
+   (`stub@0x8bab470`, «Ring entry contains bad data»), не silent-drop.
 4. **iOS-смещения**: все «0x18e34/0x11c48/0xd18/0x490/0x1e8» сверить с iOS-G16P kernelcache
    (доступен на девайсе; этот Mac-бинарь — единственный источник сейчас).
 5. **Context-ID менеджер** (§4-A): место записи capacity (accel+0x11ae8) и аллокации
