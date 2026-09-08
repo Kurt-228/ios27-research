@@ -1,0 +1,202 @@
+# AGXAccelerator::restartWorkQueue + getGuiltyChannel: разбор структур и целей для phys-spray
+
+Дата: 2026-09-08. Тот же источник, что и `iogpu_restart_policy.md`: BootKernelCollection.kc
+macOS 27.0 (26A5388g), кекст AGXG16G (360.32.1), M3/A17-класс. Девайс-цель: iPhone 15 Pro Max
+(A17 Pro, G16P) — код общий, но все смещения ниже проверены **только** на macOS-бинаре; на iOS
+G16P они могут отличаться (отмечено [iOS?] где риск выше всего).
+
+Контекст задачи: у нас есть phys-spray с контролем контента в freed ядерные страницы на девайсе.
+Системные GPU-клиенты (WindowServer/бэкенды/др.) забирают эти страницы и фолтятся → кекст AGX
+читает структуры, лежащие в переработанных страницах. Нужно понять, какие структуры читает
+restart-анализ AGX-кекста, чтобы: (a) вызвать panic-assert, (b) увести чтение pid/имени процесса
+по контролируемому адресу (infoleak в лог), (c) спровоцировать «no guilty channel» panic.
+
+Инструменты: дизасм `results/kc-extract/restart_wq_full.txt` (3029 строк, функция
+`AGXAccelerator::restartWorkQueue(AGXWorkQueue*)` @ 0xfffffe0008ae6820),
+`results/kc-extract/guilty.txt` (`AGX3DWorkQueue::getGuiltyChannel() const` @ 0x8ba6e44).
+Внешние вызовы идут через interposable-стабы (`adrp x17,0x7f5c000; add; ldr x16,[x17]; braa`) —
+символьные имена стабов статически не резолвятся (jumptable хранит закодированные значения),
+ниже они обозначены `stub@0x8bab000` и т.п. с семантикой по использованию.
+
+## 1. Карта restartWorkQueue
+
+Регистры на входе: x20 = this (AGXAccelerator*), x28 = wq (AGXWorkQueue*).
+Все `add xN, xM, #k, lsl #12` — встроенные подобъекты внутри огромного AGXAccelerator.
+
+| Блок | Адреса (func+off) | Что делает |
+|---|---|---|
+| Gate | +0x00–0x1ac | `ldrb [accel+0x18e38]`; вирт-вызов `[accel+0x570]+0x1a8(wq)` → при 0 ранний выход (+0x2f08). |
+| Reason dispatch | +0x1c8–0xa80 | `w0 = [[accel+0x158]+0xf0]` (тип устройства, сравнение с 2..5); байт `[wq+0x8]` (причина 0..6) → enum w21 + строка описания. Прогресс-чек: `[x0+0x60]`=очередь, `[queue+0x0]` vs `[queue+0x30]`, `[x0+0x70]` vs `[queue+0x30]`, `[queue+0x30]` vs `[queue+0x40]`. |
+| Stamp-ring stuck check | +0x68c–0x934 | x21 = `[wq+0xd8]` (stamp-ring объект); count=`[x21+0x288]`; массив `[x21+0x88 + i*16]` → каждый элемент в `stub@0x8bab250`, тест бита 63 результата → флаг «stuck» (w27) → reason 7/8. |
+| iofence_list collection | +0x808–0x934 | по тому же кольцу: `stub@0x8baac70(count)` (аллок массива), для каждой записи `stub@0x8baae50` → объект (retain через вирт +0x20), `stub@0x8baac80(array, obj)` → позже уходит в debug-словарь под ключом `iofence_list` / `iofence_num_iosurfaces` / `iofence_iosurfaces`. |
+| Телеметрия/GPU Hang log | +0x22f4–0x268c | getGuiltyChannel (`stub@0x8bab000`), `[ret+0x60]`=IOGPUCommandQueue, `[queue+0x490]`=pid → `stub@0x8bab4b0(pid, buf, 36)` (proc info → имя); уровень рестарта из `[[accel+0x158]+0xf0]-2` → `stub@0x8baa220(queue, level)`; итерация sideband-списка (sp+0x90) — ещё каналы/пиды. Строки: `'GPU Hang: '`, `' (pid=%u)'`, `'guilty_dm'`. |
+| restart_reason_desc | +0x2030–0x2154 | вирт `[vtable+0x238]`('restart_reason_desc') → имя; snprintf_upd собирает сообщение. |
+| USC/firmware status | +0x22f4 | для reason-битов 0xa10 (4,9,11): `u32 = [[[accel+0x570]+0xd18] + 0x50a8]` → `'%d'` в лог; вирт `[vtable+0x208]` с указателем `x19+0x4298` (блок +0xd18) — ключ `signature`. |
+| Учёт | +0x2750 | `[accel+0x640]++`; `stub@0x8bab3e0` → timestamp в `[accel+0x650]`; `[[accel+0x148]+0x28](3,1)` и `(5)`. |
+| RestartReport | +0x226c, +0x2dd8 | `AGXRestartReport::finalizeAndSendReports(accel)` над объектом из `[gMetaClass+0x710]`; затем release и очистка `[x27]`. |
+| Fence walk | +0x2808–0x29e0 | `[x27+0x4d8]` (x27=accel+0x116e8) — список AGXIOFenceData: `reset()` по цепочке `[+0x38]`. `[x27+0x448]` — lock (пары `stub@0x8ba9bf0`/`stub@0x8ba9c30`). `[x27+0x3f0]` — fence-tracker: `[+0x1d0]` OSArray, count `[+0x28]`; для каждого fence: `w27=[fence+0x1e8]` (stamp idx, пропуск если <1), индексация bitmap-массивов `[A+0x418]/[A+0x420]/[A+0x428]/[A+0x430]` (A=[sp+0x48], границы через маску из `[A+0x400]`), вирт-вызов vtable+0x1e8(w1=-1), retain/release `[fence+0x1d0]`. |
+| Ring cleanup | +0x2ca8–0x2dcc | bar-индексы `[accel+0x11c20+0x10000 +0x5b8 / +0x5bc]`; записи кольца `accel+0x11c48 + idx*0x60`: clear `+0x0`, `+0x50`; если запись жива: ptr=`[+0x50]`, i16=`[+0x58]`, `w = [[ptr+0x48] + 0x15bc]`; если НЕ (i<=0xff && w==0): `u16 0 → [[ptr+0x178] + 2*i]`; счётчик `[sp+0x28][0] += 0x100` → entry+0x48 и `[A+0x550+4i]`; вирт `[A vtable+0xfb0](i&0xff)`; если `[accel+0x1b09c].bit3`: лог через `[accel+0x1ba0]` (`'TA/3D/CL: stamp_idx=%d '`). |
+| Wrap-up | +0x2dcc–0x2f68 | `[accel+0x540]->+0x60` вирт +0x138; `stub@0x8bab2b0([accel+0x548])`; `[accel+0x570]` вирт +0x450; `[accel+0x648]++`; очистка `accel+0x18f20..0x18fa0` и state `accel+0x18e30`; release wq. |
+
+## 2. Таблица структур
+
+Колонка «тип аллокации»: K = kext-объект (kalloc_type, не перерабатывается нашим
+page-granular спреем напрямую), S = shared page / AGFI (карта ядром, пишется GPU/firmware;
+перерабатываема только если страница шла из общего пула физстраниц), G = GPUVM/IOGPU shmem
+(страницы из пула, кандидат №1 на спрей), HW = bar-регистры (MMIO, не спрей).
+
+| Указатель | Смещение | Что читается | Валидация | Тип | Достижимость через spray |
+|---|---|---|---|---|---|
+| accel+0x18e38 | +0x0 (byte) | причина рестарта (sub 2, cmp 5) | нет | K (поле AGXAccelerator, копия из firmware event ring) | низкая; но значение пишется `AGXFirmware::drainFirmwareEventRing` из event ring → см. §4 |
+| accel+0x18e34 | +0x0 (u32) | **guilty_stamp_index** (0x80 = none) | нет | K, значение из firmware event ring (S-источник) | **цель (a)/(c), см. §4** |
+| accel+0x18fb8 | +0x0 (u64) | event payload | нет | K←S | как выше |
+| [accel+0x570]+0xd18 | +0x50a8 (u32) | firmware/USC status → лог `'%d'` | нет | S (status block firmware) | **средняя-высокая** — если +0xd18 указывает на AGFI shared block; цель (b)-вариант «число в лог» |
+| [accel+0x570]+0xd18 | +0x4298 (ptr) | строка `signature` → вирт+0x208 | нет | S | чтение как C-строки из контролируемого блока → infoleak/довычитка в пределах mapped-региона |
+| bar [accel+0x11c20]+0x10000 | +0x5b8/+0x5bc | ring read/write idx | нет | HW/S | значения пишет GPU; гонка индексов → произвольный выбор записи кольца |
+| ring entry accel+0x11c48+i*0x60 | +0x50 (ptr) | ptr → `[ptr+0x48]+0x15bc` (u32 read), `[ptr+0x178]+2*i` (u16 write 0) | нет (только liveness-битмапы accel+0x17c48/0x17c68) | K (записи встроены в accel; ptr — per-DM kext-объект) | низкая для записей; **средняя для ptr**, если ptr-объекты аллоцируются из shmem/GPUVM |
+| ring entry | +0x58 (u16) | stamp idx (<=0xff gate) | сравнение с 0xff | K/HW | — |
+| [wq+0xd8] → +0x88+i*16 | entry (u64+ptr) | элемент в `stub@0x8bab250`, бит63 → stuck-detect; затем retain/массив | **нет** | **S/G — ТРЕБУЕТ ПРОВЕРКИ** (§5) | **цель №1 при подтверждении shared-backed** |
+| [wq+0xd8] → +0x288 | count | граница циклов | нет | как выше | контроль count → OOB-итерация по +0x88, если массив короче |
+| [fence+0x1e8] (из [x27+0x3f0]+0x1d0) | stamp idx | индексация `[A+0x418/0x420/0x428/0x430]` | только >=1 и маска из `[A+0x400]`; **верхней границы по типу нет** | K (IOFence-объекты), значение шлёт пользователь в command buffer | **средняя-высокая**: значения fence/stamp приходят из пользовательских командных буферов; перекос маски → OOB в kalloc-массивы трекера |
+| [channel+0x60] → queue | +0x490 (u32) | **pid** → proc info → имя в `'GPU Hang: '` | cbz на queue; **pid не валидируется** | K | pid не контролируется спреем, но неконтролируемый pid → чтение чужого proc — не наша цель |
+| [channel+0x60] → queue | +0x0/+0x30/+0x40 | progress counters | нет | K | значения счётчиков влияют на reason-код (7/8/9/10/11) |
+
+## 3. getGuiltyChannel (AGX3DWorkQueue, 0x8ba6e44) — точное условие panic
+
+```
+kc    = [this + 0xc0]                  // AGXAccelerator*
+state = *(u32*)(kc + 0x18e34)          // guilty_stamp_index из firmware event ring
+
+if (state == 0x80) {                   // "firmware виновного канала не назвал"
+    a = stub@0x8bab000(this)           // host-side guilty detect
+    d = stub@0x8baa460(a, key@0xca79eb0)
+    if (d && stub@0x8bab150(stub@0x8baaff0(this), d+0xd08)) → return [this+0x218]
+    else { x0 = [this+0x220]; if (x0) return x0; }        // w8=0x220 / 0x218 ветки
+    // иначе fallback:
+} else {                               // firmware дал guilty_stamp_index = state
+    x20 = stub@0x8bab110(stub@0x8baaff0(this), state)     // lookup канала по индексу
+    d   = stub@0x8baa460(x20, key@0xca79dd0)
+    if (x20 == 0 || d == 0) → PANIC
+    return d
+}
+return *(kc + 0x116f0)                 // default channel акселератора
+```
+
+Panic-строка (проверено чтением KC):
+
+```
+AGXk: %s:%d:%s: !!! getGuiltyChannel: Type confusion - invalid AGXChannel
+      for firmware guilty_stamp_index %d
+      (file: agxk_workqueue.cpp, line 1047,
+       func: "virtual IOGPUChannel *AGX3DWorkQueue::getGuiltyChannel() const")
+```
+
+**Это и есть «no guilty channel» panic — цели (a) и (c) сходятся в одну точку.**
+Условие: `state != 0x80` (firmware сообщил виновный stamp index) И lookup канала по этому
+индексу вернул NULL (или у найденного объекта нет ожидаемого свойства).
+В state==0x80-ветке panic нет вообще — там чистые fallback'и на [this+0x218/0x220] и
+[kc+0x116f0]. То есть «no guilty channel» panic — только firmware-driven путь.
+
+Базовый класс `AGXWorkQueue::getGuiltyChannel` @ 0x8ba6660 (не разбирался построчно;
+AGXCLWorkQueue::getGuiltyChannel @ 0x8ba7bac — третий вариант, логика аналогична [iOS?]).
+
+Кто пишет accel+0x18e34: `AGXFirmware::drainFirmwareEventRing` (0x8b224b4+):
+
+```
+x10 = [fw + 0x278]; x12 = x10 + 0x18000
+x9  = *(u64*)(event_ring_ptr + 0x515c)   // payload события из firmware event ring
+[x12+0xfb8] = x9                          // accel+0x18fb8
+[x12+0xe38] = (0x060504_202 >> (dm*3)) & 7 // subtype -> accel+0x18e38
+[x12+0xe30] = w8                          // -> accel+0x18e30
+w2 = (w8_sp5c == -1) ? 0x80 : w8_sp5c
+[x12+0xe34] = w2                          // guilty_stamp_index -> accel+0x18e34
+```
+
+Event ring — AGFI shared memory (пишется firmware/GPU). Значит индекс не валидируется ни по
+верхней границе, ни по типу: kernel верит, что по этому индексу существует канал.
+
+## 4. Цели spray
+
+### (c)+(a) panic «Type confusion / no guilty channel» — приоритет №1 (при подтверждении §5)
+
+Цепочка: наш спрей → страницы firmware event ring / timestamp-колец → `drainFirmwareEventRing`
+парсит событие → `accel+0x18e34 = guilty_stamp_index` (контролируемое значение != 0x80,
+например 0xdead) → GPU hang того же контекста → restartWorkQueue → getGuiltyChannel →
+lookup по индексу падает → **panic с нашим числом в строке**.
+
+Что нужно для срабатывания:
+1. Спрей-страница реально уходит в AGFI/event-ring пул (проверка — §5).
+2. Значение по смещению события, из которого парсится индекс (в drainFirmwareEventRing
+   читается `[ring+0x515c]`-цепочка; точное смещение поля индекса внутри события —
+   довычислить из 0x8b224b4 при необходимости) — кладём != 0x80 и != любого валидного индекса.
+3. Hang с firmware-инициированным recovery (reason из accel+0x18e38 != «host detected»),
+   т.е. ждём реального GPU lockup, а не только host timeout.
+
+Байт-карта (по записи события): u32 индекса = 0x0000dead (не 0x80, не <кол-во каналов>);
+соседние поля события — корректные reason/subtype, чтобы дойти именно до ветки guilty.
+Оговорка: restartWorkQueue рано выходит, если `[accel+0x18e38]`/гейт не пройдены — событие
+долно выставить и их (subtype byte accel+0x18e38 ∈ [2..7]).
+
+### (b) infoleak — два варианта
+
+Вариант B1 (слабый, без спрея): pid в `' (pid=%u)'` берётся из `[queue+0x490]` kext-объекта —
+спреем не контролируется. Не тратим на него спрей.
+
+Вариант B2 (основной): `[[accel+0x570]+0xd18]` — firmware status block. Для reason 4/9/11
+кекст читает `u32 @ block+0x50a8` и печатает в `'GPU Hang: '` сообщение, а вирт-вызов
+`[vtable+0x208]` получает указатель `block+0x4298` как строку (`signature`-контекст).
+Если block в shared-странице из спрея: число из нашей страницы уходит в system log
+(os_log телеметрия AGXKTelemetry) — грубый infoleak содержимого; строковый путь читает
+до NUL в пределах mapped-страницы (довычитка соседних страниц в лог — ограниченная).
+Приоритет средний: подтвердить, что +0xd18 — shared и что путь 4/9/11 достижим нашим hang-сценарием.
+
+### (a-вариант) OOB в fence-tracker — приоритет №2
+
+`[fence+0x1e8]` (stamp idx) приходит из пользовательских command buffers, индексирует
+bitmap-массивы `[A+0x418/0x420/0x428/0x430]` с границей-маской из `[A+0x400]`. Если count
+в трекере некратен/меньше реальных индексов — запись `str xzr/w9` по `base + idx*8/4` вне
+массива (kalloc-переполнение соседнего объекта). Спрей не нужен — только skew индексов;
+отметить как отдельный вектор, не phys-spray.
+
+### Цели «не трогать» (kalloc-only, низкий приоритет)
+
+- Записи кольца `accel+0x11c48+i*0x60` и ptr `entry+0x50` — если ptr-объекты per-DM kalloc
+  (AGXKernelContext), спрей page-granular мимо. Цепочка `[ptr+0x48]+0x15bc` (read u32) и
+  `[ptr+0x178]+2*i` (write u16 0) — мощный примитив, но только при подтверждении, что
+  ptr аллоцируется из shmem/GPUVM, а не kalloc.
+
+## 5. Что подтвердить следующим (проверки)
+
+1. **Аллокация `[wq+0xd8]`** (stamp-ring объект с +0x88 entries / +0x288 count). Кандидат по
+   символам: `AGXFirmwareResourceStack<_AGFITimeStampQueue, AGXTimeStampQueue,64,256>`
+   (`allocateNewBlock`/`replaceStorageArrays` — kalloc_type_view'ы). Если блоки этого стека
+   — kalloc большого размера, спрей возможен только если kalloc берёт свежие страницы из
+   общего пула; если это dedicated shmem — спрей напрямую невозможен, тогда весь §4-цель №1
+   сводится к event-ring варианту. Проверка: построчно `AGXWorkQueue4init` (0x8ba65fc, код
+   outlined) — что кладётся в +0xd8.
+2. **Тип `[accel+0x570]+0xd18`**: найти владельца поля +0xd18 объекта [accel+0x570] и его
+   инициализацию (shmem vs kalloc).
+3. **Смещение guilty-индекса внутри firmware event entry**: дочитать `drainFirmwareEventRing`
+   (0x8b224b4) до вычисления `[sp+0x5c]`.
+4. **iOS-смещения**: все «0x18e34/0x11c48/0xd18/0x490/0x1e8» сверить с iOS-G16P kernelcache
+   (доступен на девайсе; этот Mac-бинарь — единственный источник сейчас).
+
+## 6. Приоритеты (по достижимости)
+
+1. **(c)+(a) panic через firmware guilty_stamp_index** — один достоверный путь, не требует
+   контроля указателей, только значение; блокируется только вопросом §5.1/§5.3.
+2. **(a-вариант) OOB fence-tracker** — без спрея вообще, дешёвый, проверить первым на девайсе.
+3. **(b) infoleak через status block [[accel+0x570]+0xd18+0x50a8 / +0x4298]** — зависит от §5.2;
+   ценность — утечка содержимого нашей страницы в лог (подтверждение спрея + адресная инфа).
+4. kalloc-only структуры (iofence OSArray, ring-entry ptr-цепочка) — только после
+   подтверждения shmem/GPUVM-аллокаций; иначе не тратить спрей.
+
+## 7. Побочные замечания
+
+- Все `brk #0xc472` в функции — PAC-fail трапы (autda/xpacd verify), без обхода PAC не цель.
+- `[accel+0x648]`, `[accel+0x640]` — счётчики рестартов; политика «2 рестарта → deny»
+  (см. iogpu_restart_policy.md, queue+0x43a/0x43c/0x440) — в restartWorkQueue напрямую не
+  читается, deny-логика живёт в вызывающем (processAllChannelCommands, блок за 0x8ae9768).
+- Lock-пары `stub@0x8ba9bf0`/`stub@0x8ba9c30` вокруг `[x27+0x448]` — стандартный
+  IOLockLock/Unlock; гонки в ring cleanup (GPU пишет индексы параллельно) возможны, но
+  символьно не подтверждены.
