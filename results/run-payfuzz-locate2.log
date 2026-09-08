@@ -1,0 +1,20 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7803
+[scaler] conn 0x7803, s1 178 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[pfl] v118 blit DriverTable payload fuzz (locate 1, skip 0)
+[pfl] gpuA 0x10000080000 gpuB 0x10000098000
+[pfl] LOCATE mode: scanning writable VM for DriverTable signatures
+[pfl] signature: +0x0c u32 0x400 (tg) | +0x18/+0x38 u32 0x10000 | +0x60 {gpuA,gpuB}
+[pfl] region 104ee4000 sz 0xc000: gpuA @+0x14a0 gpuB-next 1 tg 0x0 s18 0x0 s38 0x0
+[pfl] region 105400000 sz 0x400000: gpuA @+0xf608 gpuB-next 0 tg 0x0 s18 0xf6c88fd0 s38 0x5686110
+[pfl] region 105400000 sz 0x400000: gpuA @+0x255fa0 gpuB-next 0 tg 0x0 s18 0x0 s38 0x0
+[pfl] region 105400000 sz 0x400000: gpuA @+0x255fe0 gpuB-next 0 tg 0x0 s18 0x0 s38 0x0
+[pfl] region 109000000 sz 0x400000: gpuA @+0x1a790 gpuB-next 1 tg 0x0 s18 0x0 s38 0x0
+[pfl] region 109000000 sz 0x400000: gpuA @+0x1fd00 gpuB-next 1 tg 0x0 s18 0x0 s38 0x0
+[pfl] region 109000000 sz 0x400000: gpuA @+0x20600 gpuB-next 0 tg 0x0 s18 0x0 s38 0x9020600
+[pfl] region 170268000 sz 0x88000: gpuA @+0x80cf8 gpuB-next 0 tg 0x1 s18 0x8768f258 s38 0x702e8d30
+[pfl] locate done: 4 regions, 8 gpuA hits, 0 full matches
+[pfl] locate-only done (alive)
+[probe13] payfuzz-only mode, stop
