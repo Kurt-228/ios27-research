@@ -369,3 +369,25 @@ GATED 0x2c2 (обе формы); sel41 — destroy-стаб (kr 0 обманчи
 sandbox на создании очереди. Вывод: единственный исполняющий GPU-канал из
 App-Sandbox на iOS 27 — живая очередь Metal (confused-deputy патчинг);
 собственного исполнения без неё нет.
+
+## 122. v130: p_jpegimg — косвенный JPEG-трек закрыт
+
+30 кейсов (mutated SOF dims/precision/ncomp/sampling, DQT/DHT len ±1, SOS,
+FF00-нарушения) через ImageIO/CGImageSource + принудительный decode
+(results/run-jpegimg1.log): ВСЁ либо отклонено userland-парсером, либо
+декодируется штатно (prec-12 прошёл), крашей нет, mediaserverd не пострадал.
+Аппаратный декодер из sandbox недостижим ни прямо (v93), ни косвенно —
+userland-валидация снимает всё до DMA. Трек закрыт окончательно.
+
+## 123. Итоговая карта поверхности App-Sandbox (iOS 27.0b4, 08.09)
+
+Полностью отработано и закрыто: AGX envelope (6338 кейсов), payload
+(недостижим — userland-built), IO-command path (gated sel40/42), HID (5740
+кейсов — мертво), IOSurfaceRoot sel9/27/7 (204 кейса + downstream), JPEG
+(прямо и косвенно), SEPKeyStore (статика — тонкий корректный валидатор),
+DART-оракул (не открывается), IOMFB (нет сервиса), CLCD2/JPEG/AKS —
+entitlement-gated. Живое: scaler bug 210 (DoS+zero-fill в своей поверхности),
+GPU read/write своих ресурсов, UAF write-after-free (stale TLB, контент
+наш), cross-process дестабилизация в тёплых окнах. Для kernel-примитива
+не хватает наблюдаемой порчи чужой kernel-структуры — все структуры в
+fault/restart-путях недосягаемы для спрея (kalloc_type/dedicated shmem).

@@ -21,6 +21,7 @@
 #include <IOSurface/IOSurfaceRef.h>
 #include <Foundation/Foundation.h>
 #include <UIKit/UIKit.h>
+#include <ImageIO/ImageIO.h>
 #include <AVFoundation/AVFoundation.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
@@ -16613,6 +16614,163 @@ static void p_hidfuzz(void) {
     LOG("[hid] done (alive), cases %ld", caseidx);
 }
 
+// V122: p_jpegimg — JPEG SOF-vs-buffer desync through ImageIO/UIImage decode.
+// Bypasses the AppleJPEGDriver userland gate (part9 §57): mutated SOF dimensions
+// reach mediaserverd's hardware decode path where internal buffers are sized
+// per SOF. Built-in baseline JPEG is generated in-memory (no external files).
+// Env: FUZZ_JPEGIMG_SKIP=N (deterministic numbering). Tag [jpi].
+struct jpi_case { int kind; const char *tag; uint16_t a, b; };
+static int jpi_parse(const uint8_t *p, long n, long *sof, long *sos, long *dqt,
+                     long *dht, long *ff00) {
+    *sof = *sos = *dqt = *dht = *ff00 = -1;
+    if (n < 4 || p[0] != 0xff || p[1] != 0xd8) return -1;
+    long o = 2;
+    while (o + 4 <= n) {
+        if (p[o] != 0xff) return -1;
+        uint8_t m = p[o + 1];
+        if (m == 0xd8 || (m >= 0xd0 && m <= 0xd7) || m == 0x01) { o += 2; continue; }
+        if (m == 0xd9) return 0;
+        if (o + 4 > n) return -1;
+        uint16_t len = (uint16_t)((p[o + 2] << 8) | p[o + 3]);
+        if (len < 2 || o + len > n) return -1;
+        if (m == 0xda) {
+            *sos = o;
+            long e = o + len;
+            long stop = n - 1;
+            for (long q = e; q + 1 < stop; q++) {
+                if (p[q] == 0xff && p[q + 1] == 0x00) { *ff00 = q; break; }
+                if (p[q] == 0xff && p[q + 1] == 0xd9) break;
+            }
+            return 0;
+        }
+        if (m == 0xc0 && *sof < 0) *sof = o;
+        if (m == 0xdb && *dqt < 0) *dqt = o;
+        if (m == 0xc4 && *dht < 0) *dht = o;
+        o += 2 + len;
+    }
+    return -1;
+}
+static void jpi_decode(NSData *d, const char *tag, long cn) {
+    CGImageSourceRef src = CGImageSourceCreateWithData((CFDataRef)d, NULL);
+    if (!src) { LOG("[jpi] %ld %s: parse rejected", cn, tag); return; }
+    CGImageRef img = CGImageSourceCreateImageAtIndex(src, 0, NULL);
+    if (!img) { LOG("[jpi] %ld %s: decode rejected", cn, tag); CFRelease(src); return; }
+    size_t w = CGImageGetWidth(img), h = CGImageGetHeight(img);
+    size_t cw = w > 2048 ? 2048 : w; if (!cw) cw = 1;
+    size_t ch = h > 2048 ? 2048 : h; if (!ch) ch = 1;
+    CGColorSpaceRef cs = CGColorSpaceCreateDeviceRGB();
+    CGContextRef cx = CGBitmapContextCreate(NULL, cw, ch, 8, cw * 4, cs,
+                                            (CGBitmapInfo)kCGImageAlphaPremultipliedLast);
+    if (cx) { CGContextDrawImage(cx, CGRectMake(0, 0, cw, ch), img); CFRelease(cx); }
+    if (cs) CFRelease(cs);
+    CFNumberRef msz = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, (int[]){2048});
+    CFMutableDictionaryRef opts = CFDictionaryCreateMutable(kCFAllocatorDefault, 2,
+        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    CFDictionarySetValue(opts, kCGImageSourceCreateThumbnailFromImageAlways, kCFBooleanTrue);
+    CFDictionarySetValue(opts, kCGImageSourceThumbnailMaxPixelSize, msz);
+    CGImageRef thumb = CGImageSourceCreateThumbnailAtIndex(src, 0, opts);
+    if (thumb) CFRelease(thumb);
+    CFRelease(opts);
+    if (msz) CFRelease(msz);
+    LOG("[jpi] %ld %s: size %zux%zu drawn=%d", cn, tag, w, h, cx ? 1 : 0);
+    CFRelease(img);
+    CFRelease(src);
+}
+static void p_jpegimg(void) {
+    static const struct jpi_case jcases[] = {
+        {0, "dims-ffffxffff", 0xffff, 0xffff},
+        {0, "dims-fffexfffe", 0xfffe, 0xfffe},
+        {0, "dims-1x-ffff",   0x0001, 0xffff},
+        {0, "dims-ffffx1",    0xffff, 0x0001},
+        {0, "dims-0x0",       0x0000, 0x0000},
+        {0, "dims-0x1",       0x0000, 0x0001},
+        {0, "dims-1x0",       0x0001, 0x0000},
+        {1, "prec-0",         0x0000, 0},
+        {1, "prec-12",        0x000c, 0},
+        {1, "prec-16",        0x0010, 0},
+        {1, "prec-ff",        0x00ff, 0},
+        {2, "ncomp-0",        0x0000, 0},
+        {2, "ncomp-1",        0x0001, 0},
+        {2, "ncomp-2",        0x0002, 0},
+        {2, "ncomp-4",        0x0004, 0},
+        {2, "ncomp-ff",       0x00ff, 0},
+        {3, "samp-11",        0x0011, 0},
+        {3, "samp-22",        0x0022, 0},
+        {3, "samp-41",        0x0041, 0},
+        {3, "samp-14",        0x0014, 0},
+        {3, "samp-ff",        0x00ff, 0},
+        {4, "ff00-ffff",      0x0000, 0},
+        {5, "ff00-ffd9",      0x0000, 0},
+        {6, "dqt-len+1",      0x0001, 0},
+        {6, "dqt-len-1",      0xffff, 0},
+        {7, "dht-len+1",      0x0001, 0},
+        {7, "dht-len-1",      0xffff, 0},
+        {8, "sos-len+10",     0x0010, 0},
+    };
+    UIGraphicsBeginImageContext(CGSizeMake(16, 16));
+    CGContextRef gc = UIGraphicsGetCurrentContext();
+    CGContextSetRGBFillColor(gc, 1.0, 0.0, 0.0, 1.0);
+    CGContextFillRect(gc, CGRectMake(0, 0, 16, 16));
+    UIImage *ui = UIGraphicsGetImageFromCurrentImageContext();
+    NSData *jd = UIImageJPEGRepresentation(ui, 1.0);
+    UIGraphicsEndImageContext();
+    if (!jd || jd.length < 0x40) { LOG("[jpi] no embedded jpeg (len=%ld)", (long)jd.length); return; }
+    long sof, sos, dqt, dht, ff00;
+    if (jpi_parse(jd.bytes, (long)jd.length, &sof, &sos, &dqt, &dht, &ff00) != 0) {
+        LOG("[jpi] marker parse failed"); return;
+    }
+    LOG("[jpi] v122: jpeg %ld bytes, sof=%ld sos=%ld dqt=%ld dht=%ld ff00=%ld",
+        (long)jd.length, sof, sos, dqt, dht, ff00);
+    long skip = atol(getenv("FUZZ_JPEGIMG_SKIP") ?: "0");
+    long cn = 0;
+    jpi_decode(jd, "control", cn); cn++;
+    for (size_t i = 0; i < sizeof(jcases) / sizeof(jcases[0]); i++) {
+        const struct jpi_case *jc = &jcases[i];
+        if (cn++ <= skip) continue;
+        NSMutableData *md = [NSMutableData dataWithData:jd];
+        uint8_t *p = md.mutableBytes;
+        switch (jc->kind) {
+            case 0:
+                if (sof < 0) { LOG("[jpi] %ld %s: no sof, skip", cn - 1, jc->tag); continue; }
+                *(uint16_t *)(p + sof + 5) = jc->a;
+                *(uint16_t *)(p + sof + 7) = jc->b;
+                break;
+            case 1: if (sof < 0) continue; p[sof + 4] = (uint8_t)jc->a; break;
+            case 2: if (sof < 0) continue; p[sof + 9] = (uint8_t)jc->a; break;
+            case 3: if (sof < 0) continue; p[sof + 11] = (uint8_t)jc->a; break;
+            case 4: if (ff00 < 0) continue; p[ff00 + 1] = 0xff; break;
+            case 5: if (ff00 < 0) continue; p[ff00 + 1] = 0xd9; break;
+            case 6:
+                if (dqt < 0) { LOG("[jpi] %ld %s: no dqt, skip", cn - 1, jc->tag); continue; }
+                { int32_t l = (int32_t)((p[dqt + 2] << 8) | p[dqt + 3]);
+                  l += (int32_t)(int16_t)jc->a;
+                  p[dqt + 2] = (uint8_t)(l >> 8); p[dqt + 3] = (uint8_t)(l & 0xff); }
+                break;
+            case 7:
+                if (dht < 0) { LOG("[jpi] %ld %s: no dht, skip", cn - 1, jc->tag); continue; }
+                { int32_t l = (int32_t)((p[dht + 2] << 8) | p[dht + 3]);
+                  l += (int32_t)(int16_t)jc->a;
+                  p[dht + 2] = (uint8_t)(l >> 8); p[dht + 3] = (uint8_t)(l & 0xff); }
+                break;
+            case 8:
+                if (sos < 0) { LOG("[jpi] %ld %s: no sos, skip", cn - 1, jc->tag); continue; }
+                { int32_t l = (int32_t)((p[sos + 2] << 8) | p[sos + 3]);
+                  l += (int32_t)(int16_t)jc->a;
+                  p[sos + 2] = (uint8_t)(l >> 8); p[sos + 3] = (uint8_t)(l & 0xff); }
+                break;
+        }
+        LOG("[jpi] %ld %s: decode...", cn - 1, jc->tag);
+        fflush(stderr);
+        fsync(fileno(stderr));
+        @try {
+            jpi_decode(md, jc->tag, cn - 1);
+        } @catch (NSException *ex) {
+            LOG("[jpi] %ld %s: EXCEPTION %s", cn - 1, jc->tag, [[ex name] UTF8String]);
+        }
+    }
+    LOG("[jpi] done (alive), cases %ld", cn);
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -21355,6 +21513,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_JPEGIMG")) { p_jpegimg(); LOG("[probe13] jpegimg-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }
