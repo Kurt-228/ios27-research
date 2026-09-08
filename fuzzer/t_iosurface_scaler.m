@@ -14850,6 +14850,7 @@ static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *
 static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr_postseg(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr_int_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int2_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void p_dsrecon(void) {
     LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
     id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
@@ -14936,6 +14937,7 @@ static void p_dsrecon(void) {
     if (getenv("FUZZ_DSRECON_N5B")) dsr5b_verify(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_POSTSEG")) dsr_postseg(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_INT")) dsr_int_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT2")) dsr_int2_dump(dev, mq, docdir);
     LOG("[dsr] done (alive)");
 }
 
@@ -15379,6 +15381,140 @@ static void dsr_int_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *do
     LOG("[dsri] done: %ld candidate regions, %d dumped (alive)", nseen, nd);
 }
 
+// V130: FUZZ_DSRECON_INT2 — targeted re-dump hunting E's CPU backing (§2.3).
+// The v128 windows (driver C++ heap +0x240000 with the bottom-arena objects,
+// VA-map target 0x10295c000) were ASLR-bound to that session; this mode
+// re-derives them in the CURRENT session: (a) finds the vptr-heavy driver
+// heap by signature (most-repeated aligned pointer = a vtable repeated
+// across same-class objects, top count >= 8) and dumps its +0x240000 window
+// (0x10000); (b) scans every readable region for the ASLR-free bottom-E
+// anchor qword 0x100000f0000 (plus a bottom-class space-0x1 census) and
+// dumps 0x8000 around the first hit; (c) if the legacy v128 addresses happen
+// to be mapped in this session, dumps those exact windows too. Files
+// Documents/dsrecon-int2-N.bin. Tag [dsri2].
+static int dsri2_dump1(NSString *docdir, int nd, const char *what,
+                       mach_vm_address_t va, mach_vm_size_t len) {
+    mach_vm_address_t q = va;
+    mach_vm_size_t rsz = 0;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t obj;
+    kern_return_t kr = mach_vm_region(mach_task_self(), &q, &rsz, VM_REGION_BASIC_INFO_64,
+                                      (vm_region_info_t)&info, &cnt, &obj);
+    if (kr || va < q || va + len > q + rsz) {
+        LOG("[dsri2] %s 0x%llx+0x%llx: NOT mapped (region 0x%llx+0x%llx kr 0x%x)",
+            what, (uint64_t)va, (uint64_t)len, (uint64_t)q, (uint64_t)rsz, kr);
+        return nd;
+    }
+    if (!(info.protection & VM_PROT_READ)) {
+        LOG("[dsri2] %s 0x%llx: not readable (prot 0x%x)", what, (uint64_t)va, info.protection);
+        return nd;
+    }
+    uint8_t *tmp = malloc(len);
+    memcpy(tmp, (void *)(uintptr_t)va, len);
+    char nm[48];
+    snprintf(nm, sizeof nm, "dsrecon-int2-%d.bin", nd);
+    LOG("[dsri2] %s: %s 0x%llx+0x%llx (region 0x%llx+0x%llx, prot 0x%x)",
+        what, nm, (uint64_t)va, (uint64_t)len, (uint64_t)q, (uint64_t)rsz, info.protection);
+    dsr_write_file(docdir, nm, tmp, (long)len);
+    free(tmp);
+    return nd + 1;
+}
+
+static void dsr_int2_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri2] targeted E-backing hunt (§2.3 windows, ASLR-adapted)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri2] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri2] blit committed status %ld", (long)[cb status]);
+    int nd = 0;
+    // (c) legacy v128 windows, only if THIS session maps them
+    nd = dsri2_dump1(docdir, nd, "legacy heap+0x240000", 0x107800000ULL + 0x240000, 0x10000);
+    nd = dsri2_dump1(docdir, nd, "legacy VA-map", 0x10295c000ULL, 0x8000);
+    // (a)+(b) adaptive scan
+    mach_vm_address_t addr = 0;
+    uint64_t vptr_reg = 0, vptr_rsz = 0, vptr_val = 0;
+    long vptr_cnt = 0;
+    uint64_t anch_reg = 0, anch_rsz = 0, anch_off = 0;
+    long nhits = 0, nbottom = 0;
+    uint64_t bot_reg = 0; long bot_cnt = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_READ) && sz >= 0x1000 && sz <= 0x1000000) {
+            const uint8_t *b = (const uint8_t *)addr;
+            mach_vm_size_t lim = sz > 0x40000 ? 0x40000 : sz;
+            // (b) bottom-E anchor + bottom-class census
+            long bc = 0;
+            for (mach_vm_size_t o = 0; o + 8 <= lim; o += 8) {
+                uint64_t qw; memcpy(&qw, b + o, 8);
+                if (qw == 0x100000f0000ULL) {
+                    if (!nhits) { anch_reg = addr; anch_rsz = sz; anch_off = o; }
+                    nhits++;
+                }
+                if ((qw >> 32) == 1 && (qw & 0xffffffffULL) >= 0x10000
+                    && (qw & 0xffffffffULL) < 0x100000) bc++;
+            }
+            nbottom += bc;
+            if (bc > bot_cnt) { bot_cnt = bc; bot_reg = addr; }
+            // (a) vptr-heavy: most repeated aligned pointer in
+            // [0x100000000, 0x300000000) (vtables repeat across objects)
+            uint64_t vals[16]; long vcnt[16]; int nv = 0;
+            for (mach_vm_size_t o = 0; o + 8 <= lim; o += 8) {
+                uint64_t qw; memcpy(&qw, b + o, 8);
+                if (qw < 0x100000000ULL || qw >= 0x300000000ULL || (qw & 0xf)) continue;
+                int k;
+                for (k = 0; k < nv; k++) if (vals[k] == qw) { vcnt[k]++; break; }
+                if (k < nv) continue;
+                if (nv < 16) { vals[nv] = qw; vcnt[nv] = 1; nv++; }
+            }
+            for (int k = 0; k < nv; k++)
+                if (vcnt[k] > vptr_cnt) {
+                    vptr_cnt = vcnt[k]; vptr_val = vals[k];
+                    vptr_reg = addr; vptr_rsz = sz;
+                }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    LOG("[dsri2] scan: anchor 0x100000f0000 hits %ld (first @0x%llx+0x%llx),"
+        " bottom-class qwords %ld (top region 0x%llx x%ld),"
+        " vptr heap 0x%llx sz 0x%llx top vptr 0x%llx x%ld",
+        nhits, anch_reg, anch_off, nbottom, bot_reg, bot_cnt,
+        vptr_reg, vptr_rsz, vptr_val, vptr_cnt);
+    // adaptive dumps from the scan findings
+    if (vptr_reg && vptr_cnt >= 8) {
+        if (vptr_rsz >= 0x240000 + 0x10000)
+            nd = dsri2_dump1(docdir, nd, "vptr-heap+0x240000", vptr_reg + 0x240000, 0x10000);
+        else if (vptr_rsz > 0x10000)
+            nd = dsri2_dump1(docdir, nd, "vptr-heap tail", vptr_reg + vptr_rsz - 0x10000, 0x10000);
+        else
+            nd = dsri2_dump1(docdir, nd, "vptr-heap base", vptr_reg, vptr_rsz);
+    } else {
+        LOG("[dsri2] no vptr-heavy region (top count %ld < 8) — heap window skipped", vptr_cnt);
+    }
+    if (nhits > 0 && anch_reg) {
+        mach_vm_size_t off = anch_off >= 0x1000 ? (mach_vm_size_t)anch_off - 0x1000 : 0;
+        mach_vm_size_t len = anch_rsz - off;
+        if (len > 0x8000) len = 0x8000;
+        nd = dsri2_dump1(docdir, nd, "anchor window", anch_reg + off, len);
+    } else {
+        LOG("[dsri2] no anchor hit — E backing not located this session");
+    }
+    LOG("[dsri2] done: %d dumps (alive)", nd);
+}
+
 // V127: p_replay2 — hybrid replay of the live-blitz reference dumps (fuzzer/
 // assets/dsrecon-cfg1-*.bin, captured by p_dsrecon N1) through OUR type-1
 // queue (C3, docs/device_stream_builder.md). Reference GPUVAs are read from
@@ -15439,12 +15575,14 @@ static void p_replay2(void) {
     uint64_t a24[2] = { qid, nqid };
     kr = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
     LOG("[rp2] qid %llu sel24 bind 0x%08x", qid, kr);
-    // ---- resources: A src (0x41), B dst (0), C pool re-creation 0x20000
+    // ---- resources: A src (0x41), B dst (0), C pool-page re-creation
+    // 0x40000 (§2.3: pool pages are 0x40000-class, same as D — the FULL
+    // rebase maps [poolBase, poolBase+0x40000) onto C+delta)
     uint64_t gpuA = 0, gpuB = 0, gpuC = 0;
     uint8_t *cpuA = NULL, *cpuB = NULL, *cpuC = NULL;
     uint32_t ridA = gpu_resource2(c, 0x10000, &gpuA, &cpuA);
     uint32_t ridB = gpu_resource2(c, 0x10000, &gpuB, &cpuB);
-    uint32_t ridC = gpu_resource2(c, 0x20000, &gpuC, &cpuC);
+    uint32_t ridC = gpu_resource2(c, 0x40000, &gpuC, &cpuC);
     LOG("[rp2] rids A %u (0x%llx) B %u (0x%llx) C %u (0x%llx)",
         ridA, gpuA, ridB, gpuB, ridC, gpuC);
     if (!ridA || !ridB || !cpuA || !cpuB) { LOG("[rp2] resources fail"); return; }
@@ -15613,9 +15751,106 @@ static void p_replay2(void) {
     volatile uint8_t *nq = nqVA ? (volatile uint8_t *)(uintptr_t)nqVA : NULL;
     // ---- pool0 -> resource C. The dump was the Metal context's pool window;
     // it does not map onto any of our buffers, so re-create its content in
-    // our own 0x20000 resource and rebase kcmd absolute refs onto gpuC.
+    // our own resource and rebase kcmd absolute refs onto gpuC.
     LOG("[rp2] strategy: pool window was Metal-context owned — re-creating pool0 in resource C (gpuva 0x%llx)", gpuC);
-    if (cpuC) {
+    if (fullm) {
+        // FULL (§2.3): real pool-page content from the v128 capture
+        // (dsrecon-int-0.bin — pool0 analog: capture blit slots @+0x1a790,
+        // bottom-arena GPUVA table @+0x1a428, 429-entry split-GPUVA array).
+        // Loaded, then capture self-references rebased: the blit pair ->
+        // our gpuA/gpuB (slots first, gpuA/gpuB excluded from the range
+        // pass), every other qword in the dump's own GPU range -> gpuC /
+        // gpuD + delta (full-qword and split-dword forms). Fallback: zero +
+        // legacy slot heuristic with a WARNING.
+        NSData *di0 = nil;
+        rp2_load(mb, "dsrecon-int-0", &di0);
+        if (di0 && di0.length >= 0x1000 && cpuC) {
+            const uint8_t *ib = (const uint8_t *)di0.bytes;
+            long clen = (long)di0.length;
+            long n = clen < 0x40000 ? clen : 0x40000;
+            memset(cpuC, 0, 0x40000);
+            memcpy(cpuC, ib, n);
+            LOG("[rp2f] C: loaded dsrecon-int-0 (%ld of %ld bytes)%s", n, clen,
+                clen > 0x40000 ? " — CLAMPED to 0x40000" : "");
+            // 1) capture blit pair (self-describing at +0x1a790/+0x1a798,
+            //    role of the old pool0+0x14a0 slots) -> our gpuA/gpuB
+            uint64_t ca = *(const uint64_t *)(cpuC + 0x1a790);
+            uint64_t cb = *(const uint64_t *)(cpuC + 0x1a798);
+            long nsl = 0;
+            if ((ca >> 32) == 1 && (cb >> 32) == 1 && ca != cb) {
+                uint32_t cal = (uint32_t)ca, cbl = (uint32_t)cb, gal = (uint32_t)gpuA, gbl = (uint32_t)gpuB;
+                for (long o = 0; o + 8 <= n; o += 4) {
+                    uint64_t q = *(uint64_t *)(cpuC + o);
+                    if (q == ca) { *(uint64_t *)(cpuC + o) = gpuA; nsl++; }
+                    else if (q == cb) { *(uint64_t *)(cpuC + o) = gpuB; nsl++; }
+                    else {
+                        uint32_t d1 = *(uint32_t *)(cpuC + o + 4);
+                        uint32_t d0 = *(uint32_t *)(cpuC + o);
+                        if (d1 == 0x100 && d0 == cal) { *(uint32_t *)(cpuC + o) = gal; nsl++; }
+                        else if (d1 == 0x100 && d0 == cbl) { *(uint32_t *)(cpuC + o) = gbl; nsl++; }
+                    }
+                }
+                LOG("[rp2f] C: capture blit slots 0x%llx/0x%llx -> gpuA/gpuB, %ld refs",
+                    ca, cb, nsl);
+            } else {
+                LOG("[rp2f] WARNING: C +0x1a790/+0x1a798 = {0x%llx,0x%llx} not a space-0x1 pair"
+                    " — blit slots NOT patched", ca, cb);
+            }
+            // 2) self-range vote: the 0x40000-aligned window holding the most
+            //    page-aligned space-0x1 qwords = the capture pool page (G0);
+            //    rebase its refs onto gpuC (page 1) / gpuD (page 2)
+            uint64_t bk[32]; long bc[32]; int nbk = 0;
+            for (long o = 0; o + 8 <= n; o += 4) {
+                uint64_t q; memcpy(&q, cpuC + o, 8);
+                if ((q >> 32) != 1 || (q & 0xfff) || (q & 0xffffffffULL) < 0x10000) continue;
+                if (q == gpuA || q == gpuB) continue;   // already ours
+                uint64_t b = q & ~0x3ffffULL;
+                int k;
+                for (k = 0; k < nbk; k++) if (bk[k] == b) { bc[k]++; break; }
+                if (k == nbk && nbk < 32) { bk[nbk] = b; bc[nbk] = 1; nbk++; }
+            }
+            int bi = -1;
+            for (int k = 0; k < nbk; k++) if (bi < 0 || bc[k] > bc[bi]) bi = k;
+            if (bi >= 0) {
+                uint64_t G0 = bk[bi];
+                long nc1 = 0, nc2 = 0, nsp = 0;
+                for (long o = 0; o + 8 <= n; o += 4) {
+                    uint64_t q = *(uint64_t *)(cpuC + o);
+                    if (q == gpuA || q == gpuB) continue;
+                    if (q >= G0 && q < G0 + 0x40000) { *(uint64_t *)(cpuC + o) = gpuC + (q - G0); nc1++; }
+                    else if (gpuD && q >= G0 + 0x40000 && q < G0 + 0x80000) {
+                        *(uint64_t *)(cpuC + o) = gpuD + (q - G0 - 0x40000); nc2++;
+                    }
+                }
+                // split-dword form {off,0x100} (the 429-entry array)
+                uint32_t g0l = (uint32_t)G0;
+                for (long o = 0; o + 8 <= n; o += 4) {
+                    uint32_t d1 = *(uint32_t *)(cpuC + o + 4);
+                    if (d1 != 0x100) continue;
+                    uint32_t d0 = *(uint32_t *)(cpuC + o);
+                    if (d0 >= g0l && d0 < g0l + 0x40000) { *(uint32_t *)(cpuC + o) = (uint32_t)gpuC + (d0 - g0l); nsp++; }
+                    else if (gpuD && d0 >= g0l + 0x40000 && d0 < g0l + 0x80000) {
+                        *(uint32_t *)(cpuC + o) = (uint32_t)gpuD + (d0 - g0l - 0x40000); nsp++;
+                    }
+                }
+                LOG("[rp2f] C: bottom-arena rebase G0 0x%llx (vote %ld of %d buckets):"
+                    " page1->gpuC %ld qwords, page2->gpuD %ld, split-dword %ld",
+                    G0, bc[bi], nbk, nc1, nc2, nsp);
+            } else {
+                LOG("[rp2f] WARNING: no page-aligned space-0x1 self-range in int-0"
+                    " — C content left as-loaded (no bottom-arena rebase)");
+            }
+        } else {
+            LOG("[rp2f] WARNING: dsrecon-int-0 missing or too small (%ld bytes) —"
+                " C zero-filled + legacy slot heuristic",
+                di0 ? (long)di0.length : -1L);
+            memset(cpuC, 0, 0x40000);
+            *(uint64_t *)(cpuC + 0x1480) = gpuA;
+            *(uint64_t *)(cpuC + 0x1488) = gpuB;
+            *(uint64_t *)(cpuC + 0x14a0) = gpuA;
+            *(uint64_t *)(cpuC + 0x14a8) = gpuB;
+        }
+    } else if (cpuC) {
         memcpy(cpuC, dp0.bytes, 0x4000);
         long pc = 0;
         for (long o = 0; o + 8 <= 0x4000; o += 4) {
