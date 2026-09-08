@@ -1,11 +1,13 @@
 # Firmware event ring (AGFI) — формат записей, валидация, caller-цепочка, вердикт по спрею
 
 Дата: 2026-09-08. Источник: `results/kc-extract/agx_full_disasm.txt` (полный дизасм кекста
-AGXG16G 360.32.1) из BootKernelCollection.kc **macOS 27.0 (26A5388g)**. Все адреса и
-смещения проверены только на этом бинаре; для iOS-G16P сверять отдельно (пометки [iOS?]).
-Родительский документ: `docs/restart_analysis_structs.md` (panic «Type confusion» через
-`guilty_stamp_index` — приоритет ①, настоящий док закрывает его пункт «дочитать
-drainFirmwareEventRing»).
+AGXG16G 360.32.1) из BootKernelCollection.kc **macOS 27.0 (26A5388g)**.
+**iOS-сверка выполнена** (2026-09-08): `results/kc27/com_apple_AGXG16P.macho` +
+`kernelcache_iphone16` (iOS 27.0b4, A17/G16P). Всё, кроме явно помеченного «macOS-only»,
+подтверждено на iOS; расхождения — в колонках «iOS G16P» (смещения записи валидатора,
+accel-оффсеты, fw-поля). Родительский документ: `docs/restart_analysis_structs.md`
+(panic «Type confusion» через `guilty_stamp_index` — приоритет ①, настоящий док закрывает
+его пункт «дочитать drainFirmwareEventRing»).
 
 Центральная функция: `AGXFirmware::drainFirmwareEventRing()` @ `0xfffffe0008b223fc`.
 Вспомогательные: `AGXFirmwareRingValidator::fetchNextEntry` @ `0x8b3591c`,
@@ -13,6 +15,11 @@ drainFirmwareEventRing»).
 `AGXFirmwareRingValidator::ringHasOutstandingEntries` @ `0x8b358c8`.
 
 ## 1. Хранилище: validator-record внутри AGXFirmware
+
+> iOS G16P: функция drainFirmwareEventRing @ `0xfffffff00832f8b8` (весь путь живёт
+> в G16P, не в RTBuddy); validator-record по **fw+0x7a0** (macOS fw+0xb68), accel ptr
+> **[fw+0x270]** (macOS [fw+0x278]), status block **[fw+0x900]+0x5000** (macOS
+> [fw+0xd18]+0x5000). Внутренняя раскладка записи — та же.
 
 Кольцо описывается встроенной 0x30-байтной записью по `fw + 0xb68` (x19 = AGXFirmware,
 `accel = [fw+0x278]`). Идентичные записи (таблица колец) инициализируются подряд в
@@ -60,6 +67,11 @@ fetchNextEntry (0x8b3591c): смещение записи = `idx*9<<3` (= idx*72
 в стековый буфер. Тип события = `u32 @ entry+0`. Дальнейшие обращения case-обработчиков
 идут по копии на стеке (sp+0x50).
 
+> iOS ✓ (G16P): формат подтверждён — fetchNextEntry @ `0x83428a0`, смещение записи
+> `idx*9<<3` (= idx·72), копия 18 dword — идентичны; bitmap-miss → строка 179,
+> «Using uninitialized validator class» line 147, «read_index out of bounds»
+> lines 54/58 — все номера строк совпадают с macOS.
+
 ```
 +0x00  u32  type (kAGFIFirmwareEventType*)
 +0x04  u32  arg0     \ в type 1 читаются как ДВА u64: q0 = [+0x04..+0x0b], q1 = [+0x0c..+0x13]
@@ -96,6 +108,33 @@ per-case дескриптором validateType (строки 0x8b23584–0x8b235
 | 0xe | 0x8b22550 | — | release [accel+0x150](qword @ +4) |
 | 0xf/0x1d/0x1f | default | bitmap-hit | default-репорт 0x7146ff8 |
 
+> iOS ✓ (G16P): bitmap **0xa000ffd3** и capacity **0x100 = 256** — без изменений;
+> статическая таблица колец в __TEXT @ ~0x7117ab0: запись {…0x15fff0000000, 0x100}
+> (trace-ring) и {0xa000ffd3, 0x100} (event-ring) — та же пара констант. iOS-адреса
+> case'ов: type 4 @ `0x832fb30` (валидация 0x832fb3c–0x832fb64, запись 0x832fc90–
+> 0x832fca0); type 7 sub-switch и валидации type 9 (+0x04 < 0x100, +0x08(q) != 0,
+> +0x0c bounds, +0x14 < count) идентичны macOS.
+
+### 4.1 Requestor/sideband на iOS (Q4)
+
+Таблица `kG16BifRequestorInfo` существует на iOS **идентично** macOS: 64 записи
+× 16 байт `{u32 name_off (KC-relative); u32 0x200000; u64 id}`. В G16P macho —
+fileoff **0xdda94** (rec0 = 0x11ef90/0x200000/1 = DCMP0, проверено чтением
+kernelcache.macho по KC-fileoff). idx 24 = VDM1 (id 2), idx 25 = PPP1 (id 2) —
+sideband 24/25 из iOS-логов = VDM1/PPP1 (GPC0) ✓.
+
+Нюанс: таблица **не референсится кодом** ни одного извлечённого кекста (adrp-скан
+всего kernelcache, исправленный xref-сканер) → на iOS 'requestor'/'sideband'
+публикуются сырыми значениями из MMUFaultInfo-структуры, а не через декодер таблицы:
+заполняет вирт-метод accel **vtable+0x7b0** (вызов в restartWorkQueue @ 0x82f8bf4 с
+(accel, w1=1, sp-0xf0, w3=0); поля локальной копии: requestor @ -0xdc, sideband @
+-0xd8, level @ -0xd0, is_read @ -0xcf; свойства 'requestor'/'sideband'/'level'/
+'is_read' — строки 0x7126a35/a3f/a48/a4e, ключи bif0_fault/bif1_fault @ 0x7126b22/b17).
+
+Requestor 208/209 из iOS-паник > 6-битного macOS-поля (bits 22:17) → iOS-расклад
+fault-регистра иной; точный бит-расклад скрыт за PAC'd vtable (слот +0x7b0) —
+**[частично открыто: декодер за vtable, уточнить динамически]**.
+
 ## 5. Семантика отказов валидации — КОРРЕКТИРОВКА прежних выводов
 
 Прежняя рабочая гипотеза «невалидная запись логируется и пропускается» **неверна**.
@@ -108,6 +147,9 @@ const int, const char *, ...)` — assert-стиль `_expectInner(false, fmt/ex
 tail-position блока и не возобновляет поток; failure-блоки drain выстроены цепочкой
 fall-through друг за другом (0x8b23534 → 0x8b2355c → 0x8b2367c → 0x8b2369c → 0x8b236c4),
 что возможно только если reporter не возвращает.
+
+> iOS ✓ (G16P): failure-пути сходятся на тот же assert-стаб `0x83b1c54`; репорт
+> «Ring entry contains bad data» line 256 печатает **256** (константа 0x100) — как macOS.
 
 Вывод (с оговоркой [уточнить динамически на девайсе — один запуск с крафтовой записью
 снимет вопрос окончательно]): **любая запись с некорректным type/полями → panic в
@@ -144,6 +186,14 @@ fall-through друг за другом (0x8b23534 → 0x8b2355c → 0x8b2367c �
 4. Если вирт-вызов вернул != 0 → обход без записи accel+0x18e34 (0x8b235fc-ветка,
    os_log 0x71471da, строка 3233).
 
+> iOS ✓ (G16P, case @ 0x832fb30–0x832fd28): idx = `[sp+0x5c]` = **entry+0xc** ✓;
+> count-стаб **0x83b0e34([[accel+0x140]])**; валидация `idx == -1 ∨ 0 ≤ idx < count`
+> (cmn/cset/csel @ 0x832fb4c–0x832fb64) → failure 0x330930; вирт-вызов **fw vtable+0x108**
+> (macOS +0x1c8); запись accel+0x18dec = (idx==-1)?0x80:idx; subtype magic **0x0605040202**
+> (macOS 0x6504020206), min 2 → accel+0x18df0; status-копии: +0x50a8→0x18de8,
+> +0x50b0→0x18ec0, +0x50b8→0x18ed0, +0x50c4 (0x98 B)→0x18ec8, +0x515c→0x18f70;
+> flag byte bit3 → accel+0x18f78 (macOS 0x18fc0); [[accel+0x158]] set flag 1.
+
 Связка с getGuiltyChannel (`AGX3DWorkQueue::getGuiltyChannel` @ 0x8ba6e44, panic-строка
 agxk_workqueue.cpp:1047 «Type confusion - invalid AGXChannel for firmware
 guilty_stamp_index %d»): `idx = [accel+0x18e34]`; `idx == 0x80` → host-side fallback'и
@@ -157,7 +207,8 @@ event ring ещё до записи в accel+0x18e34 (failure-пути §5, до
 без нашего числа и в другом контексте). Реальный путь к «Type confusion» с печатью
 индекса: `0 ≤ idx < count` при **пустом/освобождённом stamp-слоте** (канал teardown'нут
 к моменту restartWorkQueue) → lookup NULL → panic. Т.е. значение берётся из диапазона
-stamp-слотов, а не «большое крафтовое». [iOS?]
+stamp-слотов, а не «большое крафтовое». iOS ✓: диапазон idx `[0, count)` тот же —
+валидация (cmn/cset/csel) и sentinel 0x80 идентичны macOS.
 
 ## 7. Кто и когда вызывает drain
 
@@ -225,5 +276,6 @@ firmware использует для событийного кольца (под
 3. [Статика→динамика] пул физстраниц AGXInternalResource (IOGPU shmem) — шанс reuse
    нашими спреями.
 4. [Статика] кто зовёт vtable+0x288 (action регистрации прерывания).
-5. [iOS?] все смещения fw+0xb68…0xb90, accel+0x17fc8/0x18e30–0x18fb8, типы/битмап —
-   сверить с iOS-G16P kernelcache.
+5. ✓ сверено 2026-09-08 (iOS G16P): fw+0x7a0…0x7d0, accel+0x18de8…0x18f78 (сдвиг
+   −0x48 от macOS-диапазона 0x18e30–0x18fb8), типы/bitmap 0xa000ffd3/capacity 256 —
+   идентичны; fw+0x900 status block; fw vtable+0x108 (virt-call type 4).

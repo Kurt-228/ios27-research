@@ -2,8 +2,10 @@
 
 Дата: 2026-09-08. Тот же источник, что и `iogpu_restart_policy.md`: BootKernelCollection.kc
 macOS 27.0 (26A5388g), кекст AGXG16G (360.32.1), M3/A17-класс. Девайс-цель: iPhone 15 Pro Max
-(A17 Pro, G16P) — код общий, но все смещения ниже проверены **только** на macOS-бинаре; на iOS
-G16P они могут отличаться (отмечено [iOS?] где риск выше всего).
+(A17 Pro, G16P) — код общий, но смещения ниже проверены на macOS-бинаре; **iOS-сверка
+выполнена** (2026-09-08) по `results/kc27/com_apple_AGXG16P.macho` + kernelcache_iphone16
+(iOS 27.0b4): §3 и приоритет-① цепочка подтверждены с поправкой на смещения (см. «iOS-версия»
+в §3); паник-путь идентичен. Оставшиеся [iOS?] — только вне паник-пути (context-ID менеджер).
 
 Контекст задачи: у нас есть phys-spray с контролем контента в freed ядерные страницы на девайсе.
 Системные GPU-клиенты (WindowServer/бэкенды/др.) забирают эти страницы и фолтятся → кекст AGX
@@ -97,8 +99,33 @@ AGXk: %s:%d:%s: !!! getGuiltyChannel: Type confusion - invalid AGXChannel
 В state==0x80-ветке panic нет вообще — там чистые fallback'и на [this+0x218/0x220] и
 [kc+0x116f0]. То есть «no guilty channel» panic — только firmware-driven путь.
 
+### iOS-версия (G16P, iOS 27.0b4 — сверено, паник-путь идентичен)
+
+Функция @ `0xfffffff0083ad974` (G16P __TEXT_EXEC), имя класса подтверждено строкой
+`virtual IOGPUChannel *AGX3DWorkQueue::getGuiltyChannel() const`. Отличия от macOS
+(логика, строка и номер строки — те же):
+
+| Элемент | macOS G16G | iOS G16P |
+|---|---|---|
+| state offset | accel+0x18e34 | **accel+0x18dec** |
+| sentinel «none» | 0x80 | 0x80 (без изменений) |
+| this→accel | [this+0xc0] | [this+0xc0] (без изменений) |
+| panic-условие | `lookup==NULL \|\| getProperty==NULL` | то же (`cmp x20,#0; ccmp x0,#0,#0,ne; b.eq`) |
+| offset свойства канала | d+0xd08 | **d+0xd00** |
+| default channel | [kc+0x116f0] | **[kc+0x116a8]** |
+| host-detect / list / lookup / getProperty стабы | 0x8bab000/0x8baaff0/0x8bab110/0x8baa460 | 0x83b17e4/0x83b17d4/0x83b18f4/0x83b0c44 |
+| ключи getProperty | key@0xca79eb0 / key@0xca79dd0 | 0xfffffff00b3f5b50 / 0xfffffff00b3f5a70 (в kext __DATA, runtime) |
+| panic-строка | «AGXk: %s:%d:%s: !!! getGuiltyChannel: Type confusion…» | **та же строка** @ 0xfffffff007129ce7 |
+| file / line | agxk_workqueue.cpp / **1047** | agxk_workqueue.cpp / **1047** (0x417 в коде) |
+| panic-стаб | stub@0x8bab470 | 0xfffffff0083b1c54 (тот же assert-репортер) |
+
+Вывод для целей (a)/(c): на iOS значение пишется в **accel+0x18dec** (не 0x18e34), диапазон
+допустимых idx определяется тем же count-стабом (iOS-адреса — `docs/fw_event_ring.md` §6),
+все остальные параметры цепочки совпадают.
+
 Базовый класс `AGXWorkQueue::getGuiltyChannel` @ 0x8ba6660 (не разбирался построчно;
-AGXCLWorkQueue::getGuiltyChannel @ 0x8ba7bac — третий вариант, логика аналогична [iOS?]).
+AGXCLWorkQueue::getGuiltyChannel @ 0x8ba7bac — третий вариант, логика аналогична [iOS?];
+на iOS проверен только AGX3DWorkQueue-вариант).
 
 Кто пишет accel+0x18e34: `AGXFirmware::drainFirmwareEventRing` (0x8b224b4+):
 
@@ -120,9 +147,41 @@ Event ring — AGFI shared memory (пишется firmware/GPU). Индекс **
 drainFirmwareEventRing: `idx == -1 ∨ 0 ≤ idx < count(stamp-слотов)` иначе failure-паника
 валидатора до записи в accel+0x18e34 (подробно — `docs/fw_event_ring.md` §5/§6).
 
+### 3.1 restart_reason enum на iOS (сверен, расхождение с macOS-списком объяснено)
+
+Диспатч причин в iOS restartWorkQueue (reason byte `[wq+0x8]`, регион 0x82f8498+) присваивает
+enum w21 и строку `restart_reason_desc`, которые уходят в свойства канала
+(`restart_reason` = OSNumber(w21), `restart_reason_desc` = строка; ключи
+@ 0xfffffff0071269e8/0xfffffff0071269f7). **Порядок строк в бинаре ≠ enum** (поэтому
+«порядок строк» из iogpu_restart_policy.md §4 — не маппинг). Реальный iOS-маппинг:
+
+| enum | desc | источник |
+|---|---|---|
+| 0 | unknown vendor lockup | default ветка |
+| 1 | timestamp timeout; девайс-тип 3 → «(unlocked)», 4 → «(locked)» | [wq+0x8]==1 / тип устройства |
+| 2 | — (не присвоен в диспатче) | — |
+| **3** | **BIF%d page fault** (+requestor/sideband/level/is_read) | BIF-статус ветка (OSNumber(3) @ 0x82f905c) |
+| 4 | firmware-detected lockup | [wq+0x8]==2 |
+| 5 | firmware assert | [wq+0x8]==3 |
+| 6 | USC exception for DM: %d | USC-ветка |
+| 7 | blocked by IOFence | IOFence-ветка |
+| 8 | blocked by IOFence (speculative) | speculative-ветка |
+| 9 | CDM Kill timeout | [wq+0x8]==4 |
+| 10 | MMU interrupt | [wq+0x8]==5 |
+| 11 | FRG Kill timeout | [wq+0x8]==6 |
+
+Девайс-лог gpuEvent (bug_type 284) `restart_reason=3 "BIF0 page fault"` **сходится**:
+enum 3 на iOS = BIF page fault, %d=0 → BIF0. На macOS тот же смысл имел бы enum 9
+(CDM Kill timeout там = 9, и macOS-«3» из старого списка — артефакт порядка строк).
+См. также `docs/fw_event_ring.md` §4.1 (requestor/sideband на iOS).
+
 ## 4. Цели spray
 
 ### (c)+(a) panic «Type confusion / no guilty channel» — приоритет №1 (при подтверждении §5)
+
+> Адреса в этом разделе — macOS G16G. iOS-эквиваленты сверены: `accel+0x18e34` →
+> **accel+0x18dec**, subtype byte `accel+0x18e38` → **accel+0x18df0**; формат записи,
+> bitmap и условия — идентичны (`docs/fw_event_ring.md`, §3 «iOS-сверка»).
 
 Цепочка: наш спрей → страницы firmware event ring / timestamp-колец → `drainFirmwareEventRing`
 парсит событие → `accel+0x18e34 = guilty_stamp_index` (контролируемое значение != 0x80,
@@ -385,8 +444,12 @@ count/entries = переработанное спреем содержимое (
    `AGXFirmwareRingValidator::fetchNextEntry`), bounds-check `idx == -1 ∨ idx < count`
    в type-4 case до записи в accel+0x18e34; failure-пути валидатора — panic-стиль
    (`stub@0x8bab470`, «Ring entry contains bad data»), не silent-drop.
-4. **iOS-смещения**: все «0x18e34/0x11c48/0xd18/0x490/0x1e8» сверить с iOS-G16P kernelcache
-   (доступен на девайсе; этот Mac-бинарь — единственный источник сейчас).
+4. ~~**iOS-смещения**~~ — **ЧАСТИЧНО РЕШЕНО** (2026-09-08, kernelcache_iphone16 27.0b4):
+   паник-путь целиком сверен (§3 «iOS-версия», `docs/fw_event_ring.md` §1–§6, §4.1):
+   guilty index **accel+0x18dec** (iOS) vs 0x18e34 (macOS), subtype byte 0x18df0 vs 0x18e38,
+   status block [fw+0x900] vs [fw+0xd18], event-ring record fw+0x7a0 vs fw+0xb68,
+   accel ptr [fw+0x270] vs [fw+0x278]. НЕ сверены (вне паник-пути): 0x11c48 (ring entries),
+   0x490 (queue pid), 0x1e8/0x11ad8 (context-ID), [wq+0xd8] AGXIOFenceData-поля.
 5. **Context-ID менеджер** (§4-A): место записи capacity (accel+0x11ae8) и аллокации
    массивов accel+0x11af8..0x11b20 (в дизасме не локализовано — вероятно регистровая
    адресация в AGXAccelerator::init; точный capacity → размер kalloc-чанков под OOB);
