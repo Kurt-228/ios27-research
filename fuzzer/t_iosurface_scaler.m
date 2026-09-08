@@ -14736,6 +14736,200 @@ static void p_mtpatch(void) {
     LOG("[mtpatch] done (alive)");
 }
 
+// V124: p_dsrecon — device-stream builder recon, dumps N1/N2 from
+// docs/device_stream_builder.md. For 3 blit-copy configs (0x4000/0x10000/
+// 0x40000, fresh buffers each => shifting GPUVAs) snapshots the kcmd shmem
+// (storage+0x28), seglist (storage+0x68) and every writable VM region holding
+// gpuA/gpuB (pool windows), BEFORE and AFTER endEncoding. Logs compact diffs,
+// pointer-vs-constant discrimination, cross-config parametric-field diff;
+// writes dsrecon-<cfg>-{kcmd,seg,pool<N>}[-pre].bin into Documents (survive a
+// crash; pull via devicectl). Tag [dsr].
+#define DSR_SNAP 0x4000
+#define DSR_MAXREG 8
+#define DSR_REGCAP 0x4000
+typedef struct {
+    uint8_t *kcmd, *seg;
+    uint8_t *reg[DSR_MAXREG];
+    uint64_t regaddr[DSR_MAXREG], regsz[DSR_MAXREG];
+    int nreg;
+    uint64_t gpuA, gpuB, kva, sva;
+} dsr_snap;
+
+static void dsr_take_snap(dsr_snap *s, uint64_t kva, uint64_t sva,
+                          uint64_t gpuA, uint64_t gpuB) {
+    memset(s, 0, sizeof *s);
+    s->gpuA = gpuA; s->gpuB = gpuB; s->kva = kva; s->sva = sva;
+    s->kcmd = calloc(1, DSR_SNAP);
+    s->seg = calloc(1, DSR_SNAP);
+    if (kva) memcpy(s->kcmd, (void *)(uintptr_t)kva, DSR_SNAP);
+    if (sva) memcpy(s->seg, (void *)(uintptr_t)sva, DSR_SNAP);
+    // pool windows: writable regions containing a gpuA/gpuB qword
+    mach_vm_address_t addr = 0;
+    while (s->nreg < DSR_MAXREG) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+            uint8_t *base = (uint8_t *)addr;
+            for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+                uint64_t q = *(uint64_t *)(base + o);
+                if (q == gpuA || q == gpuB) {
+                    int i = s->nreg++;
+                    s->regaddr[i] = addr;
+                    s->regsz[i] = sz < DSR_REGCAP ? sz : DSR_REGCAP;
+                    s->reg[i] = malloc(s->regsz[i]);
+                    memcpy(s->reg[i], base, s->regsz[i]);
+                    LOG("[dsr]   pool region 0x%llx sz 0x%llx (hit %s+0x%llx)",
+                        (uint64_t)addr, (uint64_t)sz, q == gpuA ? "gpuA" : "gpuB",
+                        (uint64_t)o);
+                    break;
+                }
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+}
+static void dsr_free_snap(dsr_snap *s) {
+    if (s->kcmd) free(s->kcmd);
+    if (s->seg) free(s->seg);
+    for (int i = 0; i < s->nreg; i++) if (s->reg[i]) free(s->reg[i]);
+    memset(s, 0, sizeof *s);
+}
+static void dsr_write_file(NSString *docdir, const char *name, const uint8_t *buf, long len) {
+    NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:name]];
+    BOOL ok = [[NSData dataWithBytes:buf length:(NSUInteger)len] writeToFile:p atomically:NO];
+    LOG("[dsr]   wrote %s (%ld bytes) %s", [p UTF8String], len, ok ? "ok" : "FAILED");
+}
+// compact diff: only changed 16-byte lines (first 8 bytes shown)
+static void dsr_diff_log(const char *tag, const char *what, const uint8_t *pre,
+                         const uint8_t *post, long len) {
+    long changed = 0;
+    int shown = 0;
+    for (long o = 0; o + 16 <= len; o += 16) {
+        if (memcmp(pre + o, post + o, 16)) {
+            changed++;
+            if (shown < 64) {
+                LOG("[dsr] %s %s +0x%04lx: %02x%02x%02x%02x%02x%02x%02x%02x -> %02x%02x%02x%02x%02x%02x%02x%02x",
+                    tag, what, o,
+                    pre[o], pre[o+1], pre[o+2], pre[o+3], pre[o+4], pre[o+5], pre[o+6], pre[o+7],
+                    post[o], post[o+1], post[o+2], post[o+3], post[o+4], post[o+5], post[o+6], post[o+7]);
+                shown++;
+            }
+        }
+    }
+    LOG("[dsr] %s %s: %ld changed lines%s", tag, what, changed, shown < 64 ? "" : " (truncated)");
+}
+// N2: qwords equal to gpuA/gpuB = pointer fields; everything else that
+// stays put across configs = constants (reported implicitly by cross diff)
+static void dsr_ptr_scan(const char *tag, const char *what, const uint8_t *buf,
+                         long len, uint64_t gpuA, uint64_t gpuB) {
+    int ha = 0, hb = 0;
+    for (long o = 0; o + 8 <= len; o += 4) {
+        uint64_t q;
+        memcpy(&q, buf + o, 8);
+        if (q == gpuA) { if (ha < 12) LOG("[dsr] %s %s +0x%04lx = gpuA (POINTER)", tag, what, o); ha++; }
+        else if (q == gpuB) { if (hb < 12) LOG("[dsr] %s %s +0x%04lx = gpuB (POINTER)", tag, what, o); hb++; }
+    }
+    if (ha || hb) LOG("[dsr] %s %s: pointer hits A %d B %d", tag, what, ha, hb);
+}
+// N2 sanity: buffer payload markers must NOT appear inside command streams
+static void dsr_marker_scan(const char *tag, const char *what, const uint8_t *buf,
+                            long len, uint8_t m) {
+    for (long o = 0; o + 16 <= len; o++) {
+        if (buf[o] == m && !memcmp(buf + o, buf + o + 1, 15)) {
+            LOG("[dsr] %s %s: marker 0x%02x run @+0x%lx (buffer data in stream?)", tag, what, m, o);
+            return;
+        }
+    }
+}
+static void p_dsrecon(void) {
+    LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[dsr] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[dsr] no queue"); return; }
+    NSString *docdir = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    static const uint32_t csz[3] = { 0x4000, 0x10000, 0x40000 };
+    dsr_snap post[3];
+    memset(post, 0, sizeof post);
+    for (int cfg = 0; cfg < 3; cfg++) {
+        uint32_t sz = csz[cfg];
+        id<MTLBuffer> bufA = [dev newBufferWithLength:sz options:MTLResourceStorageModeShared];
+        id<MTLBuffer> bufB = [dev newBufferWithLength:sz options:MTLResourceStorageModeShared];
+        if (!bufA || !bufB) { LOG("[dsr] cfg%d buffer alloc fail", cfg); break; }
+        memset([bufA contents], 0x41, sz);   // src marker 0x41
+        memset([bufB contents], 0x42, sz);   // dst marker 0x42
+        uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:sz];
+        LOG("[dsr] cfg%d size 0x%x gpuA 0x%llx gpuB 0x%llx", cfg, sz, gpuA, gpuB);
+        void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+        uint64_t kva = storage ? *(uint64_t *)((uint8_t *)storage + 0x28) : 0;
+        uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+        LOG("[dsr] cfg%d storage %p kcmd 0x%llx seg 0x%llx (pre-endEncoding)",
+            cfg, storage, kva, sva);
+        dsr_snap pre;
+        dsr_take_snap(&pre, kva, sva, gpuA, gpuB);
+        [enc endEncoding];
+        // re-read: shmem VA may move/appear at endEncoding
+        if (storage) {
+            uint64_t kva2 = *(uint64_t *)((uint8_t *)storage + 0x28);
+            uint64_t sva2 = *(uint64_t *)((uint8_t *)storage + 0x68);
+            if (kva2 && kva2 != kva) { LOG("[dsr] cfg%d kcmd VA moved 0x%llx -> 0x%llx", cfg, kva, kva2); kva = kva2; }
+            if (sva2 && sva2 != sva) { LOG("[dsr] cfg%d seg VA moved 0x%llx -> 0x%llx", cfg, sva, sva2); sva = sva2; }
+        }
+        dsr_take_snap(&post[cfg], kva, sva, gpuA, gpuB);
+        char tag[16], nm[72];
+        snprintf(tag, sizeof tag, "cfg%d", cfg);
+        // N1: pre/post diff to log
+        if (kva) dsr_diff_log(tag, "kcmd", pre.kcmd, post[cfg].kcmd, DSR_SNAP);
+        if (sva) dsr_diff_log(tag, "seg", pre.seg, post[cfg].seg, DSR_SNAP);
+        for (int i = 0; i < post[cfg].nreg && i < pre.nreg; i++)
+            if (pre.regaddr[i] == post[cfg].regaddr[i])
+                dsr_diff_log(tag, "pool", pre.reg[i], post[cfg].reg[i], (long)post[cfg].regsz[i]);
+        // files (POST = template candidate; -pre = encoder state before flush)
+        snprintf(nm, sizeof nm, "dsrecon-%s-kcmd.bin", tag);
+        dsr_write_file(docdir, nm, post[cfg].kcmd, DSR_SNAP);
+        snprintf(nm, sizeof nm, "dsrecon-%s-kcmd-pre.bin", tag);
+        dsr_write_file(docdir, nm, pre.kcmd, DSR_SNAP);
+        snprintf(nm, sizeof nm, "dsrecon-%s-seg.bin", tag);
+        dsr_write_file(docdir, nm, post[cfg].seg, DSR_SNAP);
+        snprintf(nm, sizeof nm, "dsrecon-%s-seg-pre.bin", tag);
+        dsr_write_file(docdir, nm, pre.seg, DSR_SNAP);
+        for (int i = 0; i < post[cfg].nreg; i++) {
+            snprintf(nm, sizeof nm, "dsrecon-%s-pool%d.bin", tag, i);
+            dsr_write_file(docdir, nm, post[cfg].reg[i], (long)post[cfg].regsz[i]);
+        }
+        // N2: pointer discrimination + marker leak check on POST
+        dsr_ptr_scan(tag, "kcmd", post[cfg].kcmd, DSR_SNAP, gpuA, gpuB);
+        dsr_ptr_scan(tag, "seg", post[cfg].seg, DSR_SNAP, gpuA, gpuB);
+        dsr_marker_scan(tag, "kcmd", post[cfg].kcmd, DSR_SNAP, 0x41);
+        dsr_marker_scan(tag, "kcmd", post[cfg].kcmd, DSR_SNAP, 0x42);
+        for (int i = 0; i < post[cfg].nreg; i++) {
+            char w[32];
+            snprintf(w, sizeof w, "pool%d", i);
+            dsr_ptr_scan(tag, w, post[cfg].reg[i], (long)post[cfg].regsz[i], gpuA, gpuB);
+        }
+        dsr_free_snap(&pre);
+    }
+    // N1 cross-config diff (cfg0 vs cfg1/cfg2): changing offsets = parametric
+    // (size / GPUVA), stable offsets = constants
+    for (int cfg = 1; cfg < 3; cfg++) {
+        if (!post[cfg].kcmd) break;
+        char tag[16];
+        snprintf(tag, sizeof tag, "x0v%d", cfg);
+        dsr_diff_log(tag, "kcmd", post[0].kcmd, post[cfg].kcmd, DSR_SNAP);
+        dsr_diff_log(tag, "seg", post[0].seg, post[cfg].seg, DSR_SNAP);
+    }
+    for (int cfg = 0; cfg < 3; cfg++) dsr_free_snap(&post[cfg]);
+    LOG("[dsr] done (alive)");
+}
+
 // V90: GPU VM map via patched-blit read primitive. Patch the copy SOURCE
 // (pool slots holding gpuAddress(A)) to a probe GPUVA X, commit, read back B.
 // Regions that once contained slots are cached so later probes scan ~MBs, not
@@ -21572,6 +21766,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_PAYFUZZ") || getenv("FUZZ_PAYFUZZ_LOCATE")) { p_payfuzz(); LOG("[probe13] payfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SFW2")) { p_streamfuzz2(2000000); LOG("[probe13] sfw2-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_DSRECON")) { p_dsrecon(); LOG("[probe13] dsrecon-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_JPEGIMG")) { p_jpegimg(); LOG("[probe13] jpegimg-only mode, stop"); return NULL; }

@@ -1,0 +1,12 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7503
+[scaler] conn 0x7503, s1 178 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[v56] grammar-aware command fuzz, 2000000 rounds
+[open] IOGPU -> conn 0x7003
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 10289c000 id 1
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 1028a4000 id 2
+[s6] created 16 events
+[s6] sanity type2 -> kr 0x00000000 outw 00000000 (expect 0)
+[w7] watch on, nqVA 102894000 baseline snapshot taken
