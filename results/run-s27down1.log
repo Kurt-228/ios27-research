@@ -1,0 +1,411 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x580f
+[scaler] conn 0x580f, s1 15 s2 16
+[probe12] SetNotificationPort -> 0x00000000
+[s27d] v113 downstream of sel27 attachments, skip 0
+[s27d] coresurf open type 0 -> kr 0x00000000 conn 0x5a1b
+[s27d] sel6 create -> kr 0x00000000 sid 20
+[open] AppleM2ScalerCSCDriver -> conn 0x5b0f
+[s27d] scaler conn 0x5b0f dst sid 162 (ours 20)
+[s27d] c1 portability probe: scaler src=our sid 20 ...
+[s27d] c1 scaler(our sid as src) -> kr 0x00000000 ok
+[s27d] c2 field bit0 off 0x0 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c2 field bit0 off 0x0 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c2 field bit0 off 0x0 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c3 field bit0 off 0x0 = u64max — scaler src=ours (PANIC possible)
+[s27d] c3 field bit0 off 0x0 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c3 field bit0 off 0x0 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c4 field bit0 off 0x0 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c4 field bit0 off 0x0 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c4 field bit0 off 0x0 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c5 field bit0 off 0x0 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c5 field bit0 off 0x0 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c5 field bit0 off 0x0 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c6 field bit0 off 0x0 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c6 field bit0 off 0x0 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c6 field bit0 off 0x0 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c7 field bit0 off 0x0 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c7 field bit0 off 0x0 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c7 field bit0 off 0x0 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c8 field bit1 off 0x20 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c8 field bit1 off 0x20 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c8 field bit1 off 0x20 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c9 field bit1 off 0x20 = u64max — scaler src=ours (PANIC possible)
+[s27d] c9 field bit1 off 0x20 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c9 field bit1 off 0x20 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c10 field bit1 off 0x20 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c10 field bit1 off 0x20 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c10 field bit1 off 0x20 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c11 field bit1 off 0x20 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c11 field bit1 off 0x20 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c11 field bit1 off 0x20 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c12 field bit1 off 0x20 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c12 field bit1 off 0x20 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c12 field bit1 off 0x20 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c13 field bit1 off 0x20 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c13 field bit1 off 0x20 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c13 field bit1 off 0x20 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c14 field bit2 off 0x30 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c14 field bit2 off 0x30 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c14 field bit2 off 0x30 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c15 field bit2 off 0x30 = u64max — scaler src=ours (PANIC possible)
+[s27d] c15 field bit2 off 0x30 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c15 field bit2 off 0x30 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c16 field bit2 off 0x30 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c16 field bit2 off 0x30 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c16 field bit2 off 0x30 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c17 field bit2 off 0x30 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c17 field bit2 off 0x30 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c17 field bit2 off 0x30 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c18 field bit2 off 0x30 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c18 field bit2 off 0x30 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c18 field bit2 off 0x30 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c19 field bit2 off 0x30 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c19 field bit2 off 0x30 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c19 field bit2 off 0x30 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c20 field bit3 off 0x38 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c20 field bit3 off 0x38 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c20 field bit3 off 0x38 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c21 field bit3 off 0x38 = u64max — scaler src=ours (PANIC possible)
+[s27d] c21 field bit3 off 0x38 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c21 field bit3 off 0x38 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c22 field bit3 off 0x38 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c22 field bit3 off 0x38 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c22 field bit3 off 0x38 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c23 field bit3 off 0x38 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c23 field bit3 off 0x38 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c23 field bit3 off 0x38 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c24 field bit3 off 0x38 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c24 field bit3 off 0x38 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c24 field bit3 off 0x38 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c25 field bit3 off 0x38 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c25 field bit3 off 0x38 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c25 field bit3 off 0x38 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c26 field bit4 off 0x39 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c26 field bit4 off 0x39 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c26 field bit4 off 0x39 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c27 field bit4 off 0x39 = u64max — scaler src=ours (PANIC possible)
+[s27d] c27 field bit4 off 0x39 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c27 field bit4 off 0x39 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c28 field bit4 off 0x39 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c28 field bit4 off 0x39 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c28 field bit4 off 0x39 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c29 field bit4 off 0x39 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c29 field bit4 off 0x39 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c29 field bit4 off 0x39 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c30 field bit4 off 0x39 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c30 field bit4 off 0x39 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c30 field bit4 off 0x39 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c31 field bit4 off 0x39 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c31 field bit4 off 0x39 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c31 field bit4 off 0x39 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c32 field bit5 off 0x3a = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c32 field bit5 off 0x3a = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c32 field bit5 off 0x3a = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c33 field bit5 off 0x3a = u64max — scaler src=ours (PANIC possible)
+[s27d] c33 field bit5 off 0x3a = u64max — scaler dst=ours (PANIC possible)
+[s27d] c33 field bit5 off 0x3a = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c34 field bit5 off 0x3a = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c34 field bit5 off 0x3a = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c34 field bit5 off 0x3a = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c35 field bit5 off 0x3a = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c35 field bit5 off 0x3a = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c35 field bit5 off 0x3a = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c36 field bit5 off 0x3a = neg32 — scaler src=ours (PANIC possible)
+[s27d] c36 field bit5 off 0x3a = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c36 field bit5 off 0x3a = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c37 field bit5 off 0x3a = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c37 field bit5 off 0x3a = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c37 field bit5 off 0x3a = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c38 field bit6 off 0x3b = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c38 field bit6 off 0x3b = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c38 field bit6 off 0x3b = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c39 field bit6 off 0x3b = u64max — scaler src=ours (PANIC possible)
+[s27d] c39 field bit6 off 0x3b = u64max — scaler dst=ours (PANIC possible)
+[s27d] c39 field bit6 off 0x3b = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c40 field bit6 off 0x3b = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c40 field bit6 off 0x3b = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c40 field bit6 off 0x3b = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c41 field bit6 off 0x3b = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c41 field bit6 off 0x3b = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c41 field bit6 off 0x3b = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c42 field bit6 off 0x3b = neg32 — scaler src=ours (PANIC possible)
+[s27d] c42 field bit6 off 0x3b = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c42 field bit6 off 0x3b = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c43 field bit6 off 0x3b = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c43 field bit6 off 0x3b = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c43 field bit6 off 0x3b = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c44 field bit7 off 0x3c = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c44 field bit7 off 0x3c = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c44 field bit7 off 0x3c = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c45 field bit7 off 0x3c = u64max — scaler src=ours (PANIC possible)
+[s27d] c45 field bit7 off 0x3c = u64max — scaler dst=ours (PANIC possible)
+[s27d] c45 field bit7 off 0x3c = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c46 field bit7 off 0x3c = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c46 field bit7 off 0x3c = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c46 field bit7 off 0x3c = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c47 field bit7 off 0x3c = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c47 field bit7 off 0x3c = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c47 field bit7 off 0x3c = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c48 field bit7 off 0x3c = neg32 — scaler src=ours (PANIC possible)
+[s27d] c48 field bit7 off 0x3c = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c48 field bit7 off 0x3c = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c49 field bit7 off 0x3c = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c49 field bit7 off 0x3c = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c49 field bit7 off 0x3c = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c50 field bit8 off 0x3d = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c50 field bit8 off 0x3d = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c50 field bit8 off 0x3d = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c51 field bit8 off 0x3d = u64max — scaler src=ours (PANIC possible)
+[s27d] c51 field bit8 off 0x3d = u64max — scaler dst=ours (PANIC possible)
+[s27d] c51 field bit8 off 0x3d = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c52 field bit8 off 0x3d = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c52 field bit8 off 0x3d = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c52 field bit8 off 0x3d = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c53 field bit8 off 0x3d = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c53 field bit8 off 0x3d = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c53 field bit8 off 0x3d = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c54 field bit8 off 0x3d = neg32 — scaler src=ours (PANIC possible)
+[s27d] c54 field bit8 off 0x3d = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c54 field bit8 off 0x3d = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c55 field bit8 off 0x3d = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c55 field bit8 off 0x3d = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c55 field bit8 off 0x3d = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c56 field bit9 off 0x3e = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c56 field bit9 off 0x3e = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c56 field bit9 off 0x3e = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c57 field bit9 off 0x3e = u64max — scaler src=ours (PANIC possible)
+[s27d] c57 field bit9 off 0x3e = u64max — scaler dst=ours (PANIC possible)
+[s27d] c57 field bit9 off 0x3e = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c58 field bit9 off 0x3e = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c58 field bit9 off 0x3e = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c58 field bit9 off 0x3e = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c59 field bit9 off 0x3e = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c59 field bit9 off 0x3e = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c59 field bit9 off 0x3e = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c60 field bit9 off 0x3e = neg32 — scaler src=ours (PANIC possible)
+[s27d] c60 field bit9 off 0x3e = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c60 field bit9 off 0x3e = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c61 field bit9 off 0x3e = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c61 field bit9 off 0x3e = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c61 field bit9 off 0x3e = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c62 field bit10 off 0x3f = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c62 field bit10 off 0x3f = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c62 field bit10 off 0x3f = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c63 field bit10 off 0x3f = u64max — scaler src=ours (PANIC possible)
+[s27d] c63 field bit10 off 0x3f = u64max — scaler dst=ours (PANIC possible)
+[s27d] c63 field bit10 off 0x3f = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c64 field bit10 off 0x3f = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c64 field bit10 off 0x3f = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c64 field bit10 off 0x3f = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c65 field bit10 off 0x3f = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c65 field bit10 off 0x3f = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c65 field bit10 off 0x3f = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c66 field bit10 off 0x3f = neg32 — scaler src=ours (PANIC possible)
+[s27d] c66 field bit10 off 0x3f = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c66 field bit10 off 0x3f = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c67 field bit10 off 0x3f = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c67 field bit10 off 0x3f = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c67 field bit10 off 0x3f = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c68 field bit11 off 0x40 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c68 field bit11 off 0x40 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c68 field bit11 off 0x40 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c69 field bit11 off 0x40 = u64max — scaler src=ours (PANIC possible)
+[s27d] c69 field bit11 off 0x40 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c69 field bit11 off 0x40 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c70 field bit11 off 0x40 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c70 field bit11 off 0x40 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c70 field bit11 off 0x40 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c71 field bit11 off 0x40 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c71 field bit11 off 0x40 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c71 field bit11 off 0x40 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c72 field bit11 off 0x40 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c72 field bit11 off 0x40 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c72 field bit11 off 0x40 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c73 field bit11 off 0x40 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c73 field bit11 off 0x40 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c73 field bit11 off 0x40 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c74 field bit12 off 0x58 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c74 field bit12 off 0x58 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c74 field bit12 off 0x58 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c75 field bit12 off 0x58 = u64max — scaler src=ours (PANIC possible)
+[s27d] c75 field bit12 off 0x58 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c75 field bit12 off 0x58 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c76 field bit12 off 0x58 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c76 field bit12 off 0x58 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c76 field bit12 off 0x58 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c77 field bit12 off 0x58 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c77 field bit12 off 0x58 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c77 field bit12 off 0x58 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c78 field bit12 off 0x58 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c78 field bit12 off 0x58 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c78 field bit12 off 0x58 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c79 field bit12 off 0x58 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c79 field bit12 off 0x58 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c79 field bit12 off 0x58 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c80 field bit13 off 0x5c = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c80 field bit13 off 0x5c = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c80 field bit13 off 0x5c = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c81 field bit13 off 0x5c = u64max — scaler src=ours (PANIC possible)
+[s27d] c81 field bit13 off 0x5c = u64max — scaler dst=ours (PANIC possible)
+[s27d] c81 field bit13 off 0x5c = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c82 field bit13 off 0x5c = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c82 field bit13 off 0x5c = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c82 field bit13 off 0x5c = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c83 field bit13 off 0x5c = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c83 field bit13 off 0x5c = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c83 field bit13 off 0x5c = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c84 field bit13 off 0x5c = neg32 — scaler src=ours (PANIC possible)
+[s27d] c84 field bit13 off 0x5c = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c84 field bit13 off 0x5c = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c85 field bit13 off 0x5c = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c85 field bit13 off 0x5c = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c85 field bit13 off 0x5c = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c86 field bit14 off 0x64 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c86 field bit14 off 0x64 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c86 field bit14 off 0x64 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c87 field bit14 off 0x64 = u64max — scaler src=ours (PANIC possible)
+[s27d] c87 field bit14 off 0x64 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c87 field bit14 off 0x64 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c88 field bit14 off 0x64 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c88 field bit14 off 0x64 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c88 field bit14 off 0x64 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c89 field bit14 off 0x64 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c89 field bit14 off 0x64 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c89 field bit14 off 0x64 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c90 field bit14 off 0x64 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c90 field bit14 off 0x64 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c90 field bit14 off 0x64 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c91 field bit14 off 0x64 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c91 field bit14 off 0x64 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c91 field bit14 off 0x64 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c92 field bit15 off 0x68 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c92 field bit15 off 0x68 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c92 field bit15 off 0x68 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c93 field bit15 off 0x68 = u64max — scaler src=ours (PANIC possible)
+[s27d] c93 field bit15 off 0x68 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c93 field bit15 off 0x68 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c94 field bit15 off 0x68 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c94 field bit15 off 0x68 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c94 field bit15 off 0x68 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c95 field bit15 off 0x68 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c95 field bit15 off 0x68 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c95 field bit15 off 0x68 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c96 field bit15 off 0x68 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c96 field bit15 off 0x68 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c96 field bit15 off 0x68 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c97 field bit15 off 0x68 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c97 field bit15 off 0x68 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c97 field bit15 off 0x68 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c98 field bit16 off 0x70 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c98 field bit16 off 0x70 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c98 field bit16 off 0x70 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c99 field bit16 off 0x70 = u64max — scaler src=ours (PANIC possible)
+[s27d] c99 field bit16 off 0x70 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c99 field bit16 off 0x70 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c100 field bit16 off 0x70 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c100 field bit16 off 0x70 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c100 field bit16 off 0x70 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c101 field bit16 off 0x70 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c101 field bit16 off 0x70 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c101 field bit16 off 0x70 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c102 field bit16 off 0x70 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c102 field bit16 off 0x70 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c102 field bit16 off 0x70 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c103 field bit16 off 0x70 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c103 field bit16 off 0x70 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c103 field bit16 off 0x70 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c104 field bit17 off 0x65 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c104 field bit17 off 0x65 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c104 field bit17 off 0x65 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c105 field bit17 off 0x65 = u64max — scaler src=ours (PANIC possible)
+[s27d] c105 field bit17 off 0x65 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c105 field bit17 off 0x65 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c106 field bit17 off 0x65 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c106 field bit17 off 0x65 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c106 field bit17 off 0x65 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c107 field bit17 off 0x65 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c107 field bit17 off 0x65 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c107 field bit17 off 0x65 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c108 field bit17 off 0x65 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c108 field bit17 off 0x65 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c108 field bit17 off 0x65 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c109 field bit17 off 0x65 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c109 field bit17 off 0x65 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c109 field bit17 off 0x65 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c110 field bit18 off 0x66 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c110 field bit18 off 0x66 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c110 field bit18 off 0x66 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c111 field bit18 off 0x66 = u64max — scaler src=ours (PANIC possible)
+[s27d] c111 field bit18 off 0x66 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c111 field bit18 off 0x66 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c112 field bit18 off 0x66 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c112 field bit18 off 0x66 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c112 field bit18 off 0x66 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c113 field bit18 off 0x66 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c113 field bit18 off 0x66 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c113 field bit18 off 0x66 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c114 field bit18 off 0x66 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c114 field bit18 off 0x66 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c114 field bit18 off 0x66 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c115 field bit18 off 0x66 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c115 field bit18 off 0x66 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c115 field bit18 off 0x66 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c116 field bit19 off 0x74 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c116 field bit19 off 0x74 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c116 field bit19 off 0x74 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c117 field bit19 off 0x74 = u64max — scaler src=ours (PANIC possible)
+[s27d] c117 field bit19 off 0x74 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c117 field bit19 off 0x74 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c118 field bit19 off 0x74 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c118 field bit19 off 0x74 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c118 field bit19 off 0x74 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c119 field bit19 off 0x74 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c119 field bit19 off 0x74 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c119 field bit19 off 0x74 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c120 field bit19 off 0x74 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c120 field bit19 off 0x74 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c120 field bit19 off 0x74 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c121 field bit19 off 0x74 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c121 field bit19 off 0x74 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c121 field bit19 off 0x74 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c122 field bit20 off 0x80 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c122 field bit20 off 0x80 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c122 field bit20 off 0x80 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c123 field bit20 off 0x80 = u64max — scaler src=ours (PANIC possible)
+[s27d] c123 field bit20 off 0x80 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c123 field bit20 off 0x80 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c124 field bit20 off 0x80 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c124 field bit20 off 0x80 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c124 field bit20 off 0x80 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c125 field bit20 off 0x80 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c125 field bit20 off 0x80 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c125 field bit20 off 0x80 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c126 field bit20 off 0x80 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c126 field bit20 off 0x80 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c126 field bit20 off 0x80 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c127 field bit20 off 0x80 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c127 field bit20 off 0x80 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c127 field bit20 off 0x80 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c128 field bit21 off 0x82 = 0x7fffffff — scaler src=ours (PANIC possible)
+[s27d] c128 field bit21 off 0x82 = 0x7fffffff — scaler dst=ours (PANIC possible)
+[s27d] c128 field bit21 off 0x82 = 0x7fffffff -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c129 field bit21 off 0x82 = u64max — scaler src=ours (PANIC possible)
+[s27d] c129 field bit21 off 0x82 = u64max — scaler dst=ours (PANIC possible)
+[s27d] c129 field bit21 off 0x82 = u64max -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c130 field bit21 off 0x82 = 4G+0x100 — scaler src=ours (PANIC possible)
+[s27d] c130 field bit21 off 0x82 = 4G+0x100 — scaler dst=ours (PANIC possible)
+[s27d] c130 field bit21 off 0x82 = 4G+0x100 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c131 field bit21 off 0x82 = 4G+0x4000 — scaler src=ours (PANIC possible)
+[s27d] c131 field bit21 off 0x82 = 4G+0x4000 — scaler dst=ours (PANIC possible)
+[s27d] c131 field bit21 off 0x82 = 4G+0x4000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c132 field bit21 off 0x82 = neg32 — scaler src=ours (PANIC possible)
+[s27d] c132 field bit21 off 0x82 = neg32 — scaler dst=ours (PANIC possible)
+[s27d] c132 field bit21 off 0x82 = neg32 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] c133 field bit21 off 0x82 = 0x80000000 — scaler src=ours (PANIC possible)
+[s27d] c133 field bit21 off 0x82 = 0x80000000 — scaler dst=ours (PANIC possible)
+[s27d] c133 field bit21 off 0x82 = 0x80000000 -> w ok scalerA 0x00000000 scalerB 0x00000000 lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 
+[s27d] release sid 20 -> kr 0xe00002c2
+[s27d] done (alive), cases 133
+[probe13] s27down-only mode, stop
