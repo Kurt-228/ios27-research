@@ -2687,6 +2687,49 @@ static void p_streamfuzz(long rounds) {
 
 
 // V56: valid-type kernel command fuzz (grammar-aware)
+// V123: nq completion watcher for p_streamfuzz2 (env FUZZ_SFW2_WATCH=1).
+// The sel14 notification queue (scalars {0x100, 0x10}) is a ring of 0x100
+// entries x 0x10 bytes: {u64 value, u32 status, u32 pad} (docs/agx_io_command_path.md,
+// sendIOCompletionNotification). We snapshot-diff the ring every 64 rounds:
+// a record containing dword 7 (the twice-seen per-entry code 7 anomaly, journal
+// part13 §70.2) or any nonzero record deviating from the first-seen template
+// is logged as [w7] with hexdump, round and the round's command types.
+#define SFW2_NQ_ES 0x10
+#define SFW2_NQ_NR 0x100
+static void sf2_nq_watch(volatile uint8_t *nq, uint8_t *shadow, long r,
+                         const uint32_t *rt, int nrt, int *wlogs,
+                         uint8_t *tmpl, int *has_tmpl) {
+    for (int s = 0; s < SFW2_NQ_NR; s++) {
+        size_t o = (size_t)s * SFW2_NQ_ES;
+        uint8_t cur[SFW2_NQ_ES];
+        int nz = 0, w7 = 0;
+        for (size_t b = 0; b < SFW2_NQ_ES; b++) {
+            cur[b] = nq[o + b];
+            if (cur[b]) nz = 1;
+        }
+        if (!nz) { memcpy(shadow + o, cur, SFW2_NQ_ES); continue; }
+        if (!*has_tmpl) { memcpy(tmpl, cur, SFW2_NQ_ES); *has_tmpl = 1; }
+        for (int w = 0; w < 4; w++) {
+            uint32_t v;
+            memcpy(&v, cur + w * 4, 4);
+            if (v == 7) w7 = 1;
+        }
+        int dev = memcmp(shadow + o, cur, SFW2_NQ_ES) != 0;
+        int unt = *has_tmpl && memcmp(cur, tmpl, SFW2_NQ_ES) != 0;
+        if (w7 || (dev && unt)) {
+            if (*wlogs < 40)
+                LOG("[w7] r%ld slot %d%s: %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x %02x | types %x %x %x %x",
+                    r, s, w7 ? " CODE7" : " dev",
+                    cur[0], cur[1], cur[2], cur[3], cur[4], cur[5], cur[6], cur[7],
+                    cur[8], cur[9], cur[10], cur[11], cur[12], cur[13], cur[14], cur[15],
+                    nrt > 0 ? rt[0] : 0, nrt > 1 ? rt[1] : 0,
+                    nrt > 2 ? rt[2] : 0, nrt > 3 ? rt[3] : 0);
+            (*wlogs)++;
+        }
+        memcpy(shadow + o, cur, SFW2_NQ_ES);
+    }
+}
+
 static void p_streamfuzz2(long rounds) {
     LOG("[v56] grammar-aware command fuzz, %ld rounds", rounds);
     io_connect_t c = open_service("IOGPU", 1);
@@ -2698,6 +2741,7 @@ static void p_streamfuzz2(long rounds) {
     size_t osz = 0x10;
     kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
     uint64_t nqid = *(uint64_t *)(out + 8);
+    uint64_t nqVA = *(uint64_t *)out;   // V123: ring VA for the [w7] watcher
     memset(in, 0, 0x2000); memset(out, 0, 0x1000);
     osz = 0x10; nosc = 0;
     kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
@@ -2739,6 +2783,18 @@ static void p_streamfuzz2(long rounds) {
     kern_return_t k0 = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
     LOG("[s6] sanity type2 -> kr 0x%08x outw %08x (expect 0)", k0, *outw);
 
+    // V123: [w7] completion watcher — opt-in via FUZZ_SFW2_WATCH=1
+    int watch = getenv("FUZZ_SFW2_WATCH") != NULL;
+    volatile uint8_t *nq = (watch && nqVA) ? (volatile uint8_t *)(uintptr_t)nqVA : NULL;
+    uint8_t *nqsh = nq ? must_map(SFW2_NQ_ES * SFW2_NQ_NR) : NULL;
+    uint8_t nqtmpl[SFW2_NQ_ES];
+    int has_tmpl = 0, wlogs = 0;
+    if (nq) {
+        usleep(2000);   // let the sanity submit's completion land first
+        for (size_t b = 0; b < SFW2_NQ_ES * SFW2_NQ_NR; b++) nqsh[b] = nq[b];
+        LOG("[w7] watch on, nqVA %llx baseline snapshot taken", nqVA);
+    }
+
     static const uint32_t types[] = { 2,3,4,5,6,8,9,0xa,0xb,0xc,0xd,0xe,0xf,0x10,0x11,0x12,0x10002,0x10004 };
     int unusual = 0;
     uint32_t round_types[8];
@@ -2778,6 +2834,10 @@ static void p_streamfuzz2(long rounds) {
             unusual++;
         }
         if ((r & 0x1ff) == 0) usleep(500);
+        if (nq && (r & 63) == 0)
+            sf2_nq_watch(nq, nqsh, r, round_types, nrt, &wlogs, nqtmpl, &has_tmpl);
+        if (nq && (r % 100000) == 0)
+            LOG("[w7] heartbeat r%ld wlogs %d", r, wlogs);
     }
     LOG("[v56] done (alive), unusual %d", unusual);
 }
@@ -21511,6 +21571,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_KILLRACE")) { p_killrace(); LOG("[probe13] killrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PAYFUZZ") || getenv("FUZZ_PAYFUZZ_LOCATE")) { p_payfuzz(); LOG("[probe13] payfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_SFW2")) { p_streamfuzz2(2000000); LOG("[probe13] sfw2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_JPEGIMG")) { p_jpegimg(); LOG("[probe13] jpegimg-only mode, stop"); return NULL; }
