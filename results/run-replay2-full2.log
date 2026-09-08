@@ -1,0 +1,148 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e13
+[scaler] conn 0x7e13, s1 161 s2 168
+[probe12] SetNotificationPort -> 0x00000000
+[rp2] v127: reference-dump hybrid replay on our type-1 queue
+[rp2] asset dsrecon-cfg1-kcmd: /private/var/containers/Bundle/Application/86875D13-4A59-41AA-A3E9-D32CC7178511/fuzz27.app/dsrecon-cfg1-kcmd.bin (16384 bytes)
+[rp2] asset dsrecon-cfg1-seg: /private/var/containers/Bundle/Application/86875D13-4A59-41AA-A3E9-D32CC7178511/fuzz27.app/dsrecon-cfg1-seg.bin (16384 bytes)
+[rp2] asset dsrecon-cfg1-pool0: /private/var/containers/Bundle/Application/86875D13-4A59-41AA-A3E9-D32CC7178511/fuzz27.app/dsrecon-cfg1-pool0.bin (16384 bytes)
+[open] IOGPU -> conn 0x7b0b
+[rp2] sel14 nq -> kr 0x00000000 nqVA 102bec000 nqid 1
+[rp2] qid 1 sel24 bind 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 1093ec000
+[mtlr]   out: 0000010000000000 00000001093ec000 0000000102bd80c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000199437f1 000000000001173a
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 1093fc000
+[mtlr]   out: 0000010000018000 00000001093fc000 0000000102bd8180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000199437f2 000000000001173b
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 10940c000
+[mtlr]   out: 0000010000030000 000000010940c000 0000000102bd8240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 00000000199437f3 000000000001173c
+[rp2] rids A 1 (0x10000000000) B 2 (0x10000018000) C 3 (0x10000030000)
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 102bf4000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 10942c000 id 2
+[rp2] shmems: seg id 1 (type 0) cmd id 2 (type 1)
+[rp2] reference GPUVAs pool0+0x14a0/+0x14a8: refA 0x0 refB 0x0
+[rp2] refA override 0x100001d0000
+[rp2] refB override 0x100001e8000
+[rp2] seg +0x108 rids {39,40} +0x120 sizeKB {64,64} -> {1,2} {0x40,0x40}
+[rp2f] FULL residency: numResources 20 numGroups 4
+[rp2f] group 0 @+0x48 count 6
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 4 GPUVA 0x10000058000 cpu 109434000
+[mtlr]   out: 0000010000058000 0000000109434000 0000000102bd8300 0000000000000000
+[mtlr]   out: 0000000400000000 0000000000008000 00000000199437f4 000000000001173d
+[rp2f] ref rid 23 (grp 0 slot 0, 32 KB) -> our rid 4 gpuva 0x10000058000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 5 GPUVA 0x10000068000 cpu 10943c000
+[mtlr]   out: 0000010000068000 000000010943c000 0000000102bd83c0 0000000000000000
+[mtlr]   out: 0000000500000000 0000000000008000 00000000199437f5 000000000001173e
+[rp2f] ref rid 24 (grp 0 slot 1, 32 KB) -> our rid 5 gpuva 0x10000068000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 6 GPUVA 0x10000078000 cpu 109444000
+[mtlr]   out: 0000010000078000 0000000109444000 0000000102bd8480 0000000000000000
+[mtlr]   out: 0000000600000000 0000000000008000 00000000199437f6 000000000001173f
+[rp2f] ref rid 25 (grp 0 slot 2, 32 KB) -> our rid 6 gpuva 0x10000078000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 7 GPUVA 0x10000088000 cpu 10944c000
+[mtlr]   out: 0000010000088000 000000010944c000 0000000102bd8540 0000000000000000
+[mtlr]   out: 0000000700000000 0000000000008000 00000000199437f7 0000000000011740
+[rp2f] ref rid 26 (grp 0 slot 3, 32 KB) -> our rid 7 gpuva 0x10000088000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 8 GPUVA 0x10000098000 cpu 109454000
+[mtlr]   out: 0000010000098000 0000000109454000 0000000102bd8600 0000000000000000
+[mtlr]   out: 0000000800000000 0000000000008000 00000000199437f8 0000000000011741
+[rp2f] ref rid 27 (grp 0 slot 4, 32 KB) -> our rid 8 gpuva 0x10000098000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 9 GPUVA 0x100000a8000 cpu 10945c000
+[mtlr]   out: 00000100000a8000 000000010945c000 0000000102bd86c0 0000000000000000
+[mtlr]   out: 0000000900000000 0000000000008000 00000000199437f9 0000000000011742
+[rp2f] ref rid 28 (grp 0 slot 5, 32 KB) -> our rid 9 gpuva 0x100000a8000
+[rp2f] group 1 @+0x88 count 6
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 10 GPUVA 0x100000b8000 cpu 109464000
+[mtlr]   out: 00000100000b8000 0000000109464000 0000000102bd8780 0000000000000000
+[mtlr]   out: 0000000a00000000 0000000000008000 00000000199437fa 0000000000011743
+[rp2f] ref rid 29 (grp 1 slot 0, 32 KB) -> our rid 10 gpuva 0x100000b8000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 11 GPUVA 0x100000c8000 cpu 10946c000
+[mtlr]   out: 00000100000c8000 000000010946c000 0000000102bd8840 0000000000000000
+[mtlr]   out: 0000000b00000000 0000000000008000 00000000199437fb 0000000000011744
+[rp2f] ref rid 30 (grp 1 slot 1, 32 KB) -> our rid 11 gpuva 0x100000c8000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 12 GPUVA 0x100000d8000 cpu 109474000
+[mtlr]   out: 00000100000d8000 0000000109474000 0000000102bd8900 0000000000000000
+[mtlr]   out: 0000000c00000000 0000000000008000 00000000199437fc 0000000000011745
+[rp2f] ref rid 31 (grp 1 slot 2, 32 KB) -> our rid 12 gpuva 0x100000d8000
+[mtlr] resource2 sel8 flags 470 sz 0x8000 -> kr 0x00000000 rid 13 GPUVA 0x100000e8000 cpu 10947c000
+[mtlr]   out: 00000100000e8000 000000010947c000 0000000102bd89c0 0000000000000000
+[mtlr]   out: 0000000d00000000 0000000000008000 00000000199437fd 0000000000011746
+[rp2f] ref rid 32 (grp 1 slot 3, 32 KB) -> our rid 13 gpuva 0x100000e8000
+[mtlr] resource2 sel8 flags 470 sz 0xc000 -> kr 0x00000000 rid 14 GPUVA 0x100000f8000 cpu 109484000
+[mtlr]   out: 00000100000f8000 0000000109484000 0000000102bd8a80 0000000000000000
+[mtlr]   out: 0000000e00000000 000000000000c000 00000000199437fe 0000000000011747
+[rp2f] ref rid 33 (grp 1 slot 4, 48 KB) -> our rid 14 gpuva 0x100000f8000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 15 GPUVA 0x10000108000 cpu 109490000
+[mtlr]   out: 0000010000108000 0000000109490000 0000000102bd8b40 0000000000000000
+[mtlr]   out: 0000000f00000000 0000000000010000 00000000199437ff 0000000000011748
+[rp2f] ref rid 1 (grp 1 slot 5, 64 KB) -> our rid 15 gpuva 0x10000108000
+[rp2f] group 2 @+0xc8 count 6
+[mtlr] resource2 sel8 flags 470 sz 0xc000 -> kr 0x00000000 rid 16 GPUVA 0x10000120000 cpu 1094a0000
+[mtlr]   out: 0000010000120000 00000001094a0000 0000000102bd8c00 0000000000000000
+[mtlr]   out: 0000001000000000 000000000000c000 0000000019943800 0000000000011749
+[rp2f] ref rid 34 (grp 2 slot 0, 48 KB) -> our rid 16 gpuva 0x10000120000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 17 GPUVA 0x10000130000 cpu 1094ac000
+[mtlr]   out: 0000010000130000 00000001094ac000 0000000102bd8cc0 0000000000000000
+[mtlr]   out: 0000001100000000 0000000000010000 0000000019943801 000000000001174a
+[rp2f] ref rid 17 (grp 2 slot 1, 64 KB) -> our rid 17 gpuva 0x10000130000
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 18 GPUVA 0x10000148000 cpu 1094bc000
+[mtlr]   out: 0000010000148000 00000001094bc000 0000000102bd8d80 0000000000000000
+[mtlr]   out: 0000001200000000 0000000000020000 0000000019943802 000000000001174b
+[rp2f] ref rid 20 (grp 2 slot 2, 128 KB) -> our rid 18 gpuva 0x10000148000
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 19 GPUVA 0x10000170000 cpu 1094dc000
+[mtlr]   out: 0000010000170000 00000001094dc000 0000000102bd8e40 0000000000000000
+[mtlr]   out: 0000001300000000 0000000000020000 0000000019943803 000000000001174c
+[rp2f] ref rid 12 (grp 2 slot 3, 128 KB) -> our rid 19 gpuva 0x10000170000
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 20 GPUVA 0x10000198000 cpu 1094fc000
+[mtlr]   out: 0000010000198000 00000001094fc000 0000000102bd8f00 0000000000000000
+[mtlr]   out: 0000001400000000 0000000000020000 0000000019943804 000000000001174d
+[rp2f] ref rid 11 (grp 2 slot 4, 128 KB) -> our rid 20 gpuva 0x10000198000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 21 GPUVA 0x100001c0000 cpu 10951c000
+[mtlr]   out: 00000100001c0000 000000010951c000 0000000102bd8fc0 0000000000000000
+[mtlr]   out: 0000001500000000 0000000000010000 0000000019943805 000000000001174e
+[rp2f] ref rid 16 (grp 2 slot 5, 64 KB) -> our rid 21 gpuva 0x100001c0000
+[rp2f] group 3 @+0x108 count 2
+[rp2f] ref rid 39 (grp 3 slot 0, 64 KB) -> our rid 1 gpuva 0x0
+[rp2f] ref rid 40 (grp 3 slot 1, 64 KB) -> our rid 2 gpuva 0x0
+[rp2f] mapping: 20 unique reference rids (target numResources 20)
+[rp2f] pool base: 0x100100000
+[rp2f] pool2 base 0x100030000, internal-E base 0x1000f0000
+[mtlr] resource2 sel8 flags 470 sz 0x40000 -> kr 0x00000000 rid 22 GPUVA 0x100001d8000 cpu 10952c000
+[mtlr]   out: 00000100001d8000 000000010952c000 0000000102bd9080 0000000000000000
+[mtlr]   out: 0000001600000000 0000000000040000 0000000019943806 000000000001174f
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 23 GPUVA 0x10000220000 cpu 10956c000
+[mtlr]   out: 0000010000220000 000000010956c000 0000000102bd9140 0000000000000000
+[mtlr]   out: 0000001700000000 0000000000010000 0000000019943807 0000000000011750
+[rp2f] D rid 22 gpuva 0x100001d8000 (2nd pool page) | E rid 23 gpuva 0x10000220000 (internal, content UNKNOWN — zero-filled)
+[rp2f] D: zero-filled, slot heuristic {gpuA,gpuB} @+0x1480 and +0x14a0 (no base2 dump available)
+[rp2] entry form: HISTORICAL v80 {aux1,aux2,+0x20 ridB} (A/B: FUZZ_REPLAY2_OLDENTRY=1)
+[rp2] kcmd header {type 0x0000000f, len 0x000000ac}
+[rp2] stream walk: 2 records, end @0x404
+[rp2] strategy: pool window was Metal-context owned — re-creating pool0 in resource C (gpuva 0x10000030000)
+[rp2] resource C: 1 GPUVA slots patched (refA/refB -> ours)
+[rp2f] var1: group-slot subs 19, global subs (rid>=0x10) 16
+[rp2f] var1 kcmd+0x0174: 0x1000f0000 -> 0x10000220000 (INT->E+d)
+[rp2f] var1 kcmd+0x01cc: 0x100100000 -> 0x10000030000 (POOL1->C)
+[rp2f] var1 kcmd+0x01d0: 0x1000f0028 -> 0x10000220028 (INT->E+d)
+[rp2f] var1 kcmd+0x01d4: UNMAPPED space-0x1 ref 0x100220028 (set FUZZ_REPLAY2_REFA/REFB/FUZZ_REPLAY2_POOL)
+[rp2f] var1 kcmd+0x01e4: 0x100101480 -> 0x10000031480 (POOL1SLOT->C+d)
+[rp2f] var1 kcmd+0x01e8: 0x100101488 -> 0x10000031488 (POOL1SLOT->C+d)
+[rp2f] var1 kcmd+0x01ec: 0x100031488 -> 0x100001d9488 (POOL2->D+d)
+[rp2f] var1 kcmd+0x01f0: 0x100101490 -> 0x10000031490 (POOL1SLOT->C+d)
+[rp2f] var1 kcmd+0x01f4: 0x100031490 -> 0x100001d9490 (POOL2->D+d)
+[rp2f] var1 kcmd+0x01f8: 0x100101498 -> 0x10000031498 (POOL1SLOT->C+d)
+[rp2f] var1 kcmd+0x01fc: 0x100031498 -> 0x100001d9498 (POOL2->D+d)
+[rp2f] var1: space-0x1 refs rebased 10, unmapped 1, kext-block refs skipped 10 — capture VM still referenced!
+[rp2] var1: kcmd gpuVA-sub 1 abs-rebase 0 rid-sub 1 | seg extra rid-sub 19
+[rp2] var1: submit qid 1 entry {cmd 2 seg 1} HIST (PANIC possible)
+[rp2] var1 nq+000: value 0000000000001414 status 88
+[rp2] var1 nq+010: value 0000000109580000 status 342265351
+[rp2] var1 nq+020: value 00000dbb148242a4 status 0
+[rp2] var1 nq+040: value 148244c100000001 status 3515
+[rp2f] var1: firmware status (2nd record) 342265351 — NOT 5 — parse path CHANGED
+[rp2] var1 -> kr 0x00000000 outw 00000000 comp st@+18 0 st@+48 0 post{17:e00002c2 15:e00002c2/00000000} | B: 41 0 nz 0 (no write)
+[rp2] var1 comp: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 | aux1: 0000000000000000 0000000000000000 aux2: 0000010000018000 00000001093fc000
+[rp2] done (alive)
+[probe13] replay2-only mode, stop

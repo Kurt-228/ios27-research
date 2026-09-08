@@ -1,0 +1,179 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5613
+[scaler] conn 0x5613, s1 161 s2 168
+[probe12] SetNotificationPort -> 0x00000000
+[dsr] v124: N1 baseline-template diff + N2 pointer discrimination
+[dsr] cfg0 size 0x4000 gpuA 0x10000080000 gpuB 0x10000088000
+[dsr] cfg0 storage 0x107991c00 kcmd 0x102950000 seg 0x10267c000 (pre-endEncoding)
+[dsr]   pool region 0x107480000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x107800000 sz 0x400000 (hit gpuA+0x41268)
+[dsr]   pool region 0x10b400000 sz 0x400000 (hit gpuA+0x1a790)
+[dsr]   pool region 0x16dfd4000 sz 0x88000 (hit gpuA+0x80980)
+[dsr]   pool region 0x107480000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x107800000 sz 0x400000 (hit gpuA+0x41268)
+[dsr]   pool region 0x10b400000 sz 0x400000 (hit gpuA+0x1a790)
+[dsr]   pool region 0x16dfd4000 sz 0x88000 (hit gpuA+0x80980)
+[dsr] cfg0 kcmd: 0 changed lines
+[dsr] cfg0 seg: 0 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr] cfg0 pool +0x0010: 08c130e801000000 -> c0221ee801000000
+[dsr] cfg0 pool +0x09a0: 0100088000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x15f0: 70a828e801000000 -> 60ab1ee801000000
+[dsr] cfg0 pool +0x3570: 001f24e801000000 -> 705423e801000000
+[dsr] cfg0 pool +0x35d0: 983b23e801000000 -> 805323e801000000
+[dsr] cfg0 pool +0x3690: c040930701000000 -> 2059930701000000
+[dsr] cfg0 pool +0x3c30: 0000000000000000 -> 10d823e801000000
+[dsr] cfg0 pool +0x3e70: 705923e801000000 -> 585823e801000000
+[dsr] cfg0 pool +0x3eb0: 705924e801000000 -> 906124e801000000
+[dsr] cfg0 pool: 9 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg0-pool3.bin (16384 bytes) ok
+[dsr] cfg0 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg0 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg0 pool0: pointer hits A 1 B 1
+[dsr] cfg1 size 0x10000 gpuA 0x10000110000 gpuB 0x10000128000
+[dsr] cfg1 storage 0x107991c00 kcmd 0x102950000 seg 0x10267c000 (pre-endEncoding)
+[dsr]   pool region 0x107480000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x107800000 sz 0x400000 (hit gpuA+0x41e48)
+[dsr]   pool region 0x10b400000 sz 0x400000 (hit gpuA+0x26790)
+[dsr]   pool region 0x16dfd4000 sz 0x88000 (hit gpuB+0x7f5b8)
+[dsr]   pool region 0x2798a4000 sz 0x1dcc000 (hit gpuA+0x1a83478)
+[dsr]   pool region 0x107480000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x107800000 sz 0x400000 (hit gpuA+0x41e48)
+[dsr]   pool region 0x10b400000 sz 0x400000 (hit gpuA+0x26790)
+[dsr]   pool region 0x16dfd4000 sz 0x88000 (hit gpuB+0x7f5b8)
+[dsr]   pool region 0x2798a4000 sz 0x1dcc000 (hit gpuA+0x1a83478)
+[dsr] cfg1 kcmd: 0 changed lines
+[dsr] cfg1 seg: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-pool3.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg1-pool4.bin (16384 bytes) ok
+[dsr] cfg1 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg1 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg1 pool0: pointer hits A 1 B 1
+[dsr] cfg2 size 0x40000 gpuA 0x10000140000 gpuB 0x10000188000
+[dsr] cfg2 storage 0x107991c00 kcmd 0x102950000 seg 0x10267c000 (pre-endEncoding)
+[dsr]   pool region 0x107480000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x107800000 sz 0x400000 (hit gpuA+0x41f88)
+[dsr]   pool region 0x10b400000 sz 0x400000 (hit gpuA+0x32790)
+[dsr]   pool region 0x16dfd4000 sz 0x88000 (hit gpuB+0x7f5b8)
+[dsr]   pool region 0x107480000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x107800000 sz 0x400000 (hit gpuA+0x41f88)
+[dsr]   pool region 0x10b400000 sz 0x400000 (hit gpuA+0x32790)
+[dsr]   pool region 0x16dfd4000 sz 0x88000 (hit gpuB+0x7f5b8)
+[dsr] cfg2 kcmd: 0 changed lines
+[dsr] cfg2 seg: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-cfg2-pool3.bin (16384 bytes) ok
+[dsr] cfg2 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg2 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg2 pool0: pointer hits A 1 B 1
+[dsr] x0v1 kcmd: 0 changed lines
+[dsr] x0v1 seg +0x0000: 0172991a00000000 -> 0372991a00000000
+[dsr] x0v1 seg +0x0010: 00000000ac000000 -> 00000000ac000000
+[dsr] x0v1 seg +0x0020: 0000000000000000 -> 0000000000000000
+[dsr] x0v1 seg +0x0100: 8000800000000600 -> 8000800000000600
+[dsr] x0v1 seg +0x0120: 1000000010000000 -> 4000000040000000
+[dsr] x0v1 seg: 5 changed lines
+[dsr] x0v2 kcmd: 0 changed lines
+[dsr] x0v2 seg +0x0000: 0172991a00000000 -> 0572991a00000000
+[dsr] x0v2 seg +0x0010: 00000000ac000000 -> 00000000ac000000
+[dsr] x0v2 seg +0x0020: 0000000000000000 -> 0000000000000000
+[dsr] x0v2 seg +0x0100: 8000800000000600 -> 8000800000000600
+[dsr] x0v2 seg +0x0120: 1000000010000000 -> 0001000000010000
+[dsr] x0v2 seg: 5 changed lines
+[dsri] internal-resource harvest (full session + VM scan)
+[dsri] Metal conn 0x750b (no rid->mapping selector — VM-scan path)
+[dsri] blit committed status 4 gpuA 0x100001d0000 gpuB 0x100001e8000
+[dsri] cand 0x102308000 sz 0x4000 score 22 (bplist 0, va 3, pair 2) q0 0x400000010 q1 0x102300955
+[dsri] cand 0x10230c000 sz 0x38000 score 2 (bplist 0, va 1, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102354000 sz 0x8000 score 66 (bplist 0, va 33, pair 0) q0 0x1750 q1 0x0
+[dsri] cand 0x102368000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x1a q1 0xe
+[dsri] cand 0x102378000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x1023700e8 q1 0x239d1505c
+[dsri] cand 0x102464000 sz 0x40000 score 4 (bplist 0, va 2, pair 0) q0 0x40004000400040 q1 0x40
+[dsri] cand 0x1024c8000 sz 0x4000 score 20 (bplist 0, va 2, pair 2) q0 0x0 q1 0x0
+[dsri] cand 0x102530000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102534000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102538000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x10253c000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102540000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102544000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102548000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102550000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102564000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x340 q1 0x0
+[dsri] cand 0x102574000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102578000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x5800002c2c q1 0x2800000058
+[dsri] cand 0x10257c000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x40 q1 0x0
+[dsri] cand 0x10258c000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x4141414141414141 q1 0x4141414141414141
+[dsri] cand 0x102668000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x80 q1 0x0
+[dsri] cand 0x102678000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x4242424242424242 q1 0x4242424242424242
+[dsri] cand 0x10267c000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x1a997207 q1 0x4000000100000001
+[dsri] cand 0x102870000 sz 0x94000 score 26 (bplist 0, va 13, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102908000 sz 0x10000 score 6 (bplist 0, va 1, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102918000 sz 0x8000 score 80 (bplist 0, va 10, pair 10) q0 0x0 q1 0x1029184c0
+[dsri] cand 0x102920000 sz 0x10000 score 6 (bplist 0, va 1, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x102950000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0xac0000000f q1 0x0
+[dsri] cand 0x10295c000 sz 0x8000 score 2 (bplist 0, va 1, pair 0) q0 0x0 q1 0x0
+[dsri] cand 0x10296c000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0xf6e4c599245143c9 q1 0x3097475ecc16f40f
+[dsri] cand 0x102bac000 sz 0x400000 score 162 (bplist 0, va 63, pair 6) q0 0x23d500000000 q1 0x286c
+[dsri] cand 0x106fdc000 sz 0x8000 score 2 (bplist 0, va 1, pair 0) q0 0x100004000000000 q1 0x4000000100002c00
+[dsri] cand 0x106ff8000 sz 0x4000 score 4 (bplist 0, va 0, pair 0) q0 0x100000007 q1 0x582e0a3291
+[dsri] cand 0x107000000 sz 0x400000 score 34 (bplist 0, va 17, pair 0) q0 0x80880000 q1 0x1eb3b3c48
+[dsri] cand 0x107400000 sz 0x80000 score 48 (bplist 0, va 21, pair 1) q0 0x400 q1 0x4000010
+[dsri] cand 0x10748c000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x4141414141414141 q1 0x4141414141414141
+[dsri] cand 0x10749c000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x4242424242424242 q1 0x4242424242424242
+[dsri] cand 0x10752c000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x4141414141414141 q1 0x4141414141414141
+[dsri] cand 0x10753c000 sz 0x10000 score 4 (bplist 0, va 0, pair 0) q0 0x4141414141414141 q1 0x4141414141414141
+[dsri] cand 0x107800000 sz 0x400000 score 280 (bplist 0, va 68, pair 24) q0 0xa0080001 q1 0x1e9f6d130
+[dsri] cand 0x10b400000 sz 0x400000 score 654 (bplist 0, va 123, pair 68) q0 0x1000001e848e761 q1 0xb00000800
+[dsri] cand 0x1e5464000 sz 0xb9c000 score 2 (bplist 0, va 1, pair 0) q0 0x0 q1 0x8000000000000000
+[dsri] cand 0x2cf250000 sz 0xcb0000 score 12 (bplist 0, va 3, pair 1) q0 0x2c13c76c0 q1 0x2c13c76a4
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-0.bin (262144 bytes) ok
+[dsri] dump dsrecon-int-0.bin: region 0x10b400000 sz 0x400000 (dumped 0x40000) score 654 q0 0x1000001e848e761 q1 0xb00000800
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-1.bin (262144 bytes) ok
+[dsri] dump dsrecon-int-1.bin: region 0x102870000 sz 0x94000 (dumped 0x40000) score 26 q0 0x0 q1 0x0
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-2.bin (32768 bytes) ok
+[dsri] dump dsrecon-int-2.bin: region 0x102354000 sz 0x8000 (dumped 0x8000) score 66 q0 0x1750 q1 0x0
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-3.bin (262144 bytes) ok
+[dsri] dump dsrecon-int-3.bin: region 0x107000000 sz 0x400000 (dumped 0x40000) score 34 q0 0x80880000 q1 0x1eb3b3c48
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-4.bin (32768 bytes) ok
+[dsri] dump dsrecon-int-4.bin: region 0x102918000 sz 0x8000 (dumped 0x8000) score 80 q0 0x0 q1 0x1029184c0
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-5.bin (262144 bytes) ok
+[dsri] dump dsrecon-int-5.bin: region 0x107400000 sz 0x80000 (dumped 0x40000) score 48 q0 0x400 q1 0x4000010
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-6.bin (262144 bytes) ok
+[dsri] dump dsrecon-int-6.bin: region 0x107800000 sz 0x400000 (dumped 0x40000) score 280 q0 0xa0080001 q1 0x1e9f6d130
+[dsr]   wrote /var/mobile/Containers/Data/Application/A6FC21F7-E3DB-4314-B12A-2D372567F902/Documents/dsrecon-int-7.bin (262144 bytes) ok
+[dsri] dump dsrecon-int-7.bin: region 0x102bac000 sz 0x400000 (dumped 0x40000) score 162 q0 0x23d500000000 q1 0x286c
+[dsri] done: 43 candidate regions, 8 dumped (alive)
+[dsr] done (alive)
+[probe13] dsrecon-only mode, stop

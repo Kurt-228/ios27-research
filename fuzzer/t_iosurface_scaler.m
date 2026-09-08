@@ -14849,6 +14849,7 @@ static void dsr_marker_scan(const char *tag, const char *what, const uint8_t *bu
 static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr_postseg(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void p_dsrecon(void) {
     LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
     id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
@@ -14934,6 +14935,7 @@ static void p_dsrecon(void) {
     if (getenv("FUZZ_DSRECON_POST")) dsr5_post_scan(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_N5B")) dsr5b_verify(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_POSTSEG")) dsr_postseg(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT")) dsr_int_dump(dev, mq, docdir);
     LOG("[dsr] done (alive)");
 }
 
@@ -15276,6 +15278,107 @@ static void dsr_postseg(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *doc
     LOG("[dsr-ps] done (alive)");
 }
 
+// V129: FUZZ_DSRECON_INT — harvest Metal INTERNAL resources (v86/p_mtlself):
+// 3 pre-queue internal resources (sel8 format B, flags 0x470/0x430/0xc30,
+// sizes 0x1000/0x4000/0x4000) are created at Metal session start and
+// CPU-mapped in OUR process; the 64KB bplist/metacache-class one is replay2's
+// E resource. No rid->mapping selector exists, so after a full legal session
+// (blit A->B 0x10000, commit, waitUntilCompleted — guarantees the internals
+// exist and are filled) we VM-scan writable regions for the signatures:
+// "bplist00" magic, space-0x1 page-aligned GPUVA qwords, {gpuva,cpuptr}
+// descriptor pairs (aux2 shape). Top-8 candidates dumped to
+// Documents/dsrecon-int-N.bin (up to 0x40000 each). Tag [dsri].
+static void dsr_int_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri] internal-resource harvest (full session + VM scan)");
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    LOG("[dsri] Metal conn 0x%x (no rid->mapping selector — VM-scan path)", mconn);
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri] blit committed status %ld gpuA 0x%llx gpuB 0x%llx",
+        (long)[cb status], gpuA, gpuB);
+    // single pass over writable regions; keep top-8 by signature score
+    uint64_t baddr[8] = {0};
+    mach_vm_size_t bsz[8] = {0};
+    long bsc[8] = {0};
+    mach_vm_address_t addr = 0;
+    long nseen = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+            && sz >= 0x1000 && sz <= 0x1000000) {
+            const uint8_t *b = (const uint8_t *)addr;
+            long sc = 0;
+            if (sz >= 8 && !memcmp(b, "bplist00", 8)) sc += 20;
+            long nva = 0, npair = 0;
+            for (mach_vm_size_t o = 0; o + 16 <= sz && o < 0x40000; o += 8) {
+                uint64_t q, p;
+                memcpy(&q, b + o, 8);
+                if (q == gpuA || q == gpuB) continue;   // our own buffers, not internal
+                if ((q >> 32) == 1 && (q & 0xfff) == 0) {
+                    nva++;
+                    memcpy(&p, b + o + 8, 8);
+                    if (p > 0x100000000ULL && p < 0x300000000ULL && !(p & 0xf)) {
+                        npair++;   // {gpuva, cpuptr} descriptor pair (aux2 shape)
+                        o += 8;
+                    }
+                }
+            }
+            sc += nva * 2 + npair * 6;
+            if (sz == 0x1000 || sz == 0x4000 || sz == 0x10000) sc += 4;  // known internal sizes
+            if (sc > 0) {
+                nseen++;
+                int w = -1;
+                for (int i = 0; i < 8; i++) if (!bsc[i]) { w = i; break; }
+                if (w < 0) { w = 0; for (int i = 1; i < 8; i++) if (bsc[i] < bsc[w]) w = i; }
+                if (bsc[w] == 0 || sc > bsc[w]) { baddr[w] = addr; bsz[w] = sz; bsc[w] = sc; }
+                uint64_t q0 = 0, q1 = 0;
+                memcpy(&q0, b, 8); memcpy(&q1, b + 8, 8);
+                LOG("[dsri] cand 0x%llx sz 0x%llx score %ld (bplist %d, va %ld, pair %ld)"
+                    " q0 0x%llx q1 0x%llx",
+                    (uint64_t)addr, (uint64_t)sz, sc,
+                    (int)(sz >= 8 && !memcmp(b, "bplist00", 8)), nva, npair, q0, q1);
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    int nd = 0;
+    for (int i = 0; i < 8 && nd < 8; i++) {
+        if (!bsc[i]) continue;
+        mach_vm_size_t ds = bsz[i] > 0x40000 ? 0x40000 : bsz[i];
+        uint8_t *tmp = malloc(ds);
+        memcpy(tmp, (void *)(uintptr_t)baddr[i], ds);
+        char nm[40];
+        snprintf(nm, sizeof nm, "dsrecon-int-%d.bin", nd);
+        dsr_write_file(docdir, nm, tmp, (long)ds);
+        uint64_t q0 = 0, q1 = 0;
+        memcpy(&q0, tmp, 8); memcpy(&q1, tmp + 8, 8);
+        LOG("[dsri] dump %s: region 0x%llx sz 0x%llx (dumped 0x%llx) score %ld"
+            " q0 0x%llx q1 0x%llx",
+            nm, baddr[i], (uint64_t)bsz[i], (uint64_t)ds, bsc[i], q0, q1);
+        free(tmp);
+        nd++;
+    }
+    LOG("[dsri] done: %ld candidate regions, %d dumped (alive)", nseen, nd);
+}
+
 // V127: p_replay2 — hybrid replay of the live-blitz reference dumps (fuzzer/
 // assets/dsrecon-cfg1-*.bin, captured by p_dsrecon N1) through OUR type-1
 // queue (C3, docs/device_stream_builder.md). Reference GPUVAs are read from
@@ -15375,7 +15478,10 @@ static void p_replay2(void) {
     uint32_t fnumGrp = 4;
     uint32_t mref[32], mour[32];
     int nmap = 0;
-    uint64_t poolBase = 0;
+    uint64_t poolBase = 0, poolBase2 = 0, refE = 0;
+    uint64_t gpuD = 0, gpuE = 0;
+    uint8_t *cpuD = NULL, *cpuE = NULL;
+    uint32_t ridD = 0, ridE = 0;
     if (fullm) {
         const uint8_t *gb = (const uint8_t *)dg.bytes;
         uint32_t numRes = *(const uint32_t *)(gb + 0x40);
@@ -15435,6 +15541,32 @@ static void p_replay2(void) {
         }
         LOG("[rp2f] pool base: 0x%llx%s", poolBase,
             poolBase ? "" : " — NOT FOUND (pool refs will be UNMAPPED)");
+        // second pool page (slots at base2+0x1480) and the internal 64KB
+        // resource (0x1_000f0000 region, bplist/metacache class — no dump of
+        // it exists in any session, content UNKNOWN). Defaults match the
+        // capture; env FUZZ_REPLAY2_POOL2 / FUZZ_REPLAY2_REFE override.
+        poolBase2 = 0x100000000ULL | 0x30000;
+        refE = 0x100000000ULL | 0xf0000;
+        const char *e2 = getenv("FUZZ_REPLAY2_POOL2");
+        if (e2) poolBase2 = strtoull(e2, NULL, 0);
+        const char *eE = getenv("FUZZ_REPLAY2_REFE");
+        if (eE) refE = strtoull(eE, NULL, 0);
+        LOG("[rp2f] pool2 base 0x%llx, internal-E base 0x%llx", poolBase2, refE);
+        ridD = gpu_resource2(c, 0x40000, &gpuD, &cpuD);   // 2nd pool page
+        ridE = gpu_resource2(c, 0x10000, &gpuE, &cpuE);   // internal 64KB
+        LOG("[rp2f] D rid %u gpuva 0x%llx (2nd pool page) | E rid %u gpuva 0x%llx (internal, content UNKNOWN — zero-filled)",
+            ridD, gpuD, ridE, gpuE);
+        if (cpuD) {
+            memset(cpuD, 0, 0x40000);
+            // no base2 dump exists: seed the slot tables at both candidate
+            // offsets with our src/dst pair (heuristic, logged)
+            *(uint64_t *)(cpuD + 0x1480) = gpuA;
+            *(uint64_t *)(cpuD + 0x1488) = gpuB;
+            *(uint64_t *)(cpuD + 0x14a0) = gpuA;
+            *(uint64_t *)(cpuD + 0x14a8) = gpuB;
+            LOG("[rp2f] D: zero-filled, slot heuristic {gpuA,gpuB} @+0x1480 and +0x14a0 (no base2 dump available)");
+        }
+        if (cpuE) memset(cpuE, 0, 0x10000);
     }
     uint8_t *entry = must_map(0x1000);
     uint32_t *outw = (uint32_t *)must_map(0x100);
@@ -15569,9 +15701,11 @@ static void p_replay2(void) {
             // {offset, 0x100}: u32[1]==0x100 (VA=0x1_off) or u32[0]==0x100
             // (VA=0x1_off)). Classify: poolBase -> C; poolBase+delta -> C+delta
             // (slot table); refA/refB -> A/B; rest -> UNMAPPED (log, left).
-            long nva = 0, nun = 0;
+            long nva = 0, nun = 0, nkext = 0;
+            memset(vaCmd + 0x3e0, 0, 0x28);   // kext-written block: zeroed, excluded
             for (uint8_t *buf = vaCmd; ; buf = vaSeg) {
                 for (long o = 0; o + 8 <= 0x4000; o += 4) {
+                    if (buf == vaCmd && o >= 0x3e0 && o < 0x408) { nkext++; continue; }
                     uint32_t d0 = *(uint32_t *)(buf + o), d1 = *(uint32_t *)(buf + o + 4);
                     uint32_t off; int form;
                     if (d1 == 0x100 && d0 >= 0x1000) { off = d0; form = 0; }
@@ -15580,9 +15714,15 @@ static void p_replay2(void) {
                     uint64_t va = 0x100000000ULL | off;
                     uint64_t nv = 0;
                     const char *cls = NULL;
-                    if (gpuC && poolBase && va == poolBase) { nv = gpuC; cls = "POOL->C"; }
+                    if (gpuC && poolBase && va == poolBase) { nv = gpuC; cls = "POOL1->C"; }
                     else if (gpuC && poolBase && va > poolBase && va < poolBase + 0x40000) {
-                        nv = gpuC + (va - poolBase); cls = "POOLSLOT->C+d";
+                        nv = gpuC + (va - poolBase); cls = "POOL1SLOT->C+d";
+                    }
+                    else if (gpuD && va >= poolBase2 && va < poolBase2 + 0x40000) {
+                        nv = gpuD + (va - poolBase2); cls = "POOL2->D+d";
+                    }
+                    else if (gpuE && va >= refE && va < refE + 0x10000) {
+                        nv = gpuE + (va - refE); cls = "INT->E+d";
                     }
                     else if (va == refA) { nv = gpuA; cls = "refA->A"; }
                     else if (va == refB) { nv = gpuB; cls = "refB->B"; }
@@ -15605,8 +15745,8 @@ static void p_replay2(void) {
                 }
                 if (buf == vaSeg) break;
             }
-            LOG("[rp2f] var%ld: space-0x1 refs rebased %ld, unmapped %ld%s",
-                v, nva, nun, nun ? " — capture VM still referenced!" : " (clean)");
+            LOG("[rp2f] var%ld: space-0x1 refs rebased %ld, unmapped %ld, kext-block refs skipped %ld%s",
+                v, nva, nun, nkext, nun ? " — capture VM still referenced!" : " (clean)");
         } else {
             for (long o = 0; o + 4 <= 0x4000; o += 4) {
                 if (o == 0x108 || o == 0x10c) continue;
