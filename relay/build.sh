@@ -25,7 +25,7 @@ cp "$WORK_DIR/libiotrace.dylib" "$OUT/Frameworks/libiotrace.dylib"
 $CLANG -arch arm64 \
     -isysroot "$SDK" -miphoneos-version-min=17.0 \
     -fobjc-arc -O1 \
-    -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface -framework Metal -framework CoreGraphics -framework QuartzCore \
+    -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface -framework Metal -framework CoreGraphics -framework QuartzCore -framework AVFoundation \
     -Wl,-rpath,@executable_path/Frameworks \
     fuzzer/*.m "$OUT/Frameworks/libiotrace.dylib" -o "$OUT/fuzz27"
 

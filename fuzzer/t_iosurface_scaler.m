@@ -21,6 +21,7 @@
 #include <IOSurface/IOSurfaceRef.h>
 #include <Foundation/Foundation.h>
 #include <UIKit/UIKit.h>
+#include <AVFoundation/AVFoundation.h>
 #include <objc/runtime.h>
 #include <objc/message.h>
 #include <sys/mman.h>
@@ -17861,10 +17862,61 @@ static void p_uatrec(void) {
             rounds, cong, roundms, secs, nv, vsz, fill, fills ? "" : " (0x41+markers)", pmb, pevery);
 
         // system GPU load on the main thread: keep the screen on and make
-        // WindowServer composite continuously (fresh GPU buffer allocs)
+        // WindowServer composite continuously (fresh GPU buffer allocs).
+        // Audio setup runs BEFORE the window lookup — it needs no window and
+        // must work on a locked screen (CA storm stays window-dependent).
         dispatch_async(dispatch_get_main_queue(), ^{
             @autoreleasepool {
                 [UIApplication sharedApplication].idleTimerDisabled = YES;
+                // autonomous audio DMA churn: productive spray runs historically
+                // coincided with active device audio. Env FUZZ_UATREC_S4_AUDIO=1.
+                // Player is held by the function-static strong ref — it outlives
+                // this autoreleasepool and keeps looping until process death.
+                if (getenv("FUZZ_UATREC_S4_AUDIO")) {
+                    @try {
+                        NSError *ce = nil;
+                        [[AVAudioSession sharedInstance] setCategory:AVAudioSessionCategoryPlayback error:&ce];
+                        if (ce) LOG("[uatrec] S4 audio setCategory failed: %s",
+                                    [[ce localizedDescription] UTF8String]);
+                        NSError *ae = nil;
+                        [[AVAudioSession sharedInstance] setActive:YES error:&ae];
+                        if (ae) LOG("[uatrec] S4 audio setActive failed (locked screen?): %s",
+                                    [[ae localizedDescription] UTF8String]);
+                        // synth 1s 44.1kHz 16-bit mono WAV: sin(220) + sin(440)
+                        const int sr = 44100, nsamp = sr;
+                        NSMutableData *wav = [NSMutableData dataWithLength:44 + nsamp * 2];
+                        uint8_t *w = (uint8_t *)[wav mutableBytes];
+                        *(uint32_t *)(w + 0)  = 0x46464952;            // 'RIFF'
+                        *(uint32_t *)(w + 4)  = 36 + nsamp * 2;
+                        *(uint32_t *)(w + 8)  = 0x45564157;            // 'WAVE'
+                        *(uint32_t *)(w + 12) = 0x20746d66;            // 'fmt '
+                        *(uint32_t *)(w + 16) = 16;
+                        *(uint16_t *)(w + 20) = 1;                     // PCM
+                        *(uint16_t *)(w + 22) = 1;                     // mono
+                        *(uint32_t *)(w + 24) = sr;
+                        *(uint32_t *)(w + 28) = sr * 2;
+                        *(uint16_t *)(w + 32) = 2;
+                        *(uint16_t *)(w + 34) = 16;
+                        *(uint32_t *)(w + 36) = 0x61746164;            // 'data'
+                        *(uint32_t *)(w + 40) = nsamp * 2;
+                        int16_t *pcm = (int16_t *)(w + 44);
+                        for (int i = 0; i < nsamp; i++) {
+                            double t = (double)i / sr;
+                            double s = 0.4 * sin(2 * 3.14159265358979323846 * 220.0 * t)
+                                     + 0.4 * sin(2 * 3.14159265358979323846 * 440.0 * t);
+                            pcm[i] = (int16_t)(s * 32767.0);
+                        }
+                        static AVAudioPlayer *s4player;   // strong under ARC, lives to process death
+                        s4player = [[AVAudioPlayer alloc] initWithData:wav error:&ae];
+                        s4player.numberOfLoops = -1;      // loop forever
+                        s4player.volume = 1.0;
+                        if ([s4player play]) LOG("[uatrec] S4 audio loop on");
+                        else LOG("[uatrec] S4 audio play failed: %s",
+                                 ae ? [[ae localizedDescription] UTF8String] : "?");
+                    } @catch (NSException *ex) {
+                        LOG("[uatrec] S4 audio setup exception %s", [[ex name] UTF8String]);
+                    }
+                }
                 UIWindow *win = nil;
                 for (UIScene *sc in [UIApplication sharedApplication].connectedScenes)
                     if ([sc isKindOfClass:[UIWindowScene class]])
