@@ -1,0 +1,12 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7f13
+[scaler] conn 0x7f13, s1 222 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[xyw] v100: X/Y-wrap sweep (skip 0)
+[open] AppleM2ScalerCSCDriver -> conn 0x590f
+[xyw] wire -> kr 0x00000000
+[xyw] custom shot X=0xfffffff0 Y=0xfffffff0 W=0x00000080 H=0x00000020 (PANIC possible)
+[xyw] custom -> kr 0x00000000 | bad qwords 10080, pages 0x4000..0xfc000
+[xyw] custom done (alive)
+[probe13] xywrap-only mode, stop
