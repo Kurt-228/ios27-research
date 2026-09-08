@@ -285,7 +285,7 @@ Wrap-путь (§3): start = dst_base + (Y&0x1FFFF)·pitch + (X&0x1FFFF)·bpp,
   dst_base** и < dst_base + span.
 - Чужой маппинг должен быть **жив** в момент записи: неактивные эвиктятся
   через ~2 с (§6.2); активный клиент продлевает TTL штатными запросами.
-- Размещение разрежённое (§6.3) ⇒ случайное попадание маловероятно; для
+- Размещение разрежённое (§6.3, политика — в §7) ⇒ случайное попадание маловероятно; для
   прицельного нужен либо груминг (поднять нашу поверхность выше цели нельзя —
   запись только вперёд, значит цель должна оказаться выше нас и до неё должен
   доставать span), либо утечка DVA цели (лог 'Scaler[%d] Request %d, %s
@@ -346,3 +346,162 @@ driver: +0x150 слоты[8], +0x1c0 битмап, +0xb8 gate; req: +0x428 кл�
   (экз.2 0xf910xx); crop 0xfffffff008f93014; setField-thunk 0xfffffff008f896a8;
   mapBufferOnDartGatedIfNeeded 0xfffffff00900c7c8; helper 0xfffffff0090691f4;
   defaults-thunk 0xfffffff008f81bf4.
+
+
+## 7. DVA-аллокатор IODARTMapper (iOS 27.0b4, статика kc27)
+
+Разбор `results/kc27/com_apple_driver_IODARTFamily.macho` (carve:
+`python3 results/kc-extract/carve_fileset.py results/kc27/kernelcache_iphone16.macho
+com.apple.driver.IODARTFamily`; дизасм в сессии: `objdump -d` →
+`/tmp/iokdart_disasm.txt`, 20518 строк). Закрывает §6.3: политика размещения
+DVA найдена и верифицирована. VA сокращены до low-32; base text IODARTFamily =
+0x9ce20a0, cstring base = 0x789e928, __const base = 0x8136240.
+
+### 7.1 Где живёт класс и его alloc/free
+
+- **Кекст `com.apple.driver.IODARTFamily`** (плюс девайс-половина
+  `com.apple.driver.AppleT8110DART` — регистры DART для T8130). Скейлерский
+  `iomdEarlyReclaim`/`iomdEarlyPurge` (§6.3) — имена опций вызовов вирт.
+  методов IODARTMapper; сам DVA назначается здесь.
+- Классы по метакласс-строкам (`site.<Name>`): `IODART` (/IODART.cpp),
+  `IODARTMapperNub`, `IODARTClient` (/IODARTClient.cpp), **`IODARTMapper`**
+  (/IODARTMapper.cpp), **`IODARTVMSpace`** (/IODARTVMSpace.cpp),
+  **`IODARTVMAllocatorGeneric`** (/AllocGeneric.cpp),
+  `IODARTPIOAllocatorGeneric`, `IODARTMapperClient` (/IODARTMapperClient.cpp).
+- Цепочка выдачи DVA: `IODARTMapper::_iovmAlloc*` → `IODARTVMSpace` →
+  `IODARTVMAllocatorGeneric::vmAlloc` → внешний (kernel) range-аллокатор.
+  Строки методов IODARTMapper (all в page 0x789fxxx): `_iovmAlloc` 0x789f97f,
+  `_iovmAllocDMACommand` 0x789f988, `_iovmFreeDMACommand` 0x789f9f6,
+  `_findVMSpace` 0x789fadc, `_findVMSpaceReserved` 0x789fc60,
+  `_iovmAllocPIO` 0x789fc12, `_iovmInsertBatch` 0x789fd6c, `_iovmFree`
+  0x789fef6, `_iovmInsert` 0x789fe0b, `_registerMapper` 0x789f6fa
+  («Failed to register mapper for SID %d» — **маппер на каждый (DART-unit,
+  SID)**, что согласуется с §6.1: два ganged SID у скейлера).
+- **Адреса функций аллокатора** (IODARTVMAllocatorGeneric, верифицировано
+  дизасмом по сигнатурным строкам):
+  - `init` @ **0x9cf18b4** — создаёт range-аллокатор: `bl` stub→kernel
+    0xfffffff00af2ca40 (это экспорт `com.apple.kernel`), args (endOfRange=0,
+    defaultAlignment=w1, capacity=8, options=0); page shift берётся из
+    глобала ядра через GOT[0x8139360] (`1 << shift` = размер страницы
+    aperture), defaultAlignment = [obj+0x120][0x4c] · (pagesize / ret(vtab+0x548)).
+    Строка при ошибке: «Failed to DMA create range allocator» 0x78a03d8 —
+    историческое имя класса IODMARangeAllocator.
+  - `vmAlloc` @ **0x9cf1ad0** — gate, isActive-чек (vtab+0xe8), затем
+    аллокация объектом `[this+0x48]` через vtab+0xb0 (out-параметр —
+    адрес) / vtab+0xb8; ошибки: «vmAlloc» 0x78a0410, **«VM exhausted»**
+    0x78a0418, «cannot make requested allocation at 0x%x/0x%x» 0x78a0433.
+  - `vmAllocReserved` @ **0x9cf1d90** (0x78a04a3; «failed to get VM space
+    for allocation at 0x%x» 0x78a04b3 — фиксированный адрес).
+  - `vmReserve` @ **0x9cf21ec** (0x78a0523; «Insufficient buffer space»
+    0x78a0538). Используется для persistent-диапазонов: «Unable to reserve
+    DVA range %u @ [%#llx..%#llx) … possible overlapping ranges» 0x789f5fa,
+    DT-ключи «dart-all» 0x789ec39, «range-base» 0x789f745, «range-size»
+    0x789f750, «iommu-initial-translations» 0x789f59c.
+  - `vmFree` @ **0x9cf2f80** (0x78a04ef).
+- **Отложенное освобождение (IOMD-кэш маппера)**: DT/параметры «iomd-cache-size»
+  0x789f3b4, **«iomd-cache-ttl»** 0x789f3c4, «iomd-early-reclaim» 0x789f3d3,
+  «iomd-cache-flush-on-deactive» 0x789f14b, «cacheFlushInactive» 0x789f3f8,
+  состояние реклейм-треда: «_iomdCacheReclaimIsRunning» 0x789f7e2 /
+  «_iomdCacheReclaimStop» 0x789f7fd / «_iomdCacheReclaimImmediate() failed!»
+  0x789fa0a. Т.е. free DVA возвращается в пул не в момент unmap, а после
+  истечения TTL кэша/форс-реклейма (аналогично ShadowMapperCache §6.2).
+- **Клиентский интерфейс**: имена методов IODARTClient externalMethod
+  (блок @ 0x9ce69a0, vtab-патч-цикл): «retrieveVMLimits» 0x78a0406,
+  «setActive», «setAllocator», «captureRegisters»,
+  «getProtectionGranularity», «numAllocations», **«iomdEarlyPurge» 0x789f48f,
+  «iomdEarlyReclaim» 0x789f49e** — форс-очистка IOMD-кэша из клиента.
+  У `IODARTMapperClient` есть externalMethod **«GetAllocations»** (0x78a07a8,
+  ошибка «GetAllocations: no structure or descriptor») — **дамп аллокаций
+  aperture наружу**; стоит проверить, достижим ли он из скейлер-клиента.
+
+### 7.2 Политика размещения — first-fit по отсортированному списку свободных
+
+Аллокатор — **`IORangeAllocator`** из ядра (xnu-12377.1.9,
+`iokit/Kernel/IORangeAllocator.cpp`, код не менялся с ~2000 г.; в kc27 живёт
+в `com.apple.kernel`, экспортируется наружу — стабы IODARTFamily резолвятся
+в сегмент kernel 0xa76c000+). Верифицировано по исходнику:
+
+- Структура: плоский массив элементов {start, end} **свободных** диапазонов,
+  **отсортирован по адресу**; общий глобальный мьютекс `range_allocator_grp`
+  (флаг kLocking). init(endOfRange) засевает один большой свободный
+  диапазон aperture; в IODART он создаётся пустым (endOfRange=0) и
+  засевается резервами из DT («dart-all» и пр.).
+- `allocate(size, &out, align)`: **first-fit** — линейный скан от младших
+  адресов, первый свободный элемент, в который влезает выровненный кусок,
+  сплитится на [до][занято][после]. **НЕ бамп, НЕ LIFO-стек, НЕ битмап,
+  без хинтов.** Размер округляется до defaultAlignment (для aperture =
+  страница DART; эмпирика §6: гранула 0x4000).
+- `deallocate(data, size)`: вставка обратно с **коалесценцией** соседних
+  свободных элементов (headContig/tailContig).
+- **Персистентность**: объект аллокатора принадлежит VM-space маппера и
+  живёт всю жизнь маппера; дыры между map/unmap сохраняются и сливаются.
+  Домен общий (§6.1) ⇒ один глобальный first-fit «ландшафт» на SID.
+
+**Почему эмпирика v102g/v103 давала дыры:** (а) first-fit снизу-вверх —
+после бутовых резервов низ aperture занят, наши и чужие маппинги ложатся
+в разные младшие дырки, аджасенси не гарантирована; (б) unmap не возвращает
+DVA в пул мгновенно — IOMD-кэш (TTL) + ShadowMapperCache (~2 с, §6.2), пока
+запись идёт, дырки ещё нет; (в) любая чужая аллокация между нашими map/unmap
+вклинивается в младшую дырку.
+
+### 7.3 Сценарии
+
+**(a) map X → unmap X → система мапит Y — тот же DVA?**
+Да, **если** дырка от X (после коалесценции) — младший свободный диапазон,
+вмещающий Y: first-fit её выберет детерминированно. Это не «LIFO reuse», а
+свойство младшей дырки: если подходящих дырок ниже X нет, Y получит ровно
+DVA(X). Предусловия: (1) оба кэша (ShadowMapper + IOMD) отпустили запись —
+иначе дырки физически нет; (2) между unmap X и map Y в разрыв не вклинилась
+чужая аллокация размера ≤ дырки (гонка, ничем не блокируется — gate сериализует
+только внутри драйвера). Если младше X есть коалесцированная дырка больше
+size(Y) — Y ляжет туда, а не в X.
+
+**(b) Держим много маппингов — куда ляжет чужая Y?**
+В младшую свободную дырку ≥ size(Y). Зная раскладку, можно **вытеснить** Y в
+нужную дырку: заполнить все младшие дырки своими маппингами размера ≥ size(Y)
+(tail-padding 0x789f3e6 подталкивает округление — дырку «под размер» шить
+надо с учётом выравнивания). Чужая Y большого размера провалится глубже, в
+более старшую дырку.
+
+### 7.4 Вердикт: груминг чужой поверхности + паттерн map/unmap
+
+**Груминг реален и детерминирован.** First-fit делает раскладку управляемой
+точнее, чем LIFO: цель занимает не «последнее освобождённое», а «младшее
+подходящее» — это можно подготовить. С учётом wrap только вперёд (§3) цель
+должна лежать **выше нашей dst_base**:
+
+1. **Спрей**: замапить N своих поверхностей → поднять фронт аллокаций и
+   сформировать «ландшафт» дыр (заполнить всё младшее).
+2. **Наша dst**: замапить → first-fit даст ей младшую дырку (низкая база —
+   хорошо: у цели будет запас выше).
+3. **Точная дырка**: размапить выбранный placeholder, лежащий прямо над dst
+   (unmap обоих кэшей → ждать ~2 с TTL или форсировать реклейм; у клиента
+   IODART есть «iomdEarlyReclaim» — если скейлер его выставляет наружу,
+   ожидание сокращается).
+4. **Подсаживание цели**: дёрнуть системного клиента (display pipeline идёт
+   через этот же драйвер, §6.2) так, чтобы его поверхность Y замапилась,
+   пока дырка — единственная младшая подходящая ⇒ Y ляжет в неё.
+5. **Wrap-запись** с dst_base достаёт до Y вперёд (§3-§4).
+
+Риски/ограничения: гонка на шаге 3–4 (чужой маппер той же DART может
+перехватить дырку — повторять цикл); size(Y) должен влезать в дырку;
+пока кэши держат запись, дырки нет; «залповый» span через незамапленное —
+DART fault → паника (§6.4). Открытым осталось: доступность
+GetAllocations/retrieveVMLimits из юзерспейса — это дало бы прямое чтение
+раскладки aperture и превратило груминг из «надежды» в «точную науку».
+
+### 7.5 Адреса для продолжателя
+
+IODARTFamily: text 0x9ce20a0; init 0x9cf18b4, vmAlloc 0x9cf1ad0,
+vmAllocReserved 0x9cf1d90, vmReserve 0x9cf21ec, vmFree 0x9cf2f80;
+метод-имена клиента @ 0x9ce69a0 (блок adrp 0x78a0000 + add'и: 0x406
+retrieveVMLimits, 0x417 setActive, 0x421 setAllocator, 0x42e
+setIomdCacheAttribute, 0x444 captureRegisters, 0x455 getProtectionGranularity,
+0x46e numAllocations, 0x48f iomdEarlyPurge, 0x49e iomdEarlyReclaim).
+Строки IODARTMapper (page 0x789f000): см. §7.1. Стуб→kernel: __auth_stubs
+0x9cf5ca0 + idx·0x10, слот __auth_got 0x8139128 + idx·8, target = kernel
+__TEXT_EXEC 0xa76c000+. Девайс-половина: com.apple.driver.AppleT8110DART
+(carve аналогично, дизасм /tmp/t8110dart_disasm.txt — не разбирался,
+регистровые пути DART). Исходник политики: xnu-12377.1.9
+iokit/Kernel/IORangeAllocator.cpp (allocate/deallocate, first-fit,
+коалесценция).
