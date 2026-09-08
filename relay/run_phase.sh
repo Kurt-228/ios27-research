@@ -25,28 +25,51 @@ old=$(find_pid)
 [ -n "$old" ] && { echo "[run_phase] killing leftover pid $old"; \
     xcrun devicectl device process terminate --device "$DEV" --pid "$old" >/dev/null 2>&1; sleep 3; }
 
-xcrun devicectl device process launch --device "$DEV" "$BID" "$@"  >/dev/null 2>&1 \
- || xcrun devicectl device process launch --device "$DEV" "$BID" -- "$@" >/dev/null 2>&1 \
- || { echo "[run_phase] launch failed"; exit 1; }
-echo "[run_phase] launched: $*"
-
-t0=$(date +%s)
-while :; do
-    sleep 5
-    pid=$(find_pid)
-    [ -z "$pid" ] && { echo "[run_phase] app exited on its own"; break; }
-    [ $(( $(date +%s) - t0 )) -ge "$WAIT" ] && {
-        echo "[run_phase] wait cap ${WAIT}s, terminating pid $pid"
-        xcrun devicectl device process terminate --device "$DEV" --pid "$pid" >/dev/null 2>&1
-        sleep 2
-        break
-    }
-done
-
-# container write may lag process death slightly
-sleep 3
-xcrun devicectl device copy from --device "$DEV" \
+# pre-clear the container log so a stale one can never be mistaken for a
+# fresh result (silent-miss failure mode seen repeatedly on 08.09)
+: > /tmp/fuzz27-empty.log
+xcrun devicectl device copy to --device "$DEV" \
     --domain-type appDataContainer --domain-identifier "$BID" \
-    --source Documents/fuzz.log --destination "$LOG" >/dev/null 2>&1 \
-    && echo "[run_phase] log pulled -> $LOG ($(wc -l < "$LOG" | tr -d ' ') lines)" \
-    || echo "[run_phase] WARNING: could not pull fuzz.log (app wrote none?)"
+    --source /tmp/fuzz27-empty.log --destination Documents/fuzz.log >/dev/null 2>&1
+
+for attempt in 1 2 3; do
+    xcrun devicectl device process launch --device "$DEV" "$BID" "$@"  >/dev/null 2>&1 \
+     || xcrun devicectl device process launch --device "$DEV" "$BID" -- "$@" >/dev/null 2>&1 \
+     || { echo "[run_phase] launch failed"; [ $attempt -lt 3 ] && { sleep 10; continue; }; exit 1; }
+    echo "[run_phase] launched: $* (attempt $attempt)"
+
+    # verify the process actually started (silent drop = wedged channel)
+    sleep 4
+    pid=$(find_pid)
+    if [ -z "$pid" ]; then
+        echo "[run_phase] launch dropped silently (channel wedged), retry in 20s"
+        sleep 20
+        continue
+    fi
+
+    t0=$(date +%s)
+    while :; do
+        sleep 5
+        pid=$(find_pid)
+        [ -z "$pid" ] && { echo "[run_phase] app exited on its own"; break; }
+        [ $(( $(date +%s) - t0 )) -ge "$WAIT" ] && {
+            echo "[run_phase] wait cap ${WAIT}s, terminating pid $pid"
+            xcrun devicectl device process terminate --device "$DEV" --pid "$pid" >/dev/null 2>&1
+            sleep 2
+            break
+        }
+    done
+
+    # container write may lag process death slightly
+    sleep 3
+    xcrun devicectl device copy from --device "$DEV" \
+        --domain-type appDataContainer --domain-identifier "$BID" \
+        --source Documents/fuzz.log --destination "$LOG" >/dev/null 2>&1
+    if [ -s "$LOG" ] && grep -q 'fuzz harness up' "$LOG"; then
+        echo "[run_phase] log pulled -> $LOG ($(wc -l < "$LOG" | tr -d ' ') lines)"
+        exit 0
+    fi
+    echo "[run_phase] empty/stale log after run (attempt $attempt), relaunching"
+done
+echo "[run_phase] all attempts failed to produce a fresh log"
+exit 1
