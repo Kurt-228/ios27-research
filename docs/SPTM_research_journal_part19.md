@@ -301,3 +301,15 @@ IOGPU либо зануляются при выдаче, либо идут из 
 закрыт. На этом CPU-наблюдаемые каналы возврата спрееных страниц исчерпаны:
 детекция reclaim'а возможна только через косвенные эффекты (gpuEvent/паника/
 чужие фолты) — тёплая кампания 15:03 по cron.
+
+## 116. v125: p_dartprobe — DVA-оракул GetAllocations недостижим из sandbox
+
+По §7 docs/scaler_dva_formula.md: DVA-аллокатор = IORangeAllocator first-fit,
+детерминированный груминг возможен, но нужен оракул чужих DVA. Проверка:
+сервисы IODARTMapper/IODARTMapperNub/AppleT8110DART/mapper-scaler существуют
+в registry (цепочка dart-scaler → AppleT8110DART → mapper-scaler →
+IODARTMapper), но НИ ОДИН не открывается из App-Sandbox (76 open-проб по
+19 типам — все denied, results/run-dartprobe1.log). Оракул закрыт; груминг
+cross-surface записи — вслепую (first-fit предсказуем, но без наблюдения).
+Практический вывод: cross-surface запись скейлера остаётся вероятностной
+(паника при промахе), целесообразна только в тёплом окне как кампания.

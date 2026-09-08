@@ -19531,6 +19531,151 @@ static void p_degensurf(void) {
     LOG("[dgs] done (alive), cases %ld", caseidx);
 }
 
+// V117: p_dartprobe — hunt the IODARTMapperClient GetAllocations oracle.
+// Registry chain on device: dart-scaler -> AppleT8110DART -> mapper-scaler
+// (IODARTMapperNub) -> IODARTMapper. Static analysis says IODARTMapperClient
+// has an externalMethod GetAllocations that dumps the aperture's DVA
+// allocations to userland — the ideal DVA oracle for grooming cross-surface
+// writes (docs/scaler_dva_formula.md §7). The v97 sweep missed DART services
+// (only types 0-3, struct-form selectors 0..20 were tried). This phase is
+// read-only: open probes across extended type values, then a selector sweep
+// in three call forms, then an stInSize sweep on every live selector with a
+// 0x2000 stOut, hunting {dva,size} allocation-dump patterns. All payloads
+// are zeros — no write-oriented input at all.
+// Env: FUZZ_DARTPROBE_SKIP=N (deterministic numbering). Tag [dpr].
+static void p_dartprobe(void) {
+    long skip = atol(getenv("FUZZ_DARTPROBE_SKIP") ?: "0");
+    long caseidx = 0;
+    LOG("[dpr] v117 DART mapper probe, skip %ld", skip);
+    static const char *svcs[] = {
+        "IODARTMapper", "IODARTMapperNub", "AppleT8110DART", "mapper-scaler"
+    };
+    static const uint32_t types[] = {
+        0, 1, 2, 3, 4, 5, 6, 7, 8,
+        0x100, 0x1000, 0x10000,
+        0x100000, 0x100001, 0x100002, 0x100003, 0x100004, 0x100005
+    };
+    io_connect_t conns[64];
+    uint32_t cty[64];
+    const char *cname[64];
+    int nconn = 0;
+    // ---- 1. open probe: service x type, log every kr, collect live conns
+    for (unsigned si = 0; si < sizeof(svcs)/sizeof(svcs[0]); si++) {
+        CFMutableDictionaryRef m = IOServiceMatching(svcs[si]);
+        if (!m) { LOG("[dpr] %s: matching dict failed", svcs[si]); continue; }
+        io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault, m);
+        if (!svc) { LOG("[dpr] %-16s NOT FOUND", svcs[si]); continue; }
+        for (unsigned ti = 0; ti < sizeof(types)/sizeof(types[0]); ti++) {
+            caseidx++;
+            if (caseidx <= skip) continue;
+            io_connect_t c = 0;
+            LOG("[dpr] c%ld open %-16s type 0x%x ...", caseidx, svcs[si], types[ti]);
+            fsync(fileno(stderr));
+            kern_return_t kr = IOServiceOpen(svc, mach_task_self(), types[ti], &c);
+            LOG("[dpr] c%ld open %-16s type 0x%x -> kr 0x%08x conn 0x%x", caseidx,
+                svcs[si], types[ti], kr, c);
+            if (!kr && c && nconn < 64) {
+                conns[nconn] = c; cty[nconn] = types[ti]; cname[nconn] = svcs[si];
+                nconn++;
+            } else if (c) {
+                IOServiceClose(c);
+            }
+        }
+        IOObjectRelease(svc);
+    }
+    LOG("[dpr] open probe done: %d conns collected", nconn);
+    if (!nconn) { LOG("[dpr] no conns — done"); return; }
+    uint8_t *inb = must_map(0x1000);
+    uint8_t *outb = must_map(0x2000);
+    memset(inb, 0, 0x1000);
+    // ---- 2. selector sweep 0..24 x {struct 0x100, scalar x4, scalar x1}.
+    // Missing = 0xe00002c2 (spec) or 0xe00002c7 (kIOReturnUnsupported seen
+    // on other userclients) — anything else is a live selector.
+    uint8_t live[64][25];
+    memset(live, 0, sizeof live);
+    for (int ci = 0; ci < nconn; ci++) {
+        for (uint32_t sel = 0; sel <= 24; sel++) {
+            uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 0;
+            kern_return_t krf = 0;
+            int missing = 1;
+            caseidx++;
+            if (caseidx > skip) {
+                krf = IOConnectCallMethod(conns[ci], sel, NULL, 0, inb, 0x100,
+                                          osc, &nosc, NULL, &osz);
+                if (krf != 0xe00002c2 && krf != 0xe00002c7) missing = 0;
+            } else missing = 0;   // skipped: unknown, mark live so wave 2 covers it
+            uint64_t sv4[4] = {0,0,0,0};
+            nosc = 0; osz = 0;
+            caseidx++;
+            if (caseidx > skip) {
+                kern_return_t kr = IOConnectCallMethod(conns[ci], sel, sv4, 4,
+                                                       NULL, 0, osc, &nosc, NULL, &osz);
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    if (missing) krf = kr;
+                    missing = 0;
+                }
+            }
+            uint64_t sv1[1] = { 0 };
+            nosc = 0; osz = 0;
+            caseidx++;
+            if (caseidx > skip) {
+                kern_return_t kr = IOConnectCallMethod(conns[ci], sel, sv1, 1,
+                                                       NULL, 0, osc, &nosc, NULL, &osz);
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    if (missing) krf = kr;
+                    missing = 0;
+                }
+            }
+            if (!missing) {
+                live[ci][sel] = 1;
+                LOG("[dpr] c%ld %s/0x%x sel %u LIVE (first kr 0x%08x)", caseidx,
+                    cname[ci], cty[ci], sel, krf);
+            }
+        }
+    }
+    LOG("[dpr] selector sweep done");
+    // ---- 3. live selectors: stInSize sweep with 0x2000 stOut, hunt the
+    // {dva,size} allocation-dump pattern
+    static const size_t inszs[] = { 0x8, 0x40, 0x100, 0x400, 0x1000 };
+    for (int ci = 0; ci < nconn; ci++) {
+        for (uint32_t sel = 0; sel <= 24; sel++) {
+            if (!live[ci][sel]) continue;
+            for (unsigned ii = 0; ii < sizeof(inszs)/sizeof(inszs[0]); ii++) {
+                caseidx++;
+                if (caseidx <= skip) continue;
+                memset(outb, 0, 0x2000);
+                uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+                size_t osz = 0x2000;
+                kern_return_t kr = IOConnectCallMethod(conns[ci], sel, NULL, 0,
+                                                       inb, inszs[ii], osc, &nosc,
+                                                       outb, &osz);
+                if (kr) {
+                    LOG("[dpr] c%ld %s/0x%x sel %u insz 0x%zx -> kr 0x%08x osz 0x%zx",
+                        caseidx, cname[ci], cty[ci], sel, inszs[ii], kr, osz);
+                    continue;
+                }
+                long nzq = 0;
+                for (size_t o = 0; o + 8 <= osz; o += 8)
+                    if (*(uint64_t *)(outb + o)) nzq++;
+                LOG("[dpr] c%ld %s/0x%x sel %u insz 0x%zx -> kr 0 osz 0x%zx nonzero-qwords %ld/0x%zx %s",
+                    caseidx, cname[ci], cty[ci], sel, inszs[ii], osz, nzq, osz / 8,
+                    nzq > 8 ? "*** DATA — ALLOCATION-DUMP-LIKE ***" : "");
+                if (nzq) {
+                    uint64_t *q = (uint64_t *)outb;
+                    LOG("[dpr]   out: %016llx %016llx %016llx %016llx",
+                        q[0], q[1], q[2], q[3]);
+                    LOG("[dpr]   out: %016llx %016llx %016llx %016llx",
+                        q[4], q[5], q[6], q[7]);
+                }
+            }
+        }
+    }
+    for (int ci = 0; ci < nconn; ci++) IOServiceClose(conns[ci]);
+    vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
+    LOG("[dpr] done (alive), cases %ld", caseidx);
+}
+
 // V114: ptleak — leak-back channel test. The S4 spray releases GPU resources
 // with marked content into the kernel allocator (stale-TLB writes the marker
 // into freed pages). v90/v91 showed fresh Metal contexts receive service GPU
@@ -20225,6 +20370,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSURFDEEP")) { p_iosurfdeep(); LOG("[probe13] iosurfdeep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DEGENSURF")) { p_degensurf(); LOG("[probe13] degensurf-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_DARTPROBE")) { p_dartprobe(); LOG("[probe13] dartprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_S27DOWN")) { p_s27down(); LOG("[probe13] s27down-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PTLEAK")) { p_ptleak(); LOG("[probe13] ptleak-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SHMEMLEAK")) { p_shmemleak(); LOG("[probe13] shmemleak-only mode, stop"); return NULL; }
