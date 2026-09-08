@@ -83,10 +83,10 @@ w28 = table[idx] — элемент разбиения размера (шири�
 | +0x0c | u32 threadgroups = **min(size, 0x400)** | 0x2150295a4-0x2150295bc |
 | +0x10 | {1,1} (threadsPerTG) | movi.2s #1 |
 | +0x18 | u32 **size** (общий размер копии) | str w21 |
-| +0x24 | {1,1} | stur d0 |
+| +0x24 | {1,1} | stur d0 — **уточнение N4 (v127): {1,1} на самом деле @ +0x1c, zeros(8) @ +0x44** (`device_stream_builder.md` §2.2.3) |
 | +0x38 | u32 **size** (повтор) | str w21 |
 | +0x3c | u32 0 | |
-| +0x4c | zeros(8) | |
+| +0x4c | zeros(8) | — **N4 (v127): фактически @ +0x44** |
 | +0x60 | **{srcBase, dstBase}** — базовые адреса (pool VA/alloc-cursor) | ldp [sp,#0x40] → stp [sp,#0x168] |
 | +0x74 | u32 `variant->0xca8 << 2` (поле программы) | 0x2150295e8 |
 
