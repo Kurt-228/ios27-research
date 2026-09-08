@@ -1,0 +1,48 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x6103
+[scaler] conn 0x6103, s1 187 s2 189
+[probe12] SetNotificationPort -> 0x00000000
+[dgs] v114 degenerate-surface consumers, skip 0
+[dgs] coresurf open type 0 -> kr 0x00000000 conn 0x6303
+[open] AppleM2ScalerCSCDriver -> conn 0x6403
+[dgs] scaler conn 0x6403 dst sid 276
+[dgs] metal dev ok queue ok buf ok
+[dgs] sel6 w 64 h 64 bpe 4 -> kr 0x00000000 sid 368
+[dgs] c1 CONTROL lock/gather/unlock normal sid 368
+[dgs] c1 CONTROL -> lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 unlock 0x00000000 *** ANOMALY
+[dgs] c2 CONTROL scaler src=normal sid 368
+[dgs] c2 CONTROL scaler -> kr 0x00000000 ok
+[dgs] c3 CONTROL metal: public IOSurfaceCreate w 64 h 64 bpe 4 (PANIC possible)
+[dgs] c3 CONTROL tex 64x64 readback: 00 00 00 00 00 00 00 00
+[dgs] c3 CONTROL blit tex->buf -> status 4 err '' ok
+[dgs] release sid 368 -> kr 0xe00002c2
+[dgs] sel6 w 0 h 64 bpe 4 -> kr 0x00000000 sid 388
+[dgs] c4 w0 lock/gather/unlock sid 388 (PANIC possible)
+[dgs] c4 w0 -> lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 unlock 0x00000000 *** ANOMALY
+[dgs] c5 w0 scaler src=degenerate sid 388 (PANIC possible)
+[dgs] c5 w0 scaler -> kr 0xe00002c2 *** ANOMALY
+[dgs] c6 w0 metal: public IOSurfaceCreate w 0 h 64 bpe 4 (PANIC possible)
+[dgs] c6 w0 public IOSurfaceCreate REJECTED degenerate dims
+[dgs] release sid 388 -> kr 0xe00002c2
+[dgs] sel6 w 64 h 0 bpe 4 -> kr 0xe00002c2 sid 0
+[dgs] h0: sel6 rejected this shape — next
+[dgs] sel6 w 0 h 0 bpe 4 -> kr 0xe00002c2 sid 0
+[dgs] w0h0: sel6 rejected this shape — next
+[dgs] sel6 w 64 h 64 bpe 0 -> kr 0x00000000 sid 445
+[dgs] c7 bpe0 lock/gather/unlock sid 445 (PANIC possible)
+[dgs] c7 bpe0 -> lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 unlock 0x00000000 *** ANOMALY
+[dgs] c8 bpe0 scaler src=degenerate sid 445 (PANIC possible)
+[dgs] c8 bpe0 scaler -> kr 0x00000000 ok
+[dgs] c9 bpe0 metal: public IOSurfaceCreate w 64 h 64 bpe 0 (PANIC possible)
+[dgs] c9 bpe0 public IOSurfaceCreate REJECTED degenerate dims
+[dgs] release sid 445 -> kr 0xe00002c2
+[dgs] sel6 w 64 h 64 bpe 1 -> kr 0x00000000 sid 446
+[dgs] c10 bpe1 lock/gather/unlock sid 446 (PANIC possible)
+[dgs] c10 bpe1 -> lock 0x00000000 gather 0xe00002c1 gsz 0x40 bytes 00 00 00 00 unlock 0x00000000 *** ANOMALY
+[dgs] c11 bpe1 scaler src=degenerate sid 446 (PANIC possible)
+[dgs] c11 bpe1 scaler -> kr 0x00000000 ok
+[dgs] c12 bpe1 metal: public IOSurfaceCreate w 64 h 64 bpe 1 (PANIC possible)
+_mtlValidateStrideTextureParameters:1938: failed assertion `Texture Descriptor Validation
+IOSurface texture: bytesPerRow (128) must be greater or equal to (256) bytes
+'

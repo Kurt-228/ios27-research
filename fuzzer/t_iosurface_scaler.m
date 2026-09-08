@@ -19193,6 +19193,238 @@ static void p_s27down(void) {
     LOG("[s27d] done (alive), cases %ld", caseidx);
 }
 
+// V114: p_degensurf — downstream consumers of degenerate sel6 surfaces.
+// v109 showed IOCoreSurfaceRoot create_fast_path (sel6) accepts degenerate
+// geometry (w/h/bpe zero or garbage) and still hands back a valid sid. What
+// is unchecked is what real consumers DO with such a surface: they may
+// assume "normal" geometry and divide/stride/multiply into an undersized
+// allocation. Each degenerate shape is fed to:
+//   (a) sel2 lock + sel30 gather readback + sel3 unlock (same coresurf conn);
+//   (b) the AppleM2ScalerCSC transform with the degenerate surface as SRC
+//       (dst stays a normal 64x64 — the scaler strides over src by the
+//       degenerate src geometry);
+//   (c) the PUBLIC IOSurfaceCreate with the same dims (userland validation
+//       may differ from the raw sel6 path), then a Metal texture wrapping
+//       it + CPU readback + GPU blit.
+// A normal 64x64 surface goes through the same consumers first as control.
+// Env: FUZZ_DEGENSURF_SKIP=N (deterministic numbering). Tag [dgs].
+static uint32_t dgs_sel6(io_connect_t c, uint32_t w, uint32_t h, uint32_t bpe) {
+    uint8_t inb[0x40], outb[3176];
+    memset(inb, 0, sizeof inb); memset(outb, 0, sizeof outb);
+    *(uint32_t *)(inb + 0x08) = w;
+    *(uint32_t *)(inb + 0x0c) = h;
+    *(uint32_t *)(inb + 0x10) = 0x42475241;   // 'BGRA'
+    *(uint32_t *)(inb + 0x14) = bpe;
+    *(uint32_t *)(inb + 0x18) = 256;          // bpr (v109: accepted even garbage)
+    *(uint32_t *)(inb + 0x1c) = 0x4000;       // allocsize
+    size_t osz = 3176;
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+    kern_return_t k = IOConnectCallMethod(c, 6, NULL, 0, inb, 32, osc, &nosc, outb, &osz);
+    uint32_t sid = *(uint32_t *)(outb + 0x18);
+    LOG("[dgs] sel6 w %u h %u bpe %u -> kr 0x%08x sid %u", w, h, bpe, k, sid);
+    return (k || !sid) ? 0 : sid;
+}
+static void dgs_release(io_connect_t c, uint32_t sid) {
+    uint64_t r = sid;
+    kern_return_t k = IOConnectCallScalarMethod(c, 1, &r, 1, NULL, NULL);
+    LOG("[dgs] release sid %u -> kr 0x%08x", sid, k);
+}
+// dgs helper: public IOSurfaceCreate with the same dims -> Metal texture
+// (RGBA8Unorm) -> CPU readback + GPU blit into a buffer-backed texture.
+// Logs every gate; nil-tolerant so a reject just moves to the next case.
+static void dgs_metal_consume(id<MTLDevice> dev, id<MTLCommandQueue> mq,
+                              id<MTLBuffer> mbuf, uint32_t w, uint32_t h,
+                              uint32_t bpe, long caseidx, const char *tag) {
+    if (!dev || !mq) { LOG("[dgs] c%ld %s metal consumer skipped (no dev/queue)", caseidx, tag); return; }
+    LOG("[dgs] c%ld %s metal: public IOSurfaceCreate w %u h %u bpe %u (PANIC possible)",
+        caseidx, tag, w, h, bpe);
+    fsync(fileno(stderr));
+    IOSurfaceRef sf = make_surface_fmt((int)w, (int)h, (int)bpe, 0x42475241);
+    if (!sf) { LOG("[dgs] c%ld %s public IOSurfaceCreate REJECTED degenerate dims", caseidx, tag); return; }
+    size_t sw = IOSurfaceGetWidth(sf), sh = IOSurfaceGetHeight(sf);
+    MTLTextureDescriptor *td = [MTLTextureDescriptor
+        texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+        width:sw height:sh mipmapped:NO];
+    id<MTLTexture> tex = [dev newTextureWithDescriptor:td iosurface:sf plane:0];
+    if (!tex) {
+        LOG("[dgs] c%ld %s newTextureWithDescriptor:iosurface: REJECTED (surface %zux%zu)",
+            caseidx, tag, sw, sh);
+        CFRelease(sf);
+        return;
+    }
+    // CPU readback of the first pixels: is the backing mapping sane for the
+    // surface's claimed geometry?
+    uint8_t rb[64];
+    memset(rb, 0, sizeof rb);
+    [tex getBytes:rb bytesPerRow:sw * 4
+        fromRegion:MTLRegionMake2D(0, 0, sw > 16 ? 16 : sw, 1) mipmapLevel:0];
+    LOG("[dgs] c%ld %s tex %zux%zu readback: %02x %02x %02x %02x %02x %02x %02x %02x",
+        caseidx, tag, sw, sh, rb[0], rb[1], rb[2], rb[3], rb[4], rb[5], rb[6], rb[7]);
+    // GPU blit: degenerate-backed texture -> plain buffer-backed texture
+    if (mbuf) {
+        size_t tw = sw > 64 ? 64 : sw, th = sh > 64 ? 64 : sh;
+        MTLTextureDescriptor *md = [MTLTextureDescriptor
+            texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+            width:tw height:th mipmapped:NO];
+        id<MTLTexture> mt = [mbuf newTextureWithDescriptor:md offset:0 bytesPerRow:tw * 4];
+        if (mt) {
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> be = [cb blitCommandEncoder];
+            [be copyFromTexture:tex sourceSlice:0 sourceLevel:0
+                    sourceOrigin:MTLOriginMake(0, 0, 0)
+                      sourceSize:MTLSizeMake(tw, th, 1)
+                       toTexture:mt destinationSlice:0 destinationLevel:0
+                 destinationOrigin:MTLOriginMake(0, 0, 0)];
+            [be endEncoding];
+            [cb commit];
+            [cb waitUntilCompleted];
+            long st = (long)[cb status];
+            NSError *ce = [cb error];
+            NSString *cd = ce ? [ce description] : @"";
+            LOG("[dgs] c%ld %s blit tex->buf -> status %ld err '%s' %s", caseidx, tag, st,
+                [cd UTF8String], st == 4 ? "ok" : "*** ANOMALY");
+        }
+    }
+    CFRelease(sf);
+}
+static void p_degensurf(void) {
+    long skip = atol(getenv("FUZZ_DEGENSURF_SKIP") ?: "0");
+    long caseidx = 0;
+    LOG("[dgs] v114 degenerate-surface consumers, skip %ld", skip);
+    // coresurf conn + sel13 init (owner check: foreign sids get rejected)
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOCoreSurfaceRoot"));
+    if (!s) s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[dgs] service not found"); return; }
+    io_connect_t c = 0;
+    kern_return_t ko = IOServiceOpen(s, mach_task_self(), 0, &c);
+    IOObjectRelease(s);
+    LOG("[dgs] coresurf open type 0 -> kr 0x%08x conn 0x%x", ko, c);
+    if (ko || !c) return;
+    {
+        uint8_t o[64];
+        size_t osz = 40;
+        uint64_t osc[4] = {0,0,0,0};
+        uint32_t nosc = 0;
+        IOConnectCallMethod(c, 13, NULL, 0, NULL, 0, osc, &nosc, o, &osz);
+    }
+    // scaler conn + normal dst surface
+    io_connect_t sc = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!sc) { LOG("[dgs] no scaler conn, abort"); IOServiceClose(c); return; }
+    IOSurfaceRef dstsf = make_surface(64, 64);
+    IOSurfaceID dstid = dstsf ? IOSurfaceGetID(dstsf) : 0;
+    LOG("[dgs] scaler conn 0x%x dst sid %u", sc, dstid);
+    uint8_t *req = must_map(0x1000);
+    if (!dstid) { LOG("[dgs] no dst surface, abort"); return; }
+    // Metal side (nil-tolerant: consumer (c) logs and skips if unavailable)
+    id<MTLDevice> mdev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = mdev ? [mdev newCommandQueue] : nil;
+    id<MTLBuffer> mbuf = (mdev && mq)
+        ? [mdev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared] : nil;
+    if (mbuf) memset([mbuf contents], 0x5a, 0x10000);
+    LOG("[dgs] metal dev %s queue %s buf %s", mdev ? "ok" : "NO", mq ? "ok" : "NO",
+        mbuf ? "ok" : "NO");
+
+    // ---- control block: NORMAL 64x64 through every consumer
+    uint32_t nsid = dgs_sel6(c, 64, 64, 4);
+    if (!nsid) { LOG("[dgs] CONTROL surface failed — baseline broken, abort"); return; }
+    caseidx++;
+    if (caseidx > skip) {
+        uint8_t lin[12], lo[3176];
+        memset(lin, 0, sizeof lin);
+        *(uint32_t *)lin = nsid;
+        size_t losz = 3176;
+        uint64_t osc[4] = {0,0,0,0};
+        uint32_t nosc = 0;
+        LOG("[dgs] c%ld CONTROL lock/gather/unlock normal sid %u", caseidx, nsid);
+        fsync(fileno(stderr));
+        kern_return_t kl = IOConnectCallMethod(c, 2, NULL, 0, lin, 12, osc, &nosc, lo, &losz);
+        uint64_t g64 = nsid;
+        uint8_t g[64];
+        size_t gsz = 64;
+        kern_return_t kg = IOConnectCallMethod(c, 30, &g64, 1, NULL, 0, NULL, NULL, g, &gsz);
+        size_t uosz = 4;
+        uint32_t nosc2 = 0;
+        kern_return_t ku = IOConnectCallMethod(c, 3, NULL, 0, lin, 12, osc, &nosc2, lo, &uosz);
+        LOG("[dgs] c%ld CONTROL -> lock 0x%08x gather 0x%08x gsz 0x%zx bytes %02x %02x %02x %02x "
+            "unlock 0x%08x %s", caseidx, kl, kg, gsz, g[0], g[1], g[2], g[3], ku,
+            (kl || kg || ku) ? "*** ANOMALY" : "ok");
+    }
+    caseidx++;
+    if (caseidx > skip) {
+        craft_transform(req, nsid, dstid, 64, 64);
+        LOG("[dgs] c%ld CONTROL scaler src=normal sid %u", caseidx, nsid);
+        fsync(fileno(stderr));
+        kern_return_t k = scaler_call1(sc, req);
+        LOG("[dgs] c%ld CONTROL scaler -> kr 0x%08x %s", caseidx, k,
+            k == 0xe00002f0 ? "*** SID NOT PORTABLE" : (k ? "*** ANOMALY" : "ok"));
+    }
+    caseidx++;
+    if (caseidx > skip)
+        dgs_metal_consume(mdev, mq, mbuf, 64, 64, 4, caseidx, "CONTROL");
+    dgs_release(c, nsid);
+
+    // ---- degenerate shapes (v109: sel6 accepted all of these)
+    static const struct { uint32_t w, h, bpe; const char *tag; } dg[] = {
+        { 0,          64,         4, "w0"    },
+        { 64,         0,          4, "h0"    },
+        { 0,          0,          4, "w0h0"  },
+        { 64,         64,         0, "bpe0"  },
+        { 64,         64,         1, "bpe1"  },
+        { 1,          1,          4, "1x1"   },
+        { 0xffffffff, 0xffffffff, 4, "whmax" },
+    };
+    for (unsigned gi = 0; gi < sizeof(dg)/sizeof(dg[0]); gi++) {
+        uint32_t sid = dgs_sel6(c, dg[gi].w, dg[gi].h, dg[gi].bpe);
+        if (!sid) { LOG("[dgs] %s: sel6 rejected this shape — next", dg[gi].tag); continue; }
+        // (a) lock + gather + unlock on the coresurf conn
+        caseidx++;
+        if (caseidx > skip) {
+            uint8_t lin[12], lo[3176];
+            memset(lin, 0, sizeof lin);
+            *(uint32_t *)lin = sid;
+            size_t losz = 3176;
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            LOG("[dgs] c%ld %s lock/gather/unlock sid %u (PANIC possible)",
+                caseidx, dg[gi].tag, sid);
+            fsync(fileno(stderr));
+            kern_return_t kl = IOConnectCallMethod(c, 2, NULL, 0, lin, 12, osc, &nosc, lo, &losz);
+            uint64_t g64 = sid;
+            uint8_t g[64];
+            size_t gsz = 64;
+            kern_return_t kg = IOConnectCallMethod(c, 30, &g64, 1, NULL, 0, NULL, NULL, g, &gsz);
+            size_t uosz = 4;
+            uint32_t nosc2 = 0;
+            kern_return_t ku = IOConnectCallMethod(c, 3, NULL, 0, lin, 12, osc, &nosc2, lo, &uosz);
+            LOG("[dgs] c%ld %s -> lock 0x%08x gather 0x%08x gsz 0x%zx bytes %02x %02x %02x %02x "
+                "unlock 0x%08x %s", caseidx, dg[gi].tag, kl, kg, gsz,
+                g[0], g[1], g[2], g[3], ku,
+                (kl || kg || ku) ? "*** ANOMALY" : "ok");
+        }
+        // (b) scaler transform with the degenerate surface as SRC
+        caseidx++;
+        if (caseidx > skip) {
+            craft_transform(req, sid, dstid, 64, 64);
+            LOG("[dgs] c%ld %s scaler src=degenerate sid %u (PANIC possible)",
+                caseidx, dg[gi].tag, sid);
+            fsync(fileno(stderr));
+            kern_return_t k = scaler_call1(sc, req);
+            LOG("[dgs] c%ld %s scaler -> kr 0x%08x %s", caseidx, dg[gi].tag, k,
+                k == 0xe00002f0 ? "*** SID NOT PORTABLE" : (k ? "*** ANOMALY" : "ok"));
+        }
+        // (c) public IOSurfaceCreate + Metal texture + blit
+        caseidx++;
+        if (caseidx > skip)
+            dgs_metal_consume(mdev, mq, mbuf, dg[gi].w, dg[gi].h, dg[gi].bpe,
+                              caseidx, dg[gi].tag);
+        dgs_release(c, sid);
+        usleep((useconds_t)2000);
+    }
+    if (dstsf) CFRelease(dstsf);
+    LOG("[dgs] done (alive), cases %ld", caseidx);
+}
+
 // V114: ptleak — leak-back channel test. The S4 spray releases GPU resources
 // with marked content into the kernel allocator (stale-TLB writes the marker
 // into freed pages). v90/v91 showed fresh Metal contexts receive service GPU
@@ -19704,6 +19936,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_LASTMILE")) { p_lastmile(); LOG("[probe13] lastmile-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOSURFDEEP")) { p_iosurfdeep(); LOG("[probe13] iosurfdeep-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_DEGENSURF")) { p_degensurf(); LOG("[probe13] degensurf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_S27DOWN")) { p_s27down(); LOG("[probe13] s27down-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PTLEAK")) { p_ptleak(); LOG("[probe13] ptleak-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
