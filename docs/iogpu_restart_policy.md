@@ -345,3 +345,158 @@ instance/GPC-суффикса; `printBIFFaultSideband` в macOS-сборке —
   не найдено; по контексту = permanent deny после "Deny submissions/ignore".
 - Адреса привязаны к BootKC macOS 27.0 (build 26A5388g); на iOS 27 смещения будут другие,
   но структуры/строки/пороги — идентичны по коду семейства.
+
+---
+
+# Дополнение (2026-09-08, вечер): сверка с iOS 27.0b4 + разбор kcmd+0x150
+
+iOS-бинари: `results/kc27/com_apple_iokit_IOGPUFamily.macho` (carve из
+`results/kc27/kernelcache_iphone16.macho`, A17 Pro), `results/kc27/com_apple_AGXG16P.macho`.
+Дизасмы сессии: `/tmp/iogpu_disasm.txt` (68k строк), `/tmp/agx_disasm.txt` (197k строк).
+VA строк IOGPUFamily: cstring-секция VA(fileoff) = 0xfffffff0078b4308 + (fo − 0xf30);
+__TEXT_EXEC fileoff 0xc3e4, VA 0xfffffff009d525d0+. AGXG16P: cstring VA = 0xfffffff00711b9e6 +
+(fo − 0x503e); __TEXT_EXEC fileoff 0x13550, VA 0xfffffff0082f1060+.
+
+## 8. Сверка iOS [iOS ✓]
+
+Всё ключевое из macOS-анализа §2 подтверждено на iOS-бинаре **по строкам и паттернам**
+(не по адресам). Адреса ниже — iOS VA.
+
+### retireCommandBuffer [iOS ✓]
+
+Найден по fmt-строкам `'…GPURestarts in %d submissions.\n'` (0x78bedc2) /
+`'…Clean slate…'` (0x78bed86) / вердиктам `'Immunity for'` (0x78b96bd) /
+`'Deny submissions/ignore'` (0x78b96ca). Тело @ 0x9d8ac90:
+
+- Тип события `[fence+0xc8]`: `sub w9,#2; cmp w9,#2; ccmp w8,#0xb` → те же {2,3,0xb} [iOS ✓]
+- `ldr w8,[x19,#0x440]; add #1; str` → **fGPURestartCount @ +0x440** [iOS ✓];
+  `cmp w8,#2` → **порог ровно 2** [iOS ✓]
+- `ldr w0,[x19,#0x490]` + proc_pidinfo(sp+0x30, 0x80) → **pid @ +0x490** [iOS ✓];
+  device `[x19,#0x488]` [iOS ✓]
+- deny: `strb w8,[x19,#0x43a]` → **fRestartDenied @ +0x43a** [iOS ✓]
+- clean slate: `ldr/add/str [x19,#0x43c]`, `cmp #0x3e9` (**1001**) [iOS ✓],
+  гейт `ldrb [x19,#0x43a]; tbnz` (deny → clean slate отключён) [iOS ✓],
+  сброс `str wzr,[x19,#0x440]` [iOS ✓]
+
+### noIgnoreOnGPURestart [iOS ✓] (с одной коррекцией)
+
+@ 0x9d76b20: `bl task_has_entitlement` со строкой
+**`'com.apple.private.graphics-restart-no-kill'` @ 0x78b7a84** [iOS ✓]; затем
+`ldr x8,[x19,#0x48]; ldr w8,[x8,#0x1f4]; and #0x40000000; orr` — device-flag.
+
+> **Коррекция к §2**: на iOS флаги у `[[dev+0x48]+0x1f4]`, на macOS-дизасме было
+> `+0x23c`. Маска та же (0x40000000), семантика та же; смещение структуры
+> IOGPUDevice между сборками отличается — при переносе эксплойт-логики с macOS
+> хоста на девайс использовать **+0x1f4**.
+
+### submit deny [iOS ✓]
+
+@ 0x9d8b538: `ldrb w8,[x0,#0x43a]; tbz → ok; mov w8,#4; str w8,[x19,#0x520]` —
+точная копия macOS-ветки (deny → код ошибки 4 в queue+0x520) [iOS ✓].
+
+Итог: политика рестартов (2 / 1001 / deny / immunity) на iOS 27.0b4 **идентична**
+macOS 27.0-анализу. Единственное расхождение — оффсет flags в IOGPUDevice (+0x1f4 vs +0x23c).
+
+## 9. Семантика kcmd+0x150 (kernel cmd shmem, blit copy 0x10000)
+
+Эмпирика фаззера p_mtlmut: shmem (typed shmem type 1, «kernel cmd»), kclen=0x2d8;
+@ +0x150 dword **0x268**, qword **0x00000003_00000268**. Мутации: малые правки
+0x268→0x269 и т.п. → чистый reject (Internal Error); 0xffffffff/0x7fffffff/битфлипы
+старших бит qword → GPU fault + app-kill.
+
+### 9.1 Формат shmem и цепочка валидации (верифицировано, IOGPUFamily iOS)
+
+«Kernel cmd shmem» = **command list shmem**. Формат:
+
+```
++0x00 u32 commands_start     // оффсет первой команды
++0x04 u32 commands_end       // оффсет за последней
++0x08..                      // команды: sIOGPUIOKernelCommand { u32 id; u32 size; payload… }
+```
+
+Функция-обработчик @ 0x9d6a98c (вложенный walker @ 0x9d6ac20):
+
+1. **Хидер** (0x9d6ab58): `ldp w8,w9,[shmem]` → `cmp w8,w9` (start≤end);
+   `ccmp x22,x9` (end≤shmemLength, x22 из vtable+0x98) → иначе лог
+   `'Invalid command list header, commands_start=%u commands_end=%u cmdListShmemLength=%ld'`
+   @ 0x78bbf17 → reject. Соответственно commands_end ≤ 0x2d8, и при типовом
+   раскладе регион команд = [0x70, 0x2d8) → суммарно ровно **0x268**.
+2. **Walker** (0x9d6ac30 цикл): для каждой команды:
+   - `cur+8 > end` → 'Insufficient bytes' (0x78bbe88);
+   - `w8 = [cur+4]` (command_size); `adds x22,cur,w8` (переполнение → reject);
+   - `size ≥ 8`, `size & 3 == 0`, `cur+size ≤ end` → иначе
+     `'Invalid command_size (%u) min=%lu currentCommand=%p kernelCommandEnd=%p'`
+     @ 0x78bbeca → reject;
+   - вирт. `vtable+0x88`(this, cur, cmdEnd) = processKernelCommand → диспатч
+     по command_id (jump table @ 0x9d8a188, id 2..0x12: DebugLog/Sleep/
+     CollectTimeStamp/Signal/WaitSharedEvent/PurgeResources/SetProtectionOptions/
+     ResponsibleTaskIDs/SetResourceGroups/UpdateMappings/CopyMappings/
+     PostMappingWaitEvent — имена в строках @ 0x5e1e..0xb6af);
+   - `cur = cur+size`, пока `cur < end` — **точная укладка**: любая правка size
+     на ±1 ломает равенство последней команды → reject до диспатча.
+
+Второй walker @ 0x9d882d0 (kernelCommandBufferShmem, sIOGPUKernelCommand) —
+аналогичная схема с проверкой
+`'kernelCommandStart(%u) or kernelCommandEnd(%u) exceeds kernelCommandDataSize(%lu)'`
+@ 0x9d88ba0; на наши мутации не влияет, приведён для полноты.
+
+### 9.2 Что такое +0x150 = {0x268, 3}
+
+При kclen=0x2d8 и одиночной команде, покрывающей весь регион
+(0x70 + 0x268 = 0x2d8), оффсет 0x150 попадает в payload команды
+(+0xd8 от начала payload). Ведущая интерпретация (согласуется со всей
+мутационной картиной): **qword @ +0x150 = {u32 length=0x268, u32 count=3} —
+пара {длина, счётчик} в аргументах команды** (область пейлоада, размер которой
+задаётся ведущей длиной):
+
+- **length=0x268**: участвует в уравнении полноты («длина данных == остаток
+  команды/региона», проверки вида 'Insufficient bytes (%llu) for … Args (%lu)'
+  в кейсах диспатча, напр. UpdateMappings @ 0x78b273-0x78b2d3). Правка на +1
+  нарушает равенство → reject **до любого потребления** — отсюда «чистый»
+  Internal Error без фолта. (Проверки размера аргументов — точные/верхние,
+  не «заворачивающие»: u32-суммы с b.hs на переполнение.)
+- **count=3**: проходит валидацию диспатча (count мала, внутренние лимиты
+  вида 'group count invalid' проверяют только специальные команды), затем
+  **используется при трансляции в device stream** (AGXG16P) как число
+  повторений/элементов. count=0xffffffff → транслятор строит device-команды
+  с безумным счётчиком → GPU читает несуществующие ресурсы → **MMU fault →
+  GPURestart → deny владельцу** (§2: 2-й рестарт → deny/app-kill). Никакого
+  kernel OOB в этом пути нет.
+
+### 9.3 Почему нет kernel OOB (вопрос цены)
+
+Проверено по коду обоих walker'ов и AGX-транслятора
+(`AGXComputeHardwareKernelCommand::copyPassthroughData` @ 0x831f514,
+fast-render/render-аналоги — имена в cstring @ 0x711e6de/0x711edab/0x71266d4):
+
+- Все обращения к shmem идут через проверенные (start,end,length): хидер
+  (0x9d6ab58), per-command (0x9d6ac44-0x9d6ac60). Командой с size, вылезающим
+  за end, пройти нельзя — reject.
+- Диспатч-кейсы валидируют размер аргументов против command_size до чтения
+  полей (каждый кейс имеет свою 'Insufficient bytes' строку).
+- AGX copyPassthroughData копирует **фиксированные** блоки: memcpy по 0x40 на
+  каждый бит маски с жёсткой проверкой `(w1|w2) ≤ 0x3ff` (0x831760c, compute),
+  чтение kcmd-полей по фиксированным оффсетам (+0xb4/+0xc4/+0xc8/+0x98/+0xd8…);
+  паника-ассерт там — `'stream validator is invalid!'` (line 78,
+  agxk_compute_hardware_kernel_command.cpp), не OOB.
+- Значение 0xffffffff/0x7fffffff в старшем dword доезжает до железа и умирает
+  там (GPU fault → рестарт очереди → deny). Это **app-kill, а не kernel-примитив**.
+
+**Вывод по цене**: в данном пути (kernel cmd shmem → IOGPU dispatch → AGX
+copyPassthroughData) значение, дающее OOB read/write в kernel, **не найдено**;
+мутационная энергия конвертируется либо в clean reject (правки младшей длины),
+либо в GPU fault + app kill (взлом счётчика). Вероятный потребитель пары
+{length,count} — кейс диспатча UpdateMappings/CopyMappings с последующим
+построением mapping-команд; для точного указания consumer'а нужна корреляция
+с лейаутом конкретной команды фаззера (дамп shmem@0x70..0x2d8 с девайса) —
+статически команда идентифицируется по command_id @ +0x70.
+
+### 9.4 Адреса (iOS VA)
+
+| что | адрес |
+|---|---|
+| валидатор хидера + walker cmdlist | 0x9d6a98c (ход: 0x9d6ab58 хидер, 0x9d6ac20-0x9d6acd4 walker) |
+| walker kernelCommandBufferShmem | 0x9d882d0; хидер-чек 0x9d88ba0 |
+| dispatch processKernelCommand | 0x9d88c18 (jump table 0x9d8a188) |
+| AGXComputeHWKernelCommand::copyPassthroughData | 0x831f514 (маска-чек 0x831763c, memcpy 0x83176b4) |
+| строка entitlement no-kill | 0x78b7a84 |
