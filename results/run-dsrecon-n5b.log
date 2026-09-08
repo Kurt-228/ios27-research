@@ -1,0 +1,121 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x580b
+[scaler] conn 0x580b, s1 168 s2 183
+[probe12] SetNotificationPort -> 0x00000000
+[dsr] v124: N1 baseline-template diff + N2 pointer discrimination
+[dsr] cfg0 size 0x4000 gpuA 0x10000080000 gpuB 0x10000088000
+[dsr] cfg0 storage 0x109ea1800 kcmd 0x109734000 seg 0x109730000 (pre-endEncoding)
+[dsr]   pool region 0x109794000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109c00000 sz 0x400000 (hit gpuA+0xed948)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x1a790)
+[dsr]   pool region 0x16b950000 sz 0x88000 (hit gpuA+0x80a80)
+[dsr]   pool region 0x109794000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109c00000 sz 0x400000 (hit gpuA+0xed948)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x1a790)
+[dsr]   pool region 0x16b950000 sz 0x88000 (hit gpuA+0x80a80)
+[dsr] cfg0 kcmd: 0 changed lines
+[dsr] cfg0 seg: 0 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr] cfg0 pool +0x0010: 60e748e801000000 -> c0221ee801000000
+[dsr] cfg0 pool +0x09a0: 0100088000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x15f0: 70a828e801000000 -> 60ab1ee801000000
+[dsr] cfg0 pool +0x3110: 001f24e801000000 -> 705423e801000000
+[dsr] cfg0 pool +0x31b0: 983b23e801000000 -> 805323e801000000
+[dsr] cfg0 pool +0x3210: a0f8dc0901000000 -> 304ff30901000000
+[dsr] cfg0 pool +0x3b30: 0000000000000000 -> 10d823e801000000
+[dsr] cfg0 pool +0x3d50: 705923e801000000 -> 585823e801000000
+[dsr] cfg0 pool +0x3d70: 705924e801000000 -> 906124e801000000
+[dsr] cfg0 pool: 9 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg0-pool3.bin (16384 bytes) ok
+[dsr] cfg0 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg0 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg0 pool0: pointer hits A 1 B 1
+[dsr] cfg1 size 0x10000 gpuA 0x10000110000 gpuB 0x10000128000
+[dsr] cfg1 storage 0x109ea1800 kcmd 0x109734000 seg 0x109730000 (pre-endEncoding)
+[dsr]   pool region 0x109794000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109c00000 sz 0x400000 (hit gpuA+0xee208)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x26790)
+[dsr]   pool region 0x16b950000 sz 0x88000 (hit gpuB+0x7f6b8)
+[dsr]   pool region 0x2798a4000 sz 0x1dcc000 (hit gpuA+0x1a83478)
+[dsr]   pool region 0x109794000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109c00000 sz 0x400000 (hit gpuA+0xee208)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x26790)
+[dsr]   pool region 0x16b950000 sz 0x88000 (hit gpuB+0x7f6b8)
+[dsr]   pool region 0x2798a4000 sz 0x1dcc000 (hit gpuA+0x1a83478)
+[dsr] cfg1 kcmd: 0 changed lines
+[dsr] cfg1 seg: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-pool3.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg1-pool4.bin (16384 bytes) ok
+[dsr] cfg1 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg1 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg1 pool0: pointer hits A 1 B 1
+[dsr] cfg2 size 0x40000 gpuA 0x10000140000 gpuB 0x10000188000
+[dsr] cfg2 storage 0x109ea1800 kcmd 0x109734000 seg 0x109730000 (pre-endEncoding)
+[dsr]   pool region 0x109794000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109c00000 sz 0x400000 (hit gpuA+0xee3e8)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x32790)
+[dsr]   pool region 0x16b950000 sz 0x88000 (hit gpuB+0x7f6b8)
+[dsr]   pool region 0x109794000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109c00000 sz 0x400000 (hit gpuA+0xee3e8)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x32790)
+[dsr]   pool region 0x16b950000 sz 0x88000 (hit gpuB+0x7f6b8)
+[dsr] cfg2 kcmd: 0 changed lines
+[dsr] cfg2 seg: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/9E887C5C-3382-4659-856F-795093400A42/Documents/dsrecon-cfg2-pool3.bin (16384 bytes) ok
+[dsr] cfg2 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg2 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg2 pool0: pointer hits A 1 B 1
+[dsr] x0v1 kcmd: 0 changed lines
+[dsr] x0v1 seg +0x0000: 657c2f0f00000000 -> 677c2f0f00000000
+[dsr] x0v1 seg +0x0010: 00000000ac000000 -> 00000000ac000000
+[dsr] x0v1 seg +0x0020: 0000000000000000 -> 0000000000000000
+[dsr] x0v1 seg +0x0100: 8000800000000600 -> 8000800000000600
+[dsr] x0v1 seg +0x0120: 1000000010000000 -> 4000000040000000
+[dsr] x0v1 seg: 5 changed lines
+[dsr] x0v2 kcmd: 0 changed lines
+[dsr] x0v2 seg +0x0000: 657c2f0f00000000 -> 697c2f0f00000000
+[dsr] x0v2 seg +0x0010: 00000000ac000000 -> 00000000ac000000
+[dsr] x0v2 seg +0x0020: 0000000000000000 -> 0000000000000000
+[dsr] x0v2 seg +0x0100: 8000800000000600 -> 8000800000000600
+[dsr] x0v2 seg +0x0120: 1000000010000000 -> 0001000000010000
+[dsr] x0v2 seg: 5 changed lines
+[dsr5b] N5B: cluster anchor verification + write-probe
+[dsr5b] gpuA 0x100001d0000 gpuB 0x100001e8000
+[dsr5b] pre: 76 regions
+[dsr5b] blit#1 status 4, B 0x41 65536/65536
+[dsr5b] no post-commit cluster found
+[dsr] done (alive)
+[probe13] dsrecon-only mode, stop

@@ -14847,6 +14847,7 @@ static void dsr_marker_scan(const char *tag, const char *what, const uint8_t *bu
     }
 }
 static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void p_dsrecon(void) {
     LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
     id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
@@ -14930,6 +14931,7 @@ static void p_dsrecon(void) {
     for (int cfg = 0; cfg < 3; cfg++) dsr_free_snap(&post[cfg]);
     // N5 (docs/device_stream_builder.md): differential post-commit VM scan
     if (getenv("FUZZ_DSRECON_POST")) dsr5_post_scan(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_N5B")) dsr5b_verify(dev, mq, docdir);
     LOG("[dsr] done (alive)");
 }
 
@@ -15107,6 +15109,115 @@ static void dsr5_post_scan(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *
         nnew_total, dumps, gone, logn >= 200 ? " (hit log truncated)" : "");
     dsr5_free(pre, npre);
     dsr5_free(post, npost);
+}
+
+// V126: FUZZ_DSRECON_N5B — targeted verification of the N5 find (post-commit
+// cluster with size/gpuA/gpuB in a fresh RW region). Anchors the cluster,
+// dumps [anchor-0x200, anchor+0x400), then write-probes the anchor qword with
+// 0xd5d5d5d5d5d5d5d5 and re-runs a legal blit to answer: (a) does the marker
+// survive (page stays CPU-RW, not rewritten), (b) does it affect execution
+// (cb status, 0x41 count in B), (c) does the kext restore the field per
+// submit. Tag [dsr5b].
+static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsr5b] N5B: cluster anchor verification + write-probe");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsr5b] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    LOG("[dsr5b] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+    dsr5_reg *pre = calloc(D5_MAXREG, sizeof(dsr5_reg));
+    dsr5_reg *post = calloc(D5_MAXREG, sizeof(dsr5_reg));
+    int npre = dsr5_vm_walk(gpuA, gpuB, pre);
+    LOG("[dsr5b] pre: %d regions", npre);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    [cb commit];
+    [cb waitUntilCompleted];
+    uint8_t *bb = (uint8_t *)[bufB contents];
+    long b41 = 0;
+    for (long i = 0; i < 0x10000; i++) if (bb[i] == 0x41) b41++;
+    LOG("[dsr5b] blit#1 status %ld, B 0x41 %ld/65536", (long)[cb status], b41);
+    int npost = dsr5_vm_walk(gpuA, gpuB, post);
+    // anchor: first region with a NEW SZ hit that has NEW GA and NEW GB within 0x200
+    uint64_t raddr = 0, rsz = 0, anch = 0;
+    for (int i = 0; i < npost && !raddr; i++) {
+        dsr5_reg *r = &post[i];
+        dsr5_reg *p = NULL;
+        for (int j = 0; j < npre; j++) if (pre[j].addr == r->addr) { p = &pre[j]; break; }
+        for (int k = 0; k < r->nh; k++) {
+            if ((int)(r->hits[k] >> 56) != D5_KIND_SZ) continue;
+            uint64_t so = r->hits[k] & 0xffffffffULL;
+            int snew = 1, gac = 0, gbc = 0;
+            if (p) for (int q = 0; q < p->nh; q++) if (p->hits[q] == r->hits[k]) { snew = 0; break; }
+            for (int m = 0; m < r->nh; m++) {
+                int km = (int)(r->hits[m] >> 56);
+                if (km != D5_KIND_GA && km != D5_KIND_GB) continue;
+                uint64_t o = r->hits[m] & 0xffffffffULL;
+                uint64_t d = o > so ? o - so : so - o;
+                if (d > 0x200) continue;
+                int isnew = 1;
+                if (p) for (int q = 0; q < p->nh; q++) if (p->hits[q] == r->hits[m]) { isnew = 0; break; }
+                if (!isnew) continue;
+                if (km == D5_KIND_GA) gac++; else gbc++;
+            }
+            if (snew && gac && gbc) {
+                raddr = r->addr; rsz = r->sz; anch = so;
+                LOG("[dsr5b] anchor: region 0x%llx sz 0x%llx anchor +0x%llx (new SZ + %d gpuA + %d gpuB)",
+                    raddr, rsz, anch, gac, gbc);
+                break;
+            }
+        }
+    }
+    if (!raddr) {
+        LOG("[dsr5b] no post-commit cluster found");
+        dsr5_free(pre, npre); dsr5_free(post, npost);
+        return;
+    }
+    uint8_t *rb = (uint8_t *)(uintptr_t)raddr;
+    uint64_t wstart = anch >= 0x200 ? anch - 0x200 : 0;
+    uint64_t wlen = 0x600;
+    if (wstart + wlen > rsz) wlen = rsz - wstart;
+    LOG("[dsr5b] window [+0x%llx, +0x%llx):", wstart, wstart + wlen);
+    mtl_hexdump("dsr5b", (long)wstart, rb + wstart, (long)wlen);
+    uint8_t *win1 = malloc(wlen);
+    memcpy(win1, rb + wstart, wlen);
+    dsr_write_file(docdir, "dsrecon-n5b.bin", rb + wstart, (long)wlen);
+    // write-probe: clobber the anchor qword, re-run a legal blit, observe
+    LOG("[dsr5b] PROBE: *(region+0x%llx) = 0xd5d5d5d5d5d5d5d5", anch);
+    fflush(stderr);
+    fsync(fileno(stderr));
+    *(uint64_t *)(rb + anch) = 0xd5d5d5d5d5d5d5d5ULL;
+    memset(bb, 0, 0x10000);
+    id<MTLCommandBuffer> cb2 = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc2 = [cb2 blitCommandEncoder];
+    [enc2 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc2 endEncoding];
+    [cb2 commit];
+    [cb2 waitUntilCompleted];
+    long b41b = 0;
+    for (long i = 0; i < 0x10000; i++) if (bb[i] == 0x41) b41b++;
+    LOG("[dsr5b] blit#2 status %ld, B 0x41 %ld/65536 (control: expect 65536)",
+        (long)[cb2 status], b41b);
+    uint64_t v = *(uint64_t *)(rb + anch);
+    LOG("[dsr5b] post-probe window [+0x%llx, +0x%llx):", wstart, wstart + wlen);
+    mtl_hexdump("dsr5b2", (long)wstart, rb + wstart, (long)wlen);
+    dsr_write_file(docdir, "dsrecon-n5b-after.bin", rb + wstart, (long)wlen);
+    long chg = 0;
+    for (uint64_t o = 0; o < wlen; o++) if (win1[o] != rb[wstart + o]) chg++;
+    LOG("[dsr5b] anchor qword now 0x%016llx — %s", v,
+        v == 0xd5d5d5d5d5d5d5d5ULL ? "MARKER SURVIVED (page CPU-RW, not rewritten)" :
+        v == 0x10000 ? "KEXT RESTORED size (field rewritten per submit)" :
+        "CHANGED to another value");
+    LOG("[dsr5b] window changed bytes vs pre-probe: %ld%s", chg,
+        b41b == 65536 ? "" : " — BLIT#2 DEVIATES (marker hit an executable field!)");
+    free(win1);
+    dsr5_free(pre, npre);
+    dsr5_free(post, npost);
+    LOG("[dsr5b] done (alive)");
 }
 
 // V90: GPU VM map via patched-blit read primitive. Patch the copy SOURCE
