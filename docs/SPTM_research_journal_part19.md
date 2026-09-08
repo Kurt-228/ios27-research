@@ -261,3 +261,33 @@ bitflips → GPU error/«innocent victim»/wedge). Вывод: мы фаззим
 сабмита, а не AGX-payload (он в pool/device-stream — недостижим без
 полного реверса resource binding). Compute-поверхность envelope'а чиста
 так же, как blit. Паник нет, краши — только app-kill класса v78.
+
+## 113. v123: p_killrace — гонка «GPU fault × teardown каналов» (getGuiltyChannel panic) — не поймана
+
+Статика (docs/restart_analysis_structs.md, docs/fw_event_ring.md): паник-путь
+«Type confusion — invalid AGXChannel» требует фолта при полуразрушенном guilty
+канале; event ring — boot-time dedicated shmem, спреем недостижим;
+AGXIOFenceData — kalloc_type с reset при аллокации (UAF без контент-контроля).
+Эксперимент: 8 конфигураций (queues 8/32 × wait 0/5/20/100ms), 50 раундов на
+конфиг — каждый раунд N очередей с киллер-мутацией kcmd+0x150=0xffffffff
+(детерминированный GPU-fault) + мгновенный SIGSEGV процесса (results/
+run-killrace-q*-w*.log). Итог: процесс умирает при первом же раунде от фолта
+(как и ожидалось), устройство ВО ВСЕХ конфигурациях стабильно — паник-окно
+не ловится таким образом (обработка фолта, видимо, завершается до/атомарно
+с teardown, либо виновный определяется до нашей смерти). Вектор закрыт
+эмпирически на этом семействе таймингов.
+
+## 114. Сводка закрытых/открытых векторов на конец сессии 08.09
+
+Закрыто сегодня (см. детали выше): xpleak CPU, repoint-write, leak-back,
+sel27/sel9/sel7 deep, s27down, degensurf, mtlmut (3176) + mtlmutc (3162),
+killrace, SEPKeyStore (статика: тонкий корректный валидатор), restart
+счётчики → panic (статика: нет эскалации), fw event ring (не спреябелен),
+fence-data UAF (kalloc_type reset — без контент-контроля).
+Осталось открытым: (1) stale-TLB спрей с content-steering НА ТЁПЛОМ
+устройстве (пользователь активен) — вопрос: следуют ли чужие fault-адреса
+нашему паттерну; (2) скейлер: формула write-DVA известна, cross-surface
+закрыт окном DART, открытый вопрос — shared-ли домен системных поверхностей
+(§5 scaler_dva_formula.md); (3) phys-spray → ядерные page-granular объекты,
+читаемые без валидации (stamp-ring оказался kalloc_type — искать другие
+page-backed структуры в IOGPU/AGX, читаемые в fault/restart путях).
