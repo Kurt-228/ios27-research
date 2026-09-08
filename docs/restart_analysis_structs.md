@@ -150,13 +150,91 @@ lookup по индексу падает → **panic с нашим числом �
 до NUL в пределах mapped-страницы (довычитка соседних страниц в лог — ограниченная).
 Приоритет средний: подтвердить, что +0xd18 — shared и что путь 4/9/11 достижим нашим hang-сценарием.
 
-### (a-вариант) OOB в fence-tracker — приоритет №2
+### (a-вариант) OOB в context-ID cleanup — полный разбор (приоритет ② пересмотрен)
 
-`[fence+0x1e8]` (stamp idx) приходит из пользовательских command buffers, индексирует
-bitmap-массивы `[A+0x418/0x420/0x428/0x430]` с границей-маской из `[A+0x400]`. Если count
-в трекере некратен/меньше реальных индексов — запись `str xzr/w9` по `base + idx*8/4` вне
-массива (kalloc-переполнение соседнего объекта). Спрей не нужен — только skew индексов;
-отметить как отдельный вектор, не phys-spray.
+> Важно: прежняя гипотеза «[x19+0x1e8] = stamp idx из пользовательского command buffer»
+> **опровергнута** дизасмом. Это не fence и не user-поле. Ниже — установленная механика.
+
+#### A. Что за объект x19 и откуда индекс
+
+- `x19` = элемент OSArray, лежащего по `[[accel+0x11ad8] + 0x1d0]`. Элементы — объекты
+  семейства **AGXGart / AGXSecureGart** (не IOSurface-fence, не sIOGPUIOFence).
+  Идентификация: `AGXSecureGart::registerContextIDE(int)` @ 0x8b895a8 делает ровно
+  `str w20, [x19, #0x1e8]` (w20 = w1 = аргумент-ID); `AGXGart::init` @ 0x8b6f7c4 инициализирует
+  `[gart+0x1e8] = -1`. У gart'а: `+0x10` = AGXAccelerator, `+0x1d0` = retained ptr
+  (tracker), вирт-метод слот vtable+0x1e8 = `registerContextIDE(int)`.
+- `idx = [gart+0x1e8]` — это **context ID из AGXContextIDManager** (embedded-структура
+  по адресу `accel+0x11ad8`, НЕ полиморфный объект: `+0x0` = ptr на владельца с OSArray,
+  `+0x8` = lock (retained, = accel+0x11ae0), `+0x10` = capacity u32 (= accel+0x11ae8),
+  `+0x1c` = flag byte, далее указатели на массивы). ID выдаёт
+  `AGXContextIDManager::alloc(gart, hint, &out)` @ 0x8b1a14c: free-stack pop либо bitmap-scan
+  с жёсткой границей `idx < capacity` (0x8b1a3b0 `cmp w9,w23; b.le`). Дескрипторы команд
+  (3D/CL/IOSurfaceSharedEvent) вызывают alloc и кладут ID в `desc+0x154`.
+- Помечать [iOS?]: смещения 0x11ad8/0x1e8 проверены только на macOS-27 AGXG16G.
+
+#### B. Точная механика OOB (restartWorkQueue, блок 0x8ae8ff0–0x8ae9200)
+
+Все «массивы A+0x418/0x420/0x428/0x430» — это поля менеджера, A+0x3f0.. = accel+0x11ad8:
+
+| доступ | адрес | операция |
+|---|---|---|
+| `[A+0x3f8]` = manager+8 | lock retain/release вокруг цикла | — |
+| цикл по `[[manager+0]+0x1d0]` OSArray (count>=2), элемент = gart | — | — |
+| `ldr w27,[gart+0x1e8]` | idx | **проверка только `cmp w27,#1; b.lt`** |
+| `ldr w8,[A+0x428 + idx*4]` = refcount[manager+0x38] | u32 READ, `cbnz → skip` | ветвление от OOB-данных |
+| `ldr x11,[A+0x418+idx*8]`; RMW `((old&mask)+1)&mask \| (idx<<shift)` | u64 write, значение зависит от старого слова и idx | counter[manager+0x28] |
+| `str xzr,[A+0x420+idx*8]` | **u64 zero-write** | gart-ptr array[manager+0x30] |
+| вирт-вызов `registerContextIDE(-1)` (vtable+0x1e8) | сброс gart ID | — |
+| `str w27,[A+0x430 + count++*4]`, count=[A+0x438] | u32 write самого idx | free-stack[manager+0x40/0x48] |
+
+Верхней границы idx vs capacity НЕТ (только sxtw-ловушка movk #0x2bad → panics pal при
+idx*8/idx*4 ≥ 2^31, т.е. idx до ~2^28..2^30 адресуется молча). Массивы — kalloc (heap
+pointers в менеджере), размер = f(capacity); capacity пишется только на инициализации
+(динамического роста не найдено, но и место записи в дизасме не локализовано — вероятно
+регистровая адресация; [проверить динамически]).
+
+Те же три примитива повторяются в **`AGXGart::free`** @ 0x8b70998 (fast path без проверки
+idx < capacity: RMW counter+idx*8, zero gart-array+idx*8, registerContextIDE(-1), затем
+поиск ID в массиве [manager+0x20] и push ID в free-stack) — то же отсутствие верхней
+проверки. И в **fast path `AGXContextIDManager::alloc`** @ 0x8b1a180 (idx = старый
+[gart+0x1e8] без перепроверки: refcount++, RMW, `str x22(gart ptr),[manager+0x30+idx*8]` —
+OOB-запись УКАЗАТЕЛЯ НА GART, это самый сильный из трёх синков).
+
+#### C. Вердикт по достижимости из userland — НЕ напрямую
+
+Инвариант «`[gart+0x1e8] ∈ {-1} ∪ [0, capacity)`» держится чисто ядерной логикой:
+- единственный writer поля — виртуальный `registerContextIDE(int)`; вызывается с
+  bounded idx из alloc и с -1 из cleanup-путей;
+- capacity не меняется в рантайме (записей не найдено);
+- free-stack push/pop сбалансированы и подпитываются только валидными ID.
+Все остальные потребители idx (complete 3D/CL @ 0x8ae0b2c, freeSourceContextId,
+releaseTaskAndContextIDE @ 0x8b1a4fc) проверяют `idx < capacity` — а три cleanup-синка
+(restartWorkQueue, AGXGart::free, alloc fast path) её сознательно не делают.
+
+Следствие: это **defense-in-depth провал / второй хоп**, а не самостоятельный вектор из
+userland. Прямого контроля idx (через command buffer, hint dword desc+0x89c/0x568/0x3d0
+или спрей) нет. Для активации нужен отдельный примитив, ломающий инвариант:
+1. **UAF/подмена gart-объекта**: объект в OSArray заменён/переиспользован так, что
+   +0x1e8 содержит мусор ≥ capacity → restartWorkQueue (или AGXGart::free) даёт OOB
+   u64-RMW + u64-zero + push мусорного ID в free-stack; далее alloc fast path пишет
+   OOB указатель на gart по `manager+0x30 + idx*8` — удобная точка эскалации.
+2. **Перезапись capacity вниз** (accel+0x11ae8) любым другим OOB-write.
+3. **Подкласс AGXGart с переопределённым registerContextIDE**, получающим ID извне
+   (статически не исключено; требует перебора vtable-наследников).
+
+#### D. Практический вывод для фаззинга
+
+- Не тратить спрей на «skew индексов fence» — вектора как самостоятельной цели нет.
+- Держать как **усилитель**: gart-объекты (kalloc, ~0x300 байт, поля +0x1e8/+0x1d0)
+  — приоритетная мишень для любого будущего kalloc-OOB; один испорченный dword +0x1e8
+  превращается через cleanup/alloc в OOB-write указателя (case 1→alloc: `str x22`).
+- Ранее пойманные panics `pal` (movk #0x2bad) при больших idx — это и есть срабатывание
+  sxtw-ловушки на одном из трёх синков; если в логах panics-v* есть "invalid address
+  (fault addr: ...2bad...)" в AGXGart::free/restartWorkQueue — инвариант уже ломался
+  фаззингом, искать первопричину (коррупция gart) по логам.
+- Фазз-кейс для девайса: штатный p_mtlmut по blit/copy командам (зацепляет prepare/
+  complete дескрипторов → alloc/free gart ID), плюс churn создания/уничтожения command
+  queue + secure contexts (AGXSecureGart create/destroy) для переиспользования kalloc-чанков.
 
 ### Цели «не трогать» (kalloc-only, низкий приоритет)
 
@@ -180,12 +258,19 @@ bitmap-массивы `[A+0x418/0x420/0x428/0x430]` с границей-маск
    (0x8b224b4) до вычисления `[sp+0x5c]`.
 4. **iOS-смещения**: все «0x18e34/0x11c48/0xd18/0x490/0x1e8» сверить с iOS-G16P kernelcache
    (доступен на девайсе; этот Mac-бинарь — единственный источник сейчас).
+5. **Context-ID менеджер** (§4-A): место записи capacity (accel+0x11ae8) и аллокации
+   массивов accel+0x11af8..0x11b20 (в дизасме не локализовано — вероятно регистровая
+   адресация в AGXAccelerator::init; точный capacity → размер kalloc-чанков под OOB);
+   кто добавляет gart'ы в OSArray владельца [manager+0]+0x1d0; есть ли подклассы AGXGart
+   с переопределённым registerContextIDE (п.3 §4-C).
 
 ## 6. Приоритеты (по достижимости)
 
 1. **(c)+(a) panic через firmware guilty_stamp_index** — один достоверный путь, не требует
    контроля указателей, только значение; блокируется только вопросом §5.1/§5.3.
-2. **(a-вариант) OOB fence-tracker** — без спрея вообще, дешёвый, проверить первым на девайсе.
+2. **(a-вариант) OOB context-ID cleanup** — НЕ самостоятельный userland-вектор (см. §4-C):
+   инвариант idx < capacity держится ядерной логикой. Ценность — как второй хоп/усилитель
+   (один испорченный gart+0x1e8 → OOB-write указателя на gart через alloc fast path).
 3. **(b) infoleak через status block [[accel+0x570]+0xd18+0x50a8 / +0x4298]** — зависит от §5.2;
    ценность — утечка содержимого нашей страницы в лог (подтверждение спрея + адресная инфа).
 4. kalloc-only структуры (iofence OSArray, ring-entry ptr-цепочка) — только после
