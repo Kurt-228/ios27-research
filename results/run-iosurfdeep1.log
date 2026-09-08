@@ -1,0 +1,226 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7b03
+[scaler] conn 0x7b03, s1 16 s2 20
+[probe12] SetNotificationPort -> 0x00000000
+[isd] v112 deep IOCoreSurfaceRoot fuzz, step 0 skip 0
+[isd] open type 0 -> kr 0x00000000 conn 0x7813
+[isd] sel13 init -> kr 0x00000000
+[isd] sel6 create 64x64 BGRA -> kr 0x00000000 sid 162
+[isd] s27 bulk attachments (frame 160B, mask @0x90, sid @0x98)
+[isd] s27 c1 sanity mask 0 ...
+[isd] s27 c1 sanity mask 0 -> kr 0x00000000 ok
+[isd] s27 c2 roundtrip mask 0x7 -> kr 0x00000000 rb 0x00000000 eq 0 *** ANOMALY
+[isd] s27 c3 mask 0x0000000000000000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c4 mask 0x0000000000000001 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c5 mask 0x0000000000000002 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c6 mask 0x0000000000000004 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c7 mask 0x0000000000000008 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c8 mask 0x0000000000000010 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c9 mask 0x0000000000000020 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c10 mask 0x0000000000000040 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c11 mask 0x0000000000000080 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c12 mask 0x0000000000000100 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c13 mask 0x0000000000000200 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c14 mask 0x0000000000000400 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c15 mask 0x0000000000000800 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c16 mask 0x0000000000001000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c17 mask 0x0000000000002000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c18 mask 0x0000000000004000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c19 mask 0x0000000000008000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c20 mask 0x0000000000010000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c21 mask 0x0000000000020000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c22 mask 0x0000000000040000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c23 mask 0x0000000000080000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c24 mask 0x0000000000100000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c25 mask 0x0000000000200000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c26 mask 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c27 mask 0x0000000000400000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c28 mask 0x0000000100000000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c29 mask 0x8000000000000000 -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c30 mask 0x000000000003ffff -> kr 0x00000000 rb 0x00000000 badfield -1 
+[isd] s27 c31 field bit0 off 0x0 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c32 field bit0 off 0x0 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c33 field bit0 off 0x0 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c34 field bit0 off 0x0 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c35 field bit0 off 0x0 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c36 field bit0 off 0x0 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c37 field bit1 off 0x20 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c38 field bit1 off 0x20 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c39 field bit1 off 0x20 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c40 field bit1 off 0x20 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c41 field bit1 off 0x20 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c42 field bit1 off 0x20 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c43 field bit2 off 0x30 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c44 field bit2 off 0x30 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c45 field bit2 off 0x30 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c46 field bit2 off 0x30 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c47 field bit2 off 0x30 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c48 field bit2 off 0x30 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c49 field bit3 off 0x38 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c50 field bit3 off 0x38 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c51 field bit3 off 0x38 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c52 field bit3 off 0x38 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c53 field bit3 off 0x38 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c54 field bit3 off 0x38 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c55 field bit4 off 0x39 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c56 field bit4 off 0x39 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c57 field bit4 off 0x39 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c58 field bit4 off 0x39 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c59 field bit4 off 0x39 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c60 field bit4 off 0x39 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c61 field bit5 off 0x3a v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c62 field bit5 off 0x3a v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c63 field bit5 off 0x3a v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c64 field bit5 off 0x3a v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c65 field bit5 off 0x3a v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c66 field bit5 off 0x3a v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c67 field bit6 off 0x3b v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c68 field bit6 off 0x3b v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c69 field bit6 off 0x3b v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c70 field bit6 off 0x3b v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c71 field bit6 off 0x3b v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c72 field bit6 off 0x3b v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c73 field bit7 off 0x3c v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c74 field bit7 off 0x3c v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c75 field bit7 off 0x3c v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c76 field bit7 off 0x3c v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c77 field bit7 off 0x3c v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c78 field bit7 off 0x3c v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c79 field bit8 off 0x3d v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c80 field bit8 off 0x3d v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c81 field bit8 off 0x3d v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c82 field bit8 off 0x3d v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c83 field bit8 off 0x3d v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c84 field bit8 off 0x3d v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c85 field bit9 off 0x3e v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c86 field bit9 off 0x3e v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c87 field bit9 off 0x3e v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c88 field bit9 off 0x3e v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c89 field bit9 off 0x3e v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c90 field bit9 off 0x3e v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c91 field bit10 off 0x3f v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c92 field bit10 off 0x3f v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c93 field bit10 off 0x3f v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c94 field bit10 off 0x3f v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c95 field bit10 off 0x3f v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c96 field bit10 off 0x3f v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c97 field bit11 off 0x40 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c98 field bit11 off 0x40 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c99 field bit11 off 0x40 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c100 field bit11 off 0x40 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c101 field bit11 off 0x40 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c102 field bit11 off 0x40 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c103 field bit12 off 0x58 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c104 field bit12 off 0x58 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c105 field bit12 off 0x58 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c106 field bit12 off 0x58 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c107 field bit12 off 0x58 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c108 field bit12 off 0x58 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c109 field bit13 off 0x5c v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c110 field bit13 off 0x5c v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c111 field bit13 off 0x5c v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c112 field bit13 off 0x5c v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c113 field bit13 off 0x5c v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c114 field bit13 off 0x5c v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c115 field bit14 off 0x64 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c116 field bit14 off 0x64 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c117 field bit14 off 0x64 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c118 field bit14 off 0x64 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c119 field bit14 off 0x64 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c120 field bit14 off 0x64 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c121 field bit15 off 0x68 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c122 field bit15 off 0x68 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c123 field bit15 off 0x68 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c124 field bit15 off 0x68 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c125 field bit15 off 0x68 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c126 field bit15 off 0x68 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c127 field bit16 off 0x70 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c128 field bit16 off 0x70 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c129 field bit16 off 0x70 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c130 field bit16 off 0x70 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c131 field bit16 off 0x70 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c132 field bit16 off 0x70 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c133 field bit17 off 0x65 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c134 field bit17 off 0x65 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c135 field bit17 off 0x65 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c136 field bit17 off 0x65 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c137 field bit17 off 0x65 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c138 field bit17 off 0x65 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c139 field bit18 off 0x66 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c140 field bit18 off 0x66 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c141 field bit18 off 0x66 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c142 field bit18 off 0x66 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c143 field bit18 off 0x66 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c144 field bit18 off 0x66 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c145 field bit19 off 0x74 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c146 field bit19 off 0x74 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c147 field bit19 off 0x74 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c148 field bit19 off 0x74 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c149 field bit19 off 0x74 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c150 field bit19 off 0x74 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c151 field bit20 off 0x80 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c152 field bit20 off 0x80 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c153 field bit20 off 0x80 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c154 field bit20 off 0x80 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c155 field bit20 off 0x80 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c156 field bit20 off 0x80 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c157 field bit21 off 0x82 v 0x0 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c158 field bit21 off 0x82 v 0x1 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c159 field bit21 off 0x82 v 0xffffffffffffffff -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c160 field bit21 off 0x82 v 0x4141414141414141 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c161 field bit21 off 0x82 v 0xdeadbeefcafe -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s27 c162 field bit21 off 0x82 v 0x160000000 -> kr 0x00000000 rb 0x00000000 bad 0 
+[isd] s9 set_value (13B header + IOCFSerialize [value, key])
+[isd] s9 c163 sanity [1, "test"] -> kr 0x00000000 token 3 ok
+[isd] s9 c164 OSData size 0x0 -> kr 0x00000000 token 5 (accepted)
+[isd] s9 c165 OSData size 0x1 -> kr 0x00000000 token 7 (accepted)
+[isd] s9 c166 OSData size 0x100 -> kr 0x00000000 token 9 (accepted)
+[isd] s9 c167 OSData size 0x10000 -> kr 0x00000000 token 11 (accepted)
+[isd] s9 c168 OSData size 0x100000 -> kr 0x00000000 token 13 (accepted)
+[isd] s9 c169 flip off 0 bit 0 -> kr 0xe00002c2 
+[isd] s9 c170 flip off 0 bit 7 -> kr 0xe00002c2 
+[isd] s9 c171 flip off 1 bit 0 -> kr 0xe00002c2 
+[isd] s9 c172 flip off 1 bit 7 -> kr 0xe00002c2 
+[isd] s9 c173 flip off 2 bit 0 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c174 flip off 2 bit 7 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c175 flip off 3 bit 0 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c176 flip off 3 bit 7 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c177 flip off 4 bit 0 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c178 flip off 4 bit 7 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c179 flip off 5 bit 0 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c180 flip off 5 bit 7 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c181 flip off 7 bit 0 -> kr 0xe00002c2 
+[isd] s9 c182 flip off 7 bit 7 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c183 flip off 8 bit 0 -> kr 0xe00002c2 
+[isd] s9 c184 flip off 8 bit 7 -> kr 0xe00002c2 
+[isd] s9 c185 flip off 11 bit 0 -> kr 0xe00002c2 
+[isd] s9 c186 flip off 11 bit 7 -> kr 0xe00002c9 
+[isd] s9 c187 flip off 15 bit 0 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c188 flip off 15 bit 7 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c189 len off 4 = 0x7fffffff -> kr 0xe00002c2 
+[isd] s9 c190 len off 4 = 0xffffffff -> kr 0xe00002c2 
+[isd] s9 c191 len off 4 = 0x00000001 -> kr 0xe00002c2 
+[isd] s9 c192 len off 8 = 0x7fffffff -> kr 0xe00002c2 
+[isd] s9 c193 len off 8 = 0xffffffff -> kr 0xe00002c2 
+[isd] s9 c194 len off 8 = 0x00000001 -> kr 0xe00002c2 
+[isd] s9 c195 len off 12 = 0x7fffffff -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c196 len off 12 = 0xffffffff -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c197 len off 12 = 0x00000001 -> kr 0x00000000 *** ANOMALY accepted
+[isd] s9 c198 deep-dict 100 -> kr 0xe00002c2 
+[isd] s9 c199 deep-array 100 -> kr 0xe00002c2 
+[isd] s9 c200 array 1000 nums -> kr 0x00000000 (accepted)
+[isd] s7 client_mem zero-copy alias
+[isd] s7 c201 alias {our malloc, 0x1000} -> kr 0x00000000 sid 178
+[isd] s7 c201 gather kr 0xe00002c1 gsz 0x1000 pattern absent — alias not visible?
+[isd] s7 c201 release alias sid 178 -> kr 0xe00002c2
+[isd] s7 c202 UAF alias setup -> kr 0x00000000 sid 179
+[isd] s7 c202 UAF: freeing alias backing + churn (PANIC possible)
+[isd] s7 c202 UAF gather over freed mem -> kr 0xe00002c1 gsz 0x1000 first 04 00 00 00 (alive)
+[isd] s7 c202 release UAF sid 179 -> kr 0xe00002c2 (alive)
+[isd] s7 c203 addr=1 (statics: may be accepted on iOS; NO gather — panic risk)
+[isd] s7 c203 addr=1 -> kr 0xe00002c2 sid 4 
+[isd] s7 c204 unmapped 0x414100000000 -> kr 0xe00002c2 (rejected)
+[isd] release main sid 162 -> kr 0xe00002c2
+[isd] done (alive), cases 204
+[probe13] iosurfdeep-only mode, stop

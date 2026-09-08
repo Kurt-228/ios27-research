@@ -1,0 +1,53 @@
+fffffe000afd8ff4 <__ZN23IOSurfaceRootUserClient20get_bulk_attachmentsEjP32IOSurfaceColorAndSpatialKeysArgsPj>:
+fffffe000afd8ff4: d503237f     	pacibsp
+fffffe000afd8ff8: d10103ff     	sub	sp, sp, #0x40
+fffffe000afd8ffc: a90157f6     	stp	x22, x21, [sp, #0x10]
+fffffe000afd9000: a9024ff4     	stp	x20, x19, [sp, #0x20]
+fffffe000afd9004: a9037bfd     	stp	x29, x30, [sp, #0x30]
+fffffe000afd9008: 9100c3fd     	add	x29, sp, #0x30
+fffffe000afd900c: aa0303f4     	mov	x20, x3
+fffffe000afd9010: aa0203f6     	mov	x22, x2
+fffffe000afd9014: b0fec768     	adrp	x8, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd9018: f9452908     	ldr	x8, [x8, #0xa50]
+fffffe000afd901c: f9400108     	ldr	x8, [x8]
+fffffe000afd9020: f90007e8     	str	x8, [sp, #0x8]
+fffffe000afd9024: 52805853     	mov	w19, #0x2c2     ; =706
+fffffe000afd9028: 72bc0013     	movk	w19, #0xe000, lsl #16
+fffffe000afd902c: 94000611     	bl	0xfffffe000afda870 <__ZNK23IOSurfaceRootUserClient13retainSurfaceEj>
+fffffe000afd9030: b40002a0     	cbz	x0, 0xfffffe000afd9084 <__ZN23IOSurfaceRootUserClient20get_bulk_attachmentsEjP32IOSurfaceColorAndSpatialKeysArgsPj+0x90>
+fffffe000afd9034: aa0003f5     	mov	x21, x0
+fffffe000afd9038: 52801088     	mov	w8, #0x84       ; =132
+fffffe000afd903c: f90003e8     	str	x8, [sp]
+fffffe000afd9040: 910003e2     	mov	x2, sp
+fffffe000afd9044: aa1603e1     	mov	x1, x22
+fffffe000afd9048: 97ffa399     	bl	0xfffffe000afc1eac <__ZNK9IOSurface18getBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructPm>
+fffffe000afd904c: f94003e8     	ldr	x8, [sp]
+fffffe000afd9050: f102111f     	cmp	x8, #0x84
+fffffe000afd9054: 1a9303f3     	csel	w19, wzr, w19, eq
+fffffe000afd9058: 52801408     	mov	w8, #0xa0       ; =160
+fffffe000afd905c: b9000288     	str	w8, [x20]
+fffffe000afd9060: f94002b0     	ldr	x16, [x21]
+fffffe000afd9064: aa1503f1     	mov	x17, x21
+fffffe000afd9068: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd906c: dac11a30     	autda	x16, x17
+fffffe000afd9070: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000afd9074: aa1503e0     	mov	x0, x21
+fffffe000afd9078: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000afd907c: d73f0910     	blraa	x8, x16
+fffffe000afd9080: 14000003     	b	0xfffffe000afd908c <__ZN23IOSurfaceRootUserClient20get_bulk_attachmentsEjP32IOSurfaceColorAndSpatialKeysArgsPj+0x98>
+fffffe000afd9084: 52801408     	mov	w8, #0xa0       ; =160
+fffffe000afd9088: b9000288     	str	w8, [x20]
+fffffe000afd908c: f94007e8     	ldr	x8, [sp, #0x8]
+fffffe000afd9090: b0fec769     	adrp	x9, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd9094: f9452929     	ldr	x9, [x9, #0xa50]
+fffffe000afd9098: f9400129     	ldr	x9, [x9]
+fffffe000afd909c: eb08013f     	cmp	x9, x8
+fffffe000afd90a0: 540000e1     	b.ne	0xfffffe000afd90bc <__ZN23IOSurfaceRootUserClient20get_bulk_attachmentsEjP32IOSurfaceColorAndSpatialKeysArgsPj+0xc8>
+fffffe000afd90a4: aa1303e0     	mov	x0, x19
+fffffe000afd90a8: a9437bfd     	ldp	x29, x30, [sp, #0x30]
+fffffe000afd90ac: a9424ff4     	ldp	x20, x19, [sp, #0x20]
+fffffe000afd90b0: a94157f6     	ldp	x22, x21, [sp, #0x10]
+fffffe000afd90b4: 910103ff     	add	sp, sp, #0x40
+fffffe000afd90b8: d65f0fff     	retab
+fffffe000afd90bc: 94003070     	bl	0xfffffe000afe527c <_zalloc_flags+0xfffffe000afe527c>
+

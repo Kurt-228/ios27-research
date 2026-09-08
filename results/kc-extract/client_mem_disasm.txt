@@ -1,0 +1,261 @@
+fffffe000afd7738 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj>:
+fffffe000afd7738: d503237f     	pacibsp
+fffffe000afd773c: d10183ff     	sub	sp, sp, #0x60
+fffffe000afd7740: a9025ff8     	stp	x24, x23, [sp, #0x20]
+fffffe000afd7744: a90357f6     	stp	x22, x21, [sp, #0x30]
+fffffe000afd7748: a9044ff4     	stp	x20, x19, [sp, #0x40]
+fffffe000afd774c: a9057bfd     	stp	x29, x30, [sp, #0x50]
+fffffe000afd7750: 910143fd     	add	x29, sp, #0x50
+fffffe000afd7754: aa0203f4     	mov	x20, x2
+fffffe000afd7758: aa0103f7     	mov	x23, x1
+fffffe000afd775c: b40002a1     	cbz	x1, 0xfffffe000afd77b0 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x78>
+fffffe000afd7760: b4000294     	cbz	x20, 0xfffffe000afd77b0 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x78>
+fffffe000afd7764: aa0003f5     	mov	x21, x0
+fffffe000afd7768: b9412808     	ldr	w8, [x0, #0x128]
+fffffe000afd776c: 7140111f     	cmp	w8, #0x4, lsl #12 ; =0x4000
+fffffe000afd7770: 54000403     	b.lo	0xfffffe000afd77f0 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0xb8>
+fffffe000afd7774: d0fe5bc9     	adrp	x9, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd7778: 91257529     	add	x9, x9, #0x95d
+fffffe000afd777c: a90023e9     	stp	x9, x8, [sp]
+fffffe000afd7780: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd7784: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd7788: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd778c: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd7790: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd7794: 910ed063     	add	x3, x3, #0x3b4
+fffffe000afd7798: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd779c: 940036bc     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd77a0: 528057a8     	mov	w8, #0x2bd      ; =701
+fffffe000afd77a4: 72bc0008     	movk	w8, #0xe000, lsl #16
+fffffe000afd77a8: 11000516     	add	w22, w8, #0x1
+fffffe000afd77ac: 140000df     	b	0xfffffe000afd7b28 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x3f0>
+fffffe000afd77b0: a900d3f7     	stp	x23, x20, [sp, #0x8]
+fffffe000afd77b4: d0fe5bc8     	adrp	x8, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd77b8: 91257508     	add	x8, x8, #0x95d
+fffffe000afd77bc: f90003e8     	str	x8, [sp]
+fffffe000afd77c0: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd77c4: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd77c8: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd77cc: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd77d0: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd77d4: 910de463     	add	x3, x3, #0x379
+fffffe000afd77d8: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd77dc: 940036ac     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd77e0: 528057a8     	mov	w8, #0x2bd      ; =701
+fffffe000afd77e4: 72bc0008     	movk	w8, #0xe000, lsl #16
+fffffe000afd77e8: 11001516     	add	w22, w8, #0x5
+fffffe000afd77ec: 140000cf     	b	0xfffffe000afd7b28 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x3f0>
+fffffe000afd77f0: aa0303f6     	mov	x22, x3
+fffffe000afd77f4: 52800060     	mov	w0, #0x3        ; =3
+fffffe000afd77f8: 940035dd     	bl	0xfffffe000afe4f6c <_zalloc_flags+0xfffffe000afe4f6c>
+fffffe000afd77fc: b4000760     	cbz	x0, 0xfffffe000afd78e8 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x1b0>
+fffffe000afd7800: aa0003f3     	mov	x19, x0
+fffffe000afd7804: aa1703e0     	mov	x0, x23
+fffffe000afd7808: 52800801     	mov	w1, #0x40       ; =64
+fffffe000afd780c: 94003664     	bl	0xfffffe000afe519c <_zalloc_flags+0xfffffe000afe519c>
+fffffe000afd7810: b4000880     	cbz	x0, 0xfffffe000afd7920 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x1e8>
+fffffe000afd7814: aa0003f7     	mov	x23, x0
+fffffe000afd7818: f9400270     	ldr	x16, [x19]
+fffffe000afd781c: aa1303f1     	mov	x17, x19
+fffffe000afd7820: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd7824: dac11a30     	autda	x16, x17
+fffffe000afd7828: d2804011     	mov	x17, #0x200     ; =512
+fffffe000afd782c: 8b110210     	add	x16, x16, x17
+fffffe000afd7830: f9400208     	ldr	x8, [x16]
+fffffe000afd7834: 90fe5bc1     	adrp	x1, 0xfffffe0007b4f000 <_zalloc_flags+0xfffffe0007b4f000>
+fffffe000afd7838: 912b0021     	add	x1, x1, #0xac0
+fffffe000afd783c: aa1303e0     	mov	x0, x19
+fffffe000afd7840: aa1703e2     	mov	x2, x23
+fffffe000afd7844: f2f86470     	movk	x16, #0xc323, lsl #48
+fffffe000afd7848: d73f0910     	blraa	x8, x16
+fffffe000afd784c: aa1403e0     	mov	x0, x20
+fffffe000afd7850: 52800801     	mov	w1, #0x40       ; =64
+fffffe000afd7854: 94003652     	bl	0xfffffe000afe519c <_zalloc_flags+0xfffffe000afe519c>
+fffffe000afd7858: aa0003f4     	mov	x20, x0
+fffffe000afd785c: f94002f0     	ldr	x16, [x23]
+fffffe000afd7860: aa1703f1     	mov	x17, x23
+fffffe000afd7864: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd7868: dac11a30     	autda	x16, x17
+fffffe000afd786c: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000afd7870: aa1703e0     	mov	x0, x23
+fffffe000afd7874: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000afd7878: d73f0910     	blraa	x8, x16
+fffffe000afd787c: b40001d4     	cbz	x20, 0xfffffe000afd78b4 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x17c>
+fffffe000afd7880: f9400270     	ldr	x16, [x19]
+fffffe000afd7884: aa1303f1     	mov	x17, x19
+fffffe000afd7888: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd788c: dac11a30     	autda	x16, x17
+fffffe000afd7890: d2804011     	mov	x17, #0x200     ; =512
+fffffe000afd7894: 8b110210     	add	x16, x16, x17
+fffffe000afd7898: f9400208     	ldr	x8, [x16]
+fffffe000afd789c: 90fe5bc1     	adrp	x1, 0xfffffe0007b4f000 <_zalloc_flags+0xfffffe0007b4f000>
+fffffe000afd78a0: 91267c21     	add	x1, x1, #0x99f
+fffffe000afd78a4: aa1303e0     	mov	x0, x19
+fffffe000afd78a8: aa1403e2     	mov	x2, x20
+fffffe000afd78ac: f2f86470     	movk	x16, #0xc323, lsl #48
+fffffe000afd78b0: d73f0910     	blraa	x8, x16
+fffffe000afd78b4: aa1503f1     	mov	x17, x21
+fffffe000afd78b8: f84f8e30     	ldr	x16, [x17, #0xf8]!
+fffffe000afd78bc: f85f0220     	ldur	x0, [x17, #-0x10]
+fffffe000afd78c0: b40003d0     	cbz	x16, 0xfffffe000afd7938 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x200>
+fffffe000afd78c4: f2fa0491     	movk	x17, #0xd024, lsl #48
+fffffe000afd78c8: dac11a30     	autda	x16, x17
+fffffe000afd78cc: aa1003f1     	mov	x17, x16
+fffffe000afd78d0: dac147f1     	xpacd	x17
+fffffe000afd78d4: eb11021f     	cmp	x16, x17
+fffffe000afd78d8: 54000040     	b.eq	0xfffffe000afd78e0 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x1a8>
+fffffe000afd78dc: d4388e40     	brk	#0xc472
+fffffe000afd78e0: aa1003e1     	mov	x1, x16
+fffffe000afd78e4: 14000016     	b	0xfffffe000afd793c <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x204>
+fffffe000afd78e8: 528057b6     	mov	w22, #0x2bd     ; =701
+fffffe000afd78ec: 72bc0016     	movk	w22, #0xe000, lsl #16
+fffffe000afd78f0: d0fe5bc8     	adrp	x8, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd78f4: 91257508     	add	x8, x8, #0x95d
+fffffe000afd78f8: f90003e8     	str	x8, [sp]
+fffffe000afd78fc: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd7900: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd7904: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd7908: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd790c: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd7910: 910f6c63     	add	x3, x3, #0x3db
+fffffe000afd7914: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd7918: 9400365d     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd791c: 14000083     	b	0xfffffe000afd7b28 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x3f0>
+fffffe000afd7920: aa1403e0     	mov	x0, x20
+fffffe000afd7924: 52800801     	mov	w1, #0x40       ; =64
+fffffe000afd7928: 9400361d     	bl	0xfffffe000afe519c <_zalloc_flags+0xfffffe000afe519c>
+fffffe000afd792c: aa0003f4     	mov	x20, x0
+fffffe000afd7930: b5fffa94     	cbnz	x20, 0xfffffe000afd7880 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x148>
+fffffe000afd7934: 17ffffe0     	b	0xfffffe000afd78b4 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x17c>
+fffffe000afd7938: d2800001     	mov	x1, #0x0        ; =0
+fffffe000afd793c: aa1303e2     	mov	x2, x19
+fffffe000afd7940: d2800003     	mov	x3, #0x0        ; =0
+fffffe000afd7944: 97ffdd9d     	bl	0xfffffe000afcefb8 <__ZN13IOSurfaceRoot23create_surface_internalEP4taskP12OSDictionaryP9IOSurface>
+fffffe000afd7948: b4000380     	cbz	x0, 0xfffffe000afd79b8 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x280>
+fffffe000afd794c: aa0003f7     	mov	x23, x0
+fffffe000afd7950: f9408ea0     	ldr	x0, [x21, #0x118]
+fffffe000afd7954: aa1703e1     	mov	x1, x23
+fffffe000afd7958: 52800022     	mov	w2, #0x1        ; =1
+fffffe000afd795c: 97ffbe59     	bl	0xfffffe000afc72c0 <__ZN15IOSurfaceClient10withBufferEP15IOSurfaceSharedP9IOSurfaceb>
+fffffe000afd7960: b40004c0     	cbz	x0, 0xfffffe000afd79f8 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x2c0>
+fffffe000afd7964: aa0003f8     	mov	x24, x0
+fffffe000afd7968: f9406ea0     	ldr	x0, [x21, #0xd8]
+fffffe000afd796c: 940034d8     	bl	0xfffffe000afe4ccc <_zalloc_flags+0xfffffe000afe4ccc>
+fffffe000afd7970: f94076a0     	ldr	x0, [x21, #0xe8]
+fffffe000afd7974: b94012e2     	ldr	w2, [x23, #0x10]
+fffffe000afd7978: aa1703e1     	mov	x1, x23
+fffffe000afd797c: 97ffddf6     	bl	0xfffffe000afcf154 <__ZN13IOSurfaceRoot25set_surfaceid_with_handleEP9IOSurfacej>
+fffffe000afd7980: 34000580     	cbz	w0, 0xfffffe000afd7a30 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x2f8>
+fffffe000afd7984: b94012e2     	ldr	w2, [x23, #0x10]
+fffffe000afd7988: aa1503e0     	mov	x0, x21
+fffffe000afd798c: aa1803e1     	mov	x1, x24
+fffffe000afd7990: 94000bef     	bl	0xfffffe000afda94c <__ZN23IOSurfaceRootUserClient18set_surface_handleEP15IOSurfaceClientj>
+fffffe000afd7994: 340006a0     	cbz	w0, 0xfffffe000afd7a68 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x330>
+fffffe000afd7998: aa1503e0     	mov	x0, x21
+fffffe000afd799c: 52800022     	mov	w2, #0x1        ; =1
+fffffe000afd79a0: 94000c5c     	bl	0xfffffe000afdab10 <__ZN23IOSurfaceRootUserClient17add_client_bufferEP15IOSurfaceClientb>
+fffffe000afd79a4: aa1803e0     	mov	x0, x24
+fffffe000afd79a8: aa1603e1     	mov	x1, x22
+fffffe000afd79ac: 97ffc0a5     	bl	0xfffffe000afc7c40 <__ZN15IOSurfaceClient13getLockResultEP19IOSurfaceLockResult>
+fffffe000afd79b0: 52800016     	mov	w22, #0x0       ; =0
+fffffe000afd79b4: 1400003a     	b	0xfffffe000afd7a9c <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x364>
+fffffe000afd79b8: d0fe5bc8     	adrp	x8, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd79bc: 91257508     	add	x8, x8, #0x95d
+fffffe000afd79c0: f90003e8     	str	x8, [sp]
+fffffe000afd79c4: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd79c8: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd79cc: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd79d0: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd79d4: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd79d8: 91116463     	add	x3, x3, #0x459
+fffffe000afd79dc: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd79e0: 9400362b     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd79e4: 528057a8     	mov	w8, #0x2bd      ; =701
+fffffe000afd79e8: 72bc0008     	movk	w8, #0xe000, lsl #16
+fffffe000afd79ec: 11001516     	add	w22, w8, #0x5
+fffffe000afd79f0: b50007d4     	cbnz	x20, 0xfffffe000afd7ae8 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x3b0>
+fffffe000afd79f4: 14000045     	b	0xfffffe000afd7b08 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x3d0>
+fffffe000afd79f8: 528057b6     	mov	w22, #0x2bd     ; =701
+fffffe000afd79fc: 72bc0016     	movk	w22, #0xe000, lsl #16
+fffffe000afd7a00: d0fe5bc8     	adrp	x8, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd7a04: 91257508     	add	x8, x8, #0x95d
+fffffe000afd7a08: f90003e8     	str	x8, [sp]
+fffffe000afd7a0c: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd7a10: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd7a14: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd7a18: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd7a1c: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd7a20: 9110bc63     	add	x3, x3, #0x42f
+fffffe000afd7a24: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd7a28: 94003619     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd7a2c: 14000026     	b	0xfffffe000afd7ac4 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x38c>
+fffffe000afd7a30: 528057b6     	mov	w22, #0x2bd     ; =701
+fffffe000afd7a34: 72bc0016     	movk	w22, #0xe000, lsl #16
+fffffe000afd7a38: d0fe5bc8     	adrp	x8, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd7a3c: 91257508     	add	x8, x8, #0x95d
+fffffe000afd7a40: f90003e8     	str	x8, [sp]
+fffffe000afd7a44: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd7a48: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd7a4c: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd7a50: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd7a54: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd7a58: 91105063     	add	x3, x3, #0x414
+fffffe000afd7a5c: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd7a60: 9400360b     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd7a64: 1400000e     	b	0xfffffe000afd7a9c <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x364>
+fffffe000afd7a68: 528057b6     	mov	w22, #0x2bd     ; =701
+fffffe000afd7a6c: 72bc0016     	movk	w22, #0xe000, lsl #16
+fffffe000afd7a70: d0fe5bc8     	adrp	x8, 0xfffffe0007b51000 <_zalloc_flags+0xfffffe0007b51000>
+fffffe000afd7a74: 91257508     	add	x8, x8, #0x95d
+fffffe000afd7a78: f90003e8     	str	x8, [sp]
+fffffe000afd7a7c: f0fe5ba0     	adrp	x0, 0xfffffe0007b4e000 <_zalloc_flags+0xfffffe0007b4e000>
+fffffe000afd7a80: 91270000     	add	x0, x0, #0x9c0
+fffffe000afd7a84: f0fec761     	adrp	x1, 0xfffffe00088c6000 <__ZZN15IOSurfaceClient4initEP15IOSurfaceSharedP9IOSurfacebE19kalloc_type_view_61+0x28>
+fffffe000afd7a88: f9452c21     	ldr	x1, [x1, #0xa58]
+fffffe000afd7a8c: d0fe5be3     	adrp	x3, 0xfffffe0007b55000 <__ZZN23IOSurfaceRootUserClient4initEP13IOSurfaceRootP4taskP12OSDictionaryE11_os_log_fmt+0x10>
+fffffe000afd7a90: 910fd463     	add	x3, x3, #0x3f5
+fffffe000afd7a94: 52800202     	mov	w2, #0x10       ; =16
+fffffe000afd7a98: 940035fd     	bl	0xfffffe000afe528c <_zalloc_flags+0xfffffe000afe528c>
+fffffe000afd7a9c: f9406ea0     	ldr	x0, [x21, #0xd8]
+fffffe000afd7aa0: 94003493     	bl	0xfffffe000afe4cec <_zalloc_flags+0xfffffe000afe4cec>
+fffffe000afd7aa4: f9400310     	ldr	x16, [x24]
+fffffe000afd7aa8: aa1803f1     	mov	x17, x24
+fffffe000afd7aac: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd7ab0: dac11a30     	autda	x16, x17
+fffffe000afd7ab4: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000afd7ab8: aa1803e0     	mov	x0, x24
+fffffe000afd7abc: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000afd7ac0: d73f0910     	blraa	x8, x16
+fffffe000afd7ac4: f94002f0     	ldr	x16, [x23]
+fffffe000afd7ac8: aa1703f1     	mov	x17, x23
+fffffe000afd7acc: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd7ad0: dac11a30     	autda	x16, x17
+fffffe000afd7ad4: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000afd7ad8: aa1703e0     	mov	x0, x23
+fffffe000afd7adc: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000afd7ae0: d73f0910     	blraa	x8, x16
+fffffe000afd7ae4: b4000134     	cbz	x20, 0xfffffe000afd7b08 <__ZN23IOSurfaceRootUserClient25create_surface_client_memEyyP19IOSurfaceLockResultPj+0x3d0>
+fffffe000afd7ae8: f9400290     	ldr	x16, [x20]
+fffffe000afd7aec: aa1403f1     	mov	x17, x20
+fffffe000afd7af0: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd7af4: dac11a30     	autda	x16, x17
+fffffe000afd7af8: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000afd7afc: aa1403e0     	mov	x0, x20
+fffffe000afd7b00: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000afd7b04: d73f0910     	blraa	x8, x16
+fffffe000afd7b08: f9400270     	ldr	x16, [x19]
+fffffe000afd7b0c: aa1303f1     	mov	x17, x19
+fffffe000afd7b10: f2f9b431     	movk	x17, #0xcda1, lsl #48
+fffffe000afd7b14: dac11a30     	autda	x16, x17
+fffffe000afd7b18: f8428e08     	ldr	x8, [x16, #0x28]!
+fffffe000afd7b1c: aa1303e0     	mov	x0, x19
+fffffe000afd7b20: f2e750f0     	movk	x16, #0x3a87, lsl #48
+fffffe000afd7b24: d73f0910     	blraa	x8, x16
+fffffe000afd7b28: aa1603e0     	mov	x0, x22
+fffffe000afd7b2c: a9457bfd     	ldp	x29, x30, [sp, #0x50]
+fffffe000afd7b30: a9444ff4     	ldp	x20, x19, [sp, #0x40]
+fffffe000afd7b34: a94357f6     	ldp	x22, x21, [sp, #0x30]
+fffffe000afd7b38: a9425ff8     	ldp	x24, x23, [sp, #0x20]
+fffffe000afd7b3c: 910183ff     	add	sp, sp, #0x60
+fffffe000afd7b40: d65f0fff     	retab
+

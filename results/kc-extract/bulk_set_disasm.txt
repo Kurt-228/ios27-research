@@ -1,0 +1,314 @@
+fffffe000afc18b4 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm>:
+fffffe000afc18b4: d503237f     	pacibsp
+fffffe000afc18b8: a9bd57f6     	stp	x22, x21, [sp, #-0x30]!
+fffffe000afc18bc: a9014ff4     	stp	x20, x19, [sp, #0x10]
+fffffe000afc18c0: a9027bfd     	stp	x29, x30, [sp, #0x20]
+fffffe000afc18c4: 910083fd     	add	x29, sp, #0x20
+fffffe000afc18c8: aa0203f5     	mov	x21, x2
+fffffe000afc18cc: aa0103f4     	mov	x20, x1
+fffffe000afc18d0: aa0003f3     	mov	x19, x0
+fffffe000afc18d4: f9402800     	ldr	x0, [x0, #0x50]
+fffffe000afc18d8: 94008cfd     	bl	0xfffffe000afe4ccc <_zalloc_flags+0xfffffe000afe4ccc>
+fffffe000afc18dc: 37000555     	tbnz	w21, #0x0, 0xfffffe000afc1984 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0xd0>
+fffffe000afc18e0: 370806d5     	tbnz	w21, #0x1, 0xfffffe000afc19b8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x104>
+fffffe000afc18e4: 37100835     	tbnz	w21, #0x2, 0xfffffe000afc19e8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x134>
+fffffe000afc18e8: 37180995     	tbnz	w21, #0x3, 0xfffffe000afc1a18 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x164>
+fffffe000afc18ec: 37200af5     	tbnz	w21, #0x4, 0xfffffe000afc1a48 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x194>
+fffffe000afc18f0: 37280c55     	tbnz	w21, #0x5, 0xfffffe000afc1a78 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x1c4>
+fffffe000afc18f4: 37300db5     	tbnz	w21, #0x6, 0xfffffe000afc1aa8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x1f4>
+fffffe000afc18f8: 37380f15     	tbnz	w21, #0x7, 0xfffffe000afc1ad8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x224>
+fffffe000afc18fc: 37401075     	tbnz	w21, #0x8, 0xfffffe000afc1b08 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x254>
+fffffe000afc1900: 374811d5     	tbnz	w21, #0x9, 0xfffffe000afc1b38 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x284>
+fffffe000afc1904: 37501335     	tbnz	w21, #0xa, 0xfffffe000afc1b68 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x2b4>
+fffffe000afc1908: 37581495     	tbnz	w21, #0xb, 0xfffffe000afc1b98 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x2e4>
+fffffe000afc190c: 37601635     	tbnz	w21, #0xc, 0xfffffe000afc1bd0 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x31c>
+fffffe000afc1910: 37681795     	tbnz	w21, #0xd, 0xfffffe000afc1c00 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x34c>
+fffffe000afc1914: 377018f5     	tbnz	w21, #0xe, 0xfffffe000afc1c30 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x37c>
+fffffe000afc1918: 37781a55     	tbnz	w21, #0xf, 0xfffffe000afc1c60 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x3ac>
+fffffe000afc191c: 37801bf5     	tbnz	w21, #0x10, 0xfffffe000afc1c98 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x3e4>
+fffffe000afc1920: 37881d55     	tbnz	w21, #0x11, 0xfffffe000afc1cc8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x414>
+fffffe000afc1924: 37901eb5     	tbnz	w21, #0x12, 0xfffffe000afc1cf8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x444>
+fffffe000afc1928: 37982015     	tbnz	w21, #0x13, 0xfffffe000afc1d28 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x474>
+fffffe000afc192c: 37a021b5     	tbnz	w21, #0x14, 0xfffffe000afc1d60 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x4ac>
+fffffe000afc1930: 36a80195     	tbz	w21, #0x15, 0xfffffe000afc1960 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0xac>
+fffffe000afc1934: 79410688     	ldrh	w8, [x20, #0x82]
+fffffe000afc1938: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc193c: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1940: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1944: dac11a30     	autda	x16, x17
+fffffe000afc1948: aa1003f1     	mov	x17, x16
+fffffe000afc194c: dac147f1     	xpacd	x17
+fffffe000afc1950: eb11021f     	cmp	x16, x17
+fffffe000afc1954: 54000040     	b.eq	0xfffffe000afc195c <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0xa8>
+fffffe000afc1958: d4388e40     	brk	#0xc472
+fffffe000afc195c: 79016e08     	strh	w8, [x16, #0xb6]
+fffffe000afc1960: f9402a60     	ldr	x0, [x19, #0x50]
+fffffe000afc1964: a9427bfd     	ldp	x29, x30, [sp, #0x20]
+fffffe000afc1968: a9414ff4     	ldp	x20, x19, [sp, #0x10]
+fffffe000afc196c: a8c357f6     	ldp	x22, x21, [sp], #0x30
+fffffe000afc1970: d50323ff     	autibsp
+fffffe000afc1974: ca1e07d0     	eor	x16, x30, x30, lsl #1
+fffffe000afc1978: b6f00050     	tbz	x16, #0x3e, 0xfffffe000afc1980 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0xcc>
+fffffe000afc197c: d4388e20     	brk	#0xc471
+fffffe000afc1980: 14008cdb     	b	0xfffffe000afe4cec <_zalloc_flags+0xfffffe000afe4cec>
+fffffe000afc1984: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1988: 9105e271     	add	x17, x19, #0x178
+fffffe000afc198c: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1990: dac11a30     	autda	x16, x17
+fffffe000afc1994: aa1003f1     	mov	x17, x16
+fffffe000afc1998: dac147f1     	xpacd	x17
+fffffe000afc199c: eb11021f     	cmp	x16, x17
+fffffe000afc19a0: 54000040     	b.eq	0xfffffe000afc19a8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0xf4>
+fffffe000afc19a4: d4388e40     	brk	#0xc472
+fffffe000afc19a8: ad400680     	ldp	q0, q1, [x20]
+fffffe000afc19ac: 3c844201     	stur	q1, [x16, #0x44]
+fffffe000afc19b0: 3c834200     	stur	q0, [x16, #0x34]
+fffffe000afc19b4: 360ff995     	tbz	w21, #0x1, 0xfffffe000afc18e4 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x30>
+fffffe000afc19b8: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc19bc: 9105e271     	add	x17, x19, #0x178
+fffffe000afc19c0: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc19c4: dac11a30     	autda	x16, x17
+fffffe000afc19c8: aa1003f1     	mov	x17, x16
+fffffe000afc19cc: dac147f1     	xpacd	x17
+fffffe000afc19d0: eb11021f     	cmp	x16, x17
+fffffe000afc19d4: 54000040     	b.eq	0xfffffe000afc19dc <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x128>
+fffffe000afc19d8: d4388e40     	brk	#0xc472
+fffffe000afc19dc: 3dc00a80     	ldr	q0, [x20, #0x20]
+fffffe000afc19e0: 3c854200     	stur	q0, [x16, #0x54]
+fffffe000afc19e4: 3617f835     	tbz	w21, #0x2, 0xfffffe000afc18e8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x34>
+fffffe000afc19e8: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc19ec: 9105e271     	add	x17, x19, #0x178
+fffffe000afc19f0: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc19f4: dac11a30     	autda	x16, x17
+fffffe000afc19f8: aa1003f1     	mov	x17, x16
+fffffe000afc19fc: dac147f1     	xpacd	x17
+fffffe000afc1a00: eb11021f     	cmp	x16, x17
+fffffe000afc1a04: 54000040     	b.eq	0xfffffe000afc1a0c <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x158>
+fffffe000afc1a08: d4388e40     	brk	#0xc472
+fffffe000afc1a0c: f9401a88     	ldr	x8, [x20, #0x30]
+fffffe000afc1a10: f8064208     	stur	x8, [x16, #0x64]
+fffffe000afc1a14: 361ff6d5     	tbz	w21, #0x3, 0xfffffe000afc18ec <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x38>
+fffffe000afc1a18: 3940e288     	ldrb	w8, [x20, #0x38]
+fffffe000afc1a1c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1a20: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1a24: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1a28: dac11a30     	autda	x16, x17
+fffffe000afc1a2c: aa1003f1     	mov	x17, x16
+fffffe000afc1a30: dac147f1     	xpacd	x17
+fffffe000afc1a34: eb11021f     	cmp	x16, x17
+fffffe000afc1a38: 54000040     	b.eq	0xfffffe000afc1a40 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x18c>
+fffffe000afc1a3c: d4388e40     	brk	#0xc472
+fffffe000afc1a40: 3901b208     	strb	w8, [x16, #0x6c]
+fffffe000afc1a44: 3627f575     	tbz	w21, #0x4, 0xfffffe000afc18f0 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x3c>
+fffffe000afc1a48: 3940e688     	ldrb	w8, [x20, #0x39]
+fffffe000afc1a4c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1a50: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1a54: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1a58: dac11a30     	autda	x16, x17
+fffffe000afc1a5c: aa1003f1     	mov	x17, x16
+fffffe000afc1a60: dac147f1     	xpacd	x17
+fffffe000afc1a64: eb11021f     	cmp	x16, x17
+fffffe000afc1a68: 54000040     	b.eq	0xfffffe000afc1a70 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x1bc>
+fffffe000afc1a6c: d4388e40     	brk	#0xc472
+fffffe000afc1a70: 3901b608     	strb	w8, [x16, #0x6d]
+fffffe000afc1a74: 362ff415     	tbz	w21, #0x5, 0xfffffe000afc18f4 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x40>
+fffffe000afc1a78: 3940ea88     	ldrb	w8, [x20, #0x3a]
+fffffe000afc1a7c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1a80: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1a84: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1a88: dac11a30     	autda	x16, x17
+fffffe000afc1a8c: aa1003f1     	mov	x17, x16
+fffffe000afc1a90: dac147f1     	xpacd	x17
+fffffe000afc1a94: eb11021f     	cmp	x16, x17
+fffffe000afc1a98: 54000040     	b.eq	0xfffffe000afc1aa0 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x1ec>
+fffffe000afc1a9c: d4388e40     	brk	#0xc472
+fffffe000afc1aa0: 3901ba08     	strb	w8, [x16, #0x6e]
+fffffe000afc1aa4: 3637f2b5     	tbz	w21, #0x6, 0xfffffe000afc18f8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x44>
+fffffe000afc1aa8: 3940ee88     	ldrb	w8, [x20, #0x3b]
+fffffe000afc1aac: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1ab0: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1ab4: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1ab8: dac11a30     	autda	x16, x17
+fffffe000afc1abc: aa1003f1     	mov	x17, x16
+fffffe000afc1ac0: dac147f1     	xpacd	x17
+fffffe000afc1ac4: eb11021f     	cmp	x16, x17
+fffffe000afc1ac8: 54000040     	b.eq	0xfffffe000afc1ad0 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x21c>
+fffffe000afc1acc: d4388e40     	brk	#0xc472
+fffffe000afc1ad0: 3901be08     	strb	w8, [x16, #0x6f]
+fffffe000afc1ad4: 363ff155     	tbz	w21, #0x7, 0xfffffe000afc18fc <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x48>
+fffffe000afc1ad8: 3940f288     	ldrb	w8, [x20, #0x3c]
+fffffe000afc1adc: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1ae0: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1ae4: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1ae8: dac11a30     	autda	x16, x17
+fffffe000afc1aec: aa1003f1     	mov	x17, x16
+fffffe000afc1af0: dac147f1     	xpacd	x17
+fffffe000afc1af4: eb11021f     	cmp	x16, x17
+fffffe000afc1af8: 54000040     	b.eq	0xfffffe000afc1b00 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x24c>
+fffffe000afc1afc: d4388e40     	brk	#0xc472
+fffffe000afc1b00: 3901c208     	strb	w8, [x16, #0x70]
+fffffe000afc1b04: 3647eff5     	tbz	w21, #0x8, 0xfffffe000afc1900 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x4c>
+fffffe000afc1b08: 3940f688     	ldrb	w8, [x20, #0x3d]
+fffffe000afc1b0c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1b10: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1b14: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1b18: dac11a30     	autda	x16, x17
+fffffe000afc1b1c: aa1003f1     	mov	x17, x16
+fffffe000afc1b20: dac147f1     	xpacd	x17
+fffffe000afc1b24: eb11021f     	cmp	x16, x17
+fffffe000afc1b28: 54000040     	b.eq	0xfffffe000afc1b30 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x27c>
+fffffe000afc1b2c: d4388e40     	brk	#0xc472
+fffffe000afc1b30: 3901c608     	strb	w8, [x16, #0x71]
+fffffe000afc1b34: 364fee95     	tbz	w21, #0x9, 0xfffffe000afc1904 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x50>
+fffffe000afc1b38: 3940fa88     	ldrb	w8, [x20, #0x3e]
+fffffe000afc1b3c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1b40: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1b44: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1b48: dac11a30     	autda	x16, x17
+fffffe000afc1b4c: aa1003f1     	mov	x17, x16
+fffffe000afc1b50: dac147f1     	xpacd	x17
+fffffe000afc1b54: eb11021f     	cmp	x16, x17
+fffffe000afc1b58: 54000040     	b.eq	0xfffffe000afc1b60 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x2ac>
+fffffe000afc1b5c: d4388e40     	brk	#0xc472
+fffffe000afc1b60: 3901ca08     	strb	w8, [x16, #0x72]
+fffffe000afc1b64: 3657ed35     	tbz	w21, #0xa, 0xfffffe000afc1908 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x54>
+fffffe000afc1b68: 3940fe88     	ldrb	w8, [x20, #0x3f]
+fffffe000afc1b6c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1b70: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1b74: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1b78: dac11a30     	autda	x16, x17
+fffffe000afc1b7c: aa1003f1     	mov	x17, x16
+fffffe000afc1b80: dac147f1     	xpacd	x17
+fffffe000afc1b84: eb11021f     	cmp	x16, x17
+fffffe000afc1b88: 54000040     	b.eq	0xfffffe000afc1b90 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x2dc>
+fffffe000afc1b8c: d4388e40     	brk	#0xc472
+fffffe000afc1b90: 3901ce08     	strb	w8, [x16, #0x73]
+fffffe000afc1b94: 365febd5     	tbz	w21, #0xb, 0xfffffe000afc190c <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x58>
+fffffe000afc1b98: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1b9c: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1ba0: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1ba4: dac11a30     	autda	x16, x17
+fffffe000afc1ba8: aa1003f1     	mov	x17, x16
+fffffe000afc1bac: dac147f1     	xpacd	x17
+fffffe000afc1bb0: eb11021f     	cmp	x16, x17
+fffffe000afc1bb4: 54000040     	b.eq	0xfffffe000afc1bbc <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x308>
+fffffe000afc1bb8: d4388e40     	brk	#0xc472
+fffffe000afc1bbc: 3dc01280     	ldr	q0, [x20, #0x40]
+fffffe000afc1bc0: 3c874200     	stur	q0, [x16, #0x74]
+fffffe000afc1bc4: fd402a80     	ldr	d0, [x20, #0x50]
+fffffe000afc1bc8: fc084200     	stur	d0, [x16, #0x84]
+fffffe000afc1bcc: 3667ea35     	tbz	w21, #0xc, 0xfffffe000afc1910 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x5c>
+fffffe000afc1bd0: b9405a88     	ldr	w8, [x20, #0x58]
+fffffe000afc1bd4: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1bd8: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1bdc: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1be0: dac11a30     	autda	x16, x17
+fffffe000afc1be4: aa1003f1     	mov	x17, x16
+fffffe000afc1be8: dac147f1     	xpacd	x17
+fffffe000afc1bec: eb11021f     	cmp	x16, x17
+fffffe000afc1bf0: 54000040     	b.eq	0xfffffe000afc1bf8 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x344>
+fffffe000afc1bf4: d4388e40     	brk	#0xc472
+fffffe000afc1bf8: b9008e08     	str	w8, [x16, #0x8c]
+fffffe000afc1bfc: 366fe8d5     	tbz	w21, #0xd, 0xfffffe000afc1914 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x60>
+fffffe000afc1c00: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1c04: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1c08: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1c0c: dac11a30     	autda	x16, x17
+fffffe000afc1c10: aa1003f1     	mov	x17, x16
+fffffe000afc1c14: dac147f1     	xpacd	x17
+fffffe000afc1c18: eb11021f     	cmp	x16, x17
+fffffe000afc1c1c: 54000040     	b.eq	0xfffffe000afc1c24 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x370>
+fffffe000afc1c20: d4388e40     	brk	#0xc472
+fffffe000afc1c24: f845c288     	ldur	x8, [x20, #0x5c]
+fffffe000afc1c28: f9004a08     	str	x8, [x16, #0x90]
+fffffe000afc1c2c: 3677e775     	tbz	w21, #0xe, 0xfffffe000afc1918 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x64>
+fffffe000afc1c30: 39419288     	ldrb	w8, [x20, #0x64]
+fffffe000afc1c34: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1c38: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1c3c: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1c40: dac11a30     	autda	x16, x17
+fffffe000afc1c44: aa1003f1     	mov	x17, x16
+fffffe000afc1c48: dac147f1     	xpacd	x17
+fffffe000afc1c4c: eb11021f     	cmp	x16, x17
+fffffe000afc1c50: 54000040     	b.eq	0xfffffe000afc1c58 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x3a4>
+fffffe000afc1c54: d4388e40     	brk	#0xc472
+fffffe000afc1c58: 39026208     	strb	w8, [x16, #0x98]
+fffffe000afc1c5c: 367fe615     	tbz	w21, #0xf, 0xfffffe000afc191c <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x68>
+fffffe000afc1c60: b9406a88     	ldr	w8, [x20, #0x68]
+fffffe000afc1c64: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1c68: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1c6c: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1c70: dac11a30     	autda	x16, x17
+fffffe000afc1c74: aa1003f1     	mov	x17, x16
+fffffe000afc1c78: dac147f1     	xpacd	x17
+fffffe000afc1c7c: eb11021f     	cmp	x16, x17
+fffffe000afc1c80: 54000040     	b.eq	0xfffffe000afc1c88 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x3d4>
+fffffe000afc1c84: d4388e40     	brk	#0xc472
+fffffe000afc1c88: b9009e08     	str	w8, [x16, #0x9c]
+fffffe000afc1c8c: b9406e88     	ldr	w8, [x20, #0x6c]
+fffffe000afc1c90: b900a208     	str	w8, [x16, #0xa0]
+fffffe000afc1c94: 3687e475     	tbz	w21, #0x10, 0xfffffe000afc1920 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x6c>
+fffffe000afc1c98: b9407288     	ldr	w8, [x20, #0x70]
+fffffe000afc1c9c: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1ca0: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1ca4: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1ca8: dac11a30     	autda	x16, x17
+fffffe000afc1cac: aa1003f1     	mov	x17, x16
+fffffe000afc1cb0: dac147f1     	xpacd	x17
+fffffe000afc1cb4: eb11021f     	cmp	x16, x17
+fffffe000afc1cb8: 54000040     	b.eq	0xfffffe000afc1cc0 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x40c>
+fffffe000afc1cbc: d4388e40     	brk	#0xc472
+fffffe000afc1cc0: b900a608     	str	w8, [x16, #0xa4]
+fffffe000afc1cc4: 368fe315     	tbz	w21, #0x11, 0xfffffe000afc1924 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x70>
+fffffe000afc1cc8: 39419688     	ldrb	w8, [x20, #0x65]
+fffffe000afc1ccc: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1cd0: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1cd4: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1cd8: dac11a30     	autda	x16, x17
+fffffe000afc1cdc: aa1003f1     	mov	x17, x16
+fffffe000afc1ce0: dac147f1     	xpacd	x17
+fffffe000afc1ce4: eb11021f     	cmp	x16, x17
+fffffe000afc1ce8: 54000040     	b.eq	0xfffffe000afc1cf0 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x43c>
+fffffe000afc1cec: d4388e40     	brk	#0xc472
+fffffe000afc1cf0: 39026608     	strb	w8, [x16, #0x99]
+fffffe000afc1cf4: 3697e1b5     	tbz	w21, #0x12, 0xfffffe000afc1928 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x74>
+fffffe000afc1cf8: 39419a88     	ldrb	w8, [x20, #0x66]
+fffffe000afc1cfc: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1d00: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1d04: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1d08: dac11a30     	autda	x16, x17
+fffffe000afc1d0c: aa1003f1     	mov	x17, x16
+fffffe000afc1d10: dac147f1     	xpacd	x17
+fffffe000afc1d14: eb11021f     	cmp	x16, x17
+fffffe000afc1d18: 54000040     	b.eq	0xfffffe000afc1d20 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x46c>
+fffffe000afc1d1c: d4388e40     	brk	#0xc472
+fffffe000afc1d20: 39026a08     	strb	w8, [x16, #0x9a]
+fffffe000afc1d24: 369fe055     	tbz	w21, #0x13, 0xfffffe000afc192c <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x78>
+fffffe000afc1d28: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1d2c: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1d30: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1d34: dac11a30     	autda	x16, x17
+fffffe000afc1d38: aa1003f1     	mov	x17, x16
+fffffe000afc1d3c: dac147f1     	xpacd	x17
+fffffe000afc1d40: eb11021f     	cmp	x16, x17
+fffffe000afc1d44: 54000040     	b.eq	0xfffffe000afc1d4c <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x498>
+fffffe000afc1d48: d4388e40     	brk	#0xc472
+fffffe000afc1d4c: f8474288     	ldur	x8, [x20, #0x74]
+fffffe000afc1d50: b9407e89     	ldr	w9, [x20, #0x7c]
+fffffe000afc1d54: b900b209     	str	w9, [x16, #0xb0]
+fffffe000afc1d58: f9005608     	str	x8, [x16, #0xa8]
+fffffe000afc1d5c: 36a7deb5     	tbz	w21, #0x14, 0xfffffe000afc1930 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x7c>
+fffffe000afc1d60: 79410288     	ldrh	w8, [x20, #0x80]
+fffffe000afc1d64: f940be70     	ldr	x16, [x19, #0x178]
+fffffe000afc1d68: 9105e271     	add	x17, x19, #0x178
+fffffe000afc1d6c: f2f47371     	movk	x17, #0xa39b, lsl #48
+fffffe000afc1d70: dac11a30     	autda	x16, x17
+fffffe000afc1d74: aa1003f1     	mov	x17, x16
+fffffe000afc1d78: dac147f1     	xpacd	x17
+fffffe000afc1d7c: eb11021f     	cmp	x16, x17
+fffffe000afc1d80: 54000040     	b.eq	0xfffffe000afc1d88 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x4d4>
+fffffe000afc1d84: d4388e40     	brk	#0xc472
+fffffe000afc1d88: 79016a08     	strh	w8, [x16, #0xb4]
+fffffe000afc1d8c: 37afdd55     	tbnz	w21, #0x15, 0xfffffe000afc1934 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0x80>
+fffffe000afc1d90: 17fffef4     	b	0xfffffe000afc1960 <__ZN9IOSurface18setBulkAttachmentsEP34IOSurfaceColorAndSpatialKeysStructm+0xac>
+
