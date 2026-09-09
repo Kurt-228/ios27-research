@@ -81,3 +81,29 @@ An item should remain excluded unless it has all of the following:
 - a reproducible observed outcome;
 - clear deduplication against already submitted material;
 - neutral wording that does not depend on speculative exploitability.
+## EX-006 — Candidate 004 retracted (IOGPU invalid destroy / client wedge)
+
+Retracted on 2026-09-09 after controlled re-testing. Do not submit.
+
+Root-cause of the original observation (was: v143/v144 destroy notes):
+
+- The "accepted garbage id 0x1" was a destroy of our own LIVE object — the
+  garbage-id list collided with the real id space (ids start at 1).
+  Genuinely invalid ids (0, +1000, 0xffffffff) are rejected with
+  kIOReturnBadArgument.
+- The "client wedge in a kernel call" was a self-inflicted SIGSEGV in the
+  test harness: after a successful destroy the kernel tears down the
+  resource's CPU mapping, and the harness's marker scan read that freed
+  mapping. No kernel-side wedge existed.
+
+Controlled confirmation (run-destroyuaf3.log, 53 cases, 4 object classes):
+
+- destroy validation is strict: live id OK, dead/never-existed/foreign-class
+  id rejected; use-after-destroy attempts all rejected; no neighbor
+  corruption; no panic.
+
+Related repository notes:
+
+- `docs/SPTM_research_journal_part19.md` — sections 131 (retraction),
+  131-addendum (sweep-log re-check), 132 (full controlled run)
+- `results/run-destroyuaf3.log`

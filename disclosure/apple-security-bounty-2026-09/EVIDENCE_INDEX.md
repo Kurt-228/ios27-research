@@ -50,20 +50,18 @@ Evidence summary:
 - material described as KASLR-relevant metadata rather than direct code execution;
 - boundary kept explicit: neighboring GPU-process crash is part of the observed condition.
 
-## Candidate 004 — IOGPU invalid destroy accepted, client wedge
+## Candidate 004 — RETRACTED (IOGPU invalid destroy accepted, client wedge)
 
-Primary evidence:
+Retracted on 2026-09-09 (see excluded/README.md EX-006). The "accepted
+invalid destroy" was a live-id collision in the test harness, and the
+"client wedge" was a harness self-SIGSEGV on a freed CPU mapping, not
+kernel behavior. Controlled 53-case re-test confirms strict destroy
+validation. Do not submit.
 
-- `docs/SPTM_research_journal_part19.md` — v143/v144 sections
-- `results/run-iogpusweep-full.log`
-- `results/run-iogpusweep-2.log`
-- `results/run-destroyuaf1.log`
+Retraction evidence:
 
-Evidence summary:
-
-- invalid destroy input accepted with success return in existing runs;
-- subsequent operations on the same connection wedged in a kernel call;
-- class should be described as invalid lifecycle validation plus hang/wedge, not as confirmed UAF unless supported by additional already-existing evidence.
+- `docs/SPTM_research_journal_part19.md` — sections 131, 131-addendum, 132
+- `results/run-destroyuaf3.log`
 
 ## Excluded / duplicate / low-signal evidence
 

@@ -30,8 +30,7 @@ Not included here:
 - `candidates/001-iogpu-commandqueue-init-null-deref/README.md` — active candidate, deterministic kernel panic.
 - `candidates/002-agx-resource-lifetime-write-after-destroy/README.md` — active candidate, resource lifetime mismatch / stale GPU translation behavior.
 - `candidates/003-gpuvm-residual-service-page-infoleak/README.md` — active candidate, residual GPU service metadata exposure.
-- `candidates/004-iogpu-invalid-destroy-client-wedge/README.md` — candidate / lower-confidence hang-DoS class, deduped from related destroy-selector notes.
-- `excluded/README.md` — already submitted report, expected behavior, low-signal items, and R&D-only tracks.
+- `excluded/README.md` — already submitted report, expected behavior, low-signal items, R&D-only tracks, and the retracted former candidate 004 (EX-006).
 
 ## Submission handling
 
