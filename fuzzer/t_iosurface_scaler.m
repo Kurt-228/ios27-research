@@ -18392,6 +18392,531 @@ static void p_cbchain(void) {
         cn, done, stop ? " STOPPED-EARLY" : "");
 }
 
+// V138: p_iogpusweep — systematic IOGPUDeviceUserClient selector sweep.
+// docs/agx_queue_execution.md §2: the corrected 56-selector map (iOS type-1
+// client, sin/strIn/sout/strOut per selector from statics). Previous phases
+// fuzzed these blind or pointwise; this phase:
+//   1. sanity call per selector 0..55 (+ out-of-range 56 boundary probe) with
+//      the VALID format from the map, on real objects from our own pipeline
+//      (sel14 nq / sel6 queue blob 0x410 / gpu_resource2 rid / gpu_shmem_t).
+//      Destroy-class selectors (7/9/13/15/18/20/29/37/41/42/47) get a FRESH
+//      disposable object created immediately before — never our main assets,
+//      never foreign ids. sel41 is called with an INVALID id only (V120: its
+//      kr 0 is a destroy-stub decoy).
+//   2. deterministic input mutations for every selector whose sanity passed
+//      kr 0: scalar-arg replacement (6 values) and 4-byte struct-field
+//      patches at fixed offsets (0xffffffff/0x7fffffff), capped at 20/sel;
+//      size-gate sweeps for the blob selectors (sel6 0x410: 0x407/0x408/0x411
+//      + version field 0..6 incl. gate value 5, bytes +0x404/+0x405; sel8
+//      0x68: fields type/flags/size + size sweep 0/4/0x67/0x69; sel45/52/53
+//      VAR-in size sweep) — doc §6 checklist items 5/7.
+//   3. detectors: crash/panic (fsync(stderr)+LOG before EVERY call), kr
+//      anomalies — kr 0 at a wrong size (size-gate bypass) or a destroy-class
+//      call accepting a garbage id -> [HIT]; stOut scanned against a 0xAA
+//      prefill, VAR-out content -> [LEAK?].
+// Env: FUZZ_IOGPUSWEEP=1 (gate), FUZZ_IOGPUSWEEP_SKIP=N (global case index;
+// resuming mid-selector skips that selector's remaining cases — combine with
+// FUZZ_IOGPUSWEEP_SEL to re-run one selector), FUZZ_IOGPUSWEEP_MAX=N,
+// FUZZ_IOGPUSWEEP_SEL=N. Tag [ios].
+#define IOSC_NORM   0
+#define IOSC_CQUEUE 1   // creates a command queue (sel6)
+#define IOSC_DQUEUE 2   // destroys one (sel7) — disposable target
+#define IOSC_CRES   3   // creates a resource (sel8)
+#define IOSC_DRES   4   // destroys one (sel9) — disposable target
+#define IOSC_CSHM   5   // creates shmem (sel12)
+#define IOSC_DSHM   6   // destroys shmem (sel13) — disposable
+#define IOSC_CNQ    7   // creates notification queue (sel14)
+#define IOSC_DNQ    8   // destroys nq (sel15) — disposable
+#define IOSC_CFENCE 9   // creates fence (sel17)
+#define IOSC_DEV    10  // destroys fence (sel18)
+#define IOSC_CEV    11  // creates mtlevent (sel19)
+#define IOSC_DEV2   12  // destroys mtlevent (sel20)
+#define IOSC_CLEV   13  // creates lateeval event (sel28)
+#define IOSC_DLEV   14  // destroys lateeval (sel29)
+#define IOSC_DRES2  15  // detach backing (sel37) — consumes a disposable rid
+#define IOSC_DSTUB  16  // sel41 possible destroy-stub — invalid ids ONLY
+#define IOSC_CIOCQ  17  // sel42 (create or destroy — ambiguous, own ids only)
+#define IOSC_CIOCB  18  // sel46 creates io cmd buffer
+#define IOSC_DIOCB  19  // sel47 destroys io cmd buffer
+#define IOSC_DANGER 20  // submit/io-path calls: mutations suppressed
+
+typedef struct {
+    uint32_t sel;
+    const char *name;
+    uint16_t isz, osz;   // structure in/out sizes (0 = none)
+    uint8_t sin, sout;   // scalar in/out counts
+    uint8_t varin, varout;
+    uint8_t cls;
+} iosent;
+
+// docs/agx_queue_execution.md §2 — sin/strIn/sout/strOut per selector.
+static const iosent ios_tab[] = {
+    { 0, "get_config", 0, 64, 0, 0, 0, 0, IOSC_NORM },
+    { 1, "get_name", 0, 64, 0, 0, 0, 0, IOSC_NORM },
+    { 2, "get_event_machine", 0, 64, 0, 0, 0, 0, IOSC_NORM },
+    { 3, "get_surface_info", 0, 536, 0, 0, 0, 0, IOSC_NORM },
+    { 4, "get_current_trace_filter", 0, 16, 0, 0, 0, 0, IOSC_NORM },
+    { 5, "get_device_info", 0, 16, 0, 0, 0, 0, IOSC_NORM },
+    { 6, "new_command_queue", 0x410, 16, 0, 0, 0, 0, IOSC_CQUEUE },
+    { 7, "delete_command_queue", 0, 0, 1, 0, 0, 0, IOSC_DQUEUE },
+    { 8, "new_resource", 0x68, 0x58, 0, 0, 0, 0, IOSC_CRES },
+    { 9, "delete_resource", 0, 0, 1, 0, 0, 0, IOSC_DRES },
+    { 10, "finish_object_event", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 11, "set_resource_purgeable", 0, 0, 2, 1, 0, 0, IOSC_NORM },
+    { 12, "create_shmem", 0, 16, 2, 0, 0, 0, IOSC_CSHM },
+    { 13, "destroy_shmem", 0, 0, 1, 0, 0, 0, IOSC_DSHM },
+    { 14, "create_notificationqueue", 0, 16, 2, 0, 0, 0, IOSC_CNQ },
+    { 15, "destroy_notificationqueue", 0, 0, 1, 0, 0, 0, IOSC_DNQ },
+    { 16, "get_shared_info", 0, 8, 0, 0, 0, 0, IOSC_NORM },
+    { 17, "create_mtlfence", 0, 4, 0, 0, 0, 0, IOSC_CFENCE },
+    { 18, "destroy_mtlfence", 0, 0, 1, 0, 0, 0, IOSC_DEV },
+    { 19, "create_mtlevent", 0, 24, 1, 0, 0, 0, IOSC_CEV },
+    { 20, "destroy_mtlevent", 0, 0, 1, 0, 0, 0, IOSC_DEV2 },
+    { 21, "get_memory_data", 0, 48, 0, 0, 0, 0, IOSC_NORM },
+    { 22, "unsupported", 0, 0x1000, 0, 0, 0, 1, IOSC_NORM },
+    { 23, "get_allocated_size", 0, 0, 0, 1, 0, 0, IOSC_NORM },
+    { 24, "set_notification_queue", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 25, "submit_command_buffers", 0x40, 0, 4, 1, 1, 0, IOSC_DANGER },
+    { 26, "set_priority_and_background", 12, 0, 1, 1, 0, 0, IOSC_NORM },
+    { 27, "set_quality_of_service", 4, 0, 1, 0, 0, 0, IOSC_NORM },
+    { 28, "create_mtllateevalevent", 0, 0, 0, 2, 0, 0, IOSC_CLEV },
+    { 29, "destroy_mtllateevalevent", 0, 0, 1, 0, 0, 0, IOSC_DLEV },
+    { 30, "async_signal_mtlLateEvalevent", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 31, "query_mtlLateEvalevent", 0, 0, 1, 2, 0, 0, IOSC_NORM },
+    { 32, "set_display_params_for_gpu", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 33, "set_app_gpu_role", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 34, "get_app_gpu_role", 0, 0, 1, 1, 0, 0, IOSC_NORM },
+    { 35, "set_resource_owner_identity", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 36, "create_resource_iosurface", 0, 0, 3, 1, 0, 0, IOSC_NORM },
+    { 37, "resource_detach_backing", 0, 0, 1, 0, 0, 0, IOSC_DRES2 },
+    { 38, "resource_replace_backing_bytes", 24, 0, 0, 0, 0, 0, IOSC_NORM },
+    { 39, "resource_replace_backing_ranges", 24, 0, 0, 1, 0, 0, IOSC_NORM },
+    { 40, "create_vniodesc", 0x40, 0, 1, 2, 0, 0, IOSC_NORM },
+    { 41, "create_io_command_queue?", 0, 0, 1, 0, 0, 0, IOSC_DSTUB },
+    { 42, "destroy_io_command_queue", 0, 0, 2, 2, 0, 0, IOSC_CIOCQ },
+    { 43, "ios_specific", 0, 0, 1, 0, 0, 0, IOSC_NORM },
+    { 44, "set_io_notification_queue", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 45, "submit_io_commands", 0x40, 0, 1, 0, 1, 0, IOSC_DANGER },
+    { 46, "create_io_command_buffer", 0, 0, 1, 2, 0, 0, IOSC_CIOCB },
+    { 47, "destroy_io_command_buffer", 0, 0, 2, 0, 0, 0, IOSC_DIOCB },
+    { 48, "try_cancel_io_command_buffer", 0, 0, 2, 0, 0, 0, IOSC_NORM },
+    { 49, "perform_io", 0, 0, 1, 0, 0, 0, IOSC_DANGER },
+    { 50, "io_command_buffer_complete", 0, 0, 1, 0, 0, 0, IOSC_NORM },
+    { 51, "io_command_buffer_barrier_complete", 0, 0, 3, 0, 0, 0, IOSC_NORM },
+    { 52, "group_add_resources", 0x18, 0, 2, 0, 1, 0, IOSC_NORM },
+    { 53, "group_remove_resources", 0x18, 0, 2, 0, 1, 0, IOSC_NORM },
+    { 54, "create_device_assertion", 0, 0, 2, 1, 0, 0, IOSC_NORM },
+    { 55, "perform_mapping", 0, 0, 0, 0, 0, 0, IOSC_DANGER },
+    { 56, "out_of_range_probe", 0, 0, 0, 0, 0, 0, IOSC_NORM },
+};
+
+static const uint64_t ios_mv[] = {
+    0, 1, 0xffffffffULL, 0x7fffffffULL, 0x80000000ULL, 0xffffffffffffffffULL
+};
+
+// sel6 blob 0x410 (doc §1): process path @0, version <5 @+0x400, flags +0x404/5
+static void ios_blob410(uint8_t *b) {
+    memset(b, 0, 0x800);
+    const char *pn = getprogname();
+    if (pn) strlcpy((char *)b, pn, 0x40);
+    *(uint32_t *)(b + 0x400) = 2;
+}
+
+// sel8 format B (0x68, traced Metal layout — see gpu_resource2)
+static void ios_fmtb(uint8_t *in, uint64_t size, uint32_t flags) {
+    memset(in, 0, 0x100);
+    *(uint32_t *)(in + 0x00) = 0x00;
+    *(uint32_t *)(in + 0x08) = 0x00010001;
+    *(uint32_t *)(in + 0x0c) = 1;
+    *(uint32_t *)(in + 0x10) = 0x01000101;
+    *(uint32_t *)(in + 0x14) = flags;
+    *(uint64_t *)(in + 0x30) = 1;
+    *(uint64_t *)(in + 0x48) = size;
+}
+
+static uint64_t ios_mkqueue(io_connect_t c) {
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    memset(out, 0, 0x1000);
+    ios_blob410(in);
+    uint64_t osc[2] = {0,0}; uint32_t nosc = 0; size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = (kr || osz < 8) ? 0 : *(uint64_t *)out;
+    vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    return qid;
+}
+static uint64_t ios_mknq(io_connect_t c) {
+    uint8_t *out = must_map(0x1000);
+    memset(out, 0, 0x1000);
+    uint64_t a[2] = { 0x100, 0x10 };
+    uint64_t osc[2] = {0,0}; uint32_t nosc = 0; size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqid = (kr || osz < 0x10) ? 0 : *(uint64_t *)(out + 8);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    return nqid;
+}
+static uint32_t ios_mksh(io_connect_t c, uint64_t sz, uint64_t ty) {
+    uint8_t *out = must_map(0x1000);
+    memset(out, 0, 0x1000);
+    uint64_t a[2] = { sz, ty };
+    uint64_t osc[2] = {0,0}; uint32_t nosc = 0; size_t osz = 0x10;
+    kern_return_t kr = IOConnectCallMethod(c, 12, a, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint32_t id = (kr || osz < 0x10) ? 0 : *(uint32_t *)(out + 0xc);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    return id;
+}
+static uint32_t ios_mkres(io_connect_t c) {
+    uint8_t *in = must_map(0x1000);
+    uint8_t *out = must_map(0x1000);
+    memset(out, 0, 0x1000);
+    ios_fmtb(in, 0x1000, 0x470);
+    uint64_t osc[2] = {0,0}; uint32_t nosc = 0; size_t osz = 0x58;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x68, osc, &nosc, out, &osz);
+    uint32_t rid = (kr || osz < 0x28) ? 0 : *(uint32_t *)(out + 0x24);
+    vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+    vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+    return rid;
+}
+static kern_return_t ios_kill(io_connect_t c, uint32_t sel, uint64_t id) {
+    uint64_t a[1] = { id };
+    return IOConnectCallScalarMethod(c, sel, a, 1, NULL, NULL);
+}
+// dispose an object created by a mutated create-class call
+static void ios_dispose_created(io_connect_t c, const iosent *e, uint8_t *ob, uint64_t *osc) {
+    switch (e->cls) {
+        case IOSC_CQUEUE: ios_kill(c, 7, *(uint64_t *)ob); break;
+        case IOSC_CRES:   ios_kill(c, 9, *(uint32_t *)(ob + 0x24)); break;
+        case IOSC_CSHM:   ios_kill(c, 13, *(uint32_t *)(ob + 0xc)); break;
+        case IOSC_CNQ:    ios_kill(c, 15, *(uint64_t *)(ob + 8)); break;
+        case IOSC_CFENCE: ios_kill(c, 18, *(uint32_t *)ob); break;
+        case IOSC_CEV:    ios_kill(c, 20, *(uint32_t *)ob); break;
+        default: (void)osc; break;   // CLEV/CIOCQ/CIOCB: role ambiguity — leave
+    }
+}
+
+typedef struct {
+    io_connect_t c;
+    long cn, skip, maxc, hits, leaks;
+    int stop;
+} iosrun;
+
+// one sweep case: skip/cap bookkeeping, fsync+LOG before the call, kr logging,
+// stOut 0xAA-prefill scan (VAR-out nonzero -> [LEAK?]). Returns kr, or -1 when
+// the case was skipped by SKIP/cap (r.stop set on cap).
+static kern_return_t ios_case(iosrun *r, const iosent *e, const char *tag,
+                              const uint64_t *a, uint8_t *ob, size_t osz,
+                              uint64_t *osc, const uint8_t *ib, size_t isz) {
+    if (r->stop) return (kern_return_t)-1;
+    if (r->maxc && r->cn - r->skip >= r->maxc) { r->stop = 1; return (kern_return_t)-1; }
+    if (r->cn++ < r->skip) return (kern_return_t)-1;
+    if (e->cls == IOSC_DANGER)
+        LOG("[ios] %s sel%u %s: DANGER call now (fsync)", tag, e->sel, e->name);
+    fsync(fileno(stderr));
+    size_t osz2 = osz;
+    uint32_t nosc = e->sout;
+    kern_return_t kr = IOConnectCallMethod(r->c, e->sel, a, e->sin, ib, isz,
+                                           osc, &nosc, ob, &osz2);
+    long nz = 0;
+    if (ob && osz) for (size_t i = 0; i < osz; i++) if (ob[i] != 0xAA) nz++;
+    LOG("[ios] %s #%ld sel%u %-26s kr 0x%08x stOut-wr %ld/%zu%s",
+        tag, r->cn - 1, e->sel, e->name, (unsigned)kr, nz, osz,
+        kr == 0 ? "" : " REJ");
+    if (kr == 0 && ob && nz > 0 && osz >= 16)
+        LOG("[ios]   stOut[0..16]: %02x%02x%02x%02x %02x%02x%02x%02x "
+            "%02x%02x%02x%02x %02x%02x%02x%02x",
+            ob[0], ob[1], ob[2], ob[3], ob[4], ob[5], ob[6], ob[7],
+            ob[8], ob[9], ob[10], ob[11], ob[12], ob[13], ob[14], ob[15]);
+    if (kr == 0 && e->varout && nz > 0) {
+        LOG("[ios]   [LEAK?] VAR-out carried %ld bytes", nz);
+        r->leaks++;
+    }
+    return kr;
+}
+
+static void p_iogpusweep(void) {
+    long skip = atol(getenv("FUZZ_IOGPUSWEEP_SKIP") ?: "0");
+    long maxc = atol(getenv("FUZZ_IOGPUSWEEP_MAX") ?: "0");
+    long only = atol(getenv("FUZZ_IOGPUSWEEP_SEL") ?: "-1");
+    LOG("[ios] v138 iogpu selector sweep: skip %ld max %ld only-sel %ld", skip, maxc, only);
+    iosrun r;
+    memset(&r, 0, sizeof r);
+    r.skip = skip;
+    r.maxc = maxc;
+    r.c = open_service("IOGPU", 1);
+    if (!r.c) { LOG("[ios] open IOGPU failed"); return; }
+    // main assets (survive the whole sweep)
+    uint64_t nqid = ios_mknq(r.c);
+    uint64_t qid = ios_mkqueue(r.c);
+    LOG("[ios] main nq %llu qid %llu", nqid, qid);
+    if (!qid) { LOG("[ios] no main queue — abort"); IOServiceClose(r.c); return; }
+    uint64_t a24[2] = { qid, nqid };
+    kern_return_t k24 = IOConnectCallScalarMethod(r.c, 24, a24, 2, NULL, NULL);
+    LOG("[ios] sel24 bind -> kr 0x%08x", (unsigned)k24);
+    uint64_t gva = 0; uint8_t *cp = NULL;
+    uint32_t rid = gpu_resource2(r.c, 0x10000, &gva, &cp);
+    uint8_t *shva = NULL;
+    uint32_t sh1 = gpu_shmem_t(r.c, 0x4000, 1, &shva);
+    LOG("[ios] main rid %u gpuva 0x%llx shmem %u", rid, gva, sh1);
+    // temp file for sel40 vniodesc (a real regular file, not /dev/null)
+    const char *tmpd = getenv("TMPDIR") ?: "/tmp";
+    char tpath[300];
+    snprintf(tpath, sizeof tpath, "%s/iosfd_%d.bin", tmpd, getpid());
+    int fd = open(tpath, O_RDWR | O_CREAT | O_TRUNC, 0600);
+    if (fd >= 0) {
+        uint8_t z[0x1000];
+        memset(z, 0x41, sizeof z);
+        if (write(fd, z, sizeof z) != (ssize_t)sizeof z) LOG("[ios] temp write short");
+        lseek(fd, 0, SEEK_SET);
+    }
+    LOG("[ios] temp file fd %d (%s)", fd, tpath);
+    // disposables for destroy-class sanity
+    uint64_t nq2 = ios_mknq(r.c);
+    uint64_t qid2 = ios_mkqueue(r.c);
+    uint32_t rid2 = ios_mkres(r.c);
+    uint32_t sh2 = ios_mksh(r.c, 0x4000, 1);
+    LOG("[ios] disposables nq2 %llu qid2 %llu rid2 %u sh2 %u", nq2, qid2, rid2, sh2);
+    // ids harvested from sanity outputs (feed later selectors)
+    uint32_t fence = 0, evid = 0;
+    uint64_t levid = 0, iocq = 0, iocb = 0;
+    uint8_t *ib = must_map(0x1000);
+    uint8_t *ob = must_map(0x1000);
+    uint64_t osc[4];
+    kern_return_t kr = 0;
+
+    for (unsigned ti = 0; ti < sizeof(ios_tab) / sizeof(ios_tab[0]); ti++) {
+        const iosent *e = &ios_tab[ti];
+        if (only >= 0 && (long)e->sel != only) continue;
+        uint64_t ab[4] = { 0, 0, 0, 0 };
+        memset(ib, 0, 0x1000);
+        // scalar-in template (valid ids from our own pipeline)
+        switch (e->sel) {
+            case 7:  ab[0] = qid2; break;
+            case 9:  ab[0] = rid2; break;
+            case 10: ab[0] = qid; break;
+            case 11: ab[0] = rid2; ab[1] = 1; break;
+            case 13: ab[0] = sh2; break;
+            case 15: ab[0] = nq2; break;
+            case 18: ab[0] = fence; break;
+            case 20: ab[0] = evid; break;
+            case 23: ab[0] = rid; break;
+            case 24: ab[0] = qid; ab[1] = nqid; break;
+            case 25: ab[0] = qid; break;
+            case 26: case 27: ab[0] = qid; break;
+            case 29: ab[0] = levid; break;
+            case 30: ab[0] = levid; ab[1] = 1; break;
+            case 31: ab[0] = levid; break;
+            case 35: ab[0] = rid; ab[1] = 0x1234; break;
+            case 36: ab[0] = rid; break;
+            case 37: ab[0] = rid2; break;
+            case 40: ab[0] = (uint64_t)(unsigned)fd; break;
+            case 41: ab[0] = 0xffffffffULL; break;  // V120 destroy-stub guard
+            case 44: ab[0] = iocq; ab[1] = nqid; break;
+            case 45: case 49: ab[0] = iocq; break;
+            case 46: ab[0] = iocq; break;
+            case 47: case 48: ab[0] = iocq; ab[1] = iocb; break;
+            case 50: ab[0] = iocb; break;
+            case 51: ab[0] = iocq; ab[1] = iocb; break;
+            default: break;
+        }
+        // structure-in template
+        switch (e->sel) {
+            case 6: ios_blob410(ib); break;
+            case 8: ios_fmtb(ib, 0x10000, 0x470); break;
+            case 38: case 39: *(uint32_t *)ib = rid; break;
+            case 40: *(uint32_t *)ib = (uint32_t)fd; break;
+            case 45: *(uint64_t *)ib = iocq; break;
+            case 52: case 53: *(uint32_t *)ib = rid; break;
+            default: break;
+        }
+        // ---- sanity
+        kr = ios_case(&r, e, "san", ab, ob, e->osz, osc, ib, e->isz);
+        if (r.stop) goto done;
+        int sok = (kr == 0);
+        LOG("[ios] sanity sel%u %-26s -> %s", e->sel, e->name, sok ? "OK" : "reject/skip");
+        if (sok) {
+            switch (e->cls) {
+                case IOSC_CQUEUE: ios_kill(r.c, 7, *(uint64_t *)ob); break;
+                case IOSC_CRES:   ios_kill(r.c, 9, *(uint32_t *)(ob + 0x24)); break;
+                case IOSC_CSHM:   ios_kill(r.c, 13, *(uint32_t *)(ob + 0xc)); break;
+                case IOSC_CNQ:    ios_kill(r.c, 15, *(uint64_t *)(ob + 8)); break;
+                case IOSC_CFENCE: fence = *(uint32_t *)ob; break;
+                case IOSC_CEV:    evid = *(uint32_t *)ob; break;
+                case IOSC_CLEV:   if (e->sout >= 1) levid = osc[0]; break;
+                case IOSC_CIOCQ:  if (e->sout >= 1) iocq = osc[0]; break;
+                case IOSC_CIOCB:  if (e->sout >= 1) iocb = osc[0]; break;
+                case IOSC_DQUEUE: qid2 = 0; break;   // consumed (or was invalid)
+                case IOSC_DRES: case IOSC_DRES2: rid2 = 0; break;
+                case IOSC_DSHM:   sh2 = 0; break;
+                case IOSC_DNQ:    nq2 = 0; break;
+                case IOSC_DEV:    fence = 0; break;
+                case IOSC_DEV2:   evid = 0; break;
+                case IOSC_DLEV:   levid = 0; break;
+                case IOSC_DIOCB:  iocb = 0; break;
+                default: break;
+            }
+        }
+        if (e->sel == 40 && sok) {
+            // second form: structureInput fd (macOS decode path, doc §2)
+            memset(ib, 0, 0x40);
+            *(uint32_t *)ib = (uint32_t)fd;
+            ios_case(&r, e, "san2", ab, ob, e->osz, osc, ib, 0x40);
+            if (r.stop) goto done;
+        }
+        // ---- mutations (sanity kr 0 only; DANGER and the sel41 stub suppressed)
+        if (!sok) continue;
+        long mc = 0;
+        if (e->cls != IOSC_DANGER && e->cls != IOSC_DSTUB && e->sel != 56) {
+            int mkdisp = (e->cls == IOSC_DQUEUE || e->cls == IOSC_DRES ||
+                          e->cls == IOSC_DRES2 || e->cls == IOSC_DSHM ||
+                          e->cls == IOSC_DNQ);
+            int isdestroy = (mkdisp || e->cls == IOSC_DEV || e->cls == IOSC_DEV2 ||
+                             e->cls == IOSC_DLEV || e->cls == IOSC_DIOCB);
+            // scalar-arg mutations
+            for (uint32_t ai = 0; ai < e->sin && mc < 20 && !r.stop; ai++) {
+                for (unsigned vi = 0; vi < sizeof(ios_mv)/sizeof(ios_mv[0]) && mc < 20; vi++) {
+                    uint64_t a2[4];
+                    memcpy(a2, ab, sizeof a2);
+                    uint64_t d64 = 0; uint32_t d32 = 0;
+                    if (mkdisp) {
+                        if (e->cls == IOSC_DQUEUE) d64 = ios_mkqueue(r.c);
+                        else if (e->cls == IOSC_DRES || e->cls == IOSC_DRES2) d32 = ios_mkres(r.c);
+                        else if (e->cls == IOSC_DSHM) d32 = ios_mksh(r.c, 0x4000, 1);
+                        else d64 = ios_mknq(r.c);
+                    }
+                    a2[ai] = ios_mv[vi];
+                    kr = ios_case(&r, e, "msc", a2, ob, e->osz, osc, ib, e->isz);
+                    if (r.stop) goto done;
+                    if (isdestroy && kr == 0 && ios_mv[vi] != d64 &&
+                        ios_mv[vi] != (uint64_t)d32) {
+                        LOG("[ios]   [HIT] destroy-class sel%u accepted garbage id "
+                            "0x%llx", e->sel, (unsigned long long)ios_mv[vi]);
+                        r.hits++;
+                    }
+                    if (mkdisp && kr != 0) {
+                        // still-live disposable: clean it up
+                        if (e->cls == IOSC_DQUEUE) ios_kill(r.c, 7, d64);
+                        else if (e->cls == IOSC_DRES) ios_kill(r.c, 9, d32);
+                        else if (e->cls == IOSC_DRES2) ios_kill(r.c, 9, d32);
+                        else if (e->cls == IOSC_DSHM) ios_kill(r.c, 13, d32);
+                        else ios_kill(r.c, 15, d64);
+                    }
+                    mc++;
+                }
+            }
+            // structure field mutations (sel6/sel8 have targeted sweeps below)
+            if (e->isz >= 4 && mc < 20 && e->sel != 6 && e->sel != 8 && !r.stop) {
+                static const uint32_t ioffs[] = { 0, 4, 8, 0xc, 0x10, 0x14, 0x18,
+                                                  0x1c, 0x20, 0x24, 0x30, 0x40, 0x48 };
+                for (unsigned oi = 0; oi < sizeof(ioffs)/sizeof(ioffs[0]) && mc < 20; oi++) {
+                    uint32_t o = ioffs[oi];
+                    if (o + 4 > e->isz) continue;
+                    for (unsigned vi = 0; vi < 2 && mc < 20; vi++) {
+                        uint8_t ib2[0x500];
+                        memcpy(ib2, ib, e->isz < sizeof ib2 ? e->isz : sizeof ib2);
+                        *(uint32_t *)(ib2 + o) = (uint32_t)ios_mv[2 + vi]; // ffffffff/7fffffff
+                        kr = ios_case(&r, e, "mst", ab, ob, e->osz, osc, ib2, e->isz);
+                        if (r.stop) goto done;
+                        if (kr == 0 && (e->cls == IOSC_CQUEUE || e->cls == IOSC_CRES ||
+                            e->cls == IOSC_CSHM || e->cls == IOSC_CNQ ||
+                            e->cls == IOSC_CFENCE || e->cls == IOSC_CEV))
+                            ios_dispose_created(r.c, e, ob, osc);
+                        mc++;
+                    }
+                }
+            }
+        }
+        // ---- targeted sweeps (doc §6 checklist 5/7)
+        if (e->sel == 6 && !r.stop) {
+            static const uint32_t vers[] = { 0, 1, 4, 5, 6, 0xffffffff };
+            for (unsigned i = 0; i < sizeof(vers)/sizeof(vers[0]) && !r.stop; i++) {
+                ios_blob410(ib);
+                *(uint32_t *)(ib + 0x400) = vers[i];
+                kr = ios_case(&r, e, "m6v", ab, ob, e->osz, osc, ib, 0x410);
+                if (r.stop) goto done;
+                if (kr == 0) {
+                    if (vers[i] >= 5) {
+                        LOG("[ios]   [HIT] sel6 version %u >= 5 accepted (gate <5)", vers[i]);
+                        r.hits++;
+                    }
+                    ios_kill(r.c, 7, *(uint64_t *)ob);
+                }
+            }
+            for (unsigned fi = 0; fi < 2 && !r.stop; fi++) {
+                for (unsigned vi = 0; vi < 2 && !r.stop; vi++) {
+                    ios_blob410(ib);
+                    ib[0x404 + fi] = vi ? 0xff : 1;
+                    kr = ios_case(&r, e, "m6f", ab, ob, e->osz, osc, ib, 0x410);
+                    if (r.stop) goto done;
+                    if (kr == 0) ios_kill(r.c, 7, *(uint64_t *)ob);
+                }
+            }
+            static const size_t ssz[] = { 0x400, 0x407, 0x408, 0x411 };
+            for (unsigned i = 0; i < sizeof(ssz)/sizeof(ssz[0]) && !r.stop; i++) {
+                ios_blob410(ib);
+                kr = ios_case(&r, e, "m6s", ab, ob, e->osz, osc, ib, ssz[i]);
+                if (r.stop) goto done;
+                if (kr == 0) {
+                    LOG("[ios]   [HIT] sel6 size-gate bypass at strIn 0x%zx "
+                        "(expect 0x2bd)", ssz[i]);
+                    r.hits++;
+                    ios_kill(r.c, 7, *(uint64_t *)ob);
+                }
+            }
+        } else if (e->sel == 8 && !r.stop) {
+            static const uint32_t f8off[] = { 0x00, 0x14 };
+            for (unsigned oi = 0; oi < 2 && !r.stop; oi++) {
+                for (unsigned vi = 0; vi < 2 && !r.stop; vi++) {
+                    ios_fmtb(ib, 0x10000, 0x470);
+                    *(uint32_t *)(ib + f8off[oi]) = vi ? 0xffffffff : (oi ? 0 : 1);
+                    kr = ios_case(&r, e, "m8f", ab, ob, e->osz, osc, ib, 0x68);
+                    if (r.stop) goto done;
+                    if (kr == 0) ios_kill(r.c, 9, *(uint32_t *)(ob + 0x24));
+                }
+            }
+            static const uint64_t s8v[] = { 0, 1, 0x100000000ULL };
+            for (unsigned vi = 0; vi < 3 && !r.stop; vi++) {
+                ios_fmtb(ib, 0x10000, 0x470);
+                *(uint64_t *)(ib + 0x48) = s8v[vi];
+                kr = ios_case(&r, e, "m8z", ab, ob, e->osz, osc, ib, 0x68);
+                if (r.stop) goto done;
+                if (kr == 0) ios_kill(r.c, 9, *(uint32_t *)(ob + 0x24));
+            }
+            static const size_t s8s[] = { 0, 4, 0x67, 0x69 };
+            for (unsigned i = 0; i < sizeof(s8s)/sizeof(s8s[0]) && !r.stop; i++) {
+                ios_fmtb(ib, 0x10000, 0x470);
+                kr = ios_case(&r, e, "m8s", ab, ob, e->osz, osc, ib, s8s[i]);
+                if (r.stop) goto done;
+                if (kr == 0) {
+                    LOG("[ios]   [HIT] sel8 size-gate bypass at strIn 0x%zx", s8s[i]);
+                    r.hits++;
+                    ios_kill(r.c, 9, *(uint32_t *)(ob + 0x24));
+                }
+            }
+        } else if ((e->sel == 25 || e->sel == 45 || e->sel == 52 || e->sel == 53) && !r.stop) {
+            static const size_t svs[] = { 0, 8, 0x40, 0x400 };
+            for (unsigned i = 0; i < sizeof(svs)/sizeof(svs[0]) && !r.stop; i++) {
+                memset(ib, 0, 0x400);
+                if (e->sel == 52 || e->sel == 53) *(uint32_t *)ib = rid;
+                kr = ios_case(&r, e, "mvs", ab, ob, e->osz, osc, ib, svs[i]);
+                if (r.stop) goto done;
+                if (kr == 0 && svs[i] != e->isz && e->sel != 25) {
+                    LOG("[ios]   [HIT] sel%u VAR-in size 0x%zx accepted", e->sel, svs[i]);
+                    r.hits++;
+                }
+            }
+        }
+    }
+ done:
+    LOG("[ios] done: cases %ld (skip %ld) hits %ld leaks %ld (alive)",
+        r.cn, skip, r.hits, r.leaks);
+    if (fd >= 0) close(fd);
+    unlink(tpath);
+    if (ib) vm_deallocate(mach_task_self(), (vm_address_t)ib, 0x1000);
+    if (ob) vm_deallocate(mach_task_self(), (vm_address_t)ob, 0x1000);
+    if (r.c) IOServiceClose(r.c);
+}
+
 // V115: p_killrace — widen the restartWorkQueue / getGuiltyChannel race.
 // p_mtlmut case #929: a blit cb with kcmd+0x150 patched 0x268 -> 0xffffffff
 // deterministically faults the GPU and kills the app (2/2 repro). Static
@@ -24312,6 +24837,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_SFW2")) { p_streamfuzz2(2000000); LOG("[probe13] sfw2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DSRECON")) { p_dsrecon(); LOG("[probe13] dsrecon-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CBCHAIN")) { p_cbchain(); LOG("[probe13] cbchain-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_IOGPUSWEEP")) { p_iogpusweep(); LOG("[probe13] iogpusweep-only mode, stop"); return NULL; }
         if (getenv("FUZZ_REPLAY2")) { p_replay2(); LOG("[probe13] replay2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
