@@ -18062,6 +18062,336 @@ static void p_mtlmutc(void) {
         cn, done, stop ? " STOPPED-EARLY" : "");
 }
 
+// V138: p_cbchain — composite command-buffer chains + shared events. Extends
+// the v89 in-place patch mechanics (gscan/pool, seglist rid) past
+// single-encoder blits: chains of 2-3 encoders in one cb, compute+blit, and
+// cross-cb MTLSharedEvent ordering. Sanity chains (unmutated, must execute:
+// status 4 + expected data): S1 blit A->B + blit B->C (one cb, two encoders);
+// S2 compute 0x42-write into A + blit A->B; S3 cb1 blit A->B +
+// encodeSignalEvent(ev,1), cb2 encodeWaitForEvent(ev,1) + blit B->C; S4
+// A->B->C->D (three encoders). Mutations target the LATE encoder's
+// pool/seglist/residency layer ONLY (never raw kcmd bytes — envelope already
+// fuzzed): wild GPUVA src/dst, dst redirected at untouched buffers,
+// cross-encoder src/dst swaps (independent-pair chain Y makes confusion
+// data-visible — dependent chains propagate any pattern uniformly), seglist
+// rid substitution, giant sizeKB. Buffers carry distinct patterns
+// (A 0x41 / B 0x77 / C 0x43 / D 0x99) + 0xCC canary tails. Every case: fresh
+// encode, patch after endEncoding before commit, log + dir fsync BEFORE
+// commit, status/error + full A..D readback. [HIT]: write into a buffer that
+// must stay untouched, status != 4, driver error, canary violation, GPU
+// wedge (timeout -> stop, resume via SKIP). Panic possible — real execution.
+// Env: FUZZ_CBCHAIN=1 gate, FUZZ_CBCHAIN_SKIP=N resume after crash,
+// FUZZ_CBCHAIN_MAX=N cap executed cases, FUZZ_CBCHAIN_SANITY=1 sanity only.
+// Tag [cbc].
+static void cbc_syncpoint(NSString *docdir) {
+    fflush(stderr);
+    int fd = open([docdir fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { fsync(fd); close(fd); }
+}
+
+// shmem-only VA patch: full-qword AND split-dword {lo,0x100} forms, confined
+// to THIS cb's kcmd/seglist (per-encoder targeting via minoff; -2 = half of
+// kclen = the late encoder). Deliberately does NOT use the v89 global pool
+// rewrite — chains need per-encoder precision.
+static long cbc_shpatch(uint8_t *kc, long kclen, uint8_t *sg, long sglen,
+                        uint64_t from, uint64_t to, long minoff) {
+    long n = 0;
+    uint32_t flo = (uint32_t)from;
+    for (long o = 0; o + 8 <= kclen; o += 4) {
+        if (minoff >= 0 && o < minoff) continue;
+        if (*(uint64_t *)(kc + o) == from) { *(uint64_t *)(kc + o) = to; n++; continue; }
+        if (*(uint32_t *)(kc + o + 4) == 0x100 && *(uint32_t *)(kc + o) == flo) {
+            *(uint32_t *)(kc + o) = (uint32_t)to;
+            *(uint32_t *)(kc + o + 4) = (uint32_t)(to >> 32);
+            n++;
+        }
+    }
+    for (long o = 0; o + 8 <= sglen; o += 4)
+        if (*(uint64_t *)(sg + o) == from) { *(uint64_t *)(sg + o) = to; n++; }
+    return n;
+}
+
+typedef struct {
+    const char *desc;
+    int chain;    // 1 X-dep(A>B,B>C) 2 Y-indep(A>B,C>D) 3 compute+blit
+                  // 4 triple 5 event-ok 6 event-hang(wait>signal)
+    uint64_t qf, qt, qf2, qt2;   // shmem VA patches (qf==0: none)
+    long qmin;                   // -1 all, -2 = kclen/2 (late encoder)
+    uint32_t df, dt;             // seglist dword patch df->dt (df==0: none)
+    int dmax;
+    long soff;                   // seglist offset-targeted dword patch to dt
+    int expA, expB, expC, expD;  // -1 = don't care
+} cbc_case;
+
+static void p_cbchain(void) {
+    const char *sk = getenv("FUZZ_CBCHAIN_SKIP");
+    long skip = sk ? atol(sk) : 0;
+    const char *mx = getenv("FUZZ_CBCHAIN_MAX");
+    long maxc = mx ? atol(mx) : 0;
+    int sanonly = getenv("FUZZ_CBCHAIN_SANITY") != NULL;
+    LOG("[cbc] v138: composite cb chains + shared events (skip %ld max %ld sanity %d)",
+        skip, maxc, sanonly);
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[cbc] no device"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[cbc] no queue"); return; }
+    NSString *docdir = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufC = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufD = [dev newBufferWithLength:0x14000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB || !bufC || !bufD) { LOG("[cbc] alloc fail"); return; }
+    uint8_t *ap = (uint8_t *)[bufA contents], *bp = (uint8_t *)[bufB contents];
+    uint8_t *cp = (uint8_t *)[bufC contents], *dp = (uint8_t *)[bufD contents];
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    uint64_t gpuC = [bufC gpuAddress], gpuD = [bufD gpuAddress];
+    LOG("[cbc] gpuA 0x%llx gpuB 0x%llx gpuC 0x%llx gpuD 0x%llx", gpuA, gpuB, gpuC, gpuD);
+    // compute pipeline for chain 3 (same one-liner as p_mtlmutc v95)
+    const char *ksrc =
+        "kernel void k(device uint *b [[buffer(0)]],"
+        " uint i [[thread_position_in_grid]]) { b[i] = 0x42; }";
+    NSError *lerr = nil;
+    id<MTLLibrary> lib = [dev newLibraryWithSource:@(ksrc) options:nil error:&lerr];
+    id<MTLComputePipelineState> pso = nil;
+    MTLSize grid = MTLSizeMake(4096, 1, 1), tpt = MTLSizeMake(64, 1, 1);
+    if (lib) {
+        id<MTLFunction> kfn = [lib newFunctionWithName:@"k"];
+        NSError *perr = nil;
+        pso = [dev newComputePipelineStateWithFunction:kfn error:&perr];
+        long mtt = pso ? (long)[pso maxTotalThreadsPerThreadgroup] : 0;
+        long tew = pso ? (long)[pso threadExecutionWidth] : 0;
+        if (pso && mtt > 0 && mtt < 64) tpt = MTLSizeMake((NSUInteger)mtt, 1, 1);
+        LOG("[cbc] compute pipeline: %s (maxTT %ld tew %ld)",
+            pso ? "OK" : "FAILED", mtt, tew);
+    } else {
+        NSString *ld = lerr ? [lerr description] : @"unknown";
+        LOG("[cbc] library compile FAILED: %s", [ld UTF8String]);
+    }
+    // ---- reference chain-2 cb (encode only): rid table + sizeKB candidates
+    uint32_t ridA_ = 0, ridB_ = 0, ridC_ = 0, ridD_ = 0;
+    long szoff[6]; int nszC = 0;
+    {
+        id<MTLCommandBuffer> rcb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> re1 = [rcb blitCommandEncoder];
+        [re1 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+        [re1 endEncoding];
+        id<MTLBlitCommandEncoder> re2 = [rcb blitCommandEncoder];
+        [re2 copyFromBuffer:bufC sourceOffset:0 toBuffer:bufD destinationOffset:0 size:0x10000];
+        [re2 endEncoding];
+        void *rst = find_ivar_obj(rcb, "torage", 0, "cb");
+        uint64_t rsva = rst ? *(uint64_t *)((uint8_t *)rst + 0x68) : 0;
+        char pa[160] = {0}, pb2[160] = {0}, pc[160] = {0}, pd[160] = {0};
+        if (rsva) {
+            const uint8_t *rsg = (const uint8_t *)(uintptr_t)rsva;
+            ridA_ = mtl_find_rid(bufA, rsg, 0x400, pa, sizeof pa);
+            ridB_ = mtl_find_rid(bufB, rsg, 0x400, pb2, sizeof pb2);
+            ridC_ = mtl_find_rid(bufC, rsg, 0x400, pc, sizeof pc);
+            ridD_ = mtl_find_rid(bufD, rsg, 0x400, pd, sizeof pd);
+            LOG("[cbc] reference rids A %u B %u C %u D %u", ridA_, ridB_, ridC_, ridD_);
+            for (long o = 0x40; o + 4 <= 0x400 && nszC < 6; o += 4)
+                if (*(const uint32_t *)(rsg + o) == 0x40) szoff[nszC++] = o;
+            LOG("[cbc] sizeKB candidates (seg dword==0x40): %d", nszC);
+        } else {
+            LOG("[cbc] WARNING: no reference seglist — rid/sizeKB cases skipped");
+        }
+    }
+    // ---- case table (runtime-built: GPUVAs/rids are session values)
+    static cbc_case tab[48];
+    static char d7[5][48], d8[5][48], d9[6][3][48];
+    int nt = 0;
+    const uint64_t WILD = 0x1deadbeef0000ULL, WILD2 = 0x1deadbee000000ULL;
+#define CADD(d, ch, QF,QT,QF2,QT2,qmn,dff,dtt,dmx,so,ea,eb,ec,ed) do { \
+        cbc_case *t = &tab[nt++]; \
+        t->desc = (d); t->chain = (ch); t->qf = (QF); t->qt = (QT); \
+        t->qf2 = (QF2); t->qt2 = (QT2); t->qmin = (qmn); t->df = (dff); \
+        t->dt = (dtt); t->dmax = (dmx); t->soff = (so); \
+        t->expA = (ea); t->expB = (eb); t->expC = (ec); t->expD = (ed); \
+    } while (0)
+    CADD("S1:blit A>B,B>C(dep)", 1, 0,0,0,0,-1, 0,0,0,-1, 0x41,0x41,0x41,0x99);
+    CADD("S2:compute0x42>A,A>B", 3, 0,0,0,0,-1, 0,0,0,-1, -1,-1,-1,-1);
+    CADD("S3:signal1+wait1", 5, 0,0,0,0,-1, 0,0,0,-1, 0x41,0x41,0x41,0x99);
+    CADD("S4:blit A>B,B>C,C>D", 4, 0,0,0,0,-1, 0,0,0,-1, 0x41,0x41,0x41,0x41);
+    CADD("M1:X enc2 dst wild", 1, gpuC,WILD,0,0,-1, 0,0,0,-1, 0x41,0x41,0x43,0x99);
+    CADD("M2:X enc2 dst->D(untouched)", 1, gpuC,gpuD,0,0,-1, 0,0,0,-1, 0x41,0x41,0x43,0x41);
+    CADD("M3:X enc2 src wild(late-half)", 1, gpuB,WILD2,0,0,-2, 0,0,0,-1, 0x41,0x41,-1,0x99);
+    CADD("M4:Y enc2 src C->A", 2, gpuC,gpuA,0,0,-1, 0,0,0,-1, 0x41,0x41,0x43,0x41);
+    CADD("M5:Y enc2 dst D->B", 2, gpuD,gpuB,0,0,-1, 0,0,0,-1, 0x41,0x43,0x43,0x99);
+    CADD("M6:Y enc2 swap C<->D", 2, gpuD,gpuC,gpuC,gpuD,-1, 0,0,0,-1, 0x41,0x41,0x99,0x99);
+    uint32_t rvs[5] = { 0, 0xffffffff, 0xdead, 0x10000, ridA_ };
+    for (int i = 0; i < 5; i++) {
+        if (!ridC_) break;
+        snprintf(d7[i], sizeof d7[i], "M7:Y ridC->0x%x", rvs[i]);
+        CADD(d7[i], 2, 0,0,0,0,-1, ridC_,rvs[i],4,-1, -1,-1,-1,-1);
+    }
+    for (int i = 0; i < 5; i++) {
+        if (!ridD_) break;
+        snprintf(d8[i], sizeof d8[i], "M8:Y ridD->0x%x", rvs[i]);
+        CADD(d8[i], 2, 0,0,0,0,-1, ridD_,rvs[i],4,-1, -1,-1,-1,-1);
+    }
+    static const uint32_t szv[3] = { 0x4000, 0xffff, 0 };
+    for (int i = 0; i < nszC; i++)
+        for (int j = 0; j < 3; j++) {
+            snprintf(d9[i][j], sizeof d9[i][j], "M9:seg sizeKB@0x%lx->0x%x", szoff[i], szv[j]);
+            CADD(d9[i][j], 2, 0,0,0,0,-1, 0,szv[j],0,szoff[i], -1,-1,-1,-1);
+        }
+    CADD("M10:C4 enc3 dst wild", 4, gpuD,WILD,0,0,-1, 0,0,0,-1, 0x41,0x41,0x41,0x99);
+    CADD("M11:event wait2>signal1(hang)", 6, 0,0,0,0,-1, 0,0,0,-1, -1,-1,-1,-1);
+    LOG("[cbc] plan: %d cases (%d sanity + %d mutation, sizeKB cases %d)",
+        nt, 4, nt - 4, nszC * 3);
+
+    __block long cn = 0, done = 0;
+    __block int stop = 0;
+    void (^runcase)(const cbc_case *) = ^(const cbc_case *C) {
+        if (stop) return;
+        if (C->chain == 3 && !pso) { LOG("[cbc] case skipped: no pipeline"); return; }
+        cn++;
+        if (sanonly && cn > 4) { stop = 1; return; }
+        if (cn <= skip) return;
+        if (maxc && done >= maxc) { stop = 1; LOG("[cbc] MAX reached (%ld)", maxc); return; }
+        done++;
+        if (C->chain == 3) memset(ap, 0, 0x10000);
+        else memset(ap, 0x41, 0x10000);
+        memset(ap + 0x10000, 0xCC, 0x4000);
+        memset(bp, 0x77, 0x10000); memset(bp + 0x10000, 0xCC, 0x4000);
+        memset(cp, 0x43, 0x10000); memset(cp + 0x10000, 0xCC, 0x4000);
+        memset(dp, 0x99, 0x10000); memset(dp + 0x10000, 0xCC, 0x4000);
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLCommandBuffer> cb2 = nil;
+        if (C->chain == 1 || C->chain == 2) {
+            id<MTLBlitCommandEncoder> e1 = [cb blitCommandEncoder];
+            [e1 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+            [e1 endEncoding];
+            id<MTLBlitCommandEncoder> e2 = [cb blitCommandEncoder];
+            if (C->chain == 1)
+                [e2 copyFromBuffer:bufB sourceOffset:0 toBuffer:bufC destinationOffset:0 size:0x10000];
+            else
+                [e2 copyFromBuffer:bufC sourceOffset:0 toBuffer:bufD destinationOffset:0 size:0x10000];
+            [e2 endEncoding];
+        } else if (C->chain == 3) {
+            id<MTLComputeCommandEncoder> ce = [cb computeCommandEncoder];
+            [ce setComputePipelineState:pso];
+            [ce setBuffer:bufA offset:0 atIndex:0];
+            [ce dispatchThreads:grid threadsPerThreadgroup:tpt];
+            [ce endEncoding];
+            id<MTLBlitCommandEncoder> be = [cb blitCommandEncoder];
+            [be copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+            [be endEncoding];
+        } else if (C->chain == 4) {
+            id<MTLBuffer> srcs[3] = { bufA, bufB, bufC };
+            id<MTLBuffer> dsts[3] = { bufB, bufC, bufD };
+            for (int i = 0; i < 3; i++) {
+                id<MTLBlitCommandEncoder> e = [cb blitCommandEncoder];
+                [e copyFromBuffer:srcs[i] sourceOffset:0 toBuffer:dsts[i] destinationOffset:0 size:0x10000];
+                [e endEncoding];
+            }
+        } else {   // 5 / 6: shared event across two cbs
+            id<MTLSharedEvent> sev = [dev newSharedEvent];
+            id<MTLBlitCommandEncoder> e1 = [cb blitCommandEncoder];
+            [e1 copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+            [e1 endEncoding];
+            [cb encodeSignalEvent:sev value:1];
+            cb2 = [mq commandBuffer];
+            [cb2 encodeWaitForEvent:sev value:(C->chain == 6) ? 2 : 1];
+            id<MTLBlitCommandEncoder> e2 = [cb2 blitCommandEncoder];
+            [e2 copyFromBuffer:bufB sourceOffset:0 toBuffer:bufC destinationOffset:0 size:0x10000];
+            [e2 endEncoding];
+        }
+        void *st = find_ivar_obj(cb, "torage", 0, "cb");
+        uint64_t kva = st ? *(uint64_t *)((uint8_t *)st + 0x28) : 0;
+        uint64_t sva = st ? *(uint64_t *)((uint8_t *)st + 0x68) : 0;
+        if (!kva || !sva) {
+            LOG("[cbc] case #%ld: no storage ptrs — stop", cn);
+            stop = 1; return;
+        }
+        uint8_t *kc = (uint8_t *)(uintptr_t)kva;
+        uint8_t *sg = (uint8_t *)(uintptr_t)sva;
+        long kclen = 0x40;
+        for (long o = 0xffc; o >= 0; o -= 4)
+            if (*(uint32_t *)(kc + o)) { kclen = o + 4; break; }
+        // mutation: pool/seglist/residency layer of the late encoder only
+        long qmin = C->qmin == -2 ? kclen / 2 : C->qmin;
+        long np1 = C->qf ? cbc_shpatch(kc, kclen, sg, 0x400, C->qf, C->qt, qmin) : 0;
+        long np2 = C->qf2 ? cbc_shpatch(kc, kclen, sg, 0x400, C->qf2, C->qt2, qmin) : 0;
+        long ndw = 0;
+        if (C->df)
+            for (long o = 0x48; o + 4 <= 0x400 && ndw < C->dmax; o += 4)
+                if (*(uint32_t *)(sg + o) == C->df) { *(uint32_t *)(sg + o) = C->dt; ndw++; }
+        if (C->soff >= 0) { *(uint32_t *)(sg + C->soff) = C->dt; ndw++; }
+        LOG("[cbc] case #%ld %s | kclen 0x%lx patches q %ld+%ld dw %ld | commit",
+            cn, C->desc, kclen, np1, np2, ndw);
+        cbc_syncpoint(docdir);   // log + fsync BEFORE commit (panic risk)
+        @try {
+            [cb commit];
+            if (cb2) [cb2 commit];
+        } @catch (NSException *ex) {
+            LOG("[cbc] case #%ld commit EXCEPTION %s", cn, [[ex name] UTF8String]);
+            return;
+        }
+        long cst = -1, cst1 = -1;
+        for (int w = 0; w < 200; w++) {
+            cst = (long)[cb status];
+            cst1 = cb2 ? (long)[cb2 status] : 4;
+            if (cst >= 4 && cst1 >= 4) break;
+            usleep(10000);
+        }
+        if (C->chain == 6) {
+            int unexpected = (cst >= 4 && cst1 >= 4);
+            LOG("[cbc] case #%ld event-hang: cb1 %ld cb2 %ld%s (stop; resume FUZZ_CBCHAIN_SKIP=%ld)",
+                cn, cst, cst1,
+                unexpected ? " — WAIT DID NOT GATE (unexpected)" : " [HIT] wait gates",
+                cn);
+            stop = 1;
+            return;
+        }
+        if (cst < 4 || (cb2 && cst1 < 4)) {
+            LOG("[cbc] [HIT] case #%ld TIMEOUT cb %ld cb2 %ld — GPU wedged? stop "
+                "(resume: FUZZ_CBCHAIN_SKIP=%ld)", cn, cst, cst1, cn);
+            stop = 1;
+            return;
+        }
+        NSError *cberr = [cb error];
+        uint8_t *bufs[4] = { ap, bp, cp, dp };
+        const char *bnm[4] = { "A", "B", "C", "D" };
+        int exps[4] = { C->expA, C->expB, C->expC, C->expD };
+        long canbad = 0;
+        int expbad = 0;
+        for (int i = 0; i < 4; i++) {
+            for (long j = 0x10000; j < 0x14000; j++) if (bufs[i][j] != 0xCC) canbad++;
+            if (exps[i] >= 0) {
+                long bad = 0;
+                for (long j = 0; j < 0x10000; j++)
+                    if (bufs[i][j] != (uint8_t)exps[i]) bad++;
+                if (bad) {
+                    expbad = 1;
+                    LOG("[cbc] case #%ld: buf %s deviates from 0x%02x (%ld bytes)",
+                        cn, bnm[i], exps[i], bad);
+                }
+            }
+        }
+        if (C->chain == 3) {
+            long a42 = 0, b42 = 0;
+            for (long j = 0; j < 0x10000; j++) {
+                if (ap[j] == 0x42) a42++;
+                if (bp[j] == 0x42) b42++;
+            }
+            LOG("[cbc] case #%ld compute+blit: A 0x42-bytes %ld B 0x42-bytes %ld",
+                cn, a42, b42);
+        }
+        int hit = (cst != 4) || (cb2 && cst1 != 4) || cberr != nil || canbad > 0 || expbad;
+        if (cberr) {
+            NSString *ed = [cberr description];
+            LOG("[cbc] case #%ld -> status %ld (cb2 %ld) err '%s' canary-bad %ld [HIT]",
+                cn, cst, cst1, [ed UTF8String], canbad);
+        } else {
+            LOG("[cbc] case #%ld -> status %ld (cb2 %ld) canary-bad %ld%s",
+                cn, cst, cst1, canbad, hit ? " [HIT]" : "");
+        }
+    };
+    for (int i = 0; i < nt && !stop; i++) runcase(&tab[i]);
+    LOG("[cbc] done: total cases %ld executed %ld (alive)%s",
+        cn, done, stop ? " STOPPED-EARLY" : "");
+}
+
 // V115: p_killrace — widen the restartWorkQueue / getGuiltyChannel race.
 // p_mtlmut case #929: a blit cb with kcmd+0x150 patched 0x268 -> 0xffffffff
 // deterministically faults the GPU and kills the app (2/2 repro). Static
@@ -23981,6 +24311,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_QEXEC")) { p_qexec(); LOG("[probe13] qexec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SFW2")) { p_streamfuzz2(2000000); LOG("[probe13] sfw2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DSRECON")) { p_dsrecon(); LOG("[probe13] dsrecon-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_CBCHAIN")) { p_cbchain(); LOG("[probe13] cbchain-only mode, stop"); return NULL; }
         if (getenv("FUZZ_REPLAY2")) { p_replay2(); LOG("[probe13] replay2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }

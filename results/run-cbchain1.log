@@ -1,0 +1,85 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x580b
+[scaler] conn 0x580b, s1 12 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[cbc] v138: composite cb chains + shared events (skip 0 max 0 sanity 0)
+[cbc] gpuA 0x10000080000 gpuB 0x10000098000 gpuC 0x100000b0000 gpuD 0x100000c8000
+[cbc] compute pipeline: OK (maxTT 1024 tew 32)
+[cbc] reference rids A 1 B 1 C 1 D 1
+[cbc] sizeKB candidates (seg dword==0x40): 3
+[cbc] plan: 31 cases (4 sanity + 27 mutation, sizeKB cases 9)
+[cbc] case #1 S1:blit A>B,B>C(dep) | kclen 0x2d8 patches q 0+0 dw 0 | commit
+[cbc] case #1 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #2 S2:compute0x42>A,A>B | kclen 0x630 patches q 0+0 dw 0 | commit
+[cbc] case #2 compute+blit: A 0x42-bytes 4096 B 0x42-bytes 4096
+[cbc] case #2 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #3 S3:signal1+wait1 | kclen 0x75c patches q 0+0 dw 0 | commit
+[cbc] case #3 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #4 S4:blit A>B,B>C,C>D | kclen 0x41c patches q 0+0 dw 0 | commit
+[cbc] case #4 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #5 M1:X enc2 dst wild | kclen 0x434 patches q 1+0 dw 0 | commit
+[cbc] case #5: buf C deviates from 0x43 (65536 bytes)
+[cbc] case #5 -> status 4 (cb2 4) canary-bad 0 [HIT]
+[cbc] case #6 M2:X enc2 dst->D(untouched) | kclen 0x434 patches q 1+0 dw 0 | commit
+[cbc] case #6: buf C deviates from 0x43 (65536 bytes)
+[cbc] case #6: buf D deviates from 0x41 (65536 bytes)
+[cbc] case #6 -> status 4 (cb2 4) canary-bad 0 [HIT]
+[cbc] case #7 M3:X enc2 src wild(late-half) | kclen 0x434 patches q 2+0 dw 0 | commit
+[cbc] case #7 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #8 M4:Y enc2 src C->A | kclen 0x434 patches q 1+0 dw 0 | commit
+[cbc] case #8: buf D deviates from 0x41 (65536 bytes)
+[cbc] case #8 -> status 4 (cb2 4) canary-bad 0 [HIT]
+[cbc] case #9 M5:Y enc2 dst D->B | kclen 0x434 patches q 1+0 dw 0 | commit
+[cbc] case #9: buf B deviates from 0x43 (65536 bytes)
+[cbc] case #9: buf D deviates from 0x99 (65536 bytes)
+[cbc] case #9 -> status 4 (cb2 4) canary-bad 0 [HIT]
+[cbc] case #10 M6:Y enc2 swap C<->D | kclen 0x434 patches q 1+1 dw 0 | commit
+[cbc] case #10: buf C deviates from 0x99 (65536 bytes)
+[cbc] case #10: buf D deviates from 0x99 (65536 bytes)
+[cbc] case #10 -> status 4 (cb2 4) canary-bad 0 [HIT]
+[cbc] case #11 M7:Y ridC->0x0 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #11 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105754b70 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #12 M7:Y ridC->0xffffffff | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #12 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105754cc0 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #13 M7:Y ridC->0xdead | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #13 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105755e00 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #14 M7:Y ridC->0x10000 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #14 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105754c60 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #15 M7:Y ridC->0x1 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #15 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #16 M8:Y ridD->0x0 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #16 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105754c90 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #17 M8:Y ridD->0xffffffff | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #17 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105755e60 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #18 M8:Y ridD->0xdead | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #18 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105754030 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #19 M8:Y ridD->0x10000 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #19 -> status 5 (cb2 4) err 'Error Domain=MTLCommandBufferErrorDomain Code=9 "Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource)" UserInfo={NSLocalizedDescription=Invalid Resource (00000009:kIOGPUCommandBufferCallbackErrorInvalidResource), NSUnderlyingError=0x105754a20 {Error Domain=IOGPUCommandQueueErrorDomain Code=9 "(null)"}}' canary-bad 0 [HIT]
+[cbc] case #20 M8:Y ridD->0x1 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #20 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #21 M9:seg sizeKB@0xb4->0x4000 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #21 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #22 M9:seg sizeKB@0xb4->0xffff | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #22 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #23 M9:seg sizeKB@0xb4->0x0 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #23 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #24 M9:seg sizeKB@0xe4->0x4000 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #24 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #25 M9:seg sizeKB@0xe4->0xffff | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #25 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #26 M9:seg sizeKB@0xe4->0x0 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #26 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #27 M9:seg sizeKB@0xf4->0x4000 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #27 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #28 M9:seg sizeKB@0xf4->0xffff | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #28 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #29 M9:seg sizeKB@0xf4->0x0 | kclen 0x434 patches q 0+0 dw 1 | commit
+[cbc] case #29 -> status 4 (cb2 4) canary-bad 0
+[cbc] case #30 M10:C4 enc3 dst wild | kclen 0x434 patches q 1+0 dw 0 | commit
+[cbc] case #30: buf D deviates from 0x99 (65536 bytes)
+[cbc] case #30 -> status 4 (cb2 4) canary-bad 0 [HIT]
+[cbc] case #31 M11:event wait2>signal1(hang) | kclen 0x434 patches q 0+0 dw 0 | commit
+[cbc] case #31 event-hang: cb1 4 cb2 2 [HIT] wait gates (stop; resume FUZZ_CBCHAIN_SKIP=31)
+[cbc] done: total cases 31 executed 31 (alive) STOPPED-EARLY
+[probe13] cbchain-only mode, stop

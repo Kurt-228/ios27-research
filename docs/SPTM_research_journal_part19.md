@@ -439,3 +439,13 @@ backings: 0 хитов CDM-сигнатур). Вывод: stream-страниц�
 переходит на редактирование живого stream'а (p_mtpatch-механика v89 —
 исполнение доказано) либо строится после полного реверса грамматики
 (beginComputePass построчно — §8.6, оценка дни-недели).
+
+## 128. v142: p_cbchain — составные command buffers чисты
+
+31 кейс (results/run-cbchain1.log): sanity-цепочки (blit+blit dep,
+compute+blit, signal/wait, triple) исполняются штатно; cross-encoder
+подмены pool-слотов/rid/sizeKB — молчаливые drop или Invalid Resource;
+M11 (wait value > signaled) — ожидаемый hang очереди (cb status 2),
+не баг. Паник/крашей/неожиданных записей нет. Путь композиции команд
+закрыт. ПРИМЕЧАНИЕ по детектору: «deviation» в #30 — ложный (нормальная
+запись цепочки C→D), к багу не относится.
