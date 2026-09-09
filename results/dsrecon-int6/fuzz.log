@@ -1,0 +1,303 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x560f
+[scaler] conn 0x560f, s1 12 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[dsr] v124: N1 baseline-template diff + N2 pointer discrimination
+[dsr] cfg0 size 0x4000 gpuA 0x10000080000 gpuB 0x10000088000
+[dsr] cfg0 storage 0x109ae8000 kcmd 0x1094f4000 seg 0x1094f0000 (pre-endEncoding)
+[dsr]   pool region 0x109554000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109800000 sz 0x400000 (hit gpuA+0xf108)
+[dsr]   pool region 0x10d400000 sz 0x400000 (hit gpuA+0x1a790)
+[dsr]   pool region 0x16bf7c000 sz 0x88000 (hit gpuA+0x7fb60)
+[dsr]   pool region 0x109554000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109800000 sz 0x400000 (hit gpuA+0xf108)
+[dsr]   pool region 0x10d400000 sz 0x400000 (hit gpuA+0x1a790)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x54a0)
+[dsr]   pool region 0x16bf7c000 sz 0x88000 (hit gpuA+0x7fb60)
+[dsr] cfg0 kcmd: 0 changed lines
+[dsr] cfg0 seg: 0 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr] cfg0 pool +0x0000: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0010: 602707fd01000000 -> a87fe2fc01000000
+[dsr] cfg0 pool +0x0020: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x05e0: 0100088000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x09a0: 0100088000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0a40: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0a50: d006effc01000000 -> 7891488e02000000
+[dsr] cfg0 pool +0x0a80: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0ac0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0ae0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0b40: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0b50: b871dcfc01000000 -> b090488e02000000
+[dsr] cfg0 pool +0x0ba0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0bb0: 2086ddfc01000000 -> d890488e02000000
+[dsr] cfg0 pool +0x0be0: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x0c20: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0c40: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0ca0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0d60: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x0da0: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x0de0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0e00: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0e10: 5086dcfc01000000 -> 8890488e02000000
+[dsr] cfg0 pool +0x0f00: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0f40: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x0fd0: c863dcfc01000000 -> 2891488e02000000
+[dsr] cfg0 pool +0x10a0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1100: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x1360: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x1380: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x13a0: 0100088000000000 -> 0100088000000000
+[dsr] cfg0 pool +0x1400: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1580: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x15f0: 70e8e6fc01000000 -> 60ebdcfc01000000
+[dsr] cfg0 pool +0x18c0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1980: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1b40: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1c80: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1f60: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x1fc0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2040: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2200: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2240: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x24c0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2770: 08b1e2fc01000000 -> 204ee2fc01000000
+[dsr] cfg0 pool +0x2a00: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2d80: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2dc0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x2ee0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x33e0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3420: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3940: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3960: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3b60: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3c00: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3c40: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3c50: 08a7e2fc01000000 -> 80cfe1fc01000000
+[dsr] cfg0 pool +0x3f80: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3f90: 7099e1fc01000000 -> 5898e1fc01000000
+[dsr] cfg0 pool +0x3fa0: 010008a000000000 -> 010008a000000000
+[dsr] cfg0 pool +0x3fb0: 28a0e2fc01000000 -> 60a9e2fc01000000
+[dsr] cfg0 pool: 61 changed lines
+[dsr] cfg0 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-pool3.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg0-pool4.bin (16384 bytes) ok
+[dsr] cfg0 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg0 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg0 pool0: pointer hits A 1 B 1
+[dsr] cfg1 size 0x10000 gpuA 0x10000110000 gpuB 0x10000128000
+[dsr] cfg1 storage 0x109ae8000 kcmd 0x1094f4000 seg 0x1094f0000 (pre-endEncoding)
+[dsr]   pool region 0x109554000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109800000 sz 0x400000 (hit gpuA+0x2737a0)
+[dsr]   pool region 0x10d400000 sz 0x400000 (hit gpuA+0x32790)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x1d4a0)
+[dsr]   pool region 0x16bf7c000 sz 0x88000 (hit gpuB+0x7e798)
+[dsr]   pool region 0x28e488000 sz 0x1b78000 (hit gpuA+0x1a83478)
+[dsr]   pool region 0x109554000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109800000 sz 0x400000 (hit gpuA+0x2737a0)
+[dsr]   pool region 0x10d400000 sz 0x400000 (hit gpuA+0x32790)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x1d4a0)
+[dsr]   pool region 0x16bf7c000 sz 0x88000 (hit gpuB+0x7e798)
+[dsr]   pool region 0x28e488000 sz 0x1b78000 (hit gpuA+0x1a83478)
+[dsr] cfg1 kcmd: 0 changed lines
+[dsr] cfg1 seg: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr] cfg1 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-pool3.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-pool4.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg1-pool5.bin (16384 bytes) ok
+[dsr] cfg1 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg1 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg1 pool0: pointer hits A 1 B 1
+[dsr] cfg2 size 0x40000 gpuA 0x10000140000 gpuB 0x10000188000
+[dsr] cfg2 storage 0x109ae8000 kcmd 0x1094f4000 seg 0x1094f0000 (pre-endEncoding)
+[dsr]   pool region 0x109554000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109800000 sz 0x400000 (hit gpuA+0x273aa0)
+[dsr]   pool region 0x10d400000 sz 0x400000 (hit gpuA+0x3e790)
+[dsr]   pool region 0x16bf7c000 sz 0x88000 (hit gpuB+0x7e798)
+[dsr]   pool region 0x109554000 sz 0xc000 (hit gpuA+0x14a0)
+[dsr]   pool region 0x109800000 sz 0x400000 (hit gpuA+0x273aa0)
+[dsr]   pool region 0x10d400000 sz 0x400000 (hit gpuA+0x3e790)
+[dsr]   pool region 0x10d800000 sz 0x400000 (hit gpuA+0x194a0)
+[dsr]   pool region 0x16bf7c000 sz 0x88000 (hit gpuB+0x7e798)
+[dsr] cfg2 kcmd: 0 changed lines
+[dsr] cfg2 seg: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr] cfg2 pool: 0 changed lines
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-kcmd.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-kcmd-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-seg.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-seg-pre.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-pool0.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-pool1.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-pool2.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-pool3.bin (16384 bytes) ok
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-cfg2-pool4.bin (16384 bytes) ok
+[dsr] cfg2 pool0 +0x14a0 = gpuA (POINTER)
+[dsr] cfg2 pool0 +0x14a8 = gpuB (POINTER)
+[dsr] cfg2 pool0: pointer hits A 1 B 1
+[dsr] x0v1 kcmd: 0 changed lines
+[dsr] x0v1 seg +0x0000: 98c8771d00000000 -> 9ac8771d00000000
+[dsr] x0v1 seg +0x0010: 00000000ac000000 -> 00000000ac000000
+[dsr] x0v1 seg +0x0020: 0000000000000000 -> 0000000000000000
+[dsr] x0v1 seg +0x0100: 8000800000000600 -> 8000800000000600
+[dsr] x0v1 seg +0x0120: 1000000010000000 -> 4000000040000000
+[dsr] x0v1 seg: 5 changed lines
+[dsr] x0v2 kcmd: 0 changed lines
+[dsr] x0v2 seg +0x0000: 98c8771d00000000 -> 9cc8771d00000000
+[dsr] x0v2 seg +0x0010: 00000000ac000000 -> 00000000ac000000
+[dsr] x0v2 seg +0x0020: 0000000000000000 -> 0000000000000000
+[dsr] x0v2 seg +0x0100: 8000800000000600 -> 8000800000000600
+[dsr] x0v2 seg +0x0120: 1000000010000000 -> 0001000000010000
+[dsr] x0v2 seg: 5 changed lines
+[dsri6] E/P via gpuva-relative record layout (§2.6)
+[dsri6] blit status 4
+[dsri6] P anchor 0x100100000 @+0x98190: back 0x400001000000000 msz 0x100000028 sz 0x8 marker 0x0 sz2 0x300000028 obj 0x1
+[dsri6] WARNING: P record layout invalid — 16 qwords around anchor:
+[dsri6]   anchor-64 (0x98150): 0x3000000001
+[dsri6]   anchor-56 (0x98158): 0x100000003
+[dsri6]   anchor-48 (0x98160): 0x2800000000
+[dsri6]   anchor-40 (0x98168): 0x800000004
+[dsri6]   anchor-32 (0x98170): 0x400001000000000
+[dsri6]   anchor-24 (0x98178): 0x100000028
+[dsri6]   anchor-16 (0x98180): 0x8
+[dsri6]   anchor-8 (0x98188): 0x0
+[dsri6]   anchor+0 (0x98190): 0x100100000
+[dsri6]   anchor+8 (0x98198): 0x300000028
+[dsri6]   anchor+16 (0x981a0): 0x1
+[dsri6]   anchor+24 (0x981a8): 0x400000028
+[dsri6]   anchor+32 (0x981b0): 0x8
+[dsri6]   anchor+40 (0x981b8): 0x2004000000
+[dsri6]   anchor+48 (0x981c0): 0x800000001
+[dsri6]   anchor+56 (0x981c8): 0x0
+[dsri6] P fallback: ANCHOR-CENTERED window 0x97190+0x2000 -> dsrecon-int6-FB0.bin
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-int6-FB0.bin (8192 bytes) ok
+[dsri6] E anchor 0x100000f0000 @+0xf748: back 0x109538000 msz 0x8000 sz 0x8000 marker 0x1f sz2 0x8000 obj 0x108fe1740
+[dsri6] E backing 0x109538000+8000 first 64B:
+[mtls] E+000: 00 00 00 00 40 00 00 01 00 2c 00 00 01 00 00 40
+[mtls] E+010: 00 10 00 00 01 00 00 00 01 00 00 00 00 04 00 00
+[mtls] E+020: 01 00 00 00 01 00 00 00 00 00 00 40 00 00 00 00
+[mtls] E+030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-int6-E.bin (32768 bytes) ok
+[dsri6] E fsync -> 0
+[dsri6] Erec window 0xe748+0x2000 -> dsrecon-int6-Erec.bin
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-int6-Erec.bin (8192 bytes) ok
+[dsri6] E anchor 0x100000f0000 @+0x5f000: back 0x109538000 msz 0x8000 sz 0x8000 marker 0x1f sz2 0x8000 obj 0x108fe1740
+[dsri6] E anchor 0x100000f0000 @+0x1ad180: back 0x0 msz 0x0 sz 0x0 marker 0x0 sz2 0x109538000 obj 0x109540000
+[dsri6] WARNING: E record layout invalid — 16 qwords around anchor:
+[dsri6]   anchor-64 (0x1ad140): 0x0
+[dsri6]   anchor-56 (0x1ad148): 0x0
+[dsri6]   anchor-48 (0x1ad150): 0x0
+[dsri6]   anchor-40 (0x1ad158): 0x0
+[dsri6]   anchor-32 (0x1ad160): 0x0
+[dsri6]   anchor-24 (0x1ad168): 0x0
+[dsri6]   anchor-16 (0x1ad170): 0x0
+[dsri6]   anchor-8 (0x1ad178): 0x0
+[dsri6]   anchor+0 (0x1ad180): 0x100000f0000
+[dsri6]   anchor+8 (0x1ad188): 0x109538000
+[dsri6]   anchor+16 (0x1ad190): 0x109540000
+[dsri6]   anchor+24 (0x1ad198): 0x0
+[dsri6]   anchor+32 (0x1ad1a0): 0x0
+[dsri6]   anchor+40 (0x1ad1a8): 0x0
+[dsri6]   anchor+48 (0x1ad1b0): 0x8000
+[dsri6]   anchor+56 (0x1ad1b8): 0x0
+[dsri6] E anchor 0x100000f0000 @+0x272ee0: back 0x8000 msz 0x1f sz 0xd26a marker 0x0 sz2 0x109abc000 obj 0x290d4b978
+[dsri6] WARNING: E record layout invalid — 16 qwords around anchor:
+[dsri6]   anchor-64 (0x272ea0): 0x0
+[dsri6]   anchor-56 (0x272ea8): 0x0
+[dsri6]   anchor-48 (0x272eb0): 0x0
+[dsri6]   anchor-40 (0x272eb8): 0x0
+[dsri6]   anchor-32 (0x272ec0): 0x8000
+[dsri6]   anchor-24 (0x272ec8): 0x1f
+[dsri6]   anchor-16 (0x272ed0): 0xd26a
+[dsri6]   anchor-8 (0x272ed8): 0x0
+[dsri6]   anchor+0 (0x272ee0): 0x100000f0000
+[dsri6]   anchor+8 (0x272ee8): 0x109abc000
+[dsri6]   anchor+16 (0x272ef0): 0x290d4b978
+[dsri6]   anchor+24 (0x272ef8): 0x1e77c89f
+[dsri6]   anchor+32 (0x272f00): 0x0
+[dsri6]   anchor+40 (0x272f08): 0x10980f710
+[dsri6]   anchor+48 (0x272f10): 0x108fe1740
+[dsri6]   anchor+56 (0x272f18): 0x109538000
+[dsri6] E anchor 0x100000f0000 @+0x279010: back 0x109538000 msz 0x8000 sz 0x8000 marker 0x1f sz2 0x8000 obj 0x108fe1740
+[dsri6] P anchor 0x100100000 @+0x33d000: back 0x400001000000000 msz 0x100000028 sz 0x8 marker 0x0 sz2 0x300000028 obj 0x1
+[dsri6] WARNING: P record layout invalid — 16 qwords around anchor:
+[dsri6]   anchor-64 (0x33cfc0): 0x3000000001
+[dsri6]   anchor-56 (0x33cfc8): 0x100000003
+[dsri6]   anchor-48 (0x33cfd0): 0x2800000000
+[dsri6]   anchor-40 (0x33cfd8): 0x800000004
+[dsri6]   anchor-32 (0x33cfe0): 0x400001000000000
+[dsri6]   anchor-24 (0x33cfe8): 0x100000028
+[dsri6]   anchor-16 (0x33cff0): 0x8
+[dsri6]   anchor-8 (0x33cff8): 0x0
+[dsri6]   anchor+0 (0x33d000): 0x100100000
+[dsri6]   anchor+8 (0x33d008): 0x300000028
+[dsri6]   anchor+16 (0x33d010): 0x1
+[dsri6]   anchor+24 (0x33d018): 0x400000028
+[dsri6]   anchor+32 (0x33d020): 0x8
+[dsri6]   anchor+40 (0x33d028): 0x2004000000
+[dsri6]   anchor+48 (0x33d030): 0x800000001
+[dsri6]   anchor+56 (0x33d038): 0x0
+[dsri6] P fallback: ANCHOR-CENTERED window 0x33c000+0x2000 -> dsrecon-int6-FB1.bin
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-int6-FB1.bin (8192 bytes) ok
+[dsri6] P anchor 0x100100000 @+0x7fc28: back 0x16bf7c000 msz 0x16bffbd68 sz 0x9 marker 0x1043e0acb sz2 0x109924f00 obj 0x28e488078
+[dsri6] WARNING: P record layout invalid — 16 qwords around anchor:
+[dsri6]   anchor-64 (0x7fbe8): 0x0
+[dsri6]   anchor-56 (0x7fbf0): 0xc8fb5096e2d90015
+[dsri6]   anchor-48 (0x7fbf8): 0x0
+[dsri6]   anchor-40 (0x7fc00): 0x7fc28
+[dsri6]   anchor-32 (0x7fc08): 0x16bf7c000
+[dsri6]   anchor-24 (0x7fc10): 0x16bffbd68
+[dsri6]   anchor-16 (0x7fc18): 0x9
+[dsri6]   anchor-8 (0x7fc20): 0x1043e0acb
+[dsri6]   anchor+0 (0x7fc28): 0x100100000
+[dsri6]   anchor+8 (0x7fc30): 0x109924f00
+[dsri6]   anchor+16 (0x7fc38): 0x28e488078
+[dsri6]   anchor+24 (0x7fc40): 0x1
+[dsri6]   anchor+32 (0x7fc48): 0x100000f0000
+[dsri6]   anchor+40 (0x7fc50): 0x16bffd130
+[dsri6]   anchor+48 (0x7fc58): 0x104394290
+[dsri6]   anchor+56 (0x7fc60): 0x16bffbd68
+[dsri6] P fallback: ANCHOR-CENTERED window 0x7ec28+0x2000 -> dsrecon-int6-FB2.bin
+[dsr]   wrote /var/mobile/Containers/Data/Application/0650147A-D7FC-4550-A169-B39C46E85AF5/Documents/dsrecon-int6-FB2.bin (8192 bytes) ok
+[dsri6] E anchor 0x100000f0000 @+0x7fc48: back 0x100100000 msz 0x109924f00 sz 0x28e488078 marker 0x1 sz2 0x16bffd130 obj 0x104394234
+[dsri6] WARNING: E record layout invalid — 16 qwords around anchor:
+[dsri6]   anchor-64 (0x7fc08): 0x16bf7c000
+[dsri6]   anchor-56 (0x7fc10): 0x16bffbd68
+[dsri6]   anchor-48 (0x7fc18): 0x9
+[dsri6]   anchor-40 (0x7fc20): 0x1043e0acb
+[dsri6]   anchor-32 (0x7fc28): 0x100100000
+[dsri6]   anchor-24 (0x7fc30): 0x109924f00
+[dsri6]   anchor-16 (0x7fc38): 0x28e488078
+[dsri6]   anchor-8 (0x7fc40): 0x1
+[dsri6]   anchor+0 (0x7fc48): 0x100000f0000
+[dsri6]   anchor+8 (0x7fc50): 0x16bffd130
+[dsri6]   anchor+16 (0x7fc58): 0x104394234
+[dsri6]   anchor+24 (0x7fc60): 0x16bffbd68
+[dsri6]   anchor+32 (0x7fc68): 0x2000
+[dsri6]   anchor+40 (0x7fc70): 0x1094f4000
+[dsri6]   anchor+48 (0x7fc78): 0x1094f0000
+[dsri6]   anchor+56 (0x7fc80): 0x0
+[dsri6] done: P 0, E 1, fb 3, erec 1 (alive)
+[dsr] done (alive)
+[probe13] dsrecon-only mode, stop

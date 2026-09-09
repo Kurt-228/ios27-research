@@ -14802,7 +14802,19 @@ static void dsr_free_snap(dsr_snap *s) {
 static void dsr_write_file(NSString *docdir, const char *name, const uint8_t *buf, long len) {
     NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:name]];
     BOOL ok = [[NSData dataWithBytes:buf length:(NSUInteger)len] writeToFile:p atomically:NO];
-    LOG("[dsr]   wrote %s (%ld bytes) %s", [p UTF8String], len, ok ? "ok" : "FAILED");
+    // §2.7: verify the write path by reading back and comparing — catches
+    // the "hexdump non-zero, file zero" divergence at the source. All dump
+    // helpers already snapshot into a malloc buffer first (hexdump AND file
+    // come from that same buffer), so a mismatch here is a real write fault.
+    const char *ver = "noverify";
+    if (ok) {
+        long vl = len < 0x1000 ? len : 0x1000;
+        NSData *rb = [NSData dataWithContentsOfFile:p];
+        ver = (rb && (long)rb.length >= vl)
+            ? (memcmp(rb.bytes, buf, (size_t)vl) == 0 ? "verify-OK" : "*** VERIFY-MISMATCH ***")
+            : "readback-failed";
+    }
+    LOG("[dsr]   wrote %s (%ld bytes) %s %s", [p UTF8String], len, ok ? "ok" : "FAILED", ver);
 }
 // compact diff: only changed 16-byte lines (first 8 bytes shown)
 static void dsr_diff_log(const char *tag, const char *what, const uint8_t *pre,
@@ -14851,6 +14863,13 @@ static void dsr5b_verify(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *do
 static void dsr_postseg(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr_int_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void dsr_int2_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int3_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int4_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int5_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int6_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int7_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int8_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
+static void dsr_int9_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir);
 static void p_dsrecon(void) {
     LOG("[dsr] v124: N1 baseline-template diff + N2 pointer discrimination");
     id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
@@ -14938,6 +14957,13 @@ static void p_dsrecon(void) {
     if (getenv("FUZZ_DSRECON_POSTSEG")) dsr_postseg(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_INT")) dsr_int_dump(dev, mq, docdir);
     if (getenv("FUZZ_DSRECON_INT2")) dsr_int2_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT3")) dsr_int3_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT4")) dsr_int4_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT5")) dsr_int5_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT6")) dsr_int6_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT7")) dsr_int7_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT8")) dsr_int8_dump(dev, mq, docdir);
+    if (getenv("FUZZ_DSRECON_INT9")) dsr_int9_dump(dev, mq, docdir);
     LOG("[dsr] done (alive)");
 }
 
@@ -15515,12 +15541,965 @@ static void dsr_int2_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *d
     LOG("[dsri2] done: %d dumps (alive)", nd);
 }
 
+// V131: FUZZ_DSRECON_INT3 — session VA-map location + E/P content harvest
+// (§2.4). P = pool page (GPUVA 0x1_00100000) with CDM-stream/driver table,
+// E = metacache 64KB (0x1_000f0000). Method: blit+commit session; from the
+// kcmd shmem CPU VA (storage+0x28) scan the neighborhood kcmd_cpu-0x100000..
+// +0x400000 for VA-map entries {lo32, hi=0x100, cpu64}; the map is confirmed
+// by entries carrying OUR gpuA/gpuB. From the map take the cpu backings of
+// P (0x1_00100000-class, mask lo in [0x100000,0x200000)) and E (0x1_000f0000-
+// class, lo in [0xe0000,0x100000)), exact values preferred over drifted ones;
+// verify readability (mach_vm_region), dump 64KB each to dsrecon-int3-{P,E}.bin
+// with a 128-byte hex header in the log; fsync after every file. Fallback:
+// no confirmed map -> writable-region scan for the anchor qwords 0x100000f0000
+// (E) / 0x100100000 (P), dump containing regions. Tag [dsri3].
+static void dsri3_dump64(NSString *docdir, const char *tag, uint64_t cpu) {
+    mach_vm_address_t q = (mach_vm_address_t)cpu;
+    mach_vm_size_t rsz = 0;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t obj;
+    kern_return_t kr = mach_vm_region(mach_task_self(), &q, &rsz, VM_REGION_BASIC_INFO_64,
+                                      (vm_region_info_t)&info, &cnt, &obj);
+    if (kr || cpu < q || cpu + 0x10000 > q + rsz || !(info.protection & VM_PROT_READ)) {
+        LOG("[dsri3] %s cpu 0x%llx: NOT readable/mapped (region 0x%llx+0x%llx kr 0x%x prot 0x%x)",
+            tag, cpu, (uint64_t)q, (uint64_t)rsz, kr, info.protection);
+        return;
+    }
+    uint8_t *tmp = malloc(0x10000);
+    memcpy(tmp, (void *)(uintptr_t)cpu, 0x10000);
+    LOG("[dsri3] %s cpu 0x%llx (region 0x%llx+0x%llx prot 0x%x) first 128B:",
+        tag, cpu, (uint64_t)q, (uint64_t)rsz, info.protection);
+    mtl_hexdump(tag, 0, tmp, 128);
+    char nm[40];
+    snprintf(nm, sizeof nm, "dsrecon-int3-%s.bin", tag);
+    dsr_write_file(docdir, nm, tmp, 0x10000);
+    NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+    int fd = open([p fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { int fr = fsync(fd); close(fd); LOG("[dsri3] %s fsync -> %d", tag, fr); }
+    free(tmp);
+}
+
+static void dsr_int3_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri3] session VA-map location -> E/P harvest (§2.4)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri3] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    uint64_t kva = storage ? *(uint64_t *)((uint8_t *)storage + 0x28) : 0;
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri3] blit status %ld gpuA 0x%llx gpuB 0x%llx kcmd_cpu 0x%llx",
+        (long)[cb status], gpuA, gpuB, kva);
+    uint64_t ent_g[256], ent_c[256];
+    int nent = 0, nAB = 0;
+    long best_n = 0; uint64_t best_reg = 0;
+    if (kva) {
+        uint64_t lo_b = kva > 0x100000 ? kva - 0x100000 : 0;
+        uint64_t hi_b = kva + 0x400000;
+        mach_vm_address_t addr = 0;
+        for (;;) {
+            mach_vm_size_t sz = 0;
+            vm_region_basic_info_data_64_t info;
+            mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_port_t obj;
+            if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                               (vm_region_info_t)&info, &cnt, &obj)) break;
+            uint64_t r0 = (uint64_t)addr, r1 = r0 + (uint64_t)sz;
+            if ((info.protection & VM_PROT_READ) && r1 > lo_b && r0 < hi_b) {
+                uint64_t s0 = r0 > lo_b ? r0 : lo_b;
+                uint64_t s1 = r1 < hi_b ? r1 : hi_b;
+                const uint8_t *b = (const uint8_t *)(uintptr_t)s0;
+                long lim = (long)(s1 - s0), nreg = 0;
+                for (long o = 0; o + 16 <= lim; o += 4) {
+                    uint32_t d0, d1;
+                    memcpy(&d0, b + o, 4); memcpy(&d1, b + o + 4, 4);
+                    if (d1 != 0x100 || d0 < 0x10000) continue;
+                    uint64_t cval;
+                    memcpy(&cval, b + o + 8, 8);
+                    if (cval < 0x100000000ULL || cval >= 0x300000000ULL) continue;
+                    uint64_t gva = 0x100000000ULL | d0;
+                    nreg++;
+                    if (nent < 256) { ent_g[nent] = gva; ent_c[nent] = cval; nent++; }
+                    if (gva == gpuA || gva == gpuB) nAB++;
+                }
+                if (nreg)
+                    LOG("[dsri3] region 0x%llx+0x%llx: %ld split-entries%s",
+                        r0, (uint64_t)sz, nreg, nreg > best_n ? " (new top)" : "");
+                if (nreg > best_n) { best_n = nreg; best_reg = r0; }
+            }
+            addr += sz;
+            if (!sz) break;
+        }
+    } else {
+        LOG("[dsri3] WARNING: no kcmd shmem VA — VA-map scan skipped, fallback only");
+    }
+    LOG("[dsri3] scan: %d entries, %d gpuA/gpuB confirmations, top region 0x%llx (%ld)",
+        nent, nAB, best_reg, best_n);
+    int map_ok = nAB >= 2 && nent >= 8;
+    uint64_t p_cpu = 0, e_cpu = 0;
+    if (map_ok) {
+        // exact P/E first, then drift-tolerant class (mask 0x1_00xx0000)
+        for (int i = 0; i < nent; i++) {
+            uint32_t l = (uint32_t)ent_g[i];
+            if (!p_cpu && l == 0x100000) p_cpu = ent_c[i];
+            if (!e_cpu && l == 0xf0000) e_cpu = ent_c[i];
+        }
+        for (int i = 0; i < nent; i++) {
+            uint32_t l = (uint32_t)ent_g[i];
+            if (!p_cpu && l >= 0x100000 && l < 0x200000) p_cpu = ent_c[i];
+            if (!e_cpu && l >= 0xe0000 && l < 0x100000) e_cpu = ent_c[i];
+        }
+        LOG("[dsri3] VA-map confirmed: P cpu 0x%llx, E cpu 0x%llx%s",
+            p_cpu, e_cpu, (p_cpu && e_cpu) ? "" : " — INCOMPLETE");
+        if (p_cpu) dsri3_dump64(docdir, "P", p_cpu);
+        if (e_cpu) dsri3_dump64(docdir, "E", e_cpu);
+    } else {
+        LOG("[dsri3] VA-map NOT confirmed — fallback: anchor qword scan");
+        mach_vm_address_t addr = 0;
+        int nd = 0;
+        for (; nd < 4;) {
+            mach_vm_size_t sz = 0;
+            vm_region_basic_info_data_64_t info;
+            mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_port_t obj;
+            if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                               (vm_region_info_t)&info, &cnt, &obj)) break;
+            int hit = 0;
+            if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+                && sz >= 0x1000 && sz <= 0x1000000) {
+                const uint8_t *b = (const uint8_t *)addr;
+                mach_vm_size_t lim = sz > 0x40000 ? 0x40000 : sz;
+                for (mach_vm_size_t o = 0; o + 8 <= lim; o += 8) {
+                    uint64_t qw;
+                    memcpy(&qw, b + o, 8);
+                    if (qw == 0x100000f0000ULL || qw == 0x100100000ULL) {
+                        LOG("[dsri3] fallback: anchor 0x%llx @region 0x%llx+0x%llx",
+                            qw, (uint64_t)addr, (uint64_t)o);
+                        hit = 1;
+                    }
+                }
+            }
+            if (hit) {
+                mach_vm_size_t ds = sz > 0x40000 ? 0x40000 : sz;
+                uint8_t *tmp = malloc(ds);
+                memcpy(tmp, (void *)(uintptr_t)addr, ds);
+                char nm[40];
+                snprintf(nm, sizeof nm, "dsrecon-int3-FB%d.bin", nd);
+                dsr_write_file(docdir, nm, tmp, (long)ds);
+                NSString *pp = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+                int fd = open([pp fileSystemRepresentation], O_RDONLY);
+                if (fd >= 0) { fsync(fd); close(fd); }
+                free(tmp);
+                nd++;
+            }
+            addr += sz;
+            if (!sz) break;
+        }
+        LOG("[dsri3] fallback done: %d region dumps", nd);
+    }
+    LOG("[dsri3] done (alive)");
+}
+
+// V132: FUZZ_DSRECON_INT4 — direct backing dump of E/P (§2.5). The int3
+// resource map placed both backings in the kcmd shmem cluster of their
+// session: E = kcmd_cpu+0x44000 (32KB metacache), P = kcmd_cpu+0x5c000
+// (48KB pool page with CDM-stream/driver table). Offsets are session-stable
+// (same shmem allocation pattern), so this mode re-derives kcmd_cpu in a
+// fresh session (storage+0x28 before commit) and dumps both windows.
+// Readability verified via mach_vm_region, 64-byte hex header in the log,
+// fsync after each file. Tag [dsri4].
+static void dsri4_dumpN(NSString *docdir, const char *tag, uint64_t va, mach_vm_size_t len) {
+    mach_vm_address_t q = (mach_vm_address_t)va;
+    mach_vm_size_t rsz = 0;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t obj;
+    kern_return_t kr = mach_vm_region(mach_task_self(), &q, &rsz, VM_REGION_BASIC_INFO_64,
+                                      (vm_region_info_t)&info, &cnt, &obj);
+    if (kr || va < q || va + len > q + rsz || !(info.protection & VM_PROT_READ)) {
+        LOG("[dsri4] %s 0x%llx+0x%llx: NOT readable/mapped (region 0x%llx+0x%llx kr 0x%x prot 0x%x)",
+            tag, va, (uint64_t)len, (uint64_t)q, (uint64_t)rsz, kr, info.protection);
+        return;
+    }
+    uint8_t *tmp = malloc(len);
+    memcpy(tmp, (void *)(uintptr_t)va, len);
+    LOG("[dsri4] %s 0x%llx (region 0x%llx+0x%llx prot 0x%x) first 64B:",
+        tag, va, (uint64_t)q, (uint64_t)rsz, info.protection);
+    mtl_hexdump(tag, 0, tmp, 64);
+    char nm[40];
+    snprintf(nm, sizeof nm, "dsrecon-int4-%s.bin", tag);
+    dsr_write_file(docdir, nm, tmp, (long)len);
+    NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+    int fd = open([p fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { int fr = fsync(fd); close(fd); LOG("[dsri4] %s fsync -> %d", tag, fr); }
+    free(tmp);
+}
+
+static void dsr_int4_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri4] E/P direct backing dump from kcmd shmem cluster (§2.5)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri4] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    uint64_t kva = storage ? *(uint64_t *)((uint8_t *)storage + 0x28) : 0;
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri4] blit status %ld kcmd_cpu 0x%llx", (long)[cb status], kva);
+    if (!kva) { LOG("[dsri4] no kcmd shmem VA — abort"); return; }
+    dsri4_dumpN(docdir, "E", kva + 0x44000, 0x8000);
+    dsri4_dumpN(docdir, "P", kva + 0x5c000, 0xc000);
+    LOG("[dsri4] done (alive)");
+}
+
+// V133: FUZZ_DSRECON_INT5 — E/P via the FB0-style resource map (§2.5). The
+// map is a link-list of 0x90-stride records whose fields include
+// {..., cpu_backing, size, gpuva, ...}; E's gpuva (0x1_000f0000, ASLR-free
+// anchor) sits inside its record, P's (0x1_00100000) a few records away.
+// Mode: blit+commit session, full writable-region scan for the anchor qword,
+// record parse around it (backing = plausible page-aligned userspace VA,
+// readable via mach_vm_region; size >= 0x8000; gpuva == anchor), same for P
+// near the anchor, then dump P (0xc000) and E (0x8000). If the record or a
+// backing is unreadable — log the qwords around the anchor and fall back to
+// dumping the whole anchor region (int3-FB0 style). fsync after each file.
+// Tag [dsri5].
+static int dsri5_readable(uint64_t va, uint64_t len) {
+    mach_vm_address_t q = (mach_vm_address_t)va;
+    mach_vm_size_t rsz = 0;
+    vm_region_basic_info_data_64_t info;
+    mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+    mach_port_t obj;
+    kern_return_t kr = mach_vm_region(mach_task_self(), &q, &rsz, VM_REGION_BASIC_INFO_64,
+                                      (vm_region_info_t)&info, &cnt, &obj);
+    return !kr && va >= (uint64_t)q && va + len <= (uint64_t)q + (uint64_t)rsz
+           && (info.protection & VM_PROT_READ);
+}
+
+static void dsri5_dumpN(NSString *docdir, const char *tag, uint64_t va, mach_vm_size_t len) {
+    if (!dsri5_readable(va, len)) {
+        LOG("[dsri5] %s backing 0x%llx+0x%llx: NOT readable — dump skipped", tag, va, (uint64_t)len);
+        return;
+    }
+    uint8_t *tmp = malloc(len);
+    memcpy(tmp, (void *)(uintptr_t)va, len);
+    LOG("[dsri5] %s backing 0x%llx+%llx first 64B:", tag, va, (uint64_t)len);
+    mtl_hexdump(tag, 0, tmp, 64);
+    char nm[40];
+    snprintf(nm, sizeof nm, "dsrecon-int5-%s.bin", tag);
+    dsr_write_file(docdir, nm, tmp, (long)len);
+    NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+    int fd = open([p fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { int fr = fsync(fd); close(fd); LOG("[dsri5] %s fsync -> %d", tag, fr); }
+    free(tmp);
+}
+
+// record parse: the anchor (gpuva field) with cpu_backing+size within the 8
+// qwords before it — try every 8-aligned offset in [off-0x40, off]
+static int dsri5_record(const uint8_t *b, long off, long lim, uint64_t anchor,
+                        uint64_t *backp, uint64_t *szp) {
+    for (long d = -0x40; d <= 0; d += 8) {
+        long bo = off + d;
+        if (bo < 0 || bo + 24 > lim) continue;
+        uint64_t back, size, gva;
+        memcpy(&back, b + bo, 8); memcpy(&size, b + bo + 8, 8); memcpy(&gva, b + bo + 16, 8);
+        if (gva != anchor) continue;
+        if (back < 0x100000000ULL || back >= 0x300000000ULL || (back & 0xfff)) continue;
+        if (size < 0x8000 || size > 0x1000000) continue;
+        if (!dsri5_readable(back, size)) continue;
+        *backp = back; *szp = size;
+        return 1;
+    }
+    return 0;
+}
+
+static void dsr_int5_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri5] E/P via resource map, FB0 record parse (§2.5)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri5] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri5] blit status %ld", (long)[cb status]);
+    int doneE = 0, doneP = 0, nd = 0;
+    mach_vm_address_t addr = 0;
+    for (; !doneE;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+            && sz >= 0x1000 && sz <= 0x1000000) {
+            const uint8_t *b = (const uint8_t *)addr;
+            mach_vm_size_t lim = sz > 0x400000 ? 0x400000 : sz;
+            for (mach_vm_size_t o = 0; o + 8 <= lim && !doneE; o += 8) {
+                uint64_t qw;
+                memcpy(&qw, b + o, 8);
+                if (qw != 0x100000f0000ULL) continue;
+                LOG("[dsri5] E anchor 0x100000f0000 @region 0x%llx+0x%llx (sz 0x%llx)",
+                    (uint64_t)addr, (uint64_t)o, (uint64_t)sz);
+                // qwords around the anchor (8 before .. 8 after)
+                for (long d = -0x40; d <= 0x40; d += 8) {
+                    long qo = (long)o + d;
+                    if (qo < 0 || qo + 8 > (long)lim) continue;
+                    uint64_t q;
+                    memcpy(&q, b + qo, 8);
+                    LOG("[dsri5]   anchor%+ld (0x%lx): 0x%llx", d, (long)qo, q);
+                }
+                uint64_t eback = 0, esz = 0;
+                if (dsri5_record(b, (long)o, (long)lim, 0x100000f0000ULL, &eback, &esz)) {
+                    LOG("[dsri5] E record: backing 0x%llx size 0x%llx", eback, esz);
+                    dsri5_dumpN(docdir, "E", eback, esz < 0x8000 ? esz : 0x8000);
+                    doneE = 1;
+                } else {
+                    LOG("[dsri5] WARNING: E record not parsed — dumping anchor region");
+                    uint8_t *tmp = malloc(0x40000);
+                    memcpy(tmp, b, 0x40000);
+                    char nm[40];
+                    snprintf(nm, sizeof nm, "dsrecon-int5-FB%d.bin", nd);
+                    dsr_write_file(docdir, nm, tmp, 0x40000);
+                    free(tmp);
+                    nd++;
+                    doneE = 1;   // anchor region captured; P search below uses it
+                }
+                // P: a few records away — near window first, then whole region
+                uint64_t pback = 0, psz = 0;
+                long phit = -1;
+                for (long d = -0x1000; d <= 0x1000 && phit < 0; d += 8) {
+                    long qo = (long)o + d;
+                    if (qo < 0 || qo + 8 > (long)lim) continue;
+                    uint64_t q;
+                    memcpy(&q, b + qo, 8);
+                    if (q == 0x100100000ULL) phit = qo;
+                }
+                if (phit < 0)
+                    for (mach_vm_size_t o2 = 0; o2 + 8 <= lim; o2 += 8) {
+                        uint64_t q;
+                        memcpy(&q, b + o2, 8);
+                        if (q == 0x100100000ULL) { phit = (long)o2; break; }
+                    }
+                if (phit >= 0) {
+                    LOG("[dsri5] P gpuva 0x100100000 @region+0x%lx", phit);
+                    if (dsri5_record(b, phit, (long)lim, 0x100100000ULL, &pback, &psz)) {
+                        LOG("[dsri5] P record: backing 0x%llx size 0x%llx", pback, psz);
+                        dsri5_dumpN(docdir, "P", pback, psz < 0xc000 ? psz : 0xc000);
+                        doneP = 1;
+                    } else {
+                        LOG("[dsri5] WARNING: P record not parsed (backing unreadable?)");
+                    }
+                } else {
+                    LOG("[dsri5] WARNING: P gpuva not found near E anchor / in region");
+                }
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    if (!doneE) LOG("[dsri5] WARNING: E anchor 0x100000f0000 not found in any region");
+    if (!doneP) LOG("[dsri5] WARNING: P not dumped this session");
+    LOG("[dsri5] done: E %d, P %d, fb %d (alive)", doneE, doneP, nd);
+}
+
+// V134: FUZZ_DSRECON_INT6 — E/P via the gpuva-relative map record layout
+// (§2.6). Record fields relative to the gpuva qword (anchor): -0x20
+// cpu_backing (page-aligned), -0x18 map-size, -0x10 size, -0x08 marker
+// (0x1f/0x22), +0x08 size repeat, +0x10 object ptr. FULL writable-region
+// scan for both anchors (P 0x1_00100000, E 0x1_000f0000); EVERY hit's record
+// fields are logged; backing dumped (P 0xc000 / E 0x8000). On layout
+// mismatch: 16 qwords around the anchor logged + ANCHOR-CENTERED window
+// (anchor-0x1000, 0x2000) dumped (int5's bug was region-head dumps). The E
+// record window also goes to dsrecon-int6-Erec.bin for layout verification.
+// fsync after every file. Tag [dsri6].
+static void dsri6_dumpN(NSString *docdir, const char *tag, uint64_t va, mach_vm_size_t len) {
+    if (!dsri5_readable(va, len)) {
+        LOG("[dsri6] %s backing 0x%llx+0x%llx: NOT readable — dump skipped", tag, va, (uint64_t)len);
+        return;
+    }
+    uint8_t *tmp = malloc(len);
+    memcpy(tmp, (void *)(uintptr_t)va, len);
+    LOG("[dsri6] %s backing 0x%llx+%llx first 64B:", tag, va, (uint64_t)len);
+    mtl_hexdump(tag, 0, tmp, 64);
+    char nm[40];
+    snprintf(nm, sizeof nm, "dsrecon-int6-%s.bin", tag);
+    dsr_write_file(docdir, nm, tmp, (long)len);
+    NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+    int fd = open([p fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { int fr = fsync(fd); close(fd); LOG("[dsri6] %s fsync -> %d", tag, fr); }
+    free(tmp);
+}
+
+// one anchor hit: log the record, dump the backing or an anchor-centered
+// fallback window
+static void dsri6_hit(NSString *docdir, const char *tag, uint64_t anchor, uint64_t cap,
+                      const uint8_t *b, long off, long lim, int *done, int *ndump) {
+    uint64_t back = 0, msz = 0, sz = 0, marker = 0, sz2 = 0, obj = 0;
+    int have = (off >= 0x20 && off + 0x18 <= lim);
+    if (have) {
+        memcpy(&back, b + off - 0x20, 8);
+        memcpy(&msz, b + off - 0x18, 8);
+        memcpy(&sz, b + off - 0x10, 8);
+        memcpy(&marker, b + off - 0x08, 8);
+        memcpy(&sz2, b + off + 0x08, 8);
+        memcpy(&obj, b + off + 0x10, 8);
+    }
+    LOG("[dsri6] %s anchor 0x%llx @+0x%lx: back 0x%llx msz 0x%llx sz 0x%llx"
+        " marker 0x%llx sz2 0x%llx obj 0x%llx",
+        tag, anchor, off, back, msz, sz, marker, sz2, obj);
+    uint64_t dlen = sz < cap ? sz : cap;
+    int ok = have
+        && back >= 0x100000000ULL && back < 0x300000000ULL && !(back & 0xfff)
+        && sz >= 0x8000 && sz <= 0x1000000
+        && dsri5_readable(back, dlen);
+    if (ok) {
+        if (!*done) {
+            dsri6_dumpN(docdir, tag, back, dlen);
+            *done = 1;
+        }
+        return;
+    }
+    LOG("[dsri6] WARNING: %s record layout invalid — 16 qwords around anchor:", tag);
+    for (long d = -0x40; d <= 0x38; d += 8) {
+        long qo = off + d;
+        if (qo < 0 || qo + 8 > lim) continue;
+        uint64_t q;
+        memcpy(&q, b + qo, 8);
+        LOG("[dsri6]   anchor%+ld (0x%lx): 0x%llx", d, qo, q);
+    }
+    if (!*done && *ndump < 4) {
+        long w0 = off - 0x1000;
+        if (w0 < 0) w0 = 0;
+        long wl = 0x2000;
+        if (w0 + wl > lim) wl = lim - w0;
+        if (wl > 0) {
+            uint8_t *tmp = malloc((size_t)wl);
+            memcpy(tmp, b + w0, (size_t)wl);
+            char nm[40];
+            snprintf(nm, sizeof nm, "dsrecon-int6-FB%d.bin", *ndump);
+            LOG("[dsri6] %s fallback: ANCHOR-CENTERED window 0x%lx+0x%lx -> %s",
+                tag, w0, wl, nm);
+            dsr_write_file(docdir, nm, tmp, wl);
+            NSString *pp = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+            int fd = open([pp fileSystemRepresentation], O_RDONLY);
+            if (fd >= 0) { fsync(fd); close(fd); }
+            free(tmp);
+            (*ndump)++;
+        }
+    }
+}
+
+static void dsr_int6_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri6] E/P via gpuva-relative record layout (§2.6)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri6] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri6] blit status %ld", (long)[cb status]);
+    int doneP = 0, doneE = 0, nd = 0, erec = 0;
+    mach_vm_address_t addr = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+            && sz >= 0x1000 && sz <= 0x1000000) {
+            const uint8_t *b = (const uint8_t *)addr;
+            for (mach_vm_size_t o = 0; o + 8 <= sz; o += 8) {
+                uint64_t qw;
+                memcpy(&qw, b + o, 8);
+                if (qw == 0x100100000ULL) {
+                    dsri6_hit(docdir, "P", qw, 0xc000, b, (long)o, (long)sz, &doneP, &nd);
+                } else if (qw == 0x100000f0000ULL) {
+                    dsri6_hit(docdir, "E", qw, 0x8000, b, (long)o, (long)sz, &doneE, &nd);
+                    if (!erec) {
+                        // E record window for layout verification
+                        long w0 = (long)o - 0x1000;
+                        if (w0 < 0) w0 = 0;
+                        long wl = 0x2000;
+                        if (w0 + wl > (long)sz) wl = (long)sz - w0;
+                        if (wl > 0) {
+                            uint8_t *tmp = malloc((size_t)wl);
+                            memcpy(tmp, b + w0, (size_t)wl);
+                            LOG("[dsri6] Erec window 0x%lx+0x%lx -> dsrecon-int6-Erec.bin", w0, wl);
+                            dsr_write_file(docdir, "dsrecon-int6-Erec.bin", tmp, wl);
+                            NSString *pp = [docdir stringByAppendingPathComponent:@"dsrecon-int6-Erec.bin"];
+                            int fd = open([pp fileSystemRepresentation], O_RDONLY);
+                            if (fd >= 0) { fsync(fd); close(fd); }
+                            free(tmp);
+                        }
+                        erec = 1;
+                    }
+                }
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    LOG("[dsri6] done: P %d, E %d, fb %d, erec %d (alive)", doneP, doneE, nd, erec);
+}
+
+// V135: FUZZ_DSRECON_INT7 — P = pool0 region, written DURING commit (§2.7).
+// The driver builds the CDM-stream/driver table into the pool0 region (the
+// one holding our gpuA/gpuB at +0x14a0/+0x14a8) between endEncoding and
+// waitUntilCompleted, so the post-commit snapshot is the live P content.
+// Mode: blit A->B 0x10000, endEncoding -> locate pool0 (writable region with
+// gpuA/gpuB pinned at +0x14a0/+0x14a8; fallback: anywhere in the region) and
+// dump PRE; commit + waitUntilCompleted; re-locate and dump POST (0x40000 or
+// region size if smaller) with 128B hexdumps around +0x1480 (slot table) and
+// +0x3000 (probable stream); nz counters in the log. fsync after files.
+// Tag [dsri7].
+static uint8_t *dsri7_find_pool0(uint64_t gpuA, uint64_t gpuB, uint64_t *regsz, int *pinned) {
+    mach_vm_address_t addr = 0;
+    uint8_t *anyhit = NULL;
+    uint64_t anysz = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+            && sz >= 0x14b0 && sz <= 0x1000000) {
+            const uint8_t *b = (const uint8_t *)addr;
+            uint64_t qa = 0, qb = 0;
+            memcpy(&qa, b + 0x14a0, 8);
+            memcpy(&qb, b + 0x14a8, 8);
+            if (qa == gpuA && qb == gpuB) {
+                *regsz = sz;
+                *pinned = 1;
+                return (uint8_t *)addr;
+            }
+            if (!anyhit) {
+                // fallback: gpuA/gpuB anywhere (dsr_take_snap rule)
+                mach_vm_size_t lim = sz > 0x40000 ? 0x40000 : sz;
+                for (mach_vm_size_t o = 0; o + 8 <= lim; o += 4) {
+                    uint64_t q;
+                    memcpy(&q, b + o, 8);
+                    if (q == gpuA || q == gpuB) {
+                        anyhit = (uint8_t *)addr; anysz = sz;
+                        LOG("[dsri7]   fallback hit %s @region 0x%llx+0x%llx",
+                            q == gpuA ? "gpuA" : "gpuB", (uint64_t)addr, (uint64_t)o);
+                        break;
+                    }
+                }
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    if (anyhit) { *regsz = anysz; *pinned = 0; }
+    return anyhit;
+}
+
+static void dsri7_dump(NSString *docdir, const char *name, const uint8_t *base,
+                       uint64_t rsz, int hex) {
+    uint64_t len = rsz < 0x40000 ? rsz : 0x40000;
+    uint8_t *tmp = malloc(len);
+    memcpy(tmp, base, len);
+    long nz = 0;
+    for (uint64_t i = 0; i < len; i++) if (tmp[i]) nz++;
+    LOG("[dsri7] %s: region 0x%llx sz 0x%llx -> dump 0x%llx, nz %ld bytes (%.1f%%)",
+        name, (uint64_t)(uintptr_t)base, rsz, len, nz, 100.0 * (double)nz / (double)len);
+    if (hex) {
+        if (len >= 0x1480 + 128)
+            mtl_hexdump("int7+0x1480", 0x1480, tmp + 0x1480, 128);   // slot table
+        if (len >= 0x3000 + 128)
+            mtl_hexdump("int7+0x3000", 0x3000, tmp + 0x3000, 128);   // probable stream
+    }
+    dsr_write_file(docdir, name, tmp, (long)len);
+    NSString *p = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:name]];
+    int fd = open([p fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { fsync(fd); close(fd); }
+    free(tmp);
+}
+
+static void dsr_int7_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri7] pool0 (P) pre/post commit capture (§2.7)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri7] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    uint64_t gpuA = [bufA gpuAddress], gpuB = [bufB gpuAddress];
+    LOG("[dsri7] gpuA 0x%llx gpuB 0x%llx", gpuA, gpuB);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    // PRE-commit: pool0 as the encoder left it
+    uint64_t rsz = 0;
+    int pinned = 0;
+    uint8_t *pool = dsri7_find_pool0(gpuA, gpuB, &rsz, &pinned);
+    if (!pool) {
+        LOG("[dsri7] WARNING: pool0 region not found pre-commit");
+    } else {
+        LOG("[dsri7] pool0 PRE: 0x%llx sz 0x%llx (pinned %d)", (uint64_t)(uintptr_t)pool, rsz, pinned);
+        dsri7_dump(docdir, "dsrecon-int7-Ppre.bin", pool, rsz, 0);
+    }
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri7] committed status %ld", (long)[cb status]);
+    // POST-commit: driver has written CDM-stream/driver table into pool0
+    uint64_t rsz2 = 0;
+    int pinned2 = 0;
+    uint8_t *pool2 = dsri7_find_pool0(gpuA, gpuB, &rsz2, &pinned2);
+    if (!pool2) {
+        LOG("[dsri7] WARNING: pool0 region not found post-commit — reusing pre address");
+        pool2 = pool; rsz2 = rsz;
+    }
+    if (!pool2) {
+        LOG("[dsri7] no pool0 at all — abort");
+        return;
+    }
+    LOG("[dsri7] pool0 POST: 0x%llx sz 0x%llx (pinned %d)", (uint64_t)(uintptr_t)pool2, rsz2, pinned2);
+    dsri7_dump(docdir, "dsrecon-int7-P.bin", pool2, rsz2, 1);
+    LOG("[dsri7] done (alive)");
+}
+
+// V136: FUZZ_DSRECON_INT8 — N5-redo as REGION diff (§2.8). The CDM-stream
+// page is written by USERLAND at commit time and creates/changes regions in
+// OUR process — so the unit of diff is the region, not the qword. PRE scan:
+// every writable region {addr,size} (up to 768) + cheap fingerprint (boost-
+// mix over the first 0x1000 bytes, 16-byte stride). POST scan after
+// commit+wait: NEW regions (absent in PRE) and CHANGED (fingerprint drift)
+// are dumped whole (cap 0x40000, 12 each) to dsrecon-int8-{new,chg}-N.bin;
+// each dump is scanned for CDM signatures — 0x60000160 (token), 0xa0000000
+// (jump), {0x20000000|hi, lo, cpuptr} 16B reserve records — hits logged with
+// file/offset. fsync after every file. Tag [dsri8].
+#define DSRI8_MAXREG 768
+typedef struct { uint64_t addr, sz, fp; } dsri8_reg;
+
+static uint64_t dsri8_fp(const uint8_t *b, uint64_t sz) {
+    uint64_t s = 0;
+    uint64_t lim = sz < 0x1000 ? sz : 0x1000;
+    for (uint64_t o = 0; o + 8 <= lim; o += 16) {
+        uint64_t q;
+        memcpy(&q, b + o, 8);
+        s ^= q + 0x9e3779b97f4a7c15ULL + (s << 6) + (s >> 2);
+    }
+    return s;
+}
+
+static int dsri8_scan(dsri8_reg *regs, int maxn) {
+    int n = 0;
+    mach_vm_address_t addr = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+            && sz >= 0x1000) {
+            if (n < maxn) {
+                regs[n].addr = (uint64_t)addr;
+                regs[n].sz = (uint64_t)sz;
+                regs[n].fp = dsri8_fp((const uint8_t *)addr, (uint64_t)sz);
+                n++;
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    return n;
+}
+
+static void dsri8_dump(NSString *docdir, const char *kind, int idx,
+                       uint64_t addr, const uint8_t *b, uint64_t rsz) {
+    uint64_t len = rsz < 0x40000 ? rsz : 0x40000;
+    uint8_t *tmp = malloc(len);
+    memcpy(tmp, b, len);
+    long nz = 0;
+    for (uint64_t i = 0; i < len; i++) if (tmp[i]) nz++;
+    LOG("[dsri8] %s%d: region 0x%llx sz 0x%llx dump 0x%llx nz %ld bytes (%.1f%%)",
+        kind, idx, addr, rsz, len, nz, 100.0 * (double)nz / (double)len);
+    for (uint64_t o = 0; o + 4 <= len; o += 4) {   // CDM dword signatures
+        uint32_t w;
+        memcpy(&w, tmp + o, 4);
+        if (w == 0x60000160)
+            LOG("[dsri8]   CDM token 0x60000160 @%s%d+0x%llx", kind, idx, o);
+        else if (w == 0xa0000000)
+            LOG("[dsri8]   CDM jump 0xa0000000 @%s%d+0x%llx", kind, idx, o);
+    }
+    for (uint64_t o = 0; o + 16 <= len; o += 8) {   // 16B reserve records
+        uint32_t d0, d1;
+        uint64_t p;
+        memcpy(&d0, tmp + o, 4); memcpy(&d1, tmp + o + 4, 4); memcpy(&p, tmp + o + 8, 8);
+        if ((d0 & 0xf0000000) == 0x20000000 && p >= 0x100000000ULL && p < 0x300000000ULL)
+            LOG("[dsri8]   CDM reserve {@0x%08x,0x%08x,cpu 0x%llx} @%s%d+0x%llx",
+                d0, d1, p, kind, idx, o);
+    }
+    char nm[48];
+    snprintf(nm, sizeof nm, "dsrecon-int8-%s-%d.bin", kind, idx);
+    dsr_write_file(docdir, nm, tmp, (long)len);
+    NSString *pp = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:nm]];
+    int fd = open([pp fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { fsync(fd); close(fd); }
+    free(tmp);
+}
+
+static void dsr_int8_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri8] N5-redo: pre/post commit REGION diff (§2.8)");
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri8] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];
+    dsri8_reg pre[DSRI8_MAXREG];
+    int npre = dsri8_scan(pre, DSRI8_MAXREG);
+    LOG("[dsri8] PRE: %d writable regions", npre);
+    [cb commit];
+    [cb waitUntilCompleted];
+    LOG("[dsri8] committed status %ld", (long)[cb status]);
+    dsri8_reg post[DSRI8_MAXREG];
+    int npost = dsri8_scan(post, DSRI8_MAXREG);
+    LOG("[dsri8] POST: %d writable regions", npost);
+    int nnew = 0, nchg = 0, ngone = 0, dnew = 0, dchg = 0;
+    for (int i = 0; i < npost; i++) {
+        int found = -1;
+        for (int k = 0; k < npre; k++)
+            if (pre[k].addr == post[i].addr) { found = k; break; }
+        if (found < 0) {
+            nnew++;
+            if (dnew < 12) {
+                dsri8_dump(docdir, "new", dnew, post[i].addr, (const uint8_t *)(uintptr_t)post[i].addr, post[i].sz);
+                dnew++;
+            }
+        } else if (pre[found].fp != post[i].fp) {
+            nchg++;
+            if (dchg < 12) {
+                dsri8_dump(docdir, "chg", dchg, post[i].addr, (const uint8_t *)(uintptr_t)post[i].addr, post[i].sz);
+                dchg++;
+            }
+        }
+    }
+    for (int k = 0; k < npre; k++) {
+        int found = 0;
+        for (int i = 0; i < npost; i++)
+            if (post[i].addr == pre[k].addr) { found = 1; break; }
+        if (!found) ngone++;
+    }
+    LOG("[dsri8] diff: new %d (dumped %d), changed %d (dumped %d), gone %d (alive)",
+        nnew, dnew, nchg, dchg, ngone);
+}
+
+// V137: FUZZ_DSRECON_INT9 — N6 encode-time region sweep (§2.9). The stream
+// page is written at ENCODE (not commit), CPU-mapped, in a region previous
+// modes missed. Part 1: PRE region list (at mode entry — earliest possible
+// inside p_dsrecon), blit encode A->B 0x10000 WITHOUT commit, POST list.
+// Candidates: NEW regions (encode-time mappings) + ALL existing regions of
+// size 0x4000..0x100000 (except our bufA/bufB) — content-scanned for CDM
+// signatures: (a) 16B reserve records {d0&0xf0000000==0x20000000, lo, cpuptr}
+// with cpuptr plausible AND readable; (b) jump 0xa0000000 with token-context
+// check (few ASCII bytes around); (c) token 0x60000160; (d) driver-table
+// pair qword 0x400 within 0x40 of qword 0x10000. Hit regions dumped (cap
+// 0x40000, 16 max) to dsrecon-int9-N{n,e}.bin. Part 2: locate an
+// int6-Erec-like map region in THIS session (>=2 marker records {0x1f,0x22}
+// with size field), walk record anchors (space-0x1 gpuva lo in
+// [0x10000,0x1000000)), and dump the backing of every record whose marker is
+// NOT 0x1f/0x22 (unknown resource classes; cap 0xc000, 8 max) to
+// dsrecon-int9-map-N.bin — every dump signature-scanned. fsync after files.
+// Tag [dsri9].
+static long dsri9_sigscan(const uint8_t *tmp, uint64_t len, const char *tag) {
+    long hits = 0;
+    for (uint64_t o = 0; o + 16 <= len; o += 8) {   // (a) 16B reserve records
+        uint32_t d0, d1;
+        uint64_t p;
+        memcpy(&d0, tmp + o, 4); memcpy(&d1, tmp + o + 4, 4); memcpy(&p, tmp + o + 8, 8);
+        if ((d0 & 0xf0000000) == 0x20000000 && p >= 0x100000000ULL && p < 0x300000000ULL
+            && dsri5_readable(p, 0x1000)) {
+            LOG("[dsri9] %s: reserve {@0x%08x,0x%08x,cpu 0x%llx} @+0x%llx", tag, d0, d1, p, o);
+            hits++;
+        }
+    }
+    for (uint64_t o = 4; o + 4 <= len; o += 4) {    // (b) jump + token context
+        uint32_t w;
+        memcpy(&w, tmp + o, 4);
+        if (w != 0xa0000000) continue;
+        int ascii = 0;
+        for (long d = -4; d < 12; d++) {
+            long q = (long)o + d;
+            if (q < 0 || q >= (long)len) continue;
+            uint8_t c = tmp[q];
+            if (c >= 0x20 && c <= 0x7e) ascii++;
+        }
+        if (ascii <= 6) {
+            LOG("[dsri9] %s: jump 0xa0000000 @+0x%llx (ascii %d/12 — token-like)", tag, o, ascii);
+            hits++;
+        }
+    }
+    for (uint64_t o = 0; o + 4 <= len; o += 4) {    // (c) CDM token
+        uint32_t w;
+        memcpy(&w, tmp + o, 4);
+        if (w == 0x60000160) {
+            LOG("[dsri9] %s: token 0x60000160 @+0x%llx", tag, o);
+            hits++;
+        }
+    }
+    for (uint64_t o = 0; o + 8 <= len; o += 8) {    // (d) driver-table fields
+        uint64_t q;
+        memcpy(&q, tmp + o, 8);
+        if (q != 0x400) continue;
+        for (long d = -0x40; d <= 0x40; d += 8) {
+            long q2 = (long)o + d;
+            if (q2 < 0 || q2 + 8 > (long)len) continue;
+            uint64_t w2;
+            memcpy(&w2, tmp + q2, 8);
+            if (w2 == 0x10000) {
+                LOG("[dsri9] %s: driver-table {0x400 @+0x%llx, 0x10000 @+0x%lx}", tag, o, q2);
+                hits++;
+                break;
+            }
+        }
+    }
+    return hits;
+}
+
+static void dsri9_dumpbuf(NSString *docdir, const char *name, const uint8_t *tmp, long len) {
+    dsr_write_file(docdir, name, tmp, len);
+    NSString *pp = [docdir stringByAppendingPathComponent:[NSString stringWithUTF8String:name]];
+    int fd = open([pp fileSystemRepresentation], O_RDONLY);
+    if (fd >= 0) { fsync(fd); close(fd); }
+}
+
+static void dsr_int9_dump(id<MTLDevice> dev, id<MTLCommandQueue> mq, NSString *docdir) {
+    LOG("[dsri9] N6 encode-time region sweep (§2.9)");
+    dsri8_reg pre[DSRI8_MAXREG];
+    int npre = dsri8_scan(pre, DSRI8_MAXREG);
+    LOG("[dsri9] PRE: %d writable regions (mode entry — earliest possible here)", npre);
+    id<MTLBuffer> bufA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bufB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+    if (!bufA || !bufB) { LOG("[dsri9] alloc fail"); return; }
+    memset([bufA contents], 0x41, 0x10000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bufA sourceOffset:0 toBuffer:bufB destinationOffset:0 size:0x10000];
+    [enc endEncoding];   // NO commit: stream page is written at encode (§2.9)
+    LOG("[dsri9] encoded (no commit)");
+    dsri8_reg post[DSRI8_MAXREG];
+    int npost = dsri8_scan(post, DSRI8_MAXREG);
+    LOG("[dsri9] POST: %d writable regions", npost);
+    uint64_t ca = (uint64_t)(uintptr_t)[bufA contents];
+    uint64_t cbd = (uint64_t)(uintptr_t)[bufB contents];
+    int nd = 0;
+    for (int i = 0; i < npost && nd < 16; i++) {
+        uint64_t r0 = post[i].addr, r1 = r0 + post[i].sz;
+        if ((ca >= r0 && ca < r1) || (cbd >= r0 && cbd < r1)) continue;   // our A/B
+        int isnew = 1;
+        for (int k = 0; k < npre; k++)
+            if (pre[k].addr == r0) { isnew = 0; break; }
+        if (!isnew && !(post[i].sz >= 0x4000 && post[i].sz <= 0x100000)) continue;
+        uint64_t len = post[i].sz < 0x40000 ? post[i].sz : 0x40000;
+        uint8_t *tmp = malloc(len);
+        memcpy(tmp, (void *)(uintptr_t)r0, len);
+        char nm[56];
+        snprintf(nm, sizeof nm, "dsrecon-int9-%d%c.bin", nd, isnew ? 'n' : 'e');
+        long hits = dsri9_sigscan(tmp, len, nm);
+        if (hits > 0) {
+            LOG("[dsri9]   HIT %s: region 0x%llx sz 0x%llx, %ld sig hits", nm, r0, post[i].sz, hits);
+            dsri9_dumpbuf(docdir, nm, tmp, (long)len);
+            nd++;
+        }
+        free(tmp);
+    }
+    LOG("[dsri9] part1: %d hit regions dumped", nd);
+    // ---- part 2: Erec-like map region -> backings of unknown-class records
+    int nmap = 0;
+    mach_vm_address_t addr = 0;
+    for (; nmap < 8;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & (VM_PROT_READ | VM_PROT_WRITE)) == (VM_PROT_READ | VM_PROT_WRITE)
+            && sz >= 0x1000 && sz <= 0x1000000) {
+            const uint8_t *b = (const uint8_t *)addr;
+            mach_vm_size_t lim = sz > 0x40000 ? 0x40000 : sz;
+            int nmark = 0;
+            for (mach_vm_size_t o = 8; o + 8 <= lim; o += 8) {
+                uint64_t q, s;
+                memcpy(&q, b + o, 8);
+                if (q != 0x1f && q != 0x22) continue;
+                memcpy(&s, b + o - 8, 8);
+                if (s >= 0x1000 && s <= 0x1000000) nmark++;
+            }
+            if (nmark >= 2) {
+                LOG("[dsri9] map-like region 0x%llx sz 0x%llx (%d marker records)",
+                    (uint64_t)addr, (uint64_t)sz, nmark);
+                for (mach_vm_size_t o = 0x20; o + 8 <= lim && nmap < 8; o += 8) {
+                    uint64_t g;
+                    memcpy(&g, b + o, 8);
+                    if ((g >> 32) != 1) continue;
+                    uint32_t glo = (uint32_t)g;
+                    if (glo < 0x10000 || glo >= 0x1000000) continue;
+                    uint64_t marker, back, szf;
+                    memcpy(&marker, b + o - 8, 8);
+                    memcpy(&back, b + o - 0x20, 8);
+                    memcpy(&szf, b + o - 0x10, 8);
+                    if (marker == 0x1f || marker == 0x22) continue;   // E/P known
+                    if (back < 0x100000000ULL || back >= 0x300000000ULL || (back & 0xfff)) continue;
+                    uint64_t dlen = (szf >= 0x1000 && szf <= 0xc000) ? szf : 0xc000;
+                    if (!dsri5_readable(back, dlen)) {
+                        LOG("[dsri9] map rec gpuva 0x%llx marker 0x%llx back 0x%llx: unreadable",
+                            g, marker, back);
+                        continue;
+                    }
+                    LOG("[dsri9] map rec: gpuva 0x%llx marker 0x%llx back 0x%llx sz 0x%llx",
+                        g, marker, back, szf);
+                    uint8_t *tmp = malloc(dlen);
+                    memcpy(tmp, (void *)(uintptr_t)back, dlen);
+                    char nm[56];
+                    snprintf(nm, sizeof nm, "dsrecon-int9-map-%d.bin", nmap);
+                    dsri9_sigscan(tmp, dlen, nm);
+                    dsri9_dumpbuf(docdir, nm, tmp, (long)dlen);
+                    free(tmp);
+                    nmap++;
+                }
+            }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    LOG("[dsri9] part2: %d map backings dumped (alive)", nmap);
+}
+
 // V127: p_replay2 — hybrid replay of the live-blitz reference dumps (fuzzer/
 // assets/dsrecon-cfg1-*.bin, captured by p_dsrecon N1) through OUR type-1
 // queue (C3, docs/device_stream_builder.md). Reference GPUVAs are read from
 // pool0+0x14a0/+0x14a8 and substituted with our gpu_resource2 resources; the
-// Metal-context pool window content is re-created in a third 0x20000
-// resource; seg rid/sizeKB pair patched at +0x108/+0x120; absolute pool/bplist
+// pool window content is re-created in a dedicated 0x40000 resource C (real
+// P/int-0 dumps in FULL); seg rid/sizeKB pair patched at +0x108/+0x120; absolute pool/bplist
 // GPUVA refs in kcmd rebased onto resource C. Status 5 in an nq record =
 // firmware reject (agx_queue_execution.md §8.7). Success = 0x41 in dst.
 // Submit entry: HISTORICAL v80 form by default ({aux1,aux2} residency pair +
@@ -15679,10 +16658,11 @@ static void p_replay2(void) {
         }
         LOG("[rp2f] pool base: 0x%llx%s", poolBase,
             poolBase ? "" : " — NOT FOUND (pool refs will be UNMAPPED)");
-        // second pool page (slots at base2+0x1480) and the internal 64KB
-        // resource (0x1_000f0000 region, bplist/metacache class — no dump of
-        // it exists in any session, content UNKNOWN). Defaults match the
-        // capture; env FUZZ_REPLAY2_POOL2 / FUZZ_REPLAY2_REFE override.
+        // second pool page (slots at base2+0x1480) and the metacache E
+        // (0x1_000f0000 region, 32KB per §2.5 — was "64KB bplist" in older
+        // notes). Defaults match the capture; env FUZZ_REPLAY2_POOL2 /
+        // FUZZ_REPLAY2_REFE override. E content: dsrecon-int4-E.bin from the
+        // bundle (verbatim, GPUVA-free blob), zero + WARNING as fallback.
         poolBase2 = 0x100000000ULL | 0x30000;
         refE = 0x100000000ULL | 0xf0000;
         const char *e2 = getenv("FUZZ_REPLAY2_POOL2");
@@ -15691,8 +16671,8 @@ static void p_replay2(void) {
         if (eE) refE = strtoull(eE, NULL, 0);
         LOG("[rp2f] pool2 base 0x%llx, internal-E base 0x%llx", poolBase2, refE);
         ridD = gpu_resource2(c, 0x40000, &gpuD, &cpuD);   // 2nd pool page
-        ridE = gpu_resource2(c, 0x10000, &gpuE, &cpuE);   // internal 64KB
-        LOG("[rp2f] D rid %u gpuva 0x%llx (2nd pool page) | E rid %u gpuva 0x%llx (internal, content UNKNOWN — zero-filled)",
+        ridE = gpu_resource2(c, 0x8000, &gpuE, &cpuE);    // metacache E (§2.5)
+        LOG("[rp2f] D rid %u gpuva 0x%llx (2nd pool page) | E rid %u gpuva 0x%llx (metacache 32KB)",
             ridD, gpuD, ridE, gpuE);
         if (cpuD) {
             memset(cpuD, 0, 0x40000);
@@ -15704,7 +16684,21 @@ static void p_replay2(void) {
             *(uint64_t *)(cpuD + 0x14a8) = gpuB;
             LOG("[rp2f] D: zero-filled, slot heuristic {gpuA,gpuB} @+0x1480 and +0x14a0 (no base2 dump available)");
         }
-        if (cpuE) memset(cpuE, 0, 0x10000);
+        if (cpuE) {
+            NSData *diE = nil;
+            rp2_load(mb, "dsrecon-int4-E", &diE);
+            if (diE && diE.length >= 0x100) {
+                long m = (long)diE.length < 0x8000 ? (long)diE.length : 0x8000;
+                memset(cpuE, 0, 0x8000);
+                memcpy(cpuE, diE.bytes, m);
+                LOG("[rp2f] E: dsrecon-int4-E loaded (%ld of %ld bytes)%s",
+                    m, (long)diE.length, diE.length > 0x8000 ? " — CLAMPED" : "");
+            } else {
+                LOG("[rp2f] WARNING: dsrecon-int4-E missing/too small (%ld bytes)"
+                    " — E zero-filled", diE ? (long)diE.length : -1L);
+                memset(cpuE, 0, 0x8000);
+            }
+        }
     }
     uint8_t *entry = must_map(0x1000);
     uint32_t *outw = (uint32_t *)must_map(0x100);
@@ -15754,15 +16748,58 @@ static void p_replay2(void) {
     // our own resource and rebase kcmd absolute refs onto gpuC.
     LOG("[rp2] strategy: pool window was Metal-context owned — re-creating pool0 in resource C (gpuva 0x%llx)", gpuC);
     if (fullm) {
-        // FULL (§2.3): real pool-page content from the v128 capture
-        // (dsrecon-int-0.bin — pool0 analog: capture blit slots @+0x1a790,
-        // bottom-arena GPUVA table @+0x1a428, 429-entry split-GPUVA array).
-        // Loaded, then capture self-references rebased: the blit pair ->
-        // our gpuA/gpuB (slots first, gpuA/gpuB excluded from the range
-        // pass), every other qword in the dump's own GPU range -> gpuC /
-        // gpuD + delta (full-qword and split-dword forms). Fallback: zero +
-        // legacy slot heuristic with a WARNING.
-        NSData *di0 = nil;
+        // FULL pool-page content, two tiers (§2.5 > §2.3):
+        //  P-tier: dsrecon-int4-P.bin — the REAL pool page P (CDM-stream +
+        //   driver table, 48KB, captured live from kcmd_cpu+0x5c000). Slot/
+        //   table refs inside ([pCap, pCap+0xc000), pCap = capture P base =
+        //   poolBase from kcmd+0x1cc) rebased onto gpuC, full-qword and
+        //   split-dword forms (same rule as the POOLSLOT kcmd pass).
+        //  int-0 tier (fallback): v128 pool0 analog — capture blit slots
+        //   @+0x1a790 -> gpuA/gpuB, self-range vote G0 -> gpuC/gpuD.
+        //  Final fallback: zero + legacy slot heuristic with a WARNING.
+        NSData *di4 = nil, *di0 = nil;
+        rp2_load(mb, "dsrecon-int4-P", &di4);
+        int p_tier = (di4 && di4.length >= 0x1000 && cpuC) ? 1 : 0;
+        if (p_tier) {
+            const uint8_t *pb = (const uint8_t *)di4.bytes;
+            long plen = (long)di4.length;
+            long n = plen < 0x40000 ? plen : 0x40000;
+            memset(cpuC, 0, 0x40000);
+            memcpy(cpuC, pb, n);
+            LOG("[rp2f] C(P): loaded dsrecon-int4-P (%ld of %ld bytes)%s", n, plen,
+                plen > 0x40000 ? " — CLAMPED to 0x40000" : "");
+            uint64_t pCap = poolBase ? poolBase : 0x100100000ULL;
+            if (!poolBase)
+                LOG("[rp2f] WARNING: poolBase not detected — assuming capture P base 0x100100000");
+            long npc = 0, nsp = 0;
+            for (long o = 0; o + 8 <= n; o += 4) {
+                uint64_t q = *(uint64_t *)(cpuC + o);
+                if (q >= pCap && q < pCap + 0xc000) {
+                    *(uint64_t *)(cpuC + o) = gpuC + (q - pCap); npc++;
+                }
+            }
+            for (long o = 0; o + 8 <= n; o += 4) {   // split-dword {lo,0x100}
+                uint32_t d1 = *(uint32_t *)(cpuC + o + 4);
+                if (d1 != 0x100) continue;
+                uint32_t d0 = *(uint32_t *)(cpuC + o);
+                if (d0 >= (uint32_t)pCap && d0 < (uint32_t)pCap + 0xc000) {
+                    *(uint32_t *)(cpuC + o) = (uint32_t)gpuC + (d0 - (uint32_t)pCap); nsp++;
+                }
+            }
+            // §2.5 check: embedded GPUVA left in [0x1_00010000, 0x1_00200000)
+            long nleft = 0;
+            for (long o = 0; o + 8 <= n; o += 4) {
+                uint64_t q = *(uint64_t *)(cpuC + o);
+                if ((q >> 32) == 1 && (q & 0xffffffffULL) < 0x200000) nleft++;
+            }
+            LOG("[rp2f] C(P): slots+table rebased pCap 0x%llx -> gpuC (full %ld, split %ld);"
+                " remaining hi=1/lo<0x200000: %ld%s",
+                pCap, npc, nsp, nleft, nleft ? " — needs §2.2.6 patches!" : " (clean)");
+        } else {
+            LOG("[rp2f] WARNING: dsrecon-int4-P missing/too small (%ld bytes)"
+                " — falling back to int-0 tier", di4 ? (long)di4.length : -1L);
+        }
+        if (!p_tier) {
         rp2_load(mb, "dsrecon-int-0", &di0);
         if (di0 && di0.length >= 0x1000 && cpuC) {
             const uint8_t *ib = (const uint8_t *)di0.bytes;
@@ -15850,6 +16887,7 @@ static void p_replay2(void) {
             *(uint64_t *)(cpuC + 0x14a0) = gpuA;
             *(uint64_t *)(cpuC + 0x14a8) = gpuB;
         }
+        }   // end !p_tier (int-0 tier)
     } else if (cpuC) {
         memcpy(cpuC, dp0.bytes, 0x4000);
         long pc = 0;
@@ -15982,6 +17020,33 @@ static void p_replay2(void) {
             }
             LOG("[rp2f] var%ld: space-0x1 refs rebased %ld, unmapped %ld, kext-block refs skipped %ld%s",
                 v, nva, nun, nkext, nun ? " — capture VM still referenced!" : " (clean)");
+            // type-3 descriptor anchor patches (§2.4/§2.5): E ref @+0x174,
+            // pool page P ref @+0x1cc — split-dword {lo,0x100} -> our VA lo.
+            // AFTER the rebase pass so the new values are not re-classified.
+            if (gpuE) {
+                uint32_t d1 = *(uint32_t *)(vaCmd + 0x178);
+                if (d1 == 0x100) {
+                    uint32_t old = *(uint32_t *)(vaCmd + 0x174);
+                    *(uint32_t *)(vaCmd + 0x174) = (uint32_t)gpuE;
+                    LOG("[rp2f] var%ld: kcmd+0x174 E ref 0x%x -> 0x%x (gpuE)",
+                        v, old, (uint32_t)gpuE);
+                } else {
+                    LOG("[rp2f] var%ld: kcmd+0x178 != 0x100 (0x%x) — +0x174 E patch SKIPPED",
+                        v, d1);
+                }
+            }
+            if (gpuC) {
+                uint32_t d1 = *(uint32_t *)(vaCmd + 0x1d0);
+                if (d1 == 0x100) {
+                    uint32_t old = *(uint32_t *)(vaCmd + 0x1cc);
+                    *(uint32_t *)(vaCmd + 0x1cc) = (uint32_t)gpuC;
+                    LOG("[rp2f] var%ld: kcmd+0x1cc P ref 0x%x -> 0x%x (gpuC)",
+                        v, old, (uint32_t)gpuC);
+                } else {
+                    LOG("[rp2f] var%ld: kcmd+0x1d0 != 0x100 (0x%x) — +0x1cc P patch SKIPPED",
+                        v, d1);
+                }
+            }
         } else {
             for (long o = 0; o + 4 <= 0x4000; o += 4) {
                 if (o == 0x108 || o == 0x10c) continue;
