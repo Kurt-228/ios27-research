@@ -627,3 +627,26 @@ run-replay2-E2.log: kcmd+0x1d4 отребейжен (INT2->E+d), итог rebase
 итерация — VAR=3 (лестница форм entry, run-replay2-E3.log); при {0,0}
 ветка replay2 замораживается до получения P (полный реверс CDM-грамматики
 или захват stream-страницы — оба выходят за рамки текущих фаз).
+
+### replay2-E3 (VAR=3, лестница): ветка заморожена
+
+run-replay2-E3.log: var1/var2 — kr 0 outw 0, comp {0,0}, dst не тронут;
+var3 — outw 0xa (underrun entry-count, как в ранних итерациях). Все формы
+entry, полный residency, реальный E, чистый rebase — firmware не исполняет
+ни одной вариации. Блокер окончательно локализован: отсутствие P
+(CDM-stream страница; охота int7/int8/int9 закрыта §127, fallback
+dsrecon-int-0 не заменяет). ВЕТКА REPLAY2 ЗАМОРОЖЕНА до (а) захвата
+реальной stream-страницы из живого Metal-процесса или (б) полного реверса
+CDM-грамматики — оба пункта выходят за рамки текущей фазовой модели.
+
+**Следующий активный вектор (v147, план):** рецепт reclaim-эксперимента из
+retirement-разбора, не испробованный частью f-reclaim. f-reclaim покрыл
+только GPU-арену (resource recreate → LIFO VA reuse, страницы занулены).
+Непокрытое: DATA-страницы освобождённого дескриптора уходят через
+release (+0x28) в ОБЩИЙ kernel page allocator. Эксперимент: victim
+resources с маркером 0x41 → destroy → форс AGXUAT::process (32+ unmaps)
+→ спрей ОБЩИХ ядерных аллокаций того же size-class (mach OOL-дескрипторы
+64KB-класс, классика) → детект reclaim по остаткам 0x41 в полученной
+памяти. Подтверждение cross-domain reuse + контроль контента страницы,
+на которую ещё может ссылаться stale GMMU TLB (Finding 2) = путь к
+controlled write в reclaimed kernel page.
