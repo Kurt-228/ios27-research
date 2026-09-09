@@ -520,3 +520,74 @@ run-iogpusweep-full.log подтверждает ретракт: из всех d
 несуществовавшие id корректно отвергаются BadArgument. Дыры в валидации
 destroy нет; различие «never-existed vs destroyed» видно по коду возврата —
 микро-оракул состояния id, не баг.
+
+## 132. v145: p_destroyuaf — полный прогон 53 кейсов: destroy-поверхность закрыта
+
+run-destroyuaf3.log (SKIP=7, живой канал, все 4 класса, процесс жив,
+устройство стабильно — ни одной паники за весь день после v144):
+
+**Семантика destroy (sel7/9/13/15), подтверждена на всех классах:**
+- destroy живого id → kr 0, объект уничтожается (CPU-mapping ресурса
+  сносится — подтверждено self-SIGSEGV из §131);
+- destroy живой queue, привязанной к nq (bind) → kr 0 (bound-объект
+  уничтожается без возражений);
+- destroy мёртвого id (double-destroy) → 0xe00002c2 — **не идемпотентно**;
+  это поправка к дополнению §131: «kr 0 на re-destroy» в свипе объясняется
+  reuse id от промежуточных create, а не идемпотентностью;
+- destroy несуществовавшего id (0, +1000, 0xffffffff) → 0xe00002c2;
+- destroy с id чужого класса (type confusion) → 0xe00002c2
+  (id-пространства раздельные по классам);
+- use-after-destroy: sel11/sel26 на мёртвом rid, sel26+sel24 на мёртвой
+  queue, sel24 bind мёртвого nq, trap0 submit со ссылкой на мёртвый
+  shmem id → все отвергнуты (BadArgument / outw 9 на валидации submit),
+  UAF-deref'а нет;
+- порчи соседних объектов (witness-маркеры 0x41/0x42) — ноль во всех
+  53 кейсах.
+
+**Груминг-находки (не баги, но полезно для эксплойтации):**
+- id-аллокаторы всех классов — детерминированный LIFO: recreate сразу
+  после destroy возвращает тот же id;
+- resource recreate возвращает и тот же GPUVA, и тот же CPU VA
+  (0x10000000000 / 0x…4000) — адреса полностью предсказуемы;
+- f-reclaim (victim 0x41-marked 64KB → destroy → 33× create+destroy →
+  probe): GPUVA переиспользуется НЕМЕДЛЕННО, до AGXUAT::process
+  (LIFO на уровне VA-аллокатора, отложенный retirement физических
+  страниц VA-reuse не задерживает); **0x41 remnants 0/65536** — новый
+  владелец получает занулённые страницы. Контент-based детект reclaim'а
+  мёртв: либо bzero-on-alloc, либо scrub-on-free — в любом случае
+  наследования контента нет.
+
+**Вывод:** destroy-вектор (§129(а) → §130 → §131) закрыт окончательно:
+валидация строгая, UAF нет, corruption нет. Практическая ценность —
+подтверждённая детерминированность GPUVA/CPU-VA/id (груминг для будущих
+примитивов) и закрытие контент-пути reclaim-детекта.
+
+**Открытые следы после §132:** (1) replay2-E — исполнение реального
+CDM-stream с metacache-контентом (метрика {0,0}→{0,5} и запись 0x41 в dst);
+(2) пробы sel11/sel26 даже с out-буфером дают BadArgument на живых
+объектах — формат второго скаляра (purgeable state?) не угадан, низкий
+приоритет.
+
+### Верификация статики AGXUAT (независимый прогон дизассемблером, capstone)
+
+Retirement-разбор подтверждён независимо по `results/kc27/com_apple_AGXG16P.macho`
+(__TEXT_EXEC vmaddr 0xfffffff0082f1060; адреса ниже — low-32 VM):
+- `AGXUAT::queueUnmap` @ 0x83a4cc0 — точный пролог (pacibsp). count=[this+0x3d8],
+  count==32 → `bl AGXUAT::process`, count>=32 → failure-ветка со строкой
+  «!!! queueing too many unmaps (possbile failure to commit)!», слот
+  this+0xd8+count*24 = {desc,gpuva,size}. Дополнительно: desc ретейнится
+  (vtable +0x20) и препарится (+0xd8; при неуспехе — «failed to prepare a
+  descriptor in AGXUAT::unmap()!»).
+- `AGXUAT::process` @ 0x83a3654 — ровно 620 инструкций (до следующего
+  pacibsp @ 0x83a4004). Цикл по фактическому count (1..32, не хардкод 32);
+  4-уровневый обход PT (корень this+0x30, индексы ubfx 0x24/6, 0x19/0xb,
+  0xe/0xb), leaf PTE clear `str xzr`; refcount PT-страниц (this+0x10..0x38,
+  декремент, free при 1→0); два inline-пула __DATA_CONST 0x7daabd8/0x7daac28
+  (free через import-stubs 0x83b03a4/0x83b0384) + raw page free;
+  blraa +0xe0 (unmap) и +0x28 (release) по дескриптору; `tlbi aside1os`
+  на запись (ASID из this+0xb0; fallback `tlbi vmalle1os` при this+0xd0==0;
+  ASID==-1 → skip).
+
+Методологическая ценность: адреса-константы retirement-пути, на которых
+построен f-reclaim (§132) и спрей-рецепт (§107), теперь дважды подтверждены
+независимыми разборами.

@@ -1,0 +1,548 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e03
+[scaler] conn 0x7e03, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[duf] v145 destroy-UAF exploitation check (probes fixed: sel11/sel26 sout): skip 7
+[open] IOGPU -> conn 0x5e03
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d50000
+[mtlr]   out: 0000010000000000 0000000107d50000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114262 0000000000003665
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d48000 id 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 107d64000
+[mtlr]   out: 0000010000018000 0000000107d64000 0000000107d34180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000c114266 0000000000003668
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d60000 id 2
+[duf] setup: qM 1 nqM 1 ridM 1 shM 1 | qW 2 nqW 2 ridW 2 shW 2 bind 0x00000000
+[duf] === class resource: destroy sel9 (main 0x1 witness 0x2) ===
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #7 c-destroy#1: sel9 {0x1} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] case #8 c-destroy#2-same: sel9 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after c-double: markers bad resM -1/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #9 d-destroy: sel9 {0x2} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] case #10 d-use: sel11 set_purgeable on DEAD rid 0x2 (UAF deref?)
+[duf]   -> kr 0xe00002c2 out 0x0 (we survived)
+[duf] after d-use: markers bad resM -1/1024 resW -1/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #11 e-destroy: sel9 {0x1}
+[duf]   -> kr 0xe00002c2 (we survived)
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114268 000000000000366a
+[duf]   recreated rid 1 GPUVA 0x10000000000 (cpu 0x107d64000) — victim GPUVA 0x10000000000: GPUVA REUSED (page reclaim confirmed)
+[duf]   e-recreate: new id 0x1 — ID REUSED
+[duf] after e-recreate: markers bad resM 0/1024 resW -1/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #12 e-cleanup-new: sel9 {0x1}
+[duf]   -> kr 0x00000000 (we survived)
+[duf] case #13 f-reclaim: victim+flush+probe (AGXUAT process force)
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11426a 000000000000366c
+[duf]   f: victim rid 1 GPUVA 0x10000000000 cpu 0x107d64000 (marked 0x41)
+[duf]   f: victim destroyed kr 0x00000000; flushing 33 unmaps
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11426c 000000000000366e
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11426d 000000000000366f
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11426e 0000000000003670
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11426f 0000000000003671
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114270 0000000000003672
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114271 0000000000003673
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114272 0000000000003674
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114274 0000000000003675
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114277 0000000000003676
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11427b 0000000000003677
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11427c 0000000000003678
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11427d 0000000000003679
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11427e 000000000000367a
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11427f 000000000000367b
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114280 000000000000367c
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114281 000000000000367d
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114282 000000000000367e
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114283 000000000000367f
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114284 0000000000003680
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114285 0000000000003681
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114286 0000000000003682
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114287 0000000000003683
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114288 0000000000003684
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114289 0000000000003685
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11428a 0000000000003686
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11428b 0000000000003687
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11428c 0000000000003688
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11428d 0000000000003689
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11428e 000000000000368a
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c11428f 000000000000368b
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c114290 000000000000368c
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c1142ab 000000000000368d
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c1142ac 000000000000368e
+[duf]   f: flush done (first flush GPUVA 0x10000000000 — IMMEDIATE VA REUSE pre-process)
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d64000
+[mtlr]   out: 0000010000000000 0000000107d64000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c1142ae 000000000000368f
+[duf]   f: probe rid 1 GPUVA 0x10000000000 — VICTIM GPUVA REUSED (reclaim confirmed); 0x41 remnants 0/65536 
+[duf] class resource finished; closing connect
+[open] IOGPU -> conn 0x780f
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d4c000
+[mtlr]   out: 0000010000000000 0000000107d4c000 0000000107d340c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c1142b7 0000000000003692
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d48000 id 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 107d64000
+[mtlr]   out: 0000010000018000 0000000107d64000 0000000107d34180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000c1142bb 0000000000003695
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d60000 id 2
+[duf] setup: qM 1 nqM 1 ridM 1 shM 1 | qW 2 nqW 2 ridW 2 shW 2 bind 0x00000000
+[duf] === class command_queue: destroy sel7 (main 0x1 witness 0x2) ===
+[duf] case #14 a-bogus: sel7 {0x0} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #15 a-bogus: sel7 {0x1} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #16 a-bogus: sel7 {0x3e9} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #17 a-bogus: sel7 {0xffffffff} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #18 b-typeconf: sel7 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #19 b-typeconf: sel7 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #20 b-typeconf: sel7 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #21 c-destroy#1: sel7 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] case #22 c-destroy#2-same: sel7 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after c-double: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #23 d-destroy: sel7 {0x2} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] case #24 d-use: touch DEAD queue 0x2 (sel26 + sel24, UAF deref?)
+[duf]   -> sel26 0xe00002c2 sel24 0xe00002c2 (we survived)
+[duf] after d-use: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #25 e-destroy: sel7 {0x1}
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf]   recreated qid 1
+[duf]   e-recreate: new id 0x1 — ID REUSED
+[duf] after e-recreate: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0x00000000 alive
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #26 e-cleanup-new: sel7 {0x1}
+[duf]   -> kr 0x00000000 (we survived)
+[duf] class command_queue finished; closing connect
+[open] IOGPU -> conn 0x6903
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d5c000
+[mtlr]   out: 0000010000000000 0000000107d5c000 0000000107d4c0c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c1142c4 000000000000369a
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d30000 id 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 107d78000
+[mtlr]   out: 0000010000018000 0000000107d78000 0000000107d4c180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000c1142c8 000000000000369d
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d38000 id 2
+[duf] setup: qM 1 nqM 1 ridM 1 shM 1 | qW 2 nqW 2 ridW 2 shW 2 bind 0x00000000
+[duf] === class shmem: destroy sel13 (main 0x1 witness 0x2) ===
+[duf] case #27 a-bogus: sel13 {0x0} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #28 a-bogus: sel13 {0x1} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #29 a-bogus: sel13 {0x3e9} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #30 a-bogus: sel13 {0xffffffff} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #31 b-typeconf: sel13 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #32 b-typeconf: sel13 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #33 b-typeconf: sel13 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #34 c-destroy#1: sel13 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] case #35 c-destroy#2-same: sel13 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after c-double: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #36 d-destroy: sel13 {0x2} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] case #37 d-use: trap0 submit with DEAD shmem id 0x2 (UAF deref?)
+[duf]   -> trap0 kr 0x00000000 outw 00000009 (we survived)
+[duf] after d-use: markers bad resM 0/1024 resW 0/1024 shM -1/256 shW -1/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #38 e-destroy: sel13 {0x1}
+[duf]   -> kr 0xe00002c2 (we survived)
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d30000 id 1
+[duf]   recreated shmem 1
+[duf]   e-recreate: new id 0x1 — ID REUSED
+[duf] after e-recreate: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW -1/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #39 e-cleanup-new: sel13 {0x1}
+[duf]   -> kr 0x00000000 (we survived)
+[duf] class shmem finished; closing connect
+[open] IOGPU -> conn 0x5363
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 107d40000
+[mtlr]   out: 0000010000000000 0000000107d40000 0000000107d880c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000c1145f6 00000000000036d3
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d38000 id 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 107d58000
+[mtlr]   out: 0000010000018000 0000000107d58000 0000000107d88180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000c1145fa 00000000000036d6
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 107d54000 id 2
+[duf] setup: qM 1 nqM 1 ridM 1 shM 1 | qW 2 nqW 2 ridW 2 shW 2 bind 0x00000000
+[duf] === class notification_queue: destroy sel15 (main 0x1 witness 0x2) ===
+[duf] case #40 a-bogus: sel15 {0x0} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #41 a-bogus: sel15 {0x1} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #42 a-bogus: sel15 {0x3e9} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #43 a-bogus: sel15 {0xffffffff} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after a-bogus: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #44 b-typeconf: sel15 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #45 b-typeconf: sel15 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #46 b-typeconf: sel15 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after b-typeconf: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #47 c-destroy#1: sel15 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] case #48 c-destroy#2-same: sel15 {0x1} (PANIC possible)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after c-double: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf] case #49 d-destroy: sel15 {0x2} (PANIC possible)
+[duf]   -> kr 0x00000000 (we survived)
+[duf] case #50 d-use: sel24 bind DEAD nqid 0x2 (UAF deref?)
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf] after d-use: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #51 e-destroy: sel15 {0x1}
+[duf]   -> kr 0xe00002c2 (we survived)
+[duf]   recreated nqid 1
+[duf]   e-recreate: new id 0x1 — ID REUSED
+[duf] after e-recreate: markers bad resM 0/1024 resW 0/1024 shM 0/256 shW 0/256
+[duf]   probe rid 1 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe rid 2 (sel11): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 1 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe qid 2 (sel26): kr 0xe00002c2 out 0x0 DEAD?
+[duf]   probe nqid 1 (sel24 bind): kr 0xe00002c9 DEAD?
+[duf]   probe nqid 2 (sel24 bind): kr 0xe00002c2 DEAD?
+[duf] case #52 e-cleanup-new: sel15 {0x1}
+[duf]   -> kr 0x00000000 (we survived)
+[duf] class notification_queue finished; closing connect
+[duf] done: 53 cases (skip 7) (alive)
+[probe13] destroyuaf-only mode, stop
