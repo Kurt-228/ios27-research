@@ -1,0 +1,257 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5c03
+[scaler] conn 0x5c03, s1 170 s2 171
+[probe12] SetNotificationPort -> 0x00000000
+[ios] v138 iogpu selector sweep: skip 0 max 0 only-sel -1
+[open] IOGPU -> conn 0x6003
+[ios] main nq 1 qid 1
+[ios] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 102c68000
+[mtlr]   out: 0000010000000000 0000000102c68000 0000000102c500c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 0000000013681441 0000000000004fb5
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 102c64000 id 1
+[ios] main rid 1 gpuva 0x10000000000 shmem 1
+[ios] temp file fd 3 (/private/var/mobile/Containers/Data/Application/7368C0D8-6E38-4E7D-9D51-37C8EDC575DB/tmp//iosfd_916.bin)
+[ios] disposables nq2 2 qid2 2 rid2 2 sh2 2
+[ios] san #0 sel0 get_config                 kr 0x00000000 stOut-wr 64/64
+[ios]   stOut[0..16]: 40430000 00000000 00000000 00000000
+[ios] sanity sel0 get_config                 -> OK
+[ios] san #1 sel1 get_name                   kr 0x00000000 stOut-wr 64/64
+[ios]   stOut[0..16]: 41475847 31365000 00000000 00000000
+[ios] sanity sel1 get_name                   -> OK
+[ios] san #2 sel2 get_event_machine          kr 0xe00002c2 stOut-wr 64/64 REJ
+[ios] sanity sel2 get_event_machine          -> reject/skip
+[ios] san #3 sel3 get_surface_info           kr 0xe00002c2 stOut-wr 536/536 REJ
+[ios] sanity sel3 get_surface_info           -> reject/skip
+[ios] san #4 sel4 get_current_trace_filter   kr 0xe00002c2 stOut-wr 16/16 REJ
+[ios] sanity sel4 get_current_trace_filter   -> reject/skip
+[ios] san #5 sel5 get_device_info            kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 46146813 00000000 46146814 00000000
+[ios] sanity sel5 get_device_info            -> OK
+[ios] san #6 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 46146814 00000000
+[ios] sanity sel6 new_command_queue          -> OK
+[ios] m6v #7 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 49146814 00000000
+[ios] m6v #8 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 4c146814 00000000
+[ios] m6v #9 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 4f146814 00000000
+[ios] m6f #10 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 52146814 00000000
+[ios] m6f #11 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 55146814 00000000
+[ios] m6f #12 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 58146814 00000000
+[ios] m6f #13 sel6 new_command_queue          kr 0x00000000 stOut-wr 16/16
+[ios]   stOut[0..16]: 03000000 00000000 64146814 00000000
+[ios] m6s #14 sel6 new_command_queue          kr 0xe00002c2 stOut-wr 16/16 REJ
+[ios] m6s #15 sel6 new_command_queue          kr 0xe00002c2 stOut-wr 16/16 REJ
+[ios] m6s #16 sel6 new_command_queue          kr 0xe00002c2 stOut-wr 16/16 REJ
+[ios] m6s #17 sel6 new_command_queue          kr 0xe00002c2 stOut-wr 16/16 REJ
+[ios] san #18 sel7 delete_command_queue       kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel7 delete_command_queue       -> OK
+[ios] msc #19 sel7 delete_command_queue       kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #20 sel7 delete_command_queue       kr 0x00000000 stOut-wr 0/0
+[ios]   [HIT] destroy-class sel7 accepted garbage id 0x1
+[ios] msc #21 sel7 delete_command_queue       kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #22 sel7 delete_command_queue       kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #23 sel7 delete_command_queue       kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #24 sel7 delete_command_queue       kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #25 sel8 new_resource               kr 0x00000000 stOut-wr 88/88
+[ios]   stOut[0..16]: 00000200 00010000 0080c802 01000000
+[ios] sanity sel8 new_resource               -> OK
+[ios] m8f #26 sel8 new_resource               kr 0xe00002be stOut-wr 88/88 REJ
+[ios] m8f #27 sel8 new_resource               kr 0xe00002be stOut-wr 88/88 REJ
+[ios] m8f #28 sel8 new_resource               kr 0x00000000 stOut-wr 88/88
+[ios]   stOut[0..16]: 00000200 00010000 0080c802 01000000
+[ios] m8f #29 sel8 new_resource               kr 0xe00002c2 stOut-wr 88/88 REJ
+[ios] m8z #30 sel8 new_resource               kr 0xe00002be stOut-wr 88/88 REJ
+[ios] m8z #31 sel8 new_resource               kr 0x00000000 stOut-wr 88/88
+[ios]   stOut[0..16]: 00000200 00010000 0080c802 01000000
+[ios] m8z #32 sel8 new_resource               kr 0xe00002be stOut-wr 88/88 REJ
+[ios] m8s #33 sel8 new_resource               kr 0xe00002c2 stOut-wr 88/88 REJ
+[ios] m8s #34 sel8 new_resource               kr 0xe00002c2 stOut-wr 88/88 REJ
+[ios] m8s #35 sel8 new_resource               kr 0xe00002bc stOut-wr 88/88 REJ
+[ios] m8s #36 sel8 new_resource               kr 0x00000000 stOut-wr 88/88
+[ios]   stOut[0..16]: 00000200 00010000 0080c802 01000000
+[ios]   [HIT] sel8 size-gate bypass at strIn 0x69
+[ios] san #37 sel9 delete_resource            kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel9 delete_resource            -> OK
+[ios] msc #38 sel9 delete_resource            kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #39 sel9 delete_resource            kr 0x00000000 stOut-wr 0/0
+[ios]   [HIT] destroy-class sel9 accepted garbage id 0x1
+[ios] msc #40 sel9 delete_resource            kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #41 sel9 delete_resource            kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #42 sel9 delete_resource            kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #43 sel9 delete_resource            kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #44 sel10 finish_object_event        kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel10 finish_object_event        -> reject/skip
+[ios] san #45 sel11 set_resource_purgeable     kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel11 set_resource_purgeable     -> reject/skip
+[ios] san #46 sel12 create_shmem               kr 0xe00002bd stOut-wr 16/16 REJ
+[ios] sanity sel12 create_shmem               -> reject/skip
+[ios] san #47 sel13 destroy_shmem              kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel13 destroy_shmem              -> OK
+[ios] msc #48 sel13 destroy_shmem              kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #49 sel13 destroy_shmem              kr 0x00000000 stOut-wr 0/0
+[ios]   [HIT] destroy-class sel13 accepted garbage id 0x1
+[ios] msc #50 sel13 destroy_shmem              kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #51 sel13 destroy_shmem              kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #52 sel13 destroy_shmem              kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #53 sel13 destroy_shmem              kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #54 sel14 create_notificationqueue   kr 0xe00002c2 stOut-wr 16/16 REJ
+[ios] sanity sel14 create_notificationqueue   -> reject/skip
+[ios] san #55 sel15 destroy_notificationqueue  kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel15 destroy_notificationqueue  -> OK
+[ios] msc #56 sel15 destroy_notificationqueue  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #57 sel15 destroy_notificationqueue  kr 0x00000000 stOut-wr 0/0
+[ios]   [HIT] destroy-class sel15 accepted garbage id 0x1
+[ios] msc #58 sel15 destroy_notificationqueue  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #59 sel15 destroy_notificationqueue  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #60 sel15 destroy_notificationqueue  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #61 sel15 destroy_notificationqueue  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #62 sel16 get_shared_info            kr 0x00000000 stOut-wr 8/8
+[ios] sanity sel16 get_shared_info            -> OK
+[ios] san #63 sel17 create_mtlfence            kr 0x00000000 stOut-wr 4/4
+[ios] sanity sel17 create_mtlfence            -> OK
+[ios] san #64 sel18 destroy_mtlfence           kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel18 destroy_mtlfence           -> OK
+[ios] msc #65 sel18 destroy_mtlfence           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #66 sel18 destroy_mtlfence           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #67 sel18 destroy_mtlfence           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #68 sel18 destroy_mtlfence           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #69 sel18 destroy_mtlfence           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #70 sel18 destroy_mtlfence           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #71 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 01000000 00000000 8e146814 00000000
+[ios] sanity sel19 create_mtlevent            -> OK
+[ios] msc #72 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 02000000 00000000 8f146814 00000000
+[ios] msc #73 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 03000000 00000000 90146814 00000000
+[ios] msc #74 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 04000000 00000000 91146814 00000000
+[ios] msc #75 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 05000000 00000000 92146814 00000000
+[ios] msc #76 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 06000000 00000000 93146814 00000000
+[ios] msc #77 sel19 create_mtlevent            kr 0x00000000 stOut-wr 24/24
+[ios]   stOut[0..16]: 07000000 00000000 94146814 00000000
+[ios] san #78 sel20 destroy_mtlevent           kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel20 destroy_mtlevent           -> OK
+[ios] msc #79 sel20 destroy_mtlevent           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #80 sel20 destroy_mtlevent           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #81 sel20 destroy_mtlevent           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #82 sel20 destroy_mtlevent           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #83 sel20 destroy_mtlevent           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #84 sel20 destroy_mtlevent           kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #85 sel21 get_memory_data            kr 0x00000000 stOut-wr 48/48
+[ios]   stOut[0..16]: 00800000 00000000 00000000 00000000
+[ios] sanity sel21 get_memory_data            -> OK
+[ios] san #86 sel22 unsupported                kr 0xe00002c7 stOut-wr 4096/4096 REJ
+[ios] sanity sel22 unsupported                -> reject/skip
+[ios] san #87 sel23 get_allocated_size         kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel23 get_allocated_size         -> OK
+[ios] san #88 sel24 set_notification_queue     kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel24 set_notification_queue     -> reject/skip
+[ios] san sel25 submit_command_buffers: DANGER call now (fsync)
+[ios] san #89 sel25 submit_command_buffers     kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel25 submit_command_buffers     -> reject/skip
+[ios] san #90 sel26 set_priority_and_background kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel26 set_priority_and_background -> reject/skip
+[ios] san #91 sel27 set_quality_of_service     kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel27 set_quality_of_service     -> reject/skip
+[ios] san #92 sel28 create_mtllateevalevent    kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel28 create_mtllateevalevent    -> OK
+[ios] san #93 sel29 destroy_mtllateevalevent   kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel29 destroy_mtllateevalevent   -> OK
+[ios] msc #94 sel29 destroy_mtllateevalevent   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #95 sel29 destroy_mtllateevalevent   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #96 sel29 destroy_mtllateevalevent   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #97 sel29 destroy_mtllateevalevent   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #98 sel29 destroy_mtllateevalevent   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #99 sel29 destroy_mtllateevalevent   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #100 sel30 async_signal_mtlLateEvalevent kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel30 async_signal_mtlLateEvalevent -> reject/skip
+[ios] san #101 sel31 query_mtlLateEvalevent     kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel31 query_mtlLateEvalevent     -> reject/skip
+[ios] san #102 sel32 set_display_params_for_gpu kr 0xe00002c1 stOut-wr 0/0 REJ
+[ios] sanity sel32 set_display_params_for_gpu -> reject/skip
+[ios] san #103 sel33 set_app_gpu_role           kr 0xe00002c1 stOut-wr 0/0 REJ
+[ios] sanity sel33 set_app_gpu_role           -> reject/skip
+[ios] san #104 sel34 get_app_gpu_role           kr 0xe00002c1 stOut-wr 0/0 REJ
+[ios] sanity sel34 get_app_gpu_role           -> reject/skip
+[ios] san #105 sel35 set_resource_owner_identity kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel35 set_resource_owner_identity -> reject/skip
+[ios] san #106 sel36 create_resource_iosurface  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel36 create_resource_iosurface  -> reject/skip
+[ios] san #107 sel37 resource_detach_backing    kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel37 resource_detach_backing    -> reject/skip
+[ios] san #108 sel38 resource_replace_backing_bytes kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel38 resource_replace_backing_bytes -> reject/skip
+[ios] san #109 sel39 resource_replace_backing_ranges kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel39 resource_replace_backing_ranges -> reject/skip
+[ios] san #110 sel40 create_vniodesc            kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel40 create_vniodesc            -> reject/skip
+[ios] san #111 sel41 create_io_command_queue?   kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel41 create_io_command_queue?   -> OK
+[ios] san #112 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel42 destroy_io_command_queue   -> OK
+[ios] msc #113 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #114 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #115 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #116 sel42 destroy_io_command_queue   kr 0xe00002c9 stOut-wr 0/0 REJ
+[ios] msc #117 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #118 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #119 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #120 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #121 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #122 sel42 destroy_io_command_queue   kr 0xe00002c9 stOut-wr 0/0 REJ
+[ios] msc #123 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] msc #124 sel42 destroy_io_command_queue   kr 0x00000000 stOut-wr 0/0
+[ios] san #125 sel43 ios_specific               kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel43 ios_specific               -> reject/skip
+[ios] san #126 sel44 set_io_notification_queue  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel44 set_io_notification_queue  -> reject/skip
+[ios] san sel45 submit_io_commands: DANGER call now (fsync)
+[ios] san #127 sel45 submit_io_commands         kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] sanity sel45 submit_io_commands         -> reject/skip
+[ios] san #128 sel46 create_io_command_buffer   kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel46 create_io_command_buffer   -> OK
+[ios] msc #129 sel46 create_io_command_buffer   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #130 sel46 create_io_command_buffer   kr 0x00000000 stOut-wr 0/0
+[ios] msc #131 sel46 create_io_command_buffer   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #132 sel46 create_io_command_buffer   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #133 sel46 create_io_command_buffer   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #134 sel46 create_io_command_buffer   kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #135 sel47 destroy_io_command_buffer  kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel47 destroy_io_command_buffer  -> OK
+[ios] msc #136 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #137 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #138 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #139 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #140 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #141 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #142 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #143 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #144 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #145 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #146 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #147 sel47 destroy_io_command_buffer  kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] san #148 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] sanity sel48 try_cancel_io_command_buffer -> OK
+[ios] msc #149 sel48 try_cancel_io_command_buffer kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #150 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] msc #151 sel48 try_cancel_io_command_buffer kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #152 sel48 try_cancel_io_command_buffer kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #153 sel48 try_cancel_io_command_buffer kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #154 sel48 try_cancel_io_command_buffer kr 0xe00002c2 stOut-wr 0/0 REJ
+[ios] msc #155 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] msc #156 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] msc #157 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] msc #158 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] msc #159 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] msc #160 sel48 try_cancel_io_command_buffer kr 0x00000000 stOut-wr 0/0
+[ios] san sel49 perform_io: DANGER call now (fsync)

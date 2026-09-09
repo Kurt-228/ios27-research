@@ -18828,7 +18828,9 @@ static void p_iogpusweep(void) {
         }
         // ---- targeted sweeps (doc §6 checklist 5/7)
         if (e->sel == 6 && !r.stop) {
-            static const uint32_t vers[] = { 0, 1, 4, 5, 6, 0xffffffff };
+            // version >= 5 panics the kernel (panic_triage_0909: init error-path
+            // reads uninitialized this+0x488) — keep sub-gate values only
+            static const uint32_t vers[] = { 0, 1, 4 };
             for (unsigned i = 0; i < sizeof(vers)/sizeof(vers[0]) && !r.stop; i++) {
                 ios_blob410(ib);
                 *(uint32_t *)(ib + 0x400) = vers[i];

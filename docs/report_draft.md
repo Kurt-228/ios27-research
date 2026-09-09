@@ -68,6 +68,18 @@ App-Sandbox приложением без entitlements (fuzzer/ в этом ре
 - **Оценка**: infoleak/KASLR-relevant material; требует краша соседнего
   GPU-процесса.
 
+## Finding 4: IOGPUCommandQueue::init — NULL-deref panic из App-Sandbox (09.09)
+
+- **Класс**: чтение неинициализированного члена в error-path (CWE-476).
+- **Триггер**: sel6 s_new_command_queue, поле version (structureInput+0x400)
+  ≥ 5 → gate «version < 5» → ранний error-exit → диагностический блок
+  безусловно читает this+0x488 (device ptr, пишется только на success-пути)
+  → ldr [NULL+0x38] → kernel data abort, panic bug_type 210 (far 0x38).
+  Требует ненулевого глобального log-флага (на 27.0b4 установлен).
+- **Воспроизводимость**: 3/3 детерминированных паники 09.09 (12:44/13:59/14:06),
+  triage: docs/panic_triage_0909.md (символизация по kc27, UUID совпал).
+- **Оценка**: kernel DoS из sandbox одним вызовом; corruption нет.
+
 ## Инфраструктура воспроизведения
 
 - fuzzer/ — приложение (clang build через relay/build.sh), фазы по env

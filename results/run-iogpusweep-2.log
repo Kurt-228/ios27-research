@@ -1,0 +1,75 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5b03
+[scaler] conn 0x5b03, s1 173 s2 176
+[probe12] SetNotificationPort -> 0x00000000
+[ios] v138 iogpu selector sweep: skip 161 max 0 only-sel -1
+[open] IOGPU -> conn 0x7503
+[ios] main nq 1 qid 1
+[ios] sel24 bind -> kr 0x00000000
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 100578000
+[mtlr]   out: 0000010000000000 0000000100578000 00000001005600c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 00000000146dde75 000000000000545b
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 100574000 id 1
+[ios] main rid 1 gpuva 0x10000000000 shmem 1
+[ios] temp file fd 3 (/private/var/mobile/Containers/Data/Application/7368C0D8-6E38-4E7D-9D51-37C8EDC575DB/tmp//iosfd_930.bin)
+[ios] disposables nq2 2 qid2 2 rid2 2 sh2 2
+[ios] sanity sel0 get_config                 -> reject/skip
+[ios] sanity sel1 get_name                   -> reject/skip
+[ios] sanity sel2 get_event_machine          -> reject/skip
+[ios] sanity sel3 get_surface_info           -> reject/skip
+[ios] sanity sel4 get_current_trace_filter   -> reject/skip
+[ios] sanity sel5 get_device_info            -> reject/skip
+[ios] sanity sel6 new_command_queue          -> reject/skip
+[ios] sanity sel7 delete_command_queue       -> reject/skip
+[ios] sanity sel8 new_resource               -> reject/skip
+[ios] sanity sel9 delete_resource            -> reject/skip
+[ios] sanity sel10 finish_object_event        -> reject/skip
+[ios] sanity sel11 set_resource_purgeable     -> reject/skip
+[ios] sanity sel12 create_shmem               -> reject/skip
+[ios] sanity sel13 destroy_shmem              -> reject/skip
+[ios] sanity sel14 create_notificationqueue   -> reject/skip
+[ios] sanity sel15 destroy_notificationqueue  -> reject/skip
+[ios] sanity sel16 get_shared_info            -> reject/skip
+[ios] sanity sel17 create_mtlfence            -> reject/skip
+[ios] sanity sel18 destroy_mtlfence           -> reject/skip
+[ios] sanity sel19 create_mtlevent            -> reject/skip
+[ios] sanity sel20 destroy_mtlevent           -> reject/skip
+[ios] sanity sel21 get_memory_data            -> reject/skip
+[ios] sanity sel22 unsupported                -> reject/skip
+[ios] sanity sel23 get_allocated_size         -> reject/skip
+[ios] sanity sel24 set_notification_queue     -> reject/skip
+[ios] sanity sel25 submit_command_buffers     -> reject/skip
+[ios] sanity sel26 set_priority_and_background -> reject/skip
+[ios] sanity sel27 set_quality_of_service     -> reject/skip
+[ios] sanity sel28 create_mtllateevalevent    -> reject/skip
+[ios] sanity sel29 destroy_mtllateevalevent   -> reject/skip
+[ios] sanity sel30 async_signal_mtlLateEvalevent -> reject/skip
+[ios] sanity sel31 query_mtlLateEvalevent     -> reject/skip
+[ios] sanity sel32 set_display_params_for_gpu -> reject/skip
+[ios] sanity sel33 set_app_gpu_role           -> reject/skip
+[ios] sanity sel34 get_app_gpu_role           -> reject/skip
+[ios] sanity sel35 set_resource_owner_identity -> reject/skip
+[ios] sanity sel36 create_resource_iosurface  -> reject/skip
+[ios] sanity sel37 resource_detach_backing    -> reject/skip
+[ios] sanity sel38 resource_replace_backing_bytes -> reject/skip
+[ios] sanity sel39 resource_replace_backing_ranges -> reject/skip
+[ios] sanity sel40 create_vniodesc            -> reject/skip
+[ios] sanity sel41 create_io_command_queue?   -> reject/skip
+[ios] sanity sel42 destroy_io_command_queue   -> reject/skip
+[ios] sanity sel43 ios_specific               -> reject/skip
+[ios] sanity sel44 set_io_notification_queue  -> reject/skip
+[ios] sanity sel45 submit_io_commands         -> reject/skip
+[ios] sanity sel46 create_io_command_buffer   -> reject/skip
+[ios] sanity sel47 destroy_io_command_buffer  -> reject/skip
+[ios] sanity sel48 try_cancel_io_command_buffer -> reject/skip
+[ios] sanity sel49 perform_io                 -> reject/skip
+[ios] sanity sel50 io_command_buffer_complete -> reject/skip
+[ios] sanity sel51 io_command_buffer_barrier_complete -> reject/skip
+[ios] sanity sel52 group_add_resources        -> reject/skip
+[ios] sanity sel53 group_remove_resources     -> reject/skip
+[ios] sanity sel54 create_device_assertion    -> reject/skip
+[ios] sanity sel55 perform_mapping            -> reject/skip
+[ios] sanity sel56 out_of_range_probe         -> reject/skip
+[ios] done: cases 57 (skip 161) hits 0 leaks 0 (alive)
+[probe13] iogpusweep-only mode, stop
