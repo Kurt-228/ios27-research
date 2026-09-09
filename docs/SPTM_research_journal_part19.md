@@ -613,3 +613,17 @@ run-replay2-E.log (VAR=1, FULL=1, REFA/REFB override):
 
 v146 (этот коммит): в rebase-пасс добавлена вторая E-кодировка (refE2 =
 0x1_00240000, env FUZZ_REPLAY2_REFE2). Прогон E2 — run-replay2-E2.log.
+
+### replay2-E2 (v146): rebase полностью чистый — исполнения всё равно нет
+
+run-replay2-E2.log: kcmd+0x1d4 отребейжен (INT2->E+d), итог rebase-пасса
+«rebased 11, unmapped 0, kext-block skipped 10 (clean)» — capture-VM больше
+не referenced вообще. Submit kr 0 / outw 0, completion {0,0}, dst не
+тронут. «Firmware status 2nd record» в двух прогонах случаен
+(4287749415 / 3128532189) — это чтение неинициализированной nq-памяти,
+а не статус firmware; метка «parse path CHANGED» — шум эвристики.
+Вывод: блокер не в rebase/residency/E — не хватает P (CDM-stream
+страница), fallback dsrecon-int-0 её не заменяет. Последняя дешевая
+итерация — VAR=3 (лестница форм entry, run-replay2-E3.log); при {0,0}
+ветка replay2 замораживается до получения P (полный реверс CDM-грамматики
+или захват stream-страницы — оба выходят за рамки текущих фаз).
