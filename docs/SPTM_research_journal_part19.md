@@ -591,3 +591,25 @@ Retirement-разбор подтверждён независимо по `result
 Методологическая ценность: адреса-константы retirement-пути, на которых
 построен f-reclaim (§132) и спрей-рецепт (§107), теперь дважды подтверждены
 независимыми разборами.
+
+## 133. v146: replay2-E — полный residency + реальный metacache: submit принят, исполнения нет
+
+run-replay2-E.log (VAR=1, FULL=1, REFA/REFB override):
+- FULL residency: 20/20 reference rids пересозданы и подставлены (group-slot
+  subs 19, global subs 16);
+- E (dsrecon-int4-E.bin, 32KB, реальный контент) загружен, kcmd+0x174 и
+  +0x1d0 отребейжены на gpuE; pool P по-прежнему отсутствует (fallback на
+  dsrecon-int-0, 256KB), pool-refs отребейжены на C/D;
+- submit: kr 0, outw 0 — kext принял очередь и команду;
+- completion: st@+18 0, st@+48 0 — статус {0,0} (НЕ {0,5}); dst B: 0x41
+  на месте, nz 0 — firmware не исполнила;
+- диагностический сигнал: «firmware status (2nd record) 4287749415 — NOT 5 —
+  parse path CHANGED» — путь парсинга с E-контентом отличается от прошлых
+  no-op прогонов, но до исполнения не дошло;
+- единственный видимый дефект сабмита: kcmd+0x1d4 = 0x100240028 UNMAPPED —
+  указатель на E+0x28 в кодировке int4-capture сессии (E@0x1_00240000),
+  тогда как +0x1d0 нёс ту же E+0x28 в кодировке cfg1-capture (0x1000f0028).
+  kcmd собран из смешанных дампов двух capture-сессий.
+
+v146 (этот коммит): в rebase-пасс добавлена вторая E-кодировка (refE2 =
+0x1_00240000, env FUZZ_REPLAY2_REFE2). Прогон E2 — run-replay2-E2.log.

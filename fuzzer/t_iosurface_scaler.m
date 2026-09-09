@@ -16595,7 +16595,7 @@ static void p_replay2(void) {
     uint32_t fnumGrp = 4;
     uint32_t mref[32], mour[32];
     int nmap = 0;
-    uint64_t poolBase = 0, poolBase2 = 0, refE = 0;
+    uint64_t poolBase = 0, poolBase2 = 0, refE = 0, refE2 = 0;
     uint64_t gpuD = 0, gpuE = 0;
     uint8_t *cpuD = NULL, *cpuE = NULL;
     uint32_t ridD = 0, ridE = 0;
@@ -16665,10 +16665,13 @@ static void p_replay2(void) {
         // bundle (verbatim, GPUVA-free blob), zero + WARNING as fallback.
         poolBase2 = 0x100000000ULL | 0x30000;
         refE = 0x100000000ULL | 0xf0000;
+        refE2 = 0x100000000ULL | 0x240000;   // v146: int4-session E encoding
         const char *e2 = getenv("FUZZ_REPLAY2_POOL2");
         if (e2) poolBase2 = strtoull(e2, NULL, 0);
         const char *eE = getenv("FUZZ_REPLAY2_REFE");
         if (eE) refE = strtoull(eE, NULL, 0);
+        const char *eE2 = getenv("FUZZ_REPLAY2_REFE2");
+        if (eE2) refE2 = strtoull(eE2, NULL, 0);
         LOG("[rp2f] pool2 base 0x%llx, internal-E base 0x%llx", poolBase2, refE);
         ridD = gpu_resource2(c, 0x40000, &gpuD, &cpuD);   // 2nd pool page
         ridE = gpu_resource2(c, 0x8000, &gpuE, &cpuE);    // metacache E (§2.5)
@@ -16996,6 +16999,12 @@ static void p_replay2(void) {
                     }
                     else if (gpuE && va >= refE && va < refE + 0x10000) {
                         nv = gpuE + (va - refE); cls = "INT->E+d";
+                    }
+                    // v146: второй capture-сеанс (dsrecon-int4) ссылался на E
+                    // своим GPUVA 0x1_00240000 — kcmd собран из смешанных
+                    // дампов, обе кодировки E надо маппить (kcmd+0x1d4)
+                    else if (gpuE && va >= refE2 && va < refE2 + 0x10000) {
+                        nv = gpuE + (va - refE2); cls = "INT2->E+d";
                     }
                     else if (va == refA) { nv = gpuA; cls = "refA->A"; }
                     else if (va == refB) { nv = gpuB; cls = "refB->B"; }
