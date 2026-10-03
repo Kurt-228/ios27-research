@@ -1,0 +1,26 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5a03
+[scaler] conn 0x5a03, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[mp] v152 IOSurface memory-pool probe (sel49-52)
+[mp] open -> kr 0x00000000 conn 0x6f03
+[mp] sel13 init -> kr 0x00000000 osz 0x28  entmask ff 3f 00 00 7f 00 00 00
+[mp] sel49 size 8 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 16 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 24 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 32 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 40 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 48 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 64 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 96 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[mp] sel49 size 128 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 256 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel49 size 512 -> kr 0xe00002c2 osz 0xc68 pid? 0 (format/size rejected)
+[mp] sel50/51/52 need a live pool id from sel49; skipped
+[mp] done (alive)
+[probe13] mempool-only mode, stop

@@ -807,3 +807,78 @@ double-wrap (run-warm1: те же kr 0 / 10080 qword / pages 0x4000..0xfc000).
 первое же написание вывода («§117 устарел») тоже пришлось перепроверить —
 контрольная таблица из 4 конфигураций показала, что §117 прав, а неточным
 было моё резюме, а не журнал.
+
+## 137. v152: jitbox-угон закрыт по существу; memory_pool недоступен; проверены entitlement'ы профиля
+
+Три проверки подряд, все дешёвые, все дали ответы «нет».
+
+### (a) jitbox-угон (запись в jitbox-дескриптор) — ЦЕЛЬ В ЯДРЕ XNU
+
+Журнал §31.1 называл владельца дескриптора «IOKit OSObject (vtable
+0x7e192a0), скорее pmap-companion». Дизасм `0xa9665d0` (регистрация окна) это
+**опровергает**:
+
+```
+0a96663c  mrs  x0, tpidr_el1
+0a966640  bl   #0xa848c3c        ; owner lookup
+0a966644  add  x8, x0, #0x359    ; спин-лок
+0a966648  swpb w21, w8, [x8]
+...
+0a966774  ldp  x8, x20, [sp, #0x30]   ; x8 = owner
+0a966778  str  x20, [x8, #0x368]      ; PA окна
+0a96677c  str  x19, [x8, #0x370]      ; size
+0a966780  str  w22, [x8, #0x378]      ; count
+```
+
+`0xa848c3c(tpidr_el1)`: `ldr x1,[x0,#0x410]` (pmap треда) → проверка типа в
+хеш-таблице `0x7ccf210/0x7ccf270` (`(tag & 0x3ff) == 3`) → **`[x1] == x0`**
+(это `vm_map`) → возврат `[x1+0x28]`. Деструктор `0x8758bdc` подтверждает:
+`+0x350..0x3a8` — **OSObject-указатели** (release через vtable+0x28), а не
+raw-поля дескриптора. `site.*`-класса для него нет среди 5365 строк ⇒ не
+kalloc_type; это XNU-объект.
+
+**Вердикт: цель дескриптора = `vm_map + 0x360`, ASLR-адрес XNU-структуры.**
+Не kext ⇒ SPTM/PAC в силе; адрес недоступен из sandbox (нет kernel read).
+Это тот же тупик, что self-ref PTE (§37): нужен обход SPTM, чтобы записать
+в vm_map. **Ветка закрыта по существу**, а не «сложна».
+
+### (b) memory_pool (sel49-52) — отказ на dispatch
+
+Фаза `p_mempool`: sel13 init + свип размеров sel49 (8..512). Все 11 →
+**0x2c2 на входе, до handler'а** (osz 0xc68 = IOSurfaceLockResult, значит
+обработчик не выполнялся). Entitlement-гейт (`taskCanUsePool`) дал бы 0x2e2,
+до него не дошли. Статика: строки «Memory pool ids exhausted», «Unable to
+pre-allocate IOSurfaceMemoryPool memory», «Bucket buffer size», сайт
+`IOSurfaceMemoryPool` подтверждают пул с bucket-аллокацией и **проверкой
+«descriptor length isn't rounded to bucket size»** — то есть нужный
+under-allocation класс там есть, но формат sel49 на iOS не восстановлен:
+в iOS-кексте нет строк имён методов (в macOS-версии есть), symtab пуста
+(stripped kext), GOT-ссылки не резолвятся офлайн. Восстановление формата
+требует либо живого подбора структуры, либо реверса обфусцированной
+таблицы диспатча. Не начинаем без понимания цены.
+
+### (c) Entitlement'ы provisioning profile — расширение не помогает
+
+Профиль `276VZS46K5` (dev, до 2027-08-11) содержит **45 entitlement'ов**,
+включая kernel-класс: `com.apple.developer.kernel.extended-virtual-addressing`,
+`kernel.increased-memory-limit`, `increased-debugging-memory-limit`.
+Собрал приложение со **всеми 45** — девайс принял, приложение запустилось.
+
+Результат: **битмаска entitlement'ов IOSurface не изменилась**
+(`sel13 init`: `ff 3f 00 00 7f 00 00 00` — идентично baseline). Нужных для
+наших целей `com.apple.private.iosurfaceinfo`,
+`com.apple.private.IOSurface.protected-access`,
+`com.apple.private.gpu-restricted`, `IOSurfaceMemoryPoolEntitlement` в
+профиле **нет**, а они и не выдаются стороннему разработчику. Entitlement'ы
+профиля не расширяют доступ к IOSurface/AGX-поверхности.
+
+Вывод: **класс «добавить entitlement'ы и получить новую поверхность»
+исчерпан** — Apple-приватные entitlement'ы недоступны без их выдачи Apple.
+`ent.plist` возвращён к исходному (эксперимент дал ровно ноль).
+
+### Сводка
+
+Три вектора, давшие «нет» на разведку: jitbox-угон (цель в vm_map),
+memory_pool (недостижим до handler'а, формат неизвестен), entitlement'ы
+(профиля недостаточно). Ни один из них не является «недостаточно изучен» —
+каждый упёрся в конкретное, проверенное препятствие.
