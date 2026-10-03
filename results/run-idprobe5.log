@@ -1,0 +1,30 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4813
+[scaler] conn 0x4813, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[idp] v150 IOSurfaceID cross-process lookup probe: 1..600 step 1
+[idp] own surface id 16 (control)
+[idp] own surface id 17 (control)
+[idp] own surface id 18 (control)
+[idp] own surface id 22 (control)
+[idp] IOSurfaceRoot open -> kr 0x00000000 conn 0x5a1b
+[idp] progress: id 51 — hit 0 gated 47 own 4
+[idp] progress: id 101 — hit 0 gated 97 own 4
+[idp] progress: id 151 — hit 0 gated 147 own 4
+[idp] progress: id 201 — hit 0 gated 197 own 4
+[idp] progress: id 251 — hit 0 gated 247 own 4
+[idp] progress: id 301 — hit 0 gated 297 own 4
+[idp] progress: id 351 — hit 0 gated 347 own 4
+[idp] progress: id 401 — hit 0 gated 397 own 4
+[idp] progress: id 451 — hit 0 gated 447 own 4
+[idp] progress: id 501 — hit 0 gated 497 own 4
+[idp] progress: id 551 — hit 0 gated 547 own 4
+[idp] summary: 0 foreign IDs resolved, 596 gated (0x2c2 expected), 4 own-ID controls
+[idp] verdict: registry lookup properly gated by find_surface
+[idp] done (alive)
+[probe13] idprobe-only mode, stop

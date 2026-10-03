@@ -1,0 +1,16 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6613
+[scaler] conn 0x6613, s1 34 s2 194
+[probe12] SetNotificationPort -> 0x00000000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[xyw] v100: X/Y-wrap sweep (skip 0)
+[open] AppleM2ScalerCSCDriver -> conn 0x720b
+[xyw] wire -> kr 0x00000000
+[xyw] custom shot X=0x00000000 Y=0xfffffff0 W=0x00000080 H=0x00000020 (PANIC possible)
+[xyw] custom -> kr 0xe00002c2 | bad qwords 0, pages 0x0..0x0
+[xyw] custom done (alive)
+[probe13] xywrap-only mode, stop

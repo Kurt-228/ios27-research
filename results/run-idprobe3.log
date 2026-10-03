@@ -1,0 +1,17 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6203
+[scaler] conn 0x6203, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[idp] v150 IOSurfaceID cross-process lookup probe: 1..600 step 1
+[idp] own surface id 16 (control)
+[idp] own surface id 17 (control)
+[idp] own surface id 18 (control)
+[idp] own surface id 22 (control)
+[idp] no IOSurfaceRoot service
+[idp] done (alive)
+[probe13] idprobe-only mode, stop

