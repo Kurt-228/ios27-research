@@ -1,0 +1,51 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x6403
+[scaler] conn 0x6403, s1 13 s2 16
+[probe12] SetNotificationPort -> 0x00000000
+[mp] v152 IOSurface memory-pool probe (sel49-52)
+[mp] IOCoreSurfaceRoot: not found
+[mp] IOCoreSurfaceRoot: not found
+[mp] IOCoreSurfaceRoot: not found
+[mp] using IOSurfaceRoot type 0 -> conn 0x4213
+[mp] sel13 init -> kr 0x00000000 osz 0x28  entmask ff 3f 00 00 7f 00 00 00
+[mp] sel49 size 4 -> 0x2c2 (size rejected)
+[mp] sel49 size 8 -> 0x2c2 (size rejected)
+[mp] sel49 size 12 -> 0x2c2 (size rejected)
+[mp] sel49 size 16 -> 0x2c2 (size rejected)
+[mp] sel49 size 20 -> 0x2c2 (size rejected)
+[mp] sel49 size 24 -> 0x2c2 (size rejected)
+[mp] sel49 size 28 -> 0x2c2 (size rejected)
+[mp] sel49 size 32 -> 0x2c2 (size rejected)
+[mp] sel49 size 36 -> 0x2c2 (size rejected)
+[mp] sel49 size 40 -> 0x2c2 (size rejected)
+[mp] sel49 size 44 -> 0x2c2 (size rejected)
+[mp] sel49 size 48 -> 0x2c2 (size rejected)
+[mp] sel49 size 52 -> 0x2c2 (size rejected)
+[mp] sel49 size 56 -> 0x2c2 (size rejected)
+[mp] sel49 size 60 -> 0x2c2 (size rejected)
+[mp] sel49 size 64 -> 0x2c2 (size rejected)
+[mp] sel49 size 128 -> 0x2c2 (size rejected)
+[mp] sel49 size 256 -> 0x2c2 (size rejected)
+[mp] sel49 size 384 -> 0x2c2 (size rejected)
+[mp] sel49 size 512 -> 0x2c2 (size rejected)
+[mp] sel49 size 640 -> 0x2c2 (size rejected)
+[mp] sel49 size 768 -> 0x2c2 (size rejected)
+[mp] sel49 size 896 -> 0x2c2 (size rejected)
+[mp] sel49 size 1024 -> 0x2c2 (size rejected)
+[mp] sel49: no accepted structureIn size in 4..1024
+[mp] ctl sel6 create (32B, known good)    sel6  sz 32    -> kr 0xe00002bd
+[mp] ctl sel6 create (31B, wrong size)    sel6  sz 31    -> kr 0xe00002c2
+[mp] ctl sel13 init (0B, known good)      sel13 sz 0     -> kr 0xe00002c2
+[mp] ctl sel49 pool (32B)                 sel49 sz 32    -> kr 0xe00002c2
+[mp] ctl sel50 ensure (32B)               sel50 sz 32    -> kr 0xe00002c2
+[mp] ctl sel51 flush (32B)                sel51 sz 32    -> kr 0xe00002c2
+[mp] ctl sel52 gather (32B)               sel52 sz 32    -> kr 0xe00002c2
+[mp] ctl sel49 pool (160B, = sel27 struct size) sel49 sz 160   -> kr 0xe00002c2
+[mp] ctl sel49 pool (3176B, = surface out size) sel49 sz 3176  -> kr 0xe00002c2
+[mp] done (alive)
+[probe13] mempool-only mode, stop

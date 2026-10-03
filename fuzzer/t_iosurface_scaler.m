@@ -23643,14 +23643,30 @@ static void p_uatrec(void) {
 // profile-authorised entitlement set — the gate decides everything downstream.
 static void p_mempool(void) {
     LOG("[mp] v152 IOSurface memory-pool probe (sel49-52)");
-    io_service_t svc = IOServiceGetMatchingService(kIOMainPortDefault,
-                        IOServiceMatching("IOSurfaceRoot"));
-    if (!svc) { LOG("[mp] no IOSurfaceRoot service"); LOG("[mp] done (alive)"); return; }
+    // Two distinct services expose IOSurfaceRootUserClient-like dispatch
+    // tables (p_coresurf uses IOCoreSurfaceRoot). A 0x2c2 for every structureIn
+    // size on one of them may simply mean "wrong table": sel49 lives in the
+    // pool-capable table. Try both, and also try type != 0 clients.
+    const char *svcnames[] = { "IOCoreSurfaceRoot", "IOSurfaceRoot", "IOSurfaceRootUserClient" };
+    const uint32_t types[] = { 0, 1, 2 };
     io_connect_t uc = 0;
-    kern_return_t ok = IOServiceOpen(svc, mach_task_self(), 0, &uc);
-    IOObjectRelease(svc);
-    LOG("[mp] open -> kr 0x%08x conn 0x%x", ok, uc);
-    if (ok || !uc) { LOG("[mp] done (alive)"); return; }
+    for (unsigned si = 0; si < sizeof(svcnames)/sizeof(svcnames[0]) && !uc; si++) {
+        for (unsigned ti = 0; ti < sizeof(types)/sizeof(types[0]) && !uc; ti++) {
+            io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                IOServiceMatching(svcnames[si]));
+            if (!s) { LOG("[mp] %s: not found", svcnames[si]); continue; }
+            io_connect_t c = 0;
+            kern_return_t ko = IOServiceOpen(s, mach_task_self(), types[ti], &c);
+            IOObjectRelease(s);
+            if (!ko && c) {
+                uc = c;
+                LOG("[mp] using %s type %u -> conn 0x%x", svcnames[si], types[ti], c);
+            } else {
+                LOG("[mp] %s type %u open -> kr 0x%08x", svcnames[si], types[ti], ko);
+            }
+        }
+    }
+    if (!uc) { LOG("[mp] no usable connection"); LOG("[mp] done (alive)"); return; }
     uint8_t *inb = must_map(0x4000), *outb = must_map(0x4000);
     uint64_t osc[4] = {0,0,0,0};
 
@@ -23661,35 +23677,67 @@ static void p_mempool(void) {
     LOG("[mp] sel13 init -> kr 0x%08x osz 0x%zx  entmask %02x %02x %02x %02x %02x %02x %02x %02x",
         ki, osz, outb[0],outb[1],outb[2],outb[3],outb[4],outb[5],outb[6],outb[7]);
 
-    // sel49 create_memory_pool(sinStruct VAR). Layout unknown; sweep a small
-    // grid of plausible header shapes and record which are accepted. Every
-    // rejection reason is itself information (0x2c2 = bad size/format,
-    // 0x2e2 = entitlement).
-    static const size_t sizes[] = { 8, 16, 24, 32, 40, 48, 64, 96, 128, 256, 512 };
-    for (unsigned si = 0; si < sizeof(sizes)/sizeof(sizes[0]); si++) {
+    // sel49 create_memory_pool(sinStruct). The dispatch table for this kext is
+    // not decodable offline (no 3176 markers in __DATA_CONST => checkStruct
+    // fields are not stored in the macOS layout; funcs are XOR-obfuscated with
+    // an iOS-specific key we have not recovered). But the dispatch rejects a
+    // wrong structureIn size with 0x2c2 BEFORE the handler
+    // (docs/iosurface_sel_formats.md §1), so the accepted size is directly
+    // observable by sweeping: exactly one size must stop returning 0x2c2.
+    // Sweep 4..1024 in 4-byte steps.
+    long accepted_at = -1;
+    for (size_t sz = 4; sz <= 1024; sz += 4) {
         memset(inb, 0, 0x4000); memset(outb, 0, 0x4000);
-        // plausible pool header: poolSize / descriptorLen / bucket fields
         *(uint64_t *)(inb + 0x00) = 0x1000;      // pool size
         *(uint64_t *)(inb + 0x08) = 0x1000;      // descriptor length
         *(uint32_t *)(inb + 0x10) = 1;           // bucket count
         *(uint32_t *)(inb + 0x14) = 0x1000;      // bucket buffer size
         osz = 3176; nosc = 0;
-        kern_return_t kr = IOConnectCallMethod(uc, 49, NULL, 0, inb, sizes[si],
+        kern_return_t kr = IOConnectCallMethod(uc, 49, NULL, 0, inb, sz,
                                                osc, &nosc, outb, &osz);
-        uint32_t pid0 = *(uint32_t *)(outb + 0x00);
-        LOG("[mp] sel49 size %zu -> kr 0x%08x osz 0x%zx pid? %u %s",
-            sizes[si], kr, osz, pid0,
-            kr == 0 ? "*** CREATE ACCEPTED ***" :
-            (kr == 0xe00002e2 ? "(entitlement-gated)" :
-            (kr == 0xe00002c2 ? "(format/size rejected)" : "")));
-        if (kr == 0 && pid0) {
-            uint64_t p64 = pid0;
-            IOConnectCallScalarMethod(uc, 1, &p64, 1, NULL, NULL);  // release
+        if (kr != 0xe00002c2) {
+            uint32_t pid0 = *(uint32_t *)(outb + 0x00);
+            LOG("[mp] sel49 *** size %zu -> kr 0x%08x osz 0x%zx pid? %u  "
+                "(structureIn size found)", sz, kr, osz, pid0);
+            accepted_at = (long)sz;
+            if (kr == 0 && pid0) {
+                uint64_t p64 = pid0;
+                IOConnectCallScalarMethod(uc, 1, &p64, 1, NULL, NULL);
+            }
+            break;
+        }
+        if (sz <= 64 || sz % 128 == 0)
+            LOG("[mp] sel49 size %zu -> 0x2c2 (size rejected)", sz);
+    }
+    if (accepted_at < 0) {
+        LOG("[mp] sel49: no accepted structureIn size in 4..1024");
+        // Decisive discriminator: is 0x2c2 a *size* rejection or a *permission*
+        // rejection for this selector? Compare against selectors whose input
+        // shape IS known to be accepted (sel6 create takes 32 bytes; sel13 init
+        // takes none). If known-good selectors accept their sizes and only the
+        // pool selectors reject everything, the pool path is gated, not
+        // malformed — and guessing sizes further is pointless.
+        struct { uint32_t sel; size_t sz; const char *name; } ctl[] = {
+            { 6, 32, "sel6 create (32B, known good)" },
+            { 6, 31, "sel6 create (31B, wrong size)" },
+            { 13, 0, "sel13 init (0B, known good)" },
+            { 49, 32, "sel49 pool (32B)" },
+            { 50, 32, "sel50 ensure (32B)" },
+            { 51, 32, "sel51 flush (32B)" },
+            { 52, 32, "sel52 gather (32B)" },
+            { 49, 160, "sel49 pool (160B, = sel27 struct size)" },
+            { 49, 3176, "sel49 pool (3176B, = surface out size)" },
+        };
+        for (unsigned ci = 0; ci < sizeof(ctl)/sizeof(ctl[0]); ci++) {
+            memset(inb, 0, 0x4000); memset(outb, 0, 0x4000);
+            osz = 3176; nosc = 0;
+            kern_return_t kr = IOConnectCallMethod(uc, ctl[ci].sel, NULL, 0,
+                                                   inb, ctl[ci].sz,
+                                                   osc, &nosc, outb, &osz);
+            LOG("[mp] ctl %-32s sel%-2u sz %-5zu -> kr 0x%08x",
+                ctl[ci].name, ctl[ci].sel, ctl[ci].sz, kr);
         }
     }
-    // sel50 ensure_memory_pool_memory(scalarIn + sinStruct VAR) needs a pool id,
-    // which we do not have if 49 is refused — report and stop there.
-    LOG("[mp] sel50/51/52 need a live pool id from sel49; skipped");
     IOServiceClose(uc);
     LOG("[mp] done (alive)");
     vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x4000);
