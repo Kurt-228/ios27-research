@@ -1,6 +1,15 @@
 # Apple Security Bounty triage package — 2026-09
 
-Status: defensive disclosure preparation package.
+Status: historical disclosure preparation package.
+
+## Current vendor-triage handoff
+
+Use `vendor-triage/` as the self-contained, neutral handoff package. It is
+the authoritative current view of the selected observations: it inventories
+the source artifacts, groups duplicates, separates the prior submission, and
+records later controls that narrow earlier claims. The older candidate notes
+in this directory remain research history and are not the recommended
+attachment set for a vendor report.
 
 This directory is a neutral triage layer over the existing research repository. It does not add weaponized proof-of-concept code, bypass instructions, exploitation steps, or new research directions. It only indexes issue candidates already supported by existing crash/panic logs, sysdiagnose excerpts, commit notes, and internal report notes.
 
