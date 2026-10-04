@@ -1,0 +1,14 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4d27
+[scaler] conn 0x4d27, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[vic-t] v156 cross-process surface lifetime test (fork)
+[vic-t] fork() FAILED errno 1 — no second task obtainable in-bundle
+[vic-t] verdict: cross-process test needs a SECOND BUNDLE ID
+[vic-t] done (alive)
+[probe13] victim-only mode, stop
