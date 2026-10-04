@@ -24319,6 +24319,510 @@ static void p_reach(void) {
     LOG("[reach] done");
 }
 
+// V159 (p_mfb): IOMobileFramebufferUserClient — the one reachable surface this
+// project never studied.
+//
+// v158 measured the reachable denominator: of 460 candidate services only 5
+// open from the App-Sandbox, and four are already covered. IOMobileFramebuffer
+// (type 0) is the single reachable, unstudied surface, and §6.1 of
+// docs/scaler_dva_formula.md names it as the owner of the system DART domain —
+// the object the scaler work could never reach (§7.4/§116).
+//
+// Statics from com_apple_iokit_IOMobileGraphicsFamily{,-DCP} show the classic
+// IOKit flexible-array shape, named by the driver's own error strings:
+//   "data:  in_args->data_size  (%lu) > in_args->data[]  count (%lu)"
+//   "block: block_size (%lu) > out_args.block[] count (%lu)"
+//   "chunk: in_args->chunk_size (%lu) > in_args->chunk[] count (%lu)"
+//   "overflow detected, paylod too big: (%zu + %u + %u)"
+//   "payload size mismatch: %u != %lu" / "payload size too small: %u < %lu"
+// That is a user-declared length validated against the count derived from the
+// structureInput size — exactly the construct where a signedness or
+// off-by-one slip becomes a kernel heap overflow. This phase hunts for it.
+//
+// The dispatch tables are not recoverable offline (chained fixups obfuscate
+// the string references; the same obstacle that closed static recovery for
+// IOSurface in §136), so the selector space is swept empirically instead:
+// each selector is probed with a scalar grid and a structure grid, and every
+// distinct return code is recorded. A selector that answers at all is a
+// candidate; the interesting result is one that answers differently for a
+// declared size larger than the buffer actually supplied.
+static void p_mfb(void) {
+    long sel_lo = atol(getenv("FUZZ_MFB_SEL_LO") ?: "0");
+    long sel_hi = atol(getenv("FUZZ_MFB_SEL_HI") ?: "40");
+    long case0 = atol(getenv("FUZZ_MFB_SKIP") ?: "0");
+    io_connect_t c = open_service("IOMobileFramebuffer", 0);
+    if (!c) { LOG("[mfb] not openable"); LOG("[mfb] done"); return; }
+    LOG("[mfb] v159 IOMobileFramebufferUserClient sweep sels %ld..%ld, skip %ld",
+        sel_lo, sel_hi, case0);
+
+    uint8_t *inb = must_map(0x8000), *outb = must_map(0x8000);
+    uint64_t osc[4]; long caseidx = 0;
+
+    // Boundary-value grid. Zero, the small power-of-two steps, and the four
+    // classic overflow triggers (0x7fffffff / 0x80000000 / 0xffffffff / max)
+    // plus one 64-bit value in each slot: an IOKit method that treats a scalar
+    // as a length will mis-handle one of these before it will mis-handle 17.
+    static const uint64_t vals[] = {
+        0, 1, 2, 3, 4, 8, 16, 0x40, 0x80, 0xff, 0x100, 0x1000, 0x4000,
+        0x10000, 0x100000, 0x7fffffff, 0x80000000ULL, 0xffffffffULL,
+        0xffffffffffffffffULL, 0x100000000ULL, 2, 3,
+    };
+
+    // ---- FOCUS mode: one selector, scalars varied INDEPENDENTLY per position.
+    // The uniform grid above only ever produced (v,v,v) tuples, so it could
+    // show that sel6 likes v=4 without showing WHICH position matters. That
+    // distinction is the whole map of the method, so it gets its own sweep.
+    const char *fsel = getenv("FUZZ_MFB_FOCUS");
+    if (fsel) {
+        uint32_t fs = (uint32_t)strtoul(fsel, NULL, 0);
+        int fns = atoi(getenv("FUZZ_MFB_FOCUSN") ?: "3");
+        if (fns < 1) fns = 1;
+        if (fns > 4) fns = 4;
+        LOG("[mfb] FOCUS sel%u with %d independent scalars", fs, fns);
+        // baseline: all zeros, then vary one position at a time
+        uint64_t base[4] = {0, 0, 0, 0};
+        for (int pos = 0; pos < fns; pos++) {
+            for (unsigned vi = 0; vi < sizeof(vals)/sizeof(vals[0]); vi++) {
+                uint64_t sv[4] = {base[0], base[1], base[2], base[3]};
+                sv[pos] = vals[vi];
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                memset(outb, 0, 0x8000);
+                kern_return_t kr = IOConnectCallMethod(c, fs, sv, (uint32_t)fns,
+                                                       NULL, 0, osc, &nosc,
+                                                       outb, &osz);
+                LOG("[mfb] focus sel%u pos%d=0x%016llx -> kr 0x%08x%s",
+                    fs, pos, (unsigned long long)vals[vi], kr,
+                    kr == 0 ? "  *** ACCEPTED ***" : "");
+                if (kr == 0) fsync(fileno(stderr));
+            }
+        }
+        // and the 2-D case the uniform grid could not reach: every pair.
+        // Scalar count is part of the signature — sel6 accepted (0,3,0) with
+        // three scalars and rejected the same pair with two — so the count is
+        // passed as three here, not as the two the array was seeded for.
+        if (fns >= 2) {
+            for (unsigned a = 0; a < sizeof(vals)/sizeof(vals[0]); a++)
+                for (unsigned b = 0; b < sizeof(vals)/sizeof(vals[0]); b++) {
+                    uint64_t sv[4] = {vals[a], vals[b], 4, 0};
+                    for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                    uint32_t nosc = 0; size_t osz = 0;
+                    memset(outb, 0, 0x8000);
+                    kern_return_t kr = IOConnectCallMethod(c, fs, sv, 3,
+                                                           NULL, 0, osc, &nosc,
+                                                           outb, &osz);
+                    if (kr == 0) {
+                        LOG("[mfb] focus sel%u 3s(%llu,%llu,4) -> kr 0 ACCEPTED",
+                            fs, (unsigned long long)vals[a],
+                            (unsigned long long)vals[b]);
+                        fsync(fileno(stderr));
+                    }
+                }
+        }
+        LOG("[mfb] FOCUS done");
+        IOServiceClose(c);
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+        return;
+    }
+
+    // ---- FIX mode: pin the selector and one scalar slot, sweep the others
+    // independently. sel6 accepts exactly when scalar[1]==3, so the question
+    // this answers is what the OTHER two slots are for. If either is a count
+    // or a length, sweeping it alone — with no structure input attached — is
+    // the half of the overflow test that costs nothing to run.
+    const char *fx = getenv("FUZZ_MFB_FIX");
+    if (fx) {
+        uint32_t fs = (uint32_t)strtoul(fx, NULL, 0);
+        uint32_t fixed = (uint32_t)strtoul(getenv("FUZZ_MFB_FIXVAL") ?: "3", NULL, 0);
+        int fpos = atoi(getenv("FUZZ_MFB_FIXPOS") ?: "1");
+        LOG("[mfb] FIX sel%u, scalar[%d] pinned to %u, sweeping others", fs, fpos, fixed);
+        // first: how many scalars does this selector accept at all?
+        for (int ns = 1; ns <= 6; ns++) {
+            uint64_t sv[6] = {0, 0, 0, 0, 0, 0};
+            sv[fpos] = fixed;
+            for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+            uint32_t nosc = 0; size_t osz = 0;
+            memset(outb, 0, 0x8000);
+            kern_return_t kr = IOConnectCallMethod(c, fs, sv, (uint32_t)ns,
+                                                   NULL, 0, osc, &nosc, outb, &osz);
+            LOG("[mfb] FIX sel%u ns=%d -> kr 0x%08x%s", fs, ns, kr,
+                kr == 0 ? "  *** ACCEPTED ***" : "");
+            fsync(fileno(stderr));
+        }
+        // then: with the working signature, vary each remaining slot alone
+        for (int pos = 0; pos < 4; pos++) {
+            if (pos == fpos) continue;
+            for (unsigned vi = 0; vi < sizeof(vals)/sizeof(vals[0]); vi++) {
+                uint64_t sv[4] = {0, 0, 0, 0};
+                sv[fpos] = fixed;
+                sv[pos] = vals[vi];
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                memset(outb, 0, 0x8000);
+                kern_return_t kr = IOConnectCallMethod(c, fs, sv, 3,
+                                                       NULL, 0, osc, &nosc,
+                                                       outb, &osz);
+                if (kr != 0xe00002e3) {
+                    LOG("[mfb] FIX sel%u pos%d=0x%llx -> kr 0x%08x%s", fs, pos,
+                        (unsigned long long)vals[vi], kr,
+                        kr == 0 ? "  ok" : "");
+                    fsync(fileno(stderr));
+                }
+            }
+        }
+        LOG("[mfb] FIX done");
+        IOServiceClose(c);
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+        return;
+    }
+
+    // ---- LEAK mode: does the handler copy our input into the output without
+    // first checking how much input there is?
+    //
+    // sel6 accepts exactly three scalars and ignores two of them outright —
+    // scalar[0] and scalar[2] take every value from 0 to ~0 without changing
+    // the result. That means opcode 3 reaches code whose only input is the
+    // structure buffer. The classic IOKit mistake in that shape is a fixed
+    // size copy out of structureInput: the kernel reads N bytes from our
+    // buffer regardless of how many we supplied, and if those bytes land in
+    // the output we get kernel heap contents in userspace. That would be the
+    // kernel read primitive this project has never had.
+    //
+    // So: fill input with a marker pattern, hand over progressively smaller
+    // slices of it, give a large zeroed output, and look for anything in the
+    // output that is not our own marker and not our own zeroes. Kernel heap
+    // is not going to be a run of identical bytes.
+    const char *lk = getenv("FUZZ_MFB_LEAK");
+    if (lk) {
+        uint32_t fs = (uint32_t)strtoul(lk, NULL, 0);
+        uint32_t fixed = (uint32_t)strtoul(getenv("FUZZ_MFB_FIXVAL") ?: "3", NULL, 0);
+        LOG("[mfb] LEAK sel%u opcode %u — truncated-input vs fixed-size copy",
+            fs, fixed);
+        static const size_t insz[] = { 0, 4, 8, 12, 16, 20, 24, 32, 48, 64, 128 };
+        for (unsigned ii = 0; ii < sizeof(insz)/sizeof(insz[0]); ii++) {
+            // Marker 0xC7 fills the input so that bytes we ourselves supplied
+            // are identifiable, and are distinguishable from both zeroes and
+            // from anything the kernel might write.
+            memset(inb, 0xC7, 0x8000);
+            memset(outb, 0x00, 0x8000);
+            uint64_t sv[4] = {0, fixed, 0, 0};
+            uint32_t nosc = 0; size_t osz = 0;
+            kern_return_t kr = IOConnectCallMethod(c, fs, sv, 3,
+                                                   inb, insz[ii],
+                                                   osc, &nosc, outb, &osz);
+            LOG("[mfb] LEAK sel%u in=%zu -> kr 0x%08x  outputSize produced 0x%zx",
+                fs, insz[ii], kr, osz);
+            fsync(fileno(stderr));
+            if (kr != 0) continue;
+            // Report the first stretch of output that is neither zero (buffer
+            // we supplied) nor our 0xC7 marker. Group it into runs so the
+            // output is readable rather than a hex wall.
+            size_t off = 0, run = 0; unsigned groups = 0;
+            while (off < 0x8000 && groups < 24) {
+                uint8_t v = outb[off];
+                if (v == 0x00 || v == 0xC7) { off++; run = 0; continue; }
+                size_t start = off;
+                while (off < 0x8000 && outb[off] == v) { off++; run++; }
+                if (run >= 4) {
+                    LOG("[mfb] LEAK   +0x%04zx  0x%02x x%zu", start, v, run);
+                    groups++;
+                }
+            }
+            if (groups == 0) {
+                LOG("[mfb] LEAK   (output is only our zero/0xC7 fills, osz 0x%zx)", osz);
+            }
+            // And if the driver produced output at all, show its first words:
+            // a short osz with plausible-looking pointer values is the tell.
+            if (osz) {
+                uint64_t w[8] = {0};
+                size_t nw = osz / 8; if (nw > 8) nw = 8;
+                memcpy(w, outb, nw * 8);
+                char hexb[256] = {0};
+                for (size_t k = 0; k < nw; k++)
+                    snprintf(hexb + strlen(hexb), sizeof(hexb) - strlen(hexb),
+                             " 0x%016llx", (unsigned long long)w[k]);
+                LOG("[mfb] LEAK   words%s", hexb);
+                fsync(fileno(stderr));
+            }
+        }
+        LOG("[mfb] LEAK done");
+        IOServiceClose(c);
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+        return;
+    }
+
+    // ---- INST mode: enumerate EVERY IOMobileFramebuffer instance, not just the
+    // first match.
+    //
+    // Decoding the return codes from IOReturn.h changes what the sweep means:
+    // 0xe00002e3 is kIOReturnNoPower, not "no such device". So the dominant
+    // answer is a power check, not a missing object. Every phase so far opened
+    // IOServiceGetMatchingService's first match and stopped there — if this
+    // machine has more than one display pipeline and some of them are powered,
+    // the shell we just measured is the shell of the WRONG instance. Enumerating
+    // is one loop, and it is the difference between "this surface is dead" and
+    // "this instance of this surface is dead".
+    //
+    // sel6 is the probe because it is the only method observed to reach kr 0,
+    // i.e. the only one that demonstrably gets past its own checks. sel23 is
+    // carried along as the privilege-gated control: a NotPrivileged reply there
+    // and a NoPower reply on sel6 separates "not permitted" from "not powered".
+    if (getenv("FUZZ_MFB_INST")) {
+        CFMutableDictionaryRef m = IOServiceMatching("IOMobileFramebuffer");
+        io_iterator_t it = 0;
+        if (IOServiceGetMatchingServices(kIOMainPortDefault, m, &it) != KERN_SUCCESS
+            || !it) { LOG("[mfb] INST no iterator"); LOG("[mfb] done"); return; }
+        int n = 0;
+        io_service_t s;
+        while ((s = IOIteratorNext(it))) {
+            char cls[128] = {0}; io_name_t nm = {0};
+            // IORegistryEntryGetName is the modern spelling; the IOServiceGetName
+            // wrapper the project used in the reach phase does not exist here.
+            if (IORegistryEntryGetName(s, nm) != KERN_SUCCESS) strlcpy(nm, "?", sizeof(nm));
+            // real class, not just the matching name
+            if (IOObjectGetClass(s, cls) != KERN_SUCCESS) cls[0] = 0;
+            int powered = -1, priv = -1, opened = 0;
+            for (uint32_t ty = 0; ty <= 3 && !opened; ty++) {
+                io_connect_t cc = 0;
+                kern_return_t kr = IOServiceOpen(s, mach_task_self(), ty, &cc);
+                if (kr || !cc) continue;
+                opened = 1;
+                uint64_t sv[3] = {0, 3, 0}, osc[4] = {0, 0, 0, 0};
+                uint32_t nosc = 0; size_t osz = 0;
+                powered = (int)IOConnectCallMethod(cc, 6, sv, 3, NULL, 0,
+                                                    osc, &nosc, outb, &osz);
+                priv = (int)IOConnectCallMethod(cc, 23, sv, 3, NULL, 0,
+                                                osc, &nosc, outb, &osz);
+                LOG("[mfb] INST #%d %-24s class %-28s type %u open",
+                    n, nm, cls, ty);
+                LOG("[mfb] INST #%d   sel6(0,3,0) -> 0x%08x   sel23 -> 0x%08x   osz 0x%zx",
+                    n, powered, priv, osz);
+                fsync(fileno(stderr));
+                IOServiceClose(cc);
+            }
+            if (!opened) LOG("[mfb] INST #%d %-24s class %-28s NOT OPENABLE", n, nm, cls);
+            IOObjectRelease(s);
+            if (++n >= 32) { LOG("[mfb] INST stopping at 32"); break; }
+        }
+        IOObjectRelease(it);
+        LOG("[mfb] INST enumerated %d instances", n);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+        LOG("[mfb] done");
+        return;
+    }
+
+    // ---- IN mode: does ANY live selector consume a structure input?
+    //
+    // This is the load-bearing claim for closing IOMobileFramebuffer, so it
+    // gets proven rather than inferred. The whole length/offset-confusion class
+    // needs a method that reads our buffer. The sweep above already hinted that
+    // none does — struct cases were answered like scalar cases — but it logged
+    // only the interesting codes, and a claim this consequential has burned this
+    // project before (§5 negative results that were really "the phase never
+    // ran"). So: every live selector, every input size, every answer printed.
+    //
+    // The live set is what two sweeps measured: {6,13,19,20,22,23,31,33,47,50,
+    // 51,53,72,73,78,81,84,88,89}. Output sizes are also printed because a
+    // method that produced data would be a leak channel, and 214 samples across
+    // both sweeps produced none.
+    if (getenv("FUZZ_MFB_IN")) {
+        static const int live[] = {6, 13, 19, 20, 22, 23, 31, 33, 47, 50, 51,
+                                   53, 72, 73, 78, 81, 84, 88, 89};
+        static const size_t insz[] = { 0, 4, 8, 12, 16, 24, 32, 48, 64, 96,
+                                       128, 256, 512, 1024, 4096 };
+        int accept[64]; memset(accept, 0, sizeof(accept));
+        LOG("[mfb] IN — %d live selectors x %d input sizes, all answers logged",
+            (int)(sizeof(live)/sizeof(live[0])), (int)(sizeof(insz)/sizeof(insz[0])));
+        for (unsigned li = 0; li < sizeof(live)/sizeof(live[0]); li++) {
+            uint32_t sel = (uint32_t)live[li];
+            for (unsigned ii = 0; ii < sizeof(insz)/sizeof(insz[0]); ii++) {
+                memset(inb, 0xC7, 0x8000);
+                memset(outb, 0x00, 0x8000);
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                // no scalars: pure structure-in shapes
+                kern_return_t kr = IOConnectCallMethod(c, sel, NULL, 0,
+                                                       inb, insz[ii],
+                                                       osc, &nosc, outb, &osz);
+                LOG("[mfb] IN sel%-3u in=%-5zu -> kr 0x%08x osz 0x%zx",
+                    sel, insz[ii], kr, osz);
+                if (kr == 0 || kr == 0xe00002bc) accept[li] = 1;
+            }
+            // also: 3 scalars (sel6's shape) plus input, since a method may
+            // need both its scalars and its buffer to do anything
+            for (unsigned ii = 0; ii < sizeof(insz)/sizeof(insz[0]); ii++) {
+                memset(inb, 0xC7, 0x8000);
+                memset(outb, 0x00, 0x8000);
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint64_t sv[3] = {0, 3, 0};
+                uint32_t nosc = 0; size_t osz = 0;
+                kern_return_t kr = IOConnectCallMethod(c, sel, sv, 3,
+                                                       inb, insz[ii],
+                                                       osc, &nosc, outb, &osz);
+                if (kr == 0 || kr == 0xe00002bc) {
+                    LOG("[mfb] IN sel%-3u 3scal+in=%-5zu -> kr 0x%08x osz 0x%zx  ACCEPTED",
+                        sel, insz[ii], kr, osz);
+                    accept[li] = 1;
+                }
+                fsync(fileno(stderr));
+            }
+        }
+        int nacc = 0;
+        for (unsigned li = 0; li < sizeof(live)/sizeof(live[0]); li++)
+            if (accept[li]) {
+                LOG("[mfb] IN RESULT sel%-3u CONSUMES structure input", live[li]);
+                nacc++;
+            }
+        LOG("[mfb] IN RESULT %d of %d live selectors consume structure input",
+            nacc, (int)(sizeof(live)/sizeof(live[0])));
+        IOServiceClose(c);
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+        LOG("[mfb] done");
+        return;
+    }
+
+    // ---- W mode: sel84 consumes exactly one 32-bit word and nothing else.
+    //
+    // Measured: in=0 -> BadArgument, in=4 -> kr 0, in=8..4096 -> BadArgument.
+    // A method with an exactly-4-byte input is either reading one field or
+    // checking one length, and either way our four bytes are the only thing it
+    // looks at. This is the sole data-consuming method on the entire reachable
+    // IOKit surface (19 live selectors on IOMobileFramebuffer, 284 of 286
+    // structure calls answered BadArgument, the two exceptions being sel6 with
+    // no input and sel84 with exactly four), so it gets a proper value sweep
+    // rather than the boundary grid.
+    //
+    // Swept: every small value, the power-of-two ladder, the width edges, and
+    // byte-pattern fills, across scalar counts 0..3 — a method may need both a
+    // selector argument and the word. Any change in kr, any nonzero output
+    // size, or a death is reported; a uniform kr 0 / osz 0 across all of it is
+    // the negative result that closes the surface.
+    if (getenv("FUZZ_MFB_W")) {
+        uint32_t sel = (uint32_t)strtoul(getenv("FUZZ_MFB_W"), NULL, 0);
+        LOG("[mfb] W sel%u — 4-byte word sweep", sel);
+        // candidate words: dense low range, ladder, width edges, byte patterns
+        uint32_t cand[4096]; unsigned nc = 0;
+        for (uint32_t v = 0; v <= 64; v++) cand[nc++] = v;
+        for (unsigned b = 0; b < 32; b++) cand[nc++] = 1u << b;
+        cand[nc++] = 0x7fffffffu; cand[nc++] = 0x80000000u;
+        cand[nc++] = 0xffffffffu; cand[nc++] = 0xfffffffeu;
+        cand[nc++] = 0xaaaaaaaau; cand[nc++] = 0x55555555u;
+        cand[nc++] = 0xdeadbeefu; cand[nc++] = 0xcafebabeu;
+        cand[nc++] = 0x41414141u; cand[nc++] = 0xffffffffu;
+        // deterministic spread so the sweep covers the space, not just edges
+        uint32_t x = 0x12345678u;
+        for (unsigned i = 0; i < 512; i++) {
+            x ^= x << 13; x ^= x >> 17; x ^= x << 5;
+            cand[nc++] = x;
+        }
+        LOG("[mfb] W %u candidate words x 4 scalar counts", nc);
+        long cases = 0, oks = 0;
+        for (int ns = 0; ns <= 3; ns++) {
+            for (unsigned i = 0; i < nc; i++) {
+                uint32_t v = cand[i];
+                memset(inb, 0, 0x8000);
+                // the word, little-endian, at offset 0
+                memcpy(inb, &v, 4);
+                // and again at offset 4, in case the struct is {hdr, word} and
+                // the size check passed on a length that lives in the first dword
+                memcpy(inb + 4, &v, 4);
+                memset(outb, 0x00, 0x8000);
+                uint64_t sv[3] = {0, 3, 0};
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                kern_return_t kr = IOConnectCallMethod(c, sel,
+                                                       ns ? sv : NULL, (uint32_t)ns,
+                                                       inb, 4,
+                                                       osc, &nosc, outb, &osz);
+                cases++;
+                if (kr == 0) oks++;
+                if (kr != 0 || osz) {
+                    LOG("[mfb] W sel%u ns=%d word 0x%08x -> kr 0x%08x osz 0x%zx %s",
+                        sel, ns, v, kr, osz, osz ? "*** OUTPUT DATA ***" : "");
+                    if (osz) {
+                        uint64_t w[6] = {0};
+                        size_t nw = osz / 8; if (nw > 6) nw = 6;
+                        memcpy(w, outb, nw * 8);
+                        char h[200] = {0};
+                        for (size_t k = 0; k < nw; k++)
+                            snprintf(h + strlen(h), sizeof(h) - strlen(h),
+                                     " 0x%016llx", (unsigned long long)w[k]);
+                        LOG("[mfb] W   out%s", h);
+                    }
+                    fsync(fileno(stderr));
+                }
+            }
+        }
+        LOG("[mfb] W sel%u done: %ld cases, %ld kr 0, no output data unless logged above",
+            sel, cases, oks);
+        IOServiceClose(c);
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+        LOG("[mfb] done");
+        return;
+    }
+
+    // ---- scalars: single and multi-scalar shapes with boundary values.
+    for (long sel = sel_lo; sel <= sel_hi; sel++) {
+        // scalar-in shapes of 1..4 elements
+        for (int ns = 1; ns <= 4; ns++) {
+            for (unsigned vi = 0; vi < sizeof(vals)/sizeof(vals[0]); vi++) {
+                caseidx++;
+                if (caseidx <= case0) continue;
+                uint64_t sv[4] = {0, 0, 0, 0};
+                for (int k = 0; k < ns; k++) sv[k] = vals[vi];
+                for (unsigned k = 0; k < sizeof(sv)/sizeof(sv[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                memset(outb, 0, 0x8000);
+                kern_return_t kr = IOConnectCallMethod(c, (uint32_t)sel,
+                                                       sv, (uint32_t)ns, NULL, 0,
+                                                       osc, &nosc, outb, &osz);
+                // 0x2c2 (BadArgument) and 0x2c7 (Unsupported) mean "no such
+                // selector / wrong scalar shape"; anything else is a live
+                // method and worth recording.
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    LOG("[mfb] sel%-3ld scalars=%d v=0x%llx -> kr 0x%08x osz 0x%zx %s",
+                        sel, ns, (unsigned long long)vals[vi], kr, osz,
+                        kr == 0 ? "(OK)" : "");
+                    fsync(fileno(stderr));
+                }
+            }
+        }
+        // structure-in sizes, zero-filled and marker-filled. The marker pass is
+        // the one that can expose a length field the driver trusts.
+        static const size_t ssz[] = { 4, 8, 12, 16, 20, 24, 32, 40, 48, 64,
+                                      96, 128, 256, 512, 1024 };
+        for (unsigned si = 0; si < sizeof(ssz)/sizeof(ssz[0]); si++) {
+            for (int fill = 0; fill < 2; fill++) {
+                caseidx++;
+                if (caseidx <= case0) continue;
+                memset(inb, fill ? 0x41 : 0x00, 0x8000);
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                memset(outb, 0, 0x8000);
+                kern_return_t kr = IOConnectCallMethod(c, (uint32_t)sel,
+                                                       NULL, 0, inb, ssz[si],
+                                                       osc, &nosc, outb, &osz);
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    LOG("[mfb] sel%-3ld struct %zu fill 0x%02x -> kr 0x%08x osz 0x%zx %s",
+                        sel, ssz[si], fill ? 0x41 : 0x00, kr, osz,
+                        kr == 0 ? "(OK)" : "");
+                    fsync(fileno(stderr));
+                }
+            }
+        }
+    }
+    LOG("[mfb] sweep complete, %ld cases", caseidx);
+    IOServiceClose(c);
+    vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+    LOG("[mfb] done (alive)");
+}
+
 // V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
 // This is the one userclient path that allocates kernel-side pooled memory
 // sized by request, i.e. the classic under-allocation -> out-of-bounds write
@@ -26665,6 +27169,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_VICTIM")) { p_victim(); LOG("[probe13] victim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PERSIST")) { p_persist(); LOG("[probe13] persist-only mode, stop"); return NULL; }
         if (getenv("FUZZ_REACH")) { p_reach(); LOG("[probe13] reach-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_MFB")) { p_mfb(); LOG("[probe13] mfb-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
