@@ -24263,6 +24263,57 @@ static void p_persist(void) {
     LOG("[ps] done");
 }
 
+// V160 (p_detcheck): prove the crash detector fires before trusting it.
+//
+// Everything in this project that concluded "no bug" rests on watching the
+// device for new crash reports or panics. Five such conclusions were wrong, and
+// wrong in the same way each time: the thing being watched for never happened,
+// or the watch was not actually running. A crash detector that has never been
+// seen to detect a crash is indistinguishable from no detector — it agrees with
+// every negative result precisely because it is broken.
+//
+// So this phase crashes on purpose, in several distinguishable ways, and the
+// host script (relay/crashdiff.sh) diffs the device's crash corpus around it.
+// Each kind exercises a different reporting path: a null write is the simplest
+// possible fault and the one least likely to be swallowed, a wild address tests
+// whether an unmapped-pointer report still gets written, __builtin_trap is an
+// EXC_BREAKPOINT rather than a signal, abort() is a deliberate C-library death,
+// and a stack overflow recurses instead of jumping — it is the one that can be
+// misattributed, so it is worth having a reference for.
+//
+// The last line before the fault matters as much as the fault: it is fsynced,
+// so the log proves the phase ran even in the runs where the process dies. A
+// crash test that cannot show that it executed is the same non-result it is
+// meant to prevent.
+static void p_detcheck(void) {
+    const char *kind = getenv("FUZZ_DETCHECK_KIND") ?: "null";
+    LOG("[detcheck] alive pid %d kind %s", getpid(), kind);
+    LOG("[detcheck] this line is fsynced BEFORE the fault, so the log proves the phase ran");
+    fflush(stderr);
+    fsync(fileno(stderr));
+
+    if (!strcmp(kind, "null")) {
+        volatile int *p = (volatile int *)0;
+        *p = 0x41414141;
+    } else if (!strcmp(kind, "wild")) {
+        volatile int *p = (volatile int *)(uintptr_t)0x0000000deadbeefULL;
+        *p = 0x41414141;
+    } else if (!strcmp(kind, "trap")) {
+        __builtin_trap();
+    } else if (!strcmp(kind, "abort")) {
+        abort();
+    } else if (!strcmp(kind, "stack")) {
+        // Deliberate tail recursion. No frame pointer games: just let it run
+        // until the guard page hits, which is what a real stack overflow does.
+        volatile char pad[4096];
+        pad[0] = (char)pad[sizeof(pad) - 1];
+        p_detcheck();
+        (void)pad;
+    }
+    LOG("[detcheck] SURVIVED kind %s (no fault raised)", kind);
+    LOG("[detcheck] done");
+}
+
 // V158 (p_reach): which userclient surfaces are actually reachable from an
 // App-Sandbox process?
 //
@@ -27170,6 +27221,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_PERSIST")) { p_persist(); LOG("[probe13] persist-only mode, stop"); return NULL; }
         if (getenv("FUZZ_REACH")) { p_reach(); LOG("[probe13] reach-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MFB")) { p_mfb(); LOG("[probe13] mfb-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_DETCHECK")) { p_detcheck(); LOG("[probe13] detcheck-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
