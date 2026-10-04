@@ -24263,6 +24263,81 @@ static void p_persist(void) {
     LOG("[ps] done");
 }
 
+// V161 (p_aks): AppleKeyStore — the second reachable service that was only
+// ever half-studied (§99 touched SEPKeyStore; the userclient was not swept).
+//
+// The reach measurement (§142) left exactly two reachable surfaces that were
+// not fully closed, and §143 closed IOMobileFramebuffer. This is the other one.
+// It is a different kind of target from the display stack: a key store's
+// userclient exists to import and export key material, and every one of those
+// paths carries a user-declared length that has to be checked against the
+// buffer actually supplied. That is the length/offset-confusion class this
+// project cares about, in a service that is actually open to us.
+//
+// Same shape of phase as p_mfb, because that shape has now paid for itself
+// twice: sweep every selector with scalar shapes and structure shapes, log
+// every answer, and find which methods consume our bytes. No static recovery
+// is attempted — the dispatch tables are behind chained fixups (§136, §143) —
+// and the driver's own strings in com_apple_driver_AppleSEPKeyStore.macho name
+// the fields to look for.
+static void p_aks(void) {
+    long sel_lo = atol(getenv("FUZZ_AKS_SEL_LO") ?: "0");
+    long sel_hi = atol(getenv("FUZZ_AKS_SEL_HI") ?: "60");
+    io_connect_t c = open_service("AppleKeyStore", 0);
+    if (!c) { LOG("[aks] AppleKeyStore not openable"); LOG("[aks] done"); return; }
+
+    uint8_t *inb = must_map(0x8000), *outb = must_map(0x8000);
+    uint64_t osc[4];
+    LOG("[aks] v161 AppleKeyStoreUserClient sweep sels %ld..%ld", sel_lo, sel_hi);
+
+    static const uint64_t vals[] = {
+        0, 1, 2, 3, 4, 8, 16, 0x40, 0x80, 0xff, 0x100, 0x1000, 0x4000,
+        0x10000, 0x100000, 0x7fffffff, 0x80000000ULL, 0xffffffffULL,
+        0xffffffffffffffffULL, 0x100000000ULL,
+    };
+    static const size_t ssz[] = { 0, 4, 8, 12, 16, 20, 24, 32, 40, 48, 64,
+                                  96, 128, 256, 512, 1024, 4096 };
+
+    long cases = 0;
+    for (long sel = sel_lo; sel <= sel_hi; sel++) {
+        for (int ns = 1; ns <= 4; ns++)
+            for (unsigned vi = 0; vi < sizeof(vals)/sizeof(vals[0]); vi++) {
+                uint64_t sv[4] = {vals[vi], vals[vi], vals[vi], vals[vi]};
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                memset(outb, 0, 0x8000);
+                kern_return_t kr = IOConnectCallMethod(c, (uint32_t)sel, sv, (uint32_t)ns,
+                                                       NULL, 0, osc, &nosc, outb, &osz);
+                cases++;
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    LOG("[aks] sel%-3ld scalars=%d v=0x%llx -> kr 0x%08x osz 0x%zx",
+                        sel, ns, (unsigned long long)vals[vi], kr, osz);
+                    fsync(fileno(stderr));
+                }
+            }
+        for (unsigned si = 0; si < sizeof(ssz)/sizeof(ssz[0]); si++)
+            for (int fill = 0; fill < 2; fill++) {
+                memset(inb, fill ? 0x41 : 0x00, 0x8000);
+                memset(outb, 0, 0x8000);
+                for (unsigned k = 0; k < sizeof(osc)/sizeof(osc[0]); k++) osc[k] = 0;
+                uint32_t nosc = 0; size_t osz = 0;
+                kern_return_t kr = IOConnectCallMethod(c, (uint32_t)sel, NULL, 0,
+                                                       inb, ssz[si], osc, &nosc, outb, &osz);
+                cases++;
+                if (kr != 0xe00002c2 && kr != 0xe00002c7) {
+                    LOG("[aks] sel%-3ld struct %zu fill 0x%02x -> kr 0x%08x osz 0x%zx",
+                        sel, ssz[si], fill ? 0x41 : 0x00, kr, osz);
+                    fsync(fileno(stderr));
+                }
+            }
+    }
+    LOG("[aks] sweep complete, %ld cases", cases);
+    IOServiceClose(c);
+    vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x8000);
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x8000);
+    LOG("[aks] done (alive)");
+}
+
 // V160 (p_detcheck): prove the crash detector fires before trusting it.
 //
 // Everything in this project that concluded "no bug" rests on watching the
@@ -27222,6 +27297,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_REACH")) { p_reach(); LOG("[probe13] reach-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MFB")) { p_mfb(); LOG("[probe13] mfb-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DETCHECK")) { p_detcheck(); LOG("[probe13] detcheck-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_AKS")) { p_aks(); LOG("[probe13] aks-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
