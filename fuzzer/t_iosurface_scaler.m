@@ -24263,6 +24263,128 @@ static void p_persist(void) {
     LOG("[ps] done");
 }
 
+// V162 (p_msvc): how much of the privileged Mach surface can a sandbox see?
+//
+// The IOKit sweep (§142, §145) produced a measured denominator — 5 of 460
+// candidates open — and both of the unstudied ones turned out to be gated
+// shells. The same question has never been asked of the Mach side, and this
+// project has only ever tried to *create* an endpoint (§140: no second task,
+// no XPC export, no fork). It has never looked at what already exists.
+//
+// Two reasons this is worth measuring before attacking anything. First, most
+// of these names will simply not resolve from a sandbox, and knowing which
+// few do is the same kind of denominator that made §142 decisive. Second, the
+// probe doubles as the crash detector this project currently lacks: a Mach send
+// right to a privileged daemon is a live object, and when that daemon dies
+// launchd restarts it and the right we hold goes dead. mach_port_type on a
+// right we already hold observes that without sending anything, so it cannot
+// cause the fault it is looking for. That is a detector built out of reach —
+// unlike the crash-report channel of §144, which depends on ReportCrash
+// happening to be willing to write a file.
+//
+// Nothing is sent. bootstrap_look_up only takes a reference, and the probe
+// deliberately stops short of a message, because a blind message to an
+// unknown MIG interface is exactly the kind of thing that turns an inventory
+// into a crash we cannot explain.
+static void p_msvc(void) {
+    static const kern_return_t kNameNotFound = (kern_return_t)0x00000703;
+
+    // ---- SELF-CHECK FIRST. The SDK header for <mach/bootstrap.h> is empty
+    // ("obsolete: included only for compatibility"), so the project's extern
+    // declaration of bootstrap_look_up is a guess. A measurement taken through
+    // a wrong prototype is not a measurement — and the sweep returned one
+    // identical error (0x44c) for all 132 names, including names that certainly
+    // exist and a name that certainly does not, which smells exactly like a
+    // bad call rather than a policy denial. Settle it before reporting
+    // anything: resolve the real symbol, try both published shapes, and include
+    // a control name that cannot exist. If the control answers the same as the
+    // real names, existence is never being tested and the sweep means nothing.
+    {
+        typedef kern_return_t (*bs2_t)(const char *, mach_port_t *);
+        typedef kern_return_t (*bs3_t)(mach_port_t, const char *, mach_port_t *);
+        typedef kern_return_t (*tgbt_t)(mach_port_t, mach_port_t *);
+        bs2_t bs2 = (bs2_t)dlsym(RTLD_DEFAULT, "bootstrap_look_up");
+        bs3_t bs3 = (bs3_t)dlsym(RTLD_DEFAULT, "bootstrap_look_up");
+        tgbt_t tgbt = (tgbt_t)dlsym(RTLD_DEFAULT, "task_get_bootstrap_port");
+        LOG("[msvc] SELFCHECK dlsym bootstrap_look_up 2-arg %p 3-arg %p task_get_bootstrap_port %p",
+            (void *)bs2, (void *)bs3, (void *)tgbt);
+        mach_port_t bsport = MACH_PORT_NULL;
+        if (tgbt) {
+            kern_return_t kr = tgbt(mach_task_self(), &bsport);
+            LOG("[msvc] SELFCHECK task_get_bootstrap_port -> kr 0x%08x port 0x%x",
+                kr, bsport);
+        }
+        const char *ctl = "com.apple.__nonexistent_control_9f3a2b";
+        const char *real = "com.apple.backboardd";
+        mach_port_t p2 = MACH_PORT_NULL, p3 = MACH_PORT_NULL, p2c = MACH_PORT_NULL;
+        kern_return_t kr2 = bs2 ? bs2(real, &p2) : (kern_return_t)-1;
+        kern_return_t kr2c = bs2 ? bs2(ctl, &p2c) : (kern_return_t)-1;
+        LOG("[msvc] SELFCHECK 2-arg real  '%s' -> kr 0x%08x port 0x%x", real, kr2, p2);
+        LOG("[msvc] SELFCHECK 2-arg ctrl  '%s' -> kr 0x%08x port 0x%x", ctl, kr2c, p2c);
+        if (bs3 && bsport != MACH_PORT_NULL) {
+            kern_return_t kr3 = bs3(bsport, real, &p3);
+            LOG("[msvc] SELFCHECK 3-arg real  -> kr 0x%08x port 0x%x", kr3, p3);
+            mach_port_t p3c = MACH_PORT_NULL;
+            kern_return_t kr3c = bs3(bsport, ctl, &p3c);
+            LOG("[msvc] SELFCHECK 3-arg ctrl  -> kr 0x%08x port 0x%x", kr3c, p3c);
+        }
+        // Also try the older comma-form name, which some images still export.
+        typedef kern_return_t (*bsup_t)(const char *, mach_port_t *, mach_port_t *);
+        bsup_t bsup = (bsup_t)dlsym(RTLD_DEFAULT, "bootstrap_look_up");
+        if (bsup) {
+            mach_port_t pw = MACH_PORT_NULL;
+            kern_return_t krw = bsup(real, &pw, MACH_PORT_NULL);
+            LOG("[msvc] SELFCHECK 3-arg(no bs port) real -> kr 0x%08x port 0x%x", krw, pw);
+        }
+        // Verdict: if control and real agree, the call never reaches the
+        // registry and the sweep below cannot distinguish anything.
+        if (kr2 == kr2c)
+            LOG("[msvc] SELFCHECK VERDICT control == real (0x%08x): existence is NOT being tested", kr2);
+        else
+            LOG("[msvc] SELFCHECK VERDICT control 0x%08x != real 0x%08x: the call does reach the registry", kr2c, kr2);
+    }
+
+    static const char *names[] = {
+#include "msvc_list.h"
+    };
+    static const int n = (int)(sizeof(names) / sizeof(names[0]));
+    LOG("[msvc] v162 probing %d Mach service names", n);
+
+    int open_ = 0, denied = 0, absent = 0;
+    for (int i = 0; i < n; i++) {
+        mach_port_t p = MACH_PORT_NULL;
+        kern_return_t kr = bootstrap_look_up(names[i], &p);
+        if (kr == KERN_SUCCESS && p != MACH_PORT_NULL) {
+            // Observe the right we now hold. If the type comes back as right
+            // send and not right dead, the daemon is alive and talkable.
+            // MACH_PORT_TYPE_DEAD and KERN_NAME_NOT_FOUND are not in the
+            // iPhoneOS SDK headers even though the kernel returns both; name
+            // them locally rather than dropping the observation.
+            static const mach_port_type_t kTypeDead =
+                (mach_port_type_t)(MACH_PORT_TYPE_SEND | MACH_PORT_TYPE_RECEIVE |
+                                   0x80000000u);
+            mach_port_type_t t = kTypeDead;
+            kern_return_t tr = mach_port_type(mach_task_self(), p, &t);
+            LOG("[msvc] OPEN  %-52s port 0x%x type %u (type-kr 0x%08x)",
+                names[i], p, (unsigned)t, tr);
+            fsync(fileno(stderr));
+            open_++;
+            // Keep it: the caller may want to watch this right across a
+            // trigger, which is the whole point of having held it.
+            if (tr == KERN_SUCCESS && !(t & 0x80000000u))
+                LOG("[msvc]   -> %s ALIVE", names[i]);
+        } else if (kr != kNameNotFound && kr != KERN_INVALID_NAME) {
+            LOG("[msvc] gated %-51s kr 0x%08x", names[i], kr);
+            denied++;
+        } else {
+            absent++;
+        }
+    }
+    LOG("[msvc] RESULT %d open, %d denied-other, %d not found, of %d names",
+        open_, denied, absent, n);
+    LOG("[msvc] done");
+}
+
 // V161 (p_aks): AppleKeyStore — the second reachable service that was only
 // ever half-studied (§99 touched SEPKeyStore; the userclient was not swept).
 //
@@ -27298,6 +27420,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_MFB")) { p_mfb(); LOG("[probe13] mfb-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DETCHECK")) { p_detcheck(); LOG("[probe13] detcheck-only mode, stop"); return NULL; }
         if (getenv("FUZZ_AKS")) { p_aks(); LOG("[probe13] aks-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_MSVC")) { p_msvc(); LOG("[probe13] msvc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
