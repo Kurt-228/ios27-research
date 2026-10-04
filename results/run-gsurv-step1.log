@@ -1,0 +1,17 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4627
+[scaler] conn 0x4627, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[gs] v155 global-surface survival probe, step 1
+[gs] sel7 -> kr 0x00000000 sid 14
+[gs] sel1 release sid 14 -> kr 0xe00002c2 (no client references left)
+[gs] sel2 lock after release -> kr 0x00000000 osz 0xc68
+[gs]   base 0x107ee8000 alloc 262144 (our buf 0x107ee8000)
+[gs]   after release: 262144/262144 marker bytes — surface SURVIVED handle release
+[gs] done (alive)
+[probe13] gsurv-only mode, stop
