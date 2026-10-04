@@ -1,0 +1,37 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7b03
+[scaler] conn 0x7b03, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[reach] v158 candidates 460, batch 3 -> probing 360..459
+[reach] OPEN  IOMobileFramebuffer                        type 0 conn 0x7503
+[reach] gated IONetworkStack                            type 0 kr 0xe00002c2
+[reach] gated IONetworkStack                            type 1 kr 0xe00002c2
+[reach] gated IONetworkStack                            type 2 kr 0xe00002c2
+[reach] OPEN  IOSurfaceRoot                              type 0 conn 0x7527
+[reach] gated IOTimeSyncClockManager                    type 0 kr 0xe00002c2
+[reach] gated IOTimeSyncClockManager                    type 1 kr 0xe00002c2
+[reach] gated IOTimeSyncClockManager                    type 2 kr 0xe00002c2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[reach] gated IOTimeSyncDomain                          type 0 kr 0xe00002c2
+[reach] gated IOTimeSyncDomain                          type 1 kr 0xe00002c2
+[reach] gated IOTimeSyncDomain                          type 2 kr 0xe00002c2
+[reach] gated IOUSBDeviceInterface                      type 0 kr 0xe00002e2
+[reach] gated IOUSBDeviceInterface                      type 1 kr 0xe00002e2
+[reach] gated IOUSBDeviceInterface                      type 2 kr 0xe00002e2
+[reach] gated IOUSBMassStorageResource                  type 0 kr 0xe00002e2
+[reach] gated IOUSBMassStorageResource                  type 2 kr 0xe00002e2
+[reach] gated IOUserEthernetResource                    type 0 kr 0xe00002c2
+[reach] gated IOUserEthernetResource                    type 1 kr 0xe00002c2
+[reach] gated IOUserEthernetResource                    type 2 kr 0xe00002c2
+[reach] gated IOWatchdog                                type 0 kr 0xe00002c2
+[reach] gated IOWatchdog                                type 2 kr 0xe00002c2
+[reach] gated RTBuddy                                   type 0 kr 0xe00002e2
+[reach] gated RTBuddy                                   type 1 kr 0xe00002e2
+[reach] gated RTBuddy                                   type 2 kr 0xe00002e2
+[reach] batch 3: 2 OPEN, 22 gated-errors, 89 absent-of-100
+[reach] done
+[probe13] reach-only mode, stop

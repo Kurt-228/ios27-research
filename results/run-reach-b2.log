@@ -1,0 +1,19 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5e03
+[scaler] conn 0x5e03, s1 175 s2 176
+[probe12] SetNotificationPort -> 0x00000000
+[reach] v158 candidates 460, batch 2 -> probing 240..359
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[reach] gated IOHDIXController                          type 0 kr 0xe00002c2
+[reach] gated IOHDIXController                          type 1 kr 0xe00002c2
+[reach] gated IOHDIXController                          type 2 kr 0xe00002c2
+[reach] gated IOHIDEventService                         type 0 kr 0xe00002c2
+[reach] gated IOHIDEventService                         type 1 kr 0xe00002c2
+[reach] OPEN  IOHIDEventService                          type 2 conn 0x6103
+[reach] batch 2: 1 OPEN, 5 gated-errors, 118 absent-of-120
+[reach] done
+[probe13] reach-only mode, stop

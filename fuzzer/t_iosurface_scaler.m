@@ -24263,6 +24263,62 @@ static void p_persist(void) {
     LOG("[ps] done");
 }
 
+// V158 (p_reach): which userclient surfaces are actually reachable from an
+// App-Sandbox process?
+//
+// Every vector this project closed was closed for the surfaces we happened to
+// have studied — eleven kexts. The kernel collection holds 363 kexts, of which
+// the triage (results/kc-extract/triage_kexts.py) finds 120 carrying a
+// userclient dispatch surface. This phase measures the denominator that
+// matters: how many of those can a sandboxed app actually open.
+//
+// Reachability is the gate the scaler/IOSurface work kept running into
+// (find_surface ownership, MACF denials, private entitlements). Measuring it
+// across the whole candidate set at once replaces per-driver guesswork with a
+// list, and a name that opens is a name we can fuzz. Batched and resumable via
+// FUZZ_REACH_BATCH so a wedged run costs one batch, not the sweep.
+static const char *g_reach_names[] = {
+#include "reach_list.h"
+};
+static const int g_reach_count = (int)(sizeof(g_reach_names) / sizeof(g_reach_names[0]));
+
+static void p_reach(void) {
+    int batch = atoi(getenv("FUZZ_REACH_BATCH") ?: "0");
+    int per = 120;
+    int from = batch * per, to = from + per;
+    if (to > g_reach_count) to = g_reach_count;
+    LOG("[reach] v158 candidates %d, batch %d -> probing %d..%d",
+        g_reach_count, batch, from, to - 1);
+    if (from >= g_reach_count) { LOG("[reach] batch past end"); LOG("[reach] done"); return; }
+
+    int found = 0, denied = 0, absent = 0;
+    for (int i = from; i < to; i++) {
+        const char *nm = g_reach_names[i];
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                            IOServiceMatching(nm));
+        if (!s) { absent++; continue; }
+        // Open every user-client type: type 0 is the convention, others exist.
+        int opened = 0;
+        for (uint32_t ty = 0; ty <= 2 && !opened; ty++) {
+            io_connect_t c = 0;
+            kern_return_t kr = IOServiceOpen(s, mach_task_self(), ty, &c);
+            if (!kr && c) {
+                opened = 1;
+                LOG("[reach] OPEN  %-42s type %u conn 0x%x", nm, ty, c);
+                IOServiceClose(c);
+            } else if (kr == 0xe00002e2 || kr == 0xe00002bc || kr == 0xe00002c2) {
+                LOG("[reach] gated %-41s type %u kr 0x%08x", nm, ty, kr);
+                denied++;
+            }
+        }
+        if (opened) found++;
+        IOObjectRelease(s);
+    }
+    LOG("[reach] batch %d: %d OPEN, %d gated-errors, %d absent-of-%d",
+        batch, found, denied, absent, to - from);
+    LOG("[reach] done");
+}
+
 // V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
 // This is the one userclient path that allocates kernel-side pooled memory
 // sized by request, i.e. the classic under-allocation -> out-of-bounds write
@@ -26608,6 +26664,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_GSURV")) { p_gsurvive(); LOG("[probe13] gsurv-only mode, stop"); return NULL; }
         if (getenv("FUZZ_VICTIM")) { p_victim(); LOG("[probe13] victim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_PERSIST")) { p_persist(); LOG("[probe13] persist-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_REACH")) { p_reach(); LOG("[probe13] reach-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

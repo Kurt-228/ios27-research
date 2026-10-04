@@ -1,0 +1,52 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x6203
+[scaler] conn 0x6203, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[reach] v158 candidates 460, batch 1 -> probing 120..239
+[reach] gated ApplePTD                                  type 0 kr 0xe00002c2
+[reach] gated ApplePTD                                  type 1 kr 0xe00002c2
+[reach] gated ApplePTD                                  type 2 kr 0xe00002c2
+[reach] gated AppleSMCSensorDispatcher                  type 0 kr 0xe00002c2
+[reach] gated AppleSMCSensorDispatcher                  type 1 kr 0xe00002c2
+[reach] gated AppleSMCSensorDispatcher                  type 2 kr 0xe00002c2
+[reach] gated AppleSPUAppDriver                         type 0 kr 0xe00002e2
+[reach] gated AppleSPUAppDriver                         type 1 kr 0xe00002e2
+[reach] gated AppleSPUAppDriver                         type 2 kr 0xe00002e2
+[reach] gated AppleSPUFastpathDriver                    type 0 kr 0xe00002e2
+[reach] gated AppleSPUFastpathDriver                    type 1 kr 0xe00002e2
+[reach] gated AppleSPUFastpathDriver                    type 2 kr 0xe00002e2
+[reach] gated AppleSPUHIDDevice                         type 0 kr 0xe00002e2
+[reach] gated AppleSPUHIDDevice                         type 1 kr 0xe00002e2
+[reach] gated AppleSPUHIDDevice                         type 2 kr 0xe00002e2
+[reach] gated AppleSSE                                  type 0 kr 0xe00002c2
+[reach] gated AppleSSE                                  type 1 kr 0xe00002c2
+[reach] gated AppleSSE                                  type 2 kr 0xe00002c2
+[reach] gated AppleSmartBatteryManager                  type 0 kr 0xe00002c2
+[reach] gated AppleSmartBatteryManager                  type 1 kr 0xe00002c2
+[reach] gated AppleSmartBatteryManager                  type 2 kr 0xe00002c2
+[reach] gated AppleSmartIO                              type 0 kr 0xe00002c2
+[reach] gated AppleSmartIO                              type 1 kr 0xe00002c2
+[reach] gated AppleSmartIO                              type 2 kr 0xe00002c2
+[reach] gated BTDebug                                   type 0 kr 0xe00002c2
+[reach] gated BTDebug                                   type 1 kr 0xe00002c2
+[reach] gated BTDebug                                   type 2 kr 0xe00002c2
+[reach] gated DCPAVControllerProxy                      type 0 kr 0xe00002e2
+[reach] gated DCPAVControllerProxy                      type 1 kr 0xe00002e2
+[reach] gated DCPAVControllerProxy                      type 2 kr 0xe00002e2
+[reach] gated DCPAVDeviceProxy                          type 0 kr 0xe00002e2
+[reach] gated DCPAVDeviceProxy                          type 1 kr 0xe00002e2
+[reach] gated DCPAVDeviceProxy                          type 2 kr 0xe00002e2
+[reach] gated DCPAVServiceProxy                         type 0 kr 0xe00002e2
+[reach] gated DCPAVServiceProxy                         type 1 kr 0xe00002e2
+[reach] gated DCPAVServiceProxy                         type 2 kr 0xe00002e2
+[reach] gated DCPAVVideoInterfaceProxy                  type 0 kr 0xe00002e2
+[reach] gated DCPAVVideoInterfaceProxy                  type 1 kr 0xe00002e2
+[reach] gated DCPAVVideoInterfaceProxy                  type 2 kr 0xe00002e2
+[reach] batch 1: 0 OPEN, 39 gated-errors, 100 absent-of-120
+[reach] done
+[probe13] reach-only mode, stop

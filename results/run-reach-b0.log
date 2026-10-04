@@ -1,0 +1,66 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4927
+[scaler] conn 0x4927, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[reach] v158 candidates 460, batch 0 -> probing 0..119
+[reach] gated AppleARMSPIDevice                         type 0 kr 0xe00002c2
+[reach] gated AppleARMSPIDevice                         type 1 kr 0xe00002c2
+[reach] gated AppleARMSPIDevice                         type 2 kr 0xe00002c2
+[reach] gated AppleARMSPMIController                    type 0 kr 0xe00002c2
+[reach] gated AppleARMSPMIController                    type 1 kr 0xe00002c2
+[reach] gated AppleARMSPMIController                    type 2 kr 0xe00002c2
+[reach] gated AppleARMSPMIDevice                        type 0 kr 0xe00002c2
+[reach] gated AppleARMSPMIDevice                        type 1 kr 0xe00002c2
+[reach] gated AppleARMSPMIDevice                        type 2 kr 0xe00002c2
+[reach] gated AppleAuthCP                               type 0 kr 0xe00002e2
+[reach] gated AppleAuthCP                               type 1 kr 0xe00002e2
+[reach] gated AppleAuthCP                               type 2 kr 0xe00002e2
+[reach] gated AppleBluetoothModule                      type 0 kr 0xe00002c2
+[reach] gated AppleBluetoothModule                      type 1 kr 0xe00002c2
+[reach] gated AppleBluetoothModule                      type 2 kr 0xe00002c2
+[reach] gated AppleCLPC                                 type 0 kr 0xe00002e2
+[reach] gated AppleCLPC                                 type 1 kr 0xe00002e2
+[reach] gated AppleCLPC                                 type 2 kr 0xe00002e2
+[reach] gated AppleConvergedIPCControl                  type 0 kr 0xe00002c2
+[reach] gated AppleConvergedIPCControl                  type 1 kr 0xe00002c2
+[reach] gated AppleConvergedIPCControl                  type 2 kr 0xe00002c2
+[reach] gated AppleCredentialManager                    type 0 kr 0xe00002e2
+[reach] gated AppleCredentialManager                    type 1 kr 0xe00002e2
+[reach] gated AppleCredentialManager                    type 2 kr 0xe00002e2
+[reach] gated AppleDockChannel                          type 0 kr 0xe00002e2
+[reach] gated AppleDockChannel                          type 1 kr 0xe00002e2
+[reach] gated AppleDockChannel                          type 2 kr 0xe00002e2
+[reach] gated AppleEmbeddedPCIE                         type 0 kr 0xe00002c2
+[reach] gated AppleEmbeddedPCIE                         type 1 kr 0xe00002c2
+[reach] gated AppleEmbeddedPCIE                         type 2 kr 0xe00002c2
+[reach] gated AppleHIDTransportBootloader               type 0 kr 0xe00002e2
+[reach] gated AppleHIDTransportBootloader               type 1 kr 0xe00002e2
+[reach] gated AppleHIDTransportBootloader               type 2 kr 0xe00002e2
+[reach] gated AppleHIDTransportDevice                   type 0 kr 0xe00002e2
+[reach] gated AppleHIDTransportDevice                   type 1 kr 0xe00002e2
+[reach] gated AppleHIDTransportDevice                   type 2 kr 0xe00002e2
+[reach] gated AppleHIDTransportInterface                type 0 kr 0xe00002e2
+[reach] gated AppleHIDTransportInterface                type 1 kr 0xe00002e2
+[reach] gated AppleHIDTransportInterface                type 2 kr 0xe00002e2
+[reach] gated AppleHPM                                  type 0 kr 0xe00002c2
+[reach] gated AppleHPM                                  type 1 kr 0xe00002c2
+[reach] gated AppleHPM                                  type 2 kr 0xe00002c2
+[reach] OPEN  AppleJPEGDriver                            type 0 conn 0x7403
+[reach] OPEN  AppleKeyStore                              type 0 conn 0x740b
+[reach] gated AppleMobileApNonce                        type 0 kr 0xe00002e2
+[reach] gated AppleMobileApNonce                        type 1 kr 0xe00002e2
+[reach] gated AppleMobileApNonce                        type 2 kr 0xe00002e2
+[reach] gated AppleMobileFileIntegrity                  type 0 kr 0xe00002e2
+[reach] gated AppleMobileFileIntegrity                  type 1 kr 0xe00002e2
+[reach] gated AppleMobileFileIntegrity                  type 2 kr 0xe00002e2
+[reach] gated AppleMultitouchDevice                     type 0 kr 0xe00002c2
+[reach] gated AppleMultitouchDevice                     type 1 kr 0xe00002c2
+[reach] gated AppleMultitouchDevice                     type 2 kr 0xe00002c2
+[reach] batch 0: 2 OPEN, 51 gated-errors, 96 absent-of-120
+[reach] done
+[probe13] reach-only mode, stop
