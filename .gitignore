@@ -38,3 +38,18 @@ results/kc-extract/*_full_disasm.txt
 results/kc27/kernelcache_iphone16.*
 results/kc27/kernelcache.raw
 results/kc27/kernelcache.macho
+
+# v166: the restore image itself (23 GB) and the ROM/payload dumps it yields.
+# Everything here is re-derivable: scripts/securerom/extract.sh + the IPSW from
+# Apple's CDN. Committing 23 GB of firmware buys nothing a reader cannot get.
+ipsw/
+results/securerom/ipsw/*.im4p
+results/securerom/ipsw/*.im4m
+results/securerom/ipsw/*.bin
+results/securerom/ipsw/*.aea
+results/securerom/ipsw/kernelcache.*
+# the two decrypted ROM dumps: 1 MB total, kept out so the repo holds only
+# derived results. Put them in dumps/ to regenerate an audit from scratch.
+dumps/*ROM*
+# focused findings extracted from the ROMs are small and DO belong in git
+!results/securerom/findings/

@@ -11,6 +11,15 @@
 #include <IOSurface/IOSurfaceTypes.h>
 #include <mach/mach.h>
 #include <mach/vm_map.h>
+// network stack: the last reachable path that hands controlled bytes to the
+// kernel (V163). Declared here rather than in the phase because both the
+// .m harness and any future C phase need them.
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <poll.h>
+#include <errno.h>
 // not in iOS SDK headers but present in libsystem
 extern kern_return_t mach_vm_region(vm_map_t, mach_vm_address_t *, mach_vm_size_t *,
     vm_region_flavor_t, vm_region_info_t, mach_msg_type_number_t *, mach_port_t *);

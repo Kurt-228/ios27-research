@@ -24263,6 +24263,438 @@ static void p_persist(void) {
     LOG("[ps] done");
 }
 
+// V165 (p_ipopt): is there any header control left on a permitted socket?
+//
+// V163 found raw sockets refused with EPERM, which on recent iOS is
+// deliberate: they are exactly the primitive that would let a sandboxed app
+// forge arbitrary IP headers. The question is whether the closure is complete
+// or whether a permitted socket type still exposes the header indirectly.
+//
+// IP_OPTIONS on a datagram socket is the classic way to slip header control
+// past a raw-socket ban — the options are written into the IP header of the
+// outgoing packet, so the kernel's option parser becomes reachable with
+// attacker-chosen option bytes. IP_HDRINCL is the other candidate, and on
+// Darwin it is documented as raw-socket-only, but "documented as" is exactly
+// the kind of claim that is worth one call on the device.
+//
+// Everything here is tried and then abandoned if refused; the point is to
+// record which doors are shut, since a shut door is a measurement and a
+// silently assumed one is not. If any door is open, the follow-up is to build
+// header shapes the kernel's option parser has to walk — variable-length
+// options with length bytes that disagree with their payload are the classic
+// memory-safety shape in this code.
+static void p_ipopt(void) {
+    LOG("[ipopt] v165 probing header control on permitted socket types");
+    int d = socket(AF_INET, SOCK_DGRAM, 0);
+    LOG("[ipopt] datagram socket -> %d", d);
+
+    // EOL, NOP, and a source-route option with a declared length that will be
+    // varied later if any of this is permitted at all.
+    uint8_t opts[] = {
+        0x83, 0x0b, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x01,   // NOP
+        0x00,   // EOL
+    };
+    int r = setsockopt(d, IPPROTO_IP, IP_OPTIONS, opts, sizeof(opts));
+    LOG("[ipopt] IP_OPTIONS (%zu bytes) -> %d errno %d  %s", sizeof(opts), r,
+        r < 0 ? errno : 0, r < 0 ? "(refused)" : "*** PERMITTED — header control ***");
+    if (r == 0) {
+        // Now try to make it go somewhere. If this works we control IP header
+        // option bytes on the wire, which is the thing raw sockets would have
+        // given us.
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a); a.sin_family = AF_INET;
+        a.sin_port = htons(9);   // discard, may or may not exist
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        ssize_t sent = sendto(d, "probe", 5, 0, (struct sockaddr *)&a, sizeof(a));
+        LOG("[ipopt] sendto with IP_OPTIONS set -> %zd errno %d", sent,
+            sent < 0 ? errno : 0);
+        fsync(fileno(stderr));
+        // Turn it back off, or every later send in this process inherits it.
+        uint8_t noopt = 0;
+        setsockopt(d, IPPROTO_IP, IP_OPTIONS, &noopt, 0);
+    }
+#ifdef IP_HDRINCL
+    uint8_t one = 1;
+    r = setsockopt(d, IPPROTO_IP, IP_HDRINCL, &one, sizeof(one));
+    LOG("[ipopt] IP_HDRINCL on datagram -> %d errno %d  %s", r,
+        r < 0 ? errno : 0, r < 0 ? "(refused, as documented)" : "*** PERMITTED ***");
+#else
+    LOG("[ipopt] IP_HDRINCL not defined in the SDK at all");
+#endif
+
+    // IP_TOS / IP_TTL take scalar values and reach the header, so establish
+    // which of those the kernel actually honours rather than assuming.
+    for (int v = -1; v <= 255; v += 256) {
+        int rr = setsockopt(d, IPPROTO_IP, IP_TOS, &v, sizeof(v));
+        LOG("[ipopt] IP_TOS %d -> %d errno %d", v, rr, rr < 0 ? errno : 0);
+    }
+    int rc = setsockopt(d, IPPROTO_IP, IP_RECVTTL, &(int){1}, sizeof(int));
+    LOG("[ipopt] IP_RECVTTL (ask for TTL in recvmsg cmsg) -> %d errno %d", rc,
+        rc < 0 ? errno : 0);
+    int rp = setsockopt(d, IPPROTO_IP, IP_RECVPKTINFO, &(int){1}, sizeof(int));
+    LOG("[ipopt] IP_RECVPKTINFO -> %d errno %d", rp, rp < 0 ? errno : 0);
+    int mf = setsockopt(d, IPPROTO_IP, 0x10 /* IP_DONTFRAG */, &(int){1}, sizeof(int));
+    LOG("[ipopt] IP_DONTFRAG -> %d errno %d", mf, mf < 0 ? errno : 0);
+    int mtu = setsockopt(d, IPPROTO_IP, 4 /* IP_MTU */, &(int){68}, sizeof(int));
+    LOG("[ipopt] IP_MTU=68 (deliberately below any real MTU) -> %d errno %d", mtu,
+        mtu < 0 ? errno : 0);
+    if (mtu == 0) {
+        // If an absurdly small MTU is honoured on send, the fragmentation path
+        // is reachable with attacker-influenced geometry.
+        uint8_t *big = must_map(0x4000);
+        memset(big, 0x5a, 0x4000);
+        struct sockaddr_in la = {0};
+        la.sin_len = sizeof(la); la.sin_family = AF_INET;
+        la.sin_port = htons(9); la.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        ssize_t sent = sendto(d, big, 0x2000, 0, (struct sockaddr *)&la, sizeof(la));
+        LOG("[ipopt] send 8192 with MTU 68 -> %zd errno %d", sent, sent < 0 ? errno : 0);
+        fsync(fileno(stderr));
+    }
+    close(d);
+
+    // And the one open TCP listener V164 found: who is it, and does it speak?
+    // A 1080 on loopback is the shape of a local proxy, which would parse
+    // attacker-supplied request lines for whoever connects.
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in a = {0};
+    a.sin_len = sizeof(a); a.sin_family = AF_INET;
+    a.sin_port = htons(1080); a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (connect(s, (struct sockaddr *)&a, sizeof(a)) == 0) {
+        char req[] = "GET / HTTP/1.0\r\n\r\n";
+        ssize_t w = send(s, req, sizeof(req) - 1, 0);
+        LOG("[ipopt] wrote %zd bytes to 1080", w);
+        int fl = fcntl(s, F_GETFL, 0);
+        fcntl(s, F_SETFL, fl | O_NONBLOCK);
+        struct timeval tv = {1, 0};
+        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        char b[1024] = {0};
+        ssize_t g = recv(s, b, sizeof(b) - 1, 0);
+        if (g > 0) {
+            LOG("[ipopt] 1080 replied %zd bytes: %.300s", g, b);
+            fsync(fileno(stderr));
+        } else {
+            LOG("[ipopt] 1080 accepted then said nothing (%zd, errno %d)", g,
+                g < 0 ? errno : 0);
+        }
+    }
+    close(s);
+    // 1080 accepted a TCP connection but ignored HTTP, which is the signature
+    // of a SOCKS listener rather than a web server. Worth one handshake: if it
+    // is SOCKS, the request format lets us name an arbitrary destination
+    // address, which is a way to reach services bound to an interface we
+    // cannot otherwise address — and it tells us the proxy's policy surface
+    // exists at all.
+    {
+        int k = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in ka = {0};
+        ka.sin_len = sizeof(ka); ka.sin_family = AF_INET;
+        ka.sin_port = htons(1080); ka.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        if (connect(k, (struct sockaddr *)&ka, sizeof(ka)) == 0) {
+            struct timeval tv2 = {2, 0};
+            setsockopt(k, SOL_SOCKET, SO_RCVTIMEO, &tv2, sizeof(tv2));
+            // SOCKS5 greeting offering no auth
+            uint8_t greet[] = {0x05, 0x01, 0x00};
+            ssize_t w = send(k, greet, sizeof(greet), 0);
+            uint8_t rr[16] = {0};
+            ssize_t g = recv(k, rr, sizeof(rr), 0);
+            LOG("[ipopt] SOCKS5 greet sent %zd, reply %zd:", w, g);
+            if (g > 0) {
+                char h[64] = {0};
+                for (ssize_t i = 0; i < g && i < 8; i++)
+                    snprintf(h + strlen(h), sizeof(h) - strlen(h), " %02x", rr[i]);
+                LOG("[ipopt] SOCKS5 reply bytes:%s", h);
+                fsync(fileno(stderr));
+                if (g >= 2 && rr[0] == 0x05)
+                    LOG("[ipopt] *** SOCKS5 CONFIRMED on 127.0.0.1:1080 ***");
+            }
+        }
+        close(k);
+    }
+    LOG("[ipopt] done (alive)");
+}
+
+// V164 (p_lsvc): the loopback port surface — a way around the Mach wall.
+//
+// §146 established that bootstrap_look_up is intercepted by the sandbox before
+// the registry is consulted, and concluded from that that every privileged
+// daemon is unreachable. That conclusion is too strong, and this phase is the
+// counterexample. A process that listens on a network port answers on that
+// port. Loopback traffic does not go through Mach bootstrap lookup, does not go
+// through sandbox Mach mediation, and is explicitly permitted for sandboxed
+// apps. So any daemon with a listening socket is reachable — with attacker
+// controlled bytes — even though its Mach service name is not resolvable.
+//
+// That turns "no privileged daemon is reachable" into "no privileged daemon is
+// reachable *by Mach*", which is a materially different and less comfortable
+// statement. DNS is the obvious target: a local resolver listens on 53 or 5353
+// and parses fully attacker-controlled bytes, in a privileged process, and
+// historically those parsers are where the memory-safety bugs live. lockdownd
+// on 62078 is the other one worth knowing about.
+//
+// The probe is deliberately passive and cheap. For TCP it asks whether the
+// connection completes; for UDP it sends a fixed datagram and waits briefly for
+// any reply, since a UDP service that stays silent is indistinguishable from
+// nobody listening, and the reply is the only evidence that distinguishes them.
+// No malformed input is sent here — establishing the denominator comes first,
+// the way §142 did for IOKit.
+static void p_lsvc(void) {
+    LOG("[lsvc] v164 loopback port surface — TCP connect and UDP reply probes");
+    static const int ports[] = {
+        7, 9, 11, 13, 19, 21, 22, 23, 25, 37, 53, 67, 68, 69, 79, 88, 111,
+        123, 135, 137, 138, 139, 143, 161, 179, 389, 443, 445, 465, 514, 515,
+        520, 523, 541, 548, 554, 587, 631, 636, 873, 1080, 1755, 1900, 2049,
+        3306, 3389, 4443, 4500, 5000, 5060, 5353, 5355, 5432, 5900, 5988,
+        62078, 7000, 8000, 8009, 8080, 8443, 8888, 9000, 9100, 11211, 27017,
+    };
+    const int np = (int)(sizeof(ports) / sizeof(ports[0]));
+    int tcp_open = 0, udp_ans = 0;
+
+    for (int i = 0; i < np; i++) {
+        // ---- TCP: does a listener complete a loopback connection?
+        int s = socket(AF_INET, SOCK_STREAM, 0);
+        if (s < 0) { LOG("[lsvc] tcp socket failed errno %d", errno); break; }
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a); a.sin_family = AF_INET;
+        a.sin_port = htons((uint16_t)ports[i]);
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        int r = connect(s, (struct sockaddr *)&a, sizeof(a));
+        if (r == 0) {
+            LOG("[lsvc] TCP OPEN  127.0.0.1:%d", ports[i]);
+            fsync(fileno(stderr));
+            tcp_open++;
+            // Read whatever greets us, if anything: a banner identifies the
+            // daemon far more cheaply than guessing does.
+            int fl = fcntl(s, F_GETFL, 0);
+            fcntl(s, F_SETFL, fl | O_NONBLOCK);
+            char b[256] = {0};
+            ssize_t g = recv(s, b, sizeof(b) - 1, 0);
+            if (g > 0) {
+                b[g] = 0;
+                for (ssize_t k = 0; k < g; k++)
+                    if (b[k] < 32 || b[k] > 126) b[k] = '.';
+                LOG("[lsvc] TCP banner %zd bytes: %.200s", g, b);
+                fsync(fileno(stderr));
+            }
+        }
+        close(s);
+
+        // ---- UDP: send something and see whether anything is home. Silence is
+        // ambiguous, so a reply is the only positive evidence.
+        int u = socket(AF_INET, SOCK_DGRAM, 0);
+        if (u < 0) continue;
+        int ufl = fcntl(u, F_GETFL, 0);
+        fcntl(u, F_SETFL, ufl | O_NONBLOCK);
+        struct timeval tv = {0, 300000};   // 300ms
+        setsockopt(u, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        // A DNS-shaped query for the resolver case, junk elsewhere: a
+        // well-formed request is the only thing that makes a parser answer,
+        // and answering is what marks it alive.
+        uint8_t dnsq[] = {
+            0x12, 0x34, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00,
+            0x00, 0x00, 0x03, 'l', 'o', 'c', 'a', 'l', 0x00, 0x00,
+            0x01, 0x00, 0x01
+        };
+        struct sockaddr_in ua = a;
+        const uint8_t *pl = dnsq; size_t pn = sizeof(dnsq);
+        uint8_t junk[64];
+        for (unsigned k = 0; k < sizeof(junk); k++) junk[k] = (uint8_t)(0x40 + k);
+        if (ports[i] != 53 && ports[i] != 5353) { pl = junk; pn = sizeof(junk); }
+        if (sendto(u, pl, pn, 0, (struct sockaddr *)&ua, sizeof(ua)) > 0) {
+            uint8_t rb[2048];
+            ssize_t g = recv(u, rb, sizeof(rb), 0);
+            if (g > 0) {
+                LOG("[lsvc] UDP REPLY 127.0.0.1:%d -> %zd bytes, first 16:",
+                    ports[i], g);
+                char h[80] = {0};
+                for (ssize_t k = 0; k < g && k < 16; k++)
+                    snprintf(h + strlen(h), sizeof(h) - strlen(h), " %02x", rb[k]);
+                LOG("[lsvc]    %s", h);
+                fsync(fileno(stderr));
+                udp_ans++;
+            }
+        }
+        close(u);
+    }
+    LOG("[lsvc] RESULT %d TCP open, %d UDP answered, of %d ports probed",
+        tcp_open, udp_ans, np);
+    LOG("[lsvc] done");
+}
+
+// V163 (p_net): the network stack — the last reachable vector that still
+// hands controlled bytes to the kernel.
+//
+// §142-§146 measured three vectors out. IOKit userclients: 5 of 460 open and
+// every one is gated. Mach services: 0 of 132, and the lookup is blocked
+// before the registry is consulted, which also takes XPC triggers with it. What
+// is left, and the only thing left, is the network stack: a sandboxed app may
+// freely create sockets, and the kernel parses every byte we hand it — headers
+// checked, fragments reassembled, options parsed, ICMP errors generated and
+// then delivered back into our own receive path.
+//
+// It is also the one vector whose detector does not depend on the crash-report
+// channel of §144. A kernel fault here shows up as the device rebooting, which
+// cannot be throttled away. And a userland fault shows up as this process
+// dying, which runf.sh notices as a missing marker. So for the first time in
+// this project the detection path is trustworthy, which is why the effort goes
+// here.
+//
+// Two properties of the kernel's own input handling are what make this class
+// worth a day rather than an afternoon. Lengths: several BSD/IP paths validate
+// a header length against the buffer separately from the payload length, and
+// the two disagreeing is a memory-safety bug by construction. And the
+// reassembly path, where a fragment's declared offset and length are combined
+// with the buffer before the policy check that would have rejected it.
+//
+// The phases below are deliberately boring shapes first — empty payloads, the
+// maximum legal payload, datagrams to closed ports so the kernel has to build
+// and route an ICMP error, oversized datagrams that must be fragmented on the
+// way out, and the same against IPv6 and multicast — because the point of a
+// first pass is to establish whether the path is reachable at all and whether
+// anything dies, not to be clever.
+static void p_net(void) {
+    LOG("[net] v163 network stack probe start");
+    int v4 = socket(AF_INET, SOCK_DGRAM, 0);
+    LOG("[net] ipv4 dgram socket -> %d (errno %d)", v4, v4 < 0 ? errno : 0);
+    int v6 = socket(AF_INET6, SOCK_DGRAM, 0);
+    LOG("[net] ipv6 dgram socket -> %d (errno %d)", v6, v6 < 0 ? errno : 0);
+    // Raw sockets are the ideal control here and the one most likely to be
+    // refused: recent iOS refuses IPPROTO_RAW for exactly this reason. Ask
+    // rather than assume, because the answer decides what is possible at all.
+    int raw = socket(AF_INET, SOCK_RAW, IPPROTO_UDP);
+    LOG("[net] raw socket (IPPROTO_RAW=%d) -> %d errno %d  %s",
+        IPPROTO_RAW, raw, raw < 0 ? errno : 0,
+        raw < 0 ? "(refused — no header control, as expected on modern iOS)" : "(OPEN)");
+    int rs = socket(AF_INET, SOCK_RAW, IPPROTO_ICMP);
+    LOG("[net] raw socket (IPPROTO_ICMP=%d) -> %d errno %d",
+        IPPROTO_ICMP, rs, rs < 0 ? errno : 0);
+    int rs6 = socket(AF_INET6, SOCK_RAW, IPPROTO_RAW);
+    LOG("[net] ipv6 raw socket -> %d errno %d", rs6, rs6 < 0 ? errno : 0);
+
+    // A listener on loopback, so the kernel actually has to deliver a payload
+    // rather than drop it at the interface.
+    int l4 = socket(AF_INET, SOCK_DGRAM, 0);
+    struct sockaddr_in la = {0};
+    la.sin_len = sizeof(la); la.sin_family = AF_INET;
+    la.sin_port = 0; la.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    int br = bind(l4, (struct sockaddr *)&la, sizeof(la));
+    socklen_t sl = sizeof(la);
+    getsockname(l4, (struct sockaddr *)&la, &sl);
+    LOG("[net] loopback listener bind -> %d errno %d, port %d",
+        br, br < 0 ? errno : 0, ntohs(la.sin_port));
+    uint16_t dport = ntohs(la.sin_port);
+
+    int tx = socket(AF_INET, SOCK_DGRAM, 0);
+    struct sockaddr_in da = {0};
+    da.sin_len = sizeof(da); da.sin_family = AF_INET;
+    da.sin_port = htons(dport); da.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+
+    // payload sizes: empty, one, the MTU boundary, above it so the stack must
+    // fragment on egress, and the largest a datagram can legally carry.
+    static const size_t psz[] = { 0, 1, 2, 64, 512, 1400, 1472, 1473, 2048,
+                                  8000, 65500, 65507 };
+    uint8_t *pay = must_map(0x10000);
+    for (unsigned i = 0; i < sizeof(psz)/sizeof(psz[0]); i++) {
+        size_t n = psz[i];
+        // distinctive fill so a kernel-side copy of our bytes into anywhere
+        // else would be visible in what comes back
+        for (size_t k = 0; k < n; k++) pay[k] = (uint8_t)(0xA0 + (k & 0x3f));
+        ssize_t sent = sendto(tx, pay, n, 0, (struct sockaddr *)&da, sizeof(da));
+        LOG("[net] v4 loopback payload %-6zu -> sent %zd errno %d", n, sent,
+            sent < 0 ? errno : 0);
+        fsync(fileno(stderr));
+        if (sent < 0 && errno != EMSGSIZE) { /* keep going: the refusal is data */ }
+    }
+
+    // Datagrams to a closed port: the kernel has to synthesise an ICMP port
+    // unreachable and deliver it, and the error path is where length handling
+    // tends to be sloppier than the data path.
+    struct sockaddr_in ca = da;
+    ca.sin_port = htons(1);  // discard, almost certainly nothing listening
+    for (unsigned i = 0; i < 4; i++) {
+        ssize_t sent = sendto(tx, pay, 512, 0, (struct sockaddr *)&ca, sizeof(ca));
+        LOG("[net] v4 -> closed port 1 payload 512 -> sent %zd errno %d",
+            sent, sent < 0 ? errno : 0);
+        fsync(fileno(stderr));
+        usleep(200000);
+    }
+
+    // Read whatever came back through the listener: this is the channel that
+    // shows whether the kernel's own bookkeeping agrees with ours.
+    {
+        int fl = fcntl(l4, F_GETFL, 0);
+        fcntl(l4, F_SETFL, fl | O_NONBLOCK);
+        uint8_t *rx = must_map(0x10000);
+        for (int i = 0; i < 64; i++) {
+            ssize_t r = recv(l4, rx, 0x10000, 0);
+            if (r > 0) {
+                // verify our marker survived the round trip intact; a mangled
+                // length field in the kernel would show up as a short or long
+                // datagram rather than the n we sent
+                size_t want = r;
+                bool bad = false;
+                for (size_t k = 0; k < (size_t)r; k++)
+                    if (rx[k] != (uint8_t)(0xA0 + (k & 0x3f))) { bad = true; break; }
+                LOG("[net] recv %zd bytes, pattern %s", r, bad ? "MISMATCH" : "intact");
+                if (bad) {
+                    fsync(fileno(stderr));
+                    LOG("[net] *** RECEIVED LENGTH OR CONTENT DISAGREES WITH WHAT WAS SENT ***");
+                }
+            } else if (r < 0 && errno != EAGAIN && errno != EWOULDBLOCK) {
+                LOG("[net] recv -> errno %d", errno);
+                break;
+            }
+        }
+        vm_deallocate(mach_task_self(), (vm_address_t)rx, 0x10000);
+    }
+
+    // IPv6 loopback and multicast: both take different kernel paths than the
+    // v4 unicast above, and multicast in particular makes the kernel consult
+    // its group state on every packet.
+    if (v6 >= 0) {
+        int l6 = socket(AF_INET6, SOCK_DGRAM, 0);
+        struct sockaddr_in6 s6 = {0};
+        s6.sin6_len = sizeof(s6); s6.sin6_family = AF_INET6;
+        s6.sin6_port = 0; s6.sin6_addr = in6addr_loopback;
+        int b6 = bind(l6, (struct sockaddr *)&s6, sizeof(s6));
+        socklen_t s6l = sizeof(s6);
+        getsockname(l6, (struct sockaddr *)&s6, &s6l);
+        LOG("[net] v6 loopback listener bind -> %d errno %d port %d",
+            b6, b6 < 0 ? errno : 0, ntohs(s6.sin6_port));
+        struct sockaddr_in6 t6 = s6;
+        for (unsigned i = 0; i < 4; i++) {
+            ssize_t sent = sendto(v6, pay, 256, 0, (struct sockaddr *)&t6, sizeof(t6));
+            LOG("[net] v6 loopback payload 256 -> sent %zd errno %d", sent,
+                sent < 0 ? errno : 0);
+            fsync(fileno(stderr));
+        }
+        // multicast on loopback: kernel does group lookup per packet
+        int mc = socket(AF_INET, SOCK_DGRAM, 0);
+        struct sockaddr_in m = {0};
+        m.sin_len = sizeof(m); m.sin_family = AF_INET;
+        m.sin_port = htons(5353);
+        m.sin_addr.s_addr = htonl(0xE0000001);   // 224.0.0.1 all-hosts
+        for (unsigned i = 0; i < 4; i++) {
+            ssize_t sent = sendto(mc, pay, 512, 0, (struct sockaddr *)&m, sizeof(m));
+            LOG("[net] mcast 224.0.0.1:5353 -> sent %zd errno %d", sent,
+                sent < 0 ? errno : 0);
+            fsync(fileno(stderr));
+        }
+        // TTL of 0 and 1 force loopback-only routing decisions
+        int tl = socket(AF_INET, SOCK_DGRAM, 0);
+        for (int ttl = 0; ttl <= 1; ttl++) {
+            setsockopt(tl, IPPROTO_IP, IP_TTL, &ttl, sizeof(ttl));
+            ssize_t sent = sendto(tl, pay, 64, 0, (struct sockaddr *)&m, sizeof(m));
+            LOG("[net] mcast with IP_TTL %d -> sent %zd errno %d", ttl, sent,
+                sent < 0 ? errno : 0);
+            fsync(fileno(stderr));
+        }
+    }
+
+    LOG("[net] all probes completed, process still alive");
+    LOG("[net] done");
+}
+
 // V162 (p_msvc): how much of the privileged Mach surface can a sandbox see?
 //
 // The IOKit sweep (§142, §145) produced a measured denominator — 5 of 460
@@ -27421,6 +27853,10 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_DETCHECK")) { p_detcheck(); LOG("[probe13] detcheck-only mode, stop"); return NULL; }
         if (getenv("FUZZ_AKS")) { p_aks(); LOG("[probe13] aks-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MSVC")) { p_msvc(); LOG("[probe13] msvc-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_NET")) { p_net(); LOG("[probe13] net-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_LSVC")) { p_lsvc(); LOG("[probe13] lsvc-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }
