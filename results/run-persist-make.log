@@ -1,0 +1,13 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7b0b
+[scaler] conn 0x7b0b, s1 12 s2 13
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[probe12] SetNotificationPort -> 0x00000000
+[ps] MAKE: sel7 -> kr 0x00000000 sid 15 (base 0x107460000 size 0x40000 marker 0x5a)
+[ps] MAKE control: lock -> kr 0x00000000, base 0x107460000, marker 262144/262144 (alias live)
+[ps] MAKE: sid 15 written to @ — now dying
+[probe13] persist-only mode, stop

