@@ -1,0 +1,372 @@
+[connected:00008130-001C05C20C01001C]
+Oct  4 09:00:27.934885 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27,0x0,0x1b6) = 41
+Oct  4 09:00:27.934898 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27,0x0,0x1b6) = 42
+Oct  4 09:00:27.935310 SpringBoard(Security)[37] <Debug>: 7182 signing bytes in 5 blob(s) from /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27(arm64)
+Oct  4 09:00:27.943783 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Info.plist,0x0,0x1b6) = 41
+Oct  4 09:00:27.956230 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27,0x0,0x1b6) = 41
+Oct  4 09:00:27.956258 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27,0x0,0x1b6) = 42
+Oct  4 09:00:27.956421 SpringBoard(Security)[37] <Debug>: 7182 signing bytes in 5 blob(s) from /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27(arm64)
+Oct  4 09:00:27.963570 SpringBoard(Security)[37] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Info.plist,0x0,0x1b6) = 41
+Oct  4 09:00:27.985287 amfid(libxpc.dylib)[61] <Debug>: [0x7db9038280] 'amfid mig server': Transaction created
+Oct  4 09:00:27.985376 amfid[61] <Info>: Entering iOS path for /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27
+Oct  4 09:00:27.986138 amfid(Security)[61] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27,0x0,0x1b6) = 3
+Oct  4 09:00:27.986159 amfid(Security)[61] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27,0x0,0x1b6) = 4
+Oct  4 09:00:27.987098 amfid(Security)[61] <Debug>: 7182 signing bytes in 5 blob(s) from /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27(arm64)
+Oct  4 09:00:27.990634 amfid(Security)[61] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Info.plist,0x0,0x1b6) = 3
+Oct  4 09:00:27.994466 amfid(libxpc.dylib)[61] <Debug>: [0x7db9038280] 'amfid mig server': Transaction released
+Oct  4 09:00:27.998166 runningboardd(RunningBoard)[36] <Info>: _executablePath = /var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27
+Oct  4 09:00:28.014880 kernel(Sandbox)[0] <Notice>: /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27[1339] ==> container
+Oct  4 09:00:28.020603 SpringBoard(BaseBoard)[37] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7503dd0d00; usable: YES; (37:44e93:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x7503dd0a80>{number = 621, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad91ff50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x00000001ad91fd04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x00000001ad913314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x00000001ad920544 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111940
+	5   FrontBoard                          0x00000001e3551908 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 43272
+	6   FrontBoard                          0x00000001e354c048 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 20552
+	7   FrontBoard                          0x00000001e3549ea8 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 11944
+	8
+Oct  4 09:00:28.028213 dtappserviced(BaseBoard)[1099] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x74ecc29280; usable: YES; (1099:11b03:send xpcCode) from (37:44e93:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x74ecc293c0>{number = 53, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad9559c0 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 330176
+	2   BaseBoard                           0x00000001ad955d80 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 331136
+	3   BaseBoard                           0x00000001ad91b2a0 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 90784
+	4   BaseBoard                           0x00000001ad91a5d8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 87512
+	5   BaseBoard                           0x00000001ad9212fc _BSXPCDecodeIvarsForObject + 1168
+	6   BaseBoard                           0x00000001ad920640 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 112192
+	7   BaseBoard                           0x00000001ad91b1ec 4C812EE8-66AA-3110-8B9F-FC3BB
+Oct  4 09:00:28.028407 dtappserviced(FrontBoardServices)[1099] <Notice>: [FBSSystemService][0x4a78] Request successful: <BSProcessHandle: 0x74ed224b70; fuzz27:1339; valid: YES>
+Oct  4 09:00:28.039928 dtappserviced(BaseBoard)[1099] <Debug>:  *|machport|* invalidate <BSMachPortTaskNameRight:0x74ecc29280 usable=YES (1099:11b03:send xpcCode) from (37:44e93:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x74ecc293c0>{number = 53, name = (null)}) (
+	0   BaseBoard                           0x00000001ad953c48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 322632
+	1   BaseBoard                           0x00000001ad953ee8 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 323304
+	2   BaseBoard                           0x00000001ad9561d4 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 332244
+	3   libobjc.A.dylib                     0x000000019e2f7418 E708DFC2-BA03-3C4C-8376-FFC11461C752 + 13336
+	4   libobjc.A.dylib                     0x000000019e2f70a4 objc_autoreleasePoolPop + 244
+	5   BoardServices                       0x00000001ad9d7514 BSXPCServiceConnectionExecuteCallOut + 260
+	6   BoardServices                       0x00000001ada1adb8 2B05C9D3-3F1D-3021-82CF-64797327508E + 298424
+	7   BoardServices                       0x00000001ad9dc67c 2B05C9D3-3F1D-3021-82CF-64797327508E +
+Oct  4 09:00:28.040049 dtappserviced(CoreDeviceUtilities)[1099] <Notice>: invoke(usingContentsOf:caller:): Received reply from action (type=LaunchActionImplementation, invocation=8232D7EA-4A9B-4538-AFC0-A511F424B5EA, device=8A8A1D3F-AF75-5493-9585-6374D1BB90D1): success(CoreDeviceUtilities.LaunchActionDeclaration.Output(processToken: CoreDeviceUtilities.ProcessToken.(unknown context at $1050ffc38)._Value.auditToken(__C.audit_token_t(val: (4294967295, 501, 501, 501, 501, 1339, 0, 3599))) => /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27))
+Oct  4 09:00:28.040535 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) sysctl-read kern.bootargs
+Launched application with cancer9725.turquoise1323 bundle identifier.
+Waiting for the application to terminate…
+Oct  4 09:00:28.062453 amfid(libxpc.dylib)[61] <Debug>: [0x7db9038280] 'amfid mig server': Transaction created
+Oct  4 09:00:28.062477 amfid[61] <Info>: Entering iOS path for /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Frameworks/libiotrace.dylib
+Oct  4 09:00:28.062592 amfid(Security)[61] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Frameworks/libiotrace.dylib,0x0,0x1b6) = 3
+Oct  4 09:00:28.062600 amfid(Security)[61] <Debug>: open(/private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Frameworks/libiotrace.dylib,0x0,0x1b6) = 4
+Oct  4 09:00:28.063058 amfid(Security)[61] <Debug>: 5316 signing bytes in 3 blob(s) from /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/Frameworks/libiotrace.dylib(arm64)
+Oct  4 09:00:28.067169 amfid(libxpc.dylib)[61] <Debug>: [0x7db9038280] 'amfid mig server': Transaction released
+Oct  4 09:00:28.191129 kernel[0] <Notice>: vm: fuzz27[1339] triggered unnest of range 0x1fc000000->0x200000000 of DYLD shared region in VM map 0x16e07619aaf48aaf. While not abnormal for debuggers, this increases system memory footprint until the target exits.
+Oct  4 09:00:28.223372 fuzz27(CoreFoundation)[1339] <Debug>: main bundle CFBundle 0x102a68d30 </private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app> (executable, loaded) getting handle 0xfffffffffffffffb
+Oct  4 09:00:28.225342 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad6aee0> (Domain: com.apple.UIKit, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.225537 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fdc008c0> (Domain: com.apple.UIKit, User: m{4}e, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.225598 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fd0bd680> (Domain: com.apple.UIKit, User: m{4}e, ByHost: No, Dirty: No)
+Oct  4 09:00:28.225607 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad6b980> (Domain: com.apple.UIKit, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.225629 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDSource<0x73fd0bd680> (Domain: com.apple.UIKit, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Oct  4 09:00:28.225638 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad34dc0> (Domain: kCFPreferencesAnyApplication, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.225649 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fd0181e0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.225709 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDSource<0x73fd0181e0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No), backed by <private>
+Oct  4 09:00:28.226139 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDMirroredSource<0x73fd018320> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No)
+Oct  4 09:00:28.226310 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad34dc0> (Domain: cancer9725.turquoise1323, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.227505 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad36440> (Domain: cancer9725.turquoise1323, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.227656 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad348c0> (Domain: kCFPreferencesAnyApplication, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.227724 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDMirroredSource<0x73fd018320> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Oct  4 09:00:28.227849 SpringBoard(BaseBoard)[37] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x74f7dd0e80; usable: YES; (37:44e93:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x7503dd0a80>{number = 621, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad91ff50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x00000001ad91fd04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x00000001ad913314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x00000001ad937144 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 205124
+	5   BoardServices                       0x00000001ad9d55cc 2B05C9D3-3F1D-3021-82CF-64797327508E + 13772
+	6   BoardServices                       0x00000001ad9f0084 2B05C9D3-3F1D-3021-82CF-64797327508E + 123012
+	7   BoardServices                       0x00000001ad9f06f0 2B05C9D3-3F1D-3021-82CF-64797327508E + 124656
+Oct  4 09:00:28.227892 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fdc008c0> (Domain: cancer9725.turquoise1323, User: m{4}e, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.227920 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDContainerSource<0x73fdc01360> (Domain: cancer9725.turquoise1323, User: m{4}e, ByHost: No, Container: /p{5}e/v{1}r/m{4}e/Containers/Data/A{9}n/A{34}7, Dirty: No)
+Oct  4 09:00:28.228045 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fd0181e0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.228086 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDSource<0x73fd0181e0> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: Yes, Dirty: No), backed by <private>
+Oct  4 09:00:28.228305 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDMirroredSource<0x73fd018320> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No)
+Oct  4 09:00:28.228420 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDMirroredSource<0x73fd018320> (Domain: kCFPreferencesAnyApplication, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Oct  4 09:00:28.228976 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDContainerSource<0x73fdc008c0> (Domain: com.apple.ImageIO, User: m{4}e, ByHost: No, Container: /p{5}e/v{1}r/m{4}e/Containers/Data/A{9}n/A{34}7, Dirty: No)
+Oct  4 09:00:28.233657 backboardd(IOKit)[76] <Notice>: Connection added: IOHIDEventSystemConnection uuid:BCBC465C-8281-4380-8837-8F13D264519D pid:1339 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 1339;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Oct  4 09:00:28.233677 backboardd(BackBoardHIDEventFoundation)[76] <Debug>: Got a client addition callback: IOHIDEventSystemConnection uuid:BCBC465C-8281-4380-8837-8F13D264519D pid:1339 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 1339;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Oct  4 09:00:28.234429 backboardd(BackBoardHIDEventFoundation)[76] <Info>: HID connection vpid:1339(vE0F) bundleID:cancer9725.turquoise1323 successfully initialized: IOHIDEventSystemConnection uuid:BCBC465C-8281-4380-8837-8F13D264519D pid:1339 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 1339;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Oct  4 09:00:28.234498 backboardd(BackBoardHIDEventFoundation)[76] <Notice>: Adding client connection: <BKHIDClientConnection: 0x7d32cba440; IOHIDEventSystemConnectionRef: 0x7d31309600; vpid: 1339(vE0F); taskPort: 0x72D63; bundleID: cancer9725.turquoise1323> for client: IOHIDEventSystemConnection uuid:BCBC465C-8281-4380-8837-8F13D264519D pid:1339 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 1339;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Oct  4 09:00:28.246728 backboardd(IOKit)[76] <Debug>: SetProperty called IOHIDEventSystemClientIsUnresponsive=0 caller=IOHIDEventSystemConnection uuid:BCBC465C-8281-4380-8837-8F13D264519D pid:1339 process:fuzz27 type:Passive entitlements:0x0 caller:BackBoardServices: <redacted> + 356 attributes:{
+    HighFrequency = 1;
+    bundleID = "cancer9725.turquoise1323";
+    lastPathComponent = fuzz27;
+    pid = 1339;
+} state:0x0 events:0 mask:0x0 dropped:0 dropStatus:0 droppedMask:0x0 lastDroppedTime:NONE
+Oct  4 09:00:28.247360 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad6aee0> (Domain: com.apple.Accessibility, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.247523 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fdc008c0> (Domain: com.apple.Accessibility, User: m{4}e, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.248093 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad6b980> (Domain: com.apple.Accessibility, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.248289 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fd01b020> (Domain: com.apple.Accessibility, User: m{4}e, ByHost: No, Dirty: No)
+[main] fuzz harness up, mode=all
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+Oct  4 09:00:28.270097 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDSource<0x73fd01b020> (Domain: com.apple.Accessibility, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x570b
+[scaler] conn 0x570b, s1 166 s2 168
+[probe12] SetNotificationPort -> 0x00000000
+[mtlr2] v84 matrix: {nq entrySize} x {trap entrySize}, capture-faithful
+[open] IOGPU -> conn 0x7a13
+[mtlr2] sel14 {0x100, 0x10} -> kr 0x00000000 nqVA 106f1c000 nqid 1 osz 0x10
+[mtlr2] queue: kr 0x00000000 qid 1 bind 0x00000000 notifport 0x00000000 proc 'fuzz27'
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 106f28000
+[mtlr]   out: 0000010000000000 0000000106f28000 0000000106f080c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000e03a6a8 00000000000147cb
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 106f38000
+[mtlr]   out: 0000010000018000 0000000106f38000 0000000106f08180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000e03a6a9 00000000000147cc
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 106f48000
+[mtlr]   out: 0000010000030000 0000000106f48000 0000000106f08240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 000000000e03a6aa 00000000000147cd
+[mtlr2] GPUVA A 10000000000 B 10000018000 C 10000030000 (capture match 1/1/1)
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 106f24000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 106f68000 id 2
+[mtlr2] seg hdr: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2]          0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2] cmd hdr: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2]          0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2] nq base: 0000000000001414 0000000000000000 0000000000000000 0000000000000000
+Oct  4 09:00:28.276890 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) iokit-open-user-client VCPDRMUserClient
+Oct  4 09:00:28.276897 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.sprr
+Oct  4 09:00:28.276904 kernel[0] <Notice>: IOUC VCPDRMUserClient failed MACF in process pid 1339, fuzz27
+Oct  4 09:00:28.276984 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.jitbox
+Oct  4 09:00:28.276993 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.pmap
+Oct  4 09:00:28.277000 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.vmapple
+Oct  4 09:00:28.277137 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.kernel.sprr
+Oct  4 09:00:28.277476 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.private.sprr
+Oct  4 09:00:28.277492 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.vm.map
+Oct  4 09:00:28.277666 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.memory.control
+Oct  4 09:00:28.277854 kernel(Sandbox)[0] <Error>: Sandbox: fuzz27(1339) deny(1) mach-lookup com.apple.jit
+Oct  4 09:00:28.278508 fuzz27(CoreFoundation)[1339] <Debug>: Resource lookup at <private>
+	Request       : res0_metacache type: bin
+	Result        : file:///private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/res0_metacache.bin
+Oct  4 09:00:28.278591 fuzz27(CoreFoundation)[1339] <Debug>: Resource lookup at <private>
+	Request       : res1_dest type: bin
+	Result        : file:///private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/res1_dest.bin
+Oct  4 09:00:28.278886 fuzz27(CoreFoundation)[1339] <Debug>: Resource lookup at <private>
+	Request       : res2_pool type: bin
+	Result        : file:///private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/res2_pool.bin
+[mtlr2] nq10/trap30 -> kr 0x00000000 outU32 00000000 | rec off 0 status 0xb9791328 | B(sampled) nz 0 5A 0 
+[mtlr2]   rec@0: 0000000000001414 000000280000002c 0000000106f70000 00001596b9791328
+[mtlr2]   nq+000: 14 14 00 00 00 00 00 00 58 00 00 00 28 00 00 00
+[mtlr2]   nq+010: 00 00 f7 06 01 00 00 00 28 13 79 b9 96 15 00 00
+[mtlr2]   nq+020: f7 9f a6 b9 96 15 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+030: 00 00 00 00 00 00 00 00 28 00 00 00 30 00 f7 06
+[mtlr2]   nq+040: 01 00 00 00 26 a6 a6 b9 96 15 00 00 bf 95 c5 b9
+[mtlr2]   nq+050: 96 15 00 00 05 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   comp: 0000000000000000 0000000000000000 | comp+30: 0000000000000000 0000000000000000 | outw[1] 00000000
+Oct  4 09:00:28.286296 fuzz27(UIKitCore)[1339] <Notice>: Stack[KeyWindow] 0x1075a3990: Taking no further action for migration from LastOneWins -> SystemShellManaged as there are no scenes
+Oct  4 09:00:28.289143 backboardd(BaseBoard)[76] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x7d32cb9d80; usable: YES; (76:72d63:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x7d32cbad00>{number = 411, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad91ff50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x00000001ad91fd04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x00000001ad913314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x00000001ad937144 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 205124
+	5   BoardServices                       0x00000001ad9d55cc 2B05C9D3-3F1D-3021-82CF-64797327508E + 13772
+	6   BoardServices                       0x00000001ad9f0084 2B05C9D3-3F1D-3021-82CF-64797327508E + 123012
+	7   BoardServices                       0x00000001ad9f06f0 2B05C9D3-3F1D-3021-82CF-64797327508E + 124656
+[mtlr2] nq10/trap40 -> kr 0x00000000 outU32 00000000 | rec off 0 status 0xb9791328 | B(sampled) nz 0 5A 0 
+[mtlr2]   rec@0: 0000000000001414 0000002800000084 0000000106f70000 00001596b9791328
+[mtlr2]   nq+000: 14 14 00 00 00 00 00 00 b0 00 00 00 28 00 00 00
+[mtlr2]   nq+010: 00 00 f7 06 01 00 00 00 28 13 79 b9 96 15 00 00
+[mtlr2]   nq+020: f7 9f a6 b9 96 15 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+030: 00 00 00 00 00 00 00 00 28 00 00 00 30 00 f7 06
+[mtlr2]   nq+040: 01 00 00 00 26 a6 a6 b9 96 15 00 00 bf 95 c5 b9
+[mtlr2]   nq+050: 96 15 00 00 05 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+060: 00 00 00 00 28 00 00 00 00 00 f7 06 01 00 00 00
+[mtlr2]   nq+070: 6f 52 19 ba 96 15 00 00 70 ac 19 ba 96 15 00 00
+[mtlr2]   nq+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+090: 28 00 00 00 30 00 f7 06 01 00 00 00 3b ae 19 ba
+[mtlr2]   nq+0a0: 96 15 00 00 2b 8b 42 ba 96 15 00 00 05 00 00 00
+[mtlr2]   nq+0b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   comp: 0000000000000000 0000000000000000 | comp+30: 0000000000000000 0000000000000000 | outw[1] 00000000
+[open] IOGPU -> conn 0x7403
+[mtlr2] sel14 {0x100, 0x28} -> kr 0x00000000 nqVA 106f90000 nqid 1 osz 0x10
+[mtlr2] queue: kr 0x00000000 qid 1 bind 0x00000000 notifport 0x00000000 proc 'fuzz27'
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 106f98000
+[mtlr]   out: 0000010000000000 0000000106f98000 0000000106f7c0c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000e03a71e 00000000000147fa
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 106fa8000
+[mtlr]   out: 0000010000018000 0000000106fa8000 0000000106f7c180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000e03a71f 00000000000147fb
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 106fb8000
+[mtlr]   out: 0000010000030000 0000000106fb8000 0000000106f7c240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 000000000e03a720 00000000000147fc
+[mtlr2] GPUVA A 10000000000 B 10000018000 C 10000030000 (capture match 1/1/1)
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 106f08000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 106f0c000 id 2
+[mtlr2] seg hdr: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2]          0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2] cmd hdr: 0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2]          0000000000000000 0000000000000000 0000000000000000 0000000000000000
+[mtlr2] nq base: 0000000000002c2c 0000000000000000 0000000000000000 0000000000000000
+Oct  4 09:00:28.297821 InputUI(BaseBoard)[173] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x789b27d9c0; usable: YES; (173:96bf:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x789b27cb80>{number = 386, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad91ff50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x00000001ad91fd04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x00000001ad913314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x00000001ad937144 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 205124
+	5   BoardServices                       0x00000001ad9d55cc 2B05C9D3-3F1D-3021-82CF-64797327508E + 13772
+	6   BoardServices                       0x00000001ad9f0084 2B05C9D3-3F1D-3021-82CF-64797327508E + 123012
+	7   BoardServices                       0x00000001ad9f06f0 2B05C9D3-3F1D-3021-82CF-64797327508E + 124656
+Oct  4 09:00:28.309549 InputUI(BaseBoard)[173] <Debug>:  *|machport|* <BSMachPortTaskNameRight: 0x789b27c640; usable: YES; (173:96bf:send task_name_for_pid:fuzz27.1339)> -> (<NSThread: 0x789b27d140>{number = 385, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad91ff50 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 110416
+	2   BaseBoard                           0x00000001ad91fd04 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 109828
+	3   BaseBoard                           0x00000001ad913314 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 58132
+	4   BaseBoard                           0x00000001ad920544 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111940
+	5   FrontBoard                          0x00000001e3551908 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 43272
+	6   FrontBoard                          0x00000001e354c048 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 20552
+	7   FrontBoard                          0x00000001e3549ea8 EDC9E6B9-6A19-3AB0-B56A-E510D6D058F0 + 11944
+	8
+[mtlr2] nq28/trap30 -> kr 0x00000000 outU32 00000000 | rec off 0 status 0xba941dd1 | B(sampled) nz 0 5A 0 
+[mtlr2]   rec@0: 0000000000002c2c 000000280000002c 0000000106f1c000 00001596ba941dd1
+[mtlr2]   nq+000: 2c 2c 00 00 00 00 00 00 58 00 00 00 28 00 00 00
+[mtlr2]   nq+010: 00 c0 f1 06 01 00 00 00 d1 1d 94 ba 96 15 00 00
+[mtlr2]   nq+020: 53 a7 bf ba 96 15 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+030: 00 00 00 00 00 00 00 00 28 00 00 00 30 c0 f1 06
+[mtlr2]   nq+040: 01 00 00 00 d6 ad bf ba 96 15 00 00 7b 29 db ba
+[mtlr2]   nq+050: 96 15 00 00 05 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+060: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0a0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0c0: 00 00 00Oct  4 09:00:28.312244 fuzz27(AggregateDictionary)[1339] <Notice>: AggregateDictionary is deprecated and has been removed. Please migrate to Core Analytics.
+ 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   comp: 0000000000000000 0000000000000000 | comp+30: 0000000000000000 0000000000000000 | outw[1] 00000000
+[mtlr2] nq28/trap40 -> kr 0x00000000 outU32 00000000 | rec off 0 status 0xba941dd1 | B(sampled) nz 0 5A 0 
+[mtlr2]   rec@0: 0000000000002c2c 0000002800000084 0000000106f1c000 00001596ba941dd1
+[mtlr2]   nq+000: 2c 2c 00 00 00 00 00 00 b0 00 00 00 28 00 00 00
+[mtlr2]   nq+010: 00 c0 f1 06 01 00 00 00 d1 1d 94 ba 96 15 00 00
+[mtlr2]   nq+020: 53 a7 bf ba 96 15 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+030: 00 00 00 00 00 00 00 00 28 00 00 00 30 c0 f1 06
+[mtlr2]   nq+040: 01 00 00 00 d6 ad bf ba 96 15 00 00 7b 29 db ba
+[mtlr2]   nq+050: 96 15 00 00 05 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+060: 00 00 00 00 28 00 00 00 00 c0 f1 06 01 00 00 00
+[mtlr2]   nq+070: 39 3c aa bb 96 15 00 00 01 e5 aa bb 96 15 00 00
+[mtlr2]   nq+080: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+090: 28 00 00 00 30 c0 f1 06 01 00 00 00 4e ed aa bb
+[mtlr2]   nq+0a0: 96 15 00 00 5d 75 c8 bb 96 15 00 00 05 00 00 00
+[mtlr2]   nq+0b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0c0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   nq+0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr2]   comp: 0000000000000000 0000000000000000 | comp+30: 0000000000000000 0000000000000000 | outw[1] 00000000
+[mtlr2] done (alive)
+[mtlr] Metal-format replay: format-B resources + 6-pack segment list
+[open] IOGPU -> conn 0x7113
+[mtlr] setup: nq 1 qid 1
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 1 GPUVA 0x10000000000 cpu 106f48000
+[mtlr]   out: 0000010000000000 0000000106f48000 0000000106f280c0 0000000000000000
+[mtlr]   out: 0000000100000000 0000000000010000 000000000e03a7da 000000000001482a
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 2 GPUVA 0x10000018000 cpu 106f58000
+[mtlr]   out: 0000010000018000 0000000106f58000 0000000106f28180 0000000000000000
+[mtlr]   out: 0000000200000000 0000000000010000 000000000e03a7db 000000000001482b
+[mtlr] resource2 sel8 flags 470 sz 0x20000 -> kr 0x00000000 rid 3 GPUVA 0x10000030000 cpu 106fd8000
+[mtlr]   out: 0000010000030000 0000000106fd8000 0000000106f28240 0000000000000000
+[mtlr]   out: 0000000300000000 0000000000020000 000000000e03a7dc 000000000001482c
+[mtlr] A: rid 1 GPUVA 0x10000000000 cpu 0x106f48000 | B: rid 2 GPUVA 0x10000018000 cpu 0x106f58000 | C: rid 3 GPUVA 0x10000030000 cpu 0x106fd8000
+[mtlr] space-0x1 check: A 1 B 1 C 1 (hi dword 0x100 expected)
+[mtlr] capture-offset check: A==0x1_00000000:1 B==0x1_00018000:1 C==0x1_00030000:1
+Oct  4 09:00:28.321411 fuzz27(CoreFoundation)[1339] <Debug>: Resource lookup at <private>
+	Request       : res0_metacache type: bin
+	Result        : file:///private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/res0_metacache.bin
+Oct  4 09:00:28.321438 fuzz27(CoreFoundation)[1339] <Debug>: Resource lookup at <private>
+	Request       : res1_dest type: bin
+	Result        : file:///private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/res1_dest.bin
+Oct  4 09:00:28.321542 fuzz27(CoreFoundation)[1339] <Debug>: Resource lookup at <private>
+	Request       : res2_pool type: bin
+	Result        : file:///private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/res2_pool.bin
+[mtlr] assets: captured contents loaded
+[mtlr] sel12 size 0x4000 type 0 -> kr 0x00000000 va 106f0c000 id 1
+[mtlr] sel12 size 0x4000 type 1 -> kr 0x00000000 va 106f40000 id 2
+[s4] sel12 size 0x4000 -> kr 0x00000000 va 106f44000 id 3
+Oct  4 09:00:28.328920 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad6aee0> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.328989 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fdc01360> (Domain: com.apple.keyboard.preferences, User: m{4}e, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.339270 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fd0bd2c0> (Domain: com.apple.keyboard.preferences, User: m{4}e, ByHost: No, Dirty: No)
+Oct  4 09:00:28.339316 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDSource<0x73fd0bd2c0> (Domain: com.apple.keyboard.preferences, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Oct  4 09:00:28.372817 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad6b980> (Domain: com.apple.keyboard.preferences, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.372865 cfprefsd(CoreFoundation)[117] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x7c0ad36440> (Domain: kCFPreferencesAnyApplication, User: kCFPreferencesAnyUser, ByHost: Yes, Dirty: No)
+Oct  4 09:00:28.373207 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] sent a request related to CFPDSource<0x73fd0bc8c0> (Domain: com.apple.da, User: m{4}e, ByHost: No, Dirty: No)
+Oct  4 09:00:28.373250 cfprefsd(CoreFoundation)[118] <Debug>: Process fuzz27[1339] read data for CFPDSource<0x73fd0bc8c0> (Domain: com.apple.da, User: m{4}e, ByHost: No, Dirty: No), backed by <private>
+Oct  4 09:00:28.376043 backboardd(BaseBoard)[76] <Debug>:  *|machport|* <BSMachPortSendRight: 0x7d336e2d60; usable: YES; (76:181f:send take)> -> (<NSThread: 0x7d32cb9bc0>{number = 413, name = (null)}) (
+	0   BaseBoard                           0x00000001ad9202bc 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 111292
+	1   BaseBoard                           0x00000001ad948f48 4C812EE8-66AA-3110-8B9F-FC3BB254D559 + 278344
+	2   backboardd                          0x000000010010cc1c backboardd + 19484
+	3   backboardd                          0x000000010010cb48 backboardd + 19272
+	4   libdispatch.dylib                   0x00000001cd157a50 dispatch_mach_mig_demux + 260
+	5   backboardd                          0x000000010010a28c backboardd + 8844
+	6   libdispatch.dylib                   0x00000001cd15301c C9C06C2C-438C-3E88-AA74-DCCE16127DC9 + 114716
+	7   libdispatch.dylib                   0x00000001cd155ca8 C9C06C2C-438C-3E88-AA74-DCCE16127DC9 + 126120
+	8   libdispatch.dylib                   0x00000001cd141710 C9C06C2C-438C-3E88-AA74-DCCE16127DC9 + 42768
+	9   libdispatch.dylib
+Oct  4 09:00:28.401287 hangtracerd[208] <Info>: New proc: /private/var/containers/Bundle/Application/504BC5ED-3944-4322-97BA-EBC0B2250C0C/fuzz27.app/fuzz27(1339)
+Oct  4 09:00:28.401305 hangtracerd[208] <Notice>: Initialization complete now watching hangs for fuzz27(1339) | UIKit-runloop
+Oct  4 09:00:28.406388 intelligentroutingd(IntelligentRoutingDaemon)[358] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus:
+<private>
+<private>
+Oct  4 09:00:28.417343 intelligentroutingd(IntelligentRoutingDaemon)[358] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus:
+<private>
+<private>
+Oct  4 09:00:28.435179 intelligentroutingd(IntelligentRoutingDaemon)[358] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus:
+<private>
+<private>
+Oct  4 09:00:28.441520 intelligentroutingd(IntelligentRoutingDaemon)[358] <Notice>: #system-state-manager, [<private>], System state might have changed due to App in focus:
+<private>
+<private>
+Oct  4 09:00:29.684428 swcd(CoreFoundation)[232] <Debug>: Resource lookup at <private>
+	Request       :  type: json
+	Result        : migrate.google.json -- file:///Applications/Transfer%20to%20Android.app/Library/SharedWebCredentials/,
+[mtlr] FULL t1 u3 -> kr 0x00000000 outw 00000000 post{17:e00002c2 15:e00002c2/00000000} | B(sampled): nonzero 0, 0x5A 0 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] comp: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 | comp+30: 0000000000000000 0000000000000000
+[mtlr] FULL t0 u3 -> kr 0x00000000 outw 00000000 post{17:e00002c2 15:e00002c2/e00002c2} | B(sampled): nonzero 0, 0x5A 0 (no write)
+[mtlr] B[0..15] 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[mtlr] comp: 0000000000000000 0000000000000000 0000000000000000 0000000000000000 | comp+30: 0000000000000000 0000000000000000
+[disconnected:00008130-001C05C20C01001C]
+App terminated due to signal 15.
