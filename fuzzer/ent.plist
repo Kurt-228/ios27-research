@@ -8,5 +8,16 @@
     <string>276VZS46K5</string>
     <key>get-task-allow</key>
     <true/>
+    <!-- V170 (p_bq): bad_query needs an application group to hang the container
+         query on. This profile carries five; .1 is used here. Without it the
+         traversal is answered with "outside of sandbox" and the escape is dead. -->
+    <key>com.apple.security.application-groups</key>
+    <array>
+        <string>group.9e66ab897d52ea95.1</string>
+        <string>group.9e66ab897d52ea95.2</string>
+        <string>group.9e66ab897d52ea95.3</string>
+        <string>group.9e66ab897d52ea95.4</string>
+        <string>group.9e66ab897d52ea95.5</string>
+    </array>
 </dict>
 </plist>

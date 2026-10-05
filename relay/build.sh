@@ -25,6 +25,9 @@ cp "$WORK_DIR/libiotrace.dylib" "$OUT/Frameworks/libiotrace.dylib"
 # Main app: every fuzzer/*.m EXCEPT the companion service (it has its own
 # main() and is built as a separate Mach-O below).
 MAIN_SRCS=$(ls fuzzer/*.m | grep -v 'vic_xpc\.m$')
+# V170: bad_query.c is the upstream sandbox-escape PoC (forcequitOS/bad_query),
+# vendored unmodified so the analysis matches what is actually published.
+MAIN_SRCS="$MAIN_SRCS fuzzer/bad_query.c"
 $CLANG -arch arm64 \
     -isysroot "$SDK" -miphoneos-version-min=17.0 \
     -fobjc-arc -O1 \

