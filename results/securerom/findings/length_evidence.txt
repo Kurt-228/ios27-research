@@ -1,0 +1,1114 @@
+
+=== com.apple.AGXG16P.macho  (upper=1 lower=0 strings=1506)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleA7IOP.macho  (upper=1 lower=1 strings=112)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  LO  underflow named explicitly   "%s Overflow/Underflow: %08x" @%s:%d
+
+=== com.apple.driver.AppleAOPAudio.macho  (upper=6 lower=10 strings=1082)
+  UP  compared against buffer      mInputHandler->_getBuffer(inBufferType, outBuffer)
+  UP  compared against buffer      mLPMicInDevice->getBuffer(inBufferType, outBuffer)
+  UP  compared against buffer      mInputBuffer->GetDataBufferDescriptor()
+  UP  compared against buffer      mInputBuffer->GetStatusBufferDescriptor()
+  UP  compared against buffer      !(inFirmwareData->getLength() > maxLeapFirmwareBufferSizeBytes)
+  UP  compared against buffer      theDriver->_getBuffer(*theBufferType, *theBuffer)
+  LO  underflow named explicitly   RxADMAFifoUnderflow
+  LO  underflow named explicitly   RxBDMAFifoUnderflow
+  LO  underflow named explicitly   TxAFifoUnderflow
+  LO  underflow named explicitly   TxBFifoUnderflow
+  LO  underflow named explicitly   Util::addDictionaryEntry(theSubgroupReport, keyRxADMAFifoUnderflow, rxStatus.RxADMAFifoUnderflow)
+  LO  underflow named explicitly   Util::addDictionaryEntry(theSubgroupReport, keyRxBDMAFifoUnderflow, rxStatus.RxBDMAFifoUnderflow)
+  LO  underflow named explicitly   Util::addDictionaryEntry(theSubgroupReport, keyTxAFifoUnderflow, txStatus.TxAFifoUnderflow)
+  LO  underflow named explicitly   Util::addDictionaryEntry(theSubgroupReport, keyTxBFifoUnderflow, txStatus.TxBFifoUnderflow)
+  LO  less than                    %s::%s() kSpuPacketTypeMCAReport payload size %zu, less than expected %zu
+  LO  less than                    %s::%s() kSpuPacketTypeServicePrivate payload size %zu, less than expected %zu
+
+=== com.apple.driver.AppleARMPlatform.macho  (upper=2 lower=3 strings=1568)
+  UP  out of range                 ***    CPU id %d from CPU ordinal %d '%s' property is out of range [0..%d]
+  UP  out of range                 %s::%s: mAmps out of range(%d IOFixed), capping to _hardwareMaxCurrent(%d IOFixed) 
+  LO  less than                    AppleARMBootPerf: Warning: buffer size (0x%llx) is less than %lu
+  LO  too small                    %s: reg too short
+  LO  too small                    "%s: data is too short.\n" @%s:%d
+
+=== com.apple.driver.AppleAVD.macho  (upper=21 lower=5 strings=5056)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  out of range                 AppleAVD: ERROR: %s(): Width or height out of range %u x %u
+  UP  exceeds max                  AppleAVD: ERROR: %s(): driverKernelTimeoutOverride (%dms) exceeds max timeout (%dms)!
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  exceeds max                  AppleAVD: ERROR: %s(): numWorks[%u] (%u) exceeds maximum number of work units per VP (%u)
+  UP  too big                      AppleAVD: ERROR: %s(): decodeBufferSize too large! (%u > %u)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  LO  underflow named explicitly   AppleAVD: INFO: %s(): underflow! Advancing empty queue! m3HwRdPos %d m3CmdQueueWrPos %d
+  LO  underflow named explicitly   AppleAVD: ERROR: %s(): underflow! Advancing empty queue! apCmdQueueRdPos %d apCmdQueueWrPos %d
+  LO  underflow named explicitly   AppleAVD: INFO: %s(): PriorityQueue underflow!
+  LO  underflow named explicitly   AppleAVD: INFO: %s(): PriorityQueue underflow!
+  LO  underflow named explicitly   AppleAVD: ERROR: %s(): clientID %d attempted underflow!
+
+=== com.apple.driver.AppleAVE2.macho  (upper=54 lower=2 strings=13081)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | Frame number out of range %p %lld %lld %d %lld
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | view number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | layer number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %d %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | number of sub layer is out of range %d %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | B Frame number is out of range %p %lld %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | reference spacing is out of range %p %lld %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | user DPB number is out of range %p %lld %d %d [%d %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame rate is out of range %p %lld %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | LookAhead frame count is out of range %p %lld %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %p %lld %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension out of range %p %lld %d %d %d %lld
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | slice number is out of range %p %lld %d %d [%d %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d DPE register address is out of range 0x%x [0x%x, 0x%x]
+  UP  too big                      %lld %d AVE %s: %s::%s:%d tile width too large %d %d
+  UP  too big                      %lld %d AVE %s: %s::%s:%d tile height too large %d %d
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | number of CTRR segments is out of range %p %d %d
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | out of range %p %d %lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%llx [0x%llx, 0x%llx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%llx 0x%lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | selector out of range %d
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | Frame number out of range %p %lld %lld %d %lld
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | view number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | layer number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | view number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | layer number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %d %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | number of sub layer is out of range %d %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | view number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | layer number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %d %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | B Frame number is out of range %p %lld %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | reference spacing is out of range %p %lld %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | user DPB number is out of range %p %lld %d %d [%d %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame rate is out of range %p %lld %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | LookAhead frame count is out of range %p %lld %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %p %lld %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | layer number is out of range %d %d (%d, %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension is out of range %d %d %d
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | frame dimension out of range %p %lld %d %d %d %lld
+  UP  out of range                 %lld %d AVE %s: %s:%d %s | slice number is out of range %p %lld %d %d [%d %d]
+  UP  out of range                 %lld %d AVE %s: %s:%d DPE register address is out of range 0x%x [0x%x, 0x%x]
+  UP  too big                      %lld %d AVE %s: %s::%s:%d tile width too large %d %d
+  UP  too big                      %lld %d AVE %s: %s::%s:%d tile height too large %d %d
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | number of CTRR segments is out of range %p %d %d
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | out of range %p %d %lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%llx [0x%llx, 0x%llx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%llx 0x%lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | address is out of range %p %d 0x%lx [0x%lx, 0x%lx)
+  UP  out of range                 %lld %d AVE %s: %s::%s:%d %s | selector out of range %d
+  LO  too small                    %lld %d AVE %s: %s::%s:%d %s | firmware client buffer default size too small %p %d %d %d
+  LO  too small                    %lld %d AVE %s: %s::%s:%d %s | firmware client buffer default size too small %p %d %d %d
+
+=== com.apple.driver.AppleBasebandM20.macho  (upper=8 lower=5 strings=1685)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  too big                      %06ld.%06d %s::%s: PowerSequenceIndex is too big, falling back to default reset timings
+  UP  exceeds max                  %06ld.%06d %s::%s: Port transition delay value of %llu ms exceeds max value; using unsigned max instead
+  UP  exceeds max                  %06ld.%06d %s::%s: Pulse width value of %llu ms exceeds max value; using unsigned max instead
+  UP  too big                      %06ld.%06d %s::%s: PowerSequenceIndex is too big, falling back to default reset timings
+  UP  exceeds max                  %06ld.%06d %s::%s: Port transition delay value of %llu ms exceeds max value; using unsigned max instead
+  UP  exceeds max                  %06ld.%06d %s::%s: Port transition delay value of %llu ms exceeds max value; using unsigned max instead
+  UP  exceeds max                  %06ld.%06d %s::%s: Pulse width value of %llu ms exceeds max value; using unsigned max instead
+  LO  too small                    %06ld.%06d %s::%s: [%s] Protocol size (%u) is too small (minimum: %lu)
+  LO  too small                    %06ld.%06d %s::%s: [%s] Protocol size (%u) is too small (minimum: %lu)
+  LO  too small                    %06ld.%06d %s::%s: [%s] Protocol size (%u) is too small (minimum: %lu)
+  LO  too small                    %06ld.%06d %s::%s: [%s] Protocol size (%u) is too small (minimum: %lu)
+  LO  too small                    %06ld.%06d %s::%s: [%s] Protocol size (%u) is too small (minimum: %lu)
+
+=== com.apple.driver.AppleBasebandPCI.macho  (upper=6 lower=1 strings=1735)
+  UP  out of range                 %06ld.%06d %s::%s: index out of range %d
+  UP  out of range                 "memory addresses [0x%llx, 0x%llx] out of range\n" @%s:%d
+  UP  out of range                 "memory addresses [0x%llx, 0x%llx) out of range\n" @%s:%d
+  UP  out of range                 kABPCompletionOutOfRange
+  UP  out of range                 pdp:%s: size (%u) out of range.
+  UP  out of range                 error: MSI index out of range (index)
+  LO  too small                    Scratch Buffer too small
+
+=== com.apple.driver.AppleBasebandPCIMAVControl.macho  (upper=5 lower=0 strings=895)
+  UP  too big                      %06ld.%06d %s::%s: %d. chunk too large
+  UP  too big                      %06ld.%06d %s::%s: %d. num of chunks in io too large
+  UP  out of range                 %06ld.%06d %s::%s: index out of range
+  UP  out of range                 %06ld.%06d %s::%s: event index out of range
+  UP  out of range                 %06ld.%06d %s::%s: msi index out of range
+
+=== com.apple.driver.AppleCS42L77Audio.macho  (upper=6 lower=1 strings=1377)
+  UP  out of range                 %s::%s:%d sidetoneVolumeUndB out of range !!!!! %d  (/1000000)
+  UP  out of range                 %s::%s(%p) PDM Output Channel %x is out of range (1-based index) 
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  declared length exceeds capacity %s::%s is taking longer than expected. [retryCount=%u]
+  UP  out of range                 %s::%s:%d sidetoneVolumeUndB out of range !!!!! %d  (/1000000)
+  UP  out of range                 %s::%s(%p) PDM Output Channel %x is out of range (1-based index) 
+  LO  less than                    "%s %s:%d ListeningPrewarmedMicsCount=%d is less than ListeningEnabledMicsCount=%d" @%s:%d
+
+=== com.apple.driver.AppleConvergedIPCOLYBTControl.macho  (upper=4 lower=2 strings=939)
+  UP  too big                      %s::%s: %d. chunk too large
+  UP  too big                      %s::%s: %d. num of chunks in io too large
+  UP  out of range                 %s::%s: %d. completion out of range, index %u, hi %u, ti %u, cr %u, count %u
+  UP  out of range                 %s::%s: index out of range
+  LO  too small                    %s::%s: provided buffer too small (0x%x > 0x%llxlx)
+  LO  too small                    %s::%s: size %u too small
+
+=== com.apple.driver.AppleConvergedPCI.macho  (upper=3 lower=0 strings=838)
+  UP  out of range                 %s::%s: index out of range %d
+  UP  too big                      %s::%s: imageSize too large %llu > %llu
+  UP  out of range                 kACIPCCompletionOutOfRange
+
+=== com.apple.driver.AppleDiskImages2.macho  (upper=1 lower=0 strings=417)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleEmbeddedAudio.macho  (upper=1 lower=0 strings=743)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleEmbeddedAudioLibs.macho  (upper=1 lower=0 strings=424)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleEmbeddedLightSensor.macho  (upper=2 lower=4 strings=421)
+  UP  too big                      ERROR: The numRegions in LSCI4.x calibration data is too large.
+  UP  too big                      ERROR: The numRegions in LSCI4.5 calibration data is too large.
+  LO  too small                    ERROR: The ALS calibration key is too small
+  LO  too small                    ERROR: The LSCI4.x calibration key is too small
+  LO  too small                    ERROR: The LSCI4.5 calibration key is too small
+  LO  too small                    ERROR: The LSCI5.x calibration key is too small
+
+=== com.apple.driver.AppleEmbeddedPCIE.macho  (upper=1 lower=0 strings=783)
+  UP  out of range                 portIndex %d provided is out of range.
+
+=== com.apple.driver.AppleEmbeddedTouchEEPROM.macho  (upper=3 lower=0 strings=152)
+  UP  exceeds max                  TouchEEPROMDriver::%s: Target instance ID %u exceeds maximum (%u)
+  UP  exceeds max                  TouchEEPROMDriver::%s: display-index value %u exceeds maximum, using fallback
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleFirmwareKit.macho  (upper=2 lower=0 strings=775)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  compared against buffer      %s(%s:%#llx): %s: responseSize:0x%x context->getResponseBufferSize():%x
+
+=== com.apple.driver.AppleH16ANEInterface.macho  (upper=39 lower=7 strings=5459)
+  UP  out of range                 Out of range procedure count
+  UP  out of range                 Out of range procedure segment index
+  UP  out of range                 Out of range TD address
+  UP  out of range                 Out of range procedure index
+  UP  exceeds max                  [ERROR] %s: %s: Number of procedures (%u) is either 0 or exceeds max (%u) supported
+  UP  exceeds max                  [ERROR] %s: %s: Number of procedures (%u) is either 0 or exceeds max (%u) supported
+  UP  exceeds max                  [ERROR] %s: %s: Number of weightsBuffers (%u) in procedure: %s is either 0 or exceeds max (%u) supported
+  UP  exceeds max                  [ERROR] %s: %s: Buffer count: %u exceeds max allowed number: %u
+  UP  out of range                 [ERROR] %s: %s: Priority %u out of range (max: %u), clamping to %u
+  UP  exceeds max                  [ERROR] %s: %s: Core %u throttle percentage %u exceeds max (%d), clamping to %d
+  UP  exceeds max                  [ERROR] %s: %s: SIGNPOST_NOTIFICATION_GROUP, buffer size %d exceeds max
+  UP  exceeds max                  %s: %s: SIGNPOST64_NOTIFICATION_GROUP buffer size %d exceeds max
+  UP  compared against buffer      DEBUG: H11ANEIn:generic->totalBufferNbr = %d CalculatedSize=%ld
+  UP  out of range                 Out of range procedure count
+  UP  out of range                 Out of range erroneous tdSize
+  UP  too big                      %s: mutable weight index too large
+  UP  out of range                 Out of range segment id
+  UP  out of range                 Out of range next segment id [0]
+  UP  out of range                 Out of range next segment id [1]
+  UP  out of range                 Out of range next segment count
+  UP  out of range                 Out of range next count
+  UP  out of range                 %s: Symbol table index %u out of range of symbol table
+  UP  declared length exceeds capacity %s: IO bind operation name longer than 256 chars
+  UP  exceeds max                  %s: dsid_size_in_bits (%u) exceeds maximum (16)
+  UP  exceeds max                  [ERROR] %s: %s: number of procedure(%d) in the program exceeds max number(%d) supported
+  UP  exceeds max                  [ERROR] %s: %s: Number of input buffers exceeds max supported actual=%d, max=%d
+  UP  exceeds max                  [ERROR] %s: %s: Number of output buffers exceeds max supported actual=%d, max=%d
+  UP  exceeds max                  [ERROR] %s: %s: Number of output buffers exceeds max supported actual=%d, max=%d
+  UP  exceeds max                  [ERROR] %s: %s: Number of input buffers exceeds max supported actual=%d, max=%d
+  UP  too big                      %s: %s:  Instance index is too big: %d
+  UP  exceeds max                  [ERROR] %s: %s: numWeightsBuffer %u exceeds max %u
+  UP  exceeds max                  [ERROR] %s: %s: Number of procedure(%d) in the program exceeds max number(%d) supported
+  UP  exceeds max                  [ERROR] %s: %s: dsid_size_in_bits (%u) exceeds maximum (16)
+  UP  too big                      [ERROR] %s: %s: rtbuddyEndpointSendMessage: message too large size=%llu bufferSize=%zu endpointId=%u
+  UP  too big                      %s: %s: ERROR: Test IOPM delay too large: %u us (max 10s)
+  UP  exceeds max                  [ERROR] %s: %s: Current set(%d) totalOutput (%d) exceeds max (%d)
+  UP  exceeds max                  or procID (%u) exceeds max
+  UP  exceeds max                  %u) or procID (%u) exceeds max
+  UP  exceeds max                  [ERROR] %s: %s: procID(%u) exceeds max
+  LO  underflow named explicitly   %s: %s: OutputSetUnderflow for cacheHandle: %llu
+  LO  less than                    %s: %s: Single execution time (%llu ns) is less than 1 ms, favouring SINGLE
+  LO  too small                    %s: aggregate weight buffer chunk too small
+  LO  too small                    %s: internal error: order array too small
+  LO  too small                    %s: %s: Adaptive throttle: remaining time too small (%llums), waiting for period transition
+  LO  less than                    %s: %s: WARN: CSNE_CMD_RESOURCE_INFO_GET returned maxCacheRequests (%d) is less than driver size limit:%d
+  LO  underflow named explicitly   %s: %s: chaining event 0x%llx OutputSetUnderflow with output set 0x%x
+
+=== com.apple.driver.AppleH16CameraInterface.macho  (upper=7 lower=4 strings=3361)
+  UP  exceeds max                  AppleH16CamIn:%s - CIC data exceeds maximum allowed size
+  UP  exceeds max                  AppleH16CamIn:%s - GIC data exceeds maximum allowed size
+  UP  out of range                 "AppleH16CamIn::%s [SharedClientSurface] - SurfaceID is out of range (surfaceID:%u / Max:%u)\n" @%s:%d
+  UP  exceeds max                  "AppleH16CamIn::%s: Doorbell number exceeds maximum number of supported ISP doorbells\n" @%s:%d
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  exceeds max                  AppleH16CamIn:%s - CIC data exceeds maximum allowed size
+  UP  exceeds max                  AppleH16CamIn:%s - GIC data exceeds maximum allowed size
+  LO  less than                    AppleH16CamIn:%s - Error: firmwareDataSectionEndOffset is less than firmwareDataSectionStartOffset
+  LO  less than                    AppleH16CamIn:%s - Less than %d triplets were found
+  LO  less than                    AppleH16CamIn:%s - Error: firmwareDataSectionEndOffset is less than firmwareDataSectionStartOffset
+  LO  less than                    AppleH16CamIn:%s - Less than %d triplets were found
+
+=== com.apple.driver.AppleHIDTransport.macho  (upper=4 lower=1 strings=1295)
+  UP  too big                      [0x%llx][%llx][%s::%s]: ERROR!! %s is too big: %u > %u
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  compared against buffer      sharedMemoryBlock->getBuffer()->getCapacity() < UINT32_MAX
+  UP  too big                      [0x%llx][%llx][%s::%s]: ERROR!! Config report with id %u for iface %u is too big: %u > %u
+  LO  too small                    [0x%llx][%llx][%s::%s]: ERROR!! Report is too small %llu < %lu
+
+=== com.apple.driver.AppleHIDTransportFIFO.macho  (upper=2 lower=3 strings=261)
+  UP  too big                      "[%s::%s] Invalid message read from the FIFO ID %d, interface ID %u: header size too large" @%s:%d
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  LO  too small                    [0x%llx][%llx][%s::%s]: Report buffer too small: report size %llu, buffer size %llu
+  LO  too small                    [0x%llx][%llx][%s::%s]: ERROR!! Report is too small %llu < %lu
+  LO  too small                    [0x%llx][%llx][%s::%s]: ERROR!! Report is too small %llu %lu
+
+=== com.apple.driver.AppleHIDTransportMailbox.macho  (upper=2 lower=2 strings=292)
+  UP  too big                      "[%s::%s] Invalid message read from the FIFO ID %u, interface ID %u: header size too large" @%s:%d
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  LO  too small                    [0x%llx][%llx][%s::%s]: ERROR!! Report is too small %llu < %lu
+  LO  too small                    [0x%llx][%llx][%s::%s]: ERROR!! Report buffer too small: report size %llu, buffer size %llu
+
+=== com.apple.driver.AppleHIDTransportSPI.macho  (upper=1 lower=0 strings=732)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleInputDeviceSupport.macho  (upper=1 lower=0 strings=400)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleJPEGDriver.macho  (upper=3 lower=2 strings=821)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  out of range                 AppleJPEGDriver: ** %s : xOffset %u / yOffset %u / pixelsX %u / pixelsY %u out of range
+  UP  out of range                 AppleJPEGDriver: ** %s : dim out of range pixelsX=%u pixelsY=%u decW=%u decH=%u cropW=%u cropH=%u cropOffX=%u cropOffY=%u
+  LO  too small                    AppleJPEGDriver: ** %s : input/output size too small. Bailing out. input jpeg file size %d, output buffer size %d,
+  LO  less than                    AppleJPEGDriver: %s : Input JPEG stream size %llu less than miniumum of %u bytes, bailing 
+
+=== com.apple.driver.AppleM2ScalerCSCDriver.macho  (upper=7 lower=10 strings=3437)
+  UP  out of range                 Pixel offset within compressed tile out of range
+  UP  out of range                 schedulingPriority (%u) out of range [0, %u)
+  UP  exceeds max                  Histogram bin count (%d) exceeds maximum (%d)
+  UP  compared against buffer      %s %s dimension (%u) > buffer (%u)
+  UP  compared against buffer      %s %s offset (%u) > buffer (%u)
+  UP  explicit bounds check        bounds check failed! len: %lu off: %lu fill_len: %lu
+  UP  out of range                 HdrInputError : Scale Taps out of range %d
+  LO  less than                    Border Fill X/Y offsets of %u/%u must be greater than transform X/Y offsets of %u/%u and bfill w/h of %u/%u with dest w/h %u/%u total less than buffer
+  LO  too small                    Driver error: User provided outbound size too small
+  LO  less than                    %s Plane %u Size %llu is less than expected size %llu
+  LO  less than                    %s Plane %u Metadata Size %llu is less than expected size %llu
+  LO  less than                    %s Plane %u Stride %llu is less than expected minimum stride %llu
+  LO  less than                    Stride: %u is less than: %u bytes for                     plane: %d, iDS: %d
+  LO  below minimum                %s width/height is below minimum of %dx%d: Width=%d, Height=%d
+  LO  too small                    [%05X %08X] %03u {%08X %08X} %s td-cache init FAILED: buffer too small
+  LO  too small                    User provided outbound size too small
+  LO  less than                    Horizontal downscale ratio of %s%d.%s%u is less than the limit of %s%d.%s%u for dest format %s and is not supported by this hardware (rotation=%d)
+
+=== com.apple.driver.AppleMCA2-T8130.macho  (upper=2 lower=12 strings=870)
+  UP  too big                      %s[%s]::%s@%d: bad id index, too large %d
+  UP  too big                      %s[%s]::%s@%d: Too large an mclk divisor required for this configuration %d
+  LO  too small                    "%s::%s:" "Internal error: Name buffer too small" @%s:%d
+  LO  too small                    "%s::%s:" "Internal Error: Function Signature Data is too short" @%s:%d
+  LO  too small                    Length too short
+  LO  too small                    %s[%s]::%s@%d: Configured blck %d too small for %d bit frame
+  LO  too small                    %s[%s]::%s@%d: Configured blck %d too small for number of Rx bits specified %d
+  LO  too small                    %s[%s]::%s@%d: Configured blck %d too small for number of Tx bits specified %d
+  LO  underflow named explicitly   IRQ.TXA_Underflow
+  LO  underflow named explicitly   IRQ.DMA_A.RX_Fifo_Underflow
+  LO  underflow named explicitly   IRQ.TXB_Underflow
+  LO  underflow named explicitly   IRQ.DMA_B.RX_Fifo_Underflow
+  LO  underflow named explicitly   ERR.TxUnderflowOnStart
+  LO  underflow named explicitly   ERR.TxUnderflowAligned
+
+=== com.apple.driver.AppleMSG.macho  (upper=11 lower=0 strings=1639)
+  UP  too big                      AppleMSGKextEPIC::%s: AppleMSG Potentially Fatal (%u): Inter-SOC GTB skew is too large (latency to Staten: %lli)
+  UP  too big                      AppleMSGKextEPIC::%s: AppleMSG Potentially Fatal (%u): Inter-SOC GTB skew is too large (latency to Bora: %lli)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  exceeds max                  Number of interrupts exceeds max size
+  UP  exceeds max                  Number of sync configs exceeds max size
+  UP  exceeds max                  Number of reg value updates exceeds max size
+  UP  exceeds max                  Number of lut entries exceeds max size
+  UP  compared against buffer      client_target->currentEventTriggerMappedBuffer == nullptr
+  UP  compared against buffer      client_target->currentEventTriggerMappedBuffer
+  UP  too big                      "Inter-SOC GTB skew is too large (latency to Staten: %lli)" @%s:%d
+  UP  too big                      "Inter-SOC GTB skew is too large (latency to Bora: %lli)" @%s:%d
+
+=== com.apple.driver.AppleMobileFileIntegrity.macho  (upper=8 lower=3 strings=1207)
+  UP  too big                      %s: input too large: %llu
+  UP  too big                      %s: blob too large: %zu
+  UP  too big                      Entry count is too large, failing: %lld
+  UP  too big                      "%s: /chosen/unique-device-id-string is too large: %d" @%s:%d
+  UP  too big                      entitlements too large
+  UP  exceeds max                  Constraint size (%zu) exceeds maximum %d
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  too big                      number too large
+  LO  too small                    entitlements too small
+  LO  too small                    AMFI: %s linkage size is too small
+  LO  underflow named explicitly   heap underflow / memory tracking issue?
+
+=== com.apple.driver.AppleMultitouchDriver.macho  (upper=1 lower=0 strings=520)
+  UP  compared against buffer      [HID] [%s] [Error] %s::%s [0x%llx] Could not allocate _userClientState->logBufferLock
+
+=== com.apple.driver.ApplePPMCPMS.macho  (upper=9 lower=0 strings=1708)
+  UP  out of range                 "ApplePPM: %s:%u " "%s, lane %d, effort %d out of range" @%s:%d
+  UP  out of range                 "ApplePPM: %s:%u " "%s, lane %d, output %d out of range" @%s:%d
+  UP  exceeds max                  "ApplePPM: %s:%u " "EDT for brownout risk CE lane exceeds max: %d" @%s:%d
+  UP  out of range                 int isOutOfRangeArray(T *, T, T, int) [T = float]
+  UP  out of range                 %s::%s:error, index out of range
+  UP  exceeds max                  %s::%s:number of keys exceeds maximum
+  UP  exceeds max                  %s::%s:Error: DOD count = %d exceeds MAX_PPM_IN_DOD=%d
+  UP  exceeds max                  %s::%s:Error: Temp count = %d exceeds MAX_PPM_IN_TEMP=%d
+  UP  out of range                 %s::%s:ApplePPMBatteryModel::updateRCParamsInMemoryWRdcOnly: baselineWRdc %f out of range [%f, %f]
+
+=== com.apple.driver.ApplePearlSEPDriver.macho  (upper=3 lower=0 strings=1803)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  compared against buffer      _camera->_sepSharedBufferPoolPP
+  UP  compared against buffer      _camera->_sepSharedBufferPool
+
+=== com.apple.driver.ApplePhoneBTM.macho  (upper=2 lower=1 strings=504)
+  UP  out of range                 "AppleBTM: %s:%u " "AppleBTM: BPIC V Hysteresis EDT value out of range %u" @%s:%d
+  UP  exceeds max                  "AppleBTM: %s:%u " "AppleBTMPMUAgent::initializePmuSampleSpec: length %d exceeds maximum %d" @%s:%d
+  LO  underflow named explicitly   _interruptFIFOUnderflow
+
+=== com.apple.driver.AppleProResHW.macho  (upper=1 lower=0 strings=637)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleSARService.macho  (upper=10 lower=38 strings=4738)
+  UP  compared against buffer      %s::%s:%d: parameter->buffer is null!
+  UP  exceeds max                  %s::%s:%d: PTD %s numberOfEntries (%zu) exceeds maximum (%zu), rejecting request ( please check with ApplePTD kext on unepxected number of entries )
+  UP  exceeds max                  %s::%s:%d: PTD %s numberOfEntries (%zu) exceeds maximum (%zu), rejecting request ( please check with ApplePTD kext on unepxected number of entries )
+  UP  exceeds max                  %s::%s:%d: PTD %s numberOfEntries (%zu) exceeds maximum (%zu), clamping to limit
+  UP  compared against buffer      %s::%s:%d: parameter->buffer is null!
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  compared against buffer      %s::%s:%d: parameter->buffer is null!
+  UP  exceeds max                  %s::%s:%d: PTD %s numberOfEntries (%zu) exceeds maximum (%zu), rejecting request ( please check with ApplePTD kext on unepxected number of entries )
+  UP  exceeds max                  %s::%s:%d: PTD %s numberOfEntries (%zu) exceeds maximum (%zu), clamping to limit
+  UP  out of range                 Out of Range
+  LO  less than                    %s::%s:%d: WARNING: [cluster: %u] SAR average (%u) is less than the instant average value[%u] %u
+  LO  less than                    %s::%s:%d: Connectivity Headroom is less than Connectivity SAR Budget, reserve budgets vs. Standalone SAR limit
+  LO  less than                    %s::%s:%d: Wake time (%llu) SHOULD not be less than sleep time (%llu)
+  LO  too small                    %s::%s:%d: Buffer size too small for semaphore operation
+  LO  too small                    %s::%s:%d: Buffer too small: need %zu bytes, have %zu bytes
+  LO  less than                    #T: %s:%d: [%s] WARNING: Current Average (%u) is less than the delta value (%u)! Assuming the average is down to 0
+  LO  too small                    %s::%s:%d: Buffer size too small for semaphore operation
+  LO  less than                    %s::%s:%d: H-GTB (%llu) is less than M-GTB (%llu). Setting offset to 0
+  LO  less than                    %s::%s:%d: WARNING: Wake time (%llu) less than expected HSAR time (%llu)
+  LO  less than                    %s::%s:%d: WARNING: Wake time (%llu) is less than Sleep time (%llu). The next HSAR timer will be out at %u
+  LO  less than                    %s::%s:%d: WARNING: WiFi residual[%u] (%u) is less than WiFi Consumed Value[%u] (%u)
+  LO  less than                    %s::%s:%d: WARNING: BT residual[%u] (%u) is less than BT Consumed Value[%u] (%u)
+  LO  less than                    %s::%s:%d: WARNING: Connectivity residual[%u] (%u) is less than WiFi[%u] (%u) + BT Consumed Value[%u] (%u)
+  LO  less than                    %s::%s:%d: [Static Connectivity] Connectivity Headroom is less than Connectivity SAR Budget, reserve budgets vs. Standalone SAR limit
+  LO  less than                    %s::%s:%d: Wake time (%llu) SHOULD not be less than sleep time (%llu)
+  LO  less than                    %s::%s:%d: WARNING: total TER (%llu) is less than avrg consumed cellular + wifi + bt + uwb (%llu)
+  LO  less than                    %s::%s:%d: WARNING: Connectivity Normalized SPLSR Budget (%u) is less than the UWB SPLSR Budget (%u)! No change of Connectivity budget!
+  LO  less than                    %s::%s:%d: WARNING: [Cluster: %u] Connectivity Normalized Budget (%u) is less than the UWB SPLSR Budget (%u)! No change of Connectivity budget!
+  LO  less than                    %s::%s:%d: WARNING: Central Total SAR Budget SPLSR (%u) is less than sharing connectivity budget for Stewie (%u)!
+  LO  less than                    %s::%s:%d: WARNING: The Budget-Max (%u) is less than Budget-Min-Future (%u). So, the Budget-Margin (%u) is zero
+  LO  less than                    %s::%s:%d: WARNING: [cluster: %u] SAR average (%u) is less than the instant average value[%u] %u
+  LO  less than                    %s::%s:%d: Connectivity Headroom is less than Connectivity SAR Budget, reserve budgets vs. Standalone SAR limit
+  LO  less than                    %s::%s:%d: Wake time (%llu) SHOULD not be less than sleep time (%llu)
+  LO  too small                    %s::%s:%d: Buffer size too small for semaphore operation
+  LO  too small                    %s::%s:%d: Buffer too small: need %zu bytes, have %zu bytes
+  LO  less than                    #T: %s:%d: [%s] WARNING: Current Average (%u) is less than the delta value (%u)! Assuming the average is down to 0
+  LO  less than                    %s::%s:%d: H-GTB (%llu) is less than M-GTB (%llu). Setting offset to 0
+  LO  less than                    %s::%s:%d: WARNING: Wake time (%llu) less than expected HSAR time (%llu)
+  LO  less than                    %s::%s:%d: WARNING: Wake time (%llu) is less than Sleep time (%llu). The next HSAR timer will be out at %u
+  LO  less than                    %s::%s:%d: WARNING: WiFi residual[%u] (%u) is less than WiFi Consumed Value[%u] (%u)
+  LO  less than                    %s::%s:%d: WARNING: BT residual[%u] (%u) is less than BT Consumed Value[%u] (%u)
+  LO  less than                    %s::%s:%d: WARNING: Connectivity residual[%u] (%u) is less than WiFi[%u] (%u) + BT Consumed Value[%u] (%u)
+  LO  less than                    %s::%s:%d: [Static Connectivity] Connectivity Headroom is less than Connectivity SAR Budget, reserve budgets vs. Standalone SAR limit
+  LO  less than                    %s::%s:%d: WARNING: total TER (%llu) is less than avrg consumed cellular + wifi + bt + uwb (%llu)
+  LO  less than                    %s::%s:%d: WARNING: Connectivity Normalized SPLSR Budget (%u) is less than the UWB SPLSR Budget (%u)! No change of Connectivity budget!
+  LO  less than                    %s::%s:%d: WARNING: [Cluster: %u] Connectivity Normalized Budget (%u) is less than the UWB SPLSR Budget (%u)! No change of Connectivity budget!
+  LO  less than                    %s::%s:%d: WARNING: Central Total SAR Budget SPLSR (%u) is less than sharing connectivity budget for Stewie (%u)!
+  LO  less than                    %s::%s:%d: WARNING: The Budget-Max (%u) is less than Budget-Min-Future (%u). So, the Budget-Margin (%u) is zero
+
+=== com.apple.driver.AppleSART.macho  (upper=1 lower=0 strings=78)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleSEPKeyStore.macho  (upper=3 lower=1 strings=417)
+  UP  compared against buffer      "Failed endpoint->setSendOOLBuffer() for SEP (ret=%x)" @%s:%d
+  UP  compared against buffer      "Failed endpoint->setReceiveOOLBuffer() for SEP" @%s:%d
+  UP  exceeds max                  %s:%spid:%d,%s:%s%s%s%s%s%u:%s count %llu exceeds max %u%s
+  LO  too small                    %s:%spid:%d,%s:%s%s%s%s%s%u:%s buffer size %d too small for data size %d%s
+
+=== com.apple.driver.AppleSEPManager.macho  (upper=2 lower=1 strings=1552)
+  UP  too big                      "SEP firmware too large. Firmware size: 0x%x; allocated space: 0x%x" @%s:%d
+  UP  too big                      "SEP manifest too large (0x%lx > 0x%lx)" @%s:%d
+  LO  too small                    "Number of xART disable log entries unexpected too small at %lu" @%s:%d
+
+=== com.apple.driver.AppleSMC.macho  (upper=2 lower=0 strings=1068)
+  UP  out of range                 "SMC Key Payload SRAM Address is out of range" @%s:%d
+  UP  too big                      IOAccessoryBehavior::resolveMaxNominalVoltage returned voltage too big for SInt32 (%u). Capping to INT32_MAX
+
+=== com.apple.driver.AppleSMCWirelessCharger.macho  (upper=1 lower=0 strings=442)
+  UP  too big                      %s: log entry too large (%d bytes)
+
+=== com.apple.driver.AppleSPIMC.macho  (upper=1 lower=0 strings=164)
+  UP  compared against buffer      (_spiRxCount == 0 || spiCommand->rxBufferMD != NULL) && (_spiTxCount == 0 || spiCommand->txBufferMD != NULL)
+
+=== com.apple.driver.AppleSPURose.macho  (upper=1 lower=5 strings=396)
+  UP  too big                      coredump size too large
+  LO  too small                    crashlog chunk size is too small
+  LO  too small                    coredump chunk size is too small
+  LO  too small                    coredump chunk size is too small
+  LO  too small                    corrupted crashlog: packet size too small
+  LO  too small                    (core:%d) Section size too small.  Signature %#0x, version %#0x, section (%u bytes) should be at least %lu bytes
+
+=== com.apple.driver.AppleSmartBatteryManagerEmbedded.macho  (upper=3 lower=3 strings=1172)
+  UP  too big                      AppleGasGaugeBeadsUpdate ID %d ERROR: data payloadSize too large payloadSize = %d maxPayloadSize = %d
+  UP  too big                      AppleGasGaugeBeadsUpdateUserClient ERROR: memory descriptor too large: %llu
+  UP  too big                      AppleBeadsBatteryAuth: data payloadSize too large payloadSize = %u maxPayloadSize = %u
+  LO  too small                    AppleGasGaugeBeadsUpdateUserClient ERROR: output buffer too small for getInfo: %u < %zu
+  LO  too small                    AppleGasGaugeBeadsUpdateUserClient ERROR: output buffer too small for readData: %u < %zu
+  LO  too small                    AppleGasGaugeBeadsUpdateUserClient ERROR: output buffer too small for getStatus: %u < %zu
+
+=== com.apple.driver.AppleSmartIO2.macho  (upper=2 lower=0 strings=319)
+  UP  out of range                 Out Of Range
+  UP  too big                      ASIO: client buffer is a memory descriptor instead of a pointer, likely too big
+
+=== com.apple.driver.AppleT8130.macho  (upper=1 lower=1 strings=575)
+  UP  exceeds max                  Transaction latency exceeds max programmed latency
+  LO  underflow named explicitly   RHQ credit Overflow or Underflow occurred 
+
+=== com.apple.driver.AppleT8130PCIe.macho  (upper=2 lower=0 strings=217)
+  UP  too big                      [PCIe:%u %llu ns] apcie[%u:%s]::%s ltssm debug tracer empty or too large, status 0x%08x
+  UP  too big                      [PCIe:%u %llu ns] apcie[%u:%s]::%s ltssm debug tracer empty or too large, status 0x%08x
+
+=== com.apple.driver.AppleTopCaseHIDEventDriver.macho  (upper=1 lower=0 strings=176)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.driver.AppleUSBDeviceMux.macho  (upper=2 lower=3 strings=146)
+  UP  declared length exceeds capacity %s raw_length longer than expected (%lu bytes), truncating
+  UP  too big                      %s, message was too large (%d bytes, max = %d)
+  LO  too small                    %s Log Level packet too short (%d bytes)
+  LO  too small                    %s Version packet too short (%d bytes)
+  LO  too small                    %s internal error, mbuf chain is too short, %d bytes remaining
+
+=== com.apple.driver.AppleUVDMDriver.macho  (upper=1 lower=0 strings=146)
+  UP  exceeds max                  %s::%s - Message length exceeds maximum supported by this PD controller (%u > %u). See getTransportParameters.
+
+=== com.apple.driver.AudioDMAController-T8130.macho  (upper=2 lower=3 strings=367)
+  UP  compared against buffer      "%llu %s:%s " "almost_full_threshold (%u) > channelBufferSize (%u)." @%s:%d
+  UP  compared against buffer      "%llu %s:%s " "transfer_threshold (%u) > channelBufferSize (%u)." @%s:%d
+  LO  too small                    "%llu %s:%s " "Incoming length (%u) is too short (minimum = %u)." @%s:%d
+  LO  too small                    %s::%s True FIFO depth (%u < %u) is too small.
+  LO  too small                    %s::%s True FIFO depth (%u) is too small (%u).
+
+=== com.apple.driver.ExclavesAudioKext.macho  (upper=1 lower=0 strings=259)
+  UP  compared against buffer      "TB_ASSERT: " "(server->mapdmabuffer != ((void*)0)) && \"implementation for mapDMABuffer is not present\"" ", " "\b\b" " (%s:%d)" @%s:%d
+
+=== com.apple.driver.RTBuddy.macho  (upper=2 lower=12 strings=1043)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  too big                      error: stack too big for crash log
+  LO  underflow named explicitly   Inbox underflow 
+  LO  underflow named explicitly    Inbox%d underflow
+  LO  underflow named explicitly   Outbox underflow 
+  LO  underflow named explicitly    Outbox%d underflow
+  LO  too small                      Section size too small.  Got %zu, expected >= %zu
+  LO  too small                    Section size too small.  Signature %#0x, version %#0x, section (%u bytes) should be at least %zu bytes
+  LO  too small                    RTBuddy(%s): log entry size too small: %zu < %zu bytes
+  LO  too small                    RTBuddy(%s): decode buffer too small: %zu < %zu bytes
+  LO  too small                    RTBuddy(%s): decode buffer too small: %zu < %zu bytes
+  LO  too small                    RTBuddy(%s): tracekit message too small: %zu < %llu bytes
+  LO  too small                    RTBuddy(%s): tracekit message too small: %zu < %llu bytes
+  LO  too small                    RTBuddy(%s): tracekit message too small: %zu < %llu bytes
+
+=== com.apple.driver.corecapture.macho  (upper=7 lower=0 strings=718)
+  UP  compared against buffer      %s - ivars->_hub->getReportBufferSize(): %x
+  UP  compared against buffer      %s - No ivars->_interestLists or ivars->_interestBuffers
+  UP  compared against buffer      Bad ivars->_interestBuffers
+  UP  compared against buffer      %s - No ivars->_interestLists or ivars->_interestBuffers
+  UP  compared against buffer      Bad ivars->_interestBuffers
+  UP  compared against buffer      %s - ivars->_hub->getReportBufferSize(): %x
+  UP  compared against buffer      %s::%s() Failed to create ivars->fRingBufferMap
+
+=== com.apple.driver.usb.AppleUSBXHCI.macho  (upper=1 lower=0 strings=941)
+  UP  too big                      max exit latency too large
+
+=== com.apple.driver.usb.networking.macho  (upper=1 lower=1 strings=60)
+  UP  compared against buffer      %s  WARNING: Feature descriptor %u extends beyond buffer (offset %u + length %u > buffer %u)
+  LO  too small                    %s  WARNING: Descriptor length too small (minimum %u)
+
+=== com.apple.filesystems.apfs.macho  (upper=12 lower=40 strings=6582)
+  UP  too big                      %s:%d: %s volume index %d is too large
+  UP  exceeds max                  %s:%d: %s Warning, file (%llu) exceeds max file size: %lld > %lld
+  UP  too big                      %s:%d: image4 payload (size %llu) or manifest (size %llu) is too large
+  UP  exceeds max                  %s:%d: %s crypto state %llu has oversized payload: size %u exceeds max %zu, ino %llu
+  UP  too big                      %s:%d: %s Threshold value %llu is either negative or too large.
+  UP  too big                      File too large
+  UP  too big                      Result too large
+  UP  too big                      Value too large to be stored in data type
+  UP  too big                      %s:%d: %s File extent too large (%llu > %llu): laddr %llu, paddr %llu
+  UP  out of range                 %s:%d: %s checkpoint descriptor index %d out of range [0...%d]
+  UP  too big                      %s:%d: %s IP free queue tree is too large: %lld nodes (limit %d) xid %lld
+  UP  too big                      %s:%d: %s free queue tree is too large: %lld nodes (limit %d) xid %lld
+  LO  underflow named explicitly   %s:%d: %s Underflow detected in reserved ranges counter when trying to %s list entry for inode %lld
+  LO  underflow named explicitly   %s:%d: %s Underflow detected in unwritten ranges counter when trying to %s list entry for inode %lld
+  LO  too small                    %s:%d: output buffer too small: len %zu, must be at least %d
+  LO  underflow named explicitly   %s:%d: inflight i/o count underflow (%llu)
+  LO  too small                    %s:%d: %s extents results size %ld is too small %ld
+  LO  too small                    Buffer is too small: %u while at least %llu was expected
+  LO  underflow named explicitly   "Underflow detected when releasing %lld reserved blocks for inode %p\n" @%s:%d
+  LO  underflow named explicitly   %s:%d: %s Underflow detected in reserved ranges counter when trying to release reserved blocks for inode %lld: have %d ranges, need %d
+  LO  underflow named explicitly   %s:%d: %s chunk %lld recent zone count underflow
+  LO  too small                    %s:%d: %s Value too small:%u (group:%llu inum:%llu priv_id:%llu)
+  LO  underflow named explicitly   %s:%d: %s num_shared underflow
+  LO  underflow named explicitly   %s:%d: %s num_quick underflow
+  LO  underflow named explicitly   %s:%d: %s nx_num_ongoing_mounts underflow
+  LO  less than                    %s:%d: %s Estimated minimum number of blocks to resize to is %lld, too close to (or less than) resize request of %lld blocks; re-calculating:
+  LO  too small                    %s:%d: %s large key size (%u) on record (%llu) is too small
+  LO  too small                    %s:%d: %s key size (%zu) on expanded record (%llu) is too small
+  LO  less than                    %s:%d: %s s_hash <%llu> finfo attribution tag value <%zu> is less than sizeof(j_file_attribution_tag_val_t) <%lu
+  LO  underflow named explicitly   %s:%d: %s Underflow detected in reserved ranges counter for inode %lld
+  LO  underflow named explicitly   %s:%d: %s Underflow detected in unwritten ranges counter for inode %lld
+  LO  too small                    %s:%d: %s key size (%zu) on purgeable record (%llu) is too small
+  LO  too small                    %s:%d: %s value size (%zu) on purgeable record (%llu) is too small
+  LO  too small                    %s:%d: %s key size (%zu) on purgeable tombstone (%llu) is too small
+  LO  too small                    %s:%d: %s value size (%zu) on purgeable tombstone (%llu) is too small
+  LO  too small                    %s:%d: %s value size (%zu) on dir stats (%llu) is too small
+  LO  too small                    %s:%d: %s key size (%zu) on clone mapping (%llu) is too small
+  LO  too small                    %s:%d: %s value size (%zu) on clone mapping (%llu) is too small
+  LO  too small                    %s:%d: %s value size (%zu) on unknown record (%llu) is too small
+  LO  underflow named explicitly   %s:%d: %s COW exempt file count underflow: %lld (delta %lld).  capping to zero.
+  LO  less than                    %s:%d: %s warning: best valid checkpoint xid %lld is less than max free queue oldest xid %lld seen in checkpoint %lld
+  LO  too small                    %s:%d: %s container block size too small for device block size (%d < %d)
+  LO  underflow named explicitly   "virtual object dirty count underflow\n" @%s:%d
+  LO  underflow named explicitly   "physical object dirty count underflow\n" @%s:%d
+  LO  underflow named explicitly   "reserved metadata space underflow: %lld (%lld)\n" @%s:%d
+  LO  underflow named explicitly   %s:%d: %s reserved space underflow: %lld (+meta:%llu) < %lld
+  LO  underflow named explicitly   %s:%d: %s fs reserved space underflow: %lld (%lld)
+  LO  underflow named explicitly   %s:%d: %s entitled reserve: reserved space underflow: %lld (%lld)
+  LO  underflow named explicitly   %s:%d: %s sm_fs_reserve_alloc_count underflow, sm_fs_reserve_alloc_count %lld, new fs_reserve_block_count %lld, old fs_reserve_block_count %lld alloc_
+  LO  underflow named explicitly   %s:%d: %s sfq %d count underflow %lld - %lld
+  LO  underflow named explicitly   %s:%d: %s fs %lld alloc count underflow: %lld (%lld)
+  LO  underflow named explicitly   %s:%d: %s spaceman fs reserve alloc count underflow: %lld (%lld)
+
+=== com.apple.filesystems.lifs.macho  (upper=1 lower=0 strings=519)
+  UP  too big                      %s: xattr size %zu (%s) too large
+
+=== com.apple.filesystems.tmpfs.macho  (upper=139 lower=0 strings=72521)
+  UP  compared against buffer      <key>logSnapshotBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>skywalkBufferSize</key>
+  UP  compared against buffer      <key>logSnapshotBufferSize</key>
+  UP  against a hex constant bound <string>0x5fa014e4 0x5f6914e4 0x5f3114e4 0x5f7114e4 0x5f7214e4 0x5f8314e4</string>
+  UP  compared against buffer      <key>buffer-increment</key>
+  UP  compared against buffer      <key>buffer-size</key>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010004,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x0007003a,0xff010021,0x0007003b,0xff010020,0x0007003c,0xff010010,0x0007003d,0xff010002,0x00070040,0x000C00B4,0x00070041,0x000C00CD,0x00070042
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x01800200&amp;0xffffff00</string>
+  UP  against a hex constant bound <string>0x2002106b</string>
+  UP  against a hex constant bound <string>0x01080200&amp;0xffffff00</string>
+  UP  against a hex constant bound <string>0x01800200&amp;0xffffff00</string>
+  UP  against a hex constant bound <string>0x2002106b</string>
+  UP  against a hex constant bound <string>0xa804144d 0xa806144d</string>
+  UP  against a hex constant bound <string>0x01080200&amp;0xffffff00</string>
+  UP  against a hex constant bound <string>0x00261011</string>
+  UP  against a hex constant bound <string>0x06040000&amp;0xffff0000</string>
+  UP  against a hex constant bound <string>0x00070029,0x000c0040,0x0007003a,0x000C0221,0x0007003b,0xff010021,0x0007003c,0xff010020,0x0007003d,0x000c01b1,0x0007003e,0x000c01ae,0x00070040
+  UP  against a hex constant bound <string>0x00070029,0x000c0040,0x0007003a,0x000C0221,0x0007003b,0xff010021,0x0007003c,0xff010020,0x0007003d,0x000c01b1,0x0007003e,0x000c01ae,0x00070040
+  UP  against a hex constant bound <string>0x00070029,0x000c0040,0x0007003a,0x000C0221,0x0007003b,0xff010021,0x0007003c,0xff010020,0x0007003d,0x000c01b1,0x0007003e,0x000c01ae,0x00070040
+  UP  against a hex constant bound <key>0x00ff0003</key>
+  UP  against a hex constant bound <key>0xff010003</key>
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+  UP  against a hex constant bound <string>0x00070050,0x0007004a,0x00070052,0x0007004b,0x0007002a,0x0007004c,0x0007004f,0x0007004d,0x00070051,0x0007004e,0x00070028,0x00070058</string>
+  UP  against a hex constant bound <string>0x00070029,0x00070029,0x0007002a,0x0007002a,0x0007002b,0x0007002b,0x0007003a,0x0007003a,0x0007003b,0x0007003b,0x0007003c,0x0007003c,0x0007003d
+
+=== com.apple.iokit.CoreAnalyticsFamily.macho  (upper=2 lower=0 strings=356)
+  UP  too big                      Serialized Message Too Large
+  UP  too big                      %s::%d:Serialized data too large, dropping event with eventName %s
+
+=== com.apple.iokit.IOAVFamily.macho  (upper=10 lower=1 strings=2075)
+  UP  compared against buffer      dmaFrameOffset > _outputBufferFrame size %u > %u
+  UP  exceeds max                  _sliceCount (%u) exceeds maxSplit (%u); defaulting to single-tile
+  UP  exceeds max                  ***pixel clock (%u) exceeds max pixel clock (%u)
+  UP  exceeds max                  ***HDMIRX character rate (%ucsc) exceeds max TMDS character rate (%ucsc)
+  UP  exceeds max                  ***HDMIRX clock rate (%uHz) exceeds max TMDS clock(%uHz)
+  UP  compared against buffer      IOAV[%d] %s<0x%llx>::%s: dmaFrameOffset > _outputBufferFrame size %u > %u
+  UP  exceeds max                  IOAV[%d] %s<0x%llx>::%s: _sliceCount (%u) exceeds maxSplit (%u); defaulting to single-tile
+  UP  exceeds max                  IOAV[%d] %s<0x%llx>::%s: ***pixel clock (%u) exceeds max pixel clock (%u)
+  UP  exceeds max                  IOAV[%d] %s<0x%llx>::%s: ***HDMIRX character rate (%ucsc) exceeds max TMDS character rate (%ucsc)
+  UP  exceeds max                  IOAV[%d] %s<0x%llx>::%s: ***HDMIRX clock rate (%uHz) exceeds max TMDS clock(%uHz)
+  LO  too small                    IOAVIISAudioDMAEventSource: BUG: queue size is too small
+
+=== com.apple.iokit.IOAccessoryManager.macho  (upper=8 lower=2 strings=3027)
+  UP  declared length exceeds capacity IOAccessoryHSAIDBusTransport::receiveLongFormPacket: Received packet longer than receive buffer size (%u > %u)
+  UP  declared length exceeds capacity IOAccessoryHSAIDBusTransport::receiveLongFormPacket: Received packet with command data longer than available buffer space (%u > %u)
+  UP  too big                      %s: responsePayloadLength too large: %llu
+  UP  too big                      [ERROR] %s:IOAccessoryConfigStreamInterface::%s RetDevInfo: numCategories(%d) too large! limit to %d 
+  UP  too big                      [ERROR] %s:IOAccessoryConfigStreamInterface::%s RetCategoryInfo: index %d, categoryID %x, numProperties %llu, CatgoryIndex too large (max %d) 
+  UP  out of range                 [ERROR] RetHIDResponse: endpointID out of range!
+  UP  out of range                 [ERROR] RetHIDReport: endpointID out of range!
+  UP  out of range                 [ERROR] RetHIDReportMulti: endpointID out of range!
+  LO  shorter than minimum         IOAccessoryHSAIDBusTransport::receiveLongFormPacket: Received packet shorter than minimum long format packet size (%u)
+  LO  too small                    %s::%s(): Output buffer too small: %u < %u
+
+=== com.apple.iokit.IOBiometricFamily.macho  (upper=1 lower=0 strings=275)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+
+=== com.apple.iokit.IOGPUFamily.macho  (upper=1 lower=6 strings=937)
+  UP  compared against buffer      %s: fAccelerator->createBufferMemoryDescriptorInTaskWithOptions failed
+  LO  underflow named explicitly   "completeMemory() prepare count underflow" @%s:%d
+  LO  underflow named explicitly   "os_refcnt: underflow (rc=%p)\n" @%s:%d
+  LO  underflow named explicitly   "decrement_gart_collector_disable_count() fGARTCollectorDisableCount underflow" @%s:%d
+  LO  minimum size                 %s: Residency data length(%llu) less than required minimum size(%llu)
+  LO  less than                    %s: newResourceGroup failed - initial capacity (%u) less than minimum required (%u)
+  LO  less than                    %s: command list length less than zero
+
+=== com.apple.iokit.IOHIDFamily.macho  (upper=3 lower=0 strings=886)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  too big                      IOHIDReportElementQueue: invalid queue size, too large: %u
+  UP  too big                      %s:0x%llx Report too large %d %d
+
+=== com.apple.iokit.IOMobileGraphicsFamily-DCP.macho  (upper=4 lower=3 strings=451)
+  UP  too big                      AppleDCPLinkService: %s: overflow detected, payload too big: (%zu + %u + %u)
+  UP  too big                      AppleDCPLinkService: %s: payload too big: %u bytes
+  UP  too big                      "%s: payload too big: %u + %u > %u" @%s:%d
+  UP  too big                      "%s: overflow detected, paylod too big: (%zu + %u + %u)" @%s:%d
+  LO  too small                    "IOMFB: buffer too small for property data" @%s:%d
+  LO  too small                    "%s: payload size too small: %u < %lu" @%s:%d
+  LO  underflow named explicitly   AppleDCPLinkService: %s: shared buffer underflow [%u]
+
+=== com.apple.iokit.IOMobileGraphicsFamily.macho  (upper=2 lower=3 strings=1034)
+  UP  too big                      UPEvtMgr::add - Event monitor index %d too large.
+  UP  too big                      "%s: layer too large" @%s:%d
+  LO  underflow named explicitly   "RefCounted: reference count underflow" @%s:%d
+  LO  less than                    %s srcRect.x (%d) less than zero
+  LO  less than                    %s srcRect.y (%d) less than zero
+
+=== com.apple.iokit.IONVMeFamily.macho  (upper=3 lower=0 strings=1619)
+  UP  exceeds max                  %s::%d:inImageSize = 0x%x exceeds maxImageSize = 0x%x for Key = %c%c%c%c ( 0x%x )
+  UP  compared against buffer      ( 0 != inQueue->fBuffer )
+  UP  compared against buffer      ( 0 != queue->fBuffer )
+
+=== com.apple.iokit.IOSurface.macho  (upper=11 lower=11 strings=621)
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  out of range                 %s: slot index %u out of range or no agent mask info for event %08x (signal value 0x%016llx)
+  UP  out of range                 IOSurface: kIOSurfacePlaneBytesPerElement out of range
+  UP  out of range                 IOSurface: kIOSurfacePlaneBitsPerElement out of range
+  UP  out of range                 IOSurface: kIOSurfacePlaneBitsPerBlock out of range
+  UP  exceeds max                  IOSurface: kIOSurfacePlaneDataRegionBytesPerSlice %d exceeds maximum value.
+  UP  exceeds max                  IOSurface: %s exceeds maximum value
+  UP  exceeds max                  IOSurface: %s exceeds maximum value
+  UP  too big                      IOSurface: %s component count is too large.
+  UP  exceeds max                  IOSurface: %s exceeds maximum value
+  UP  out of range                 %s: slot index %u is out of range for event %08x
+  LO  underflow named explicitly   "os_refcnt: underflow (rc=%p)\n" @%s:%d
+  LO  too small                    IOSurface: plane[%d] bytes per row value of %llu is too small
+  LO  less than                    IOSurface: plane[%d] offset %016llx is less than plane[%d] base %016llx
+  LO  less than                    IOSurface: compressed plane[%d] CompressedTileWidth must be less than 1024
+  LO  less than                    IOSurface: compressed plane[%d] CompressedTileHeight must be less than 1024
+  LO  less than                    IOSurface: compressed plane[%d] kIOSurfacePlaneBytesPerRowOfTileData is %d less than WidthInCompressedTiles %d x BytesPerTileData %d Bytes.
+  LO  too small                    IOSurface: buffer bytes per row value is too small
+  LO  less than                    IOSurface: child surfaces must specify an allocation size less than or equal to the parent surface size
+  LO  too small                    IOSurface: buffer allocation size is too small to cover valid image area of plane %d: fAllocSize=%llu, planeLimit=%llu
+  LO  too small                    IOSurface: buffer allocation size is too small to cover valid image area: fAllocSize=%llu, requiredSizeInBytes=%llu
+  LO  too small                    IOSurface: %s component count is too small.
+
+=== com.apple.iokit.IOThunderboltFamily.macho  (upper=4 lower=0 strings=6263)
+  UP  too big                      %lldus IOThunderboltConfigXDomainCommand<%p>::processResponse - Response too big, pdf = 0x%x
+  UP  exceeds max                  %lldus IOThunderboltEEPROM<%p>(0x%llx)::parseDROMData - Port number is either 0 or exceeds maximum allowed value!
+  UP  too big                      %lldus IOThunderboltConfigXDomainCommand<%p>::processResponse - Response too big, pdf = 0x%x
+  UP  exceeds max                  %lldus IOThunderboltEEPROM<%p>(0x%llx)::parseDROMData - Port number is either 0 or exceeds maximum allowed value!
+
+=== com.apple.iokit.IOTimeSyncFamily.macho  (upper=2 lower=0 strings=1072)
+  UP  out of range                 Boot-arg timesync_ts_mode=%d out of range (%d-%d), ignoring
+  UP  out of range                 Boot-arg timesync_ts_mode=%d out of range (%d-%d), ignoring
+
+=== com.apple.iokit.IOUSBHostFamily.macho  (upper=3 lower=0 strings=1762)
+  UP  out of range                 %s@%s: %s::%s: selector %u is out of range %u
+  UP  out of range                 %s@%s: %s::%s: selector %u is out of range %u
+  UP  out of range                 %s@%s: %s::%s: selector %u is out of range %u
+
+=== com.apple.kernel.macho  (upper=90 lower=98 strings=19953)
+  UP  too big                      kdp_send: packet too large (%u > %d)
+  UP  too big                      size too large for the fast kmsg zone (%d) @%s:%d
+  UP  too big                      mig subsystem %d (%p) replies are too large (%d > %d) @%s:%d
+  UP  too big                      kalloc_data_require failed: address %p in [%s%s], size too large %zd > %zd @%s:%d
+  UP  declared length exceeds capacity runnable duration %llu is longer than time duration %llu between page waits @%s:%d
+  UP  too big                      zone_create: element size too large: %zd @%s:%d
+  UP  explicit bounds check        zone bound checks: address %p is a per-cpu allocation @%s:%d
+  UP  explicit bounds check        zone bound checks: buffer %p of length %zd overflows object %p of size %zd in zone %p[%s%s] @%s:%d
+  UP  out of range                 vm_compressor_pager_put: out of range @%s:%d
+  UP  out of range                 %s(): out of range segInfo->page_start[pageIndex] @%s:%d
+  UP  out of range                 %s(): chain 0x%llx out of range 0x%llx..0x%llx @%s:%d
+  UP  out of range                 %s(): out of range bind ordinal %u (max %u) @%s:%d
+  UP  out of range                 %s out of range bind ordinal %u (max %u) @%s:%d
+  UP  out of range                 %s(): out of range segInfo->page_start[overflowIndex] @%s:%d
+  UP  too big                      %s: area too large, pa_start=%p, len=%p, prot=0x%x @%s:%d
+  UP  too big                      %s: Offset %lu too large for elem size %lu at addr %p @%s:%d
+  UP  too big                      %s: New data size %lu too large for elem size %lu at addr %p @%s:%d
+  UP  out of range                 t8110dart %p (%s): pa %#llx len %#lx out of range @%s:%d
+  UP  out of range                 t8110dart %p (%s): iova %#lx len %#lx out of range @%s:%d
+  UP  out of range                 t8110dart %p (%s): out of range IOVA (%#lx) @%s:%d
+  UP  out of range                 t6000dart %p (%s): pa %#llx len %#lx out of range @%s:%d
+  UP  out of range                 t6000dart %p (%s): iova %#lx len %#lx out of range @%s:%d
+  UP  out of range                 t6000dart %p (%s): out of range IOVA (%#lx) @%s:%d
+  UP  out of range                 t8020dart %p (%s): pa %#llx len %#lx out of range @%s:%d
+  UP  out of range                 t8020dart %p (%s): iova %#lx len %#lx out of range @%s:%d
+  UP  out of range                 t8020dart %p (%s): out of range IOVA (%#lx) @%s:%d
+  UP  out of range                 L2 RAM addr out of range
+  UP  too big                      Count of %u on ecc event is too large. @%s:%d
+  UP  too big                      Route rules size overflowed, too large
+  UP  too big                      Conditions size overflowed, too large
+  UP  exceeds max                  %s: unit (%d) exceeds max (%d) @%s:%d
+  UP  compared against buffer      nm->pm_buffer != NULL
+  UP  compared against buffer      nm->pm_buffer_len != 0
+  UP  compared against buffer      nm->pm_len <= nm->pm_buffer_len
+  UP  compared against buffer      nm->pm_offset + (nm->pm_len + delta_len) <= nm->pm_buffer_len
+  UP  compared against buffer      (nm->pm_len + nm->pm_offset) <= nm->pm_buffer_len
+  UP  too big                      NETEM: %-30s | error: latency %d too big (> 1 sec)
+  UP  too big                      NETEM: %-30s | error: jitter %dms too big (latency %dms)
+  UP  too big                      NETEM: %-30s | error: loss recovery %dms too big
+  UP  too big                      NETEM: %-30s | error: loss params too big
+  UP  too big                      NETEM: %-30s | error: reordering delay %dms too big (> 1 sec)
+  UP  too big                      NETEM: %-30s | error: output interval %dms too big
+  UP  too big                      tcphdr too big @%s:%d
+  UP  too big                      len %d too big error EMSGSIZE
+  UP  too big                      optlen too large @%s:%d
+  UP  out of range                 Compressor offset requested out of range
+  UP  out of range                 dyld_pager_data_request chain out of range
+  UP  out of range                 dyld_pager_data_request seg_info out of range
+  UP  out of range                 dyld_pager_data_request seg->size out of range
+  UP  out of range                 dyld_pager_data_request seg->page_count out of range
+  UP  out of range                 dyld_pager_data_request segInfo page_start out of range
+  UP  too big                      Process too big for corpse. Corpse disallowed.
+  UP  too big                      hash size too large @%s:%d
+  UP  too big                      root imagefile is too large (err=%d, auth=%d, ramdisk=%d) @%s:%d
+  UP  declared length exceeds capacity Which action to fire when a thread waits longer than threshold
+  UP  too big                      %s: mbuf too large %p [off %d, len %d] @%s:%d
+  UP  too big                      Kext %s: new kext size is too large.
+  UP  too big                      Kext %s header size is too large (%lu > UINT32_MAX).
+  UP  too big                      Kext %s size is too large (%lu > UINT32_MAX).
+  UP  out of range                 IOPageableMapForAddress: address out of range @%s:%d
+  UP  too big                      message is too large
+  UP  out of range                 dmaIndex out of range @%s:%d
+  UP  too big                      The range of valid memory is too large to be represented by this type, or [begin, end) is not a well-formed range
+  UP  exceeds max                  policy's managed label namespaces exceeds maximum @%s:%d
+  UP  compared against buffer      "TB_ASSERT: " "start <= msg->transport_buffer->size" ", " "%llu, %zu" " (%s:%d)" @%s:%d
+  UP  compared against buffer      "TB_ASSERT: " "end <= msg->transport_buffer->size" ", " "%zu, %zu" " (%s:%d)" @%s:%d
+  UP  too big                      bpf%u bd_write_size_max %u too big
+  UP  too big                      bpf_movein_batch bh_hdrlen %u too large
+  UP  too big                      bpfwrite: len %u - hlen %u too big if %s write_size_max %u
+  UP  too big                      bpfwrite: len %u - hlen %u too big if %s mtu %u
+  UP  too big                      %s: %s failed, mask sa_len %d too large
+  UP  too big                      %s: ifindex %u too big
+  UP  too big                      %s: ifindex %u too big
+  UP  too big                      %s: Policy result length too large: %u
+  UP  too big                      %s: Route rules length too large: %u
+  UP  too big                      %s: Conditions length too large: %u
+  UP  too big                      %s: necp_session_get_policy size too large to copy (%u)
+  UP  too big                      %s: necp_session_list_all size too large to copy (%u policies)
+  UP  too big                      %s: Update message size (%zu > %u) too large
+  UP  too big                      (%u): Trie memory size (%lu) is too big (maximum is %u)
+  UP  exceeds max                  nd6_ra_input: bogus mtu mtu=%d sent from %s; exceeds maxmtu %d, ignoring
+  UP  too big                      %s: marshalled data too large.
+  UP  too big                      %s: input too large [octets=%ld].
+  UP  too big                      key_setsadbsastat: length is too big: %zu
+  UP  too big                      key_send_delsp: length too big: %d
+  UP  too big                      %s: failed len %d too big
+  UP  too big                      SK[%u]: %-30s headroom too large %d
+  UP  too big                      SK[%u]: %-30s frag too big
+  UP  too big                      SK[%u]: %-30s frag too big
+  UP  too big                      SK[%u]: %-30s packet too big: bufcnt %d len %d
+  LO  too small                    the mig dispatch table is too small @%s:%d
+  LO  too small                    kt_var_heaps is too small @%s:%d
+  LO  underflow named explicitly   sched_clutch thread count underflowed! @%s:%d
+  LO  too small                    socd buffer size is too small @%s:%d
+  LO  too small                    %s: page_list too short @%s:%d
+  LO  underflow named explicitly   vm_object_pl_req_end(%p): underflow
+  LO  underflow named explicitly   Underflowed vm_reclaim_buffer_count @%s:%d
+  LO  too small                    %s(): seg->size too small @%s:%d
+  LO  too small                    %s(): seg->page_count too small @%s:%d
+  LO  underflow named explicitly   vm_object_activity_end(%p): underflow
+  LO  underflow named explicitly   vm_object_paging_end(%p): underflow
+  LO  underflow named explicitly   %s: pmap %p VA [0x%llx, 0x%llx) (wiredcnt %p) wired count underflow @%s:%d
+  LO  underflow named explicitly   %s: ptd %p wiredcnt overflow/underflow, prior wiredcnt: %hd, added amount: %hd @%s:%d
+  LO  underflow named explicitly   pmap %p (pte %p): wired count underflow @%s:%d
+  LO  underflow named explicitly   %s: wiredcnt %p underflow @%s:%d
+  LO  underflow named explicitly   Preemption count underflow (count = %u) @%s:%d
+  LO  underflow named explicitly   verify_in_flight underflow @%s:%d
+  LO  too small                    vfs_drt: new cluster map mysteriously too small @%s:%d
+  LO  too small                    rn_delete: key too short (cmp_len=%d, head_offset=%d)
+  LO  underflow named explicitly   necp_flow_registration_count underflow @%s:%d
+  LO  too small                    Assign message is too short
+  LO  too small                    Group assign message is too short
+  LO  too small                    %s: mbuf %p too short (%d) for IPv4 header @%s:%d
+  LO  less than                    Number of link local packets with TTL less than 255
+  LO  less than                    Allow incoming link local packets with TTL less than 255
+  LO  too small                    %s: mbuf %p pkt too short (%d) for IP header (%u), hoff %u @%s:%d
+  LO  underflow named explicitly   %s: inpcb socket so_usecount underflow  when removing timer entry
+  LO  underflow named explicitly   %s: inpcb socket so_usecount underflow when removing advanced timer entry
+  LO  underflow named explicitly   kipf_ref underflow @%s:%d
+  LO  too small                    %s:%d esp kpipe output: destination buffer too short
+  LO  too small                    %s:%d esp kpipe output: source buffer too short
+  LO  too small                    %s:%d ChaChaPoly Packet too short %d < %zu, SPI 0x%08x
+  LO  too small                    ipsec4_splithdr: first mbuf too short, m_len %d, pkt_len %d, m_flag %x @%s:%d
+  LO  too small                    ipsec6_splithdr: first mbuf too short @%s:%d
+  LO  too small                    ipsec4_get_ulp: too short @%s:%d
+  LO  too small                    %s: mbuf %p pkt too short (%d) for IPv6 header @%s:%d
+  LO  less than                    UDP port not available, less than 4096 UDP ports left
+  LO  underflow named explicitly   persona ref count underflow! @%s:%d
+  LO  underflow named explicitly   persona count underflow! @%s:%d
+  LO  underflow named explicitly   Underflowed memorystatus_suspended_count @%s:%d
+  LO  minimum size                 The minimum size (in bytes) of each swapfile
+  LO  underflow named explicitly   os_refcnt: underflow (rc=%p) @%s:%d
+  LO  underflow named explicitly   _dmaReferences underflow @%s:%d
+  LO  too small                    random seed field too short @%s:%d
+  LO  too small                    bpf_movein_batch bh_hdrlen %u too small
+  LO  less than                    bpfwrite: len %d if %s less than copy_len %d
+  LO  too small                    %s: IP packet too short %u > %zu
+  LO  too small                    %s: IP packet too short %u > %zu
+  LO  too small                    utun_netif_sync_rx %s: legacy packet length too short for header %zu < %zu
+  LO  too small                    utun_netif_sync_rx %s: packet length too short for header %u < %zu
+  LO  shorter than minimum         ipsec_output: first mbuf length shorter than IP header length: %d.
+  LO  shorter than minimum         ipsec_output: first mbuf length shorter than IPv6 header length: %d.
+  LO  shorter than minimum         ipsec encrypt kpipe pkt: source buffer shorter than ip header, %u
+  LO  too small                    ipsec_transform_kpipe_pkt_to_netif_pkt %s - netif buffer length %u too short
+  LO  too small                    %s: necp_get_tlv_at_offset buffer_length is too small for TLV (%u < %lu)
+  LO  too small                    %s: necp_get_tlv_at_offset buffer_length is too small for TLV of length %u (%u < %lu)
+  LO  too small                    %s: necp_get_tlv_at_offset out_buffer_length is too small for TLV value (%u < %u)
+  LO  too small                    %s: out_buffer_length too small (%lu < %lu)
+  LO  too small                    %s: Resolver tag length too short: %u
+  LO  too small                    %s: Provided user buffer is too small (%u < %u)
+  LO  too small                    %s: Provided user buffer is too small (%u < %u)
+  LO  too small                    %s: Register message size too small for agent: (%zu < %zu)
+  LO  too small                    %s: Update message size too small for agent: (%zu < %zu)
+  LO  too small                    %s: Register message size too small for agent: (%zu < %zu)
+  LO  too small                    %s: Update message size too small for agent: (%zu < %zu)
+  LO  too small                    %s: Unregister message size too small for UUID: (%zu < %zu)
+  LO  too small                    %s: PKTP_CMD_TAP_COUNT ifd_len %llu too small - error %d
+  LO  too small                    %s: PKTP_CMD_TAP_COUNT ifd_len %llu too small - error %d
+  LO  too small                    %s:%d too short %u
+  LO  too small                    %s:%d len too small %lu
+  LO  too small                    %s:%d CFIL_OPT_PRESERVE_CONNECTIONS len too small %lu
+  LO  too small                    %s:%d CFIL_OPT_NECP_CONTROL_UNIT len too small %lu
+  LO  too small                    %s:%d CFIL_OPT_PRESERVE_CONNECTIONS len too small %lu
+  LO  less than                    new CE count (%llu) can't be less than current CE count (%llu)OR newly ACKed (%llu) can't be less that current ACKed (%llu)
+  LO  too small                    sum length too short in IPv4 AH input (%u, should be at least %u): %s
+  LO  too small                    sum length too short in IPv6 AH input (%u, should be at least %u): %s
+  LO  too small                    ah6_output: first mbuf too short
+  LO  too small                    esp_auth: AH_MAXSUMSIZE is too small: siz=%u
+  LO  too small                    IPv4 ESP input: packet too short
+  LO  too small                    IPv4 ESP input: decrypted packet too short %d < %u
+  LO  too small                    IPv6 ESP input: packet too short
+  LO  too small                    %s:%d esp kpipe input, slen too short %u
+  LO  too small                    esp4_output: first mbuf too short
+  LO  too small                    esp6_output: first mbuf too short
+  LO  too small                    %s:%d ChaChaPoly Packet too short %d < %u, SPI 0x%08x
+  LO  shorter than minimum         ipsec4 interface kpipe output: source buffer shorter than ip header, %u
+  LO  shorter than minimum         ipsec4 interface kpipe output: buflet size shorter than hlen %u, SPI=%x
+  LO  shorter than minimum         ipsec6 interface kpipe output: source buffer shorter than ipv6 header, %u
+  LO  shorter than minimum         ipsec6 interface kpipe outputbuflet size shorter than hlen %u, SPI=%x
+  LO  too small                    nd6_setmtu: new link MTU on %s (%u) is too small for IPv6
+  LO  too small                    key_extract_aead_params: AEAD key too short %u
+  LO  too small                    TRACKER - %s:%d Could not dump entries, output buffer too small %lu (needed %lu)
+  LO  too small                    TRACKER - %s:%d Could not dump entry, buffer too small
+  LO  too small                    TRACKER - %s:%d Failed to copy metadata, dst buffer size too small
+  LO  too small                    vm: shared_region: %p [%d(%s)] map(): mapping count argument was too small
+  LO  less than                    SK[%u]: %-30s %s(%d) port %u: UDP ephemeral port not available(less than 4096 UDP ports left)
+  LO  too small                    SK[%u]: %-30s buf size too small, min (%d)
+  LO  too small                    SK[%u]: %-30s buffer too small
+
+=== com.apple.plugin.IOgPTPPlugin.macho  (upper=9 lower=40 strings=2622)
+  UP  too big                        %s(%s): Last GM phase change is too large: origin(0x%llx.%016llx) - upstream(0x%llx.%016llx) = 0x%llx.%016llx
+  UP  too big                      Refcount too large
+  UP  too big                      Refcount too large
+  UP  declared length exceeds capacity   %s(%s): Response time (%llu) is longer than scaled exchange time (%llu), raw delay %lld filter %llu,%llu,%llu,%llu
+  UP  declared length exceeds capacity   %s(%s): Response time (%llu) is longer than scaled exchange time (%llu) with no conversion, clamping to 0
+  UP  declared length exceeds capacity   %s(%s): LFResponse time (%llu) is longer than scaled exchange time (%llu), raw delay %lld filter %llu,%llu,%llu,%llu
+  UP  declared length exceeds capacity   %s(%s): LFResponse time (%llu) is longer than scaled exchange time (%llu)with no conversion, clamping to 0
+  UP  too big                        %s(%s): TimeOfDay difference is too large, 0x%llx.%016llx
+  UP  too big                        %s(%s): Last GM phase change is too large: origin(0x%llx.%016llx) - upstream(0x%llx.%016llx) = 0x%llx.%016llx
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received gPTP Announce message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP Signal message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP Sync message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP FollowUp message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP PDelay Request message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP PDelay Response message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP PDelay Response FollowUp message which is too short %lu < %lu. %llu 0x%016llx
+  LO  too small                      %s(%s): Received gPTP Delay Request message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP Delay Response message which is too short %lu < %lu.
+  LO  too small                      %s(%s): Received gPTP message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted gPTP Announce message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP Signal message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP Sync message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP FollowUp message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP PDelay Request message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP PDelay Response message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP PDelay Response FollowUp message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP Delay Request message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP Delay Response message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted gPTP Sync message which is too short
+  LO  too small                      %s(%s): Transmitted gPTP message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Received time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Transmitted time sync message which is too short, messageLength %u
+  LO  too small                      %s(%s): Allocated AVB packet for received time sync mbuf is too short
+
+=== com.apple.security.AppleImage4.macho  (upper=4 lower=5 strings=844)
+  UP  exceeds max                  user buffer exceeds maximum bounds: actual = %lu, expected <= %lu, trap = %s: %d
+  UP  exceeds max                  user buffer exceeds maximum bounds: actual = %lu, expected <= %lu, trap = %#llx: %d
+  UP  too big                      panic: nonce too large: actual = %lu, expected <= %ld
+  UP  too big                      %s: decoded payload too large: actual = %lu, expected <= %lu, payload type = 0x%llx: %d
+  LO  underflow named explicitly   panic: integer cast underflow: v = %s, actual = %lld, expected >= 0
+  LO  underflow named explicitly   panic: iteration underflow: idx = 0x%lx, %ld
+  LO  too small                    slot[%s]: slot data too small for slot version: actual = %lu, expected >= %lu
+  LO  too small                    panic: buffer too small for nonce slot data: actual = %lu, expected >= %lu
+  LO  too small                    magazine[%s]: magazine data too small for version: actual = %lu, expected >= %lu
+
+=== com.apple.security.Image4.macho  (upper=2 lower=0 strings=391)
+  UP  too big                      "Image4: nonce digest too large for PPL: %lu" @%s:%d
+  UP  too big                      Image4: manifest evaluation: restore-info seed too large: %lu
+
+=== com.apple.security.sandbox.macho  (upper=3 lower=10 strings=13868)
+  UP  exceeds max                  mask size (%zu) exceeds maximum (%zu)
+  UP  exceeds max                  %s size %lld exceeds maximum (%zu)
+  UP  out of range                 "profile flag #%u out of range" @%s:%d
+  LO  underflow named explicitly   "profile mask count underflow" @%s:%d
+  LO  underflow named explicitly   "sandbox mask count underflow" @%s:%d
+  LO  underflow named explicitly   "index underflow" @%s:%d
+  LO  underflow named explicitly   "path length underflow" @%s:%d
+  LO  underflow named explicitly   "pending update count underflow" @%s:%d
+  LO  underflow named explicitly   "%s: size underflow" @%s:%d
+  LO  underflow named explicitly   "%s: underflow" @%s:%d
+  LO  underflow named explicitly   "%s: tracked deallocation caused sandbox size to underflow (%p)" @%s:%d
+  LO  too small                    MAX_TOKEN_SIZE too small
+  LO  underflow named explicitly   "in set count underflow" @%s:%d
