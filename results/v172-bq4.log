@@ -1,0 +1,18 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5a0f
+[scaler] conn 0x5a0f, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq4] v172 lsd plist state-change: backup / modify / detect / observe / rollback
+[bq4] CONTROL §170 point -> handle 1
+[bq4] backup verified: 190 bytes -> /var/mobile/Containers/Data/Application/72C1324C-3B7B-4A41-A975-544A3352C908/Documents/bq4-DefaultAppQueryState.bak
+[bq4] MODIFY w=223/223 — adding fz27_probe key
+[bq4] DETECT reparse=ok key present=1  (write persisted)
+[bq4] framework load: CoreServices=0x35ef00ff0 MobileCoreServices=0x35ecc8c68 dlerr=-
+[bq4] LSApplicationWorkspace class present
+[bq4] lsd query (allApplications) -> 0 entries
+[bq4] lsd query symbol absent — observation limited to mtime
+[bq4] OBSERVE mtime 1791472388 -> 1791472388, size 223 -> 223 : daemon did not touch it (either did not read, or accepted as-is)
+[bq4] ROLLBACK w=190, byte-identical to backup=1  (system restored)
+[bq4] done
+[probe13] bq4-only mode, stop

