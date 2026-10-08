@@ -1,0 +1,80 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e0b
+[scaler] conn 0x7e0b, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq9] v176 content substitution: DUMP 
+[bq9] CONTROL §170 point -> handle 1
+[bq9] target: /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist
+[bq9] current: 2942 bytes
+[bq9] DUMP root type: dict
+[bq9]   root: dict(4)
+[bq9]   root/$version = 100000
+[bq9]   root/$objects: array(66)
+[bq9]   root/$objects[0] = "$null"
+[bq9]   root/$objects[1]: dict(3)
+[bq9]   root/$objects[1]/NS.keys: array(4)
+[bq9]   root/$objects[1]/NS.keys[0] = <CFKeyedArchiverUID 0x12a436140 [0x1ff064d88]>{value = 2}
+[bq9]   root/$objects[1]/NS.keys[1] = <CFKeyedArchiverUID 0x12a436160 [0x1ff064d88]>{value = 5}
+[bq9]   root/$objects[1]/NS.keys[2] = <CFKeyedArchiverUID 0x12a4361a0 [0x1ff064d88]>{value = 7}
+[bq9]   root/$objects[1]/NS.keys[3] = <CFKeyedArchiverUID 0x12a436280 [0x1ff064d88]>{value = 9}
+[bq9]   root/$objects[1]/NS.objects: array(4)
+[bq9]   root/$objects[1]/NS.objects[0] = <CFKeyedArchiverUID 0x12a4361e0 [0x1ff064d88]>{value = 11}
+[bq9]   root/$objects[1]/NS.objects[1] = <CFKeyedArchiverUID 0x12a436200 [0x1ff064d88]>{value = 37}
+[bq9]   root/$objects[1]/NS.objects[2] = <CFKeyedArchiverUID 0x12a436240 [0x1ff064d88]>{value = 49}
+[bq9]   root/$objects[1]/NS.objects[3] = <CFKeyedArchiverUID 0x12a436220 [0x1ff064d88]>{value = 62}
+[bq9]   root/$objects[1]/$class = <CFKeyedArchiverUID 0x12a436260 [0x1ff064d88]>{value = 25}
+[bq9]   root/$objects[2]: dict(2)
+[bq9]   root/$objects[2]/string = <CFKeyedArchiverUID 0x12a436320 [0x1ff064d88]>{value = 3}
+[bq9]   root/$objects[2]/$class = <CFKeyedArchiverUID 0x12a4361c0 [0x1ff064d88]>{value = 4}
+[bq9]   root/$objects[3] = "2b776c8126acbb9793b7e792b88acfa91a66cb4065645ff7def745d044d9…"
+[bq9]   root/$objects[4]: dict(2)
+[bq9]   root/$objects[4]/$classname = "FMDAccessoryIdentifier"
+[bq9]   root/$objects[4]/$classes: array(2)
+[bq9]   root/$objects[4]/$classes[0] = "FMDAccessoryIdentifier"
+[bq9]   root/$objects[4]/$classes[1] = "NSObject"
+[bq9]   root/$objects[5]: dict(2)
+[bq9]   root/$objects[5]/string = <CFKeyedArchiverUID 0x12a436300 [0x1ff064d88]>{value = 6}
+[bq9]   root/$objects[5]/$class = <CFKeyedArchiverUID 0x12a4361c0 [0x1ff064d88]>{value = 4}
+[bq9]   root/$objects[6] = "570e9b7f0785a37c741e34d0acd6b85a8775c614ef33aae189709c8a1b49…"
+[bq9]   root/$objects[7]: dict(2)
+[bq9]   root/$objects[7]/string = <CFKeyedArchiverUID 0x12a4363c0 [0x1ff064d88]>{value = 8}
+[bq9]   root/$objects[7]/$class = <CFKeyedArchiverUID 0x12a4361c0 [0x1ff064d88]>{value = 4}
+[bq9]   root/$objects[8] = "284e89813a76a86d35876973e04453b74004563bb0ac9ee3ad053102fa91…"
+[bq9]   root/$objects[9]: dict(2)
+[bq9]   root/$objects[9]/string = <CFKeyedArchiverUID 0x12a436340 [0x1ff064d88]>{value = 10}
+[bq9]   root/$objects[9]/$class = <CFKeyedArchiverUID 0x12a4361c0 [0x1ff064d88]>{value = 4}
+[bq9]   root/$objects[10] = "49401F35-A293-43F7-A060-83C5F49D3415"
+[bq9]   root/$objects[11]: dict(15)
+[bq9]   root/$objects[11]/extensionId = <CFKeyedArchiverUID 0x12a4363e0 [0x1ff064d88]>{value = 17}
+[bq9]   root/$objects[11]/style = <CFKeyedArchiverUID 0x12a436400 [0x1ff064d88]>{value = 33}
+[bq9]   root/$objects[11]/accessoryType = <CFKeyedArchiverUID 0x12a436440 [0x1ff064d88]>{value = 13}
+[bq9]   root/$objects[11]/serialNumbers = <CFKeyedArchiverUID 0x12a436420 [0x1ff064d88]>{value = 18}
+[bq9]   root/$objects[11]/accessoryIdentifier = <CFKeyedArchiverUID 0x12a436380 [0x1ff064d88]>{value = 12}
+[bq9]   root/$objects[11]/batteryInfo = <CFKeyedArchiverUID 0x12a4365e0 [0x1ff064d88]>{value = 26}
+[bq9]   root/$objects[11]/$class = <CFKeyedArchiverUID 0x12a4364a0 [0x1ff064d88]>{value = 36}
+[bq9]   root/$objects[11]/firmwareVersion = <CFKeyedArchiverUID 0x12a436580 [0x1ff064d88]>{value = 15}
+[bq9]   root/$objects[11]/address = <CFKeyedArchiverUID 0x12a436560 [0x1ff064d88]>{value = 16}
+[bq9]   root/$objects[11]/lastDiscoveryDate = <CFKeyedArchiverUID 0x12a4364c0 [0x1ff064d88]>{value = 32}
+[bq9]   root/$objects[11]/additionalInfo = <CFKeyedArchiverUID 0x12a4364e0 [0x1ff064d88]>{value = 0}
+[bq9]   root/$objects[11]/lastStatusUpdateTime = <CFKeyedArchiverUID 0x12a4364c0 [0x1ff064d88]>{value = 32}
+[bq9]   root/$objects[11]/lastActiveTime = <CFKeyedArchiverUID 0x12a436500 [0x1ff064d88]>{value = 30}
+[bq9]   root/$objects[11]/name = <CFKeyedArchiverUID 0x12a436520 [0x1ff064d88]>{value = 14}
+[bq9]   root/$objects[11]/baUUID = <CFKeyedArchiverUID 0x12a436460 [0x1ff064d88]>{value = 34}
+[bq9]   root/$objects: ... 54 more
+[bq9]   root/$archiver = "NSKeyedArchiver"
+[bq9]   root/$top: dict(1)
+[bq9]   root/$top/root = <CFKeyedArchiverUID 0x12a436120 [0x1ff064d88]>{value = 1}
+[bq9]   slot objects[11].name -> objects[14] = "Кurt AirPods Pro"
+[bq9]   slot objects[11].accessoryType -> objects[13] = "642b3772d4bc7943813a2db060569cbb99032ea635da1f7590e875b5ca6c5c41"
+[bq9]   slot objects[11].style -> objects[33] = "0"
+[bq9]   slot objects[37].name -> objects[40] = "AirPods Pro (Артем) #2 - Find My"
+[bq9]   slot objects[37].accessoryType -> objects[39] = "d698de70c4177995dbe15a33e3985e66db0bfa044dfd70dd38e82262394bac0d"
+[bq9]   slot objects[37].style -> objects[33] = "0"
+[bq9]   slot objects[37].baUUID -> objects[0] = "$null"
+[bq9]   slot objects[49].name -> objects[52] = "AirPods Pro (Поля)"
+[bq9]   slot objects[49].accessoryType -> objects[51] = "d698de70c4177995dbe15a33e3985e66db0bfa044dfd70dd38e82262394bac0d"
+[bq9]   slot objects[49].style -> objects[33] = "0"
+[bq9]   slot objects[49].baUUID -> objects[0] = "$null"
+[bq9] done
+[probe13] bq9-only mode, stop

@@ -1,0 +1,21 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x4f27
+[scaler] conn 0x4f27, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq9] v176 content substitution: MODIFY 
+[bq9] CONTROL §170 point -> handle 1
+[bq9] target: /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist
+[bq9] current: 2942 bytes
+[bq9] backup verified: 2942 bytes -> /var/mobile/Containers/Data/Application/8ED5C3F1-8F3F-48A2-BBFF-0010F0314D0C/Documents/bq9-com.apple.icloud.findmydeviced.accessories.plist.bak
+[bq9] MODIFY: entry objects[11], slot objects[14] field='name'
+[bq9]   old: "Кurt AirPods Pro"
+[bq9]   new: "Кurt AirPods Pro fz29"
+[bq9] MODIFY w=4257/4257 reparse-slot=1 — CHANGE LEFT IN PLACE
+[bq9] --- CHECKLIST ---
+[bq9] 1. wait ~10+ min (daemon rewrites this file every ~10 min)
+[bq9] 2. classify: ./relay/runf.sh bq9 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ9=1 FUZZ_BQ9_CHECK=1
+[bq9] 3. restore:  ./relay/runf.sh bq9 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ9=1 FUZZ_BQ9_ROLLBACK=1
+[bq9] backup: /var/mobile/Containers/Data/Application/8ED5C3F1-8F3F-48A2-BBFF-0010F0314D0C/Documents/bq9-com.apple.icloud.findmydeviced.accessories.plist.bak
+[bq9] done
+[probe13] bq9-only mode, stop

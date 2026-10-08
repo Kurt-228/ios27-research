@@ -1,0 +1,15 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c0f
+[scaler] conn 0x7c0f, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq6] v174 activity watch: stat-only snapshot + diff
+[bq6] CONTROL §170 point -> handle 1
+[bq6] home: /var/mobile/Containers/Data/Application/1DDD2CD3-0093-4CE2-8E84-1C72D2AF3AD5
+[bq6] snapshot: 120 files across system containers (0 stat failures during walk)
+[bq6]   MOVED  /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist (2942->2942 bytes, mtime +619)
+[bq6]   MOVED  /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.connectedAccessories.plist (284->284 bytes, mtime +619)
+[bq6] DIFF since previous window: 2 moved, 0 new, 0 gone (of 120 now / 120 before)
+[bq6] snapshot stored: /var/mobile/Containers/Data/Application/1DDD2CD3-0093-4CE2-8E84-1C72D2AF3AD5/Documents/bq6-snapshot.txt
+[bq6] done
+[probe13] bq6-only mode, stop
