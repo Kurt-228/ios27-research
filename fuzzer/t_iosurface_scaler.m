@@ -25517,6 +25517,206 @@ static void p_bq4(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V174 (p_bq5): the external-observation test, PREPARED BUT NOT RUN.
+//
+// §176 proved the write primitive and then hit its own wall: from inside
+// the sandbox there is no channel to see whether a daemon re-read what we
+// wrote. mtime stays silent, lsd filters its answers, LSCopy* is not
+// exported. The only observer that can tell "daemon consumed our change"
+// is one outside the sandbox — the Mac this repo lives on, plus human
+// actions the sandbox cannot perform (respring, reboot, launching apps).
+//
+// So this phase is a three-position switch, designed so the destructive
+// position (MODIFY) leaves the system in a state that CHECK can classify
+// and ROLLBACK can prove restored, with the backup surviving both the
+// process and the device:
+//
+//   FUZZ_BQ5_MODIFY=1     control -> verified backup in OUR container ->
+//                         add fz27_probe/fz27_run keys -> verify reparse
+//                         -> RELEASE handle and LEAVE THE CHANGE IN PLACE.
+//                         Prints the exact checklist for the operator.
+//   FUZZ_BQ5_CHECK=1      read target, reparse, compare with backup, then
+//                         classify one of:
+//                           CLEAN            == backup bytes (never
+//                                              modified, or rolled back)
+//                           MODIFIED-BY-US   probe key present (our change
+//                                              still in place)
+//                           REWRITTEN-BY-DAEMON probe absent, bytes differ
+//                                              from backup — THE external
+//                                              test's positive signal: some
+//                                              privileged process re-read
+//                                              and re-serialized the file
+//   FUZZ_BQ5_ROLLBACK=1   restore backup bytes, byte-verify, report.
+//
+// Without any FUZZ_BQ5_* switch the phase does nothing at all — a bare
+// `runf.sh bq5` must never leave a modification behind, because the whole
+// point of the three-position design is that forgetting the flag is the
+// safe outcome.
+//
+// Target: the same DefaultAppQueryState.plist as §176 — small, benign,
+// known-parseable, never a live sqlite or keychain.
+// ---------------------------------------------------------------------------
+
+static NSString *bq5_target(void) {
+    return @"/var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85"
+            "/DefaultAppQueryState.plist";
+}
+static NSString *bq5_backup_path(void) {
+    return [NSHomeDirectory()
+        stringByAppendingPathComponent:@"Documents/bq5-DefaultAppQueryState.bak"];
+}
+
+static void p_bq5(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    const int do_modify = getenv("FUZZ_BQ5_MODIFY") != NULL;
+    const int do_check = getenv("FUZZ_BQ5_CHECK") != NULL;
+    const int do_rollback = getenv("FUZZ_BQ5_ROLLBACK") != NULL;
+
+    if (!do_modify && !do_check && !do_rollback) {
+        LOG("[bq5] v174 external-test switch — no mode selected, doing nothing.");
+        LOG("[bq5] modes: FUZZ_BQ5_MODIFY=1 | FUZZ_BQ5_CHECK=1 | FUZZ_BQ5_ROLLBACK=1");
+        LOG("[bq5] done");
+        return;
+    }
+    LOG("[bq5] v174 external test: %s%s%s", do_modify ? "MODIFY " : "",
+        do_check ? "CHECK " : "", do_rollback ? "ROLLBACK" : "");
+
+    // Every mode needs the escape; without it CHECK cannot even read the
+    // target and must say so rather than report a false CLEAN.
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq5] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — CHECK would be blind, MODIFY impossible ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq5] done"); return; }
+
+    NSString *tgt = bq5_target();
+    NSString *bakPath = bq5_backup_path();
+    NSData *cur = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+
+    // ---- CHECK: classify the current state against the backup.
+    if (do_check) {
+        if (cur.length == 0) {
+            LOG("[bq5] CHECK: target unreadable (%zu bytes) — result UNKNOWN",
+                (size_t)cur.length);
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        struct stat st = {0};
+        stat(tgt.fileSystemRepresentation, &st);
+        CFPropertyListRef rp = CFPropertyListCreateWithData(
+            kCFAllocatorDefault, (__bridge CFDataRef)cur, 0, NULL, NULL);
+        BOOL hasKey = rp && [(__bridge id)rp isKindOfClass:[NSDictionary class]]
+                      && [(__bridge NSDictionary *)rp objectForKey:@"fz27_probe"];
+        if (rp) CFRelease(rp);
+        NSData *bak = [NSData dataWithContentsOfFile:bakPath options:0 error:nil];
+        const char *cls;
+        if (bak.length && [cur isEqualToData:bak]) cls = "CLEAN (== backup)";
+        else if (hasKey) cls = "MODIFIED-BY-US (probe key present)";
+        else if (bak.length) cls = "REWRITTEN-BY-DAEMON *** EXTERNAL TEST POSITIVE ***";
+        else cls = "UNKNOWN (no backup to compare against)";
+        LOG("[bq5] CHECK: %zu bytes, mtime %lld, key=%d, backup=%zu -> %s",
+            (size_t)cur.length, (long long)st.st_mtime, hasKey ? 1 : 0,
+            (size_t)bak.length, cls);
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq5] done"); return;
+    }
+
+    // ---- MODIFY: backup first, verified; every failure before the write
+    // leaves the system untouched and says so.
+    if (do_modify) {
+        if (cur.length == 0) {
+            LOG("[bq5] MODIFY: target unreadable — aborting, system untouched");
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        if (![cur writeToFile:bakPath options:NSDataWritingAtomic error:nil] ||
+            ![[NSData dataWithContentsOfFile:bakPath options:0 error:nil]
+                isEqualToData:cur]) {
+            LOG("[bq5] MODIFY: backup missing/unverified — aborting, system untouched");
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        LOG("[bq5] backup verified: %zu bytes -> %s", (size_t)cur.length,
+            bakPath.fileSystemRepresentation);
+        CFPropertyListRef plist = CFPropertyListCreateWithData(
+            kCFAllocatorDefault, (__bridge CFDataRef)cur,
+            kCFPropertyListMutableContainersAndLeaves, NULL, NULL);
+        if (!plist) {
+            LOG("[bq5] MODIFY: parse failed — aborting, system untouched");
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        NSMutableDictionary *md =
+            [(__bridge id)plist isKindOfClass:[NSMutableDictionary class]]
+                ? (__bridge NSMutableDictionary *)plist
+                : [(__bridge id)plist mutableCopy];
+        CFRelease(plist);
+        md[@"fz27_probe"] = @"external-test-v174";
+        md[@"fz27_run"] = [NSString stringWithFormat:@"%lld", (long long)time(NULL)];
+        CFDataRef cmod = CFPropertyListCreateData(kCFAllocatorDefault,
+            (__bridge CFPropertyListRef)md, kCFPropertyListBinaryFormat_v1_0,
+            0, NULL);
+        NSData *mod = (__bridge_transfer NSData *)cmod;
+        if (!mod) {
+            LOG("[bq5] MODIFY: serialize failed — aborting, system untouched");
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        int fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+        if (fd < 0) {
+            LOG("[bq5] MODIFY: W-open errno %d — aborting, system untouched", errno);
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        ssize_t w = write(fd, mod.bytes, mod.length);
+        fsync(fd); close(fd);
+        if (w != (ssize_t)mod.length) {
+            LOG("[bq5] MODIFY: partial write (%zd/%zu) — emergency rollback",
+                w, (size_t)mod.length);
+            fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+            if (fd >= 0) { write(fd, cur.bytes, cur.length); fsync(fd); close(fd); }
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        NSData *chk = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+        CFPropertyListRef rp = chk ? CFPropertyListCreateWithData(
+            kCFAllocatorDefault, (__bridge CFDataRef)chk, 0, NULL, NULL) : NULL;
+        BOOL hasKey = rp && [(__bridge id)rp isKindOfClass:[NSDictionary class]]
+                      && [(__bridge NSDictionary *)rp objectForKey:@"fz27_probe"];
+        if (rp) CFRelease(rp);
+        LOG("[bq5] MODIFY w=%zd/%zu reparse key=%d  — CHANGE LEFT IN PLACE",
+            w, (size_t)mod.length, hasKey ? 1 : 0);
+        LOG("[bq5] --- OPERATOR CHECKLIST (external test armed) ---");
+        LOG("[bq5] 1. observe externally: respring / reboot / launch apps / "
+            "dns-sd from the Mac (see docs/external-test-runbook-v174.md)");
+        LOG("[bq5] 2. classify:  ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK=1");
+        LOG("[bq5] 3. restore:    ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_ROLLBACK=1");
+        LOG("[bq5] 4. confirm:    the CHECK above must say CLEAN");
+        LOG("[bq5] backup survives here: %s", bakPath.fileSystemRepresentation);
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq5] done"); return;
+    }
+
+    // ---- ROLLBACK: restore and prove byte-identity.
+    if (do_rollback) {
+        NSData *bak = [NSData dataWithContentsOfFile:bakPath options:0 error:nil];
+        if (bak.length == 0) {
+            LOG("[bq5] ROLLBACK: no backup at %s — nothing done",
+                bakPath.fileSystemRepresentation);
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        int fd = open(tgt.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+        if (fd < 0) {
+            LOG("[bq5] ROLLBACK: W-open errno %d — target unchanged", errno);
+            bad_query_release(h); LOG("[bq5] done"); return;
+        }
+        ssize_t w = write(fd, bak.bytes, bak.length);
+        fsync(fd); close(fd);
+        NSData *fin = [NSData dataWithContentsOfFile:tgt options:0 error:nil];
+        LOG("[bq5] ROLLBACK w=%zd/%zu, byte-identical=%d%s", w, (size_t)bak.length,
+            [fin isEqualToData:bak] ? 1 : 0,
+            [fin isEqualToData:bak] ? "  (system restored)" :
+                                      "  *** MISMATCH — CHECK will show it too ***");
+        fsync(fileno(stderr));
+        bad_query_release(h); LOG("[bq5] done"); return;
+    }
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -29999,6 +30199,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ5")) { p_bq5(); LOG("[probe13] bq5-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
