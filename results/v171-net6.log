@@ -1,0 +1,98 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c0b
+[scaler] conn 0x7c0b, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[net6] v171 IPv6 ext-hdr / SCTP / MPTCP / cmsg / sysctl-write / ioctl-write
+[net6] CONTROL sysctl read kern.maxproc -> rc 0 v 2000 errno 0
+[net6] CONTROL loop datagram bind=0 send=3 recv=3 ('ctl')
+[net6] ipv6 dgram socket -> 4 errno 0
+[net6] IPV6_2292HOPOPTS well-formed -> -1 errno 22
+[net6] IPV6_2292HOPOPTS len=0xff     -> -1 errno 22
+[net6] IPV6_2292HOPOPTS len=6 (not 8n) -> -1 errno 22
+[net6] IPV6_2292DSTOPTS well-formed -> -1 errno 22
+[net6] IPV6_2292DSTOPTS len=0xff     -> -1 errno 22
+[net6] IPV6_2292RTHDR type 0 -> -1 errno 22
+[net6] IPV6_2292RTHDR type 2 -> -1 errno 22
+[net6] IPV6_2292RTHDR len=0xff -> -1 errno 22
+[net6] proto 132 SCTP                               stream=-1(43) dgram=-1(43) seq=-1(1)
+[net6] proto 136 UDPLITE                            stream=-1(43) dgram=-1(43) seq=-1(1)
+[net6] proto 262 MPTCP                              stream=-1(43) dgram=-1(43) seq=-1(1)
+[net6] proto 255 RAW(255) — control, §163 said EPERM stream=-1(41) dgram=-1(41) seq=-1(1)
+[net6] setsockopt IP_OPTIONS 4x NOP (legal trivial)     n=4 -> rc 0 errno 0  *** ACCEPTED ***
+[net6]   egress with accepted options -> send 3 errno 0
+[net6]   getsockopt IP_OPTIONS -> rc 0 len 8 bytes 00 00 00 00
+[net6] setsockopt IP_OPTIONS EOL + 7 pad (legal)        n=8 -> rc 0 errno 0  *** ACCEPTED ***
+[net6]   egress with accepted options -> send 3 errno 0
+[net6]   getsockopt IP_OPTIONS -> rc 0 len 12 bytes 00 00 00 00
+[net6] setsockopt IP_OPTIONS LSRR 1 hop (legal shape)   n=8 -> rc 0 errno 0  *** ACCEPTED ***
+[net6]   egress with accepted options -> send 3 errno 0
+[net6]   getsockopt IP_OPTIONS -> rc 0 len 8 bytes 7f 00 00 01
+[net6] setsockopt IP_OPTIONS LSRR len=40 in 8B buffer   n=8 -> rc -1 errno 22
+[net6] setsockopt IP_OPTIONS unknown option type 0x1f   n=4 -> rc 0 errno 0  *** ACCEPTED ***
+[net6]   egress with accepted options -> send 3 errno 0
+[net6]   getsockopt IP_OPTIONS -> rc 0 len 8 bytes 00 00 00 00
+[net6] setsockopt IP_OPTIONS security opt len=0 (loop candidate) n=8 -> rc -1 errno 22
+[net6] listener IP_RECVOPTS rc 0 errno 0, IP_RECVRETOPTS rc 0 errno 0
+[net6] sendmsg IP_PKTINFO ifindex=0x7fffffff -> -1 errno 6
+[net6] sendmsg IP_RETOPTS (8B LSRR-ish) -> 4 errno 0  (§165 setsockopt said EINVAL)
+[net6] sendmsg v6-HOPOPTS cmsg on v4 socket -> 4 errno 0
+[net6] listener recvmsg after cmsg batch -> 4, controllen 0
+[net6] sysctl net.inet.ip.ttl            READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet6.ip6.hoplimit     nametomib errno 2
+[net6] sysctl net.inet.ip.mtudisc        nametomib errno 2
+[net6] sysctl net.inet.tcp.sendspace     READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet.tcp.recvspace     READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet.udp.recvspace     READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet.udp.maxdgram      READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet.icmp.icmplim      nametomib errno 2
+[net6] sysctl kern.maxfiles              READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl kern.maxproc               read=2000 write(same) rc -1 errno 1
+[net6] sysctl kern.ipc.maxsockbuf        read=8388608 write(same) rc -1 errno 1
+[net6] sysctl kern.ipc.somaxconn         READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet.ip.forwarding     READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet6.ip6.forwarding   READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl net.inet.tcp.sendspace     READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] sysctl kern.securelevel           READ rc -1 errno 1 — write not attempted (read is the control)
+[net6] CONTROL SIOCGIFADDR lo0 -> rc 0 errno 0
+[net6] CONTROL SIOCGIFMTU  lo0 -> rc 0 mtu 16384 errno 0
+[net6] SIOCSIFMTU lo0 (same value) -> rc -1 errno 1
+[net6] CONTROL SIOCGIFFLAGS lo0 -> rc 0 flags 0xffff8049 errno 0
+[net6] SIOCSIFFLAGS lo0 (same value) -> rc -1 errno 1
+[net6] SIOCSIFADDR on nonexistent iface -> rc -1 errno 6 (EPERM=1 before ENXIO=6 means policy answers first)
+[net6] SIOCGIFCONF -> rc 0 len 2056 errno 0
+[net6]   ifnet[0] lo0
+[net6]   ifnet[1] 
+[net6]   ifnet[2] 
+[net6]   ifnet[3] 
+[net6]   ifnet[4] 
+[net6]   ifnet[5] ip0
+[net6]   ifnet[6] pdp_ip0
+[net6]   ifnet[7] pdp_ip3
+[net6]   ifnet[8] 
+[net6]   ifnet[9] ip6
+[net6]   ifnet[10] pdp_ip5
+[net6]   ifnet[11] �
+[net6]   ifnet[12] 
+[net6]   ifnet[13] 
+[net6]   ifnet[14] 
+[net6]   ifnet[15] ip9
+[net6]   ifnet[16] pdp_ip8
+[net6]   ifnet[17] 
+[net6]   ifnet[18] ip10
+[net6]   ifnet[19] XHC0
+[net6]   ifnet[20] 
+[net6]   ifnet[21] 
+[net6]   ifnet[22] c0
+[net6]   ifnet[23] �:
+[net6]   ifnet[24] 
+[net6]   ifnet[25] �termnus
+[net6]   ifnet[26] 
+[net6]   ifnet[27] 
+[net6]   ifnet[28] c3
+[net6]   ifnet[29] ipsec4
+[net6]   ifnet[30] 
+[net6]   ifnet[31] 0
+[net6] all probes completed, process still alive
+[net6] done
+[probe13] netv6-only mode, stop

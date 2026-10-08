@@ -1,0 +1,51 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e0f
+[scaler] conn 0x7e0f, s1 168 s2 171
+[probe12] SetNotificationPort -> 0x00000000
+[net] v163 network stack probe start
+[net] ipv4 dgram socket -> 3 (errno 0)
+[net] ipv6 dgram socket -> 4 (errno 0)
+[net] raw socket (IPPROTO_RAW=255) -> -1 errno 1  (refused — no header control, as expected on modern iOS)
+[net] raw socket (IPPROTO_ICMP=1) -> -1 errno 1
+[net] ipv6 raw socket -> -1 errno 1
+[net] loopback listener bind -> 0 errno 0, port 55219
+[net] v4 loopback payload 0      -> sent 0 errno 0
+[net] v4 loopback payload 1      -> sent 1 errno 0
+[net] v4 loopback payload 2      -> sent 2 errno 0
+[net] v4 loopback payload 64     -> sent 64 errno 0
+[net] v4 loopback payload 512    -> sent 512 errno 0
+[net] v4 loopback payload 1400   -> sent 1400 errno 0
+[net] v4 loopback payload 1472   -> sent 1472 errno 0
+[net] v4 loopback payload 1473   -> sent 1473 errno 0
+[net] v4 loopback payload 2048   -> sent 2048 errno 0
+[net] v4 loopback payload 8000   -> sent 8000 errno 0
+[net] v4 loopback payload 65500  -> sent -1 errno 40
+[net] v4 loopback payload 65507  -> sent -1 errno 40
+[net] v4 -> closed port 1 payload 512 -> sent 512 errno 0
+[net] v4 -> closed port 1 payload 512 -> sent 512 errno 0
+[net] v4 -> closed port 1 payload 512 -> sent 512 errno 0
+[net] v4 -> closed port 1 payload 512 -> sent 512 errno 0
+[net] recv 1 bytes, pattern intact
+[net] recv 2 bytes, pattern intact
+[net] recv 64 bytes, pattern intact
+[net] recv 512 bytes, pattern intact
+[net] recv 1400 bytes, pattern intact
+[net] recv 1472 bytes, pattern intact
+[net] recv 1473 bytes, pattern intact
+[net] recv 2048 bytes, pattern intact
+[net] recv 8000 bytes, pattern intact
+[net] v6 loopback listener bind -> 0 errno 0 port 57621
+[net] v6 loopback payload 256 -> sent 256 errno 0
+[net] v6 loopback payload 256 -> sent 256 errno 0
+[net] v6 loopback payload 256 -> sent 256 errno 0
+[net] v6 loopback payload 256 -> sent 256 errno 0
+[net] mcast 224.0.0.1:5353 -> sent -1 errno 65
+[net] mcast 224.0.0.1:5353 -> sent -1 errno 65
+[net] mcast 224.0.0.1:5353 -> sent -1 errno 65
+[net] mcast 224.0.0.1:5353 -> sent -1 errno 65
+[net] mcast with IP_TTL 0 -> sent -1 errno 65
+[net] mcast with IP_TTL 1 -> sent -1 errno 65
+[net] all probes completed, process still alive
+[net] done
+[probe13] net-only mode, stop

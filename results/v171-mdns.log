@@ -1,0 +1,57 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7d03
+[scaler] conn 0x7d03, s1 167 s2 168
+[probe12] SetNotificationPort -> 0x00000000
+[mdns] v171 loopback daemons: mDNSResponder in dialect, patient 1080
+[mdns]   ifnet lo0      flags 0x8049 UP 127.0.0.1
+[mdns]   ifnet lo0      flags 0x8049 UP ::1
+[mdns]   ifnet lo0      flags 0x8049 UP fe80::1
+[mdns]   ifnet pdp_ip0  flags 0x8051 UP 10.251.19.107
+[mdns]   ifnet ipsec0   flags 0x8051 UP fe80::4896:de5:880e:8c68
+[mdns]   ifnet ipsec0   flags 0x8051 UP fd74:6572:6d6e:7573:d:41b:ea80:63a
+[mdns]   ifnet ipsec0   flags 0x8051 UP 192.0.0.6
+[mdns]   ifnet ipsec0   flags 0x8051 UP fd74:6572:6d6e:7573:c:41b:ea80:63a
+[mdns]   ifnet utun0    flags 0x8051 UP fe80::e85f:20f3:f04e:3765
+[mdns]   ifnet en0      flags 0x8863 UP fe80::10d7:d768:7569:a6a9
+[mdns]   ifnet en0      flags 0x8863 UP 192.168.68.102
+[mdns]   ifnet nan0     flags 0x8822 DOWN fe80::88f2:9eff:fe22:1a59
+[mdns]   ifnet utun1    flags 0x8051 UP fe80::e2a6:c586:521b:26f
+[mdns]   ifnet utun2    flags 0x8051 UP fe80::ce81:b1c:bd2c:69e
+[mdns]   ifnet awdl0    flags 0x8863 UP fe80::3c92:ffff:fee8:e6b8
+[mdns]   ifnet anpi0    flags 0x8863 UP fe80::908b:b3ff:fe8c:a027
+[mdns]   ifnet en2      flags 0x8863 UP fe80::4ce:8614:599b:2401
+[mdns]   ifnet en2      flags 0x8863 UP 192.168.234.3
+[mdns]   ifnet en2      flags 0x8863 UP fd50:ec5d:cebd:4f7c:18e5:89cb:b384:553a
+[mdns]   ifnet llw0     flags 0x8863 UP fe80::3c92:ffff:fee8:e6b8
+[mdns]   ifnet utun3    flags 0x8051 UP fe80::88d2:d50:3d40:61e7
+[mdns]   ifnet utun3    flags 0x8051 UP fd7b:b278:1be1::1
+[mdns]   ifnet utun4    flags 0x8051 UP 10.8.1.1
+[mdns] CONTROL self round-trip send=3 recv=3
+[mdns] unicast 127.0.0.1:5353 mDNS meta-query -> send 46 recv -1 errno 35
+[mdns] unicast 127.0.0.1:5353 DNS-flavoured (id 0x1234 RD) -> send 46 recv -1 errno 35
+[mdns] mcast 224.0.0.251:5353 via lo0 (if=0) -> setif 0 send 46 err 0 recv -1 err 35
+[mdns] mcast ff02::fb:5353 via lo0 (if=1) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast 224.0.0.251:5353 via pdp_ip0 (if=0) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast ff02::fb:5353 via ipsec0 (if=14) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast 224.0.0.251:5353 via ipsec0 (if=0) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast ff02::fb:5353 via ipsec0 (if=14) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast 224.0.0.251:5353 via en0 (if=0) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast 224.0.0.251:5353 via en2 (if=0) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast ff02::fb:5353 via en2 (if=28) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast ff02::fb:5353 via utun3 (if=30) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] mcast 224.0.0.251:5353 via utun4 (if=0) -> setif 0 send -1 err 65 recv -1 err 35
+[mdns] reached: 0 of 3 probe kinds got a reply  — responder silent on every address; the §164 negative holds for these shapes too
+[mdns] 5353-bound receiver: bind rc 0 errno 0, join mcast rc 0 errno 0
+[mdns] re-ask (source port + group socket both watched): send 46 recv -1 errno 35
+[mdns] no answer even to a legal query through a receiver that can hear the multicast group — §164 negative confirmed with a detector that was proven to work
+[mdns] unicast to 192.168.68.102 (en0):5353 -> send 46 err 0 recv -1 err 35
+[mdns] unicast to 192.168.234.3 (en2):5353 -> send 46 err 0 recv -1 err 35
+[mdns] from source port 5353 (bind rc 0 err 0): send 46 err 0 group-recv -1 err 35
+[mdns] 1080 connect -> 0 errno 0 (waiting 3s for a banner)
+[mdns] 1080 unsolicited banner -> 0 errno 0
+[mdns] 1080 SOCKS5 greeting -> send 3 reply 0 errno 0
+[mdns] 1080 HTTP CONNECT -> send 59 reply 0 errno 0
+[mdns] 1080 SOCKS4a -> send 9 reply 0 errno 0
+[mdns] done
+[probe13] mdns-only mode, stop

@@ -1,0 +1,10 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5813
+[scaler] conn 0x5813, s1 13 s2 158
+[probe12] SetNotificationPort -> 0x00000000
+[lsvc] v164 loopback port surface — TCP connect and UDP reply probes
+[lsvc] TCP OPEN  127.0.0.1:1080
+[lsvc] RESULT 1 TCP open, 0 UDP answered, of 66 ports probed
+[lsvc] done
+[probe13] lsvc-only mode, stop

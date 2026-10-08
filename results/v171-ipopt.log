@@ -1,0 +1,21 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7903
+[scaler] conn 0x7903, s1 13 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[ipopt] v165 probing header control on permitted socket types
+[ipopt] datagram socket -> 3
+[ipopt] IP_OPTIONS (13 bytes) -> -1 errno 22  (refused)
+[ipopt] IP_HDRINCL on datagram -> -1 errno 42  (refused, as documented)
+[ipopt] IP_TOS -1 -> 0 errno 0
+[ipopt] IP_TOS 255 -> 0 errno 0
+[ipopt] IP_RECVTTL (ask for TTL in recvmsg cmsg) -> 0 errno 0
+[ipopt] IP_RECVPKTINFO -> 0 errno 0
+[ipopt] IP_DONTFRAG -> -1 errno 42
+[ipopt] IP_MTU=68 (deliberately below any real MTU) -> 0 errno 0
+[ipopt] send 8192 with MTU 68 -> 8192 errno 0
+[ipopt] wrote 18 bytes to 1080
+[ipopt] 1080 accepted then said nothing (-1, errno 35)
+[ipopt] SOCKS5 greet sent 3, reply -1:
+[ipopt] done (alive)
+[probe13] ipopt-only mode, stop

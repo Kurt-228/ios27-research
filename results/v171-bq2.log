@@ -1,0 +1,153 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x560f
+[scaler] conn 0x560f, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq2] v171 bad_query parameter space: write / roots / class / part / flags / symbols
+[bq2] CONTROL §170 point -> handle 1
+[bq2] CONTROL 2 write in own container: /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents
+[bq2] WRITE /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents -> created, w=4 r=4 'fz27' unlink=0  *** WRITE OK ***
+[bq2] NEGATIVE CONTROL write into Data/System with no handle
+[bq2] WRITE /var/containers/Data/System                    -> open(O_CREAT) errno 1  (denied)
+[bq2] CONTROL 3 write through escaped descriptor into Data/System
+[bq2] WRITE /var/containers/Data/System                    -> created, w=4 r=4 'fz27' unlink=0  *** WRITE OK ***
+[bq2] deeper write target: /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8
+[bq2] WRITE /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8 -> created, w=4 r=4 'fz27' unlink=0  *** WRITE OK ***
+[bq2] root /var/containers/Data/System                  lstat=ok q0=3 q1=3 null=3
+[bq2]    entry: AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8
+[bq2]    entry: EDFBF92A-FACC-41EE-901E-25CFC69F3058
+[bq2]    entry: AF589EEA-A5CE-42E9-B955-96B9234C5A85
+[bq2]    entry: 58E4FA29-796D-400C-8ADF-37FC9B1176FC
+[bq2]    entry: 733E686B-C093-4E1B-B775-35A1D2237AF8
+[bq2]    entry: 8EB68272-6502-49E9-B688-25CA4774CFE4
+[bq2]    entry: 0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9
+[bq2]    entry: D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB
+[bq2]    ^ 8 entries listed through the descriptor
+[bq2] root /var/containers                              lstat=ok q0=-4 q1=-4 null=-4
+[bq2] root /var/containers/Shared/SystemGroup           lstat=ok q0=-4 q1=-4 null=-4
+[bq2] root /var/mobile/Containers/Shared/AppGroup       lstat=ok q0=4 q1=4 null=4
+[bq2]    entry: B9B1B885-DFCF-4CC6-8CFB-230CC0808BE4
+[bq2]    entry: DDEFF9D2-E9A0-4CBE-A152-E9DA1DB1D254
+[bq2]    entry: 653FAA4F-967F-4C0D-A115-53F3B3079DA3
+[bq2]    entry: 02B1B2C6-99CD-4699-B705-9E6020B6140B
+[bq2]    entry: 223542C8-036C-4E1C-9FE6-601AAF89A31B
+[bq2]    entry: 0DB15836-8901-4427-8319-79F8706AC1C9
+[bq2]    entry: 4FAFB123-34B2-42A6-BE5C-13A5D5FE4612
+[bq2]    entry: AFAE2F4D-00A4-4136-826A-D0EAB1782726
+[bq2]    ^ 8 entries listed through the descriptor
+[bq2] root /var/db                                      lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /private/var/db                              lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /var/protected                               lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /var/mobile/Library                          lstat=ok q0=-4 q1=-4 null=-4
+[bq2] root /var/mobile/Library/Logs                     lstat=ok q0=-4 q1=-4 null=-4
+[bq2] root /var/mobile/Library/Preferences              lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /var/root                                    lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /var/tmp                                     lstat=ok q0=-4 q1=-4 null=-4
+[bq2] root /var/preferences                             lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /var/logs                                    lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /etc                                         lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /Library                                     lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /Library/Preferences                         lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /System                                      lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /System/Library                              lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /System/Library/LaunchDaemons                lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /usr                                         lstat=ok q0=-3 q1=-3 null=-3
+[bq2] root /usr/libexec                                 lstat=ok q0=-3 q1=-3 null=-3
+[bq2] class sweep, grp route (control class 7):
+[bq2]   class 1  -> -3
+[bq2]   class 2  -> -4
+[bq2]   class 3  -> -3
+[bq2]   class 4  -> -3
+[bq2]   class 5  -> -3
+[bq2]   class 6  -> -3
+[bq2]   class 7  -> 3  (control class)
+[bq2]   class 8  -> -3
+[bq2]   class 9  -> -3
+[bq2]   class 10 -> -3
+[bq2]   class 11 -> -3
+[bq2]   class 12 -> -3
+[bq2]   class 13 -> -3
+[bq2]   class 14 -> -3
+[bq2]   class 15 -> -3
+[bq2]   class 16 -> -3
+[bq2] class sweep, NULL route (control class 13):
+[bq2]   class 1  -> -3
+[bq2]   class 2  -> -4
+[bq2]   class 3  -> -3
+[bq2]   class 4  -> -3
+[bq2]   class 5  -> -3
+[bq2]   class 6  -> -3
+[bq2]   class 7  -> -3
+[bq2]   class 8  -> -3
+[bq2]   class 9  -> -3
+[bq2]   class 10 -> -3
+[bq2]   class 11 -> -3
+[bq2]   class 12 -> -3
+[bq2]   class 13 -> 3  (control class)
+[bq2]   class 14 -> -3
+[bq2]   class 15 -> -3
+[bq2]   class 16 -> -3
+[bq2] part sweep (depth fixed at the §170 value):
+[bq2]   part 0 -> grp -4  null -4
+[bq2]   part 1 -> grp -3  null -3
+[bq2]   part 2 -> grp 5  null 5
+[bq2]   part 3 -> grp 3  null 3  (control part)
+[bq2]   part 4 -> grp -3  null -3
+[bq2]   part 5 -> grp -3  null -3
+[bq2]   part 6 -> grp -3  null -3
+[bq2]   part 7 -> grp -4  null -4
+[bq2] flag sweep:
+[bq2]   flags 0x0000008000000000 -> 3
+[bq2]   flags 0x0000000800000000 -> -4
+[bq2]   flags 0x0000000000000000 -> -4
+[bq2]   flags 0x0000010000000000 -> -4
+[bq2]   flags 0x0000004000000000 -> 6
+[bq2]   flags 0x0000000400000000 -> -4
+[bq2]   flags 0x0000000080000000 -> -4
+[bq2] symtab: open /usr/lib/system/libsystem_containermanager.dylib -> errno 2
+[bq2]   dlsym container_query_operation_set_part_domain                            img=0x2096376f8 global=0x2096376f8
+[bq2]   dlsym container_query_set_part_domain                                      img=0x0 global=0x0
+[bq2]   dlsym container_query_set_part                                             img=0x0 global=0x0
+[bq2]   dlsym container_query_set_url                                              img=0x0 global=0x0
+[bq2]   dlsym container_query_set_path                                             img=0x0 global=0x0
+[bq2]   dlsym container_query_set_scope                                            img=0x0 global=0x0
+[bq2]   dlsym container_query_set_current_holder                                   img=0x0 global=0x0
+[bq2]   dlsym container_query_set_identifiers                                      img=0x209620a9c global=0x209620a9c
+[bq2]   dlsym container_query_set_group_identifiers                                img=0x209617644 global=0x209617644
+[bq2]   dlsym container_query_set_flags                                            img=0x0 global=0x0
+[bq2]   dlsym container_query_operation_set_flags                                  img=0x209617e28 global=0x209617e28
+[bq2]   dlsym container_query_operation_set_part                                   img=0x2096374d0 global=0x2096374d0
+[bq2]   dlsym container_create_or_lookup_app_group_path_by_app_group_identifier    img=0x20961ef6c global=0x20961ef6c
+[bq2]   dlsym container_create_or_lookup_system_group_path_by_system_group_identifier img=0x0 global=0x0
+[bq2]   dlsym container_copy_sandbox_token                                         img=0x209625da4 global=0x209625da4
+[bq2]   dlsym container_copy_external_token_for_path                               img=0x0 global=0x0
+[bq2]   dlsym container_sandbox_extension_copy_token                               img=0x0 global=0x0
+[bq2]   dlsym sandbox_extension_issue_file                                         img=0x2c496be98 global=0x2c496be98
+[bq2]   dlsym sandbox_extension_issue_file_to_process                              img=0x2c496bf14 global=0x2c496bf14
+[bq2]   dlsym sandbox_extension_issue_generic                                      img=0x2c496c320 global=0x2c496c320
+[bq2]   dlsym sandbox_extension_issue_mach                                         img=0x2c496d9cc global=0x2c496d9cc
+[bq2] issue_file=0x2c496be98 consume=0x2c496c560
+sandbox_extension_issue_file failed for /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents: 1 (Operation not permitted)
+[bq2] issue 'file-read-data' OWN  -> NULL
+sandbox_extension_issue_file failed for /var/db: 1 (Operation not permitted)
+[bq2] issue 'file-read-data' /var/db -> NULL
+sandbox_extension_issue_file failed for /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents: 1 (Operation not permitted)
+[bq2] issue 'file-write-data' OWN  -> NULL
+sandbox_extension_issue_file failed for /var/db: 1 (Operation not permitted)
+[bq2] issue 'file-write-data' /var/db -> NULL
+sandbox_extension_issue_file failed for /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents: 1 (Operation not permitted)
+[bq2] issue 'file-read-metadata' OWN  -> NULL
+sandbox_extension_issue_file failed for /var/db: 1 (Operation not permitted)
+[bq2] issue 'file-read-metadata' /var/db -> NULL
+sandbox_extension_issue_file failed for /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents: 1 (Operation not permitted)
+[bq2] issue 'file-issue' OWN  -> NULL
+sandbox_extension_issue_file failed for /var/db: 1 (Operation not permitted)
+[bq2] issue 'file-issue' /var/db -> NULL
+sandbox_extension_issue_file failed for /var/mobile/Containers/Data/Application/FEA08C15-B237-4A6F-8875-29F7483ABEE0/Documents: 1 (Operation not permitted)
+[bq2] issue 'file-ioctl' OWN  -> NULL
+sandbox_extension_issue_file failed for /var/db: 1 (Operation not permitted)
+[bq2] issue 'file-ioctl' /var/db -> NULL
+sandbox_extension_issue_file failed for /var/containers/Data/System: 1 (Operation not permitted)
+[bq2] issue 'file-write-data' Data/System -> NULL
+[bq2] done
+[probe13] bq2-only mode, stop

