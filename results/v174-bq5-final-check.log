@@ -1,0 +1,10 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7603
+[scaler] conn 0x7603, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq5] v174 external test: CHECK 
+[bq5] CONTROL §170 point -> handle 1
+[bq5] CHECK: 2942 bytes, mtime 1791479617, key=0, backup=2942 -> REWRITTEN-BY-DAEMON *** EXTERNAL TEST POSITIVE ***
+[bq5] done
+[probe13] bq5-only mode, stop

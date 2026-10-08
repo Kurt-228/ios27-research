@@ -25558,12 +25558,20 @@ static void p_bq4(void) {
 // ---------------------------------------------------------------------------
 
 static NSString *bq5_target(void) {
-    return @"/var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85"
-            "/DefaultAppQueryState.plist";
+    // §178: target chosen by measurement, not by hope — bq6 activity watch
+    // found findmydeviced REWRITING its own plists within minutes. An
+    // actively-written config is the only class where "daemon noticed" can
+    // ever be observed; DefaultAppQueryState stayed H0 precisely because
+    // nothing writes it. Override for experiments:
+    const char *t = getenv("FUZZ_BQ5_TARGET");
+    if (t && t[0] == '/') return [NSString stringWithUTF8String:t];
+    return @"/var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C"
+            "/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist";
 }
 static NSString *bq5_backup_path(void) {
-    return [NSHomeDirectory()
-        stringByAppendingPathComponent:@"Documents/bq5-DefaultAppQueryState.bak"];
+    NSString *base = [bq5_target() lastPathComponent];
+    return [NSString stringWithFormat:@"%@/Documents/bq5-%@.bak",
+            NSHomeDirectory(), base];
 }
 
 static void p_bq5(void) {
@@ -25714,6 +25722,187 @@ static void p_bq5(void) {
         fsync(fileno(stderr));
         bad_query_release(h); LOG("[bq5] done"); return;
     }
+}
+
+// ---------------------------------------------------------------------------
+// V174 (p_bq6): activity watch — which daemon files move on their own.
+//
+// §177's external test ended H0 on DefaultAppQueryState.plist: untouched
+// through idle, app launches, respring and full reboot. The lesson is not
+// "try another daemon" — it is "stop guessing which files are read". A
+// plist nobody re-reads is invisible no matter whose container it lives
+// in, and §144's rule applies to target selection too: a negative result
+// on a dead file is not a result about the primitive.
+//
+// So before modifying anything else, measure liveness: snapshot
+// (path, size, mtime) of every reachable file in the system daemon
+// containers, persist it in our container, and on the next run diff
+// against it. Files whose mtime moves WITHOUT our participation are
+// files privileged processes actively write — and an actively-written
+// file is the only target class where "daemon noticed" is observable
+// from outside at all.
+//
+// Two modes, both safe (stat only, no writes outside our container):
+//   FUZZ_BQ6=1         snapshot + diff since the previous snapshot
+//   FUZZ_BQ6_FORGET=1  discard the stored snapshot (start a new window)
+//
+// The snapshot lives in OUR Documents, which survives process restarts
+// (stable for a given install) — the same persistence §175 relied on.
+// ---------------------------------------------------------------------------
+
+#define BQ6_MAX_ENTRIES 1200
+
+typedef struct {
+    char path[1024];
+    off_t size;
+    time_t mtime;
+} bq6_entry;
+
+static int bq6_cmp(const void *a, const void *b) {
+    return strcmp(((const bq6_entry *)a)->path, ((const bq6_entry *)b)->path);
+}
+
+// Recursive walk with hard caps; an uncapped walk of every container can
+// take minutes and the log must not be a directory listing. Depth 3 so
+// ReportCrash/<bundle>/ and Library/Caches-style nesting are covered —
+// the depth where real content lives (§170 learned this the hard way
+// counting .ips at the wrong level).
+static void bq6_walk(const char *dir, int depth, bq6_entry *tab, int *n) {
+    if (*n >= BQ6_MAX_ENTRIES || depth < 0) return;
+    DIR *d = opendir(dir);
+    struct dirent *e;
+    while (d && (e = readdir(d)) && *n < BQ6_MAX_ENTRIES) {
+        if (e->d_name[0] == '.') continue;
+        char p[1024];
+        snprintf(p, sizeof(p), "%s/%s", dir, e->d_name);
+        struct stat st;
+        if (lstat(p, &st) != 0) continue;
+        if (S_ISREG(st.st_mode)) {
+            snprintf(tab[*n].path, sizeof(tab[*n].path), "%s", p);
+            tab[*n].size = st.st_size;
+            tab[*n].mtime = st.st_mtime;
+            (*n)++;
+        } else if (S_ISDIR(st.st_mode)) {
+            bq6_walk(p, depth - 1, tab, n);
+        }
+    }
+    if (d) closedir(d);
+}
+
+static void p_bq6(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    NSString *snapPath = [NSHomeDirectory()
+        stringByAppendingPathComponent:@"Documents/bq6-snapshot.txt"];
+
+    if (getenv("FUZZ_BQ6_FORGET")) {
+        [[NSFileManager defaultManager] removeItemAtPath:snapPath error:nil];
+        LOG("[bq6] stored snapshot discarded — next run starts a new window");
+        return;
+    }
+    LOG("[bq6] v174 activity watch: stat-only snapshot + diff");
+
+    // Control: no escape, no walk — and a CHECK-style honesty rule: if the
+    // previous snapshot is missing this run is a BASELINE, not a result.
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq6] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { return; }
+
+    static bq6_entry cur[BQ6_MAX_ENTRIES];
+    int n = 0;
+    bq6_walk("/var/containers/Data/System", 3, cur, &n);
+    qsort(cur, (size_t)n, sizeof(cur[0]), bq6_cmp);
+    LOG("[bq6] snapshot: %d files across system containers", n);
+    fsync(fileno(stderr));
+
+    // Load previous snapshot (simple text: path|size|mtime).
+    static bq6_entry prev[BQ6_MAX_ENTRIES];
+    int np = 0;
+    FILE *f = fopen(snapPath.fileSystemRepresentation, "r");
+    if (f) {
+        char line[1200];
+        while (np < BQ6_MAX_ENTRIES && fgets(line, sizeof(line), f)) {
+            char *bar1 = strchr(line, '|');
+            if (!bar1) continue;
+            *bar1 = 0;
+            long long sz = 0, mt = 0;
+            if (sscanf(bar1 + 1, "%lld|%lld", &sz, &mt) == 2) {
+                snprintf(prev[np].path, sizeof(prev[np].path), "%s", line);
+                prev[np].size = (off_t)sz;
+                prev[np].mtime = (time_t)mt;
+                np++;
+            }
+        }
+        fclose(f);
+        qsort(prev, (size_t)np, sizeof(prev[0]), bq6_cmp);
+    }
+
+    if (np == 0) {
+        LOG("[bq6] BASELINE stored (%d files). Re-run later to diff — "
+            "files whose mtime moves without us are daemon-active.", n);
+    } else {
+        // Diff: three buckets — changed, new, gone. Only changed/new are
+        // logged in full (capped), because the interesting signal is
+        // movement, and a log of 1200 unchanged paths is noise.
+        int changed = 0, newf = 0, gone = 0, logged = 0;
+        int i = 0, j = 0;
+        while (i < n || j < np) {
+            int cmp = (i < n && j < np) ? strcmp(cur[i].path, prev[j].path)
+                      : (i < n ? 1 : -1);
+            if (cmp == 0) {
+                if (cur[i].mtime != prev[j].mtime || cur[i].size != prev[j].size) {
+                    changed++;
+                    if (logged < 40) {
+                        LOG("[bq6]   MOVED  %s (%lld->%lld bytes, mtime +%lld)",
+                            cur[i].path, (long long)prev[j].size,
+                            (long long)cur[i].size,
+                            (long long)(cur[i].mtime - prev[j].mtime));
+                        logged++;
+                    }
+                }
+                i++; j++;
+            } else if (cmp > 0) {
+                newf++;
+                if (logged < 40) {
+                    LOG("[bq6]   NEW    %s", cur[i].path);
+                    logged++;
+                }
+                i++;
+            } else {
+                gone++;
+                if (logged < 40) {
+                    LOG("[bq6]   GONE   %s", prev[j].path);
+                    logged++;
+                }
+                j++;
+            }
+        }
+        LOG("[bq6] DIFF since previous window: %d moved, %d new, %d gone "
+            "(of %d now / %d before)%s", changed, newf, gone, n, np,
+            (changed + newf + gone > 40) ? "  [log capped at 40 entries]" : "");
+        if (changed + newf + gone == 0)
+            LOG("[bq6] NOTHING MOVED — this window saw no daemon activity in "
+                "these containers; widen the window or trigger the daemon");
+        fsync(fileno(stderr));
+    }
+
+    // Overwrite snapshot with the current state.
+    f = fopen(snapPath.fileSystemRepresentation, "w");
+    if (f) {
+        for (int i = 0; i < n; i++)
+            fprintf(f, "%s|%lld|%lld\n", cur[i].path,
+                    (long long)cur[i].size, (long long)cur[i].mtime);
+        fclose(f);
+        LOG("[bq6] snapshot stored: %s", snapPath.fileSystemRepresentation);
+    } else {
+        LOG("[bq6] snapshot write FAILED (errno %d) — next run will baseline again",
+            errno);
+    }
+    fsync(fileno(stderr));
+    bad_query_release(h);
+    LOG("[bq6] done");
 }
 
 // ---------------------------------------------------------------------------
@@ -30205,6 +30394,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ5") || getenv("FUZZ_BQ5_CHECK") ||
             getenv("FUZZ_BQ5_MODIFY") || getenv("FUZZ_BQ5_ROLLBACK")) {
             p_bq5(); LOG("[probe13] bq5-only mode, stop"); return NULL;
+        }
+        if (getenv("FUZZ_BQ6") || getenv("FUZZ_BQ6_FORGET")) {
+            p_bq6(); LOG("[probe13] bq6-only mode, stop"); return NULL;
         }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }

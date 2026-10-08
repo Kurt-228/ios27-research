@@ -1,0 +1,17 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5f03
+[scaler] conn 0x5f03, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq6] v174 activity watch: stat-only snapshot + diff
+[bq6] CONTROL §170 point -> handle 1
+[bq6] snapshot: 119 files across system containers
+[bq6]   MOVED  /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/Library/Caches/functions.data (393216->393216 bytes, mtime +297)
+[bq6]   MOVED  /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/Library/Caches/functions.list (4868->4980 bytes, mtime +297)
+[bq6]   MOVED  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db-shm (32768->32768 bytes, mtime +793)
+[bq6]   MOVED  /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist (2942->2942 bytes, mtime +320)
+[bq6]   MOVED  /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.connectedAccessories.plist (284->284 bytes, mtime +320)
+[bq6] DIFF since previous window: 5 moved, 0 new, 0 gone (of 119 now / 119 before)
+[bq6] snapshot stored: /var/mobile/Containers/Data/Application/601B3B48-C757-4D99-8CC0-1F2ECE615E2B/Documents/bq6-snapshot.txt
+[bq6] done
+[probe13] bq6-only mode, stop

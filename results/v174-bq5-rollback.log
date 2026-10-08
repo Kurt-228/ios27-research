@@ -1,0 +1,10 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5f03
+[scaler] conn 0x5f03, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq5] v174 external test: ROLLBACK
+[bq5] CONTROL §170 point -> handle 1
+[bq5] ROLLBACK w=2942/2942, byte-identical=1  (system restored)
+[bq5] done
+[probe13] bq5-only mode, stop
