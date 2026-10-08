@@ -25767,7 +25767,8 @@ static int bq6_cmp(const void *a, const void *b) {
 // ReportCrash/<bundle>/ and Library/Caches-style nesting are covered —
 // the depth where real content lives (§170 learned this the hard way
 // counting .ips at the wrong level).
-static void bq6_walk(const char *dir, int depth, bq6_entry *tab, int *n) {
+static void bq6_walk(const char *dir, int depth, bq6_entry *tab, int *n,
+                     int *stat_fails) {
     if (*n >= BQ6_MAX_ENTRIES || depth < 0) return;
     DIR *d = opendir(dir);
     struct dirent *e;
@@ -25776,14 +25777,14 @@ static void bq6_walk(const char *dir, int depth, bq6_entry *tab, int *n) {
         char p[1024];
         snprintf(p, sizeof(p), "%s/%s", dir, e->d_name);
         struct stat st;
-        if (lstat(p, &st) != 0) continue;
+        if (lstat(p, &st) != 0) { (*stat_fails)++; continue; }
         if (S_ISREG(st.st_mode)) {
             snprintf(tab[*n].path, sizeof(tab[*n].path), "%s", p);
             tab[*n].size = st.st_size;
             tab[*n].mtime = st.st_mtime;
             (*n)++;
         } else if (S_ISDIR(st.st_mode)) {
-            bq6_walk(p, depth - 1, tab, n);
+            bq6_walk(p, depth - 1, tab, n, stat_fails);
         }
     }
     if (d) closedir(d);
@@ -25810,11 +25811,22 @@ static void p_bq6(void) {
     fsync(fileno(stderr));
     if (h < 0) { return; }
 
+    // Home dir is logged because the snapshot lives there and the app's
+    // data container UUID changes across reinstalls: a diff whose "prev"
+    // came from a different container is an artifact, and without this
+    // line the artifact is indistinguishable from real churn (§179).
+    LOG("[bq6] home: %s", NSHomeDirectory().fileSystemRepresentation);
+    fsync(fileno(stderr));
+
     static bq6_entry cur[BQ6_MAX_ENTRIES];
-    int n = 0;
-    bq6_walk("/var/containers/Data/System", 3, cur, &n);
+    int n = 0, stat_fails = 0;
+    bq6_walk("/var/containers/Data/System", 3, cur, &n, &stat_fails);
     qsort(cur, (size_t)n, sizeof(cur[0]), bq6_cmp);
-    LOG("[bq6] snapshot: %d files across system containers", n);
+    LOG("[bq6] snapshot: %d files across system containers "
+        "(%d stat failures during walk%s)", n, stat_fails,
+        stat_fails > 20 ? " — device likely LOCKED, data-protected files "
+                          "unreadable; diff vs an unlocked window will churn"
+                        : "");
     fsync(fileno(stderr));
 
     // Load previous snapshot (simple text: path|size|mtime).
