@@ -1,0 +1,12 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7303
+[scaler] conn 0x7303, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq9] v176 content substitution: CHECK 
+[bq9] CONTROL §170 point -> handle 1
+[bq9] target: /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist
+[bq9] current: 2942 bytes
+[bq9] CHECK: 2942 bytes, mtime 1791488617, marker=fz29:0, backup=2942 -> DAEMON-REPAIRED (content re-serialized from daemon's model)
+[bq9] done
+[probe13] bq9-only mode, stop
