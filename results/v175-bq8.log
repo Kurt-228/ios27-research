@@ -1,0 +1,55 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5903
+[scaler] conn 0x5903, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq8] v175 owner map: container identifiers + launchd grep (read-only)
+[bq8] CONTROL §170 point -> handle 1
+[bq8]   AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   EDFBF92A-FACC-41EE-901E-25CFC69F3058     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   AF589EEA-A5CE-42E9-B955-96B9234C5A85     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   58E4FA29-796D-400C-8ADF-37FC9B1176FC     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   733E686B-C093-4E1B-B775-35A1D2237AF8     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   8EB68272-6502-49E9-B688-25CA4774CFE4     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   E8F726E1-00B6-4703-91D1-49267FC0F979     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   7B03FCEF-ED22-4249-828B-E7509971915F     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   867912A4-A70D-428C-9551-D28453B6F1B4     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   3E27999E-F441-4625-A423-AF11E87F71E8     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   B06F5832-48EA-445B-86F2-D2AC4468FA0C     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   327EA503-DB77-458C-A855-3B3C8622696A     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   com.apple.geod                           metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   373C8E3E-393F-46D5-A143-A9312084B0E3     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   F19F9591-A37F-4F88-A218-676D6A685493     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   7CB67CBE-31A2-474A-9555-8A0A3B979760     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   5706241F-E82B-4735-A5E8-367E43BA1E3E     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   A56ACED1-730D-4624-8C89-DE9DEAE98579     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   6043FE60-37AC-4E01-A4D9-8884DEBCC677     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8]   4E311340-1D0C-4D2B-A9BA-78E20C7C9D7D     metadata: unreadable, open errno 1 (EPERM — extension does not cover dotfiles?)
+[bq8] identifiers collected: 0 of 0 containers
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.sociallayerd.plist <- [appintents]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.caraccessoryd.plist <- [appintents]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.liveactivitiesd.plist <- [AppProtection]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.linkd.plist <- [AppProtection]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.calaccessd.plist <- [AppProtection]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.appprotectiond.plist <- [AppProtection]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.appplaceholdersyncd.plist <- [AppProtection]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.announced.plist <- [appintents]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.appstored.plist <- [ReportCrash]
+[bq8]   HIT /System/Library/LaunchDaemons/com.apple.appstorecomponentsd.plist <- [appintents]
+[bq8] /System/Library/LaunchDaemons: 661 plists, 10 hits
+[bq8] /System/Library/LaunchAgents: 0 plists, 0 hits
+[bq8]   daemon com.apple.sociallayerd                       user=mobile   prog=/System/Library/PrivateFrameworks/SocialLayer.framework/sociallayerd.app/sociallayerd
+[bq8]   daemon com.apple.caraccessoryd                      user=mobile   prog=/usr/libexec/caraccessoryd
+[bq8]   daemon com.apple.liveactivitiesd                    user=mobile   prog=(embedded/other key)
+[bq8]   daemon com.apple.linkd                              user=mobile   prog=(embedded/other key)
+[bq8]   daemon com.apple.calaccessd                         user=mobile   prog=(embedded/other key)
+[bq8]   daemon com.apple.appprotectiond                     user=mobile   prog=(embedded/other key)
+[bq8]   daemon com.apple.appplaceholdersyncd                user=(root)   prog=(embedded/other key)
+[bq8]   daemon com.apple.announced                          user=mobile   prog=/usr/libexec/announced
+[bq8]   daemon com.apple.appstored                          user=mobile   prog=(embedded/other key)
+[bq8]   daemon com.apple.appstorecomponentsd                user=mobile   prog=(embedded/other key)
+[bq8] done
+[probe13] bq8-only mode, stop
