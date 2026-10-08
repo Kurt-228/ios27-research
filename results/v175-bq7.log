@@ -1,0 +1,134 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c0f
+[scaler] conn 0x7c0f, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq7] v175 sefw container recon (read-only: list / identify / sniff)
+[bq7] CONTROL §170 point -> handle 1
+[bq7] top-level listing of /var/containers/Data/System/7CB67CBE-31A2-474A-9555-8A0A3B979760:
+[bq7]   Documents                                                    64 DIR
+[bq7]   FBBA8147BA056E0662A9244335337FC55D877FC077D20FFC8C8D8347229ABC99         96 DIR
+[bq7]   Library                                                     128 DIR
+[bq7]   tmp                                                          64 DIR
+[bq7]   LoadAndInstallBundle_DEFAULT.sefw                        574380 file
+[bq7] metadata plist unreadable (0 bytes)
+[bq7]   /LoadAndInstallBundle_DEFAULT.sefw                                                                  574380  308308c3a7800400  ASN.1/DER (0x30)
+[bq7]   /FBBA8147BA056E0662A9244335337FC55D877FC077D20FFC8C8D8347229ABC99/com.apple.softposreader.keychain         0  0000000000000000  unknown
+[bq7]   HIT 'softposreader' in /System/Library/LaunchDaemons/com.apple.softposreaderd.plist
+[bq7] /System/Library/LaunchDaemons: 661 plists scanned, 1 hits
+[bq7] /System/Library/LaunchAgents: 0 plists scanned, 0 hits
+[bq7] /Library/LaunchDaemons: opendir errno 1
+[bq7] --- com.apple.softposreaderd.plist (1476 bytes) ---
+[bq7]   | <?xml version="1.0" encoding="UTF-8"?>
+[bq7]   | <!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+[bq7]   | <plist version="1.0">
+[bq7]   | <dict>
+[bq7]   | 	<key>Label</key>
+[bq7]   | 	<string>com.apple.softposreaderd</string>
+[bq7]   | 	<key>ProcessType</key>
+[bq7]   | 	<string>Adaptive</string>
+[bq7]   | 	<key>MachServices</key>
+[bq7]   | 	<dict>
+[bq7]   | 		<key>com.apple.softposreaderd</key>
+[bq7]   | 		<true/>
+[bq7]   | 	</dict>
+[bq7]   | 	<key>EnableTransactions</key>
+[bq7]   | 	<true/>
+[bq7]   | 	<key>UserName</key>
+[bq7]   | 	<string>mobile</string>
+[bq7]   | 	<key>LaunchEvents</key>
+[bq7]   | 	<dict>
+[bq7]   | 		<key>com.apple.notifyd.matching</key>
+[bq7]   | 		<dict>
+[bq7]   | 			<key>TMRTCResetNotification</key>
+[bq7]   | 			<dict>
+[bq7]   | 				<key>Notification</key>
+[bq7]   | 				<string>TMRTCResetNotification</string>
+[bq7]   | 			</dict>
+[bq7]   | 			<key>com.apple.LaunchServices.ApplicationsChanged</key>
+[bq7]   | 			<dict>
+[bq7]   | 				<key>Notification</key>
+[bq7]   | 				<string>com.apple.LaunchServices.ApplicationsChanged</string>
+[bq7]   | 			</dict>
+[bq7]   | 			<key>com.apple.stockholm.se.mfd</key>
+[bq7]   | 			<dict>
+[bq7]   | 				<key>Notification</key>
+[bq7]   | 				<string>com.apple.stockholm.se.mfd</string>
+[bq7]   | 			</dict>
+[bq7]   | 		</dict>
+[bq7]   | 		<key>com.apple.bg.system.task</key>
+[bq7]   | 		<dict>
+[bq7]   | 			<key>com.apple.softposreader.coreAnalytics.daily</key>
+[bq7]   | 			<dict>
+[bq7]   | 				<key>Priority</key>
+[bq7]   | 				<string>Maintenance</string>
+[bq7]   | 				<key>RequiresExternalPower</key>
+[bq7]   | 				<false/>
+[bq7]   | 				<key>RepeatingTask</key>
+[bq7]   | 				<dict>
+[bq7]   | 					<key>Interval</key>
+[bq7]   | 					<integer>86400</integer>
+[bq7]   | 				</dict>
+[bq7]   | 			</dict>
+[bq7]   | 		</dict>
+[bq7]   | 	</dict>
+[bq7]   | 	<key>EnablePressuredExit</key>
+[bq7]   | 	<true/>
+[bq7]   | 	<key>Program</key>
+[bq7]   | 	<string>/usr/libexec/softposreaderd</string>
+[bq7]   | </dict>
+[bq7]   | </plist>
+[bq7]   | 
+[bq7] --- sefw strings (first 64KB, runs >= 6) ---
+[bq7]   s @00001f: SLAMDeleteBee
+[bq7]   s @0000c7: SLAMDeleteKernelAmex
+[bq7]   s @000176: SLAMDeleteKernelBancomat
+[bq7]   s @000229: SLAMDeleteKernelDiscover
+[bq7]   s @0002dc: SLAMDeleteKernelEFTPOS
+[bq7]   s @00038d: SLAMDeleteKernelInterac
+[bq7]   s @00043f: SLAMDeleteKernelJaywan
+[bq7]   s @0004f0: SLAMDeleteKernelJCB
+[bq7]   s @00059e: SLAMDeleteKernelLynx
+[bq7]   s @00064d: SLAMDeleteKernelMastercard
+[bq7]   s @000702: SLAMDeleteKernelPure
+[bq7]   s @0007b1: SLAMDeleteKernelUPI
+[bq7]   s @00083b: G?.yPd
+[bq7]   s @00085f: SLAMDeleteKernelVisa
+[bq7]   s @000910: SLAMLoadAndInstallBee
+[bq7]   s @000a59: AppleRootCA01_ 
+[bq7]   s @000a69: muirfield02
+[bq7]   s @000bed: QSPCLSD
+[bq7]   s @000c5a: QSPvASD
+[bq7]   s @000cac: QSPvASD
+[bq7]   s @000d84: :7d'=$
+[bq7]   s @000e09: 46K3<\_
+[bq7]   s @001072: R(LjZ}4
+[bq7]   s @0016af: yZo{3r
+[bq7]   s @001aa0: DZ]R]JC
+[bq7]   s @001ca3: (j!8dF
+[bq7]   s @001d80: ao-ziV
+[bq7]   s @00205e: ZZ,2Eh
+[bq7]   s @002092: NFA|n6
+[bq7]   s @002212: )xB4$a_
+[bq7]   s @0022ca: $rgwFXi
+[bq7]   s @0022ff: =Z(EG<R\
+[bq7]   s @00264d: v(|/3Z
+[bq7]   s @002d76: \<` ?lVT
+[bq7]   s @002e63: a^KA`d
+[bq7]   s @00337e: ^Z(O_c
+[bq7]   s @003483: e%7+'E
+[bq7]   s @0034fe: sRua[Q
+[bq7]   s @003718: VSR/=ji
+[bq7]   s @003763: -aOj8U
+[bq7]   s @0037c5: @64;N6cC
+[bq7]   s @003cf2: UX$7#&
+[bq7]   s @0041ec: q.]#<zo
+[bq7]   s @004390: _Di3Kz
+[bq7]   s @0048c8: awwJXHa
+[bq7]   s @004a89: ?WEn0D
+[bq7]   s @004c0c: ^oL}n=
+[bq7]   s @004e88: uBz>xI
+[bq7]   s @004e95: ka<mX{
+[bq7]   s @0053eb: CwY Aw+"
+[bq7] done
+[probe13] bq7-only mode, stop

