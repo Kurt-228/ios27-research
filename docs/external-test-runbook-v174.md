@@ -45,7 +45,7 @@ xcrun devicectl device install app --device 8A8A1D3F-AF75-5493-9585-6374D1BB90D1
 ### 1. CHECK до — должен быть CLEAN
 
 ```sh
-RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK=1
+RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_CHECK=1
 ```
 
 Ожидаемо: `CLEAN (== backup)` либо `UNKNOWN (no backup)` — оба допустимы,
@@ -55,7 +55,7 @@ RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK
 ### 2. MODIFY — вооружить тест
 
 ```sh
-RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_MODIFY=1
+RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_MODIFY=1
 ```
 
 Ожидаемо: `MODIFY w=… reparse key=1 — CHANGE LEFT IN PLACE`. Бэкап:
@@ -75,7 +75,7 @@ RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_MODIF
 После каждого события:
 
 ```sh
-RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK=1
+RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_CHECK=1
 ```
 
 Фиксировать, какое событие к какой классификации привело.
@@ -83,7 +83,7 @@ RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK
 ### 4. ROLLBACK — обязательно, даже если тест «застрял»
 
 ```sh
-RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_ROLLBACK=1
+RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_ROLLBACK=1
 ```
 
 Ожидаемо: `byte-identical=1 (system restored)`.
@@ -91,7 +91,7 @@ RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_ROLLB
 ### 5. Финальный CHECK
 
 ```sh
-RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK=1
+RUNF_WAIT=120 ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_CHECK=1
 ```
 
 Ожидаемо: `CLEAN (== backup)`.

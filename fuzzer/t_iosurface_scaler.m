@@ -25683,8 +25683,8 @@ static void p_bq5(void) {
         LOG("[bq5] --- OPERATOR CHECKLIST (external test armed) ---");
         LOG("[bq5] 1. observe externally: respring / reboot / launch apps / "
             "dns-sd from the Mac (see docs/external-test-runbook-v174.md)");
-        LOG("[bq5] 2. classify:  ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_CHECK=1");
-        LOG("[bq5] 3. restore:    ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5_ROLLBACK=1");
+        LOG("[bq5] 2. classify:  ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_CHECK=1");
+        LOG("[bq5] 3. restore:    ./relay/runf.sh bq5 FUZZ_LOGFILE=1 FUZZ_MODE=scaler FUZZ_BQ5=1 FUZZ_BQ5_ROLLBACK=1");
         LOG("[bq5] 4. confirm:    the CHECK above must say CLEAN");
         LOG("[bq5] backup survives here: %s", bakPath.fileSystemRepresentation);
         fsync(fileno(stderr));
@@ -30199,7 +30199,13 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }
-        if (getenv("FUZZ_BQ5")) { p_bq5(); LOG("[probe13] bq5-only mode, stop"); return NULL; }
+        // Any bq5 switch must activate bq5: a bare FUZZ_BQ5_CHECK without
+        // FUZZ_BQ5 fell through to the scaler chain once and ran the v79
+        // kill-shot loop instead of the requested check (§177).
+        if (getenv("FUZZ_BQ5") || getenv("FUZZ_BQ5_CHECK") ||
+            getenv("FUZZ_BQ5_MODIFY") || getenv("FUZZ_BQ5_ROLLBACK")) {
+            p_bq5(); LOG("[probe13] bq5-only mode, stop"); return NULL;
+        }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
