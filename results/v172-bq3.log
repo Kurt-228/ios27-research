@@ -1,0 +1,141 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x580b
+[scaler] conn 0x580b, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq3] v172 daemon write inventory: release semantics / part-2 map / per-file W-open
+[bq3] CONTROL §170 point -> handle 1
+[bq3] release semantics: open before release rc=0, after release rc=1  -> release revokes (errno above)
+[bq3] part 2 handle 3 — probing roots:
+[bq3]   part 2 open /var/containers/Data/System                  -> denied
+[bq3]   part 2 open /var/containers/Shared/SystemGroup           -> denied
+[bq3]   part 2 open /var/containers/Shared/AppGroup              -> denied
+[bq3]   part 2 open /var/mobile/Containers/Shared/AppGroup       -> denied
+[bq3]   part 2 open /var/mobile/Containers/Data/Application      -> denied
+[bq3]   part 2 open /var/db                                      -> denied
+[bq3]   part 2 open /Library/Preferences                         -> denied
+[bq3]   part 2 open /System/Library/LaunchDaemons                -> OK
+[bq3] part 3 handle 4 — probing roots:
+[bq3]   part 3 open /var/containers/Data/System                  -> OK
+[bq3]   part 3 open /var/containers/Shared/SystemGroup           -> denied
+[bq3]   part 3 open /var/containers/Shared/AppGroup              -> denied
+[bq3]   part 3 open /var/mobile/Containers/Shared/AppGroup       -> denied
+[bq3]   part 3 open /var/mobile/Containers/Data/Application      -> denied
+[bq3]   part 3 open /var/db                                      -> denied
+[bq3]   part 3 open /Library/Preferences                         -> denied
+[bq3]   part 3 open /System/Library/LaunchDaemons                -> OK
+[bq3] container AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8
+[bq3]   CREATE OK  /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8/Library/adi.pb
+[bq3]   CREATE OK  /var/containers/Data/System/AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container EDFBF92A-FACC-41EE-901E-25CFC69F3058
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/ReportCrash (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/SpaceAttribution (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/PerfPowerServices (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/HangTracer (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/EDFBF92A-FACC-41EE-901E-25CFC69F3058/SpinTracer (w=4 r=4 'fz27' unlink=0)
+[bq3] container AF589EEA-A5CE-42E9-B955-96B9234C5A85
+[bq3]   CREATE OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/DefaultAppQueryState.plist
+[bq3]   W-OPEN OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/com.apple.launchservices.securepreferences.plist
+[bq3]   CREATE OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/com.apple.launchservices.appmarketplaces.plist
+[bq3]   CREATE OK  /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 58E4FA29-796D-400C-8ADF-37FC9B1176FC
+[bq3]   CREATE OK  /var/containers/Data/System/58E4FA29-796D-400C-8ADF-37FC9B1176FC (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/58E4FA29-796D-400C-8ADF-37FC9B1176FC/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/58E4FA29-796D-400C-8ADF-37FC9B1176FC/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/58E4FA29-796D-400C-8ADF-37FC9B1176FC/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 733E686B-C093-4E1B-B775-35A1D2237AF8
+[bq3]   CREATE OK  /var/containers/Data/System/733E686B-C093-4E1B-B775-35A1D2237AF8 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/733E686B-C093-4E1B-B775-35A1D2237AF8/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/733E686B-C093-4E1B-B775-35A1D2237AF8/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/733E686B-C093-4E1B-B775-35A1D2237AF8/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 8EB68272-6502-49E9-B688-25CA4774CFE4
+[bq3]   CREATE OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4 (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db-shm
+[bq3]   CREATE OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db-wal
+[bq3]   CREATE OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db
+[bq3]   W-OPEN OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db.lock
+[bq3]   CREATE OK  /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9
+[bq3]   CREATE OK  /var/containers/Data/System/0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB
+[bq3]   CREATE OK  /var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container E8F726E1-00B6-4703-91D1-49267FC0F979
+[bq3]   CREATE OK  /var/containers/Data/System/E8F726E1-00B6-4703-91D1-49267FC0F979 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/E8F726E1-00B6-4703-91D1-49267FC0F979/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/E8F726E1-00B6-4703-91D1-49267FC0F979/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/E8F726E1-00B6-4703-91D1-49267FC0F979/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 7B03FCEF-ED22-4249-828B-E7509971915F
+[bq3]   CREATE OK  /var/containers/Data/System/7B03FCEF-ED22-4249-828B-E7509971915F (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/7B03FCEF-ED22-4249-828B-E7509971915F/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/7B03FCEF-ED22-4249-828B-E7509971915F/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/7B03FCEF-ED22-4249-828B-E7509971915F/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 867912A4-A70D-428C-9551-D28453B6F1B4
+[bq3]   CREATE OK  /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/tmp (w=4 r=4 'fz27' unlink=0)
+[bq3] container 3E27999E-F441-4625-A423-AF11E87F71E8
+[bq3]   CREATE OK  /var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8 (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Documents (w=4 r=4 'fz27' unlink=0)
+[bq3]   CREATE OK  /var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/apps.plist
+[bq3]   W-OPEN OK  /var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/katana-subscription-cache.plist
+[bq3] container B06F5832-48EA-445B-86F2-D2AC4468FA0C
+[bq3]   CREATE OK  /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C (w=4 r=4 'fz27' unlink=0)
+[bq3] container 327EA503-DB77-458C-A855-3B3C8622696A
+[bq3]   CREATE OK  /var/containers/Data/System/327EA503-DB77-458C-A855-3B3C8622696A (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/327EA503-DB77-458C-A855-3B3C8622696A/history/SUS_History_Tracking.log
+[bq3] container A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45
+[bq3]   CREATE OK  /var/containers/Data/System/A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45 (w=4 r=4 'fz27' unlink=0)
+[bq3] container com.apple.geod
+[bq3]   CREATE OK  /var/containers/Data/System/com.apple.geod (w=4 r=4 'fz27' unlink=0)
+[bq3] container 373C8E3E-393F-46D5-A143-A9312084B0E3
+[bq3]   CREATE OK  /var/containers/Data/System/373C8E3E-393F-46D5-A143-A9312084B0E3 (w=4 r=4 'fz27' unlink=0)
+[bq3] container F19F9591-A37F-4F88-A218-676D6A685493
+[bq3]   CREATE OK  /var/containers/Data/System/F19F9591-A37F-4F88-A218-676D6A685493 (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/F19F9591-A37F-4F88-A218-676D6A685493/Library/btjm
+[bq3] container 7CB67CBE-31A2-474A-9555-8A0A3B979760
+[bq3]   CREATE OK  /var/containers/Data/System/7CB67CBE-31A2-474A-9555-8A0A3B979760 (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/7CB67CBE-31A2-474A-9555-8A0A3B979760/FBBA8147BA056E0662A9244335337FC55D877FC077D20FFC8C8D8347229ABC99/com.apple.softposreader.keychain
+[bq3]   W-OPEN OK  /var/containers/Data/System/7CB67CBE-31A2-474A-9555-8A0A3B979760/LoadAndInstallBundle_DEFAULT.sefw
+[bq3] container 5706241F-E82B-4735-A5E8-367E43BA1E3E
+[bq3]   CREATE OK  /var/containers/Data/System/5706241F-E82B-4735-A5E8-367E43BA1E3E (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/5706241F-E82B-4735-A5E8-367E43BA1E3E/database.sqlite
+[bq3]   W-OPEN OK  /var/containers/Data/System/5706241F-E82B-4735-A5E8-367E43BA1E3E/database.sqlite-wal
+[bq3]   W-OPEN OK  /var/containers/Data/System/5706241F-E82B-4735-A5E8-367E43BA1E3E/database.sqlite-shm
+[bq3]   W-OPEN OK  /var/containers/Data/System/5706241F-E82B-4735-A5E8-367E43BA1E3E/distributor-preferences-store.plist
+[bq3] container A56ACED1-730D-4624-8C89-DE9DEAE98579
+[bq3]   CREATE OK  /var/containers/Data/System/A56ACED1-730D-4624-8C89-DE9DEAE98579 (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/A56ACED1-730D-4624-8C89-DE9DEAE98579/index/appintents.sqlite3
+[bq3]   W-OPEN OK  /var/containers/Data/System/A56ACED1-730D-4624-8C89-DE9DEAE98579/index/appintents.sqlite3-shm
+[bq3]   W-OPEN OK  /var/containers/Data/System/A56ACED1-730D-4624-8C89-DE9DEAE98579/index/appintents.sqlite3-wal
+[bq3] container 6043FE60-37AC-4E01-A4D9-8884DEBCC677
+[bq3]   CREATE OK  /var/containers/Data/System/6043FE60-37AC-4E01-A4D9-8884DEBCC677 (w=4 r=4 'fz27' unlink=0)
+[bq3]   W-OPEN OK  /var/containers/Data/System/6043FE60-37AC-4E01-A4D9-8884DEBCC677/AppProtectionBackup.plist
+[bq3] container 4E311340-1D0C-4D2B-A9BA-78E20C7C9D7D
+[bq3]   CREATE OK  /var/containers/Data/System/4E311340-1D0C-4D2B-A9BA-78E20C7C9D7D (w=4 r=4 'fz27' unlink=0)
+[bq3] inventory: 23 uuids, 22 files, 81 dirs — W-open ok 22 / denied 0, create ok 63 / denied 0  (dir probes capped at 40)
+[bq3]   WRITEBACK /var/containers/Data/System/327EA503-DB77-458C-A855-3B3C8622696A/history/SUS_History_Tracking.log w=4096 same=1  *** write(2) on daemon file OK, content intact ***
+[bq3]   WRITEBACK /var/containers/Data/System/6043FE60-37AC-4E01-A4D9-8884DEBCC677/AppProtectionBackup.plist w=179 same=1  *** write(2) on daemon file OK, content intact ***
+[bq3]   WRITEBACK /var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/katana-subscription-cache.plist w=694 same=1  *** write(2) on daemon file OK, content intact ***
+[bq3]   WRITEBACK /var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/DefaultAppQueryState.plist w=190 same=1  *** write(2) on daemon file OK, content intact ***
+[bq3] done
+[probe13] bq3-only mode, stop

