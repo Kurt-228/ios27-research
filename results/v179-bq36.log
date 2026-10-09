@@ -1,0 +1,13 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7513
+[scaler] conn 0x7513, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq36] v179 crash-log dump from CrashReporter
+[bq36] CONTROL §170 point -> handle 1
+[bq36] CONTROL opendir /var/mobile/Library/Logs/CrashReporter errno 1
+[bq36] CONTROL opendir /var/mobile/Library/Logs/CrashReporter/Retired errno 1
+[bq36] hits: 0
+[bq36] copied 0 crash logs to Documents
+[bq36] done
+[probe13] bq36-only mode, stop

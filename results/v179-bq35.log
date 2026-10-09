@@ -1,0 +1,10 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e0b
+[scaler] conn 0x7e0b, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq35] v179 crash-oracle, MODE=unplant
+[bq35] CONTROL §170 point -> handle 1
+[bq35] UNPLANT rc=0 rows 5->2 ourRows 3->0
+[bq35] done
+[probe13] bq35-only mode, stop
