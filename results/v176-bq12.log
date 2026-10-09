@@ -1,0 +1,23 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7507
+[scaler] conn 0x7507, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq12] v176 feed-schema owner: scan /System/Library frameworks
+[bq12] CONTROL §170 point -> handle 1
+[bq12]   cand0 stat errno 2 for FitnessTrainerTips.framework/FitnessTrainerTips
+[bq12]   cand0 stat errno 2 for UserNotificationsServer.framework/UserNotificationsServer
+[bq12]   cand0 stat errno 2 for CryptexServer.framework/CryptexServer
+[bq12]   cand0 stat errno 2 for SiriSignals.framework/SiriSignals
+[bq12]   cand0 stat errno 2 for SpeechEngine.framework/SpeechEngine
+[bq12] /System/Library/PrivateFrameworks: 3129 .framework dirs, 8 main binaries found
+[bq12]   cand0 stat errno 2 for _FoundationModels_UIKit.framework/_FoundationModels_UIKit
+[bq12]   cand0 stat errno 2 for EventKitUI.framework/EventKitUI
+[bq12]   cand0 stat errno 2 for _SwiftData_CoreData.framework/_SwiftData_CoreData
+[bq12]   cand0 stat errno 2 for HealthKitUI.framework/HealthKitUI
+[bq12]   cand0 stat errno 2 for _PhotosUI_WidgetKit.framework/_PhotosUI_WidgetKit
+[bq12] /System/Library/Frameworks: 319 .framework dirs, 0 main binaries found
+[bq12] framework binaries collected: 8
+[bq12] scanned=8 denied=0 hits=0
+[bq12] done
+[probe13] bq12-only mode, stop

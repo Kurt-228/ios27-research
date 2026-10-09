@@ -1,0 +1,80 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e0b
+[scaler] conn 0x7e0b, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq16] v176 owner candidate: AppIntentsLiveEntityService.xpc
+[bq16] CONTROL §170 point -> handle 1
+[bq16] target 493584 bytes
+[bq16]   ctx[feedEntries] @0x4f928: r feed %s: %s.....Unable to decode metadata for %s::%s::%s: %@....Finished iterating over feedEntries DB..........%s: fetching feed metadata......Unable to parse lastUpdate for %s...............Finished iterating over fe
+[bq16]   ctx[feedEntries] @0x5132a: d" TEXT PRIMARY KEY NOT NULL,.        "lastUpdate" TEXT NOT NULL.    );.    CREATE TABLE "feedEntries" (.        "feedId" TEXT NOT NULL,.        "bootId" TEXT NOT NULL,.        "bundleId" TEXT NOT NULL,.        "entityId
+[bq16]   ctx[feedEntries] @0x514b3:   FOREIGN KEY ("feedId") REFERENCES "feedMetadata"("feedId").    );.    CREATE INDEX "idx_feedEntries_bootId" ON "feedEntries"("bootId");.    CREATE INDEX "idx_feedEntries_bundleId" ON "feedEntries"("bundleId");.    CREA
+[bq16]   ctx[feedEntries] @0x514cb:  REFERENCES "feedMetadata"("feedId").    );.    CREATE INDEX "idx_feedEntries_bootId" ON "feedEntries"("bootId");.    CREATE INDEX "idx_feedEntries_bundleId" ON "feedEntries"("bundleId");.    CREATE INDEX "idx_feedEntrie
+[bq16]   ctx[feedEntries] @0x514f9:   CREATE INDEX "idx_feedEntries_bootId" ON "feedEntries"("bootId");.    CREATE INDEX "idx_feedEntries_bundleId" ON "feedEntries"("bundleId");.    CREATE INDEX "idx_feedEntries_feedId" ON "feedEntries"("feedId");.........
+[bq16]   ctx[feedEntries] @0x51513: tries_bootId" ON "feedEntries"("bootId");.    CREATE INDEX "idx_feedEntries_bundleId" ON "feedEntries"("bundleId");.    CREATE INDEX "idx_feedEntries_feedId" ON "feedEntries"("feedId");..............com.apple.appintents.
+[bq16]   ctx[feedMetadata] @0x4f9a8: eed metadata......Unable to parse lastUpdate for %s...............Finished iterating over feedMetadata DB.........%s: deleting entries for bundleIdentifier %s....hydrateEntitiesKeyed: marking %{public}ld identifier(s) fo
+[bq16]   ctx[feedMetadata] @0x512b2: ous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "feedMetadata" (.        "feedId" TEXT PRIMARY KEY NOT NULL,.        "lastUpdate" TEXT NOT NULL.    );.    CREATE TABLE "feedEntrie
+[bq16]   ctx[feedMetadata] @0x5147e: RIMARY KEY ("feedId", "bundleId", "entityID"),.        FOREIGN KEY ("feedId") REFERENCES "feedMetadata"("feedId").    );.    CREATE INDEX "idx_feedEntries_bootId" ON "feedEntries"("bootId");.    CREATE INDEX "idx_feedEnt
+[bq16]   ctx[feedMetadata] @0x5170d: Id = ? AND entityId = ?......DELETE FROM feedEntries WHERE bootId != ?.......REPLACE INTO feedMetadata ("feedId", "lastUpdate") VALUES ( ?, ? )..............BEGIN TRANSACTION...............REPLACE INTO feedEntries ("feed
+[bq16]   ctx[feedMetadata] @0x51a3f: table......Found nil when unarchiving LNValue..............SELECT feedId, lastUpdate FROM feedMetadata.....Unexpected row format in feedMetadata table.....UPDATE feedEntries SET lastUpdate = ? WHERE feedId = ?..........D
+[bq16]   ctx[feedMetadata] @0x51a69: lue..............SELECT feedId, lastUpdate FROM feedMetadata.....Unexpected row format in feedMetadata table.....UPDATE feedEntries SET lastUpdate = ? WHERE feedId = ?..........DELETE FROM feedEntries WHERE bundleId IN (
+[bq16]   ctx[CREATE TABLE] @0x512a4: RAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "feedMetadata" (.        "feedId" TEXT PRIMARY KEY NOT NULL,.        "lastUpdate" TEXT NOT NULL.    );.    CREATE TAB
+[bq16]   ctx[CREATE TABLE] @0x5131c:         "feedId" TEXT PRIMARY KEY NOT NULL,.        "lastUpdate" TEXT NOT NULL.    );.    CREATE TABLE "feedEntries" (.        "feedId" TEXT NOT NULL,.        "bootId" TEXT NOT NULL,.        "bundleId" TEXT NOT NULL,.   
+[bq16]   no "INSERT OR REPLACE"
+[bq16]   no "INSERT OR IGNORE"
+[bq16]   no "SELECT * FROM"
+[bq16]   ctx[PRAGMA] @0x511f0: _......Sg.So13NSFileManagerC...[..........com.apple.appintents.LiveEntityService.server...PRAGMA schema_version;..........PRAGMA user_version;............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_st
+[bq16]   ctx[PRAGMA] @0x51210: ..........com.apple.appintents.LiveEntityService.server...PRAGMA schema_version;..........PRAGMA user_version;............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=
+[bq16]   ctx[PRAGMA] @0x51230: iveEntityService.server...PRAGMA schema_version;..........PRAGMA user_version;............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "
+[bq16]   ctx[PRAGMA] @0x51249: .PRAGMA schema_version;..........PRAGMA user_version;............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "feedMetadata" (.        "
+[bq16]   ctx[PRAGMA] @0x51264: ......PRAGMA user_version;............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "feedMetadata" (.        "feedId" TEXT PRIMARY KEY NO
+[bq16]   ctx[PRAGMA] @0x5127e: ............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "feedMetadata" (.        "feedId" TEXT PRIMARY KEY NOT NULL,.        "lastUpdat
+[bq16]   ctx[journal_mode] @0x51237: tyService.server...PRAGMA schema_version;..........PRAGMA user_version;............PRAGMA journal_mode=WAL;.PRAGMA synchronous=normal;.PRAGMA temp_store=memory;.PRAGMA user_version=..............    CREATE TABLE "feedMet
+[bq16]   ctx[sqlite3_open] @0x6ab00: msg._sqlite3_exec._sqlite3_extended_result_codes._sqlite3_file_control._sqlite3_finalize._sqlite3_open_v2._sqlite3_prepare_v2._sqlite3_reset._sqlite3_step._$sSD17dictionaryLiteralSDyxq_Gx_q_td_tcfC._$sSH13_rawHashValue4s
+[bq16]   ctx[sqlite3_open] @0x71ea5: msg._sqlite3_exec._sqlite3_extended_result_codes._sqlite3_file_control._sqlite3_finalize._sqlite3_open_v2._sqlite3_prepare_v2._sqlite3_reset._sqlite3_step._strerror._swift_allocError._swift_allocObject._swift_arrayDestro
+[bq16]   no "NSPersistentContainer"
+[bq16]   no "NSManagedObjectModel"
+[bq16] Info.plist: {
+    BuildMachineOSBuild = 23A344017;
+    CFBundleDevelopmentRegion = en;
+    CFBundleExecutable = AppIntentsLiveEntityService;
+    CFBundleIdentifier = "com.apple.appintents.LiveEntityService";
+    CFBundleInfoDictionaryVersion = "6.0";
+    CFBundleName = AppIntentsLiveEntityService;
+    CFBundlePackageType = "XPC!";
+    CFBundleShortVersionString = "1.0";
+    CFBundleSupportedPlatforms =     (
+        iPhoneOS
+    );
+    CFBundleVersion = "301.0.45.4.101";
+    DTCompiler = "com.apple.compilers.llvm.clang.1_0";
+    DTPlatformBuild = 24A5390b;
+    DTPlatformName = iphoneos;
+    DTPlatformVersion = "27.0";
+    DTSDKBuild = 24A5390b;
+    DTSDKName = "iphoneos27.0.internal";
+    DTXcode = 2700;
+    DTXcodeBuild = 27A200c;
+    MinimumOSVersion = "27.0";
+    NSHumanReadableCopyright = "\"Copyright \U00a9 2025 Apple, Inc. All rights reserved.\"";
+    UIDeviceFamily =     (
+        1,
+        2
+    );
+    UIRequiredDeviceCapabilities =     (
+        arm64e
+    );
+    XPCService =     {
+        JoinExistingSession = 1;
+        ServiceType = Application;
+        "_AdditionalProperties" =         {
+            RunningBoard =             {
+                Managed = 0;
+                Reported = 0;
+            };
+        };
+    };
+}
+[bq16] launchd plists: 661 read, 0 denied, 0 unparsed, 0 matched
+[bq16] done
+[probe13] bq16-only mode, stop

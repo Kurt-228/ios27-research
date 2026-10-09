@@ -1,0 +1,39 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7b03
+[scaler] conn 0x7b03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq11] v176 feed-DB owner: scan daemon binaries for schema strings
+[bq11] CONTROL §170 point -> handle 1
+[bq11] programs collected: 193
+[bq11]   DENIED /usr/libexec/srp-mdns-proxy (The file “srp-mdns-proxy” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /System/Library/PrivateFrameworks/RealityCamera.framework/realitycamerad (The file “realitycamerad” couldn’t be opened because there is no such file.)
+[bq11]   DENIED /usr/libexec/arkitd (The file “arkitd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/milod (The file “milod” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/installd (The file “installd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/sbin/notifyd (The file “notifyd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/wifiFirmwareLoader (The file “wifiFirmwareLoader” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/clocksyncd (The file “clocksyncd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/siriknowledged (The file “siriknowledged” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/retimerd (The file “retimerd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/proximitycontrold (The file “proximitycontrold” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/safetyalertsd (The file “safetyalertsd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/frauddefensed (The file “frauddefensed” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/photosfaced (The file “photosfaced” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/BatteryDischargeService (The file “BatteryDischargeService” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/applekeystored (The file “applekeystored” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/appleinternal/libexec/ptdremoted (The file “ptdremoted” couldn’t be opened because there is no such file.)
+[bq11]   DENIED /usr/libexec/managedappsd (The file “managedappsd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/mediasetupd (The file “mediasetupd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/bluetoothuserd (The file “bluetoothuserd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/caraccessoryd (The file “caraccessoryd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/companiond (The file “companiond” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   HIT com.apple.mediaremoted.plist                             <- "groupingInfo"
+[bq11]   DENIED /usr/libexec/peakpowermanagerd (The file “peakpowermanagerd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/securepairingd (The file “securepairingd” couldn’t be opened because you don’t have permission to view it.)
+[bq11]   DENIED /usr/libexec/PreboardService (The file “PreboardService” couldn’t be opened because you don’t have permission to view it.)
+[bq11] ... 128/193 scanned
+[bq11] scanned=85 denied=108 empty=0 hits=1
+[bq11] escape for /usr/libexec -> handle -3 (refused — blind spot stands)
+[bq11] done
+[probe13] bq11-only mode, stop

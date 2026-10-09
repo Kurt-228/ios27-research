@@ -2477,3 +2477,306 @@ ROLLBACK w=2942/2942 byte-identical=1
 `results/v176-bq6-validation.log`. Бэкап:
 `Documents/bq9-com.apple.icloud.findmydeviced.accessories.plist.bak`
 в контейнере приложения (UUID `8ED5C3F1` — меняется при переустановке).
+
+## 181. v176: bq10 — схема feed-БД прочитана, владельца ищем по строкам схемы
+
+`results/v176-bq10.log`, фаза `p_bq10` (READ-ONLY, escape-контроль §170
+прошёл: handle 1). Кандидат §180 «файл-вход» `8EB68272/db` открыт
+`sqlite3_open_v2(READONLY)` с применением WAL:
+
+```
+[bq10]   table  feedEntries                                      rows=2
+[bq10]   table  feedMetadata                                     rows=8
+[bq10]   feedEntries: feedId="media.groupingInfo" bootId="ECB6AA16-D623-462E-9742-A0098972A4FF"
+        bundleId="com.apple.MediaRemoteAppIntentsExtension"
+        entityId="NowPlayingGroupingInfoEntity/A013C7FC-..." lastUpdate="2026-10-08T16:34:03.128"
+        lnValue=blob(878) metadata=NULL
+[bq10]   feedEntries: feedId="maps.parkedCar" ... bundleId="com.apple.navd" lnValue=blob(14792)
+[bq10]   feedMetadata: feedId="clock.alarms" / "clock.timers" / "calls.incoming"
+```
+
+Ключевые факты:
+
+1. `bootId` строки **совпадает с первым UUID в `functions.list`**
+   (кэш-контейнер `867912A4`) — оба кандидата §180 принадлежат одной
+   подсистеме (сессия загрузки).
+2. Это **AppIntents entity-feed store**: `feedId` = сущность-фид
+   (медиа, парковка, звонки, часы), `bundleId` = производитель фида,
+   `lnValue` = сериализованное значение (бинарный блоб LNValue).
+3. Греп launchd-ярлыков по intent/knowledge/feed-иглам дал 22
+   совпадения; ключевые: `siriappintentsd`, `remoteappintentsd`,
+   `intelligencecontextd` (все **root**), `siriknowledged` (mobile) —
+   это список подозреваемых-потребителей, читать которые из песочницы
+   нельзя (`/usr/libexec`, см. §182).
+
+Стратегия идентификации владельца: бинарь, создавший таблицы,
+обязан содержать их имена как литералы (`CREATE TABLE "feedEntries"`).
+Ищем строку — находим файл.
+
+## 182. v176: bq11–bq14 — /usr/libexec закрыт наглухо, кэш владельца не содержит
+
+### bq11: слепое пятно измерено, escape на системные бинари не работает
+
+`results/v176-bq11.log`, `p_bq11` — скан бинарей программ из
+launchd-пллистов (193 программы):
+
+```
+[bq11]   HIT com.apple.mediaremoted.plist    <- "groupingInfo"
+[bq11] scanned=85 denied=108 empty=0 hits=1
+[bq11] escape for /usr/libexec -> handle -3 (refused — blind spot stands)
+```
+
+Все 108 отказов — `/usr/libexec` (включая `siriknowledged`);
+`/System/Library` читается. Попытка обойтись escape-токеном на
+`/usr/libexec` дала **handle −3** — bad_query даёт токен на
+`/var/containers`, не на системные бинари. Слепое пятно в 108 бинарей
+потребителей закрыто на уровне прав доступа, а не кода.
+
+### bq12: файлов с фреймворками на диске нет — они в dyld-кэше
+
+`p_bq12`: 3129 `.framework`-директорий в PrivateFrameworks, но
+`stat(Foo.framework/Foo)` → **errno 2 (ENOENT)** на почти всех
+(8 найдено): бинари фреймворков лежат в dyld shared cache. Фаза
+посчитала бы «8 из 3129 — пусто», если бы не диагностический лог
+`opendir`/`errno` — правило §144 снова сработало на этапе написания.
+
+### bq13: fork() из песочницы запрещён, dlopen убивает процесс
+
+`p_bq13` пытался `dlopen`+`memmem` образов фреймворков в своём адресном
+пространстве. Два негатива-методологии:
+
+1. `dlopen(SiriSignals)` **убивал всё приложение** после первой же
+   попытки (стабильно, 3 подряд сборки: лог обрывался на
+   `opened SiriSignals`). Без изоляции фаза недостижима.
+2. Изоляция через `fork()` (как в `p_victim`) — **errno 1 (EPERM),
+   315 из 315**: в этом контексте песочница запрещает fork. Ветка
+   «dlopen-fail» без причины читалась бы как результат; лог errno
+   показал, что сломана сама изоляция.
+
+Вывод: статически искать строки в чужих образах можно только там, где
+байты читаются файлом.
+
+### bq14: dyld shared cache расколот; валидация таблицы образов; владелец в кэше НЕТ
+
+`p_bq14` — скан dyld shared cache с диска:
+
+- кэш **разбит на ~80 сабфайлов** в
+  `/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld/`
+  (`dyld_shared_cache_arm64e` = заголовок 786432 байта + `.NN` по ~130 МБ
+  + `.symbols` 1.2 ГБ — не для строк);
+- таблица образов не документирована стабильно: валидация построена как
+  брутфорс `stride{24,28,32,40} × pathSlot{0..4}` с **тремя пробами**
+  (первый/середина/последний запись → строка пути `/...`), плюс
+  определение `addrSlot` по правдоподобности адреса во всех трёх пробах.
+  Итог: `images table: offset=0x2a8 count=4690 stride=32 pathSlot=3
+  addrSlot=0 (validated)` — старый формат `{addr, x, x, path}` на 32
+  байта, path не в третьем слоте (первый вариант упал на `path=0x0`);
+- результат скана 4 игл (154 хита, дедупликация по образам):
+
+```
+needle "feedEntries": 1 distinct image
+    PhotosUICore  | ctx: feedEntries notification has `shouldReload` as true...
+needle "feedMetadata": 4 distinct images
+    PromotedContent, AdPlatformsCommon (feedMetadataCategories/ChannelId — реклама),
+    libobjcMsgSend11/33 (linkedit — случайные байты)
+needle "lnValue": 5 (AppIntents, AppIntentsServices "lnValueBytes", LinkServices LNValue, ...)
+needle "feedId": 9 (IntelligenceFlowContext, AppIntentsLiveEntitySupport, News*, ...)
+```
+
+**Единственный `feedEntries` в кэше — чужая фраза Photos.** Ни один
+образ кэша не содержит SQL по нашим таблицам. Значит, код владельца —
+on-disk бинарь (приложение/appex/диаграмма `.mom`), а не часть кэша.
+Методически: хит в `dyldreadonly`/`dyldlinkedit` — это НЕ атрибуция
+на образ (случайные байты), контекст вокруг хита обязателен.
+
+## 183. v176: bq15–bq17 — владелец найден: `com.apple.appintents.LiveEntityService`
+
+### bq15: on-disk обход с контролем корневой отказоустойчивости
+
+`p_bq15` ходит по `/Applications`, `/System/Applications`,
+`/System/Library`, `ExtensionKit`, `CoreServices`, читая 4 байта магии
+(не-Mach-O файлы отсекаются до чтения), `.mom`-модели тоже сканирует.
+Контроль — корень `/usr/libexec` (ожидаем отказы, §144):
+
+```
+[bq15] root /Applications: +0 scanned, +1 denied
+[bq15] root /System/Applications: +0 scanned, +1 denied
+[bq15] root /System/Library: +3902 scanned, +0 denied
+[bq15] root /usr/libexec: +0 scanned, +1 denied
+[bq15]   HIT .../AppIntentsLiveEntitySupport.framework/XPCServices/
+            AppIntentsLiveEntityService.xpc/AppIntentsLiveEntityService <- "feedEntries"
+[bq15] scanned=4250 denied=3 skipped=150929 hits=7
+```
+
+Контроль сработал: `opendir(/usr/libexec)` сам по себе EPERM (поэтому
+bq11 «108 отказов» = отказы на открытие файлов из читаемого списка, а
+здесь не открывается даже каталог). `/Applications` и
+`/System/Applications` тоже закрыты — приложения-потребители нечитаемы.
+Единственный держатель `feedEntries` на всём читаемом диске — **XPC-сервис
+AppIntentsLiveEntityService**.
+
+### bq16: SQL владельца, identity сервиса, launchd-матч и его починка
+
+`p_bq16` (контекст ±130 байт вокруг каждой иглы в бинаре сервиса):
+
+```
+ctx[feedEntries] @0x5132a: CREATE TABLE "feedEntries" (
+    "feedId" TEXT NOT NULL, "bootId" TEXT NOT NULL, "bundleId" TEXT NOT NULL, ...
+ctx[...] PRIMARY KEY ("feedId", "bundleId", "entityID"),
+    FOREIGN KEY ("feedId") REFERENCES "feedMetadata"("feedId")
+    CREATE INDEX "idx_feedEntries_bootId" ON "feedEntries"("bootId") ...
+ctx[feedMetadata] @0x5170d: DELETE FROM feedEntries WHERE bootId != ?
+    REPLACE INTO feedMetadata ("feedId", "lastUpdate") VALUES ( ?, ? ) ... BEGIN TRANSACTION ...
+ctx: SELECT feedId, lastUpdate FROM feedMetadata ... UPDATE feedEntries SET lastUpdate = ? WHERE feedId = ?
+    DELETE FROM feedEntries WHERE bundleId IN (...)
+ctx: PRAGMA journal_mode=WAL; PRAGMA synchronous=normal; PRAGMA temp_store=memory;
+ctx: com.apple.appintents.LiveEntityService.server
+ctx: "Finished iterating over feedEntries DB" / "deleting entries for bundleIdentifier %s"
+    / "Found nil when unarchiving LNValue" / "Unable to decode metadata for %s::%s"
+```
+
+Это **владелец схемы**: DDL, DML, PRAGMA-параметры и логи итерации —
+всё в одном бинаре. `sqlite3_open_v2`/`sqlite3_prepare_v2` в его
+импортах. Декодер `LNValue` тоже здесь (собственные строки ошибок —
+защитный путь для битого входа).
+
+Info.plist: `CFBundleIdentifier = com.apple.appintents.LiveEntityService`,
+`XPCService: JoinExistingSession = 1, ServiceType = Application` —
+XPC-сервис, живущий в сессии клиента, без собственного launchd-пллиста
+и без `MachServices`.
+
+**Методическая ошибка и починка:** первый вариант launchd-грепа дал
+«MATCH» на всех 661 пллист подряд — `initWithData:encoding:` вернул
+`nil` на бинарных plist, а `[nil rangeOfString:]` возвращает `{0,0}` ≠
+`NSNotFound`. Починено: `NSPropertyListSerialization` + матч по
+идентичным ключам (Label/Program/ProgramArguments/MachServices) +
+счётчик unparsed. Итог честный: `661 read, 0 denied, 0 unparsed,
+0 matched` — у сервиса действительно нет launchd-джоба.
+
+### bq17: клиенты — четыре unsandboxed-демона, ровно производители фидов
+
+Тот же walker, иглы = имя сервиса:
+
+```
+[bq17]   HIT .../AppIntents.framework/PlugIns/AppIntentsDiagnosticExtension.appex/... <- "LiveEntityService"
+[bq17]   HIT .../AppIntentsLiveEntityService.xpc/... <- "com.apple.appintents.LiveEntityService"
+[bq17]   HIT .../TelephonyUtilities.framework/callservicesd <- "com.apple.appintents.LiveEntityService"
+[bq17]   HIT .../MediaRemote.framework/Support/mediaremoted <- "com.apple.appintents.LiveEntityService"
+[bq17]   HIT .../MapsSupport.framework/navd <- "com.apple.appintents.LiveEntityService"
+[bq17]   HIT .../MobileTimer.framework/Executables/mobiletimerd <- "com.apple.appintents.LiveEntityService"
+[bq17] scanned=3902 denied=3 hits=6
+```
+
+`callservicesd` (= `calls.incoming`), `mediaremoted` (=
+`media.groupingInfo`), `navd` (= `maps.parkedCar`), `mobiletimerd`
+(= `clock.alarms`/`clock.timers`) — **точное совпадение с feedId
+бq10**. Это производители, пишущие через сервис. Потребители (кто
+читает фиды) среди читаемых бинарей отсутствуют: ни один образ на
+диске не содержит `feedEntries`, кроме самого сервиса, — потребители
+живут в `/usr/libexec` (слепое пятно §182) и/или ходят через XPC.
+
+## 184. v176: bq18–bq19 — запись в БД демона подтверждена, пробуждение закрыто, реакция inconclusive
+
+### bq18: первый WRITE по шаблону §175/§180
+
+`p_bq18`:
+
+```
+CONTROL db: 110592 bytes uid=501 gid=0 mode=644 our-uid=501 -> owner-writable by us
+CONTROL rows: feedEntries=2 feedMetadata=8
+BACKUP verified at Documents/bq18-backup
+schema feedEntries=(feedId,bootId,bundleId,entityId,lastUpdate,lnValue,metadata)
+       feedMetadata=(feedId,lastUpdate)
+```
+
+Первая попытка: `WRITE feedEntries rc=19: NOT NULL constraint failed:
+feedEntries.lnValue` — транзакция откатилась, ноль изменений; **машина
+отката проверена до изменения данных** (VERIFY `2/2, 8/8,
+bytes-identical=1`). Исправлено (lnValue — непустое значение; формат
+блоба неизвестен, но декодер сервиса имеет защитный путь), повтор:
+
+```
+WRITE committed: marker=1
+OBS done: writer-activity=0 marker-fate=inconclusive: file never touched
+VERIFY rows back: feedEntries=2/2 feedMetadata=8/8 bytes-identical=1
+```
+
+Маркер пережил 45 с, но файл никто не трогал — фаза **сама классифицирует
+это как inconclusive** (§144: тихое окно не является отрицательным
+результатом). Запись в файл демона как примитив есть; реакции не видно,
+потому что не было события, будящего сервис.
+
+### bq19: пробуждение XPC-подключением — закрыто
+
+`p_bq19`: маркер снова вставлен, затем
+`xpc_connection_create("com.apple.appintents.LiveEntityService")` и
+вариант `.server` + безобидное сообщение `{method: ping}`:
+
+```
+XPC[com.apple.appintents.LiveEntityService] event: "Connection invalid"
+XPC[com.apple.appintents.LiveEntityService.server] event: "Connection invalid"
+OBS done: writer-activity=0 xpc-errors=2 marker=inconclusive: file never touched
+VERIFY rows back: feedEntries=2/2 feedMetadata=8/8 bytes-identical=1
+```
+
+Прямое подключение к сервису из песочницы отклонено (и launchd его не
+поднимает — строка `Connection invalid`, не таймаут). 120 с наблюдения —
+снова тишина. Откат байт-в-байт подтверждён.
+
+### Что установлено к концу v176
+
+1. **Владелец feed-БД идентифицирован**: `com.apple.appintents.LiveEntityService`
+   (XPC-сервис, mobile-сессия, JoinExistingSession) — DDL/DML по
+   `feedEntries`/`feedMetadata` в его бинаре, кэш и диск просканированы
+   полностью (контроли: отказы `/usr/libexec`, ENOENT бинарей в кэше).
+2. **Клиенты — unsandboxed-демоны** `callservicesd`, `mediaremoted`,
+   `navd`, `mobiletimerd` (бq17, совпадение с feedId). Потребители
+   не видны: закрыты `/usr/libexec` (108 бинарей) и app-бандлы.
+3. **Примитив записи в БД демона работает**: `uid=501 mode=644` ==
+   наш uid, открыт read-write через escape-точку §170; шаблон
+   «контроль → верифицированный бэкап → INSERT из живой схемы →
+   наблюдение → откат → байтовая сверка» отработал дважды, включая
+   путь ошибки (NOT NULL).
+4. **Статически БД — INPUT для сервиса** (он её читает: SELECT/итерации
+   в собственных логах), но **наблюдаемой реакции нет**: за 45+120 с
+   ни одного обращения демонов к файлу. XPC-пробуждение из песочницы
+   закрыто. INPUT, доказанный наблюдением, требует реального клиентского
+   события (входящий звонок, будильник, смена медиа-группировки) либо
+   доступа к потребителям.
+5. `lnValue`-декодер живёт в сервисе (mobile-уровень) — как цель для
+   corruption-эксперимента интересен только если потребитель-робустный
+   процесс читает те же блобы (не показано).
+
+### Что дальше (очередь)
+
+1. Декодер `LNValue` в сервисе: путь чтения (итерация при старте? при
+   XPC-запросе?) — статически, из бинаря сервиса (читаем полностью).
+2. Потребители: `/usr/libexec` остаётся закрытым — путь через IPSW
+   (`relay/get_kc27.py` уже умеет доставать артефакты прошивки; в IPSW
+   лежит rootfs с `knowledgeconstructiond`/`siriappintentsd`), офлайн
+   strings/cарвинг.
+3. Триггер клиентского события для наблюдаемой реакции (бq19-вариант
+   с реальным событием вместо XPC): единственный воспроизводимый извне
+   — медиа-группировка через MediaRemote-API приложения.
+
+### Методическая прибавка
+
+- `fork()` из этой песочницы — EPERM (errno 1): изоляция
+  `dlopen`-крашей невозможна, фазы на `dlopen` чужих образов не писать.
+- dyld shared cache на 27.0b4 — split (~80 сабфайлов), таблица образов
+  валидируется только брутфорсом с тремя пробами; хит вне `__TEXT`
+  (readonly/linkedit) — не атрибуция, нужен контекст байт.
+- ObjC-ловушка: `messages to nil` даёт `{0,0}` — любой grep-матч по
+  `[nil rangeOfString:]` «находит» всё; детектор обязан иметь счётчик
+  unparsed/отказов.
+- Правило §144 в очередной раз сработало до прогона: два сломанных
+  детектора (108 «отказов» без errno, ENOENT фреймворков) пойманы
+  диагностикой, а не интерпретацией.
+
+### Артефакты
+
+`results/v176-bq{10..19}.log`; SQL-контекст владельца и Info.plist —
+в `v176-bq16.log`; клиенты — в `v176-bq17.log`; два отката
+байт-в-байт — в `v176-bq18.log`/`v176-bq19.log`. Бэкапы
+`Documents/bq18-backup`, `Documents/bq19-backup` (контейнер
+`AC67B22F`/`E70AC42D` — меняются при переустановке).

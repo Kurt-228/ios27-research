@@ -1,0 +1,16 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5a03
+[scaler] conn 0x5a03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq18] v176 feed-DB write probe: marker row in/out (§175/§180)
+[bq18] CONTROL §170 point -> handle 1
+[bq18] CONTROL db: 110592 bytes uid=501 gid=0 mode=644 our-uid=501 -> owner-writable by us
+[bq18] CONTROL rows: feedEntries=2 feedMetadata=8
+[bq18] BACKUP verified at /var/mobile/Containers/Data/Application/E70AC42D-9603-4285-84EB-5371BC59BCC4/Documents/bq18-backup
+[bq18] schema feedEntries=(feedId,bootId,bundleId,entityId,lastUpdate,lnValue,metadata) feedMetadata=(feedId,lastUpdate)
+[bq18] WRITE committed: marker=1
+[bq18] OBS done: writer-activity=0 marker-fate=inconclusive: file never touched
+[bq18] VERIFY rows back: feedEntries=2/2 feedMetadata=8/8 bytes-identical=1
+[bq18] done
+[probe13] bq18-only mode, stop

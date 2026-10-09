@@ -1,0 +1,31 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7b07
+[scaler] conn 0x7b07, s1 16 s2 17
+[probe12] SetNotificationPort -> 0x00000000
+[bq10] v176 input-file candidates: sqlite schema + cache format (READ-ONLY)
+[bq10] CONTROL §170 point -> handle 1
+[bq10] db: 110592 bytes, mtime 1791473064, uid=501 gid=0 mode=644
+[bq10] db: open OK (readonly, WAL applied)
+[bq10]   table  feedEntries                                      rows=2
+[bq10]   table  feedMetadata                                     rows=8
+[bq10] db: 2 tables/views
+[bq10]   application_id=0
+[bq10]   user_version=4
+[bq10]   feedEntries: feedId="media.groupingInfo" bootId="ECB6AA16-D623-462E-9742-A0098972A4FF" bundleId="com.apple.MediaRemoteAppIntentsExtension" entityId="NowPlayingGroupingInfoEntity/A013C7FC-2CB0-480F-8A97-77B5F26D90BEÙÅÅ∫8EB‚Ä¶" lastUpdate="2026-10-08T16:34:03.128" lnValue=blob(878) metadata=NULL 
+[bq10]   feedEntries: feedId="maps.parkedCar" bootId="ECB6AA16-D623-462E-9742-A0098972A4FF" bundleId="com.apple.navd" entityId="ParkingLocationDataEntity/5A256DA2-9F88-437E-9948-8B81436955C8" lastUpdate="2026-10-08T16:35:15.593" lnValue=blob(14792) metadata=NULL 
+[bq10]   feedMetadata: feedId="clock.alarms" lastUpdate="2026-10-06T04:39:40.139" 
+[bq10]   feedMetadata: feedId="clock.timers" lastUpdate="2026-10-08T07:01:21.088" 
+[bq10]   feedMetadata: feedId="calls.incoming" lastUpdate="2026-10-08T15:25:00.477" 
+[bq10] /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/Library/Caches/functions.data: unknown, first bytes: binary
+[bq10]   hex: 6f3d8bc55807dbd1c47210b75e0a280666748cad7afa775e4187c78776d209411d09f81567b2c5aa8d987458deb9a774
+[bq10] /var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4/Library/Caches/functions.list: unknown, first bytes: printable-text
+[bq10]   hex: 4536271845434236414131362d443632332d343632452d393734322d4130303938393732413446460000000000000000
+[bq10]   txt: E6'ECB6AA16-D623-462E-9742-A0098972A4FF
+[bq10]   str: ECB6AA16-D623-462E-9742-A0098972A4FF
+[bq10]   launchd-match com.apple.spotlightknowledged.updater.plist    user=(root/default)
+[bq10]   launchd-match com.apple.knowledgeconstructiond.plist         user=(root/default)
+*** Terminating app due to uncaught exception 'NSRangeException', reason: '*** -[__NSCFString rangeOfString:options:range:locale:]: Range {5902, 200} out of bounds; string length 5945'
+*** First throw call stack:
+(0x196c7afa0 0x1969f8298 0x1970e934c 0x102886068 0x102870414 0x196b2603c 0x196b2291c)
+libc++abi: terminating due to uncaught exception of type NSException
