@@ -1,0 +1,28 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_PPRP3=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5513
+[scaler] conn 0x5513, s1 13 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[pprp3] v184c protocol probes on PPRP ports (length+plist framing)
+[pprp3] CONTROL 1081 connect -> -1 errno 61 (expect -1/111)
+[pprp3] CONTROL self-frame: framed 63 bytes, peer read len-prefix 4 -> 59 (expect 4 -> 59)
+[pprp3] 1080 Ping port 1080 send 63/63 after 0ms
+[pprp3] 1080 Ping -> FIN after 1062ms (0 bytes)
+[pprp3] 1080 Reach port 1080 send 77/77 after 0ms
+[pprp3] 1080 Reach -> FIN after 1099ms (0 bytes)
+[pprp3] 1080 Lvl7 port 1080 send 82/82 after 0ms
+[pprp3] 1080 Lvl7 -> FIN after 1100ms (0 bytes)
+[pprp3] 1080 Reg port 1080 send 73/73 after 0ms
+[pprp3] 1080 Reg -> FIN after 1015ms (0 bytes)
+[pprp3] 1083 Ping port 1083 send 63/63 after 0ms
+[pprp3] 1083 Ping -> FIN after 1094ms (0 bytes)
+[pprp3] 1083 Reg port 1083 send 73/73 after 1ms
+[pprp3] 1083 Reg -> FIN after 1075ms (0 bytes)
+[pprp3] 1083 Reach port 1083 send 77/77 after 1ms
+[pprp3] 1083 Reach -> FIN after 1098ms (0 bytes)
+[pprp3] 1080 XML-plist Ping -> 0 after 1095ms
+[pprp3] done
+[probe13] pprp3-only mode, stop

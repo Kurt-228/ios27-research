@@ -1,0 +1,17 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_PPRP=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7f03
+[scaler] conn 0x7f03, s1 153 s2 168
+[probe12] SetNotificationPort -> 0x00000000
+[pprp] v184 carve PPRP (TCP 1080 owner, §190) from dyld split cache
+[pprp] CONTROL §170 point -> handle 1
+[pprp] cache dir /private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld
+[pprp] head dyld_shared_cache_arm64e, 79 sub-files
+[pprp] images table re-validated: off=0x2a8 cnt=4690 stride=32 pathSlot=3
+[pprp] CONTROL lookup known-good AppIntentsLiveEntitySupport @0x1b7f27000 FOUND (table lookup works)
+[pprp] targets matched: 0
+[pprp] done
+[probe13] pprp-only mode, stop

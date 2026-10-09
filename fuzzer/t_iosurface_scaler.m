@@ -29247,6 +29247,817 @@ static void p_bq21(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V184 (p_pprp): карвинг com.apple.PurpleReverseProxy — владельца TCP
+// 1080/1083 на loopback (§190) — из dyld split-кэша. Механика bq21 резала
+// только ПЕРВЫЙ mapping первого сабфайла, покрывающего адрес образа; сегменты
+// PPRP размазаны по сабфайлам (.71 text, .73/.30/.09 data, .77 linkedit —
+// v183 CACHE-HIT), поэтому здесь собираются ВСЕ mapping'и ВСЕХ сабфайлов,
+// пересекающие [addr, addr+size), в один VA-непрерывный буфер, начинающийся
+// с mach_header_64 образа (хост: парсим load commands, режем __TEXT,
+// objdump -d; константы протокола — strings по плоскому буферу).
+//
+// Цели ищутся подстрокой в путях таблицы образов (PPRP, ftp-proxy —
+// владелец 8021, второй живой парсер §190), а не захардкоженным полным
+// путём: Program-путь ftp-proxy в launchd неизвестен.
+//
+// Контроли (§144):
+//   - точка §170 (escape) первой строкой — без неё вердикта нет;
+//   - пере-валидация таблицы образов (три пробы пути, механика bq21);
+//   - known-good цель AppIntentsLiveEntitySupport (закарвлен в §186,
+//     значит точно есть в таблице): нет PPRP при живом контроле =
+//     «не закэширован», а не «сломан поиск»;
+//   - магия 0xFEEDFACF по смещению 0 карва;
+//   - негативная игла: AppIntentsLiveEntitySupport обязана отсутствовать
+//     в карве PPRP (соседний образ не должен попасть в диапазон).
+// ---------------------------------------------------------------------------
+
+static void p_pprp(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[pprp] v184 carve PPRP (TCP 1080 owner, §190) from dyld split cache");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[pprp] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[pprp] done"); return; }
+
+    // Каталог кэша — тот же кандидатский список, что в bq21/p_p1080.
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs) / sizeof(candirs[0]) && !cdir[0];
+         i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) { LOG("[pprp] dir %s: errno %d", candirs[i], errno); continue; }
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]);
+                break;
+            }
+        closedir(pd);
+        if (cdir[0]) LOG("[pprp] cache dir %s", cdir);
+    }
+    if (!cdir[0]) {
+        LOG("[pprp] no dyld cache dir — route closed");
+        bad_query_release(h); LOG("[pprp] done"); return;
+    }
+
+    NSMutableArray *subs = [NSMutableArray array];
+    NSString *headFile = nil;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+            [subs addObject:[NSString stringWithUTF8String:p]];
+            if (!strchr(ce->d_name, '.'))
+                headFile = [NSString stringWithUTF8String:p];
+        }
+    }
+    if (cd) closedir(cd);
+    if (subs.count == 0) {
+        LOG("[pprp] no sub-files — route closed");
+        bad_query_release(h); LOG("[pprp] done"); return;
+    }
+    if (!headFile) headFile = subs[0];
+    LOG("[pprp] head %s, %d sub-files", headFile.lastPathComponent.UTF8String,
+        (int)subs.count);
+    fsync(fileno(stderr));
+
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat cst;
+    fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+                     fd, 0);
+    if (fd < 0 || map == MAP_FAILED) {
+        LOG("[pprp] head open/mmap errno %d — route closed", errno);
+        if (fd >= 0) close(fd);
+        bad_query_release(h); LOG("[pprp] done"); return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    if (memcmp(hdr->magic, "dyld_v1", 7) != 0) {
+        LOG("[pprp] head bad magic — route closed");
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[pprp] done"); return;
+    }
+
+    // Пере-валидация таблицы образов: u32-пары заголовка, stride 32,
+    // путь в u64-слоте 3 — три пробы (первая/средняя/последняя).
+    uint32_t imgOff = 0, imgCnt = 0;
+    BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[256];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        LOG("[pprp] images table re-validation FAILED — no blind carve");
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[pprp] done"); return;
+    }
+    LOG("[pprp] images table re-validated: off=0x%x cnt=%u stride=32 pathSlot=3",
+        imgOff, imgCnt);
+    fsync(fileno(stderr));
+
+    // Поиск целей подстрокой + known-good контроль таблицы.
+    // v184b: сам PPRP в кэше отсутствует (libexec 0), но клиентские
+    // библиотеки протокола закэшированы — протокол читается в них:
+    //   libReverseProxyDevice — RPSocket.cpp, транспорт к демону;
+    //   libFDR                — HTTP-туннель через прокси;
+    //   libBBUpdaterDynamic / libVinylUpdater — PRP-таймауты.
+    const char *wantSubs[] = { "PurpleReverseProxy", "ReverseProxyDevice",
+                               "libFDR", "BBUpdaterDynamic", "VinylUpdater" };
+    uint64_t mAddr[24]; char mPath[24][280]; unsigned mCnt = 0;
+    const char *ctlPath =
+        "/System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/"
+        "AppIntentsLiveEntitySupport";
+    uint64_t ctlAddr = 0;
+    for (uint32_t i = 0; i < imgCnt; i++) {
+        uint64_t raw[4] = {0, 0, 0, 0};
+        memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+        char pth[280];
+        if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+        if (strcmp(pth, ctlPath) == 0) ctlAddr = raw[0];
+        for (unsigned s = 0; s < sizeof(wantSubs) / sizeof(wantSubs[0]); s++) {
+            if (mCnt < 24 && strstr(pth, wantSubs[s])) {
+                mAddr[mCnt] = raw[0];
+                snprintf(mPath[mCnt], sizeof(mPath[0]), "%s", pth);
+                mCnt++;
+            }
+        }
+    }
+    LOG("[pprp] CONTROL lookup known-good AppIntentsLiveEntitySupport "
+        "@0x%llx %s", (unsigned long long)ctlAddr,
+        ctlAddr ? "FOUND (table lookup works)" : "*** ABSENT — lookup broken ***");
+    LOG("[pprp] targets matched: %u", mCnt);
+    for (unsigned t = 0; t < mCnt; t++)
+        LOG("[pprp]   target %u: %s @0x%llx", t, mPath[t],
+            (unsigned long long)mAddr[t]);
+    fsync(fileno(stderr));
+
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    for (unsigned t = 0; t < mCnt; t++) {
+        uint64_t addr = mAddr[t];
+        // Размер: расстояние до следующего БОЛЬШЕГО адреса образа
+        // (устойчиво к порядку таблицы), потолок 64 МБ.
+        uint64_t next = ~0ULL;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            if (raw[0] > addr && raw[0] < next) next = raw[0];
+        }
+        uint64_t want = (next == ~0ULL ? 0x4000000ULL : next - addr);
+        if (want > 0x4000000ULL) want = 0x4000000ULL;
+        LOG("[pprp] carve %s @0x%llx want=%llu bytes", mPath[t],
+            (unsigned long long)addr, (unsigned long long)want);
+        fsync(fileno(stderr));
+
+        unsigned char *buf = (unsigned char *)calloc(1, (size_t)want);
+        if (!buf) { LOG("[pprp] calloc %llu FAILED — skip", (unsigned long long)want); continue; }
+        uint64_t covered = 0;
+        unsigned pieces = 0;
+
+        // Все mapping'и всех сабфайлов, пересекающие диапазон образа.
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                uint64_t ov0 = addr > mm[m].address ? addr : mm[m].address;
+                uint64_t ov1 = addr + want < mm[m].address + mm[m].size
+                    ? addr + want : mm[m].address + mm[m].size;
+                if (ov1 <= ov0) continue;
+                uint64_t fo = mm[m].fileOffset + (ov0 - mm[m].address);
+                uint64_t n = ov1 - ov0;
+                ssize_t got = pread(sfd, buf + (ov0 - addr), (size_t)n,
+                                    (off_t)fo);
+                if (got != (ssize_t)n) {
+                    LOG("[pprp]   piece %s @0x%llx short pread (%zd/%llu) — "
+                        "gap left zero", sf.lastPathComponent.UTF8String,
+                        (unsigned long long)ov0, got, (unsigned long long)n);
+                    continue;
+                }
+                LOG("[pprp]   piece %-28s VA 0x%llx..0x%llx file@0x%llx "
+                    "(%llu bytes)", sf.lastPathComponent.UTF8String,
+                    (unsigned long long)ov0, (unsigned long long)ov1,
+                    (unsigned long long)fo, (unsigned long long)n);
+                covered += n;
+                pieces++;
+            }
+            close(sfd);
+        }
+        LOG("[pprp] coverage %llu/%llu bytes in %u pieces (%.1f%%)",
+            (unsigned long long)covered, (unsigned long long)want, pieces,
+            want ? 100.0 * (double)covered / (double)want : 0.0);
+
+        uint32_t mag = *(uint32_t *)buf;
+        LOG("[pprp] mach magic @0: 0x%x %s", mag,
+            mag == 0xFEEDFACF ? "OK (MH_MAGIC_64)"
+                               : "*** NOT a mach header — carve suspect ***");
+
+        NSString *out = [docs stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"carve-%@.bin",
+             [NSString stringWithUTF8String:mPath[t]].lastPathComponent]];
+        NSData *dd = [NSData dataWithBytes:buf length:(NSUInteger)want];
+        [dd writeToFile:out atomically:NO];
+        NSData *back = [NSData dataWithContentsOfFile:out];
+        LOG("[pprp] wrote %s: %llu bytes, byte-identical=%d",
+            out.lastPathComponent.UTF8String, (unsigned long long)want,
+            (back && [back isEqualToData:dd]) ? 1 : 0);
+
+        // Иглы по содержимому карва: v184b — все пять ожидаемы в
+        // клиентах протокола (v183 нашёл их в кэше); последняя —
+        // негативный контроль (чужой образ не должен попасть в диапазон).
+        const char *ndl[] = { "RPSocket", "PurpleReverseProxy", "proxy",
+                              "register", "PRP",
+                              "AppIntentsLiveEntitySupport" };
+        for (unsigned k = 0; k < sizeof(ndl) / sizeof(ndl[0]); k++) {
+            void *hit = memmem(buf, (size_t)want, ndl[k], strlen(ndl[k]));
+            LOG("[pprp]   needle %-28s %s%s", ndl[k], hit ? "FOUND" : "absent",
+                (k == 5 && hit) ? "  *** NEGATIVE CONTROL HIT — range overlaps "
+                                  "another image ***" : "");
+        }
+        fsync(fileno(stderr));
+        free(buf);
+    }
+
+    munmap(map, (size_t)fsize);
+    close(fd);
+    bad_query_release(h);
+    LOG("[pprp] done");
+}
+
+// ---------------------------------------------------------------------------
+// V184b (p_pprp2): диагностика негатива p_pprp — «PPRP нет в таблице
+// образов кэша». Таблица валидна (known-good AppIntentsLiveEntitySupport
+// находится), значит 0 совпадений — либо бинарь правда не закэширован,
+// либо его путь записан иначе, либо строки v183 (6 CACHE-HIT, включая
+// text .71 и .symbols) принадлежат ДРУГОМУ закэшированному образу —
+// клиенту, вшивающему имя сервиса. Фаза отвечает на три вопроса:
+//
+//   1. Ценз путей таблицы: сколько путей вообще резолвится и есть ли
+//      среди них /usr/libexec* (если 0 — «libexec не кэшируется»,
+//      если десятки — отсутствие PPRP реально); все пути с подстрокой
+//      Proxy/Reverse (варианты имени бинаря).
+//   2. Каждый v183-hit (сабфайл+офсет) -> VA через mapping-таблицу
+//      сабфайла -> владелец VA в таблице образов: ЧЕЙ бинарь содержит
+//      строку; ASCII-контекст ±96 байт вокруг каждого хита (сама
+//      строка: "com.apple.PurpleReverseProxy.Conn"? класс? мусор?).
+//   3. Тот же ASCII-контекст для хита в .symbols (там имена символов
+//      закэшированных образов — «_OBJC_CLASS_$_...» докажет принадлежность).
+//
+// Контроли (§144): точка §170; пере-валидация таблицы; known-good
+// lookup; ПОЛОЖИТЕЛЬНЫЙ контроль перевода VA->офсет: начало known-good
+// образа транслируется в сабфайл и по офсету читается 0xFEEDFACF
+// (mach_header того же образа) — без этого отрицательный ответ секции 2
+// был бы неотличим от сломанной трансляции.
+// ---------------------------------------------------------------------------
+
+static void pprp2_ctx(const char *tag, int fd, uint64_t off, uint64_t fsize) {
+    // ±96 байт вокруг off, печать как ASCII с точками вместо непечатных.
+    uint64_t lo = off > 96 ? off - 96 : 0;
+    unsigned char b[240];
+    ssize_t got = pread(fd, b, sizeof(b), (off_t)lo);
+    if (got <= 0) { LOG("[pprp2] %s: ctx pread errno %d", tag, errno); return; }
+    char line[3][100];
+    int li = 0, col = 0;
+    memset(line, 0, sizeof(line));
+    for (ssize_t i = 0; i < got && li < 3; i++) {
+        unsigned char c = b[i];
+        line[li][col++] = (c >= 0x20 && c < 0x7f) ? (char)c : '.';
+        if (col == 96) { line[li][col] = 0; li++; col = 0; }
+    }
+    if (col && li < 3) line[li][col] = 0;
+    for (int k = 0; k < 3; k++)
+        if (line[k][0]) LOG("[pprp2]   %s |%s|", tag, line[k]);
+}
+
+static void p_pprp2(void) {
+    LOG("[pprp2] v184b diagnose p_pprp negative (PPRP absent in images table)");
+
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[pprp2] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[pprp2] done"); return; }
+
+    const char *cdir =
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
+    NSMutableArray *subs = [NSMutableArray array];
+    NSString *headFile = nil;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+            [subs addObject:[NSString stringWithUTF8String:p]];
+            if (!strchr(ce->d_name, '.'))
+                headFile = [NSString stringWithUTF8String:p];
+        }
+    }
+    if (cd) closedir(cd);
+    if (subs.count == 0 || !headFile) {
+        LOG("[pprp2] no head/subs — route closed");
+        bad_query_release(h); LOG("[pprp2] done"); return;
+    }
+
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat cst;
+    fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+                     fd, 0);
+    if (fd < 0 || map == MAP_FAILED) {
+        LOG("[pprp2] head mmap errno %d — route closed", errno);
+        if (fd >= 0) close(fd);
+        bad_query_release(h); LOG("[pprp2] done"); return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+
+    uint32_t imgOff = 0, imgCnt = 0;
+    BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[256];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        LOG("[pprp2] images table re-validation FAILED");
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[pprp2] done"); return;
+    }
+    LOG("[pprp2] images table: off=0x%x cnt=%u", imgOff, imgCnt);
+    fsync(fileno(stderr));
+
+    // 1. Ценз путей. Подсчёт по префиксам + варианты имени (Proxy).
+    uint32_t resolved = 0, libexecN = 0, usrN = 0, sysN = 0, otherN = 0;
+    uint64_t ctlAddr = 0;
+    const char *ctlPath =
+        "/System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/"
+        "AppIntentsLiveEntitySupport";
+    LOG("[pprp2] --- paths with 'Proxy'/'Reverse' substring ---");
+    for (uint32_t i = 0; i < imgCnt; i++) {
+        uint64_t raw[4] = {0, 0, 0, 0};
+        memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+        char pth[280];
+        if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+        resolved++;
+        if (strcmp(pth, ctlPath) == 0) ctlAddr = raw[0];
+        if (strncmp(pth, "/usr/libexec", 12) == 0) {
+            libexecN++;
+            if (libexecN <= 8) LOG("[pprp2]   libexec img: %s", pth);
+        } else if (strncmp(pth, "/usr/", 5) == 0) {
+            usrN++;
+            if (usrN <= 4) LOG("[pprp2]   usr img: %s", pth);
+        } else if (strncmp(pth, "/System/", 8) == 0) {
+            sysN++;
+        } else {
+            otherN++;
+            if (otherN <= 4) LOG("[pprp2]   other img: %s", pth);
+        }
+        if (strstr(pth, "Proxy") || strstr(pth, "Reverse") ||
+            strstr(pth, "proxy"))
+            LOG("[pprp2]   name-match: %s @0x%llx", pth,
+                (unsigned long long)raw[0]);
+    }
+    LOG("[pprp2] paths resolved %u/%u (libexec %u, /usr %u, /System %u, "
+        "other %u)", resolved, imgCnt, libexecN, usrN, sysN, otherN);
+    LOG("[pprp2] CONTROL lookup AppIntentsLiveEntitySupport @0x%llx %s",
+        (unsigned long long)ctlAddr,
+        ctlAddr ? "FOUND" : "*** ABSENT — table broken ***");
+    fsync(fileno(stderr));
+
+    if (!ctlAddr) {
+        LOG("[pprp2] control lost — aborting translation section");
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[pprp2] done"); return;
+    }
+
+    // ПОЛОЖИТЕЛЬНЫЙ контроль трансляции VA->офсет: начало known-good
+    // образа -> сабфайл -> офсет -> 0xFEEDFACF (mach_header образа).
+    {
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm,
+                      sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                if (ctlAddr < mm[m].address ||
+                    ctlAddr >= mm[m].address + mm[m].size) continue;
+                uint64_t fo = mm[m].fileOffset + (ctlAddr - mm[m].address);
+                uint32_t mag = 0;
+                if (pread(sfd, &mag, 4, (off_t)fo) == 4)
+                    LOG("[pprp2] CONTROL VA->offset: %s @0x%llx -> magic 0x%x "
+                        "%s", sf.lastPathComponent.UTF8String,
+                        (unsigned long long)fo, mag,
+                        mag == 0xFEEDFACF
+                            ? "OK (translation works)"
+                            : "*** BAD — translation suspect ***");
+            }
+            close(sfd);
+        }
+    }
+    fsync(fileno(stderr));
+
+    // 2. Хиты строки в head-файле (path pool содержит имя?).
+    {
+        const unsigned char *b = (const unsigned char *)map;
+        const unsigned char *p = b, *end = b + fsize;
+        int shown = 0;
+        while (shown < 10 && p < end) {
+            const unsigned char *hit = memmem(p, (size_t)(end - p),
+                "PurpleReverseProxy", 18);
+            if (!hit) break;
+            LOG("[pprp2] head-string hit @0x%lx",
+                (unsigned long)(hit - b));
+            pprp2_ctx("head", fd, (uint64_t)(hit - b), 0);
+            p = hit + 18;
+            shown++;
+        }
+        if (!shown) LOG("[pprp2] head: no 'PurpleReverseProxy' string");
+    }
+    fsync(fileno(stderr));
+
+    // 3. v183-хиты: сабфайл+офсет -> VA -> владелец + контекст.
+    static const struct { const char *sub; unsigned long off; } v183[] = {
+        {".73", 0x2602628}, {".30", 0x6db33cb}, {".09", 0x7b7c504},
+        {".71", 0x74d13c1}, {".77.dyldlinkedit", 0x8ac54a1},
+    };
+    for (unsigned v = 0; v < sizeof(v183) / sizeof(v183[0]); v++) {
+        NSString *sfp = nil;
+        for (NSString *sf in subs)
+            if ([sf.lastPathComponent hasSuffix:
+                    [NSString stringWithUTF8String:v183[v].sub]]) { sfp = sf; break; }
+        if (!sfp) { LOG("[pprp2] v183 sub %s not found", v183[v].sub); continue; }
+        int sfd = open(sfp.fileSystemRepresentation, O_RDONLY);
+        struct bq14_cache_header sh = {0};
+        if (sfd < 0 || pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+            memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+            sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+            LOG("[pprp2] v183 sub %s: bad header", v183[v].sub);
+            if (sfd >= 0) close(sfd);
+            continue;
+        }
+        struct bq14_mapping_info mm[64];
+        memset(mm, 0, sizeof(mm));
+        if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                  sh.mappingOffset) !=
+            (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+            close(sfd); continue;
+        }
+        uint64_t off = v183[v].off, VA = 0;
+        for (uint32_t m = 0; m < sh.mappingCount; m++) {
+            if (off >= mm[m].fileOffset &&
+                off < mm[m].fileOffset + mm[m].size) {
+                VA = mm[m].address + (off - mm[m].fileOffset);
+                break;
+            }
+        }
+        if (!VA) {
+            LOG("[pprp2] v183 %s@0x%lx: no mapping covers offset",
+                v183[v].sub, v183[v].off);
+            close(sfd); continue;
+        }
+        // VA -> владелец (нижняя граница среди адресов образов).
+        uint64_t best = 0; char bestPath[280] = {0};
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            if (raw[0] <= VA && raw[0] > best) {
+                char pth[280];
+                if (bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) {
+                    best = raw[0];
+                    snprintf(bestPath, sizeof(bestPath), "%s", pth);
+                }
+            }
+        }
+        LOG("[pprp2] v183 %s@0x%lx -> VA 0x%llx -> owner @0x%llx %s",
+            v183[v].sub, v183[v].off, (unsigned long long)VA,
+            (unsigned long long)best, bestPath[0] ? bestPath : "?");
+        char tag[64];
+        snprintf(tag, sizeof(tag), "v183 %s", v183[v].sub);
+        pprp2_ctx(tag, sfd, off, 0);
+        close(sfd);
+        fsync(fileno(stderr));
+    }
+
+    // 4. .symbols: хит 0x1aef78f7 — имена символов; контекст покажет,
+    //    чей класс/символ содержит строку.
+    {
+        NSString *symf = nil;
+        DIR *d2 = opendir(cdir);
+        struct dirent *e2;
+        while (d2 && (e2 = readdir(d2)))
+            if (strstr(e2->d_name, ".symbols")) {
+                char p[1400];
+                snprintf(p, sizeof(p), "%s/%s", cdir, e2->d_name);
+                symf = [NSString stringWithUTF8String:p];
+                break;
+            }
+        if (d2) closedir(d2);
+        if (symf) {
+            int sfd = open(symf.fileSystemRepresentation, O_RDONLY);
+            if (sfd >= 0) {
+                pprp2_ctx("symbols", sfd, 0x1aef78f7, 0);
+                close(sfd);
+            }
+        } else {
+            LOG("[pprp2] .symbols file not found");
+        }
+    }
+
+    munmap(map, (size_t)fsize);
+    close(fd);
+    bad_query_release(h);
+    LOG("[pprp2] done");
+}
+
+// ---------------------------------------------------------------------------
+// V184c (p_pprp3): спекулятивные пробы протокола PPRP на 1080/1083 с
+// КОРРЕКТНЫМ фреймингом. Хостовый RE libReverseProxyDevice.dylib (§191,
+// carve v184c) показал wire-формат RPSocket{Read,Write}Dictionary:
+//   u32 ДЛИНА в сетевом порядке (rev32 в коде чтения) + байты
+//   plist-словаря (десериализация через CFPropertyList, «plist was not
+//   a dictionary» — reject). Команды — словари с ключом "Command":
+//   "Ping"->"Pong", "TestReachability", "SetLogLevel"+"Level",
+//   "RegisterNotify". Магия 0xfade7171 из asm — НЕ wire-протокол, а
+//   разбор csops-блоба entitlements (copyEntitlementsForPid): демон
+//   проверяет entitlements пира сокета (copyEntitlementsForSocketPeer,
+//   getsockopt) — ожидаемый reject для нашей песочницы, и он тоже
+//   является результатом (протокол дошёл до авторизации).
+//
+// v183 слал мусор — FIN ~1s = демон прочитал 4 байта длины из мусора и
+// закрыл. Здесь: корректный length-prefix + валидный binary plist.
+// Ответ (если пришлёт) парсим обратно в словарь и логируем ключи.
+//
+// Контроли (§144):
+//   - контрольная точка 1081: connect обязан дать ECONNREFUSED
+//     (машина сокетов жива, ошибки «нет демона» не выдумываем);
+//   - контрольный Ping НА СЕБЯ: phase-сервер на эфемерном порту
+//     принимает наш фреймированный plist и подтверждает байтовую
+//     корректность сериализации (иначе негатив на 1080 был бы
+//     неотличим от сломанного клиента);
+//   - 1080/1083 connect OK (§190 уже подтверждено, но логируем).
+// Риск: сообщения read-only (Ping/Reachability); SetLogLevel меняет
+// только уровень логирования демона (сбрасывается при ребуте).
+// ---------------------------------------------------------------------------
+
+static double pprp3_ms(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
+}
+
+// Сериализация словаря в binary plist + length-prefix (u32 BE).
+static NSData *pprp3_frame(NSDictionary *dict) {
+    NSString *err = nil;
+    NSData *pl = [NSPropertyListSerialization
+        dataFromPropertyList:dict format:NSPropertyListBinaryFormat_v1_0
+        errorDescription:&err];
+    if (!pl) {
+        LOG("[pprp3] plist serialize FAILED: %s",
+            err ? err.UTF8String : "?");
+        return nil;
+    }
+    uint32_t len = CFSwapInt32HostToBig((uint32_t)pl.length);
+    NSMutableData *fr = [NSMutableData dataWithBytes:&len length:4];
+    [fr appendData:pl];
+    return fr;
+}
+
+// connect → send frame → читать ответ: u32 BE len, затем len байт
+// plist; парсим обратно в словарь. Классифицируем DATA/FIN/timeout.
+static void pprp3_talk(int port, const char *tag, NSDictionary *dict,
+                       int wait_s) {
+    NSData *fr = pprp3_frame(dict);
+    if (!fr) return;
+    double t0 = pprp3_ms();
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    struct sockaddr_in a = {0};
+    a.sin_len = sizeof(a);
+    a.sin_family = AF_INET;
+    a.sin_port = htons((uint16_t)port);
+    a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (connect(s, (struct sockaddr *)&a, sizeof(a)) != 0) {
+        LOG("[pprp3] %s port %d connect errno %d", tag, port, errno);
+        close(s);
+        return;
+    }
+    ssize_t w = send(s, fr.bytes, fr.length, 0);
+    LOG("[pprp3] %s port %d send %zd/%zu after %.0fms", tag, port, w,
+        fr.length, pprp3_ms() - t0);
+    struct timeval tv = {wait_s, 0};
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    // Ответ: сначала длина, потом плоский plist.
+    unsigned char hdr[4];
+    ssize_t r = recv(s, hdr, 4, 0);
+    double dt = pprp3_ms() - t0;
+    if (r == 4) {
+        uint32_t blen = CFSwapInt32BigToHost(*(uint32_t *)hdr);
+        LOG("[pprp3] %s -> LEN %u after %.0fms", tag, blen, dt);
+        if (blen > 0 && blen < (1u << 20)) {
+            NSMutableData *bd = [NSMutableData dataWithLength:blen];
+            ssize_t r2 = recv(s, bd.mutableBytes, blen, 0);
+            if (r2 == (ssize_t)blen) {
+                id obj = [NSPropertyListSerialization
+                    propertyListWithData:bd
+                    options:NSPropertyListImmutable format:NULL error:NULL];
+                if ([obj isKindOfClass:[NSDictionary class]]) {
+                    NSArray *keys = [(NSDictionary *)obj allKeys];
+                    LOG("[pprp3] %s -> DICT keys=%s", tag,
+                        keys.description.UTF8String);
+                    NSString *d = [(NSDictionary *)obj description];
+                    LOG("[pprp3] %s body: %.400s", tag, d.UTF8String);
+                } else {
+                    char hex[200];
+                    size_t hl = r2 < 64 ? (size_t)r2 : 64;
+                    for (size_t i = 0; i < hl; i++)
+                        snprintf(hex + i * 3, sizeof(hex) - i * 3, "%02x ",
+                                 ((unsigned char *)bd.bytes)[i]);
+                    LOG("[pprp3] %s -> %zd bytes, not a dict: %s", tag, r2,
+                        hex);
+                }
+            } else {
+                LOG("[pprp3] %s body recv %zd errno %d", tag, r2,
+                    r2 < 0 ? errno : 0);
+            }
+        } else {
+            LOG("[pprp3] %s -> absurd length %u — reject", tag, blen);
+        }
+    } else if (r == 0) {
+        LOG("[pprp3] %s -> FIN after %.0fms (0 bytes)", tag, dt);
+    } else {
+        LOG("[pprp3] %s -> hdr recv %zd errno %d after %.0fms", tag, r,
+            r < 0 ? errno : 0, dt);
+    }
+    close(s);
+}
+
+static void p_pprp3(void) {
+    LOG("[pprp3] v184c protocol probes on PPRP ports (length+plist framing)");
+
+    // Контроль 1: 1081 обязан быть закрыт (машина сокетов подтверждена).
+    {
+        int s = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a);
+        a.sin_family = AF_INET;
+        a.sin_port = htons(1081);
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        int rc = connect(s, (struct sockaddr *)&a, sizeof(a));
+        LOG("[pprp3] CONTROL 1081 connect -> %d errno %d (expect -1/111)",
+            rc, rc != 0 ? errno : 0);
+        close(s);
+    }
+
+    // Контроль 2: наш собственный словарь проходит наш же фреймер —
+    // Ping самому себе на эфемерном listen-порту.
+    {
+        int lfd = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in la = {0};
+        la.sin_len = sizeof(la);
+        la.sin_family = AF_INET;
+        la.sin_port = 0;
+        la.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        bind(lfd, (struct sockaddr *)&la, sizeof(la));
+        listen(lfd, 1);
+        socklen_t lalen = sizeof(la);
+        getsockname(lfd, (struct sockaddr *)&la, &lalen);
+        int selfport = ntohs(la.sin_port);
+        NSData *fr = pprp3_frame(@{@"Command": @"Ping"});
+        int cs = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a);
+        a.sin_family = AF_INET;
+        a.sin_port = htons((uint16_t)selfport);
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        connect(cs, (struct sockaddr *)&a, sizeof(a));
+        int as = accept(lfd, NULL, NULL);
+        send(cs, fr.bytes, fr.length, 0);
+        unsigned char rh[4];
+        ssize_t rr = recv(as, rh, 4, 0);
+        uint32_t rl = (rr == 4) ? CFSwapInt32BigToHost(*(uint32_t *)rh) : 0;
+        LOG("[pprp3] CONTROL self-frame: framed %zu bytes, peer read "
+            "len-prefix %zd -> %u (expect 4 -> %zu)", fr.length, rr, rl,
+            fr.length - 4);
+        close(as); close(cs); close(lfd);
+    }
+
+    fsync(fileno(stderr));
+
+    // Пробы команд на оба порта демона.
+    NSDictionary *ping = @{@"Command": @"Ping"};
+    NSDictionary *reach = @{@"Command": @"TestReachability"};
+    NSDictionary *lvl = @{@"Command": @"SetLogLevel", @"Level": @7};
+    NSDictionary *reg = @{@"Command": @"RegisterNotify"};
+
+    pprp3_talk(1080, "1080 Ping", ping, 3);
+    pprp3_talk(1080, "1080 Reach", reach, 3);
+    pprp3_talk(1080, "1080 Lvl7", lvl, 3);
+    pprp3_talk(1080, "1080 Reg", reg, 3);
+    fsync(fileno(stderr));
+    pprp3_talk(1083, "1083 Ping", ping, 3);
+    pprp3_talk(1083, "1083 Reg", reg, 3);
+    pprp3_talk(1083, "1083 Reach", reach, 3);
+    fsync(fileno(stderr));
+
+    // Отрицательный контроль формата: тот же словарь в XML-формате —
+    // если демон принимает ТОЛЬКО binary, XML даст другой reject.
+    {
+        NSData *xml = [NSPropertyListSerialization
+            dataFromPropertyList:ping format:NSPropertyListXMLFormat_v1_0
+            errorDescription:NULL];
+        uint32_t len = CFSwapInt32HostToBig((uint32_t)xml.length);
+        NSMutableData *fr = [NSMutableData dataWithBytes:&len length:4];
+        [fr appendData:xml];
+        double t0 = pprp3_ms();
+        int s = socket(AF_INET, SOCK_STREAM, 0);
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a);
+        a.sin_family = AF_INET;
+        a.sin_port = htons(1080);
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        if (connect(s, (struct sockaddr *)&a, sizeof(a)) == 0) {
+            send(s, fr.bytes, fr.length, 0);
+            struct timeval tv = {3, 0};
+            setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+            unsigned char b[64];
+            ssize_t r = recv(s, b, sizeof(b), 0);
+            LOG("[pprp3] 1080 XML-plist Ping -> %zd%s after %.0fms", r,
+                r < 0 ? " (errno)" : "", pprp3_ms() - t0);
+        }
+        close(s);
+    }
+
+    LOG("[pprp3] done");
+}
+
+// ---------------------------------------------------------------------------
 // V177 (p_bq22): find the READERS. Rootfs is a dead end — the IPSW's
 // system dmgs are AEA-encrypted (094-13007-107.dmg.aea, 9.1 GB; keys
 // exist only at restore time on-device), so the §182 blind spot can
@@ -38157,6 +38968,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IPOPT2")) { p_ipopt2(); LOG("[probe13] ipopt2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_P1080")) { p_p1080(); LOG("[probe13] p1080-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PPRP")) { p_pprp(); LOG("[probe13] pprp-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PPRP2")) { p_pprp2(); LOG("[probe13] pprp2-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_PPRP3")) { p_pprp3(); LOG("[probe13] pprp3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }

@@ -1,0 +1,50 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_PPRP2=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e03
+[scaler] conn 0x7e03, s1 153 s2 168
+[probe12] SetNotificationPort -> 0x00000000
+[pprp2] v184b diagnose p_pprp negative (PPRP absent in images table)
+[pprp2] CONTROL §170 point -> handle 1
+[pprp2] images table: off=0x2a8 cnt=4690
+[pprp2] --- paths with 'Proxy'/'Reverse' substring ---
+[pprp2]   usr img: /usr/lib/libobjc.A.dylib
+[pprp2]   usr img: /usr/lib/libsharedcache.dylib
+[pprp2]   usr img: /usr/lib/system/libdyld.dylib
+[pprp2]   usr img: /usr/lib/dyld
+[pprp2]   name-match: /System/Library/PrivateFrameworks/NetworkServiceProxy.framework/NetworkServiceProxy @0x1aa2d7000
+[pprp2]   name-match: /System/Library/PrivateFrameworks/OSASyncProxyClient.framework/OSASyncProxyClient @0x295251000
+[pprp2]   name-match: /System/Library/PrivateFrameworks/PromotedContentProxy.framework/PromotedContentProxy @0x29abec000
+[pprp2]   name-match: /System/Library/PrivateFrameworks/USDLib_FormatLoaderProxy.framework/USDLib_FormatLoaderProxy @0x2b1dce000
+[pprp2]   name-match: /usr/lib/libReverseProxyDevice.dylib @0x2bf8cc000
+[pprp2] paths resolved 4689/4690 (libexec 0, /usr 417, /System 4272, other 0)
+[pprp2] CONTROL lookup AppIntentsLiveEntitySupport @0x1b7f27000 FOUND
+[pprp2] CONTROL VA->offset: dyld_shared_cache_arm64e.13 @0x7b27000 -> magic 0xfeedfacf OK (translation works)
+[pprp2] head: no 'PurpleReverseProxy' string
+[pprp2] v183 .73@0x2602628 -> VA 0x2c2a02628 -> owner @0x2c29a1000 /usr/lib/updaters/libVinylUpdater.dylib
+[pprp2]   v183 .73 |/0376ADE6-F11D-430A-A034-E0EA3A00A73B/TemporaryDirectory.rrXRPB/Sources/VinylRestore/Support/BBU|
+[pprp2]   v183 .73 |PurpleReverseProxy.cpp.Failed to register for proxy..!url.empty() && urlRef.NULL requestURL?..fs|
+[pprp2]   v183 .73 | == std::future_status::ready.PRP timed out %d..|
+[pprp2] v183 .30@0x6db33cb -> VA 0x20f1b33cb -> owner @0x20effd000 /usr/lib/libBBUpdaterDynamic.dylib
+[pprp2]   v183 .30 |C/TemporaryDirectory.RhHCJh/Sources/AppleBasebandServices/BBUpdater/Legacy/Framework/Support/BBU|
+[pprp2]   v183 .30 |PurpleReverseProxy.cpp.Failed to register for proxy..!url.empty() && urlRef.NULL requestURL?..fs|
+[pprp2]   v183 .30 | == std::future_status::ready.PRP timed out %d..|
+[pprp2] v183 .09@0x7b7c504 -> VA 0x1a7f7c504 -> owner @0x1a7ed5000 /usr/lib/libFDR.dylib
+[pprp2]   v183 .09 |!!!! Retries exhausted on attempt %d !!!!!!!!!!!!!!!!!!!!!!!!!!.got http failures._AMFDRHttpCopy|
+[pprp2]   v183 .09 |PurpleReverseProxyInformation.TestReachability.v12@?0i8.failed to register for reverse proxy ava|
+[pprp2]   v183 .09 |ilability.Failed to get proxy info for URL '%@'.|
+[pprp2] v183 .71@0x74d13c1 -> VA 0x2bf8d13c1 -> owner @0x2bf8cc000 /usr/lib/libReverseProxyDevice.dylib
+[pprp2]   v183 .71 |ary/Caches/com.apple.xbs/15736E24-8B2C-41D4-A68B-7B56923E87A9/TemporaryDirectory.p81rUS/Sources/|
+[pprp2]   v183 .71 |PurpleReverseProxy/Common/RPSocket.cpp.RPSocketRead.Reading %lu bytes from socket %p to buffer %|
+[pprp2]   v183 .71 |p.RPSocketReadBuffer.EOF on %@..read error on %@|
+[pprp2] v183 .77.dyldlinkedit@0x8ac54a1 -> VA 0x2dc7354a1 -> owner @0x2c8000000 /usr/lib/objc/libobjcMsgSend33.dylib
+[pprp2]   v183 .77.dyldlinkedit |.................................................................................../usr/libexec/|
+[pprp2]   v183 .77.dyldlinkedit |PurpleReverseProxy.......A........................................H.........>...p.K.............|
+[pprp2]   v183 .77.dyldlinkedit |..............(.....................@...........|
+[pprp2]   symbols |MFDRHttpAuthenticationCallback.__AMFDRHttpProxyIsEnabled.__AMFDRHttpLogRequest.____AMFDRHttpCopy|
+[pprp2]   symbols |PurpleReverseProxyInformation_block_invoke.____thr_AMFDRHttpRequestStatisticsRecord.__AMFDRDataP|
+[pprp2]   symbols |ermAllowed.__AMFDRDataHTTPCopyForPut.__AMFDRData|
+[pprp2] done
+[probe13] pprp2-only mode, stop

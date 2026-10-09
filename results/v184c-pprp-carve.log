@@ -1,0 +1,89 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_PPRP=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7b03
+[scaler] conn 0x7b03, s1 13 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[pprp] v184 carve PPRP (TCP 1080 owner, §190) from dyld split cache
+[pprp] CONTROL §170 point -> handle 1
+[pprp] cache dir /private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld
+[pprp] head dyld_shared_cache_arm64e, 79 sub-files
+[pprp] images table re-validated: off=0x2a8 cnt=4690 stride=32 pathSlot=3
+[pprp] CONTROL lookup known-good AppIntentsLiveEntitySupport @0x1b7f27000 FOUND (table lookup works)
+[pprp] targets matched: 6
+[pprp]   target 0: /usr/lib/libFDR.dylib @0x1a7ed5000
+[pprp]   target 1: /usr/lib/libBBUpdaterDynamic.dylib @0x20effd000
+[pprp]   target 2: /usr/lib/libBBUpdaterDynamic_stubs.dylib @0x2be7ae000
+[pprp]   target 3: /usr/lib/libFDRDecode.dylib @0x2befe0000
+[pprp]   target 4: /usr/lib/libReverseProxyDevice.dylib @0x2bf8cc000
+[pprp]   target 5: /usr/lib/updaters/libVinylUpdater.dylib @0x2c29a1000
+[pprp] carve /usr/lib/libFDR.dylib @0x1a7ed5000 want=733184 bytes
+[pprp]   piece dyld_shared_cache_arm64e.09  VA 0x1a7ed5000..0x1a7f88000 file@0x7ad5000 (733184 bytes)
+[pprp] coverage 733184/733184 bytes in 1 pieces (100.0%)
+[pprp] mach magic @0: 0xfeedfacf OK (MH_MAGIC_64)
+[pprp] wrote carve-libFDR.dylib.bin: 733184 bytes, byte-identical=1
+[pprp]   needle RPSocket                     absent
+[pprp]   needle PurpleReverseProxy           FOUND
+[pprp]   needle proxy                        FOUND
+[pprp]   needle register                     FOUND
+[pprp]   needle PRP                          absent
+[pprp]   needle AppIntentsLiveEntitySupport  absent
+[pprp] carve /usr/lib/libBBUpdaterDynamic.dylib @0x20effd000 want=1994752 bytes
+[pprp]   piece dyld_shared_cache_arm64e.30  VA 0x20effd000..0x20f1e4000 file@0x6bfd000 (1994752 bytes)
+[pprp] coverage 1994752/1994752 bytes in 1 pieces (100.0%)
+[pprp] mach magic @0: 0xfeedfacf OK (MH_MAGIC_64)
+[pprp] wrote carve-libBBUpdaterDynamic.dylib.bin: 1994752 bytes, byte-identical=1
+[pprp]   needle RPSocket                     absent
+[pprp]   needle PurpleReverseProxy           FOUND
+[pprp]   needle proxy                        FOUND
+[pprp]   needle register                     FOUND
+[pprp]   needle PRP                          FOUND
+[pprp]   needle AppIntentsLiveEntitySupport  absent
+[pprp] carve /usr/lib/libBBUpdaterDynamic_stubs.dylib @0x2be7ae000 want=4096 bytes
+[pprp]   piece dyld_shared_cache_arm64e.71  VA 0x2be7ae000..0x2be7af000 file@0x63ae000 (4096 bytes)
+[pprp] coverage 4096/4096 bytes in 1 pieces (100.0%)
+[pprp] mach magic @0: 0xfeedfacf OK (MH_MAGIC_64)
+[pprp] wrote carve-libBBUpdaterDynamic_stubs.dylib.bin: 4096 bytes, byte-identical=1
+[pprp]   needle RPSocket                     absent
+[pprp]   needle PurpleReverseProxy           absent
+[pprp]   needle proxy                        absent
+[pprp]   needle register                     absent
+[pprp]   needle PRP                          absent
+[pprp]   needle AppIntentsLiveEntitySupport  absent
+[pprp] carve /usr/lib/libFDRDecode.dylib @0x2befe0000 want=73728 bytes
+[pprp]   piece dyld_shared_cache_arm64e.71  VA 0x2befe0000..0x2beff2000 file@0x6be0000 (73728 bytes)
+[pprp] coverage 73728/73728 bytes in 1 pieces (100.0%)
+[pprp] mach magic @0: 0xfeedfacf OK (MH_MAGIC_64)
+[pprp] wrote carve-libFDRDecode.dylib.bin: 73728 bytes, byte-identical=1
+[pprp]   needle RPSocket                     absent
+[pprp]   needle PurpleReverseProxy           absent
+[pprp]   needle proxy                        absent
+[pprp]   needle register                     absent
+[pprp]   needle PRP                          absent
+[pprp]   needle AppIntentsLiveEntitySupport  absent
+[pprp] carve /usr/lib/libReverseProxyDevice.dylib @0x2bf8cc000 want=28672 bytes
+[pprp]   piece dyld_shared_cache_arm64e.71  VA 0x2bf8cc000..0x2bf8d3000 file@0x74cc000 (28672 bytes)
+[pprp] coverage 28672/28672 bytes in 1 pieces (100.0%)
+[pprp] mach magic @0: 0xfeedfacf OK (MH_MAGIC_64)
+[pprp] wrote carve-libReverseProxyDevice.dylib.bin: 28672 bytes, byte-identical=1
+[pprp]   needle RPSocket                     FOUND
+[pprp]   needle PurpleReverseProxy           FOUND
+[pprp]   needle proxy                        FOUND
+[pprp]   needle register                     absent
+[pprp]   needle PRP                          absent
+[pprp]   needle AppIntentsLiveEntitySupport  absent
+[pprp] carve /usr/lib/updaters/libVinylUpdater.dylib @0x2c29a1000 want=421888 bytes
+[pprp]   piece dyld_shared_cache_arm64e.73  VA 0x2c29a1000..0x2c2a08000 file@0x25a1000 (421888 bytes)
+[pprp] coverage 421888/421888 bytes in 1 pieces (100.0%)
+[pprp] mach magic @0: 0xfeedfacf OK (MH_MAGIC_64)
+[pprp] wrote carve-libVinylUpdater.dylib.bin: 421888 bytes, byte-identical=1
+[pprp]   needle RPSocket                     absent
+[pprp]   needle PurpleReverseProxy           FOUND
+[pprp]   needle proxy                        FOUND
+[pprp]   needle register                     FOUND
+[pprp]   needle PRP                          FOUND
+[pprp]   needle AppIntentsLiveEntitySupport  absent
+[pprp] done
+[probe13] pprp-only mode, stop

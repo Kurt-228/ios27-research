@@ -3375,3 +3375,84 @@ accept → исходящая попытка → таймаут → close. По�
 `results/v183-p1080.log` (финальный прогон: контроли, 1083/8021,
 mach-lookup с контролем, 80 файлов кэша, 6 CACHE-HIT), фаза `p_p1080` с
 веткой `FUZZ_P1080` в диспетчере.
+
+## 191. v184: PPRP вырезан из кэша клиентскими библиотеками — протокол восстановлен (length+plist), фикс-порты мертвы без host-side пары
+
+**Дата:** 09.10.2026. **Цель:** получить бинарь `com.apple.PurpleReverseProxy`
+(владелец TCP 1080/1083, §190) и восстановить его протокол.
+
+### Карвинг: сам демон в кэше отсутствует, но протокол живёт в клиентах
+
+Фаза `p_pprp` (v184): механика bq21 + сбор ВСЕХ mapping'ов всех сабфайлов
+диапазона образа в один VA-непрерывный буфер (bq21 резал только первый
+кусок). Контроль known-good (AppIntentsLiveEntitySupport в таблице
+образов) — FOUND, **целей 0**: `/usr/libexec/PurpleReverseProxy` в таблице
+нет. Фаза-диагностика `p_pprp2` (v184b) закрыла вопрос:
+
+- таблица образов валидна: 4689/4690 путей резолвится, **libexec-образов
+  0** — `/usr/libexec` в кэш не включается вообще;
+- ПОЛОЖИТЕЛЬНЫЙ контроль трансляции VA→офсет: mach_header known-good
+  образа найден по адресу (0xfeedfacf) — отрицательный ответ не из-за
+  сломанной трансляции;
+- v183 CACHE-HIT'ы (6 штук) принадлежат **клиентским библиотекам**,
+  вшивающим имя сервиса: `libReverseProxyDevice.dylib` (RPSocket.cpp —
+  сам транспорт протокола!), `libFDR.dylib` (AMFDRHttpProxy*,
+  TestReachability), `libBBUpdaterDynamic.dylib` и
+  `updaters/libVinylUpdater.dylib` (PRP-таймауты, reverse proxy setup).
+
+Переписанная `p_pprp` вырезала 6 библиотек (733KB libFDR, 2MB
+BBUpdaterDynamic, 421KB VinylUpdater, 28KB RPD и др.): coverage 100%,
+byte-identical=1, магия 0xFEEDFACF, негативная игла чиста. Выгружены в
+`results/pprp/`. Плоский дамп оборачивается в Mach-O скриптом
+`results/pprp/wrap_flat.py` (off = VA − base; load commands кэша несут
+файловые офсеты кэша, за границей дампа — поэтому обёртка, не mk_text_slice).
+
+### Хостовый RE: wire-протокол RPSocket
+
+`xcrun objdump -d` по 28КБ `libReverseProxyDevice` + полный cstring-список:
+
+- **фрейминг**: `RPSocketWriteDictionary` = сериализация plist-словаря →
+  u32 длина (в коде чтения — `rev w8,w8`, т.е. big-endian) → байты;
+  обратно `RPSocketReadDictionary`: «failed to read length» →
+  CFDataCreateMutable(len) → десериализация → reject если не словарь
+  («plist was not a dictionary»);
+- **команды**: словари с ключом `Command`: `Ping`→`Pong`,
+  `TestReachability` (пинг www.apple.com через SCNetworkReachability),
+  `SetLogLevel`+`Level`, `RegisterNotify`; хост-функция
+  `_RPCopyProxyDictionaryWithOptions` после успешного Ping отдаёт
+  `socks://127.0.0.1:%d/` — SOCKS-прокси выдаётся клиенту по запросу URL;
+- **авторизация**: `copyEntitlementsForPid` (csops, магия блоба
+  0xfade7171 — CSMAGIC_EMBEDDED_ENTITLEMENTS, найденная в asm) и
+  `copyEntitlementsForSocketPeer` (getsockopt LOCAL_PEERENTITLEMENTS) —
+  **демон проверяет entitlements пира сокета**; `isRestoreOSSystemVersion`
+  (bootargs `rd=md0`) — режим restore определяется на лету;
+- **механика**: kqueue/kevent, `ClientListenerDelay`, `FDQueue`
+  (Mach-очередь передачи fd), accept/connected-логирование с
+  getsockname/getpeername.
+
+### Спекулятивные пробы (p_pprp3, v184c): FIN — это таймер, не парсер
+
+Контроли: 1081 → ECONNREFUSED (61 на Darwin); **самопроверка фреймера** —
+Ping самому себе на эфемерном порту: peer прочитал len-prefix 4→59 байт,
+байтово точно. Пробы на 1080/1083: `Ping`, `TestReachability`,
+`SetLogLevel`, `RegisterNotify`, XML-вариант — **все FIN ~1.0–1.1s, 0
+байт, включая отправку валидного binary plist через 0ms**. Нулевой
+бейслайн §190 (FIN без данных) и валидный фрейм дают одинаковый
+таймер → закрытие триггерится не содержимым.
+
+**Вердикт**: 1080/1083 — «reverse»-прокси, мёртвый без host-side пары
+(restore-сессия/Mac): plist-протокол демон обслуживает на динамических
+портах, выдаваемых через XPC `.Conn/.Ctrl` (kr 0x44c, §146 — закрыт), а на
+фикс-портах держит соединение ~1s таймером и рвёт. Плюс UserName=mobile —
+даже при полном протоколе это mobile-uid. Направление TCP 1080 закрыто:
+дальше только entitlement-подделка XPC-имени (закрыто) или restore-режим
+(недоступен).
+
+### Артефакты
+
+`results/v184-pprp.log` (карвинг PPRP: негатив с контролем),
+`results/v184b-pprp2.log` (диагностика: libexec 0, владельцы v183-хитов),
+`results/v184c-pprp-carve.log` (6 библиотек, 100% coverage),
+`results/v184d-pprp3.log` (пробы протокола + контроли),
+`results/pprp/carve-*.bin` + `wrap_flat.py` (не коммитить бинари,
+см. .gitignore). Фазы `p_pprp`/`p_pprp2`/`p_pprp3`, ветки `FUZZ_PPRP*`.
