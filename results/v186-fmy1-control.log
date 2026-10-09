@@ -1,0 +1,23 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_FMY1=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x550f
+[scaler] conn 0x550f, s1 13 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[fmy1] v186 read-vs-write detector for findmydeviced: control -> watch -> rollback
+[fmy1] CONTROL §170 point -> handle 1
+[fmy1] target: /var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences/com.apple.icloud.findmydeviced.accessories.plist (2942 bytes)
+[fmy1] acc mtime 1791578846 size 2942 | conn mtime 1791578846 size 284
+[fmy1] CONTROL write w=4259/4259 readback-identical=1
+[fmy1] CONTROL: objects[14]: "–öurt AirPods Pro" -> "–öurt AirPods Pro fz186"
+[fmy1]   control watch 60s: marker=1, conn mtime 1791578846 (+0)
+[fmy1]   control watch 120s: marker=1, conn mtime 1791578846 (+0)
+[fmy1] CONTROL-REPAIRED at 150s (archive=1, 2942 bytes) — rewrite cycle ALIVE, detector positive
+[fmy1] ROLLBACK skipped — no marker, archive intact: daemon already re-serialized from its own model (state preserved, our content gone)
+[fmy1] === VERDICT ===
+[fmy1] control: REPAIRED at 150s (cycle alive)
+[fmy1] read-status: TREATMENT-SKIPPED (control-only run)
+[fmy1] done
+[probe13] fmy1-only mode, stop

