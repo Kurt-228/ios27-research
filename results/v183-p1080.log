@@ -1,0 +1,159 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_P1080=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x760b
+[scaler] conn 0x760b, s1 230 s2 270
+[probe12] SetNotificationPort -> 0x00000000
+[p1080] v183: fingerprint of the loopback TCP 1080 listener
+[p1080] SIGPIPE ignored (прогон 2 убит SIGPIPE на big1M)
+[p1080] control connect 1081 -> -61 refused (expect -ECONNREFUSED/-61)
+[p1080] banner1 -> FIN after 1134ms (0 bytes)
+[p1080] banner2 -> FIN after 1058ms (0 bytes)
+[p1080] hold-open conn A -> 3
+[p1080] connB while A held -> FIN after 2113ms (0 bytes)
+[p1080] conn A late recv -> 0 errno 0
+[p1080] connect [::1]:1080 -> -61 closed/other
+[p1080] SOCKS5-replica send 3 -> 3 errno 0
+[p1080] SOCKS5-replica -> FIN after 1073ms (0 bytes)
+[p1080] sh lines 0, pclose status 0x7f00
+[p1080] PLIST-HIT /System/Library/LaunchDaemons/com.apple.icloudsubscriptionoptimizerd.plist: ...key>UserName</key> | 	<string>mobile</string> | 	<key>StartInterval</key> | 	<integer>10800</integer> | </dict> | </plist> | ...
+[p1080] PLIST-HIT /System/Library/LaunchDaemons/com.apple.suggestd.plist: ...t" =             { |                 AllowBattery = 1; |                 Interval = 10800; |                 PowerNap = 1; |                 Priority = Utility; |                 Repeating = 1; |             }; |  ...
+[p1080] SOCKETS com.apple.logd: {     BSDSystemLogger =     {         SockPathMode = 438;         SockPathName = "/var/run/syslog";         SockType = dgram;     }; }
+[p1080] SOCKETS com.apple.mobile.lockdown: {     MyIPv4Socket =     {         SockFamily = IPv4;         SockServiceName = 62078;     };     MyIPv6Socket =     {         SockFamily = IPv6;         SockServiceName = 62078;     };     MyUnixSocket =     {         SockFamily = Unix;         SockPathMode = 511;         SockPathName = "/var/run/lockdown.sock";     }; }
+[p1080] PLIST-HIT /System/Library/LaunchDaemons/com.apple.fitnesscoachingd.plist: ...                 { |                                             dayStartOffset = 10800; |                                         }; |                                         version = 1; |                  ...
+[p1080] SOCKETS com.apple.racoon: {     Listeners =     {         SockFamily = Unix;         SockPathMode = 384;         SockPathName = "/var/run/vpncontrol.sock";     }; }
+[p1080] SOCKETS com.apple.dt.remotepairingdeviced: {     TCPControlChannelSocket =     {         SockFamily = IPv4v6;         SockProtocol = TCP;         SockServiceName = 0;     }; }
+[p1080] SOCKETS com.apple.ftp-proxy-embedded: {     Listeners =     {         SockNodeName = localhost;         SockServiceName = 8021;         SockType = stream;     }; }
+[p1080] SOCKETS com.apple.PurpleReverseProxy: {     notify =     {         SockFamily = IPv4;         SockNodeName = localhost;         SockServiceName = 1083;     };     socks =     {         SockFamily = IPv4;         SockNodeName = localhost;         SockServiceName = socks;     }; }
+[p1080] SOCKETS com.apple.mDNSResponder.reloaded: {     Listeners =     {         SockFamily = Unix;         SockPathMode = 438;         SockPathName = "/var/run/mDNSResponder";     }; }
+[p1080] PLIST-HIT /System/Library/LaunchDaemons/com.apple.powerdatad.plist: ...ity</key> | 				<string>Maintenance</string> | 				<key>Interval</key> | 				<integer>10800</integer> | 				<key>AllowBattery</key> | 				<true/> | 			</dict> | 			<key>com.apple.powerdatad.15minTask</key> | 			<dict...
+[p1080] PLIST-HIT /System/Library/LaunchDaemons/com.apple.perfdiagsselfenabled.plist: ...tery = 1; |                 ExpectedDuration = 120; |                 GracePeriod = 10800; |                 Interval = 86400; |                 Priority = Utility; |                 RandomInitialDelay = 86400;...
+[p1080] PLIST-HIT /System/Library/LaunchDaemons/com.apple.assetsd.plist: ...               RepeatingTask =                 { |                     Interval = 10800; |                     MinDurationBetweenInstances = 7200; |                 }; |                 RequiresUserInactivity...
+[p1080] SOCKETS com.apple.bootpd: {     Listeners =     {         ReceivePacketInfo = 1;         SockFamily = IPv4;         SockServiceName = bootps;         SockType = dgram;     }; }
+[p1080] /Library/LaunchDaemons opendir errno 1
+[p1080] plist scan: 661 files, 6 hits for "1080"
+[p1080] KERN_PROC_ALL size -> errno 1
+[p1080] cap1024 bufs snd=146988 rcv=408300
+[p1080] cap1024 send 1024/1024 bytes in 0ms err 0
+[p1080] cap1024 recv -> 0 errno 0 (FIN — всё прочитано)
+[p1080] cap65536 bufs snd=146988 rcv=408300
+[p1080] cap65536 send 65536/65536 bytes in 0ms err 0
+[p1080] cap65536 recv -> 0 errno 0 (FIN — всё прочитано)
+[p1080] cap262144 bufs snd=146988 rcv=408300
+[p1080] cap262144 send 262144/262144 bytes in 0ms err 0
+[p1080] cap262144 recv -> 0 errno 0 (FIN — всё прочитано)
+[p1080] cap524288 bufs snd=146988 rcv=408300
+[p1080] cap524288 send 524288/524288 bytes in 1ms err 0
+[p1080] cap524288 recv -> 0 errno 0 (FIN — всё прочитано)
+[p1080] cap1048576 bufs snd=146988 rcv=408300
+[p1080] cap1048576 send 1048576/1048576 bytes in 1ms err 0
+[p1080] cap1048576 recv -> 0 errno 0 (FIN — всё прочитано)
+[p1080] PPRP  0| {     EnablePressuredExit = 1;     EnableTransactions = 1;     Label = "com.apple.PurpleReverseProxy";     MachServices =     {         "com.apple.PurpleReverseProxy.Conn" = 1;         "com.apple.PurpleReverseProxy.Ctrl" = 1;     };     POSIXSpawnType = Adaptive;     ProgramArgum
+[p1080] PPRP  1| ents =     (         "/usr/libexec/PurpleReverseProxy"     );     Sockets =     {         notify =         {             SockFamily = IPv4;             SockNodeName = localhost;             SockServiceName = 1083;         };         socks =         {             SockFamily = IPv4
+[p1080] PPRP  2| ;             SockNodeName = localhost;             SockServiceName = socks;         };     };     UserName = mobile; }
+[p1080] PPRP program = /usr/libexec/PurpleReverseProxy
+[p1080] PPRP binary /usr/libexec/PurpleReverseProxy -> 0 bytes
+[p1080] 1083-banner -> FIN after 1088ms (0 bytes)
+[p1080] 1083-GET send 18 -> 18 errno 0
+[p1080] 1083-GET -> FIN after 1046ms (0 bytes)
+[p1080] 8021-banner -> FIN after 35ms (0 bytes)
+[p1080] 8021-HELP send 6 -> 6 errno 0
+[p1080] 8021-HELP -> errno 54 after 27ms (no data)
+[p1080] lookup com.apple.PurpleReverseProxy.Conn            -> kr 0x0000044c port 0x0
+[p1080] lookup com.apple.PurpleReverseProxy.Ctrl            -> kr 0x0000044c port 0x0
+[p1080] lookup com.apple.__nonexistent_control_9f3a2b       -> kr 0x0000044c port 0x0
+[p1080] cache dyld_shared_cache_arm64e.25.dylddata: 228065280 bytes
+[p1080] cache dyld_shared_cache_arm64e.33: 376832 bytes
+[p1080] cache dyld_shared_cache_arm64e.34: 130351104 bytes
+[p1080] cache dyld_shared_cache_arm64e.02: 229376 bytes
+[p1080] cache dyld_shared_cache_arm64e.05: 131252224 bytes
+[p1080] cache dyld_shared_cache_arm64e.51: 294912 bytes
+[p1080] cache dyld_shared_cache_arm64e.69: 130924544 bytes
+[p1080] cache dyld_shared_cache_arm64e.60: 196608 bytes
+[p1080] cache dyld_shared_cache_arm64e.58: 32768 bytes
+[p1080] cache dyld_shared_cache_arm64e.67: 131055616 bytes
+[p1080] cache dyld_shared_cache_arm64e.04: 294912 bytes
+[p1080] cache dyld_shared_cache_arm64e.03: 131039232 bytes
+[p1080] cache dyld_shared_cache_arm64e.35: 196608 bytes
+[p1080] cache dyld_shared_cache_arm64e.32: 130957312 bytes
+[p1080] cache dyld_shared_cache_arm64e.59: 130711552 bytes
+[p1080] cache dyld_shared_cache_arm64e.66: 311296 bytes
+[p1080] cache dyld_shared_cache_arm64e.61: 131121152 bytes
+[p1080] cache dyld_shared_cache_arm64e.68: 311296 bytes
+[p1080] cache dyld_shared_cache_arm64e.50: 131088384 bytes
+[p1080] cache dyld_shared_cache_arm64e.72: 245760 bytes
+[p1080] cache dyld_shared_cache_arm64e.43: 245760 bytes
+[p1080] cache dyld_shared_cache_arm64e.44: 130842624 bytes
+[p1080] cache dyld_shared_cache_arm64e.10: 212992 bytes
+[p1080] cache dyld_shared_cache_arm64e.28: 131072000 bytes
+[p1080] cache dyld_shared_cache_arm64e.17: 131448832 bytes
+[p1080] cache dyld_shared_cache_arm64e.21: 130908160 bytes
+[p1080] cache dyld_shared_cache_arm64e.19: 131465216 bytes
+[p1080] cache dyld_shared_cache_arm64e.45: 229376 bytes
+[p1080] cache dyld_shared_cache_arm64e.42: 131284992 bytes
+[p1080] cache dyld_shared_cache_arm64e.74: 262144 bytes
+[p1080] cache dyld_shared_cache_arm64e.73: 130383872 bytes
+[p1080] CACHE-HIT dyld_shared_cache_arm64e.73 at offset 0x2602628
+[p1080] cache dyld_shared_cache_arm64e.18: 294912 bytes
+[p1080] cache dyld_shared_cache_arm64e.27: 32768 bytes
+[p1080] cache dyld_shared_cache_arm64e.20: 360448 bytes
+[p1080] cache dyld_shared_cache_arm64e.29: 327680 bytes
+[p1080] cache dyld_shared_cache_arm64e.16: 245760 bytes
+[p1080] cache dyld_shared_cache_arm64e.11: 131416064 bytes
+[p1080] cache dyld_shared_cache_arm64e.76.dyldreadonly: 65536 bytes
+[p1080] cache dyld_shared_cache_arm64e.symbols: 1217314816 bytes
+[p1080] CACHE-HIT dyld_shared_cache_arm64e.symbols at offset 0x1aef78f7
+[p1080] cache dyld_shared_cache_arm64e.26.dyldreadonly: 189235200 bytes
+[p1080] cache dyld_shared_cache_arm64e.57.dyldreadonly: 3686400 bytes
+[p1080] cache dyld_shared_cache_arm64e.55: 327680 bytes
+[p1080] cache dyld_shared_cache_arm64e.77.dyldlinkedit: 675545088 bytes
+[p1080] CACHE-HIT dyld_shared_cache_arm64e.77.dyldlinkedit at offset 0x8ac54a1
+[p1080] cache dyld_shared_cache_arm64e.52: 130760704 bytes
+[p1080] cache dyld_shared_cache_arm64e.64: 212992 bytes
+[p1080] cache dyld_shared_cache_arm64e.63: 130711552 bytes
+[p1080] cache dyld_shared_cache_arm64e.37: 425984 bytes
+[p1080] cache dyld_shared_cache_arm64e.08: 245760 bytes
+[p1080] cache dyld_shared_cache_arm64e.30: 130809856 bytes
+[p1080] CACHE-HIT dyld_shared_cache_arm64e.30 at offset 0x6db33cb
+[p1080] cache dyld_shared_cache_arm64e.06: 212992 bytes
+[p1080] cache dyld_shared_cache_arm64e.39: 491520 bytes
+[p1080] cache dyld_shared_cache_arm64e.01: 131547136 bytes
+[p1080] cache dyld_shared_cache_arm64e.62: 278528 bytes
+[p1080] cache dyld_shared_cache_arm64e.65: 130924544 bytes
+[p1080] cache dyld_shared_cache_arm64e.53: 294912 bytes
+[p1080] cache dyld_shared_cache_arm64e.54: 131137536 bytes
+[p1080] cache dyld_shared_cache_arm64e.07: 131170304 bytes
+[p1080] cache dyld_shared_cache_arm64e.38: 131088384 bytes
+[p1080] cache dyld_shared_cache_arm64e.31: 376832 bytes
+[p1080] cache dyld_shared_cache_arm64e.36: 131596288 bytes
+[p1080] cache dyld_shared_cache_arm64e.09: 131186688 bytes
+[p1080] CACHE-HIT dyld_shared_cache_arm64e.09 at offset 0x7b7c504
+[p1080] cache dyld_shared_cache_arm64e.atlas: 3064160 bytes
+[p1080] cache dyld_shared_cache_arm64e.14: 229376 bytes
+[p1080] cache dyld_shared_cache_arm64e.13: 131497984 bytes
+[p1080] cache dyld_shared_cache_arm64e.56.dylddata: 238387200 bytes
+[p1080] cache dyld_shared_cache_arm64e.22: 278528 bytes
+[p1080] cache dyld_shared_cache_arm64e: 786432 bytes
+[p1080] cache dyld_shared_cache_arm64e.49: 344064 bytes
+[p1080] cache dyld_shared_cache_arm64e.71: 131153920 bytes
+[p1080] CACHE-HIT dyld_shared_cache_arm64e.71 at offset 0x74d13c1
+[p1080] cache dyld_shared_cache_arm64e.47: 442368 bytes
+[p1080] cache dyld_shared_cache_arm64e.40: 131153920 bytes
+[p1080] cache dyld_shared_cache_arm64e.23: 131055616 bytes
+[p1080] cache dyld_shared_cache_arm64e.24: 327680 bytes
+[p1080] cache dyld_shared_cache_arm64e.12: 278528 bytes
+[p1080] cache dyld_shared_cache_arm64e.15: 131383296 bytes
+[p1080] cache dyld_shared_cache_arm64e.41: 507904 bytes
+[p1080] cache dyld_shared_cache_arm64e.46: 130891776 bytes
+[p1080] cache dyld_shared_cache_arm64e.70: 278528 bytes
+[p1080] cache dyld_shared_cache_arm64e.48: 131284992 bytes
+[p1080] cache dyld_shared_cache_arm64e.75.dylddata: 130351104 bytes
+[p1080] dyld cache /private/preboot/Cryptexes/OS/System/Library/dyld errno 2
+[p1080] dyld cache /System/Library/Caches/com.apple.dyld errno 2
+[p1080] dyld cache /System/Library/dyld errno 2
+[p1080] dyld cache /private/var/db/dyld errno 2
+[p1080] dyld cache files scanned: 80
+[p1080] done (alive)
+[probe13] p1080-only mode, stop

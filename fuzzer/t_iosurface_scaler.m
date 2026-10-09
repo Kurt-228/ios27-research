@@ -50,6 +50,8 @@ enum { V_PING = 1, V_MAKE = 2, V_EXIT = 3 };
 #include <sqlite3.h>
 #include <stdarg.h>
 #include <sys/sysctl.h>
+// libproc.h отсутствует в iOS SDK — proc_* не используем, PID-снапшот
+// делается через sysctl(KERN_PROC_ALL), см. p_p1080().
 #include <notify.h>
 #import <MediaPlayer/MPNowPlayingInfoCenter.h>
 #import <MediaPlayer/MediaPlayer.h>
@@ -34191,6 +34193,525 @@ static void p_ipopt2(void) {
     LOG("[ipopt2] done (alive)");
 }
 
+// V183 (p_p1080): разговор с единственным открытым портом loopback.
+//
+// §171: скан 66 портов — открыт ровно один, TCP 127.0.0.1:1080.
+// §173: принял 18 байт и промолчал (EAGAIN). §174: connect→0, баннера нет,
+// SOCKS5/HTTP CONNECT/SOCKS4a → recv 0 (FIN сразу), поведение нестабильно
+// во времени (то FIN, то молчание до таймаута). Протокол не идентифицирован.
+// self-hit исключён: listen() в исходниках фаззера нет вообще.
+//
+// Что делает фаза:
+//  1. Контроль (§144): connect на закрытый 1081 обязан дать ECONNREFUSED —
+//     иначе детектор гнёзда мёртв; репликация SOCKS5-пробы §174 в этом же
+//     прогоне (сравнение с записанным результатом).
+//  2. Стабильность: 5 баннер-грэбов подряд с таймингом — сколько живёт
+//     соединение без данных (FIN-сразу vs молчание до таймаута) и как это
+//     меняется от прогона к прогону (§174 видел оба режима).
+//  3. Dual-connection: держим соединение открытым и открываем второе —
+//     тест гипотезы «один клиент за раз» (единственное объяснение
+//     нестабильности, кроме временно́го состояния сервиса).
+//  4. Батарея диалектов (свежее соединение на каждый, тайминг реакции):
+//     TLS ClientHello, HTTP/1.1 keep-alive, DNS-over-TCP, RTSP, HTTP/2
+//     preface, WebSocket upgrade, MQTT, Redis, линейные HELP/JSON-RPC,
+//     4-байтовый длиной-префикс. Различие «FIN сразу / данные / таймаут»
+//     — это и есть фингерпринт парсера.
+//  5. Владелец: popen(launchctl) — ожидаемо fork EPERM (контроль факта
+//     §176), поэтому скан launchd-плистов трёх каталогов: plist →
+//     description → поиск "1080" (сокет-активация обычно называет порт
+//     в Sockets; контекст совпадения печатается).
+//  6. PID-снапшот (proc_listpids + proc_name) — база для будущего
+//     crash-оракула владельца (класс §187: PID-смена = краш).
+
+static double p1080_ms(void) {
+    struct timeval tv;
+    gettimeofday(&tv, NULL);
+    return tv.tv_sec * 1000.0 + tv.tv_usec / 1000.0;
+}
+
+static int p1080_conn(int port) {
+    int s = socket(AF_INET, SOCK_STREAM, 0);
+    if (s < 0) return -errno;
+    struct sockaddr_in a = {0};
+    a.sin_len = sizeof(a);
+    a.sin_family = AF_INET;
+    a.sin_port = htons((uint16_t)port);
+    a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (connect(s, (struct sockaddr *)&a, sizeof(a)) != 0) {
+        int e = errno;
+        close(s);
+        return -e;
+    }
+    return s;
+}
+
+// Один протокольный пробник: connect → [send] → recv с таймаутом →
+// классификация ответа (данные / FIN / таймаут) + время реакции.
+static void p1080_probe(int port, const char *tag, const void *payload,
+                        size_t plen, int wait_s) {
+    double t0 = p1080_ms();
+    int s = p1080_conn(port);
+    if (s < 0) {
+        LOG("[p1080] %s connect -> %d", tag, s);
+        return;
+    }
+    if (payload && plen) {
+        ssize_t w = send(s, payload, plen, 0);
+        LOG("[p1080] %s send %zu -> %zd errno %d", tag, plen, w,
+            w < 0 ? errno : 0);
+    }
+    struct timeval tv = {wait_s, 0};
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    unsigned char b[512];
+    ssize_t r = recv(s, b, sizeof(b), 0);
+    double dt = p1080_ms() - t0;
+    if (r > 0) {
+        char hex[200];
+        size_t hl = r < 64 ? (size_t)r : 64;
+        for (size_t i = 0; i < hl; i++)
+            snprintf(hex + i * 3, sizeof(hex) - i * 3, "%02x ", b[i]);
+        LOG("[p1080] %s -> DATA %zd bytes after %.0fms: %s", tag, r, dt, hex);
+    } else if (r == 0) {
+        LOG("[p1080] %s -> FIN after %.0fms (0 bytes)", tag, dt);
+    } else {
+        LOG("[p1080] %s -> errno %d after %.0fms (no data)", tag, errno, dt);
+    }
+    close(s);
+}
+
+static void p_p1080(void) {
+    LOG("[p1080] v183: fingerprint of the loopback TCP 1080 listener");
+    // Прогон 2: отправка 1 МиБ в непрочитывающий сокет → сервер закрылся
+    // с непрочитанными данными → RST → SIGPIPE убил процесс (лог оборван
+    // на big1M, owner-ID части не выполнились). Игнорируем — дальше идут
+    // замеры чтения, которым нужен живой процесс.
+    signal(SIGPIPE, SIG_IGN);
+    LOG("[p1080] SIGPIPE ignored (прогон 2 убит SIGPIPE на big1M)");
+
+    // 1. Контроль гнезда: закрытый порт обязан отказать по-другому.
+    {
+        int c = p1080_conn(1081);
+        LOG("[p1080] control connect 1081 -> %d %s (expect -ECONNREFUSED/-61)",
+            c, c < 0 ? "refused" : "OPEN?!");
+        if (c >= 0) close(c);
+    }
+
+    // 2. Стабильность: 2 баннер-грэба (батарея из 12 диалектов уже
+    // прогнана в прогоне 1 — все дали FIN ≈1.07s без данных).
+    for (int i = 0; i < 2; i++) {
+        char tag[16];
+        snprintf(tag, sizeof(tag), "banner%d", i + 1);
+        p1080_probe(1080, tag, NULL, 0, 2);
+    }
+
+    // 3. Dual-connection: держим первое, открываем второе. Окно B = 3s:
+    // если таймер per-connection, B FIN придёт ≈ t+2.0s (A закрылся на 1s
+    // + собственные 1s B); если второго не принимают вовсе, B доживёт
+    // до таймаута 3s.
+    {
+        int a = p1080_conn(1080);
+        LOG("[p1080] hold-open conn A -> %d", a);
+        if (a >= 0) p1080_probe(1080, "connB while A held", NULL, 0, 3);
+        if (a >= 0) {
+            struct timeval tv = {4, 0};
+            setsockopt(a, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+            unsigned char b[64];
+            ssize_t r = recv(a, b, sizeof(b), 0);
+            LOG("[p1080] conn A late recv -> %zd errno %d", r,
+                r < 0 ? errno : 0);
+            close(a);
+        }
+    }
+
+    // 4. IPv6 ::1:1080 — dual-stack или IPv4-only (сузит поиск владельца).
+    {
+        int s6 = socket(AF_INET6, SOCK_STREAM, 0);
+        int rc6 = -1;
+        if (s6 >= 0) {
+            struct sockaddr_in6 a6 = {0};
+            a6.sin6_len = sizeof(a6);
+            a6.sin6_family = AF_INET6;
+            a6.sin6_port = htons(1080);
+            a6.sin6_addr = in6addr_loopback;
+            rc6 = connect(s6, (struct sockaddr *)&a6, sizeof(a6));
+            if (rc6 != 0) {
+                rc6 = -errno;
+                close(s6);
+            }
+        }
+        LOG("[p1080] connect [::1]:1080 -> %d %s", rc6,
+            rc6 == 0 ? "OPEN" : "closed/other");
+        if (rc6 == 0) close(s6);
+    }
+
+    // 5. Репликация SOCKS5 (§174) — якорь стабильности в этом прогоне.
+    {
+        static const unsigned char socks5_greet[] = {0x05, 0x01, 0x00};
+        p1080_probe(1080, "SOCKS5-replica", socks5_greet,
+                    sizeof(socks5_greet), 2);
+    }
+
+    // 6. Владелец: sh-канал. Прогон 1 дал popen без ошибки, но 0 строк —
+    // неясно, запускается ли sh вообще (§176: fork EPERM). Контроль —
+    // echo первым пунктом; если echo жив, дальше netstat/lsof могут
+    // прямо назвать владельца порта.
+    {
+        FILE *pf = popen("echo SH-ALIVE; "
+                         "launchctl list 2>&1 | head -8; echo ---; "
+                         "netstat -anv -p tcp 2>&1 | grep -E '1080|LISTEN' "
+                         "| head -12; echo ---; "
+                         "lsof -nP -iTCP:1080 2>&1 | head -5",
+                         "r");
+        if (!pf) {
+            LOG("[p1080] popen failed errno %d (fork EPERM — факт §176)",
+                errno);
+        } else {
+            char line[300];
+            int n = 0;
+            while (fgets(line, sizeof(line), pf) && n < 60) {
+                size_t l = strlen(line);
+                if (l && line[l - 1] == '\n') line[l - 1] = 0;
+                LOG("[p1080] sh| %s", line);
+                n++;
+            }
+            int st = pclose(pf);
+            LOG("[p1080] sh lines %d, pclose status 0x%x", n, st);
+        }
+    }
+    {
+        const char *dirs[] = {"/System/Library/LaunchDaemons",
+                              "/System/Library/LaunchAgents",
+                              "/Library/LaunchDaemons"};
+        int total = 0, hits = 0;
+        for (int di = 0; di < 3; di++) {
+            DIR *d = opendir(dirs[di]);
+            if (!d) {
+                LOG("[p1080] %s opendir errno %d", dirs[di], errno);
+                continue;
+            }
+            struct dirent *e;
+            while ((e = readdir(d))) {
+                if (e->d_name[0] == '.') continue;
+                char p[1024];
+                snprintf(p, sizeof(p), "%s/%s", dirs[di], e->d_name);
+                NSData *dd = [NSData dataWithContentsOfFile:
+                    [NSString stringWithUTF8String:p] options:0 error:nil];
+                if (dd.length == 0) continue;
+                total++;
+                id pl = [NSPropertyListSerialization
+                    propertyListWithData:dd options:0 format:NULL
+                    error:NULL];
+                NSString *text = [[NSString alloc] initWithData:dd
+                    encoding:NSUTF8StringEncoding];
+                if (!text && pl) text = [pl description];
+                if (text) {
+                    NSRange r = [text rangeOfString:@"1080"];
+                    if (r.location != NSNotFound) {
+                        hits++;
+                        NSUInteger from = r.location > 80 ? r.location - 80 : 0;
+                        NSUInteger len = text.length - from;
+                        if (len > 200) len = 200;
+                        NSString *ctx = [[[text substringWithRange:
+                            NSMakeRange(from, len)] stringByReplacingOccurrencesOfString:@"\n"
+                            withString:@" | "] stringByReplacingOccurrencesOfString:@"\r"
+                            withString:@" "];
+                        LOG("[p1080] PLIST-HIT %s/%s: ...%s...",
+                            dirs[di], e->d_name, ctx.UTF8String);
+                    }
+                }
+                // Если порт управляется launchd — он назван в Sockets.
+                // Печатаем все спеки: карта сокетов устройства.
+                if ([pl isKindOfClass:[NSDictionary class]]) {
+                    id sk = [(NSDictionary *)pl objectForKey:@"Sockets"];
+                    if (sk) {
+                        NSString *lbl = [(NSDictionary *)pl objectForKey:@"Label"];
+                        NSString *sp = [[sk description]
+                            stringByReplacingOccurrencesOfString:@"\n"
+                            withString:@" "];
+                        LOG("[p1080] SOCKETS %s: %s",
+                            (lbl ? lbl.UTF8String : e->d_name),
+                            sp.UTF8String);
+                    }
+                }
+            }
+            closedir(d);
+        }
+        LOG("[p1080] plist scan: %d files, %d hits for \"1080\"", total, hits);
+    }
+
+    // 7. PID-снапшот — база crash-оракула (сравнение после возможного
+    // краша владельца 1080, класс §187). sysctl(KERN_PROC_ALL) вместо
+    // proc_listpids — в iOS SDK нет libproc.h.
+    {
+        int mib[4] = {CTL_KERN, KERN_PROC, KERN_PROC_ALL, 0};
+        size_t len = 0;
+        if (sysctl(mib, 4, NULL, &len, NULL, 0) != 0) {
+            LOG("[p1080] KERN_PROC_ALL size -> errno %d", errno);
+        } else {
+            size_t maxn = len / sizeof(struct kinfo_proc) + 16;
+            struct kinfo_proc *kp =
+                (struct kinfo_proc *)calloc(maxn, sizeof(*kp));
+            size_t len2 = maxn * sizeof(struct kinfo_proc);
+            if (kp && sysctl(mib, 4, kp, &len2, NULL, 0) == 0) {
+                size_t n = len2 / sizeof(struct kinfo_proc);
+                LOG("[p1080] proc snapshot: %zu processes", n);
+                for (size_t i = 0; i < n; i++)
+                    LOG("[p1080] p %d %.20s", kp[i].kp_proc.p_pid,
+                        kp[i].kp_proc.p_comm);
+            } else {
+                LOG("[p1080] KERN_PROC_ALL read -> errno %d", errno);
+            }
+            free(kp);
+        }
+    }
+
+    // 8. Сколько сервис ЧИТАЕТ: классификация по закрытию. Если сервер
+    // закрывает сокет с непрочитанными данными в очереди — придёт RST
+    // (recv → ECONNRESET); чистый FIN значит, что всё прочитано. Порог K,
+    // где FIN → RST, — бюджет чтения сервиса. (Прогон 2: 1 МиБ не дочитан
+    // — RST убил процесс по SIGPIPE; малые пробы пронов1 FIN — прочитаны.)
+    // Блокирующий send с SO_SNDTIMEO=3s: не зависнем, если rcvbuf полон.
+    {
+        static const size_t caps[] = {1024, 65536, 262144, 524288, 1048576};
+        for (unsigned ci = 0; ci < sizeof(caps) / sizeof(caps[0]); ci++) {
+            int s = p1080_conn(1080);
+            if (s < 0) {
+                LOG("[p1080] cap%zu connect -> %d", caps[ci], s);
+                continue;
+            }
+            int sb = 0;
+            socklen_t sbl = sizeof(sb);
+            getsockopt(s, SOL_SOCKET, SO_SNDBUF, &sb, &sbl);
+            int rb = 0;
+            socklen_t rbl = sizeof(rb);
+            getsockopt(s, SOL_SOCKET, SO_RCVBUF, &rb, &rbl);
+            LOG("[p1080] cap%zu bufs snd=%d rcv=%d", caps[ci], sb, rb);
+            struct timeval sndto = {3, 0};
+            setsockopt(s, SOL_SOCKET, SO_SNDTIMEO, &sndto, sizeof(sndto));
+            char *buf = (char *)malloc(caps[ci]);
+            memset(buf, 0x42, caps[ci]);
+            ssize_t total = 0;
+            int serr = 0;
+            double t0 = p1080_ms();
+            while (total < (ssize_t)caps[ci]) {
+                ssize_t w = send(s, buf + total, caps[ci] - total, 0);
+                if (w > 0) { total += w; continue; }
+                serr = errno;
+                break;
+            }
+            free(buf);
+            LOG("[p1080] cap%zu send %zd/%zu bytes in %.0fms err %d",
+                caps[ci], total, caps[ci], p1080_ms() - t0, serr);
+            struct timeval tv = {3, 0};
+            setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+            unsigned char b[32];
+            ssize_t r = recv(s, b, sizeof(b), 0);
+            int rerr = r < 0 ? errno : 0;
+            const char *verdict;
+            if (r == 0) verdict = "FIN — всё прочитано";
+            else if (rerr == ECONNRESET) verdict = "RST — не дочитано";
+            else if (rerr == EAGAIN) verdict = "таймаут — сервис не закрылся";
+            else verdict = "иначе";
+            LOG("[p1080] cap%zu recv -> %zd errno %d (%s)", caps[ci], r,
+                rerr, verdict);
+            close(s);
+        }
+    }
+
+    // 9. Владелец назван (строка SOCKETS выше): com.apple.PurpleReverseProxy
+    // держит localhost:1080 («socks») и localhost:1083 («notify»). Полный
+    // plist → Program/ProgramArguments/ключи, затем бинарь программы →
+    // строки про протокол и таймауты (правило v176: /System/Library читается,
+    // /usr/libexec — нет; отказ логируется).
+    {
+        NSString *pp = @"/System/Library/LaunchDaemons/"
+                       @"com.apple.PurpleReverseProxy.plist";
+        NSData *dd = [NSData dataWithContentsOfFile:pp];
+        NSDictionary *d = nil;
+        if (dd.length) {
+            d = (NSDictionary *)[NSPropertyListSerialization
+                propertyListWithData:dd options:0 format:NULL error:NULL];
+        }
+        if (![d isKindOfClass:[NSDictionary class]]) {
+            LOG("[p1080] PPRP plist unreadable (%zu bytes, errno %d)",
+                dd.length, errno);
+            d = nil;
+        }
+        if (d) {
+            NSString *flat = [[d description]
+                stringByReplacingOccurrencesOfString:@"\n" withString:@" "];
+            for (NSUInteger i = 0; i < flat.length; i += 280) {
+                NSString *chunk = [flat substringWithRange:
+                    NSMakeRange(i, MIN((NSUInteger)280, flat.length - i))];
+                LOG("[p1080] PPRP %2lu| %s", (unsigned long)(i / 280),
+                    chunk.UTF8String);
+            }
+            NSString *prog = d[@"Program"];
+            if (!prog) {
+                NSArray *args = d[@"ProgramArguments"];
+                if ([args isKindOfClass:[NSArray class]] && args.count)
+                    prog = [args[0] description];
+            }
+            LOG("[p1080] PPRP program = %s", prog.UTF8String);
+            if (prog) {
+                NSData *bin = [NSData dataWithContentsOfFile:prog];
+                LOG("[p1080] PPRP binary %s -> %zu bytes", prog.UTF8String,
+                    bin.length);
+                if (bin.length) {
+                    const uint8_t *b = (const uint8_t *)bin.bytes;
+                    NSUInteger n = bin.length;
+                    int logged = 0;
+                    for (NSUInteger i = 0; i < n && logged < 100; ) {
+                        if (b[i] >= 0x20 && b[i] < 0x7f) {
+                            NSUInteger j = i;
+                            while (j < n && b[j] >= 0x20 && b[j] < 0x7f) j++;
+                            if (j - i >= 5) {
+                                NSString *st = [[NSString alloc]
+                                    initWithBytes:b + i length:j - i
+                                    encoding:NSASCIIStringEncoding];
+                                NSArray *keys = @[@"sock", @"1080", @"1083",
+                                    @"timeout", @"proxy", @"connect",
+                                    @"reverse", @"purple", @"notify",
+                                    @"listen", @"accept"];
+                                for (NSString *k in keys) {
+                                    if ([st rangeOfString:k
+                                            options:NSCaseInsensitiveSearch]
+                                            .location != NSNotFound) {
+                                        if (st.length > 160)
+                                            st = [st substringToIndex:160];
+                                        LOG("[p1080] str| %s", st.UTF8String);
+                                        logged++;
+                                        break;
+                                    }
+                                }
+                            }
+                            i = j;
+                        } else {
+                            i++;
+                        }
+                    }
+                    LOG("[p1080] interesting strings logged: %d", logged);
+                }
+            }
+        }
+    }
+
+    // 10. Соседи по карте сокетов: 1083 (notify того же прокси) и 8021
+    // (ftp-proxy-embedded). Баннер-грэб + по одной линейной пробе.
+    p1080_probe(1083, "1083-banner", NULL, 0, 2);
+    {
+        static const char get_line[] = "GET / HTTP/1.1\r\n\r\n";
+        p1080_probe(1083, "1083-GET", get_line, sizeof(get_line) - 1, 2);
+    }
+    p1080_probe(8021, "8021-banner", NULL, 0, 2);
+    {
+        static const char help_line[] = "HELP\r\n";
+        p1080_probe(8021, "8021-HELP", help_line, sizeof(help_line) - 1, 2);
+    }
+
+    // 11. MachServices .Conn/.Ctrl: §146 показал, что bootstrap_look_up
+    // перехвачен песочницей, но sweep msvc (132 имени) этих двух имён не
+    // содержал — проверяем напрямую, с контрольным несуществующим именем
+    // (если контроль == реальные, existence не тестируется, §146).
+    // При успехе — XPC-словарь с ответом: парсер сервиса получает байты
+    // в обход TCP-таймаута.
+    {
+        const char *names[] = {"com.apple.PurpleReverseProxy.Conn",
+                               "com.apple.PurpleReverseProxy.Ctrl",
+                               "com.apple.__nonexistent_control_9f3a2b"};
+        for (int i = 0; i < 3; i++) {
+            mach_port_t p = MACH_PORT_NULL;
+            kern_return_t kr = bootstrap_look_up(names[i], &p);
+            LOG("[p1080] lookup %-44s -> kr 0x%08x port 0x%x", names[i], kr,
+                p);
+            if (i == 2) continue;   // контроль не трогаем
+            if (kr != KERN_SUCCESS || p == MACH_PORT_NULL) continue;
+            // API_UNAVAILABLE(ios) в SDK — берём через dlsym (приём msvc).
+            typedef xpc_connection_t (*xmm_t)(const char *,
+                dispatch_queue_t, uint64_t);
+            xmm_t xmm = (xmm_t)dlsym(RTLD_DEFAULT,
+                "xpc_connection_create_mach_service");
+            if (!xmm) {
+                LOG("[p1080] xpc create sym missing for %s", names[i]);
+                continue;
+            }
+            xpc_connection_t c = xmm(names[i],
+                dispatch_get_global_queue(0, 0), 0);
+            if (!c) { LOG("[p1080] xpc create %s -> NULL", names[i]); continue; }
+            xpc_object_t msg = xpc_dictionary_create(NULL, NULL, 0);
+            xpc_dictionary_set_string(msg, "xpc-test", "p1080-probe");
+            __block xpc_object_t reply = NULL;
+            dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+            xpc_connection_send_message_with_reply(c, msg,
+                dispatch_get_global_queue(0, 0), ^(xpc_object_t r) {
+                    reply = r;
+                    dispatch_semaphore_signal(sem);
+                });
+            long w = dispatch_semaphore_wait(sem,
+                dispatch_time(DISPATCH_TIME_NOW, 2 * NSEC_PER_SEC));
+            if (w) {
+                LOG("[p1080] xpc %s reply TIMEOUT (2s)", names[i]);
+            } else if (reply) {
+                char *d = xpc_copy_description(reply);
+                LOG("[p1080] xpc %s reply: %s", names[i], d ?: "(null)");
+                free(d);
+            } else {
+                LOG("[p1080] xpc %s reply: NULL object", names[i]);
+            }
+            xpc_release(msg);
+            xpc_connection_cancel(c);
+        }
+    }
+
+    // 12. Бинарь через dyld split-кэш: /usr/libexec закрыт (§182, escape
+    // −3), но кэш на диске читается (карвинг §185/§186). Имя образа
+    // присутствует в таблице кэша <=> бинарь закэширован и вырезаем.
+    {
+        // 27.0b4: com.apple.dyld в /System/Library/Caches — errno 2, кэш
+        // через Cryptexes (тот же список, что в bq21).
+        const char *dirs2[] = {
+            "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+            "/private/preboot/Cryptexes/OS/System/Library/dyld",
+            "/System/Library/Caches/com.apple.dyld",
+            "/System/Library/dyld",
+            "/private/var/db/dyld",
+        };
+        int files = 0;
+        for (unsigned di = 0; di < sizeof(dirs2) / sizeof(dirs2[0]); di++) {
+            DIR *d = opendir(dirs2[di]);
+            if (!d) {
+                LOG("[p1080] dyld cache %s errno %d", dirs2[di], errno);
+                continue;
+            }
+            struct dirent *e;
+            while ((e = readdir(d))) {
+                if (!strstr(e->d_name, "dyld_shared_cache")) continue;
+                char p[640];
+                snprintf(p, sizeof(p), "%s/%s", dirs2[di], e->d_name);
+                NSData *dd = [NSData dataWithContentsOfFile:
+                    [NSString stringWithUTF8String:p]
+                    options:NSDataReadingMappedIfSafe error:nil];
+                if (dd.length == 0) {
+                    LOG("[p1080] cache %s: empty/errno %d", e->d_name, errno);
+                    continue;
+                }
+                files++;
+                LOG("[p1080] cache %s: %zu bytes", e->d_name, dd.length);
+                const unsigned char *b = (const unsigned char *)dd.bytes;
+                const unsigned char *f = memmem(b, dd.length,
+                    "PurpleReverseProxy", 18);
+                if (f)
+                    LOG("[p1080] CACHE-HIT %s at offset 0x%lx", e->d_name,
+                        (unsigned long)(f - b));
+            }
+            closedir(d);
+        }
+        LOG("[p1080] dyld cache files scanned: %d", files);
+    }
+
+    LOG("[p1080] done (alive)");
+}
+
 // V164 (p_lsvc): the loopback port surface — a way around the Mach wall.
 //
 // §146 established that bootstrap_look_up is intercepted by the sandbox before
@@ -37635,6 +38156,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_LSVC")) { p_lsvc(); LOG("[probe13] lsvc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IPOPT2")) { p_ipopt2(); LOG("[probe13] ipopt2-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_P1080")) { p_p1080(); LOG("[probe13] p1080-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }

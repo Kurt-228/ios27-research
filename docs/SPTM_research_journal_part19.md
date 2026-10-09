@@ -3301,3 +3301,77 @@ Reachable-код IP_OPTIONS — старый hardened BSD: все четыре �
 EMSGSIZE утрачен при перезаписи — см. урок выше), фаза `p_ipopt2` с
 тестами T1–T9 и ветки `FUZZ_IPOPT2`/`FUZZ_IPOPT2_NOBIG` в диспетчере
 `fuzzer/t_iosurface_scaler.m`.
+
+## 190. v183: TCP 1080 опознан — com.apple.PurpleReverseProxy (launchd-активация, UserName=mobile, FIN≈1.1s на всё)
+
+### Метод и контроли
+
+Фаза `p_p1080` (тег `[p1080]`, 7 прогонов; логи `/tmp/runf-p1080.log`
+перезаписывались — финальный сохранён в `results/v183-p1080.log`; батарея
+12 диалектов из прогона 1 живёт только здесь — урок §189 не соблюдён, см.
+вывод). Контрольные точки: connect 1081 → ECONNREFUSED (детектор гнёзд
+работает); self-hit исключён (в исходниках фаззера нет ни одного `listen()`);
+SOCKS5-репликация §174 совпала с записанным результатом; `KERN_PROC_ALL` →
+EPERM — «PID-оракул деградирован» §188 теперь объяснён системно (sysctl
+закрыт из песочницы, не только proc_*); popen запускается (posix_spawn
+разрешён), но sh-ребёнок молчит с pclose status 0x7f00 (exit 127 — exec
+системных утилит запрещён) — launchctl/netstat/lsof из песочницы мертвы.
+
+### Фингерпринт поведения (прогон 1)
+
+12 диалектов (TLS ClientHello, HTTP/1.1, DNS-over-TCP, RTSP, HTTP/2
+preface, WebSocket, MQTT, Redis, HELP, JSON-RPC, 4-byte length-prefix,
+SOCKS5) + пустой баннер: **все → 0 байт ответа, FIN через 1.06–1.11s**.
+Реакция не зависит от содержимого вообще → закрытие по таймеру, не
+парсером. Dual-connection: пока A держится открыт, B не принимается, FIN
+B ≈ t+2.17s — сериализация приёма + per-connection таймер. `[::1]:1080` →
+ECONNREFUSED (IPv4-only). Закрытие с данными ≤512КБ → FIN (всё
+прочитано); поведение на 1МБ неповторяемо: в двух прогонах первый 1МБ
+в сессии блокировался весь таймер и умирал EPIPE на 1.08s, а после
+524КБ-прогона тот же 1МБ уходил за 2ms с чистым FIN — transient, к
+вопросу безопасности не относится.
+
+### Владелец: карта launchd-сокетов устройства
+
+Дамп всех ключей `Sockets` из 661 plist (`/System/Library/{LaunchDaemons,
+LaunchAgents}`; `/Library/LaunchDaemons` → EPERM,§176-класс): lockdown
+62078 (IPv4+IPv6+unix), ftp-proxy-embedded **8021**, remotepairingdeviced
+port 0 (динамический), logd/racoon/mDNSResponder — unix-сокеты, bootpd —
+udp; **com.apple.PurpleReverseProxy: localhost:1080 `socks` +
+localhost:1083 `notify`** (SockFamily=IPv4 — точно совпадает с
+наблюдениями). Шесть текстовых «1080»-хитов оказались ложными
+(интервалы 10800 с).
+
+Полный plist PPRP: `UserName = mobile` (**не root**),
+`MachServices = { .Conn, .Ctrl }`, `EnablePressuredExit/EnableTransactions`,
+`POSIXSpawnType = Adaptive`, `ProgramArguments = (/usr/libexec/
+PurpleReverseProxy)`. Порты 1083 и 8021 опрошены: **1083 ведёт себя как
+1080** (FIN ~1.1s, молчит на GET); **8021 — другой класс**: FIN за
+33–46ms, HELP → RST (ECONNRESET 27ms), протокол не опознан.
+
+### Закрытые пути
+
+- mach-lookup `com.apple.PurpleReverseProxy.{Conn,Ctrl}` → kr 0x44c, и
+  контроль (несуществующее имя) → **тот же** kr — §146 воспроизведён:
+  existence не тестируется, XPC по имени из песочницы закрыт.
+- бинарь `/usr/libexec/PurpleReverseProxy`: 0 байт напрямую; escape
+  bad_query на `/usr/libexec` → −3 (§182, закрыто).
+- **но в dyld split-кэше (Cryptexes) образ присутствует: 6 CACHE-HIT** —
+  text-сегменты `.73/.30/.09/.71`, `.77.dyldlinkedit`, `.symbols` —
+  бинарь вырезаем карвингом bq21.
+
+### Интерпретация и следующий шаг
+
+Поведение (фикс-таймер ~1s, молчание на любой вход, сериализация, чтение
+до 512КБ) согласуется с реверс-прокси без сконфигурированного upstream:
+accept → исходящая попытка → таймаут → close. Подтвердить и получить
+протокол (socks/notify), константу таймаута и адреса upstream можно только
+из бинаря. Следующая итерация: карвинг PPRP из split-кэша (механика bq21,
+хостовый RE `mk_text_slice.py`/objdump), параллельно — протокольный опрос
+8021 (ftp-proxy: USER/PORT/PASV-пробы) как второго живого парсера.
+
+### Артефакты
+
+`results/v183-p1080.log` (финальный прогон: контроли, 1083/8021,
+mach-lookup с контролем, 80 файлов кэша, 6 CACHE-HIT), фаза `p_p1080` с
+веткой `FUZZ_P1080` в диспетчере.
