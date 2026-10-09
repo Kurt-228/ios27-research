@@ -1,0 +1,65 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_FTP1=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x4c0f
+[scaler] conn 0x4c0f, s1 13 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[ftp1] v185 find clients of com.apple.ftp-proxy-embedded in dyld cache
+[ftp1] CONTROL §170 point -> handle 1
+[ftp1] images table: off=0x2a8 cnt=4690
+[ftp1] --- image paths with 'ftp'/'FTP' ---
+[ftp1]   /System/Library/PrivateFrameworks/InternalSwiftProtobuf.framework/InternalSwiftProtobuf @0x1b233f000
+[ftp1]   /System/Library/PrivateFrameworks/SoftPosReader.framework/SoftPosReader @0x2ab528000
+[ftp1]   /usr/lib/libswiftPrespecialized.dylib @0x2c2277000
+[ftp1]   /usr/lib/swift/libswiftPassKit.dylib @0x2c24ac000
+[ftp1] CONTROL known-good @0x1b7f27000 FOUND
+[ftp1] --- cache memmem scan (79 sub-files) ---
+[ftp1] HIT [ftp-proxy] dyld_shared_cache_arm64e.61 @file0x627bdc0 VA 0x29667bdc0 owner @0x296671000 /System/Library/PrivateFrameworks/PacketFilter-embedded.framework/PacketFilter-embedded
+[ftp1]   ftp-proxy |an_port.ext_lan_address.ext_lan_port.ip_proto.delete_address.delete_af.internet-sharing.nlc.vpn.|
+[ftp1]   ftp-proxy |ftp-proxy.server-firewall.airdrop.application-firewall.thread-br.base.port-mapping.base_v4.base_|
+[ftp1]   ftp-proxy |v6.base_nat64.base_nat66.shared_v4.shared_v6.hos|
+[ftp1] HIT [ftp-proxy] dyld_shared_cache_arm64e.61 @file0x6287e90 VA 0x296687e90 owner @0x29667d000 /System/Library/PrivateFrameworks/PacketFilter.framework/PacketFilter
+[ftp1]   ftp-proxy |an_port.ext_lan_address.ext_lan_port.ip_proto.delete_address.delete_af.internet-sharing.nlc.vpn.|
+[ftp1]   ftp-proxy |ftp-proxy.server-firewall.airdrop.application-firewall.thread-br.base.port-mapping.base_v4.base_|
+[ftp1]   ftp-proxy |v6.base_nat64.base_nat66.shared_v4.shared_v6.hos|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.73 @file0x2602628 VA 0x2c2a02628 owner @0x2c29a1000 /usr/lib/updaters/libVinylUpdater.dylib
+[ftp1]   PurpleReverseProxy |/0376ADE6-F11D-430A-A034-E0EA3A00A73B/TemporaryDirectory.rrXRPB/Sources/VinylRestore/Support/BBU|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy.cpp.Failed to register for proxy..!url.empty() && urlRef.NULL requestURL?..fs|
+[ftp1]   PurpleReverseProxy | == std::future_status::ready.PRP timed out %d..|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.73 @file0x26026db VA 0x2c2a026db owner @0x2c29a1000 /usr/lib/updaters/libVinylUpdater.dylib
+[ftp1]   PurpleReverseProxy |questURL?..fs == std::future_status::ready.PRP timed out %d..future.get().Failed to get PRP..BBU|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy.%s::%s: failed to initialize object..%s::%s: diagnostics is not valid..getBoa|
+[ftp1]   PurpleReverseProxy |rdParameters.%s::%s: VinylTransport::getBoardPar|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.30 @file0x6db33cb VA 0x20f1b33cb owner @0x20effd000 /usr/lib/libBBUpdaterDynamic.dylib
+[ftp1]   PurpleReverseProxy |C/TemporaryDirectory.RhHCJh/Sources/AppleBasebandServices/BBUpdater/Legacy/Framework/Support/BBU|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy.cpp.Failed to register for proxy..!url.empty() && urlRef.NULL requestURL?..fs|
+[ftp1]   PurpleReverseProxy | == std::future_status::ready.PRP timed out %d..|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.30 @file0x6db347e VA 0x20f1b347e owner @0x20effd000 /usr/lib/libBBUpdaterDynamic.dylib
+[ftp1]   PurpleReverseProxy |questURL?..fs == std::future_status::ready.PRP timed out %d..future.get().Failed to get PRP..BBU|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy./Library/Caches/com.apple.xbs/29AD124C-5424-46B0-9CCA-117319A9D24C/TemporaryD|
+[ftp1]   PurpleReverseProxy |irectory.RhHCJh/Sources/AppleBasebandServices/BB|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.09 @file0x7b7c504 VA 0x1a7f7c504 owner @0x1a7ed5000 /usr/lib/libFDR.dylib
+[ftp1]   PurpleReverseProxy |!!!! Retries exhausted on attempt %d !!!!!!!!!!!!!!!!!!!!!!!!!!.got http failures._AMFDRHttpCopy|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxyInformation.TestReachability.v12@?0i8.failed to register for reverse proxy ava|
+[ftp1]   PurpleReverseProxy |ilability.Failed to get proxy info for URL '%@'.|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.71 @file0x74d13c1 VA 0x2bf8d13c1 owner @0x2bf8cc000 /usr/lib/libReverseProxyDevice.dylib
+[ftp1]   PurpleReverseProxy |ary/Caches/com.apple.xbs/15736E24-8B2C-41D4-A68B-7B56923E87A9/TemporaryDirectory.p81rUS/Sources/|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy/Common/RPSocket.cpp.RPSocketRead.Reading %lu bytes from socket %p to buffer %|
+[ftp1]   PurpleReverseProxy |p.RPSocketReadBuffer.EOF on %@..read error on %@|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.71 @file0x74d16a8 VA 0x2bf8d16a8 owner @0x2bf8cc000 /usr/lib/libReverseProxyDevice.dylib
+[ftp1]   PurpleReverseProxy |client. old: %p. new: %p.RPSocket_fd.Creating RPSocket_fd: %p for fd: %d and mode: %d.com.apple.|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy.FDQueue.setsockopt for %@.getsockname for %@.<unknown>.getpeername for %@.%@:|
+[ftp1]   PurpleReverseProxy | accepted %s <- %s.%@ (%p): connected to %s as %|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.71 @file0x74d1744 VA 0x2bf8d1744 owner @0x2bf8cc000 /usr/lib/libReverseProxyDevice.dylib
+[ftp1]   PurpleReverseProxy | %@.<unknown>.getpeername for %@.%@: accepted %s <- %s.%@ (%p): connected to %s as %s.com.apple.|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy.RPSocket.RPSocket.could not allocate socket..Creating RPSocket: %p (_sockRef:|
+[ftp1]   PurpleReverseProxy | %p).FinalizeRPSocket.Closed %@ after reading %l|
+[ftp1] HIT [PurpleReverseProxy] dyld_shared_cache_arm64e.71 @file0x74d19c0 VA 0x2bf8d19c0 owner @0x2bf8cc000 /usr/lib/libReverseProxyDevice.dylib
+[ftp1]   PurpleReverseProxy |ary/Caches/com.apple.xbs/15736E24-8B2C-41D4-A68B-7B56923E87A9/TemporaryDirectory.p81rUS/Sources/|
+[ftp1]   PurpleReverseProxy |PurpleReverseProxy/Common/Logging.c.SetDefaultLogLevel.set default log level to %d (%s)..failed |
+[ftp1]   PurpleReverseProxy |to convert string..%b %d %H:%M:%S .%s[%d] <%s>: |
+[ftp1] hits: com.apple.ftp-proxy 0, ftp-proxy 2, PurpleReverseProxy(control) 9
+[ftp1] done
+[probe13] ftp1-only mode, stop
