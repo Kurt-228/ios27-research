@@ -3643,3 +3643,123 @@ Pro) в таблице отсутствует.
 `~/darwin-vm/` (firmware: `bootkc`/`dtree`/`ramdisk.dmg`/`ramdisk.tc` для
 iPhone16,2 24A5390f), qemu-sptm собран. `relay/get_kc27.py` даёт точный IPSW
 URL для `get_files.sh`. Параметры qemu с GDB: `-s` (port 1234).
+
+## §195 (v187). darwin-vm: полный boot до root-shell — SPTM-фикс (t8122) + iPhone17,3 (t8140) 24A5390f
+
+### Контекст
+
+§194 закончился на t8130 boot-hang: PC `0x1000b01c10c` (ранняя стадия,
+до high-VA), `x21=0`, `cbz x21,<себя>`. Hypothesis — chip-специфичная фича
+не моделируется qemu. **Hypothesis оказалась ложной: причина была в
+отсутствующем SPTM/TXM.**
+
+### Корневая причина t8130-hang'а (найдена пользователем)
+
+`get_files.sh` определяет `CHIP_NAME` через `ipsw device-info` → для
+iPhone16,2 это `t8130`, и скрипт искал `sptm.t8130.release`. Apple же в
+этом IPSW называет файл для A17 Pro **`sptm.t8122.release`** (согласно
+BuildManifest). `check_for_file "sptm.t8130.release"` не находил файл →
+`sptm`/`txm` не скачивались → `run.sh` не передавал `-sptm/-txm` → гость
+висел на ранней SPTM-стадии. Фикс пользователя: fallback `t8130`→`t8122`
+в `get_files.sh` (строки 110–127). Доказательство работы фикса: с
+`firmware/sptm`+`firmware/txm` гость прошёл ранний hang и дошёл до
+`Load Address: 0xfffffff02700c000` (Kernel UUID определён) — дальше t8130
+упёрся в **другой** поллинг (`0xfffffff02a7fa5dc`, линкед-лист walk,
+45с без продвижения) — уже не SPTM, а поздний kernel-boot wait
+(SEP/timer, не эмулируется).
+
+### Решение: iPhone17,3 (t8140) + та же сборка 24A5390f
+
+Пользователь нашёл IPSW `iPhone17,3_27.0_24A5390f` (тот же build, что на
+нашем устройстве, но для iPhone 16 / t8140 — протестированного в darwin-vm
+до home screen):
+
+```
+https://updates.cdn-apple.com/2026SpringSeed/fullrestores/140-57108/5E816D0E-89BB-4B95-8825-6A3EDF22E509/iPhone17,3_27.0_24A5390f_Restore.ipsw
+```
+
+`get_files.sh` с этим URL: board `d47ap`, chip `t8140`, `sptm.t8140.release`
+найден напрямую (fallback не понадобился). `fix_perms.sh` повторён
+(get_files заново пропатчил ramdisk — 118 файлов были не root:wheel,
+включая `com.jprx.bash.plist`).
+
+### Результат: полный boot до root-shell
+
+**Гость t8140/24A5390f загрузился до root-shell:**
+
+```
+Darwin localhost 27.0.0 Darwin Kernel Version 27.0.0: Tue Jul 14 21:27:55
+PDT 2026; root:xnu-13432.0.94.502.2~2/RELEASE_ARM64_T8140 iPhone17,3 arm
+bash-5.3#                              <- root-промпт, интерактив
+System Policy: bash(5) allow process-exec* /bin/uname   <- sandbox активен
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000)
+```
+
+- **ядро — точная сборка 24A5390f / xnu-13432.0.94.502.2~2** (совпадает с
+  устройством по build, отличается только чип-специфика t8140 vs t8130);
+- `bash-5.3#` — root-шелл, спавнится launchd'ом (`com.jprx.bash`);
+- System Policy пишет audit-записи — sandboxed-политика гостя активна;
+- SEP-tаймауты (`waitForSEPEndpoint`) — циклический поллинг, **не блокирует
+  shell** (ядро многопоточное; поллинг-цикл на одном потоке, bash — на
+  другом). PC-сэмпл lldb часто ловит именно SEP-poller — это не hang.
+
+### Интерактив через TCP-serial: рабочая методика
+
+Проблема: `-serial mon:stdio` в фоне — ввод уходит в QEMU-монитор (мутиплекс,
+focus по умолчанию monitor, переключение Ctrl-A c), FIFO-stdin блокируется на
+открытии без писателя, `-display none` — vCPU не стартуют (паттерн
+подтверждён повторно), stdout в файл даёт block-buffering (малые ответы не
+flush'атся), kill nc-opencode'ом рвёт процесс-группу → bash получает SIGHUP
+и умирает (serial-сессия не восстанавливается новым подключением!).
+
+**Рабочая схема:**
+
+```sh
+qemu-sptm/build/qemu-system-aarch64 -M darwin \
+  -bootkc firmware/bootkc -dtree firmware/dtree -tc firmware/ramdisk.tc \
+  -ramdisk firmware/ramdisk.dmg -sptm firmware/sptm -txm firmware/txm \
+  -args "rd=md0 serial=3 -v -noprogress wdt=-1 wlan-olyhal-abort" \
+  -nographic -serial tcp:127.0.0.1:4556,server=on,wait=off -s -m 8G
+```
+
+- boot ~2–4 мин (вариативно); **не подключаться раньше ~200с** — ранний
+  serial шлёт только ACMTRM/launchd-сообщения;
+- после boot гость **idle на prompt (CPU 0%) — это норма**, не hang;
+- одна nc-сессия со всеми командами сразу:
+  `{ printf 'uname -a\r\n'; sleep 2; ... } | nc -w 14 127.0.0.1 4556`;
+- **bash переживает разрыв nc** (SIGHUP убивает его, если disconnect в момент
+  активности; в тихом состоянии выживает между попытками — проверено: входы
+  накапливаются, ответы приходят со следующей попыткой);
+- постоянная nc-сессия через `nohup + двойной fork + exec 7<>fifo` живёт
+  между tool-вызовами, но `stdbuf -o0` обязателен, иначе stdout-буфер nc
+  прячет вывод до выхода.
+
+### lldb — основной инструмент исследований (надёжнее serial)
+
+```
+(lldb) gdb-remote 1234
+Kernel UUID: 09C85910-8327-37E3-8AFE-1CF3F99052EF
+Load Address: 0xfffffff02700c000
+(lldb) memory read --size 8 --format x --count 4 0xfffffff02700c000
+0xfffffff02700c000: 0x0100000cfeedfacf 0x00000002c0000002 ...
+```
+
+Регистры, память, bt — работают; Mach-O magic по load address. Attach
+останавливает гость — после сэмпла обязательно `process continue`.
+
+### Итог v187
+
+1. **t8130-hang разобран**: не qemu-limitation, а отсутствие SPTM из-за
+   несовпадения имён (`sptm.t8122` vs `sptm.t8130`). Фикс — в get_files.sh.
+2. **Рабочая ядерная песочница получена**: iPhone17,3/t8140/24A5390f —
+   точная сборка устройства, root-shell, sandbox-политика активна, lldb
+   читает живое ядро. Kernel-фазы/исследования через gdb-remote теперь
+   доступны без реального устройства.
+3. t8130-firmware сохранена (`firmware_t8130_backup/bootkc_t8130`) —
+   kernelcache нашего чипа для статического RE.
+
+### Артефакты
+
+`~/darwin-vm/firmware/` — iPhone17,3 24A5390f (d47ap/t8140); `boot_proof_t8140_bash.log`
+(311 строк, полный boot до bash-5.3#); `firmware_t8130_backup/bootkc_t8130`
+(73MB, kernelcache t8130). qemu-sptm: `-s` → port 1234, serial → TCP 4556.
