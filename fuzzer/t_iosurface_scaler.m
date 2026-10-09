@@ -33906,6 +33906,291 @@ static void p_ipopt(void) {
     LOG("[ipopt] done (alive)");
 }
 
+// V182 (p_ipopt2): доходят ли наши байты IP-опций до ядерных парсеров —
+// измеряемо, а не предполагаемо (§144), через счётчики net.inet.ip.stats.
+//
+// §173 доказал только то, что setsockopt(IP_OPTIONS) ПРИНИМАЕТ корректные
+// байты. Увиденный там controllen 0 у loopback-приёмника ничего не значит:
+// udp_input вызывает ip_stripoptions() ДО ip_savecontrol — опции вырезаются
+// до построения cmsg, поэтому UDP-приёмник не может их увидеть в принципе.
+//
+// Парсеры, реально разбирающие наши байты (xnu bsd/netinet/ip_output.c и
+// ip_input.c, опубликованный main; ключевые места — по номерам строк):
+//   ip_pcbopts       — валидация setsockopt (достигнут в §173);
+//   ip_insertoptions — вставляет опции в исходящий заголовок; но при
+//                      optlen + ip_len > IP_MAXPACKET возвращает m, НЕ
+//                      выставив *phlen ("XXX should fail"), а вызывающий
+//                      берёт свой len = 0 → ip_vhl = 0x40 (ihl = 0);
+//   ip_dooptions     — выполняется для КАЖДОГО входного пакета с hlen > 20,
+//                      до проверки назначения (ip_input.c:1255), включая
+//                      наши loopback-отправки. Ветки двигают разные
+//                      счётчики:
+//                        LSRR «маршрут кончился» + !accept_sourceroute +
+//                          !ipforwarding → ips_cantforward++ и тихий дроп
+//                          (ip_input.c:2493/2523);
+//                        LSRR offset < IPOPT_MINOFF → icmp_error +
+//                          ips_badoptions++ (ip_input.c:2464/2688);
+//                        вход с hlen < 20 (наш ihl=0 пакет) → ips_badhlen++
+//                          и дроп до PF (ip_input.c:1080).
+//
+// Оракул: sysctl net.inet.ip.stats (struct ipstat, CTLFLAG_RD) читается как
+// сырой u32-массив; подписи индексов ниже — по опубликованному ip_var.h
+// (4=badhlen, 11=cantforward, 14=delivered, 15=localout, 21=badoptions),
+// истина — в дельте каждого теста (не зависит от раскладки структуры).
+// Контроли (§144): окно шума до любых тестов; доставка без опций (T1);
+// доставка с безвредными NOP (T2); большой пакет без опций (T6a).
+// Локальный оракул каждого теста: localout +1 на каждый наш пакет,
+// delivered +1 ровно при доставке.
+//
+// T6b–T9 — большие пакеты: T6b (65507+RR36) в первом прогоне дал EMSGSIZE,
+// т.е. ядро ОТКАЗАЛОСЬ строить пакет после раннего выхода (hlen=0) — пакет
+// с ihl=0 на провод не попал. Границу раннего выхода локализуют T7/T8/T9:
+//   T7: 65471+RR36 → ip_len(65499)+36 = 65535 — вставка ещё ЛЕГАЛЬНА;
+//   T8: 65472+RR36 → 65536 > 65535 — ПЕРВЫЙ байт, где ранний выход срабатывает;
+//   T9: 65507+NOP4  → ранний выход при optlen 4 (ip_len 65535+4 > 65535).
+// Ожидание при защитной проверке: T7 доставлен, T8/T9 — EMSGSIZE (не дроп).
+// Если T7 тоже отказал — иная семантика ip_len; если T8 доставлен — ранний
+// выход не срабатывает на 65472 (граница правее). Все тесты ≤ 65507 — тот же
+// класс риска, что и одобренный T6b. Все пять больших тестов (T6a–T9)
+// отключаются FUZZ_IPOPT2_NOBIG для ступенчатого прогона.
+
+#define IP2_MAXSTAT 128
+
+static int ip2_stats(uint32_t *out, size_t *nwords) {
+    size_t len = IP2_MAXSTAT * sizeof(uint32_t);
+    if (sysctlbyname("net.inet.ip.stats", out, &len, NULL, 0) != 0) {
+        LOG("[ipopt2] sysctl net.inet.ip.stats -> errno %d (oracle dead)",
+            errno);
+        return -1;
+    }
+    *nwords = len / sizeof(uint32_t);
+    return 0;
+}
+
+static int ip2_sysctl_int(const char *name) {
+    int v = -1;
+    size_t l = sizeof(v);
+    if (sysctlbyname(name, &v, &l, NULL, 0) != 0) return -1;
+    return v;
+}
+
+// Подписи ключевых счётчиков — по опубликованному ip_var.h (best effort);
+// истина — в дельтах, они не зависят от раскладки.
+static void ip2_key(const char *tag, const uint32_t *s, size_t n) {
+    if (n < 22) {
+        LOG("[ipopt2] %s stats too short: %zu words", tag, n);
+        return;
+    }
+    LOG("[ipopt2] %s | total=%u badhlen=%u cantforward=%u badoptions=%u "
+        "delivered=%u localout=%u", tag, s[0], s[4], s[11], s[21], s[14],
+        s[15]);
+}
+
+static void ip2_diff(const char *tag, const uint32_t *a, const uint32_t *b,
+                     size_t n) {
+    int any = 0;
+    for (size_t i = 0; i < n; i++) {
+        if (a[i] != b[i]) {
+            LOG("[ipopt2] %s delta idx=%zu %u -> %u (+%u)", tag, i, a[i],
+                b[i], b[i] - a[i]);
+            any = 1;
+        }
+    }
+    if (!any) LOG("[ipopt2] %s delta: none", tag);
+}
+
+static void ip2_drain(int rx) {
+    char b[4096];
+    int fl = fcntl(rx, F_GETFL, 0);
+    fcntl(rx, F_SETFL, fl | O_NONBLOCK);
+    while (recv(rx, b, sizeof(b), 0) > 0) {}
+    fcntl(rx, F_SETFL, fl);
+}
+
+// Один тест: снапшот счётчиков → (setsockopt опций) → sendto plen байт на
+// общий loopback-приёмник → recv с таймаутом 1с → снапшот + дельта.
+static void ip2_run(const char *tag, int rx, const struct sockaddr_in *dst,
+                    const uint8_t *opts, size_t optlen, size_t plen,
+                    int expect_data) {
+    uint32_t before[IP2_MAXSTAT];
+    size_t nb = 0;
+    int have = (ip2_stats(before, &nb) == 0);
+    if (have) ip2_key(tag, before, nb);
+    ip2_drain(rx);
+
+    int tx = socket(AF_INET, SOCK_DGRAM, 0);
+    if (tx < 0) {
+        LOG("[ipopt2] %s socket -> errno %d", tag, errno);
+        return;
+    }
+    int big = 1 << 20;
+    setsockopt(tx, SOL_SOCKET, SO_SNDBUF, &big, sizeof(big));
+    if (opts && optlen) {
+        int rc = setsockopt(tx, IPPROTO_IP, IP_OPTIONS, opts,
+                            (socklen_t)optlen);
+        LOG("[ipopt2] %s IP_OPTIONS(%zu bytes) -> %d errno %d%s", tag, optlen,
+            rc, rc ? errno : 0, rc ? "" : " accepted");
+    }
+
+    char *pay = (char *)malloc(plen);
+    if (!pay) {
+        close(tx);
+        return;
+    }
+    memset(pay, 'A', plen);
+    ssize_t sent = sendto(tx, pay, plen, 0, (const struct sockaddr *)dst,
+                          sizeof(*dst));
+    LOG("[ipopt2] %s send %zu -> %zd errno %d", tag, plen, sent,
+        sent < 0 ? errno : 0);
+    free(pay);
+    close(tx);
+    fflush(stderr);
+    fsync(fileno(stderr));
+
+    char *rbuf = (char *)malloc(70000);
+    ssize_t got = rbuf ? recv(rx, rbuf, 70000, 0) : -1;
+    free(rbuf);
+    int ok = expect_data ? (got == (ssize_t)plen) : (got <= 0);
+    LOG("[ipopt2] %s recv -> %zd errno %d expected %s => %s", tag, got,
+        got < 0 ? errno : 0, expect_data ? "data" : "drop/timeout",
+        ok ? "MATCH" : "MISMATCH");
+
+    if (have) {
+        uint32_t after[IP2_MAXSTAT];
+        size_t na = 0;
+        if (ip2_stats(after, &na) == 0) {
+            ip2_key(tag, after, na);
+            ip2_diff(tag, before, after, nb < na ? nb : na);
+        }
+    }
+    fflush(stderr);
+    fsync(fileno(stderr));
+}
+
+static void p_ipopt2(void) {
+    LOG("[ipopt2] v182: ip_dooptions/ip_insertoptions oracles via "
+        "net.inet.ip.stats");
+
+    int fwd = ip2_sysctl_int("net.inet.ip.forwarding");
+    int dosr = ip2_sysctl_int("net.inet.ip.sourceroute");
+    int acsr = ip2_sysctl_int("net.inet.ip.accept_sourceroute");
+    LOG("[ipopt2] forwarding=%d sourceroute=%d accept_sourceroute=%d "
+        "(T3 падает, только если accept_sourceroute != 1)", fwd, dosr, acsr);
+
+    // Окно шума: движутся ли «наши» счётчики без нашего участия (§144).
+    uint32_t n0[IP2_MAXSTAT], n1[IP2_MAXSTAT];
+    size_t nn0 = 0, nn1 = 0;
+    if (ip2_stats(n0, &nn0) == 0) {
+        ip2_key("noise0", n0, nn0);
+        usleep(1000000);
+        if (ip2_stats(n1, &nn1) == 0) {
+            ip2_key("noise1", n1, nn1);
+            ip2_diff("noise-1s", n0, n1, nn0 < nn1 ? nn0 : nn1);
+        }
+    }
+
+    // Приёмник: bind на loopback, таймаут recv 1с, большой rcvbuf для T6a.
+    int rx = socket(AF_INET, SOCK_DGRAM, 0);
+    if (rx < 0) {
+        LOG("[ipopt2] receiver socket -> errno %d", errno);
+        return;
+    }
+    int big = 1 << 20;
+    setsockopt(rx, SOL_SOCKET, SO_RCVBUF, &big, sizeof(big));
+    struct sockaddr_in la = {0};
+    la.sin_len = sizeof(la);
+    la.sin_family = AF_INET;
+    la.sin_port = 0;
+    la.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+    if (bind(rx, (struct sockaddr *)&la, sizeof(la)) != 0) {
+        LOG("[ipopt2] bind -> errno %d", errno);
+        close(rx);
+        return;
+    }
+    socklen_t al = sizeof(la);
+    getsockname(rx, (struct sockaddr *)&la, &al);
+    struct timeval tv = {1, 0};
+    setsockopt(rx, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    LOG("[ipopt2] receiver on 127.0.0.1:%d", ntohs(la.sin_port));
+
+    // T1: контроль контейнера — доставка вообще без опций.
+    ip2_run("T1 ctrl-noopt", rx, &la, NULL, 0, 64, 1);
+
+    // T2: контроль пути — опции вставлены, но безвредные (NOP×4): вставка
+    // и разбор не должны ломать доставку.
+    static const uint8_t nop4[4] = {1, 1, 1, 1};
+    ip2_run("T2 ctrl-nop", rx, &la, nop4, sizeof(nop4), 64, 1);
+
+    // T3: LSRR с завершённым маршрутом (1 хоп = 127.0.0.1, offset=4).
+    // ip_pcbopts вырезает первый хоп в ipopt_dst → пакет уходит на loopback;
+    // на входе ip_dooptions видит «маршрут кончился» → при
+    // !accept_sourceroute: ips_cantforward++ и тихий дроп. Падение
+    // ПОДТВЕРЖДАЕТ сразу два факта: опции были вставлены в заголовок (без
+    // вставки пакет дошёл бы с hlen=20 и доставился бы) и парсер их разобрал.
+    static const uint8_t lsrr_end[8] = {131, 7, 4, 127, 0, 0, 1, 0};
+    ip2_run("T3 lsrr-end", rx, &la, lsrr_end, sizeof(lsrr_end), 64,
+            acsr == 1 ? 1 : 0);
+
+    // T4: тот же LSRR, но offset=0 (< IPOPT_MINOFF=4): ip_pcbopts offset не
+    // проверяет (только optlen), а ip_dooptions обязан уйти в bad →
+    // icmp_error + ips_badoptions++ (ip_input.c:2464). Дроп всегда.
+    static const uint8_t lsrr_off0[8] = {131, 7, 0, 127, 0, 0, 1, 0};
+    ip2_run("T4 lsrr-off0", rx, &la, lsrr_off0, sizeof(lsrr_off0), 64, 0);
+
+    // T5: timestamp TSONLY (ptr=5, 12 байт) — самый сложный разборщик:
+    // ядро ПИШЕТ n_time в наш заголовок по смещению из опции
+    // (ip_input.c:2676), ошибок нет — пакет обязан дойти.
+    static const uint8_t ts12[12] = {68, 12, 5, 0, 0, 0, 0, 0, 0, 0, 0, 0};
+    ip2_run("T5 ts-tsonly", rx, &la, ts12, sizeof(ts12), 64, 1);
+
+    if (getenv("FUZZ_IPOPT2_NOBIG")) {
+        LOG("[ipopt2] FUZZ_IPOPT2_NOBIG set — T6a/T6b/T7/T8/T9 skipped");
+        close(rx);
+        LOG("[ipopt2] done (alive)");
+        return;
+    }
+
+    // T6a: контроль большого пакета (65507 = максимум UDP/IPv4) без опций:
+    // фрагментация и сборка на loopback должны пройти (delivered +1).
+    ip2_run("T6a ctrl-big64k", rx, &la, NULL, 0, 65507, 1);
+
+    // T6b: те же 65507 + 36 байт опций → optlen(36) + ip_len(65535) >
+    // IP_MAXPACKET → ip_insertoptions возвращает m, НЕ выставив *phlen
+    // ("XXX should fail"), вызывающий берёт len=0 → ip_vhl = 0x40 (ihl=0).
+    // Прогон v182: send → EMSGSIZE — ядро отказало, пакет не построен
+    // (ожидание по исходникам было «дроп с badhlen» — см. T7/T8/T9 ниже:
+    // EMSGSIZE появляется ПОСЛЕ раннего выхода, т.е. где-то есть guard
+    // на hlen=0).
+    static const uint8_t rr36[36] = {
+        7, 35, 4,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        1   // NOP-хвост: чтобы разбор ip_pcbopts завершился чисто
+    };
+    ip2_run("T6b big64k-rr", rx, &la, rr36, sizeof(rr36), 65507, 0);
+
+    // T7: 65471 + RR36 → ip_len(65499) + 36 = ровно 65535 — вставка ещё
+    // легальна, пакет валиден (ihl=14) — обязан доставиться. Контроль того,
+    // что сама по себе 36-байтовая вставка на максимуме работает.
+    ip2_run("T7 maxlegal-rr36", rx, &la, rr36, sizeof(rr36), 65471, 1);
+
+    // T8: 65472 + RR36 → 65536 > 65535 — ПЕРВЫЙ байт payload, на котором
+    // ранний выход срабатывает (граница вычислена по ip_insertoptions:2235
+    // с ip_len, включающим IP-заголовок: 36 + (20+8+P) > 65535 ⇔ P ≥ 65472).
+    // Ожидание при защитной проверке: EMSGSIZE (не дроп, не доставка).
+    ip2_run("T8 earlyret-bound", rx, &la, rr36, sizeof(rr36), 65472, 0);
+
+    // T9: 65507 + NOP4 → ранний выход и при optlen=4 (4+65535 > 65535) —
+    // граница не зависит от размера опций, только от ip_len. Ожидание:
+    // EMSGSIZE. Если доставлен — ip_len НЕ включает IP-заголовок и ранний
+    // выход тут не срабатывает (граница правее). Последний тест: если ядро
+    // умрёт — маркер в конце лога.
+    ip2_run("T9 maxnop4", rx, &la, nop4, sizeof(nop4), 65507, 0);
+
+    close(rx);
+    LOG("[ipopt2] done (alive)");
+}
+
 // V164 (p_lsvc): the loopback port surface — a way around the Mach wall.
 //
 // §146 established that bootstrap_look_up is intercepted by the sandbox before
@@ -37349,6 +37634,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_NET")) { p_net(); LOG("[probe13] net-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC")) { p_lsvc(); LOG("[probe13] lsvc-only mode, stop"); return NULL; }
         if (getenv("FUZZ_IPOPT")) { p_ipopt(); LOG("[probe13] ipopt-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_IPOPT2")) { p_ipopt2(); LOG("[probe13] ipopt2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ2")) { p_bq2(); LOG("[probe13] bq2-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ3")) { p_bq3(); LOG("[probe13] bq3-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ4")) { p_bq4(); LOG("[probe13] bq4-only mode, stop"); return NULL; }

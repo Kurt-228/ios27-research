@@ -1,0 +1,52 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_IPOPT2=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c03
+[scaler] conn 0x7c03, s1 186 s2 187
+[probe12] SetNotificationPort -> 0x00000000
+[ipopt2] v182: ip_dooptions/ip_insertoptions oracles via net.inet.ip.stats
+[ipopt2] forwarding=-1 sourceroute=-1 accept_sourceroute=-1 (T3 падает, только если accept_sourceroute != 1)
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] receiver on 127.0.0.1:64646
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T1 ctrl-noopt send 64 -> 64 errno 0
+[ipopt2] T1 ctrl-noopt recv -> 64 errno 0 expected data => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T2 ctrl-nop IP_OPTIONS(4 bytes) -> 0 errno 0 accepted
+[ipopt2] T2 ctrl-nop send 64 -> 64 errno 0
+[ipopt2] T2 ctrl-nop recv -> 64 errno 0 expected data => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T3 lsrr-end IP_OPTIONS(8 bytes) -> 0 errno 0 accepted
+[ipopt2] T3 lsrr-end send 64 -> 64 errno 0
+[ipopt2] T3 lsrr-end recv -> -1 errno 35 expected drop/timeout => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T4 lsrr-off0 IP_OPTIONS(8 bytes) -> 0 errno 0 accepted
+[ipopt2] T4 lsrr-off0 send 64 -> 64 errno 0
+[ipopt2] T4 lsrr-off0 recv -> -1 errno 35 expected drop/timeout => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T5 ts-tsonly IP_OPTIONS(12 bytes) -> 0 errno 0 accepted
+[ipopt2] T5 ts-tsonly send 64 -> 64 errno 0
+[ipopt2] T5 ts-tsonly recv -> 64 errno 0 expected data => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T6a ctrl-big64k send 65507 -> 65507 errno 0
+[ipopt2] T6a ctrl-big64k recv -> 65507 errno 0 expected data => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T6b big64k-rr IP_OPTIONS(36 bytes) -> 0 errno 0 accepted
+[ipopt2] T6b big64k-rr send 65507 -> 65507 errno 0
+[ipopt2] T6b big64k-rr recv -> -1 errno 35 expected drop/timeout => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T7 maxlegal-rr36 IP_OPTIONS(36 bytes) -> 0 errno 0 accepted
+[ipopt2] T7 maxlegal-rr36 send 65471 -> 65471 errno 0
+[ipopt2] T7 maxlegal-rr36 recv -> 65471 errno 0 expected data => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T8 earlyret-bound IP_OPTIONS(36 bytes) -> 0 errno 0 accepted
+[ipopt2] T8 earlyret-bound send 65472 -> 65472 errno 0
+[ipopt2] T8 earlyret-bound recv -> -1 errno 35 expected drop/timeout => MATCH
+[ipopt2] sysctl net.inet.ip.stats -> errno 1 (oracle dead)
+[ipopt2] T9 maxnop4 IP_OPTIONS(4 bytes) -> 0 errno 0 accepted
+[ipopt2] T9 maxnop4 send 65507 -> 65507 errno 0
+[ipopt2] T9 maxnop4 recv -> -1 errno 35 expected drop/timeout => MATCH
+[ipopt2] done (alive)
+[probe13] ipopt2-only mode, stop
