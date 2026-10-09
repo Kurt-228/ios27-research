@@ -1,0 +1,30 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7d0f
+[scaler] conn 0x7d0f, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq26] v177 mach-lookup probe: reader wake-up names
+[bq26] CONTROL §170 point -> handle 1
+[bq26] XPC[com.apple.intelligenceflow.entity-feeds-update] resume
+[bq26] XPC[com.apple.intelligenceflow.entity-feeds-update] event: <dictionary: 0x1f5f454c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f5f45600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[bq26] XPC[com.apple.intelligenceflow.context] resume
+[bq26] XPC[com.apple.intelligenceflow.context] event: <dictionary: 0x1f5f454c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f5f45600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[bq26] XPC[com.apple.intelligenceflow.transcript-entity-querying] resume
+[bq26] XPC[com.apple.intelligenceflow.transcript-entity-querying] event: <dictionary: 0x1f5f454c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f5f45600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[bq26] XPC[com.apple.appintents.LiveEntityService] resume
+[bq26] XPC[com.apple.appintents.LiveEntityService] event: <dictionary: 0x1f5f454c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f5f45600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[bq26] RESULT com.apple.intelligenceflow.entity-feeds-update -> error
+[bq26] RESULT com.apple.intelligenceflow.context -> error
+[bq26] RESULT com.apple.intelligenceflow.transcript-entity-querying -> error
+[bq26] RESULT com.apple.appintents.LiveEntityService -> error
+[bq26] errors=4 (control: LiveEntityService must be an error, as in bq19)
+[bq26] done
+[probe13] bq26-only mode, stop

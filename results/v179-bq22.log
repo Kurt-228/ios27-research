@@ -1,0 +1,36 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7b03
+[scaler] conn 0x7b03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq22] v177 readers: entitlement/load-command string scan
+[bq22] CONTROL §170 point -> handle 1
+[bq22] root /System/Library
+[bq22]   HIT /System/Library/Frameworks/AppIntents.framework/PlugIns/AppIntentsDiagnosticExtension.appex/AppIntentsDiagnosticExtension <- [LiveEntityService]
+[bq22]   HIT /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/XPCServices/AppIntentsLiveEntityService.xpc/AppIntentsLiveEntityService <- [live-entities.read,live-entities.write,AppIntentsLiveEntitySupport.framework/,LiveEntityService]
+[bq22]   HIT /System/Library/PrivateFrameworks/IntelligenceFlowRuntime.framework/intelligenceflowd <- [live-entities.read]
+[bq22]   HIT /System/Library/PrivateFrameworks/TelephonyUtilities.framework/callservicesd <- [live-entities.write,AppIntentsLiveEntitySupport.framework/,LiveEntityService]
+[bq22]   HIT /System/Library/PrivateFrameworks/IntelligenceFlowContextRuntime.framework/intelligencecontextd <- [live-entities.read]
+[bq22]   HIT /System/Library/PrivateFrameworks/MediaRemote.framework/Support/mediaremoted <- [live-entities.write,AppIntentsLiveEntitySupport.framework/,LiveEntityService]
+[bq22]   HIT /System/Library/PrivateFrameworks/MapsSupport.framework/navd <- [live-entities.read,live-entities.write,AppIntentsLiveEntitySupport.framework/,LiveEntityService]
+[bq22]   HIT /System/Library/PrivateFrameworks/MobileTimer.framework/Executables/mobiletimerd <- [live-entities.write,LiveEntityService]
+[bq22] root /System/Library: +2631 scanned, +0 denied
+[bq22] root /usr/libexec
+[bq22] root /usr/libexec: +0 scanned, +1 denied
+[bq22] root /Applications
+[bq22] root /Applications: +0 scanned, +1 denied
+[bq22] root /System/Applications
+[bq22] root /System/Applications: +0 scanned, +1 denied
+[bq22] scanned=2631 denied=3 skipped=149390 hitfiles=8
+[bq22] CONTROL needle write -> 5 files (expect >=4: callservicesd/mediaremoted/navd/mobiletimerd), read -> 4 (expect >=1: navd)
+[bq22] detector control OK
+[bq22] dump rdr-0-mediaremoted: 6699536 bytes, byte-identical=1
+[bq22] dump rdr-1-callservicesd: 8380576 bytes, byte-identical=1
+[bq22] dump rdr-2-mobiletimerd: 81104 bytes, byte-identical=1
+[bq22] dump rdr-3-intelligenceflowd: 123264 bytes, byte-identical=1
+[bq22] dump rdr-4-navd: 737584 bytes, byte-identical=1
+[bq22] dump rdr-5-AppIntentsLiveEntityService: 493584 bytes, byte-identical=1
+[bq22] dump rdr-6-AppIntentsDiagnosticExtension: 170544 bytes, byte-identical=1
+[bq22] dump rdr-7-intelligencecontextd: 85664 bytes, byte-identical=1
+[bq22] done
+[probe13] bq22-only mode, stop

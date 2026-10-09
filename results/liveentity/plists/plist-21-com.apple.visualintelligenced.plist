@@ -1,0 +1,32 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>EnableTransactions</key>
+	<true/>
+	<key>EnablePressuredExit</key>
+	<true/>
+	<key>Label</key>
+	<string>com.apple.visualintelligenced</string>
+	<key>MachServices</key>
+	<dict>
+		<key>com.apple.visualintelligence.daemon-status</key>
+		<true/>
+		<key>com.apple.visualintelligence.visual-action-prediction</key>
+		<true/>
+	</dict>
+	<key>ProcessType</key>
+	<string>Adaptive</string>
+	<key>Program</key>
+	<string>/System/Library/PrivateFrameworks/VisualIntelligenceServices.framework/visualintelligenced</string>
+	<key>UserName</key>
+	<string>mobile</string>
+	<key>Disabled</key>
+	<dict>
+		<key>#IfFeatureFlagDisabled</key>
+		<string>Tamale/DaemonEnabled</string>
+		<key>#Then</key>
+		<true/>
+	</dict>
+</dict>
+</plist>

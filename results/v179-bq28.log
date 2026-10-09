@@ -1,0 +1,22 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7703
+[scaler] conn 0x7703, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq28] v177 notify probe: wake intelligencecontextd ourselves
+[bq28] CONTROL §170 point -> handle 1
+[bq28] SELFTEST register=0 post=0 check0=1 check1=1 — detector OK
+[bq28] target register_observe -> 0 (listening)
+[bq28] CONTROL rows: feedEntries=2 feedMetadata=8 realBootId=ECB6AA16-D623-462E-9742-A0098972A4FF
+[bq28] BACKUP verified
+[bq28] WRITE committed: oracle+control in place
+[bq28] t=0s POST target -> rc=0
+[bq28] t=0s TARGET NOTIFY FIRED (producer wrote / reader woken)
+[bq28] t=10s POST target -> rc=0
+[bq28] t=10s TARGET NOTIFY FIRED (producer wrote / reader woken)
+[bq28] t=20s POST target -> rc=0
+[bq28] t=20s TARGET NOTIFY FIRED (producer wrote / reader woken)
+[bq28] VERIFY rows back: 2/2 8/8 bytes-identical=1
+[bq28] VERDICT: post accepted, no observable reaction in 90 s (wake not provable, not refuted) (posts=0/0/0 signals=3 changes=0)
+[bq28] done
+[probe13] bq28-only mode, stop

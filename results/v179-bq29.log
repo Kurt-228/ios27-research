@@ -1,0 +1,12 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7d07
+[scaler] conn 0x7d07, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq29] v177 export caller binaries for offline RE
+[bq29] CONTROL §170 point -> handle 1
+[bq29] caller-assistantd.bin: 6357152 bytes, byte-identical=1
+[bq29] caller-knowledgeconstructiond.bin: 94080 bytes, byte-identical=1
+[bq29] caller-suggestd.bin: 142000 bytes, byte-identical=1
+[bq29] done
+[probe13] bq29-only mode, stop

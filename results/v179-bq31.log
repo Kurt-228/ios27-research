@@ -1,0 +1,18 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5507
+[scaler] conn 0x5507, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq31] v177 nowPlaying-driven producer write, 90 s
+[bq31] CONTROL §170 point -> handle 1
+[bq31] CONTROL rows: feedEntries=2 feedMetadata=8 realBootId=ECB6AA16-D623-462E-9742-A0098972A4FF
+[bq31] BACKUP verified
+[bq31] WRITE committed: oracle+control in place
+[bq31] media: catErr=no actErr=no play=1 nowInfo=set thread=bg
+[bq31] t=25s PAUSE transition
+[bq31] t=45s RESUME transition
+[bq31] t=70s STOP + clear nowPlaying
+[bq31] VERIFY rows back: 2/2 8/8 bytes-identical=1
+[bq31] VERDICT: NEGATIVE: nowPlaying dance produced no store write (changes=0 oracleGone=-1 ctrlGone=-1)
+[bq31] done
+[probe13] bq31-only mode, stop

@@ -1,0 +1,21 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c07
+[scaler] conn 0x7c07, s1 179 s2 181
+[probe12] SetNotificationPort -> 0x00000000
+[bq30] v177 arm cleanup + Siri window, 240 s
+[bq30] CONTROL §170 point -> handle 1
+[bq30] CONTROL rows: feedEntries=2 feedMetadata=8 realBootId=ECB6AA16-D623-462E-9742-A0098972A4FF mdCols=feedId,lastUpdate
+[bq30] BACKUP verified
+[bq30] ARM skipped: no bootId column in feedMetadata
+[bq30] WRITE committed: oracle+control in place, armed=0 (ask Siri NOW)
+[bq30] t=0s nudge post rc=0
+[bq30] t=30s nudge post rc=0
+[bq30] t=60s nudge post rc=0
+[bq30] heartbeat t=60s changes=0 oracle=alive control=alive
+[bq30] heartbeat t=120s changes=0 oracle=alive control=alive
+[bq30] heartbeat t=180s changes=0 oracle=alive control=alive
+[bq30] VERIFY rows back: 2/2 8/8 bytes-identical=1
+[bq30] VERDICT: INCONCLUSIVE: no store touch in window (Siri may not have queried context) (changes=0 armed=0)
+[bq30] done
+[probe13] bq30-only mode, stop

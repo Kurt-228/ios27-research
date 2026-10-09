@@ -2914,3 +2914,108 @@ read-back byte-identical, затем on-device memmem игл. Три образ�
 `results/liveentity/*.bin` (в `.gitignore` — не коммитить), офлайн-RE
 живёт в `/tmp/{svc.dis,fix.txt}` (пересобирается из `svc.bin` командами
 §185).
+
+## 186. v179: bq22–bq34 — детерминированный триггер записи найден, oracle работает, вход — витрина (OUTPUT mirror)
+
+### bq22–bq31: резервное исследование читателей и каналов
+
+- **bq22**: скан энтитлментов + линковки — читатели `live-entities.read`:
+  `intelligencecontextd` (85K) и `intelligenceflowd` (123K), оба лежат в
+  `/System/Library/PrivateFrameworks/...` (не в `/usr/libexec`);
+  писатели — `callservicesd`/`mediaremoted`/`navd`/`mobiletimerd`.
+  Контроль игл сошёлся (write 5/≥4, read 4/≥1).
+- **bq25**: 21 launchd-plist выгружен. `intelligencecontextd`: MachServices
+  `com.apple.intelligenceflow.{context,contextIntelligence,contextTool,`
+  `entity-feeds-update,uiContext}` + `com.apple.uiintelligencesupport.agent`,
+  UserName=mobile, LaunchEvents=xpc.activity; `intelligenceflowd`: Disabled
+  без feature-флага. Починены два висяка (тернарник `NSString*/char*` в
+  `appendFormat`; фильтр `.plist`; /Library-корни = missing, не denied).
+- **bq23/24/30/31**: окна inconclusive/negative — без детерминированного
+  триггера к магазину никто не прикасался; собственный аудио/nowPlaying
+  (bq31, AVAudioPlayer + rich nowPlayingInfo) фид не пишут — `media.*`
+  пишет только настоящий `mediaremoted`.
+- **bq26**: mach-имена intelligenceflow/LiveEntityService из песочницы →
+  `Connection invalid` на все4 (контроль = bq19).
+- **bq28**: `notify_post("com.apple.intelligencecontextd.entity-feeds-`
+  `updated")` → **rc=0, разрешён из песочницы**; self-test детектора
+  (register/post/check) прошёл; файловой реакции нет. **bq29**: дампы
+  `caller-{assistantd,knowledgeconstructiond,suggestd}.bin` —
+  byte-identical, т.е. потребители за окно не писали ничего своего.
+
+### bq27: oracle активности работает — «прикосновение» наблюдаемо
+
+Первое POSITIVE-окно (пользователь запустил таймер + попросил Siri):
+`t=165s WAL +49K` и **oracle-строка удалена сервисом, контрольная
+(реальный bootId) выжила**. Семантика `DELETE WHERE bootId != current`
+подтверждена **в том же буте** — cleanup исполняется при каждом открытии
+магазина, если есть чужие строки; гипотеза «только при смене бута»
+отвергнута. Три контрольных окна чисты: бездействие / «спросил время»
+(чужой фид) / «сколько таймеров» (прямое чтение фида) — **чтение не
+открывает store на запись и cleanup не запускает**.
+
+Третье и четвёртое окна закрепили триггер: **запуск таймера в Clock =
+детерминированное событие** (`com.apple.mobiletimer` пишет строку →
+открытие → cleanup; срабатывания на t=272 и t=31). По §144 порядок
+выдержан: сперва доказанный детектор (oracle + WAL-stat), потом
+измерения. Все окна заканчиваются побайтовым откатом (2/2, 8/8,
+identical=1).
+
+### Формат строки магазина (захвачен целиком, bq27-дамп)
+
+7 столбцов: `feedId|bootId|bundleId|entityId|lastUpdate|lnValue|metadata`.
+`lnValue` — NSKeyedArchiver-bplist. Строка таймера (714 байт) декодирована:
+`LNValue{valueType=LNEntityIdentifierValueType, value=LNEntityIdentifier`
+`{typeIdentifier="TimerEntity", instanceIdentifier=<UUID>,`
+`bundleIdentifier="com.apple.mobiletimer", stableIdentifier=nil,`
+`auditToken=nil}, exportedContent=$null, displayRepresentation=$null}`;
+`entityId="TimerEntity/<UUID>"`, `metadata=NULL`. Строка хранит **только
+идентификатор сущности** — без длительности и названия. Отмена таймера →
+producer **сам удаляет** свою строку (наблюдено в bq34-erase).
+
+### bq34: зеркальный тест — Siri читает mobiletimerd, а не магазин
+
+| магазин | mobiletimerd | ответ Siri |
+|---|---|---|
+| строка есть | таймер жив | «один таймер» (+ называет время) |
+| строки нет | таймер жив | «один таймер» |
+| строка есть (restore-фантом) | таймер отменён | «нет таймеров» |
+
+**Вывод: перечисление таймеров идёт напрямую из `mobiletimerd`.
+`feedEntries` — OUTPUT-витрина** (та же семантика, что у findmy-plist в
+§180): демоны пишут состояние наружу, но читателем оказывается сам
+источник. `clock.timers` не имеет ни одного клиента с read-whitelist,
+кроме intelligencecontextd/intelligenceflowd (read=bool), чья итерация
+для нас невидима: XPC из песочницы закрыт по дизайну (bq26), а чтение
+не оставляет файловых следов (bq27-контроль).
+
+### Итоговая карта направления (закрыто как негатив по наблюдаемому INPUT)
+
+1. **Запись полностью открыта**: мы монтируем строки любого feedId от
+   любого bundleId без проверок (§184/§186), cleanup наблюдаем и
+   воспроизводим, откат байтовый.
+2. **Декодер атакующих байтов — в сервисе** (§185), но довести байты до
+   декодера может только клиент с `live-entities.read`; такого клиента,
+   чьё потребление было бы наблюдаемо, нет. Notify-канал разрешён
+   (bq28), но write-open не вызывает.
+3. Остающиеся варианты, если направление возобновлять: (а) **crash-oracle**
+   — некорректный bplist в строке + PID-снапшоты intelligencecontextd:
+   различает «никто не итерирует clock.*» и «итерирует и мягко
+   пропускает» (в svc есть строки мягкого логирования); (б) reboot-эксперимент
+   (bq32 plant/verify написан, согласие получено) — семантика cleanup уже
+   доказана в одном буте, ценность упала; (в) возврат к живому ядерному
+   вектору IP_OPTIONS (§165/§173).
+
+### Инструментальный вклад v179
+
+`bq27_dump_rows` (полный hex BLOB до 2КБ — без него формат строки не
+узнали бы); фазы `p_bq32` (plant/verify для reboot) и `p_bq34`
+(erase/restore строки фида) с тем же шаблоном «контроль → верифицированный
+бэкап → изменение → наблюдение → побайтовый откат/восстановление»;
+`relay/build.sh` + `-framework MediaPlayer` (bq31); `relay/get_rootfs27.py`
+(range-извлечение из IPSW — `--list` работает, но rootfs офлайн мёртв:
+системные dmg в `.aea`, локальные IPSW — dataless в iCloud).
+
+### Артефакты
+
+`results/v179-bq{22,26,27,28,29,30,31,34}.log`; `results/liveentity/`
+(бинари — в `.gitignore`; `plists/*.plist` — 21 шт, коммитятся).
