@@ -3571,3 +3571,75 @@ ROLLBACK: маркер исчез, архив цел -> откат пропущ�
 `results/v186-fmy1-treat.log` (treatment, TREAT-REPAIRED 180s). Фаза
 `p_fmy1` в `fuzzer/t_iosurface_scaler.m`, ветки `FUZZ_FMY1`/`FUZZ_FMY1_TREAT`.
 Детектор доказан по §144 (положительный контроль в каждом прогоне).
+
+---
+
+## §194 (v186). darwin-vm: реальное ядро 24A5390f под lldb + t8130 boot-hang
+
+Разделение ролей VM-инструментов (решение оператора): **darwin-vm** — kernel,
+**vphone-cli** — userspace. Причина: darwin-vm грузит kernelcache **из restore
+IPSW** (kernel + SPTM + TXM + DeviceTree реальной платы) — то самое ядро, что
+на устройстве; vphone-cli берёт kernel/SEP/devicetree из cloudOS `vphone600ap`
+(26.4-линия) — чужое ядро, поэтому kernel-выводы из vphone не переносим.
+
+### Что сделано (host: Apple Silicon, macOS 27, SIP НЕ менялся)
+
+- `brew install ipsw ninja pkg-config glib`; клон `jprx/darwin-vm`.
+- `get_files.sh` с нашим точным IPSW `iPhone16,2_27.0_24A5390f`:
+  board `d84ap`, kernel ext `iphone16`, chip **`t8130`** (A17 Pro). Извлечены
+  `bootkc` (73 MB) + `dtree` + `ramdisk.dmg` + trustcache. **Отдельного
+  `sptm`/`txm` для t8130 в IPSW нет** (`get_files.sh` это учёл — «not all chips
+  have SPTM»), поэтому `-sptm/-txm` в qemu не передаются.
+- `fix_perms.sh` (нужен sudo, выполнял оператор): `bin`/`System`/`libexec` ->
+  `root:wheel`, `com.jprx.bash.plist` на месте.
+- qemu-sptm собран: `configure --target-list=aarch64-softmmu --disable-pvg`
+  (PVG не компилируется на macOS 27, PGTask_t obsoleted) -> `make -j`,
+  бинарь 37 MB, 3200/3200.
+
+### Проблема захвата serial-консоли (разобрана, не блокер)
+
+`run.sh` использует `-nographic -serial mon:stdio`. В фоне (без реального tty)
+stdio-вывод буферизуется/теряется: ни `script` (pty), ни `-serial file:`, ни
+TCP-chardev не дали boot-лог. Причина `-display none` + socket — гость не
+стартует вовсе (0% CPU, vCPU не поднимаются). **Вывод**: для ядерных
+исследований serial-консоль НЕ нужна — работает GDB-стаб qemu (`-s`).
+
+### Ключевой результат: lldb на настоящем ядре 24A5390f
+
+qemu с `-s` (GDB на :1234) + `-nographic`. `xcrun lldb` -> `gdb-remote 1234`
+подключается, читает регистры и память:
+
+```
+Process 1 stopped (SIGTRAP)
+pc = 0x000001000b01c10c
+->  0x1000b01c10c: cbz  x21, 0x1000b01c10c   ; x21 = 0
+```
+
+Breakpoints, `memory read`, `register read`, `bt` — всёфункционально. Это
+живой kernel-debugging доступ, которого раньше не было (KDK/development-kernel
+путь описан в README, но для iOS он бессимвольный — lldb всё равно работает).
+
+### Честная находка: t8130 зависает на ранней загрузке
+
+PC **не продвигается** между сэмплами (минуты разрыва, resume между ними):
+`x21 = 0`, `cbz x21, <себя>` = бесконечный спин-луп. Это **hard-hang**, не WFI
+и не краш-луп. Адрес `0x1000b01c...` (~4.3 GB, низкий) — ранняя стадия
+(SPTM/ignition) **до перехода XNU на high-VA** (`0xfffffe00...`), т.е. гость
+не доходит до основного ядра. Вероятная причина — chip-специфичная фича
+t8130, не моделируемая qemu-машиной `darwin`. В протестированной матрице
+darwin-vm явно boots только t8140 (iPhone17,3 / iPhone 16); t8130 (iPhone 15
+Pro) в таблице отсутствует.
+
+**Статус**: capability доказана (gdb-remote -> lldb -> реальное ядро), но
+полноценный boot-to-shell на t8130 сегодня не получен. Пути вперёд (на
+завтра, не ночью): (а) диагностика hang'а через lldb (что за poll в `x21`,
+нужен ли SEP/timer, который qemu не даёт); (б) повторить на **t8140**
+(`iPhone17,3_27.0_24A437`, протестированная связка) — даёт XNU 27.0 для
+отладки/фаззинга, очень близко к цели, хотя и не наш точный чип; (в) изучить
+`-S` (старт с первой инструкции SPTM) для пошаговой трассировки раннего boot.
+
+### Артефакты
+
+`~/darwin-vm/` (firmware: `bootkc`/`dtree`/`ramdisk.dmg`/`ramdisk.tc` для
+iPhone16,2 24A5390f), qemu-sptm собран. `relay/get_kc27.py` даёт точный IPSW
+URL для `get_files.sh`. Параметры qemu с GDB: `-s` (port 1234).
