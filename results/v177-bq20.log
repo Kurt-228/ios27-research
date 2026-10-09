@@ -1,0 +1,14 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7f13
+[scaler] conn 0x7f13, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq20] v177 export LiveEntityService binary for offline RE
+[bq20] CONTROL §170 point -> handle 1
+[bq20] cli-callservicesd.bin: 8380576 -> 8380576 bytes, byte-identical=1
+[bq20] cli-mediaremoted.bin: 6699536 -> 6699536 bytes, byte-identical=1
+[bq20] cli-mobiletimerd.bin: 81104 -> 81104 bytes, byte-identical=1
+[bq20] cli-navd.bin: 737584 -> 737584 bytes, byte-identical=1
+[bq20] svc.bin: 493584 -> 493584 bytes, byte-identical=1
+[bq20] done
+[probe13] bq20-only mode, stop

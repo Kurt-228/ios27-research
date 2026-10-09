@@ -1,7 +1,7 @@
 [main] fuzz harness up, mode=scaler
 [main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
-[open] AppleM2ScalerCSCDriver -> conn 0x7a03
-[scaler] conn 0x7a03, s1 13 s2 14
+[open] AppleM2ScalerCSCDriver -> conn 0x590f
+[scaler] conn 0x590f, s1 13 s2 14
 [probe12] SetNotificationPort -> 0x00000000
 [bq14] v176 feed-DB owner via dyld shared cache scan
 [bq14] CONTROL §170 point -> handle 1
@@ -105,12 +105,14 @@
 [bq14]   HIT "lnValue" -> /System/Library/PrivateFrameworks/ToolKit.framework/ToolKit | ctx: NValueC7lnValuet....<.'y.s.[,G....<.'y.=.[,G....<.'y._.[,G....<.'y.Y.[,G....<.'y.S.[,G....<.'y.M
 [bq14]   HIT "feedMetadata" -> /System/Library/PrivateFrameworks/PromotedContent.framework/PromotedContent | ctx: s.......feedMetadataCategories..........feedMetadataChannelId...........feedMetadataTagId.......
 [bq14]   HIT "feedMetadata" -> /System/Library/PrivateFrameworks/AdPlatformsCommon.framework/AdPlatformsCommon | ctx: nt.body.feedMetadata.contentProviderId.BETWEENARTICLE.INARTICLE.INFEED.NATIVEINARTICLE.NATIVEINF
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /usr/lib/libswiftPrespecialized.dylib | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.........p.............
 [bq14]   HIT "feedMetadata" -> /usr/lib/objc/libobjcMsgSend11.dylib | ctx: riteria.feedMetadataContentProviderID.finishedWithRequestsForID:.frequencyCapData.globalCategori
 [bq14]   HIT "feedId" -> /usr/lib/objc/libobjcMsgSend11.dylib | ctx: esCount.feedId.feedUpdateTime.feedbackClientCapabilities.feedbackClientCapabilitiesAsString:.fee
 [bq14]   HIT "feedMetadata" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: ntextC22feedMetadataCategoriesSaySSGSgvsTj._$s15PromotedContent23NewsSupplementalContextC21feedM
 [bq14]   HIT "lnValue" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: lementV7lnValueACSo0C0C_tcfC._$s12LinkServices20LNValueBackedElementVMa._$s12LinkServices22LNVal
 [bq14]   HIT "feedId" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: dInfoO14feedIdentifierSSvg._$s7NewsAds17SponsorshipAdInfoO18groupTagIdentifierSSSgvg._$s7NewsAds
 [bq14]   HIT "LiveEntityService" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: pIntentsLiveEntityService.xpc/AppIntentsLiveEntityService.K.......A.J.D.....d...E.....\.........
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /usr/lib/objc/libobjcMsgSend33.dylib | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.I.....A.J.K...d...E...
 [bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/IntelligenceFlowContext.framework/IntelligenceFlowContext | ctx: edValue.feedId.typedValue..typedValue.bundleId.name.category...............onScreenMetadata.....
 [bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/HighlightAlerts.framework/HighlightAlerts | ctx: pleInfo.feedIdentifier..........automationIdentifier.diagramInfo................objectIdentifier
 [bq14]   HIT "lnValue" -> /System/Library/PrivateFrameworks/AppIntentsServices.framework/AppIntentsServices | ctx: ytes....lnValueBytes.._StorageClass..................... ....................... ...............
@@ -118,7 +120,12 @@
 [bq14]   HIT "feedEntries" -> /System/Library/PrivateFrameworks/PhotosUICore.framework/PhotosUICore | ctx: load=%i.feedEntries notification has `shouldReload` as true, performing full reload.will %@.Sect
 [bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport | ctx: Testing6feedId8newValueAA16XPCActorResponseOyytGSS_10Foundation4DateVtYaKFTE.................p..
 [bq14]   HIT "LiveEntityService" -> /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport | ctx: ........LiveEntityService.Unchecked................../.....................4........P...`.......
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.....3........X...6....
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /System/Library/PrivateFrameworks/IntelligenceFlowContextRuntime.framework/IntelligenceFlowContextRuntime | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.........h...........-D
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /System/Library/PrivateFrameworks/IntelligenceFlowPlannerRuntime.framework/IntelligenceFlowPlannerRuntime | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.......................
 [bq14]   HIT "feedId" -> /System/Library/PrivateFrameworks/NewsAds.framework/NewsAds | ctx: ntifier.feedIdentifier..............groupTagIdentifier.journal.adContentInfo.context.context....
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /System/Library/PrivateFrameworks/AlarmKitCore.framework/AlarmKitCore | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.........X.............
+[bq14]   HIT "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport" -> /System/Library/PrivateFrameworks/ClockAppIntentsSupport.framework/ClockAppIntentsSupport | ctx: meworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport.........@.............
 [bq14] needle "feedEntries": 1 distinct images
 [bq14]     /System/Library/PrivateFrameworks/PhotosUICore.framework/PhotosUICore
 [bq14] needle "feedMetadata": 4 distinct images
@@ -145,6 +152,14 @@
 [bq14] needle "LiveEntityService": 2 distinct images
 [bq14]     /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport
 [bq14]     /usr/lib/objc/libobjcMsgSend33.dylib
-[bq14] total hits: 162
+[bq14] needle "AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport": 7 distinct images
+[bq14]     /System/Library/PrivateFrameworks/AlarmKitCore.framework/AlarmKitCore
+[bq14]     /System/Library/PrivateFrameworks/AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport
+[bq14]     /System/Library/PrivateFrameworks/ClockAppIntentsSupport.framework/ClockAppIntentsSupport
+[bq14]     /System/Library/PrivateFrameworks/IntelligenceFlowContextRuntime.framework/IntelligenceFlowContextRuntime
+[bq14]     /System/Library/PrivateFrameworks/IntelligenceFlowPlannerRuntime.framework/IntelligenceFlowPlannerRuntime
+[bq14]     /usr/lib/libswiftPrespecialized.dylib
+[bq14]     /usr/lib/objc/libobjcMsgSend33.dylib
+[bq14] total hits: 170
 [bq14] done
 [probe13] bq14-only mode, stop

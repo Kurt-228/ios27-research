@@ -2780,3 +2780,137 @@ VERIFY rows back: feedEntries=2/2 feedMetadata=8/8 bytes-identical=1
 байт-в-байт — в `v176-bq18.log`/`v176-bq19.log`. Бэкапы
 `Documents/bq18-backup`, `Documents/bq19-backup` (контейнер
 `AC67B22F`/`E70AC42D` — меняются при переустановке).
+
+## 185. v177: bq20–bq21 — бинари сервиса и потребителей вырезаны, карта entitlements, декодер живёт в сервисе
+
+### bq20: выгрузка бинарей
+
+`svc.bin` (493584) — сам `com.apple.appintents.LiveEntityService`,
+плюс все четыре клиента §183: `cli-callservicesd` (8.4M),
+`cli-mediaremoted` (6.7M), `cli-navd` (737584), `cli-mobiletimerd`
+(81104) — каждый byte-identical=1 (`results/v177-bq20.log`).
+Сигнатура едет с файлом, поэтому `codesign -d --entitlements -`
+работает офлайн.
+
+### Офлайн-RE без IDA: xref-скан adrp/add
+
+IDA-инструмент мёртв на этом хосте: и headless
+(`idalib ... FATAL ERROR: Cannot continue without a valid license`),
+и GUI-инстанс MCP — в `Application Support/Hex-Rays` нет `ida.key`
+(найден только `nexus/`, без кредов). Рабочая замена, полностью
+локальная:
+
+1. `xcrun objdump -d` → текст дизассембла (символы функций стрипнуты,
+   метки — секции);
+2. `xcrun dyld_info -fixups` → GOT-слот → имя символа (chained
+   fixups, `LC_DYLD_INFO_ONLY` в этом бинаре уже нет — `-bind` у
+   `dyld_info` тоже нет, нужен именно `-fixups`);
+3. `LC_DYLD_CHAINED_FIXUPS`-парсер не понадобился — `__auth_stubs`
+   сам по себе падает adrp/add → GOT, а fixups дают имя;
+4. скан adrp+add в дизассембле → VM-адреса строк (`__cstring`,
+   `__oslogstring`) → лог-окна: счётчик `bl` на st'ы в радиусе
+   ±220 строк + отдельный поиск sqlite3-stub'ов в радиусе ±300.
+
+Результат по сервису (`svc.bin`, строки лежат в `__TEXT`):
+
+- окно `fetching feed metadata` / `Unable to parse lastUpdate`
+  содержит `sqlite3_column_text/column_count` — это путь чтения;
+- окна `Unable to decode metadata ...` / `Finished iterating over
+  feedEntries DB` / **`Found nil when unarchiving LNValue`** — рядом
+  с `objc_autoreleasePoolPush/Pop`, `allocError`, `willThrow`, и
+  sqlite в радиусе 300 строк НЕТ: декодер — отдельная рутина,
+  которую вызывает итератор строк;
+- рядом — `Schema version mismatch ... Recreating database` +
+  `sqlite3_close`: открытие/миграция БД.
+
+**Вывод: сервис сам декодирует `lnValue` из строк `feedEntries` при
+обслуживании чтения** — отравленные байты из нашей записи (§184)
+попадают в `NSKeyedUnarchiver` внутри сервиса.
+
+### bq14-перегон: oracle потребителей (LC_LOAD_DYLIB)
+
+Путь фреймворка лежит в load-командах каждого образа, а load-команды
+живут **в кэше** — поэтому игла
+`AppIntentsLiveEntitySupport.framework/AppIntentsLiveEntitySupport`
+в bq14 = список всех, кто линкует клиентскую библиотеку
+(`ReaderActor/WriterActor`-обёртки). 7 образов:
+
+| образ | оценка |
+|---|---|
+| `AppIntentsLiveEntitySupport` | сама библиотека |
+| `AlarmKitCore`, `ClockAppIntentsSupport` | часы/будильники (feedId `clock.*` §181) |
+| **`IntelligenceFlowContextRuntime`** | рантайм Apple Intelligence — потребитель |
+| **`IntelligenceFlowPlannerRuntime`** | планировщик Siri — потребитель |
+| `libswiftPrespecialized`, `libobjcMsgSend33` | 2 ложных (linkedit-байты) |
+
+Потребители — это фреймворки root-демонов (`intelligencecontextd`
+из bq11-матча): цепочка «наш lnValue → XPC → root-процесс» стала
+именной.
+
+### bq21: карвинг образов из split-кэша
+
+Фаза `p_bq21`: таблица образов (bq14: `off=0x2a8 cnt=4690 stride=32
+pathSlot=3`) **пере-валидируется тремя пробами в каждом прогоне** —
+захожу только при совпадении (§144); размер = дистанция до следующего
+адреса (устойчиво к порядку таблицы), перевод адрес→смещение через
+pread заголовков маппингов сабфайлов (никаких mmap по 130 МБ),
+read-back byte-identical, затем on-device memmem игл. Три образа
+вырезаны и перетянуты (`results/liveentity/carve-*.bin`):
+
+| образ | байт | `ReaderActor`/`LiveEntityService` | `LNValue` | `NSKeyedUnarchiver`/`unarchive` |
+|---|---|---|---|---|
+| AppIntentsLiveEntitySupport | 311296 | FOUND/FOUND | 1 | 0 |
+| IntelligenceFlowContextRuntime | 1273856 | нет/нет | 2 | 0 |
+| IntelligenceFlowPlannerRuntime | (так же) | нет/нет | — | 0 |
+
+Клиентская библиотека знает типы (`LNValue`, `AttributedValue`,
+`ReaderActor`, `feedId`), но **не имеет ни одной строки декодера**;
+рантаймы Intelligence ссылаются на `LNValue` (typeref) и тоже без
+строк декодера. Декодер `NSKeyedUnarchiver` для строк БД —
+монопольно в сервисе; потребители получают уже типизированные объекты,
+которые NSXPC перекодирует на своей транспортной архиве.
+
+### Карта entitlements (кто чему имеет право)
+
+`codesign -d --entitlements -` по выгруженным бинарям:
+
+- **запись — по-фидовая белая名单 в entitlement клиента**:
+  `com.apple.private.appintents.live-entities.write` =
+  `callservicesd` → `calls.incoming/ongoing`; `mediaremoted` →
+  `nowPlaying.* + media.groupingInfo`; `navd` → `maps.parkedCar`;
+  `mobiletimerd` → `clock.alarms/stopwatch/timers` — ровно feedId §181;
+- **чтение — отдельный bool** `...live-entities.read`: из четырёх
+  клиентов есть только у `navd`;
+- **сервис**: `com.apple.security.app-sandbox` + `sandbox.profile:
+  embedded = temporary-sandbox` + `daemon-container` +
+  `system-container`, и при этом `frontboard.launchapplications`,
+  `runningboard.launchprocess`, `appprotectiond.guard/read`,
+  `linkd.registry/transcript.privileged`, `appintents.extension-host` —
+  после исполнения кода это очень богатый post-exploitation-набор;
+- **наше приложение**: ни `live-entities.*`, ни mach-lookup на имя
+  сервиса — `Connection invalid` (§184/bq19) есть отказ по дизайну,
+  а не наша ошибка.
+
+### Что это значит для вектора
+
+1. **Проверка entitlement'ов живёт только на XPC-границе.** Файл
+   `8EB68272/db` открыт на запись uid=501 (§184) и никакой
+   entitlement-проверки при записи не выполняется: мы можем
+   подделать строку **любого** feedId, включая `calls.incoming` и
+   `media.groupingInfo`, от имени любого bundleId. Это форжирование
+   системных данных, которые читают процессы с `live-entities.read`.
+2. **Точка десериализации атакующих байтов — сервис** (sandboxed,
+   но system-container, с launch-энтитлментами frontboard/runningboard).
+   Потребители-корни получают объекты после прохода через сервисный
+   unarchiver.
+3. Потребление всё ещё не наблюдалось (bq18/bq19 inconclusive):
+   итерация сервиса происходит не сама по себе — её вызывает XPC-чтение
+   клиента с `live-entities.read`.
+
+### Артефакты
+
+`results/v177-bq20.log` (выгрузка, byte-identical), `results/v177-bq21.log`
+(карвинг + иглы), обновлён `results/v176-bq14.log` (oracle-прогон),
+`results/liveentity/*.bin` (в `.gitignore` — не коммитить), офлайн-RE
+живёт в `/tmp/{svc.dis,fix.txt}` (пересобирается из `svc.bin` командами
+§185).

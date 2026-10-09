@@ -1,0 +1,33 @@
+[main] fuzz harness up, mode=scaler
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7a03
+[scaler] conn 0x7a03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq21] v177 carve consumer frameworks from dyld split cache
+[bq21] CONTROL §170 point -> handle 1
+[bq21] cache dir /private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld
+[bq21] head dyld_shared_cache_arm64e, 79 sub-files
+[bq21] images table re-validated: off=0x2a8 cnt=4690 stride=32 pathSlot=3
+[bq21] AppIntentsLiveEntitySupport @0x1b7f27000 want=311296 bytes
+[bq21] carved carve-AppIntentsLiveEntitySupport.bin: 311296 bytes from dyld_shared_cache_arm64e.13 @0x7b27000, byte-identical=1
+[bq21]   needle unarchiving LNValue      absent
+[bq21]   needle NSKeyedUnarchiver        absent
+[bq21]   needle unarchiveTopLevelObject  absent
+[bq21]   needle LiveEntityService        FOUND
+[bq21]   needle ReaderActor              FOUND
+[bq21] IntelligenceFlowContextRuntime @0x234c1c000 want=1273856 bytes
+[bq21] carved carve-IntelligenceFlowContextRuntime.bin: 1273856 bytes from dyld_shared_cache_arm64e.40 @0x481c000, byte-identical=1
+[bq21]   needle unarchiving LNValue      absent
+[bq21]   needle NSKeyedUnarchiver        absent
+[bq21]   needle unarchiveTopLevelObject  absent
+[bq21]   needle LiveEntityService        absent
+[bq21]   needle ReaderActor              absent
+[bq21] IntelligenceFlowPlannerRuntime @0x236087000 want=8519680 bytes
+[bq21] carved carve-IntelligenceFlowPlannerRuntime.bin: 8519680 bytes from dyld_shared_cache_arm64e.40 @0x5c87000, byte-identical=1
+[bq21]   needle unarchiving LNValue      absent
+[bq21]   needle NSKeyedUnarchiver        absent
+[bq21]   needle unarchiveTopLevelObject  absent
+[bq21]   needle LiveEntityService        absent
+[bq21]   needle ReaderActor              absent
+[bq21] done
+[probe13] bq21-only mode, stop
