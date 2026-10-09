@@ -25,9 +25,12 @@
 extern kern_return_t mach_vm_region(vm_map_t, mach_vm_address_t *, mach_vm_size_t *,
     vm_region_flavor_t, vm_region_info_t, mach_msg_type_number_t *, mach_port_t *);
 
-// devicectl captures stderr from the launched app. Keep the format as a C
-// string so callers can use the same macro from .m and C-style code.
-#define LOG(...) do { fprintf(stderr, __VA_ARGS__); fputc('\n', stderr); } while (0)
+// Log line: written to stderr (devicectl console, or Documents/fuzz.log via
+// the FUZZ_LOGFILE tee in main.m) AND mirrored to the on-screen live console
+// so every phase step is visible on the device itself. Keep the format as a
+// C string so callers can use the same macro from .m and C-style code.
+void fzlog_emit(const char *fmt, ...) __attribute__((format(printf, 1, 2)));
+#define LOG(...) fzlog_emit(__VA_ARGS__)
 
 uint64_t frand(void);
 uint64_t frand_range(uint64_t lo, uint64_t hi);

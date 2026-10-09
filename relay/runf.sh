@@ -35,7 +35,14 @@ xcrun devicectl device copy to --device $DEV --domain-type appDataContainer \
 ENVS="FUZZ_LOGFILE=1"
 for kv in "$@"; do ENVS="$ENVS $kv"; done
 
-xcrun devicectl device process launch --device $DEV $BID $ENVS >/dev/null 2>&1
+# Launch errors used to vanish into /dev/null (v181: two silent failures
+# cost a cycle — the phase never ran while the script waited regardless).
+LAUNCH_OUT=$(xcrun devicectl device process launch --device $DEV $BID $ENVS 2>&1)
+if ! printf '%s' "$LAUNCH_OUT" | grep -qi 'Launched application'; then
+  echo "[runf] launch FAILED — phase will not run:"
+  printf '%s\n' "$LAUNCH_OUT"
+  exit 3
+fi
 
 WAIT=${RUNF_WAIT:-30}
 sleep "$WAIT"

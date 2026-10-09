@@ -1,0 +1,17 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_BQ38=1
+[main] env FUZZ_BQ38_VARIANT=m2
+[main] env FUZZ_BQ38_MODE=plant
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e0b
+[scaler] conn 0x7e0b, s1 18 s2 179
+[probe12] SetNotificationPort -> 0x00000000
+[bq38] v179 decoder whitelist probe, VARIANT=m2 MODE=plant len=611
+[bq38] CONTROL §170 point -> handle 1
+[bq38] STATE rows=2 realBootId=ECB6AA16-D623-462E-9742-A0098972A4FF
+[bq38] BACKUP verified
+[bq38] PLANT rc=101 rows 2->3 ourRows=1 (variant=m2) — ASK SIRI «сколько таймеров» NOW
+[bq38] done
+[probe13] bq38-only mode, stop

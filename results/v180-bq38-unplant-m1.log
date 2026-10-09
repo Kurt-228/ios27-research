@@ -1,0 +1,15 @@
+[main] fuzz harness up, mode=scaler
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_MODE=scaler
+[main] env FUZZ_BQ38=1
+[main] env FUZZ_BQ38_VARIANT=m1
+[main] env FUZZ_BQ38_MODE=unplant
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x790f
+[scaler] conn 0x790f, s1 18 s2 179
+[probe12] SetNotificationPort -> 0x00000000
+[bq38] v179 decoder whitelist probe, VARIANT=m1 MODE=unplant len=652
+[bq38] CONTROL §170 point -> handle 1
+[bq38] UNPLANT rc=0 rows 3->2 ourRows 1->0
+[bq38] done
+[probe13] bq38-only mode, stop
