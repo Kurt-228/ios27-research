@@ -4327,3 +4327,80 @@ IOSurface (NULL+0x140, caller AppleH16ANEInterface) в qemu; (б) устройс
 — ANE закрыт, вернуться к открытым поверхностям §171 (IP_OPTIONS парсер
 опций — LSRR принят) или к loopback-демонам; (в) ent.plist — откат
 подтверждён, держать 5 app-groups нетронутыми.
+
+## §202. Перечисление XPC из песочницы: единственный reachable-сервис — extensionkitservice с TCCProxy-подсервисом (v194)
+
+### Перечислитель с контролами (§144)
+
+Новая фаза `p_xpcenum` (`FUZZ_XPCENUM=1`, полное перечисление / `=2`,
+статика-сбор): кандидаты = CFBundleIdentifier всех `*.xpc`-бандлов
+/System/Library/{Frameworks,PrivateFrameworks,CoreServices} + Label и
+MachServices-ключи launchd-пллистов. На каждое имя —
+`xpc_connection_create` + resume + ping(пустой словарь) + классификация
+события (XPC_TYPE_ERROR vs обычный словарь). Контроли: заведомо
+несуществующее имя (`com.apple.zzz.invalid.control`) обязано дать invalid
+— дал; **любой позитив доказывает канал**.
+
+Итог: **3012 кандидатов, 3007 invalid, 4 без события, РОВНО ОДИН
+позитив**: `com.apple.extensionkitservice`. Метод валиден; негатив по
+остальным 3011 именам — валиден (контроль + позитив прошли).
+`xpc_connection_create_mach_service` на iOS не экспортируется (§v155, замер
+линковки) — mach-имена в принципе недостижимы; достижимы только
+XPC-сервисы.
+
+### Что такое reachable-сервис
+
+`/System/Library/Frameworks/ExtensionFoundation.framework/XPCServices/`
+`extensionkitservice.xpc` (exe 70 КБ, версия 97, iPhoneOS 27.0).
+Info.plist: **BSServiceDomains.XPCService.Services = { Discovery, Launch,
+Observer, TCCProxy }** — BootstrapService-домен с четырьмя подсервисами.
+Embedded entitlements (извлечены из тела бинаря):
+`com.apple.private.tcc.manager.access.read = [kTCCServiceAll]` (чтение
+ВСЕЙ tcc-базы), `com.apple.private.coreservices.canmaplsdatabase`,
+`com.apple.private.extensionkit.host.any-extension`,
+`com.apple.private.xpc.domain-extension.proxy`,
+`com.apple.private.xpc.persona-manager`,
+`com.apple.runningboard.{launch_extensions,launchprocess,process-state,
+statecapture,statecapture}`, sandbox-профиль `pkd`.
+
+Пинг в base-имя отвечает ЖИВЫМ словарём (не error) — endpoint принят.
+Подсервисы как имена-суффиксы (`...Discovery` и т.д.) → invalid:
+адресация BS-домена не по имени — нужен wire-формат первого
+bootstrap-сообщения (живёт в клиентском коде BootstrapServices/
+ExtensionFoundation — в dyld-кэше, on-disk бинари framework'ов на этом
+билде нечитаемы: bytes=0).
+
+### Значение вектора
+
+Живое соединение с процессом, у которого есть права на запуск любых
+расширений (`launchprocess` + `host.any-extension`), чтение всей tcc-базы
+и проксирование XPC-доменов (`domain-extension.proxy` — гипотеза:
+позволяет достучаться до mach-имён, закрытых для песочницы напрямую).
+Если wire-формат подтверждается — это поверхность класса «выход за
+пределы песочницы через привилегированный прокси», первый достигаемый
+XPC-таргет со времён §146.
+
+### Инструментальные уроки v194
+
+- Блоки Objective-C не захватывают C-массивы (ошибка компиляции
+  «cannot refer to declaration with an array type inside block») —
+  захватывать NSString*.
+- `plutil -insert` с точками в имени ключа трактует точки как keypath —
+  для entitlement-правок использовать python plistlib.
+- Проверка установки приложения — exit-код devicectl: grep по тексту
+  ловит слово «Install» из сообщения об ОШИБКЕ установки (в v193 из-за
+  этого «прогон с entitlement» фактически шёл на старом бинаре).
+- Фреймворковые бинари on-disk на этом билде уже НЕ читаются (dyld-кэш
+  in-place: bytes=0) — xpc-сервисы (70 КБ) ещё лежат на диске.
+
+Логи: `results/v194-xpcenum.log` (перечисление 3012 имён),
+`results/v194-xpcenum-static.log` (Info.plist + entitlements + пробы
+подсервисов).
+
+Направление v195: (а) вытащить клиентский wire-формат BS-домена —
+фильтрованный dq44-дамп dyld-кэша (карта образов → сабфайл с
+BootstrapServices/ExtensionFoundation) → строковый RE первого
+bootstrap-сообщения; (б) если адресация подсервисов подтверждается —
+карта их методов (TCCProxy приоритет: чтение kTCCServiceAll-базы) и
+согласованный с оператором пробный диалог; (в) fuzz-контур — только после
+карты интерфейса.

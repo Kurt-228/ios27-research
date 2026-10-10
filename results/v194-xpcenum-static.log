@@ -1,0 +1,118 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_XPCENUM=2
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4513
+[scaler] conn 0x4513, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[xpcen] v194 XPC-service reachability from sandbox
+[xpcen] fast mode: перечисление пропущено, статика-сбор
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[xpcen] probe com.apple.extensionkitservice [POS]: <dictionary: 0x10a0a4900> { count = 1, transaction: 0, voucher = 0x10a35c1e0, contents =
+	"bsxpc" => <string: 0x10a179050> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[xpcen] probe com.apple.extensionkitservice.Discovery [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] probe com.apple.extensionkitservice.Launch [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] probe com.apple.extensionkitservice.Observer [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] probe com.apple.extensionkitservice.TCCProxy [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] bundle: /System/Library/Frameworks/ExtensionFoundation.framework/XPCServices/extensionkitservice.xpc
+[xpcen] exe: extensionkitservice
+[xpcen] bundle-info: {
+    BSServiceDomains =     {
+        XPCService =         {
+            Services =             {
+                Discovery =                 {
+                };
+                Launch =                 {
+                };
+                Observer =                 {
+                };
+                TCCProxy =                 {
+                };
+            };
+        };
+    };
+    BuildMachineOSBuild = 23A344017;
+    CFBundleDevelopmentRegion = en;
+    CFBundleDisplayName = extensionkitservice;
+    CFBundleExecutable = extensionkitservice;
+    CFBundleIdentifier = "com.apple.extensionkitservice";
+    CFBundleInfoDictionaryVersion = "6.0";
+    CFBundleName = extensionkitservice;
+    CFBundlePackageType = "XPC!";
+    CFBundleShortVersionString = 97;
+    CFBundleSupportedPlatforms =     (
+        iPhoneOS
+    );
+    CFBundleVersion = 97;
+    DTCompiler = "com.apple.compilers.llvm.clang.1_0";
+    DTPlatformBuild = "";
+    DTPlatformName = iphoneos;
+    DTPlatformVersion = "27.0";
+    DTSDKBuild = 24A5380i;
+    DTSDKName = "iphoneos27.0.internal";
+    DTXcode = 2700;
+    DTXcodeBuild = 27A200c;
+    MinimumOSVersion = "27.0";
+    UIDeviceFamily =     (
+        1
+    );
+    UIRequi
+[xpcen] embedded-ents: <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<plist version="1.0">
+<dict>
+	<key>com.apple.private.coreservices.canmaplsdatabase</key>
+	<true/>
+	<key>com.apple.private.extensionkit.host.any-extension</key>
+	<true/>
+	<key>com.apple.private.sandbox.profile:embedded</key>
+	<string>pkd</string>
+	<key>com.apple.private.tcc.manager.access.read</key>
+	<array>
+		<string>kTCCServiceAll</string>
+	</array>
+	<key>com.apple.private.xpc.domain-extension.proxy</key>
+	<true/>
+	<key>com.apple.private.xpc.persona-manager</key>
+	<true/>
+	<key>com.apple.runningboard.extensionkit</key>
+	<true/>
+	<key>com.apple.runningboard.launch_extensions</key>
+	<true/>
+	<key>com.apple.runningboard.launchprocess</key>
+	<true/>
+	<key>com.apple.runningboard.process-state</key>
+	<true/>
+	<key>com.apple.runningboard.statecapture</key>
+	<true/>
+</dict>
+</plist>
+[xpcen] scan /System/Library/Frameworks/ExtensionFoundation.framework/XPCServices/extensionkitservice.xpc/extensionkitservice bytes=70496 mode=1
+[xpcen] s1: runAsXPCService
+[xpcen] s1: com.apple.extensionkitservice
+[xpcen] s1: <key>com.apple.private.extensionkit.host.any-extension</key>
+[xpcen] s1: <key>com.apple.private.xpc.domain-extension.proxy</key>
+[xpcen] s1: <key>com.apple.private.xpc.persona-manager</key>
+[xpcen] s1: <key>com.apple.runningboard.extensionkit</key>
+[xpcen] s1: 1com.apple.private.extensionkit.host.any-extension
+[xpcen] s1: ,com.apple.private.xpc.domain-extension.proxy
+[xpcen] s1: %com.apple.private.xpc.persona-manager
+[xpcen] s1: #com.apple.runningboard.extensionkit
+[xpcen] scan /System/Library/Frameworks/ExtensionFoundation.framework/XPCServices/extensionkitservice.xpc/extensionkitservice shown=10
+[xpcen] scan /System/Library/Frameworks/ExtensionFoundation.framework/ExtensionFoundation bytes=0 mode=2
+[xpcen] scan /System/Library/PrivateFrameworks/ExtensionKit.framework/ExtensionKit bytes=0 mode=2
+[xpcen] scan /System/Library/PrivateFrameworks/ExtensionKitUIService.framework/ExtensionKitUIService bytes=0 mode=2
+[xpcen] done-marker
+[xpcen] xpcenum-only mode, stop

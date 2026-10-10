@@ -36136,6 +36136,270 @@ static void p_astris(void) {
 // the reader.
 // ---------------------------------------------------------------------------
 
+// ---- p_xpcenum: v194 — какие XPC-имена достижимы из песочницы ----
+//
+// Контекст: xpc_connection_create_mach_service на iOS НЕ экспортируется
+// (§v155, замерено: линковка падает) — mach-сервисы по имени из песочницы
+// недостижимы в принципе. Достижимы XPC-СЕРВИСЫ: бандлы *.xpc,
+// зарегистрированные в launchd. Кандидаты: on-disk скан /System/Library
+// за *.xpc (читается целиком, §196) -> CFBundleIdentifier; вторичный
+// источник — Label/MachServices из launchd-пллистов (если имя — mach
+// сервис, получим invalid — logged, классификация постмортем по строке
+// события).
+//
+// Контроли (§144): заведомо несуществующее имя обязано дать invalid-
+// событие; позитив канала — ЛЮБОЙ reachable-сервис (не-error событие)
+// доказывает, что перечислитель работает. Негатив без позитива и без
+// интерпретируемого контроля = inconclusive.
+//
+// Фаза НЕ шлёт полезной нагрузки — только create/resume/ping(пустой
+// словарь)/cancel: перечисление без риска для демонов.
+// Скан печатных строк бинаря из песочницы (on-disk /System/Library читается
+// целиком, §196). mode 1 — ключевые слова (protocol/XPC/entitle...),
+// mode 2 — objc-селекторы (строки, оканчивающиеся на ':') + имена
+// Manager/Protocol/Extension — карта методов XPC-интерфейса.
+static void xpcen_scan_bin(NSString *path, int mode, int maxshow) {
+    NSData *bin = [NSData dataWithContentsOfFile:path];
+    LOG("[xpcen] scan %s bytes=%lu mode=%d", path.UTF8String,
+        (unsigned long)bin.length, mode);
+    if (!bin.length) return;
+    const uint8_t *b = bin.bytes;
+    NSUInteger n = bin.length, i = 0;
+    int shown = 0;
+    while (i < n && shown < maxshow) {
+        if (b[i] < 0x20 || b[i] > 0x7e) { i++; continue; }
+        NSUInteger j = i;
+        while (j < n && b[j] >= 0x20 && b[j] <= 0x7e) j++;
+        if (j - i >= 5) {
+            char tok[200];
+            NSUInteger L = MIN(j - i, (NSUInteger)199);
+            memcpy(tok, b + i, L); tok[L] = 0;
+            int hit = 0;
+            if (mode == 1) {
+                hit = strcasestr(tok, "protocol") ||
+                      strcasestr(tok, "interface") ||
+                      strcasestr(tok, "XPC") ||
+                      strcasestr(tok, "EXK") ||
+                      strcasestr(tok, "extensionkit") ||
+                      strcasestr(tok, "entitle");
+            } else {
+                size_t tl = strlen(tok);
+                hit = (tl >= 5 && tok[tl - 1] == ':' &&
+                       strchr(tok, ':') == tok + tl - 1) ||
+                      strcasestr(tok, "Manager") ||
+                      strcasestr(tok, "Protocol") ||
+                      strcasestr(tok, "Extension") ||
+                      strcasestr(tok, "EXK");
+            }
+            if (hit) {
+                LOG("[xpcen] s%d: %.190s", mode, tok);
+                shown++;
+            }
+        }
+        i = j;
+    }
+    LOG("[xpcen] scan %s shown=%d", path.UTF8String, shown);
+}
+
+static void p_xpcenum(void) {
+    LOG("[xpcen] v194 XPC-service reachability from sandbox");
+    // FUZZ_XPCENUM=2 — быстрый режим: без перечисления (уже сделано),
+    // только сбор статики по известному reachable-сервису.
+    int fast = getenv("FUZZ_XPCENUM")[0] == '2';
+    int npos = 0, nctl = 0, nerr = 0, nnone = 0;
+    unsigned done = 0;
+    NSMutableArray<NSString *> *cands = [NSMutableArray array];
+    NSMutableSet<NSString *> *seen = [NSMutableSet set];
+    NSArray<NSString *> *roots = @[ @"/System/Library/Frameworks",
+                                    @"/System/Library/PrivateFrameworks",
+                                    @"/System/Library/CoreServices" ];
+    NSFileManager *fm = [NSFileManager defaultManager];
+    dispatch_queue_t q = dispatch_queue_create("xpcen.q",
+        DISPATCH_QUEUE_SERIAL);
+    if (!fast) {
+    for (NSString *root in roots) {
+        NSDirectoryEnumerator *en = [fm enumeratorAtPath:root];
+        NSString *rel;
+        while ((rel = [en nextObject])) {
+            if (![rel hasSuffix:@".xpc"]) continue;
+            [en skipDescendants];
+            NSString *ip = [[root stringByAppendingPathComponent:rel]
+                stringByAppendingPathComponent:@"Info.plist"];
+            NSDictionary *pl = [NSDictionary dictionaryWithContentsOfFile:ip];
+            NSString *bid = pl[@"CFBundleIdentifier"];
+            if ([bid isKindOfClass:[NSString class]] &&
+                ![seen containsObject:bid]) {
+                [seen addObject:bid];
+                [cands addObject:bid];
+            }
+        }
+    }
+    LOG("[xpcen] candidates from .xpc bundles: %lu",
+        (unsigned long)cands.count);
+    // вторичный источник — launchd (Label + MachServices keys)
+    NSArray *ldirs = @[ @"/System/Library/LaunchDaemons",
+                        @"/System/Library/LaunchAgents" ];
+    int nld = 0;
+    for (NSString *d in ldirs) {
+        NSDirectoryEnumerator *en = [fm enumeratorAtPath:d];
+        NSString *f;
+        while ((f = [en nextObject])) {
+            if (![f.pathExtension isEqualToString:@"plist"]) continue;
+            NSDictionary *pl = [NSDictionary dictionaryWithContentsOfFile:
+                [d stringByAppendingPathComponent:f]];
+            if (![pl isKindOfClass:[NSDictionary class]]) continue;
+            NSString *lab = pl[@"Label"];
+            NSDictionary *ms = pl[@"MachServices"];
+            NSMutableArray *these = [NSMutableArray array];
+            if ([lab isKindOfClass:[NSString class]])
+                [these addObject:lab];
+            if ([ms isKindOfClass:[NSDictionary class]])
+                [these addObjectsFromArray:ms.allKeys];
+            for (NSString *n in these)
+                if (![seen containsObject:n]) {
+                    [seen addObject:n];
+                    [cands addObject:n];
+                    nld++;
+                }
+        }
+    }
+    LOG("[xpcen] + launchd labels/machservices: %d", nld);
+
+    // контроль DENY спереди; ALLOW-контроль — сам канал (любой позитив)
+    NSMutableArray<NSString *> *final = [NSMutableArray arrayWithObjects:
+        @"com.apple.zzz.invalid.control", nil];
+    [final addObjectsFromArray:cands];
+
+    for (NSString *ns in final) {
+        char nmb[256];
+        snprintf(nmb, sizeof(nmb), "%s", ns.UTF8String);
+        NSString *nms = ns;   // блок захватывает объект, не C-массив
+        __block BOOL got = NO;
+        __block BOOL isErr = NO;
+        xpc_connection_t c = xpc_connection_create(nmb, q);
+        if (!c) { nnone++; done++; continue; }
+        xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+            if (got) return;
+            isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+            char *ds = xpc_copy_description(ev);
+            LOG("[xpcen] ev %s%s: %.600s", nms.UTF8String,
+                isErr ? " [ERR]" : " [POS]", ds ? ds : "?");
+            free(ds);
+            got = YES;
+        });
+        xpc_connection_resume(c);
+        xpc_object_t ping = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_connection_send_message(c, ping);
+        for (int t = 0; t < 3 && !got; t++) usleep(100000);
+        if (!got) { nnone++; LOG("[xpcen] noevent %s", nmb); }
+        else if (isErr) {
+            nerr++;
+            if (!strcmp(nmb, "com.apple.zzz.invalid.control")) nctl++;
+        } else npos++;
+        xpc_connection_cancel(c);
+        done++;
+        if ((done % 100) == 0)
+            LOG("[xpcen] progress %u err=%d pos=%d none=%d",
+                done, nerr, npos, nnone);
+    }
+        LOG("[xpcen] done: %u names, err=%d pos=%d none=%d ctl-deny-ok=%d",
+            done, nerr, npos, nnone, nctl);
+        LOG("[xpcen] VERDICT: %s",
+            (npos > 0 || nctl == 1)
+                ? "detector valid; pos>0 — reachable XPC services см. [POS]"
+                : "inconclusive (ни позитива, ни контрольного invalid)");
+    } else {
+        LOG("[xpcen] fast mode: перечисление пропущено, статика-сбор");
+        npos = 1; nctl = 1;   // результат перечисления уже известен (v194)
+        // v194d: BSServiceDomains объявляет 4 подсервиса (Discovery,
+        // Launch, Observer, TCCProxy) — пробуем как отдельные endpoint'ы
+        // (base + "." + имя) и логим ответ каждого.
+        NSArray<NSString *> *probeNames = @[
+            @"com.apple.extensionkitservice",
+            @"com.apple.extensionkitservice.Discovery",
+            @"com.apple.extensionkitservice.Launch",
+            @"com.apple.extensionkitservice.Observer",
+            @"com.apple.extensionkitservice.TCCProxy",
+        ];
+        for (NSString *pn in probeNames) {
+            __block BOOL got = NO;
+            __block BOOL isErr = YES;
+            xpc_connection_t c = xpc_connection_create(pn.UTF8String, q);
+            if (!c) { LOG("[xpcen] probe %s: create NULL", pn.UTF8String); continue; }
+            NSString *pns = pn;
+            xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+                if (got) return;
+                isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+                char *ds = xpc_copy_description(ev);
+                LOG("[xpcen] probe %s %s: %.600s", pns.UTF8String,
+                    isErr ? "[ERR]" : "[POS]", ds ? ds : "?");
+                free(ds);
+                got = YES;
+            });
+            xpc_connection_resume(c);
+            xpc_object_t ping = xpc_dictionary_create(NULL, NULL, 0);
+            xpc_connection_send_message(c, ping);
+            for (int t = 0; t < 10 && !got; t++) usleep(100000);
+            if (!got) LOG("[xpcen] probe %s: no event in 1s", pns.UTF8String);
+            xpc_connection_cancel(c);
+        }
+    }
+    // v194: локализовать reachable-сервис — путь .xpc-бандла, exe и
+    // строки NSXPC-протоколов из бинаря (карта методов для фаззинга).
+    if (npos > 0) {
+        for (NSString *root in roots) {
+            NSDirectoryEnumerator *en = [fm enumeratorAtPath:root];
+            NSString *rel;
+            while ((rel = [en nextObject])) {
+                if (![rel hasSuffix:@".xpc"]) continue;
+                [en skipDescendants];
+                NSString *bp = [root stringByAppendingPathComponent:rel];
+                NSDictionary *pl = [NSDictionary dictionaryWithContentsOfFile:
+                    [bp stringByAppendingPathComponent:@"Info.plist"]];
+                if (![pl[@"CFBundleIdentifier"]
+                        isEqualToString:@"com.apple.extensionkitservice"])
+                    continue;
+                LOG("[xpcen] bundle: %s", bp.UTF8String);
+                NSString *exe = pl[@"CFBundleExecutable"];
+                LOG("[xpcen] exe: %s", exe.UTF8String);
+                // v194c: Info.plist бандла целиком + embedded entitlements
+                // из тела бинаря (видны <key>com.apple.private.xpc.*</key>)
+                NSString *plDesc = [pl description];
+                LOG("[xpcen] bundle-info: %.1200s", plDesc.UTF8String);
+                NSString *ep0 = [bp stringByAppendingPathComponent:
+                    exe ?: @"extensionkitservice"];
+                NSData *bd = [NSData dataWithContentsOfFile:ep0];
+                if (bd.length) {
+                    const char *hb = (const char *)bd.bytes;
+                    const char *xs = memmem(hb, bd.length, "<?xml", 5);
+                    if (xs) {
+                        const char *xe = memmem(xs, bd.length - (xs - hb),
+                            "</plist>", 8);
+                        if (xe) {
+                            NSData *ent = [NSData dataWithBytes:xs
+                                length:(size_t)(xe + 8 - xs)];
+                            NSString *ents = [[NSString alloc]
+                                initWithData:ent encoding:4];
+                            LOG("[xpcen] embedded-ents: %.1500s",
+                                ents.UTF8String);
+                        }
+                    } else LOG("[xpcen] embedded-ents: not found");
+                }
+                NSString *ep = ep0;
+                xpcen_scan_bin(ep, 1, 60);   // режим 1: ключевые слова
+            }
+        }
+        // v194b: клиентские фреймворки — objc-селекторы (методы интерфейса)
+        xpcen_scan_bin(@"/System/Library/Frameworks/"
+            @"ExtensionFoundation.framework/ExtensionFoundation", 2, 250);
+        xpcen_scan_bin(@"/System/Library/PrivateFrameworks/"
+            @"ExtensionKit.framework/ExtensionKit", 2, 250);
+        xpcen_scan_bin(@"/System/Library/PrivateFrameworks/"
+            @"ExtensionKitUIService.framework/ExtensionKitUIService", 2, 100);
+    }
+    LOG("[xpcen] done-marker");
+}
+
 static void p_bq30(void) {
     const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
     const uint64_t F_DEF = 0x0000008000000000ULL;
@@ -42956,6 +43220,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ43")) { p_bq43(); LOG("[probe13] bq43-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ44")) { p_bq44(); LOG("[probe13] bq44-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ45")) { p_bq45(); LOG("[probe13] bq45-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
