@@ -4749,3 +4749,69 @@ extension-UUID, ответ BOOL = авторизационный статус ph
 - Транспортная развилка найдена за один сбор: метки
   «Starting XPC listener» / «failed to decode underlying message»
   заменить неделимые догадки.
+
+## §207. v206: клиентский стек через экспортированные классы; serviceName-endpoint работает; deadlock в resume (v206.1–v206.4)
+
+### Интроспекция рантайма (v206.1)
+
+dlopen из кэша работает (ExtensionFoundation, BoardServices). Классы
+регистрируются: BSServiceConnectionEndpoint имеет 9 класс-методов:
+`+defaultShellMachName`, `+supportsSecureCoding`,
+`+endpointOfLaunchIdentifier:fromLaunchResponse:withService:instance:error:`,
+`+nullEndpointForService:instance:`, `+endpointForServiceName:oneshot:
+service:instance:`, `+supportsBSXPCSecureCoding`,
+`+endpointForMachName:targetUserIdentifier:service:instance:`,
+`+endpointForMachName:service:instance:`,
+`+endpointForSystemMachName:service:instance:`; BSServiceConnection —
+5: `+connectionWithEndpoint:`, `+currentContext`,
+`+NSXPCConnectionWithEndpoint:clientContextBuilder:configurator:`,
+`+NSXPCConnectionWithEndpoint:configurator:`,
+`+connectionWithEndpoint:clientContextBuilder:`. BSXPCServiceConnection
+Endpoint в рантайме имеет 0 класс-методов (методы есть в __text, но
+метакласс пуcт — видимо, метакласс-список предоптимизирован иначе).
+
+### kr-диагностика xpc-endpoint lookup (v206.3)
+
+`__xpc_look_up_endpoint("com.apple.extensionkitservice", …)`:
+type 7 → kr **0x9f** (flags 0x200/0x208/0x220 — без разницы);
+type 2 ('bs') → kr 0x9a; type 3 → kr 0x2d. Endpoint через machName
+НЕ РЕШАЕТСЯ из песочницы (прямые фабрики = nil). НО
+**`+endpointForServiceName:oneshot:service:instance:`
+(имя СЕРВИСА, не mach name) РАБОТАЕТ**:
+`<BSServiceConnectionEndpoint; target: XPCService:6794:com.apple.
+extensionkitservice; service: TCCProxy>` — резолюция через
+launchd-пространство имён сервисов (не через гейтеный endpoint-lookup).
+
+### Полный клиентский стек собран (v206.3–v206.4)
+
+`+endpointForServiceName:` → `+[BSServiceConnection
+NSXPCConnectionWithEndpoint:configurator:]` (configurator получает
+BSNSXPCTransport, очередь задаём `queueWithName:serviceQuality:`) →
+**настоящий NSXPCConnection**; протокол `_TtP19ExtensionFoundation19_
+EXTCCProxyProtocol_` найден через objc_getProtocol; NSXPCInterface
+построен; setRemoteObjectInterface OK. Всё это работает из песочницы!
+
+### Deadlock в [conn resume] (открытый вопрос v206)
+
+`[conn resume]` БЛОКИРУЕТ навсегда (не краш: crashdiff = 0 новых
+репортов; watchdog на main queue тоже не срабатывает — процесс
+заморожен в resume; пул-поток фонового блока + main queue стоят).
+Гипотезы: BSNSXPCTransport при активации синхронно ждёт готовности
+BSXPC-соединения (`activateNowWhenReady:`), а демон не шлёт ACK для
+endpoint-соединения (svcName-резолюция дала endpoint демона, но
+checkin-обмен может идти иначе); либо внутренний dispatch_sync на
+main при замороженном main-runloop. Решающий инструмент — os_log
+демона во время этого прогона (запрошен у оператора).
+
+### Инструментальные уроки v206
+
+- `fzlog_emit` = vsnprintf: %@ НЕ поддерживается (печатает мусор
+  '@') — объекты печатать через `%s` + description.UTF8String; это
+  уже чуть не сорвало интроспекцию v206.1 (казалось «мусорные
+  методы», а были сломанные только принты).
+- Слайд-регистрация методов: slide выводится из IMP известного
+  метода (`-[BSServiceConnectionEndpoint service]` 0x18faef060),
+  затем class_addMethod(meta, sel, (IMP)(slide+addr), types) —
+  v201 os_crash-урок не повторялся (сначала respondsToSelector).
+- xpc-lookup kr: 0x9f/0x9a — стабильные коды отказа (запомнить для
+  будущего сопоставления с BOOTSTRAP/EPERM-семейством).

@@ -37687,6 +37687,340 @@ static void p_bq56(void) {
         "BSObjCMethod");
 }
 
+// p_bq57 — v206: НАСТОЯЩИЙ NSXPC-клиент к TCCProxy через
+// экспортированные классы BoardServices (без сырого wire).
+// Логи демона (§206): чекин v202 принят, вызовы обслуживает
+// BSNSXPCTransport (NSXPC поверх BSXPC) — значит рабочий путь клиента:
+//   1. dlopen ExtensionFoundation + BoardServices (из dyld-кэша)
+//   2. BSXPCServiceConnectionEndpoint +endpointForMachName:service:
+//      instance: (0x18faeb898)
+//   3. BSServiceConnectionEndpoint — обёртка (реальный клиент
+//      _EXServiceClient использует именно её — Swift-метаданные
+//      So27BSServiceConnectionEndpointC; конструктор уточняем
+//      class_copyMethodList'ом на устройстве)
+//   4. +[BSServiceConnection(NSXPCConnection) NSXPCConnectionWithEndpoint:
+//      configurator:] (0x18fafaa94) → NSXPCConnection
+//   5. протокол _EXTCCProxyProtocol по runtime-имени
+//      _TtP19ExtensionFoundation19_EXTCCProxyProtocol_ → NSXPCInterface
+//   6. remoteObjectProxy → photoServiceAuthorizationStatusForExtension
+//      UUID:completion:(NSUUID) через NSInvocation → completion(BOOL,
+//      NSError*) — ЧТЕНИЕ TCC из песочницы.
+// КОНТРОЛЬ (§144): сырой {} → invalidate (детектор жив); каждый шаг
+// логируется (класс/симв/протокол/сигнатура), NSError из канала —
+// не провал детектора, а ответ демона.
+static void bq57_dump(Class c, const char *tag) {
+    if (!c) { LOG("[bq57] %s: класс НЕ найден", tag); return; }
+    LOG("[bq57] %s -> %s", tag,
+        NSStringFromClass(c).UTF8String ?: "?");
+    unsigned int n = 0;
+    Method *ms = class_copyMethodList(c, &n);
+    LOG("[bq57] %s instance-methods: %u", tag, n);
+    for (unsigned i = 0; i < n && i < 40; i++)
+        LOG("[bq57]   %s -%s", tag, sel_getName(method_getName(ms[i])));
+    if (ms) { free(ms); ms = NULL; }
+    Class meta = object_getClass(c);
+    if (meta) {
+        unsigned int nm = 0;
+        Method *cms = class_copyMethodList(meta, &nm);
+        LOG("[bq57] %s class-methods: %u", tag, nm);
+        for (unsigned i = 0; i < nm && i < 40; i++)
+            LOG("[bq57]   %s +%s", tag,
+                sel_getName(method_getName(cms[i])));
+        if (cms) free(cms);
+    }
+}
+
+static void p_bq57(void) {
+    LOG("[bq57] v206.1: NSXPC-клиент к TCCProxy — интроспекция, "
+        "slide-регистрация недостающих методов по RE-адресам");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq57.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq57] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq57] CONTROL FAILED (§144)"); return; }
+
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    LOG("[bq57] dlopen ext=%p bs=%p", hExt, hBS);
+    fsync(fileno(stderr));
+
+    Class epXCls = NSClassFromString(@"BSXPCServiceConnectionEndpoint");
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    LOG("[bq57] классы: epX=%p ep=%p bs=%p", epXCls, epCls, bsCls);
+    bq57_dump(epXCls, "epX");
+    bq57_dump(epCls, "ep");
+    bq57_dump(bsCls, "bs");
+    fsync(fileno(stderr));
+
+    // slide из IMP известного метода: -[BSServiceConnectionEndpoint service]
+    // linktime 0x18faef060 (nlist)
+    int64_t slide = 0;
+    {
+        Method m = epCls
+            ? class_getInstanceMethod(epCls, @selector(service))
+            : NULL;
+        if (m) {
+            IMP imp = method_getImplementation(m);
+            slide = (int64_t)(uintptr_t)imp - 0x18faef060;
+            LOG("[bq57] slide (через -[…Endpoint service]): %lld", (long long)slide);
+        } else {
+            LOG("[bq57] -[BSServiceConnectionEndpoint service] не найден — "
+                "slide недоступен");
+        }
+    }
+    // регистрируем недостающие методы по RE-адресам
+    SEL epSel = @selector(endpointForMachName:service:instance:);
+    if (epXCls && ![epXCls respondsToSelector:epSel] && slide) {
+        Class meta = object_getClass(epXCls);
+        BOOL ok = class_addMethod(meta, epSel,
+            (IMP)(uintptr_t)(0x18faeb898 + slide), "@32@0:8@16@24@32");
+        LOG("[bq57] class_addMethod epX +endpointForMachName:… -> %d",
+            (int)ok);
+    }
+    SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+    if (bsCls && ![bsCls respondsToSelector:facSel] && slide) {
+        Class meta = object_getClass(bsCls);
+        BOOL ok = class_addMethod(meta, facSel,
+            (IMP)(uintptr_t)(0x18fafaa94 + slide), "@32@0:8@16@?24");
+        LOG("[bq57] class_addMethod bs +NSXPCConnectionWithEndpoint:… -> %d",
+            (int)ok);
+    }
+
+    // v206.4: клиентский блок в ФОНОВУЮ очередь — probe-поток == main,
+    // resume() дедлочился на собственной активации (crash-репортов нет
+    // => deadlock; watchdog на main queue не мог сработать)
+    dispatch_semaphore_t bq57_sem = dispatch_semaphore_create(0);
+    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0),
+                   ^{
+    @try {
+    // endpoint v206.3: kr-диагностика уже сделана; фабрики endpoint'ов
+    if (slide) {
+        typedef int (*LkFn)(id, uint64_t, void *, void *, uint64_t,
+                            void *, void *, void *);
+        LkFn lk = (LkFn)(uintptr_t)(0x18059e614 + slide);
+        uint64_t out16 = 0;
+        int kr7_200 = lk(@"com.apple.extensionkitservice", 7, NULL, NULL,
+                         0x200, NULL, NULL, &out16);
+        LOG("[bq57] lk(name,7,0x200) kr=%#x out16=%llu",
+            (unsigned)kr7_200, (unsigned long long)out16);
+        int kr7_220 = lk(@"com.apple.extensionkitservice", 7, NULL, NULL,
+                         0x220, NULL, NULL, &out16);
+        LOG("[bq57] lk(name,7,0x220) kr=%#x", (unsigned)kr7_220);
+        int kr7_208 = lk(@"com.apple.extensionkitservice", 7, NULL, NULL,
+                         0x208, NULL, NULL, &out16);
+        LOG("[bq57] lk(name,7,0x208) kr=%#x", (unsigned)kr7_208);
+        int kr2_200 = lk(@"com.apple.extensionkitservice", 2, NULL, NULL,
+                         0x200, NULL, NULL, &out16);
+        LOG("[bq57] lk(name,2,0x200) kr=%#x (bs-тип)", (unsigned)kr2_200);
+        int kr3_200 = lk(@"com.apple.extensionkitservice", 3, NULL, NULL,
+                         0x200, NULL, NULL, &out16);
+        LOG("[bq57] lk(name,3,0x200) kr=%#x", (unsigned)kr3_200);
+        // через entry 0x1805cf3d8 (как зовёт фабрика endpoint'а)
+        typedef id (*LUFn)(id, int, char *);
+        LUFn lu = (LUFn)(uintptr_t)(0x1805cf3d8 + slide);
+        char outT = 0;
+        id ep_raw = lu(@"com.apple.extensionkitservice", 0, &outT);
+        LOG("[bq57] entry(cf3d8)(name,0) = %s outT=%d",
+            ep_raw ? "OK" : "NULL", (int)outT);
+        // через 'bs' entry 0x1805cf4ec
+        typedef id (*LUFn2)(id, int, char *);
+        LUFn2 lu2 = (LUFn2)(uintptr_t)(0x1805cf4ec + slide);
+        char outT2 = 0;
+        id ep_raw2 = lu2(@"com.apple.extensionkitservice", 0, &outT2);
+        LOG("[bq57] entry(cf4ec 'bs')(name,0) = %s outT=%d",
+            ep_raw2 ? "OK" : "NULL", (int)outT2);
+        fsync(fileno(stderr));
+    }
+    id endpoint = nil;
+    SEL nullSel = @selector(nullEndpointForService:instance:);
+    SEL sysSel = @selector(endpointForSystemMachName:service:instance:);
+    SEL tuSel = @selector(
+        endpointForMachName:targetUserIdentifier:service:instance:);
+    SEL svcNameSel =
+        @selector(endpointForServiceName:oneshot:service:instance:);
+    // a) система-mach
+    if (!endpoint && epCls && [epCls respondsToSelector:sysSel]) {
+        typedef id (*EPFn)(Class, SEL, NSString *, NSString *, NSString *);
+        EPFn f = (EPFn)objc_msgSend;
+        endpoint = f(epCls, sysSel,
+                     @"com.apple.extensionkitservice", @"TCCProxy", nil);
+        LOG("[bq57] ep(sys-mach) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+    }
+    // b) targetUserIdentifier-вариант
+    if (!endpoint && epCls && [epCls respondsToSelector:tuSel]) {
+        typedef id (*EFn)(Class, SEL, NSString *, NSString *, NSString *,
+                          NSString *);
+        EFn f = (EFn)objc_msgSend;
+        endpoint = f(epCls, tuSel,
+                     @"com.apple.extensionkitservice", nil, @"TCCProxy",
+                     nil);
+        LOG("[bq57] ep(targetUser) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+    }
+    // c) основной
+    if (!endpoint && epCls && [epCls respondsToSelector:epSel]) {
+        typedef id (*EPFn)(Class, SEL, NSString *, NSString *, NSString *);
+        EPFn f = (EPFn)objc_msgSend;
+        endpoint = f(epCls, epSel,
+                     @"com.apple.extensionkitservice", @"TCCProxy", nil);
+        LOG("[bq57] ep(plain) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+    }
+    // d) по имени сервиса
+    if (!endpoint && epCls && [epCls respondsToSelector:svcNameSel]) {
+        // сигнатура: (serviceName, oneshot(BOOL), service, instance)?
+        typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *,
+                          NSString *);
+        EFn f = (EFn)objc_msgSend;
+        endpoint = f(epCls, svcNameSel, @"com.apple.extensionkitservice",
+                     NO, @"TCCProxy", nil);
+        LOG("[bq57] ep(serviceName) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+        if (!endpoint) {
+            // а вдруг serviceName = BS-домен идентификатор?
+            endpoint = f(epCls, svcNameSel, @"XPCService", NO,
+                         @"TCCProxy", nil);
+            LOG("[bq57] ep(serviceName=XPCService) = %s",
+                endpoint ? [endpoint description].UTF8String : "(nil)");
+        }
+    }
+    // e) null (резерв — resume на нём падает, но если других нет —
+    //    попробуем ещё раз уже с интерфейсом)
+    if (!endpoint && epCls && [epCls respondsToSelector:nullSel]) {
+        typedef id (*NEFn)(Class, SEL, NSString *, NSString *);
+        NEFn f = (NEFn)objc_msgSend;
+        endpoint = f(epCls, nullSel, @"TCCProxy", nil);
+        LOG("[bq57] nullEndpoint = %s (РЕЗЕРВ, resume рискован)",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+    }
+        if (!endpoint) {
+            LOG("[bq57] endpoint НЕ создан — стоп");
+            return;
+        }
+        // фабрика
+        NSXPCConnection *conn = nil;
+        if (bsCls && [bsCls respondsToSelector:facSel]) {
+            typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+            FacFn f = (FacFn)objc_msgSend;
+            conn = f(bsCls, facSel, endpoint, ^(id cfg) {
+                LOG("[bq57] configurator: cfg class=%s",
+                    cfg ? NSStringFromClass([cfg class]).UTF8String : "-");
+                SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+                if (cfg && [cfg respondsToSelector:qsel]) {
+                    typedef void (*QFn)(id, SEL, NSString *, long);
+                    QFn qf = (QFn)objc_msgSend;
+                    qf(cfg, qsel, @"bq57.q", (long)0);
+                    LOG("[bq57] configurator: queue задан");
+                }
+            });
+            LOG("[bq57] фабрика -> conn=%s",
+                conn ? [conn description].UTF8String : "(nil)");
+        }
+        if (!conn) { LOG("[bq57] NSXPCConnection НЕ создан — стоп"); return; }
+
+        Protocol *proto = objc_getProtocol(
+            "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
+        LOG("[bq57] протокол = %p", proto);
+        if (!proto) {
+            unsigned int cnt = 0;
+            Protocol * __unsafe_unretained *all = objc_copyProtocolList(&cnt);
+            for (unsigned i = 0; i < cnt; i++) {
+                const char *nm = protocol_getName(all[i]);
+                if (nm && strstr(nm, "TCCProxy")) {
+                    LOG("[bq57] протокол-кандидат: %s", nm);
+                    if (!proto) proto = all[i];
+                }
+            }
+            if (all) free(all);
+        }
+        if (!proto) { LOG("[bq57] протокол не найден — стоп"); [conn invalidate]; return; }
+        NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:proto];
+        LOG("[bq57] interface = %s",
+            iface ? [iface description].UTF8String : "(nil)");
+        LOG("[bq57] setRemoteObjectInterface: begin");
+        [conn setRemoteObjectInterface:iface];
+        LOG("[bq57] setRemoteObjectInterface: ok");
+        // сторож: жив ли поток после resume
+        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 8 * NSEC_PER_SEC),
+                       dispatch_get_main_queue(), ^{
+            LOG("[bq57] WATCHDOG: поток/процесс жив через 8 с после resume");
+        });
+        LOG("[bq57] resume: begin");
+        [conn resume];
+        LOG("[bq57] resume: ok");
+        __block BOOL got = NO;
+        __block BOOL status = NO;
+        __block NSError *rerr = nil;
+        LOG("[bq57] remoteObjectProxy: begin");
+        id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            got = YES;
+            rerr = err;
+            LOG("[bq57] remoteObjectProxy ERROR: %s",
+                err ? err.localizedDescription.UTF8String : "-");
+        }];
+        LOG("[bq57] proxy = %s",
+            proxy ? [proxy description].UTF8String : "(nil)");
+        SEL sel = NSSelectorFromString(
+            @"photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        LOG("[bq57] сигнатура: %s argc=%lu",
+            sig ? [sig description].UTF8String : "(nil)",
+            (unsigned long)(sig ? sig.numberOfArguments : 0));
+        if (!sig) { LOG("[bq57] сигнатуры нет — стоп"); [conn invalidate]; return; }
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        [inv setSelector:sel];
+        NSUUID *uuid = [NSUUID UUID];
+        LOG("[bq57] probing UUID: %@", uuid.UUIDString);
+        void (^completion)(BOOL, NSError *) = ^(BOOL st, NSError *error) {
+            got = YES;
+            status = st;
+            rerr = error;
+            LOG("[bq57] *** TCCProxy ОТВЕТ: photoServiceAuthorization"
+                "Status=%d error=%s ***", (int)st,
+                error ? error.localizedDescription.UTF8String : "-");
+        };
+        [inv setArgument:&uuid atIndex:2];
+        [inv setArgument:&completion atIndex:3];
+        [inv invokeWithTarget:proxy];
+        LOG("[bq57] инвокация отправлена…");
+        for (int t = 0; t < 50 && !got; t++) usleep(100000);
+        LOG("[bq57] итог: got=%d status=%d err=%s",
+            (int)got, (int)status,
+            rerr ? rerr.localizedDescription.UTF8String : "-");
+        [conn invalidate];
+        LOG("[bq57] done");
+        LOG("[bq57] VERDICT: 'photoServiceAuthorizationStatus=%d "
+            "error=%s' = TCC-чтение из песочницы; тишина = собирать "
+            "логи демона", (int)status,
+            rerr ? rerr.localizedDescription.UTF8String : "-");
+    } @catch (NSException *e) {
+        LOG("[bq57] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+        LOG("[bq57] вернуться к интроспекции выше — какой шаг упал");
+    }
+    dispatch_semaphore_signal(bq57_sem);
+    });
+    // v206.4.1: НЕ ждём на main — BSNSXPCTransport/NSXPC внутри
+    // синхронно дёргают main queue → semaphore_wait в главном потоке
+    // = взаимный deadlock. Фаза возвращается сразу; фоновый блок
+    // продолжает работать и писать в fuzz.log (runf вытянет через
+    // RUNF_WAIT).
+    LOG("[bq57] фоновый запуск... (фаза возвращается, лог продолжается)");
+}
+
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
@@ -45170,6 +45504,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ54")) { p_bq54(); LOG("[probe13] bq54-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ55")) { p_bq55(); LOG("[probe13] bq55-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ56")) { p_bq56(); LOG("[probe13] bq56-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ57")) { p_bq57(); LOG("[probe13] bq57-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
