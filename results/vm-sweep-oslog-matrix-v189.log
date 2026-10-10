@@ -1,0 +1,452 @@
+iBoot version: qemu-sptm
+Darwin Image4 Extension Version 7.0.0: Tue Jul 14 21:12:19 PDT 2026; root:AppleImage4-374~10023/AppleImage4/RELEASE_ARM64E
+AppleImage4: legacy nonce blob length insufficient: actual = 96, expected >= 368
+AppleImage4: magazine[pdmg]: failed to read nonce slot data: 2
+AppleImage4: magazine[cptx]: failed to read nonce slot data: 2
+AppleImage4: magazine[dvdi]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1bt]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1ab]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1gn]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1sm]: failed to read nonce slot data: 2
+AppleImage4: magazine[d1ma]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1ge]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1er]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1ai]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1al]: failed to read nonce slot data: 2
+AppleImage4: root power domain not yet available: 19
+Image4: unable to setup /chosen/asmb node
+AMFI: UDID support enabled: 2
+AMFI: queried model name from device tree: iPhone17,3
+AMFI: disabling Swift Playgrounds JIT services on iPhone devices
+AMFI: Booted in a VM
+IOServicePH::kIOMessageSystemCapabilityChange: will 0xf->0xf
+IOServicePH::systemPowerChange to 0x30
+IOServicePH::kIOMessageSystemCapabilityChange: did 0xf->0xf
+ACMTRM: initU32FromBootArg: acm_fastsim = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/insecure_hpr = 0x0 <--- not found.
+ACMTRM: isFastSimTarget: isFastSim = NO.
+AppleCredentialManager: init: inited KE[1] (ready=NO AVP=NO SIM=NO SIMT=NO USESEP=YES) -> true.
+AppleCredentialManager: probe: probed KE[1] (ready=NO) -> true (score=0).
+[EXBrightKext] EXBrightKext::start
+AppleARMBacklight::start: Using new Backlight Architecture 1
+AppleARMBacklight::start: _lMaxProduct=142540800
+AppleARMBacklight::start: _lMidProduct=10158080
+AppleARMBacklight::start: _lMinProduct=65536
+AppleARMBacklight::exportCalibration: _lMaxProduct=142540800, _lMidProduct=10158080, _lMinProduct=65536, _lMaxPanel=142540800, _lMidPanel=10158080, _lMinPanel=65536, _milliAmps2NitsScaleFactor=0
+AppleARMBacklight::start: no backlight enable function
+AppleARMBacklight::start: no backlight update function
+AppleARMBacklight::start: _minDACLevel=153 _maxDACLevel=2047
+Warning: arc4random not implemented
+Warning: arc4random not implemented
+Warning: arc4random not implemented
+AKSAnalytics built Jul 14 2026 21:26:21
+selected analytics domain SpringBoardAKSAnalytics startedAppleARMBootPerf: Error: profile handoff region not found (2)
+AppleARMBootPerf: Error: failed to publish profile data (2)
+AppleARMSFRManifest: Starting
+AppleARMSFRManifest: Error: Failed to find property sfr-manifest-hash
+AppleARMSFRManifest: Found HASH property
+AppleARMSFRManifest: Found 0 matching hash entries
+AppleARMSFRManifest: Error: Invalid input
+AppleARMSFRManifest: Error: Failed to find manifest entry region
+AppleARMSFRManifest: Error: Failed to locate manifest information
+AppleARMSFRManifest: Successfully published sfr-manifest
+[AppleLockdownMode - start] started
+Loaded debug arguments with mask 0x00000001, serial log: disabled
+[AppleLockdownMode - LDMShouldEnforceParity] restoreOS check passed
+2676755us IOThunderboltFamily (build 21:11:30 Jul 14 2026)
+virtual bool AppleARMLightEmUp::start(IOService *): starting...
+AppleOLYHAL::probe: score = 1000
+AppleOLYHAL::start: entry with provider 0xe6aecdaf48b49c8d
+AppleOLYHAL::start: found wlan-olyhal-abort boot-arg, bailing
+AppleCredentialManager: start: starting KE[1] (ready=NO) -> true.
+AppleCredentialManager: initImpl: called, KE[1].
+ACMFirstResponderKernelService: init: called, .
+ACM: init: called, .
+ACMTRM-S: init: called, starting PersistentStore service.
+ACMTRM-A: init: called, starting TRM Analytics service.
+ACMTRM-C: init: called, starting AccessoryCache service.
+ACMTRM: init: called, starting TRM service [BUILT: Jul 14 2026, 21:20:00].
+ACMTRM: initU32FromBootArg: trm_default = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_enabled = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/trm-enabled = 0x1.
+ACMTRM: initU32FromBootArg: trm_unification = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_all_policy_modes = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_base_system = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: hidrm_default = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: hidrm_enabled = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/hidrm-enabled = 0x1.
+ACMTRM: initU32FromEDTProp: /options/stress-rack = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_change_policy_mode = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_profile = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/trm-profile = 0x3.
+ACMTRM: initU32FromBootArg: trm_analytics_period = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_acc_cache_size = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_acc_cache_expiration = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_relaxed_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_unlocked_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: usb_standard_mode_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_policy_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: usb_standard_mode_lock_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_grace_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_keep_enabled_during_apple_setup = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: itrm_hyst_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: itrm_grace_period_timeout = 0xffffffff <--- not found.
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N* Arg=N HW=N DT=N Env=N Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N* HW=N DT=N Env=N Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N* Env=N Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _loadDisabledByOSEnvironment: disabled by OSEnvironment: NO.
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N Env=N* Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: initU32FromEDTProp: /chosen/sepfw-load-at-boot = 0x1.
+ACMTRM: isSEPAvailable: isSEPAvailable = YES.
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N Env=N Ext=N Dev=N SEP=N* SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N Env=N Ext=N Dev=N SEP=N SR=N* | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: prop___set: TRM_PolicyTimeout = 259200.
+AppleInterruptControllerV3::start: _aicRevision = 0 _aicBaseAddress = <ptr> _aicNumVectors = 0x00001000 Num Shared Timestamps = 16 
+AMFI: skipping PMGRAON latch due to AVP
+AMFI: trying to get developer mode status from ACM
+ACMTRM: prop___set: TRM_RelaxedPeriodTimeout = 259200.
+ACMTRM: prop___set: TRM_UnlockedPeriodTimeout = 86400.
+ACMTRM: prop___set: HIDRM_PolicyEnabled = No(0).
+ACMTRM: _mapAndPublish: ---> TRM state changed (3/0/0) while LOCKED(1), TRM: 259200/-(255) 4294967295/-(255) M=255/4294967295/4294967295 ---(255)/---(255) L=255 BS=255 R=255 RP=259200/255 UP=86400/255, RAW: -(255) -(255).
+ACMTRM: _mapAndPublish: ---> HIDRM state changed (1) while LOCKED(1), enabled=0 E=255/255.
+ACMLockdownModeKernelService: init: called, .
+ACMLockdownModeKernelService: init: returning, result = true.
+AppleCredentialManager: initImpl: KE[1] INITED.
+AppleCredentialManager: initImpl: returning, KE[1] -> true.
+AppleCredentialManager: startImpl: called, KE[1].
+ACM: TRMAccCache_SetupEmpty: called, cacheSize=48 expiration=2592000.
+ACMTRM: start: security.mac.acm.root_pivot_occurred sysctl registered.
+ACMLockdownModeKernelService: start: called, .
+ACMLockdownModeKernelService: start: returning, result = true.
+AppleCredentialManager: startImpl: initializing power management.
+AppleCredentialManager: startImpl: will join SEPManager's PM tree in getSEPEndpoint().
+AppleCredentialManager: startImpl: registering notifications.
+AppleCredentialManager: waitForSEPEndpointOutsideACMCommandGate: waiting (cmd=25).
+AppleCredentialManager: startImpl: KE[1] STARTED.
+AppleCredentialManager: startImpl: returning, KE[1] -> true.
+AppleCredentialManager: start: started KE[1] (ready=YES) -> true.
+"AppleSEPKeyStore":pid:0,:373: starting (BUILT: Jul 14 2026 21:25:47) ("normal" variant 🌽 , 2383.0.22.0.2)
+"AppleSEPKeyStore":pid:0,:492: _sep_enabled = 1
+"AppleSEPKeyStore":pid:0,:553: ioPerfControl is enabled: 1, 1
+virtual bool CoreAnalyticsHub::start(IOService *)::150:CoreAnalyticsHub start
+virtual bool CoreAnalyticsHub::start(IOService *)::229:CoreAnalyticsHub start completed
+apfs_module_start:3381: load: com.apple.filesystems.apfs, v3283.0.13, apfs-3283.0.13, 2026/07/14
+TrustedClockingKEXT::init - Hello from the kernel!
+TrustedClockingKEXT::probe - Probing hardware...
+Setting up notifier for CoreAnalyticsHub
+TrustedClockingKEXT::start - Starting AoE Clocking driver...
+TrustedClockingKEXT::setupTransportAndPublisherForCallbacks - transport=<ptr> publisher=<ptr>
+TrustedClockingKEXT::start - AoE Clocking driver started successfully!
+apfs_sysctl_register:1328: done registering sysctls.
+L2TP domain init
+L2TP domain init complete
+Load request for com.apple.nke.pptp failed: -603946991
+com.apple.AppleFSCompressionTypeZlib kmod start
+com.apple.AppleFSCompressionTypeZlib load succeeded
+BSD root: md0, major 3, minor 0
+apfs_vfsop_mountroot:3156: apfs: mountroot called!
+container_rootmount:2638: boot from ramdisk /dev/md0
+dev_init:296: md0 device accelerated crypto: 0 (compiled @ Jul 14 2026 21:11:49)
+dev_init:299: md0 device_handle block size 512 block count 466944 features 0 internal 
+nx_mount:1156: md0 initializing cache w/hash_size 1024 and cache size 4096
+nx_mount:1481: md0 checkpoint search: largest xid 61, best xid 61 @ 3
+nx_mount:1508: md0 stable checkpoint indices: desc 2 data 261
+fs_lookup_root_snapshot_name:375: md0s1 failed to get root-snapshot-name from DT
+apfs_find_named_root_snapshot_xid:2153: md0s1 failed to retrieve default root snapshot xid: No such file or directory (2)
+apfs_find_named_root_snapshot_xid:2191: md0s1 The global payload bytes pointer is NULL
+apfs_vfsop_mount:2914: md0s1 failed to find named root snapshot: Need authenticator (81)
+apfs_log_op_with_proc:3279: md0s1 mounting volume ramdisk, requested by: kernel_task (pid 0); parent: kernel_task (pid 0)
+apfs_vfsop_mount:3017: md0s1 fs iokit node was not found
+handle_mount:893: md0s1 vol-uuid: 9342A00E-8535-46B8-B92B-A2E9EE40E5BA block size: 4096 block count: 58368 (unencrypted; flags: 0x1; features: 8.0.2)
+handle_mount:906: md0s1 setting dev block size to 4096 from 512
+apfs_log_op_with_proc:3279: md0s1 mount-complete volume ramdisk, requested by: kernel_task (pid 0); parent: kernel_task (pid 0)
+Identified Serial Port qemuport3 at 0x385210000(<ptr>)
+Identified Serial Port qemuport2 at 0x38520c000(<ptr>)
+Identified Serial Port qemuport1 at 0x385208000(<ptr>)
+Identified Serial Port qemuport0 at 0x385204000(<ptr>)
+[uart] Started AppleSerialShim.
+Darwin Ignition Sequence Version 1.0.0: Tue Jul 14 21:12:31 PDT 2026; root:libignition-64~11776/libignition_core/RELEASE_ARM64E
+libignition: 1: arguments           :
+libignition: 1:   ignition level    : 0x5
+libignition: 1:   force dylib root  : 0x0
+libignition: 1:   halt after stage  : n/a
+libignition: 1: configuration         :
+libignition: 1:   program             : launchd
+libignition: 1:   os environment      : n/a
+libignition: 1:   rd                  : md0
+libignition: 1:   arp0                : n/a
+libignition: 1:   rp                  : n/a
+libignition: 1:   pivot src           : n/a
+libignition: 1:   root ramdisk        : 0x0
+libignition: 1:   restore             : 0x0
+libignition: 1:   root device info    : 0x0
+libignition: 1:   can haz debugger    : 0x0
+libignition: 1:   rootfs mount flags  : 0x1480d001
+libignition: 1:   ecid                : 0x0
+libignition: 1:   hardware target     : d47ap
+libignition: 1:   initproc            : 0x1
+libignition: 1:   single user         : 0x0
+libignition: 1:   userspace reboot    : 0x0
+libignition: 1:   secure boot level   : 0x0
+libignition: 1:   os version          : n/a
+libignition: 1: parameters          :
+libignition: 1:   version           : 0x1
+libignition: 1:   argc              : 0x1
+libignition: 1:   log fd            : 0xffffffffffffffff
+libignition: 1:   platform          : 0x2
+libignition: 1: boot spec           :
+libignition: 1:   name              : ramdisk
+libignition: 1:   stage count       : 0x2
+libignition: 1:        hello: commence primary ignition
+libignition: 1:        hello: hello from launchd.1
+libignition: 1:      goodbye: ignition sequence complete
+dyld[1]: result from check_np(): -1, errno 12
+com.apple.xpc.launchd|1970-01-01 00:00:05.091492 <Notice>: hello, launchd UUID: 97DA6BFE-F657-3EE4-BE1D-D8A05D029321
+com.apple.xpc.launchd|1970-01-01 00:00:05.182085 <Notice>: no mach port for persistent services: 2
+com.apple.xpc.launchd|1970-01-01 00:00:05.183095 <Notice>: Darwin Bootstrapper Version 7.0.0: Fri Jul 10 23:04:38 PDT 2026; root:libxpc_executables-3298.0.21~14/launchd/RELEASE_ARM64E
+com.apple.xpc.launchd|1970-01-01 00:00:05.183591 <Notice>: boot-args = rd=md0 serial=3 -v -noprogress wdt=-1 wlan-olyhal-abort
+com.apple.xpc.launchd|1970-01-01 00:00:05.183831 <Notice>: Restore environment starting.
+com.apple.xpc.launchd|1970-01-01 00:00:05.204131 (system) <Notice>: entering ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.205785 (system) <Notice>: created
+com.apple.xpc.launchd|1970-01-01 00:00:05.218883 (exclaves-boot) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.221802 (fsck) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222083 (mount-phase-1) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222233 (data-protection) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222370 (finish-obliteration) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222498 (detect-installed-roots) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222627 (select-boot-mode) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222753 (commit-boot-mode) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.222912 <Notice>: boot-mode committed: (null)
+com.apple.xpc.launchd|1970-01-01 00:00:05.223052 (restore-datapartition) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.232606 (restore-datapartition) <Notice>: optional boot task not present
+com.apple.xpc.launchd|1970-01-01 00:00:05.233757 (mount-phase-2) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.234044 (init-with-data-volume) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.235650 (fixup-mobile-tmp) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.236824 (fixup-mobile-tmp) <Error>: could not set create /private/var/mobile/tmp: Read-only file system
+com.apple.xpc.launchd|1970-01-01 00:00:05.236971 (fixup-mobile-tmp) <Notice>: Finished boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237116 (MSUEarlyBootTask) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237246 (MobileAssetEarlyBootTask) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237380 (fips) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237507 (keybag) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237631 (usermanagerd) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237752 (dirs_cleaner) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.237885 (dirs_cleaner-usr) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.238137 <Notice>: launchd logging initialized. name: com.apple.xpc.launchd pid: 1
+com.apple.xpc.launchd|1970-01-01 00:00:05.246208 <Notice>: Flushed 31 logs [limit: 20]
+com.apple.xpc.launchd|1970-01-01 00:00:05.251264 (xpcroleaccountd) <Notice>: Skipping boot-task
+System Policy: launchd(1) allow process-exec* /usr/libexec/xpcproxy
+com.apple.xpc.launchd|1970-01-01 00:00:05.251323 (init_featureflags) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251362 (auearlyboot) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251371 (aidearlyboot) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251379 (tzinit) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251387 (finish-restore) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251394 (finish-demo-restore) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251469 (sysstatuscheck) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251476 (prng_seedctl) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251525 <Error>: Unable to open /System/Library/xpc/launchd.plist [2:No such file or directory]
+com.apple.xpc.launchd|1970-01-01 00:00:05.251544 (launchd_cache_loader) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251553 (workload-properties-init) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251561 (init-exclavekit) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.251573 <Error>: No MRM cache found
+com.apple.xpc.launchd|1970-01-01 00:00:05.252180 (trial-factors-v1) <Notice>: reading known trial factors from 0 paths
+com.apple.xpc.launchd|1970-01-01 00:00:05.252201 (trial-factors-v1) <Notice>: reading active trial factors from /private/var/mobile/Library/Trial/NamespaceDescriptors/v2/activeLowLevelFactors.plist
+com.apple.xpc.launchd|1970-01-01 00:00:05.252301 (trial-factors-v1) <Warning>: failed to process path: /private/var/mobile/Library/Trial/NamespaceDescriptors/v2/activeLowLevelFactors.plist: No such file or directory: 2
+com.apple.xpc.launchd|1970-01-01 00:00:05.252378 (boot) <Notice>: Early boot complete. Continuing system boot.
+com.apple.xpc.launchd|1970-01-01 00:00:05.259601 (user/501) <Notice>: entering ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.259785 (user/501) <Notice>: created
+com.apple.xpc.launchd|1970-01-01 00:00:05.259987 (system) <Notice>: entering bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.259997 (user/501) <Notice>: entering bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.277585 (com.jprx.bash) <Notice>: This service is defined to be constantly running and is inherently inefficient.
+com.apple.xpc.launchd|1970-01-01 00:00:05.278532 (user/501) <Notice>: pending spawn, domain in on-demand-only mode: com.jprx.bash
+com.apple.xpc.launchd|1970-01-01 00:00:05.280914 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemonsAltAccount, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.280955 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.280967 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.280976 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/DeveloperModeLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.280984 (user/501) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.280992 (user/501) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.281144 (user/501) <Notice>: exiting bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.281205 (user/501) <Notice>: exiting ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.281334 (user/501/com.jprx.bash) <Notice>: internal event: WILL_SPAWN, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.281445 (user/501/com.jprx.bash) <Notice>: service state: spawn scheduled
+com.apple.xpc.launchd|1970-01-01 00:00:05.281477 (user/501/com.jprx.bash) <Notice>: service state: spawning
+com.apple.xpc.launchd|1970-01-01 00:00:05.286695 <Warning>: kpersona_find_by_type() failed with ret -1 errno 3 - No such process
+System Policy: xpcproxy(3) allow process-exec* /bin/bash
+AMFI: Launch Constraint Violation (not enforcing), error info: c[6]p[2]m[3]e[255], (Process was launched as a system service unexpectedly but met System Service constraints) launching proc[vc: 1 pid: 3]: /bin/bash, launch type 1, failure proc [vc: 1 pid: com.apple.xpc.launchd|1970-01-01 00:00:05.286758 (user/501) <Error>: Unable to find persona with type 6: 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:05.286881 (user/501/com.jprx.bash) <Notice>: launching: speculative
+com.apple.xpc.launchd|1970-01-01 00:00:05.569735 <Notice>: Flushed 38 logs [limit: 20]
+com.apple.xpc.launchd|1970-01-01 00:00:05.303758 (user/501/com.jprx.bash [3]) <Notice>: xpcproxy spawned with pid 3
+com.apple.xpc.launchd|1970-01-01 00:00:05.304014 (user/501/com.jprx.bash [3]) <Notice>: internal event: SPAWNED, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.304098 (user/501/com.jprx.bash [3]) <Notice>: service state: xpcproxy
+com.apple.xpc.launchd|1970-01-01 00:00:05.304520 (system) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemonsAltAccount, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.304531 (system) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.304537 (system) <Error>: Failed to bootstrap path: path = /System/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.304550 (system) <Error>: Failed to bootstrap path: path = /System/Library/DeveloperModeLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.304556 (system) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.304564 (system) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.304578 (system) <Notice>: exiting bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.304587 (system) <Notice>: exiting ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.304826 (user/501/com.jprx.bash [3]) <Notice>: internal event: SOURCE_ATTACH, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.594223 <Warning>: kpersona_find_by_type() failed with ret -1 errno 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:05.594310 (user/501) <Error>: Unable to find persona with type 6: 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:05.625904 (user/501/com.jprx.bash [3]) <Notice>: service state: running
+com.apple.xpc.launchd|1970-01-01 00:00:05.626021 (user/501/com.jprx.bash [3]) <Notice>: internal event: INIT, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.626075 (user/501/com.jprx.bash [3]) <Notice>: Successfully spawned bash[3] because speculative
+bash-5.3# com.apple.xpc.launchd|1970-01-01 00:00:05.920670 (pid/3 [bash]) <Notice>: uncorking exec source upfront
+com.apple.xpc.launchd|1970-01-01 00:00:05.920828 (pid/3 [bash]) <Notice>: created
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+/private/var/tmp/sweep > /dev/console 2>&1; echo SWEEP_RC_$?
+System Policy: bash(4) allow process-exec* /private/var/tmp/sweep
+sweep start: 5 devices x 6 reqs, tick_timeout=8s
+RUNNING /dev/oslog/BIOCSETWF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/oslog/BIOCSETWF: OK ticks=1
+RUNNING /dev/oslog/BIOCSETBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+
+echo SW_ALIVE_$((9*9))
+
+CELL /dev/oslog/BIOCSETBLEN: OK ticks=1
+RUNNING /dev/oslog/BIOCSETIF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+echo ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/oslog/BIOCSETIF: OK ticks=1
+RUNNING /dev/oslog/rand4004627c
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/oslog/rand4004627c: OK ticks=1
+RUNNING /dev/oslog/BIOCGBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/oslog/BIOCGBLEN: OK ticks=1
+RUNNING /dev/oslog/FIONREAD
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/oslog/FIONREAD: OK ticks=1
+RUNNING /dev/bpf0/BIOCSETWF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/bpf0/BIOCSETWF: OK ticks=25
+RUNNING /dev/bpf0/BIOCSETBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/bpf0/BIOCSETBLEN: OK ticks=25
+RUNNING /dev/bpf0/BIOCSETIF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/bpf0/BIOCSETIF: OK ticks=24
+RUNNING /dev/bpf0/rand4004627c
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/bpf0/rand4004627c: OK ticks=25
+RUNNING /dev/bpf0/BIOCGBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/bpf0/BIOCGBLEN: OK ticks=25
+RUNNING /dev/bpf0/FIONREAD
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/bpf0/FIONREAD: OK ticks=155
+RUNNING /dev/pf/BIOCSETWF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/pf/BIOCSETWF: OK ticks=26
+RUNNING /dev/pf/BIOCSETBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/pf/BIOCSETBLEN: OK ticks=26
+RUNNING /dev/pf/BIOCSETIF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/pf/BIOCSETIF: OK ticks=26
+RUNNING /dev/pf/rand4004627c
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/pf/rand4004627c: OK ticks=26
+RUNNING /dev/pf/BIOCGBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/pf/BIOCGBLEN: OK ticks=26
+RUNNING /dev/pf/FIONREAD
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/pf/FIONREAD: OK ticks=184
+RUNNING /dev/monotonic/BIOCSETWF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/monotonic/BIOCSETWF: OK ticks=13
+RUNNING /dev/monotonic/BIOCSETBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/monotonic/BIOCSETBLEN: OK ticks=11
+RUNNING /dev/monotonic/BIOCSETIF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/monotonic/BIOCSETIF: OK ticks=12
+RUNNING /dev/monotonic/rand4004627c
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/monotonic/rand4004627c: OK ticks=12
+RUNNING /dev/monotonic/BIOCGBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/monotonic/BIOCGBLEN: OK ticks=12
+RUNNING /dev/monotonic/FIONREAD
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/monotonic/FIONREAD: OK ticks=95
+RUNNING /dev/random/BIOCSETWF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/random/BIOCSETWF: OK ticks=27
+RUNNING /dev/random/BIOCSETBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/random/BIOCSETBLEN: OK ticks=26
+RUNNING /dev/random/BIOCSETIF
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/random/BIOCSETIF: OK ticks=26
+RUNNING /dev/random/rand4004627c
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/random/rand4004627c: OK ticks=27
+RUNNING /dev/random/BIOCGBLEN
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/random/BIOCGBLEN: OK ticks=27
+RUNNING /dev/random/FIONREAD
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+CELL /dev/random/FIONREAD: OK ticks=184
+SWEEP_DONE
+SWEEP_RC_0
+bash-5.3# 
+bash-5.3# echo SW_ALIVE_$((9*9))
+SW_ALIVE_81
+bash-5.3# 
+bash-5.3# <ZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZZACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
