@@ -38311,6 +38311,385 @@ static void p_bq58(void) {
     LOG("[bq58] фоновый запуск...");
 }
 
+// p_bq59 — v209.4: Launch-сервис invalidateLaunchAssertionsForExtensionAuditToken:reply:
+// RE §209-доп: в теле (0x18704bf3c+) гейта canRun НЕ видно — auditToken
+// берётся ИЗ АРГУМЕНТА и уходит в RBS. Аргумент — audit_token_t
+// (32 байта; NSXPC передаст как NSData — сверим по сигнатуре).
+// Пробы: (a) наш собственный audit token, (b) 32 нулевых байта.
+// Ответ демона = наличие/отсутствие гейта на Launch-ветке.
+static void bq59_svc_call(Class epCls, Class bsCls, const char *svc,
+                          const char *protoName, const char *selName,
+                          void (^argprep)(NSInvocation *)) {
+    LOG("[bq59] svc=%s begin", svc);
+    SEL svcNameSel = @selector(endpointForServiceName:oneshot:service:instance:);
+    if (![epCls respondsToSelector:svcNameSel]) { LOG("[bq59] нет фабрики ep"); return; }
+    typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+    EFn f = (EFn)objc_msgSend;
+    id endpoint = f(epCls, svcNameSel, @"com.apple.extensionkitservice", NO,
+                    [NSString stringWithUTF8String:svc], nil);
+    LOG("[bq59] ep=%s", endpoint ? [endpoint description].UTF8String : "(nil)");
+    if (!endpoint) return;
+    SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+    if (![bsCls respondsToSelector:facSel]) { LOG("[bq59] нет фабрики conn"); return; }
+    typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+    FacFn ff = (FacFn)objc_msgSend;
+    NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg) {
+        SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+        if (cfg && [cfg respondsToSelector:qsel]) {
+            typedef void (*QFn)(id, SEL, NSString *, long);
+            QFn qf = (QFn)objc_msgSend;
+            qf(cfg, qsel, @"bq59.q", (long)0);
+        }
+    });
+    if (!conn) { LOG("[bq59] conn=nil"); return; }
+    Protocol *proto = objc_getProtocol(protoName);
+    if (!proto) {
+        unsigned int pcnt = 0;
+        Protocol * __unsafe_unretained *pall = objc_copyProtocolList(&pcnt);
+        for (unsigned i = 0; i < pcnt; i++) {
+            const char *nm = protocol_getName(pall[i]);
+            if (nm && strstr(nm, "LaunchServiceProtocol")) { proto = pall[i]; break; }
+        }
+        if (pall) free(pall);
+    }
+    LOG("[bq59] proto=%p", proto);
+    if (!proto) { [conn invalidate]; return; }
+    NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:proto];
+    [conn setInterruptionHandler:^{ LOG("[bq59] svc=%s INTERRUPTION", svc); }];
+    [conn setInvalidationHandler:^{ LOG("[bq59] svc=%s INVALIDATION", svc); }];
+    [conn setRemoteObjectInterface:iface];
+    [conn activate];
+    LOG("[bq59] svc=%s activated", svc);
+    fsync(fileno(stderr));
+    id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+        LOG("[bq59] svc=%s proxy ERROR: %s", svc,
+            err ? err.localizedDescription.UTF8String : "-");
+    }];
+    if (!proxy) { [conn invalidate]; return; }
+    SEL sel = NSSelectorFromString([NSString stringWithUTF8String:selName]);
+    NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+    const char *arg2t = "-", *arg3t = "-", *rett = "-";
+    if (sig) {
+        arg2t = [sig getArgumentTypeAtIndex:2];
+        arg3t = [sig getArgumentTypeAtIndex:3];
+        rett = sig.methodReturnType;
+    }
+    LOG("[bq59] svc=%s sig argc=%lu ret=%s arg2=%s arg3=%s",
+        svc, (unsigned long)(sig ? sig.numberOfArguments : 0),
+        rett, arg2t, arg3t);
+    fsync(fileno(stderr));
+    if (!sig || sig.numberOfArguments != 4) {
+        LOG("[bq59] svc=%s сигнатура неожиданна — стоп", svc);
+        [conn invalidate];
+        return;
+    }
+    __block BOOL got = NO;
+    __block NSError *rerr = nil;
+    void (^reply)(NSError *) = ^(NSError *error) {
+        got = YES;
+        rerr = error;
+        LOG("[bq59] *** svc=%s ОТВЕТ: error=%s (domain=%s code=%lld) ***",
+            svc, error ? error.localizedDescription.UTF8String : "(none)",
+            error ? error.domain.UTF8String : "-",
+            error ? (long long)error.code : 0LL);
+    };
+    NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+    [inv setSelector:sel];
+    if (argprep) argprep(inv);
+    [inv setArgument:&reply atIndex:3];
+    LOG("[bq59] svc=%s invoke…", svc);
+    [inv invokeWithTarget:proxy];
+    for (int t = 0; t < 30 && !got; t++) usleep(100000);
+    LOG("[bq59] svc=%s итог got=%d", svc, (int)got);
+    [conn invalidate];
+    LOG("[bq59] svc=%s done", svc);
+}
+
+static void p_bq59(void) {
+    LOG("[bq59] v209.4: Launch invalidateLaunchAssertions probe");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq59.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq59] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq59] CONTROL FAILED (§144)"); return; }
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    LOG("[bq59] dlopen=%p ep=%p bs=%p", hExt, epCls, bsCls);
+    if (!epCls || !bsCls) return;
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        // наш собственный audit token (32 байта)
+        unsigned char tok[32];
+        memset(tok, 0, sizeof(tok));
+        mach_msg_type_number_t cnt = 8;
+        int kr = task_info(mach_task_self(), 17 /* TASK_AUDIT_TOKEN */,
+                            (task_info_t)tok, &cnt);
+        char hex[65];
+        for (int i = 0; i < 32; i++) snprintf(hex + i*2, 3, "%02x", tok[i]);
+        hex[64] = 0;
+        LOG("[bq59] task_info(TASK_AUDIT_TOKEN) kr=%d cnt=%d tok=%s",
+            kr, (int)cnt, hex);
+        NSData *selfTok = (kr == 0)
+            ? [NSData dataWithBytes:tok length:32] : nil;
+        NSData *zeroTok = [NSData dataWithBytes:(unsigned char[32]){0}
+                                        length:32];
+        LOG("[bq59] selfTok=%s", selfTok ? "OK" : "(nil)");
+
+        // v209.5: arg2 = {?=[8I]} — audit_token_t BY VALUE (32 байта
+        // прямо в кадр инвокации). NSData в слоте = malformed-сообщение
+        // => демон рвёт соединение (v209.4, краш-репортов нет).
+        // Буферы должны жить до invoke — держим их тут.
+        static unsigned char selfBuf[32];
+        static unsigned char zeroBuf[32];
+        memcpy(selfBuf, tok, 32);
+        memset(zeroBuf, 0, 32);
+        (void)selfTok; (void)zeroTok;
+        // Проба A: наш токен (by-value)
+        bq59_svc_call(epCls, bsCls, "Launch",
+            "_TtP19ExtensionFoundation24_EXLaunchServiceProtocol_",
+            "invalidateLaunchAssertionsForExtensionAuditToken:reply:",
+            ^(NSInvocation *inv) {
+                [inv setArgument:selfBuf atIndex:2];
+            });
+        // Проба B: нулевой токен (by-value)
+        bq59_svc_call(epCls, bsCls, "Launch",
+            "_TtP19ExtensionFoundation24_EXLaunchServiceProtocol_",
+            "invalidateLaunchAssertionsForExtensionAuditToken:reply:",
+            ^(NSInvocation *inv) {
+                [inv setArgument:zeroBuf atIndex:2];
+            });
+        LOG("[bq59] ВСЁ done");
+    } @catch (NSException *e) {
+        LOG("[bq59] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq59] фоновый запуск...");
+}
+
+static volatile int bq60_active_dummy_unused;
+static IMP bq60_orig_sendMessage = NULL;
+static IMP bq60_orig_sendMessageReply = NULL;
+static void bq60_dump_msg(const char *ctx, id msg);
+static void bq60_hook_sendMessage(id self, SEL _cmd, xpc_object_t msg) {
+    bq60_dump_msg("sendMessage:", msg);
+    if (bq60_orig_sendMessage)
+        ((void (*)(id, SEL, xpc_object_t))bq60_orig_sendMessage)(
+            self, _cmd, msg);
+}
+static void bq60_hook_sendMessageWithReply(id self, SEL _cmd,
+                                           xpc_object_t msg, dispatch_queue_t q,
+                                           xpc_handler_t handler) {
+    bq60_dump_msg("sendWithReply:", msg);
+    if (bq60_orig_sendMessageReply)
+        ((void (*)(id, SEL, xpc_object_t, dispatch_queue_t,
+                   xpc_handler_t))bq60_orig_sendMessageReply)(
+            self, _cmd, msg, q, handler);
+}
+static void bq60_swizzle(Class trCls);
+// p_bq60 — v209.6: wire-снифер BSNSXPCTransport (swizzle sendMessage:)
+// для снятия ЭТАЛОННЫХ байтов NSXPC-invoke (checkin/activate/invoke)
+// на живом TCCProxy-стеке из v206.8. Основа для мутационного
+// wire-фаззинга __NSXPCSerialization-декодера ДЕМОНА (bq61+):
+// базлайном служат валидные блобы этой фазы, контролем —
+// воспроизводимость ответа демона (photoServiceAuthorizationStatus).
+static volatile int bq60_active = 0;
+
+static void bq60_dump_msg(const char *ctx, id msg) {
+    if (!bq60_active || !msg) return;
+    xpc_type_t t = xpc_get_type(msg);
+    if (t == XPC_TYPE_DICTIONARY) {
+        size_t dsz = 0;
+        const char *desc = xpc_copy_description(msg);
+        // полное описание (до 4 КБ) в лог
+        LOG("[bq60:%s] DICT %s", ctx, desc ? desc : "(no-desc)");
+        free((void *)desc);
+        // hex всех data-значений (wire-блобы) до 512 байт каждое
+        size_t kcnt = xpc_dictionary_get_count(msg);
+        LOG("[bq60:%s] dict-count=%zu", ctx, kcnt);
+        // xpc_dictionary_apply: применяем к каждому значению
+        xpc_dictionary_apply(msg, ^bool(const char *key, xpc_object_t v) {
+            xpc_type_t vt = xpc_get_type(v);
+            if (vt == XPC_TYPE_DATA) {
+                const void *d = xpc_data_get_bytes_ptr(v);
+                size_t n = xpc_data_get_length(v);
+                size_t hn = n < 512 ? n : 512;
+                char *hex = malloc(hn * 2 + 1);
+                for (size_t i = 0; i < hn; i++)
+                    snprintf(hex + i*2, 3, "%02x", ((const unsigned char*)d)[i]);
+                hex[hn*2] = 0;
+                LOG("[bq60:%s] DATA key=%s len=%zu hex=%s%s", ctx,
+                    key, n, hex, n > hn ? "…" : "");
+                free(hex);
+            } else if (vt == XPC_TYPE_STRING) {
+                LOG("[bq60:%s] STR key=%s val=%s", ctx, key,
+                    xpc_string_get_string_ptr(v));
+            } else if (vt == XPC_TYPE_INT64) {
+                LOG("[bq60:%s] I64 key=%s val=%lld", ctx, key,
+                    (long long)xpc_int64_get_value(v));
+            } else if (vt == XPC_TYPE_UINT64) {
+                LOG("[bq60:%s] U64 key=%s val=%llu", ctx, key,
+                    (unsigned long long)xpc_uint64_get_value(v));
+            } else if (vt == XPC_TYPE_BOOL) {
+                LOG("[bq60:%s] BOOL key=%s val=%d", ctx, key,
+                    (int)xpc_bool_get_value(v));
+            } else if (vt == XPC_TYPE_UUID) {
+                char ub[37];
+                const unsigned char *u = xpc_uuid_get_bytes(v);
+                for (int i = 0; i < 16; i++)
+                    snprintf(ub + i*2, 3, "%02x", u[i]);
+                ub[32] = 0;
+                LOG("[bq60:%s] UUID key=%s val=%s", ctx, key, ub);
+            }
+            return true;
+        });
+    } else {
+        char *desc = xpc_copy_description(msg);
+        LOG("[bq60:%s] MSG-type=%p desc=%s", ctx, (void*)t,
+            desc ? desc : "-");
+        free(desc);
+    }
+    fsync(fileno(stderr));
+}
+
+static void bq60_swizzle(Class trCls) {
+    SEL smSel = @selector(sendMessage:);
+    SEL smrSel = @selector(sendMessageWithReply:onQueue:replyHandler:);
+    Method m = class_getInstanceMethod(trCls, smSel);
+    if (m) {
+        bq60_orig_sendMessage = method_setImplementation(
+            m, (IMP)bq60_hook_sendMessage);
+        LOG("[bq60] swizzle sendMessage: orig=%p", bq60_orig_sendMessage);
+    }
+    m = class_getInstanceMethod(trCls, smrSel);
+    if (m) {
+        bq60_orig_sendMessageReply = method_setImplementation(
+            m, (IMP)bq60_hook_sendMessageWithReply);
+        LOG("[bq60] swizzle sendMessageWithReply: orig=%p",
+            bq60_orig_sendMessageReply);
+    }
+}
+
+static void p_bq60(void) {
+    LOG("[bq60] v209.6: wire-снифер TCCProxy invoke");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq60.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq60] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq60] CONTROL FAILED (§144)"); return; }
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    Class trCls = NSClassFromString(@"BSNSXPCTransport");
+    LOG("[bq60] dlopen ext=%p bs=%p; ep=%p bs=%p tr=%p",
+        hExt, hBS, epCls, bsCls, trCls);
+    if (!epCls || !bsCls || !trCls) {
+        LOG("[bq60] классы недоступны — стоп");
+        return;
+    }
+    bq60_swizzle(trCls);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    @try {
+        SEL svcNameSel =
+            @selector(endpointForServiceName:oneshot:service:instance:);
+        typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+        EFn f = (EFn)objc_msgSend;
+        id endpoint = f(epCls, svcNameSel,
+                        @"com.apple.extensionkitservice", NO,
+                        @"TCCProxy", nil);
+        LOG("[bq60] ep=%s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+        if (!endpoint) return;
+        SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+        typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+        FacFn ff = (FacFn)objc_msgSend;
+        NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg) {
+            SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+            if (cfg && [cfg respondsToSelector:qsel]) {
+                typedef void (*QFn)(id, SEL, NSString *, long);
+                QFn qf = (QFn)objc_msgSend;
+                qf(cfg, qsel, @"bq60.q", (long)0);
+            }
+        });
+        if (!conn) { LOG("[bq60] conn=nil"); return; }
+        Protocol *proto = objc_getProtocol(
+            "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
+        NSXPCInterface *iface = proto
+            ? [NSXPCInterface interfaceWithProtocol:proto] : nil;
+        if (!iface) { LOG("[bq60] iface=nil"); [conn invalidate]; return; }
+        [conn setInvalidationHandler:^{ LOG("[bq60] INVALIDATION"); }];
+        [conn setRemoteObjectInterface:iface];
+        LOG("[bq60] activate: begin");
+        bq60_active = 1;
+        [conn activate];
+        LOG("[bq60] activate: ok");
+        fsync(fileno(stderr));
+        id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            LOG("[bq60] proxy ERROR: %s",
+                err ? err.localizedDescription.UTF8String : "-");
+        }];
+        if (!proxy) { bq60_active = 0; [conn invalidate]; return; }
+        SEL sel = NSSelectorFromString(
+            @"photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        if (!sig) { LOG("[bq60] sig=nil"); bq60_active = 0; [conn invalidate]; return; }
+        __block BOOL got = NO;
+        void (^completion)(BOOL, NSError *) = ^(BOOL st, NSError *error) {
+            got = YES;
+            LOG("[bq60] *** TCCProxy ОТВЕТ: status=%d err=%s ***",
+                (int)st, error ? error.localizedDescription.UTF8String : "-");
+        };
+        NSUUID *uuid = [NSUUID UUID];
+        char ub[37];
+        const unsigned char *ub_ = (const unsigned char *)uuid.UUIDString.UTF8String;
+        (void)ub_;
+        LOG("[bq60] invoke: UUID=%s", uuid.UUIDString.UTF8String);
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        [inv setSelector:sel];
+        [inv setArgument:&uuid atIndex:2];
+        [inv setArgument:&completion atIndex:3];
+        [inv invokeWithTarget:proxy];
+        for (int t = 0; t < 50 && !got; t++) usleep(100000);
+        bq60_active = 0;
+        LOG("[bq60] итог got=%d (сниф-данные выше)", (int)got);
+        [conn invalidate];
+        LOG("[bq60] done");
+    } @catch (NSException *e) {
+        bq60_active = 0;
+        LOG("[bq60] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq60] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -45795,6 +46174,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ56")) { p_bq56(); LOG("[probe13] bq56-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ57")) { p_bq57(); LOG("[probe13] bq57-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ58")) { p_bq58(); LOG("[probe13] bq58-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ59")) { p_bq59(); LOG("[probe13] bq59-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ60")) { p_bq60(); LOG("[probe13] bq60-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

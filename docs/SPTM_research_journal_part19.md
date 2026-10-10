@@ -5074,3 +5074,49 @@ entitlement `com.apple.private.extensionkit.host.any-extension`
    процесса, подпись) — это тупик для нашего профиля; но
    bad_query-escape (W в системные контейнеры) + PlugInKit-подкладка
    appex — гипотеза на потом.
+
+### §209-доп.2. v209.4-6: Launch рвёт соединение; wire-снифер снял ЭТАЛОННЫЙ invoke-блоб
+
+**Launch (p_bq59, v209.4-5):** `invalidateLaunchAssertionsForExtensionAuditToken:reply:`
+сигнатура `arg2={?=[8I]}` — audit_token_t BY-VALUE (32 байта в кадр
+инвокации; NSData в слоте = malformed). Обе пробы (self token
+70e6f703020000007001… и 32 нуля) → демон рвёт соединение
+(«Couldn't communicate with a helper application» + INVALIDATION),
+краш-репортов НЕТ (crashdiff = глобальный systemCrashLogs, корректен).
+Гейт/rejection на Launch-ветке — различить по ос_логу демона.
+
+**Wire-снифер (p_bq60, v209.6, лог results/runf-bq60.log):** ObjC-swizzle
+`-[BSNSXPCTransport sendMessage:]` / `sendMessageWithReply:onQueue:replyHandler:`
+(method_setImplementation на класс из кэша — работает) + живой
+TCCProxy-стек. ПОЛНЫЙ invoke-формат NSXPC-над-BSXPC:
+
+```
+xpc-dict на BSXPC-канале:
+  f        = u64 33                                  (метод-хэш)
+  proxynum = u64 1
+  sequence = u64 1
+  replysig = "v20@?0B8@\"NSError\"12"                 (сигнатура reply)
+  root     = <bplist17, 166 байт>:
+              [ селектор "photoServiceAuthorizationStatusForExtensionUUID:completion:"
+                typesig "v32@0:8@16@?24"
+                { class = NSUUID; NS.uuidbytes = <16 байт UUID> } ]
+```
+
+- **bplist17** = binary property list версии 17 (новый формат) — NSXPC
+  кодирует invoke-корень как bplist, аргументы — CF-словарями
+  (class + NS.uuidbytes) — это NSSecureCoding-over-plist.
+- Обёртка (f/proxynum/sequence/replysig) — плоские ключи xpc-словаря.
+- Checkin/activate-сообщения этим транспортом не идут (это
+  BSServiceConnection-путь; их формат у нас есть из bq53).
+
+**Значение:** полный мутационный фаззинг-контур декодера демона теперь
+материально воспроизводим: raw-BSXPC-канал bq51 + хендшейк bq53 +
+посылка invoke-словарей этой формы (базлайн = снятый блоб; контроль =
+ответ демона «Unable to resolve plugin…»; мутации = root-блоб
+bplist17-структуры/объекты/class-маппинги, f/replysig-строки,
+sequence-роутинг). Декодер в привилегированном процессе:
+`__NSXPCSerializationDecodeInvocation*` + NSKeyedUnarchiver-путь
+NSSecureCoding-объектов (NSUUID → произвольные NSSecureCoding-классы).
+Следующая фаза (p_bq61): replay снятого invoke через raw-канал —
+доказательство, что мы можем слать МУТИРОВАННЫЕ invoke не поднимая
+NSXPC-клиента вообще.

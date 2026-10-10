@@ -1,0 +1,47 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ60=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5e03
+[scaler] conn 0x5e03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq60] v209.6: wire-снифер TCCProxy invoke
+[bq51] run ENTER ctl-empty nseq=1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x13e494000> { count = 1, transaction: 0, voucher = 0x13e768500, contents =
+	"bsxpc" => <string: 0x13e5ac990> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq60] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq60] dlopen ext=0x36ad01290 bs=0x36ad72300; ep=0x20403f110 bs=0x20403f520 tr=0x20403ed00
+[bq60] swizzle sendMessage: orig=0x1acdc5ddc
+[bq60] swizzle sendMessageWithReply: orig=0x1acdc6c98
+[bq60] фоновый запуск...
+[probe13] bq60-only mode, stop
+[bq60] ep=<BSServiceConnectionEndpoint: 0x13e779560; target: XPCService:6976:com.apple.extensionkitservice; service: TCCProxy>
+[bq60] activate: begin
+[bq60] activate: ok
+[bq60] invoke: UUID=72A3C5A8-0C63-43A1-B304-67947839DDA8
+[bq60:sendWithReply:] DICT <dictionary: 0x13e4607e0> { count = 5, transaction: 0, voucher = 0x0, contents =
+	"f" => <uint64: 0x8686ad0d751bd357>: 33
+	"root" => <data: 0x13e764480>: { length = 166 bytes, contents = 0x62706c6973743137a0a5000000000000007f113c70686f74... }
+	"proxynum" => <uint64: 0x8686ad0d751bd257>: 1
+	"replysig" => <string: 0x13e436640> { string cache = 0x0, length = 20, contents = "v20@?0B8@"NSError"12" }
+	"sequence" => <uint64: 0x8686ad0d751bd257>: 1
+}
+[bq60:sendWithReply:] dict-count=5
+[bq60:sendWithReply:] U64 key=f val=33
+[bq60:sendWithReply:] DATA key=root len=166 hex=62706c6973743137a0a5000000000000007f113c70686f746f53657276696365417574686f72697a6174696f6e537461747573466f72457874656e73696f6e555549443a636f6d706c6574696f6e3a007f110f76333240303a38403136403f323400a0a500000000000000d0a4000000000000007724636c61737300774e5355554944007d4e532e757569646279746573004f111072a3c5a80c6343a1b30467947839dda8e0
+[bq60:sendWithReply:] U64 key=proxynum val=1
+[bq60:sendWithReply:] STR key=replysig val=v20@?0B8@"NSError"12
+[bq60:sendWithReply:] U64 key=sequence val=1
+[bq60] *** TCCProxy ОТВЕТ: status=0 err=Unable to resolve plugin for UUID 72A3C5A8-0C63-43A1-B304-67947839DDA8 ***
+[bq60] итог got=1 (сниф-данные выше)
+[bq60] done
+[bq60] INVALIDATION
