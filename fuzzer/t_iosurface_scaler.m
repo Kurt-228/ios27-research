@@ -37443,6 +37443,250 @@ static void p_bq55(void) {
         "bsxpc_SEL-вызовов в живом диалоге (v202+)");
 }
 
+// p_bq56 — v205: ПЕРВЫЙ ВЫЗОВ метода сервиса на живом BSXPC-соединении.
+// Формат аргументов (RE v205, encodeArguments:inArgs:toMessage: 0x18fae9fb8):
+// аргументы кодируются в сообщении по ЦИФРОВЫМ ключам CFSTR "1".."9"
+// (таблица 0x1e0a7e880, jump-table 0x18faea1b4: '1'@0x1e9e23df8, '2'@0xe18),
+// тип по первому символу ObjC-encoding ('@'→BSXPCCodable-объект через
+// encodeObject:forKey:, 'q'→encodeInt64ForKey:, 'Q'→…, >9 аргументов →
+// 'local'); reply-блок не кодируется, ответ придёт сообщением (вероятно
+// по ключу 'r'). Вызов = {bsxpc_SEL: "<selector>", "1": <arg>}.
+// Цель: TCCProxy.photoServiceAuthorizationStatusForExtensionUUID:completion:
+// (сигнатура v32@0:8@"NSUUID"16@?<v@?B@"NSError">24) — ЧТЕНИЕ TCC-базы
+// через wire (§202: у демона tcc-read kTCCServiceAll). Согласовано
+// с оператором заранее (checkpoint: карта интерфейса завершена).
+// Варианты кодирования NSUUID: строка / xpc_uuid / 16-байт data.
+// БЕЗОПАСНАЯ база-проба: bsxpc_SEL=description (NSObject, 0 аргументов)
+// — если формат верный, придёт ответ != молчанию.
+// Контроль (§144): activate-ACK на каждом прогоне (живой хендшейк v202),
+// т.е. все пробы обязаны начать сnev=1 после activate; ни одна probe
+// не должна ронять соединение ДО ответа (иначе детектор/формат сломан).
+static void bq56_call(dispatch_queue_t q, const char *label,
+                      const char *sel, xpc_object_t arg1, BOOL withreply) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    __block int nreply = 0;
+    NSString *ls = @(label);
+    LOG("[bq56] run ENTER %s sel=%s arg1=%s wr=%d", label, sel,
+        arg1 ? "да" : "нет", (int)withreply);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) { LOG("[bq56] %s: create NULL", label); return; }
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 10) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tag = (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+                              ? xpc_dictionary_get_string(ev, "bsxpc") : NULL;
+        char *d = xpc_copy_description(ev);
+        LOG("[bq56] %s ev#%d %s bsxpc=%s: %.900s", ls.UTF8String, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tag ?: "-", d ?: "?");
+        free(d);
+        nev++;
+    });
+    xpc_connection_set_bs_type(c, 1);
+    xpc_object_t ck = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(ck, "lp", "BSXPC(com.apple.fuzz27)");
+    xpc_dictionary_set_string(ck, "s", "TCCProxy");
+    bool slotok = xpc_connection_set_bs_checkin_info(c, ck);
+    LOG("[bq56] %s checkin slot -> %d", label, (int)slotok);
+    xpc_connection_resume(c);
+    xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(act, "bsxpc", "activate");
+    xpc_connection_send_message(c, act);
+    for (int t = 0; t < 20 && nev == 0; t++) usleep(100000);
+    LOG("[bq56] %s activate: nev=%d (%s)", label, nev,
+        nev > 0 ? "ACK — соединение живо" : "MOLCH?!");
+
+    xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(m, "bsxpc_SEL", sel);
+    if (arg1) xpc_dictionary_set_value(m, "1", arg1);
+    if (withreply) {
+        xpc_connection_send_message_with_reply(c, m, q, ^(xpc_object_t rep) {
+            char *d2 = xpc_copy_description(rep);
+            LOG("[bq56] %s REPLY: %.900s", ls.UTF8String, d2 ?: "?");
+            free(d2);
+            nreply++;
+        });
+    } else {
+        xpc_connection_send_message(c, m);
+    }
+    for (int t = 0; t < 25 && nev < 2 && nreply == 0; t++) usleep(100000);
+    LOG("[bq56] %s после вызова: nev=%d nreply=%d", label, nev, nreply);
+    done = YES;
+    xpc_connection_cancel(c);
+}
+
+// v205.1: вызов через bsxpc_BATCH — {bsxpc_BATCH: [<под-сообщения>]}
+static void bq56_batch(dispatch_queue_t q, const char *label, xpc_object_t arr) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    __block int nreply = 0;
+    NSString *ls = @(label);
+    LOG("[bq56] run ENTER %s (batch)", label);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) { LOG("[bq56] %s: create NULL", label); return; }
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 10) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tag = (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+                              ? xpc_dictionary_get_string(ev, "bsxpc") : NULL;
+        char *d = xpc_copy_description(ev);
+        LOG("[bq56] %s ev#%d %s bsxpc=%s: %.900s", ls.UTF8String, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tag ?: "-", d ?: "?");
+        free(d);
+        nev++;
+    });
+    xpc_connection_set_bs_type(c, 1);
+    xpc_object_t ck = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(ck, "lp", "BSXPC(com.apple.fuzz27)");
+    xpc_dictionary_set_string(ck, "s", "TCCProxy");
+    bool slotok = xpc_connection_set_bs_checkin_info(c, ck);
+    LOG("[bq56] %s checkin slot -> %d", label, (int)slotok);
+    xpc_connection_resume(c);
+    xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(act, "bsxpc", "activate");
+    xpc_connection_send_message(c, act);
+    for (int t = 0; t < 20 && nev == 0; t++) usleep(100000);
+    LOG("[bq56] %s activate: nev=%d (%s)", label, nev,
+        nev > 0 ? "ACK — соединение живо" : "MOLCH?!");
+
+    xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_value(m, "bsxpc_BATCH", arr);
+    xpc_connection_send_message_with_reply(c, m, q, ^(xpc_object_t rep) {
+        char *d2 = xpc_copy_description(rep);
+        LOG("[bq56] %s BATCH-REPLY: %.900s", ls.UTF8String, d2 ?: "?");
+        free(d2);
+        nreply++;
+    });
+    for (int t = 0; t < 25 && nev < 2 && nreply == 0; t++) usleep(100000);
+    LOG("[bq56] %s после batch: nev=%d nreply=%d", label, nev, nreply);
+    done = YES;
+    xpc_connection_cancel(c);
+}
+
+static void p_bq56(void) {
+    LOG("[bq56] v205: первый вызов метода TCCProxy на живом соединении "
+        "(photoServiceAuthorizationStatusForExtensionUUID:completion:)");
+    dispatch_queue_t q = dispatch_queue_create("bq56.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    // контроль детектора (§144): голое {} -> invalidate
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq56] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) {
+        LOG("[bq56] CONTROL FAILED — вердикты не выносятся (§144)");
+        return;
+    }
+    // безопасная база-проба: description, 0 аргументов
+    bq56_call(q, "D-description", "description", NULL, NO);
+    // TCC-вызов, UUID строкой
+    {
+        xpc_object_t u = xpc_string_create("11111111-2222-3333-4444-555555555555");
+        bq56_call(q, "T1-uuid-string",
+                  "photoServiceAuthorizationStatusForExtensionUUID:completion:", u, NO);
+    }
+    // TCC-вызов, xpc_uuid
+    {
+        unsigned char bytes[16] = {0x11,0x11,0x11,0x11,0x22,0x22,0x33,0x33,
+                                   0x44,0x44,0x55,0x55,0x55,0x55,0x55,0x55};
+        uuid_t uu;
+        memcpy(uu, bytes, 16);
+        xpc_object_t u = xpc_uuid_create(uu);
+        bq56_call(q, "T2-xpc-uuid",
+                  "photoServiceAuthorizationStatusForExtensionUUID:completion:", u, NO);
+    }
+    // TCC-вызов, UUID data (16 байт)
+    {
+        unsigned char bytes[16] = {0x11,0x11,0x11,0x11,0x22,0x22,0x33,0x33,
+                                   0x44,0x44,0x55,0x55,0x55,0x55,0x55,0x55};
+        xpc_object_t u = xpc_data_create(bytes, 16);
+        bq56_call(q, "T3-uuid-data",
+                  "photoServiceAuthorizationStatusForExtensionUUID:completion:", u, NO);
+    }
+    // TCC-вызов + reply-канал (с string-UUID)
+    {
+        xpc_object_t u = xpc_string_create("11111111-2222-3333-4444-555555555555");
+        bq56_call(q, "T4-uuid-str-reply",
+                  "photoServiceAuthorizationStatusForExtensionUUID:completion:", u, YES);
+    }
+    // v205.1: ВЫЗОВЫ ЧЕРЕЗ bsxpc_BATCH (RE: _subMessages декодирует
+    // массив под-сообщений по ключу 'bsxpc_BATCH'; одиночное
+    // сообщение без тега диспетчер не понимает — «unknown message»)
+    // B1: batch с description
+    {
+        xpc_object_t sub = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sub, "bsxpc_SEL", "description");
+        xpc_object_t arr = xpc_array_create(&sub, 1);
+        bq56_batch(q, "B1-batch-description", arr);
+    }
+    // B2: batch с TCC-вызовом, UUID строкой
+    {
+        xpc_object_t sub = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sub, "bsxpc_SEL",
+            "photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        xpc_dictionary_set_string(sub, "1", "11111111-2222-3333-4444-555555555555");
+        xpc_object_t arr = xpc_array_create(&sub, 1);
+        bq56_batch(q, "B2-batch-tcc-str", arr);
+    }
+    // B3: batch с TCC-вызовом, xpc_uuid
+    {
+        xpc_object_t sub = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sub, "bsxpc_SEL",
+            "photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        unsigned char bytes[16] = {0x11,0x11,0x11,0x11,0x22,0x22,0x33,0x33,
+                                  0x44,0x44,0x55,0x55,0x55,0x55,0x55,0x55};
+        uuid_t uu;
+        memcpy(uu, bytes, 16);
+        xpc_object_t u = xpc_uuid_create(uu);
+        xpc_dictionary_set_value(sub, "1", u);
+        xpc_object_t arr = xpc_array_create(&sub, 1);
+        bq56_batch(q, "B3-batch-tcc-uuid", arr);
+    }
+    // v205.2: messageID под ключом 'bsxpc' (RE: messageID =
+    // decodeStringForKey 'bsxpc', setMessageID: = encodeObject 'bsxpc')
+    // — гипотеза: reply-роутинг по этому ключу.
+    // C1: batch + sub {bsxpc: uuid, bsxpc_SEL: description}
+    {
+        xpc_object_t sub = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sub, "bsxpc", "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE");
+        xpc_dictionary_set_string(sub, "bsxpc_SEL", "description");
+        xpc_object_t arr = xpc_array_create(&sub, 1);
+        bq56_batch(q, "C1-batch-mid-description", arr);
+    }
+    // C2: batch + sub {bsxpc: uuid, bsxpc_SEL: TCC-селектор, "1": uuid-str}
+    {
+        xpc_object_t sub = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sub, "bsxpc", "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE");
+        xpc_dictionary_set_string(sub, "bsxpc_SEL",
+            "photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        xpc_dictionary_set_string(sub, "1", "11111111-2222-3333-4444-555555555555");
+        xpc_object_t arr = xpc_array_create(&sub, 1);
+        bq56_batch(q, "C2-batch-mid-tcc", arr);
+    }
+    // C3: одиночное сообщение с bsxpc=<uuid> (не batch) — как пишет
+    //     реальный клиент? (ответ-кандидат приходит отдельным сообщением)
+    {
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "bsxpc", "AAAAAAAA-BBBB-CCCC-DDDD-EEEEEEEEEEEE");
+        xpc_dictionary_set_string(m, "bsxpc_SEL", "description");
+        xpc_object_t arr = xpc_array_create(NULL, 0);
+        bq56_batch(q, "C3-nobatch-mid", arr);
+    }
+    LOG("[bq56] done");
+    LOG("[bq56] VERDICT: ответ != invalidate на D/T/B-пробах = вызов дошёл "
+        "до сервиса (транзакция TCC-чтения); RE-ключи: арг '1', "
+        "bsxpc_BATCH = массив под-сообщений, invokeMethod reflection "
+        "BSObjCMethod");
+}
+
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
@@ -44925,6 +45169,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ53")) { p_bq53(); LOG("[probe13] bq53-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ54")) { p_bq54(); LOG("[probe13] bq54-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ55")) { p_bq55(); LOG("[probe13] bq55-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ56")) { p_bq56(); LOG("[probe13] bq56-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

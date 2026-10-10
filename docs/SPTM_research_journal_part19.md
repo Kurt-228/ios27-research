@@ -4611,3 +4611,74 @@ tccProxyConnection — NSXPCConnection поверх BSXPC endpoint).
   восстанавливается за минуту (pip capstone), данные в /tmp живучи.
 
 Логи: `results/runf-bq54.log`, `results/runf-bq55.log`.
+
+## §205. Вызов метода: bsxpc_BATCH доставлен демону, batch-ACK {count=0}; остался reply-роутинг (v205)
+
+### Пробы формата (bq56, v205)
+
+На живом соединении (checkin TCCProxy + activate-ACK):
+- одиночное `{bsxpc_SEL:"description"}` (T1-T4, P1-P6 ранее) — тишина или
+  interrupt; **`bsxpc`=<uuid> во внешнем сообщении = «unknown message» →
+  сервер обрывает соединение** (C3: BATCH-REPLY 0x205d35460 = XPC_ERROR);
+- **B-пробы `{bsxpc_BATCH:[{bsxpc_SEL:…, "1":…}]}` — сервер ОБРАБОТАЛ и
+  ответил XPC-словарём {count=0} (batch-ACK, не ошибка)** — пакет
+  под-сообщений проходит до демона (B1/B2/B3, C1/C2 с messageID-гипотезой
+  внутри под-сообщения — тот же ACK);
+- C3 подтвердил: ключ `bsxpc` на внешнем сообщении диспетчер трактует
+  как тег — посторонняя строка = unknown → разрыв.
+
+### RE-карта формата вызова (полная)
+
+- messageID: `-[BSXPCServiceConnectionMessage messageID]` =
+  decodeStringForKey **'bsxpc'**; `setMessageID:` = encodeObject 'bsxpc'
+  — РОУТИНГ ОТВЕТОВ, но НЕ для вызовов (вызов без 'bsxpc' → путь
+  вызова диспетчера);
+- аргументы: цифровые ключи **"1".."9"** (encodeArguments:
+  inArgs:toMessage: 0x18fae9fb8; 'q'→encodeInt64ForKey:, '@'→
+  BSXPCCodable через encodeObject:forKey:, >9 → 'local');
+- под-сообщения: **'bsxpc_BATCH'** = xpc-массив (метод-листы протоколов:
+  TCCProxy `photoServiceAuthorizationStatusForExtensionUUID:completion:`
+  v32@0:8@"NSUUID"16@?<v@?B@"NSError">24; Launch
+  `invalidateLaunchAssertionsForExtensionAuditToken:reply:`; Discovery
+  `beginExtensionsQuery:listenerEndpoint:reply:` + `extensionsWith:reply:`;
+  QueryResults `query:resultDidUpdate:reply:`;
+  Observer `beginObservingWithConfiguration:reply:` + `observer:reply:`);
+- ответ метода: `createReply` (0x18faff798) — только если
+  `-[message expectsReply]` (0x18faff7fc → xpc-флаг expects-reply
+  у ПОД-сообщения — 0x1900e46d0, xpc-уровень); ответ шлётся по
+  xpc-reply механизму / messageID;
+- EventHandler: `connection:handleMessage:` (block 0x18fae6028) —
+  `_subMessages` → [x19+0x28] message → для КАЖДОГО под-сообщения блок
+  0x18fb09324 → делегат демона
+  `ListenerDelegate.listener(_:didReceive:withContext:)` (Swift,
+  BSServiceConnection + BSXPCDecoding);
+- цепочка вызова на сервере: 0x18fae50bc (без тега) → гейты
+  ([conn+0xab] «invalidated», childIdentifier, isRoot) → 0x18fae69c4
+  («we should never get here if we've never set up the connection
+  queue» — очередь `-[BSXPCServiceConnectionEventHandler setQueue:]`)
+  → 0x18fae6f64 dispatch → invokeMethod reflection (BSObjCMethod:
+  arguments/type/numberOfArguments).
+
+### Открытый вопрос (следующая итерация)
+
+Почему B-пакеты получают пустой ACK, а результат вызова
+(completion BOOL/NSError) не возвращается: либо под-сообщение
+требует xpc-флаг expects-reply (нельзя выставить на вложенном
+словаре — нужен другой способ: может, реальные клиенты шлют вызовы
+отдельными сообщениями с with_reply, а batch — только для
+транзакций), либо демон не выставил очередь соединению (assert
+«connection queue»). Решающий инструмент: os_log демона —
+`sudo log collect --device-name "iPhone (Kurt)" --last 15m` (метки:
+«Registering incoming connection», «Incoming root connection»,
+«we should never get here…», «Ignoring message because…»,
+«unknown message») — нужен sudo оператора.
+
+### Инструментальные уроки v205
+
+- `log collect --device-name` требует sudo — из автономного цикла
+  недоступен; детальные ветки сервера видны только через os_log.
+- xpc-объекты в reply-канале: словари из клиентского пула
+  (0x10xxxxxxx) = ответы сервера; 0x205d35xxx = XPC-ошибки
+  (interrupted) — различать по адресному диапазону.
+
+Логи: `results/runf-bq56.log`.

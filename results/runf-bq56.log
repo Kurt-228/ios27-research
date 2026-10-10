@@ -1,0 +1,117 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ56=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x4513
+[scaler] conn 0x4513, s1 201 s2 223
+[probe12] SetNotificationPort -> 0x00000000
+[bq56] v205: первый вызов метода TCCProxy на живом соединении (photoServiceAuthorizationStatusForExtensionUUID:completion:)
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x130494700> { count = 1, transaction: 0, voucher = 0x1307784b0, contents =
+	"bsxpc" => <string: 0x1305342d0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq56] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq56] run ENTER D-description sel=description arg1=нет wr=0
+[bq56] D-description checkin slot -> 1
+[bq56] D-description ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x130778460, contents =
+	"bsxpc" => <string: 0x1306e6a30> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] D-description activate: nev=1 (ACK — соединение живо)
+[bq56] D-description после вызова: nev=1 nreply=0
+[bq56] run ENTER T1-uuid-string sel=photoServiceAuthorizationStatusForExtensionUUID:completion: arg1=да wr=0
+[bq56] T1-uuid-string checkin slot -> 1
+[bq56] T1-uuid-string ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x1306e78a0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] T1-uuid-string activate: nev=1 (ACK — соединение живо)
+[bq56] T1-uuid-string после вызова: nev=1 nreply=0
+[bq56] run ENTER T2-xpc-uuid sel=photoServiceAuthorizationStatusForExtensionUUID:completion: arg1=да wr=0
+[bq56] T2-xpc-uuid checkin slot -> 1
+[bq56] T2-xpc-uuid ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x1306e5980> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] T2-xpc-uuid activate: nev=1 (ACK — соединение живо)
+[bq56] T2-xpc-uuid после вызова: nev=1 nreply=0
+[bq56] run ENTER T3-uuid-data sel=photoServiceAuthorizationStatusForExtensionUUID:completion: arg1=да wr=0
+[bq56] T3-uuid-data checkin slot -> 1
+[bq56] T3-uuid-data ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x130778780, contents =
+	"bsxpc" => <string: 0x130435530> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] T3-uuid-data activate: nev=1 (ACK — соединение живо)
+[bq56] T3-uuid-data после вызова: nev=1 nreply=0
+[bq56] run ENTER T4-uuid-str-reply sel=photoServiceAuthorizationStatusForExtensionUUID:completion: arg1=да wr=1
+[bq56] T4-uuid-str-reply checkin slot -> 1
+[bq56] T4-uuid-str-reply ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x1306e5d10> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] T4-uuid-str-reply activate: nev=1 (ACK — соединение живо)
+[bq56] T4-uuid-str-reply REPLY: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq56] T4-uuid-str-reply после вызова: nev=1 nreply=1
+[bq56] run ENTER B1-batch-description (batch)
+[bq56] B1-batch-description checkin slot -> 1
+[bq56] B1-batch-description ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x130864750> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] B1-batch-description activate: nev=1 (ACK — соединение живо)
+[bq56] B1-batch-description BATCH-REPLY: <dictionary: 0x130494900> { count = 0, transaction: 0, voucher = 0x0, contents =
+}
+[bq56] B1-batch-description после batch: nev=1 nreply=1
+[bq56] run ENTER B2-batch-tcc-str (batch)
+[bq56] B2-batch-tcc-str checkin slot -> 1
+[bq56] B2-batch-tcc-str ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x1308647b0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] B2-batch-tcc-str activate: nev=1 (ACK — соединение живо)
+[bq56] B2-batch-tcc-str BATCH-REPLY: <dictionary: 0x130494900> { count = 0, transaction: 0, voucher = 0x0, contents =
+}
+[bq56] B2-batch-tcc-str после batch: nev=1 nreply=1
+[bq56] run ENTER B3-batch-tcc-uuid (batch)
+[bq56] B3-batch-tcc-uuid checkin slot -> 1
+[bq56] B3-batch-tcc-uuid ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x130865140> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] B3-batch-tcc-uuid activate: nev=1 (ACK — соединение живо)
+[bq56] B3-batch-tcc-uuid BATCH-REPLY: <dictionary: 0x130494900> { count = 0, transaction: 0, voucher = 0x0, contents =
+}
+[bq56] B3-batch-tcc-uuid после batch: nev=1 nreply=1
+[bq56] run ENTER C1-batch-mid-description (batch)
+[bq56] C1-batch-mid-description checkin slot -> 1
+[bq56] C1-batch-mid-description ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494700> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x130865620> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] C1-batch-mid-description activate: nev=1 (ACK — соединение живо)
+[bq56] C1-batch-mid-description BATCH-REPLY: <dictionary: 0x130494700> { count = 0, transaction: 0, voucher = 0x0, contents =
+}
+[bq56] C1-batch-mid-description после batch: nev=1 nreply=1
+[bq56] run ENTER C2-batch-mid-tcc (batch)
+[bq56] C2-batch-mid-tcc checkin slot -> 1
+[bq56] C2-batch-mid-tcc ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494900> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x130865650> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] C2-batch-mid-tcc activate: nev=1 (ACK — соединение живо)
+[bq56] C2-batch-mid-tcc BATCH-REPLY: <dictionary: 0x130494700> { count = 0, transaction: 0, voucher = 0x0, contents =
+}
+[bq56] C2-batch-mid-tcc после batch: nev=1 nreply=1
+[bq56] run ENTER C3-nobatch-mid (batch)
+[bq56] C3-nobatch-mid checkin slot -> 1
+[bq56] C3-nobatch-mid ev#1 [MSG] bsxpc=activate: <dictionary: 0x130494900> { count = 1, transaction: 1, voucher = 0x1307785f0, contents =
+	"bsxpc" => <string: 0x130865b60> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq56] C3-nobatch-mid activate: nev=1 (ACK — соединение живо)
+[bq56] C3-nobatch-mid BATCH-REPLY: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq56] C3-nobatch-mid после batch: nev=1 nreply=1
+[bq56] done
+[bq56] VERDICT: ответ != invalidate на D/T/B-пробах = вызов дошёл до сервиса (транзакция TCC-чтения); RE-ключи: арг '1', bsxpc_BATCH = массив под-сообщений, invokeMethod reflection BSObjCMethod
+[probe13] bq56-only mode, stop
