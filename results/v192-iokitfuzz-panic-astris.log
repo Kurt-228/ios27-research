@@ -1,0 +1,538 @@
+iBoot version: qemu-sptm
+Darwin Image4 Extension Version 7.0.0: Tue Jul 14 21:12:19 PDT 2026; root:AppleImage4-374~10023/AppleImage4/RELEASE_ARM64E
+AppleImage4: legacy nonce blob length insufficient: actual = 96, expected >= 368
+AppleImage4: magazine[pdmg]: failed to read nonce slot data: 2
+AppleImage4: magazine[cptx]: failed to read nonce slot data: 2
+AppleImage4: magazine[dvdi]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1bt]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1ab]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1gn]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1sm]: failed to read nonce slot data: 2
+AppleImage4: magazine[d1ma]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1ge]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1er]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1ai]: failed to read nonce slot data: 2
+AppleImage4: magazine[c1al]: failed to read nonce slot data: 2
+AppleImage4: root power domain not yet available: 19
+Image4: unable to setup /chosen/asmb node
+AMFI: UDID support enabled: 2
+AMFI: queried model name from device tree: iPhone17,3
+AMFI: disabling Swift Playgrounds JIT services on iPhone devices
+AMFI: Booted in a VM
+IOServicePH::kIOMessageSystemCapabilityChange: will 0xf->0xf
+IOServicePH::systemPowerChange to 0x30
+IOServicePH::kIOMessageSystemCapabilityChange: did 0xf->0xf
+ACMTRM: initU32FromBootArg: acm_fastsim = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/insecure_hpr = 0x0 <--- not found.
+ACMTRM: isFastSimTarget: isFastSim = NO.
+AppleCredentialManager: init: inited KE[1] (ready=NO AVP=NO SIM=NO SIMT=NO USESEP=YES) -> true.
+AppleCredentialManager: probe: probed KE[1] (ready=NO) -> true (score=0).
+[EXBrightKext] EXBrightKext::start
+AppleInterruptControllerV3::start: _aicRevision = 0 _aicBaseAddress = <ptr> _aicNumVectors = 0x00001000 Num Shared Timestamps = 16 
+AMFI: skipping PMGRAON latch due to AVP
+AMFI: trying to get developer mode status from ACM
+Warning: arc4random not implemented
+Warning: arc4random not implemented
+Warning: arc4random not implemented
+AKSAnalytics built Jul 14 2026 21:26:21
+selected analytics domain countrydAKSAnalytics startedAppleARMBootPerf: Error: profile handoff region not found (2)
+AppleARMBootPerf: Error: failed to publish profile data (2)
+AppleARMSFRManifest: Starting
+AppleARMSFRManifest: Error: Failed to find property sfr-manifest-hash
+AppleARMSFRManifest: Found HASH property
+AppleARMSFRManifest: Found 0 matching hash entries
+AppleARMSFRManifest: Error: Invalid input
+AppleARMSFRManifest: Error: Failed to find manifest entry region
+AppleARMSFRManifest: Error: Failed to locate manifest information
+AppleARMSFRManifest: Successfully published sfr-manifest
+[AppleLockdownMode - start] started
+Loaded debug arguments with mask 0x00000001, serial log: disabled
+AppleCredentialManager: start: starting KE[1] (ready=NO) -> true.
+AppleCredentialManager: initImpl: called, KE[1].
+[AppleLockdownMode - LDMShouldEnforceParity] restoreOS check passed
+ACMFirstResponderKernelService: init: called, .
+ACM: init: called, .
+ACMTRM-S: init: called, starting PersistentStore service.
+ACMTRM-A: init: called, starting TRM Analytics service.
+ACMTRM-C: init: called, starting AccessoryCache service.
+ACMTRM: init: called, starting TRM service [BUILT: Jul 14 2026, 21:20:00].
+ACMTRM: initU32FromBootArg: trm_default = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_enabled = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/trm-enabled = 0x1.
+ACMTRM: initU32FromBootArg: trm_unification = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_all_policy_modes = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_base_system = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: hidrm_default = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: hidrm_enabled = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/hidrm-enabled = 0x1.
+ACMTRM: initU32FromEDTProp: /options/stress-rack = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_change_policy_mode = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_profile = 0xffffffff <--- not found.
+ACMTRM: initU32FromEDTProp: /defaults/trm-profile = 0x3.
+ACMTRM: initU32FromBootArg: trm_analytics_period = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_acc_cache_size = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_acc_cache_expiration = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_relaxed_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_unlocked_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: usb_standard_mode_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_policy_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: usb_standard_mode_lock_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_grace_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: trm_keep_enabled_during_apple_setup = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: itrm_hyst_period_timeout = 0xffffffff <--- not found.
+ACMTRM: initU32FromBootArg: itrm_grace_period_timeout = 0xffffffff <--- not found.
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N* Arg=N HW=N DT=N Env=N Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N* HW=N DT=N Env=N Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N* Env=N Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _loadDisabledByOSEnvironment: disabled by OSEnvironment: NO.
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N Env=N* Ext=N Dev=N SEP=N SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: initU32FromEDTProp: /chosen/sepfw-load-at-boot = 0x1.
+ACMTRM: isSEPAvailable: isSEPAvailable = YES.
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N Env=N Ext=N Dev=N SEP=N* SR=N | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: _disableBy: [TRM ENABLED=YES] (mask=0, DISABLED BY: Def=N Arg=N HW=N DT=N Env=N Ext=N Dev=N SEP=N SR=N* | MC=N DW=N CB=N GS=N CP=N BS=N MB=N SC=N AS=N IB=N DM=N).
+ACMTRM: prop___set: TRM_PolicyTimeout = 259200.
+ACMTRM: prop___set: TRM_RelaxedPeriodTimeout = 259200.
+ACMTRM: prop___set: TRM_UnlockedPeriodTimeout = 86400.
+ACMTRM: prop___set: HIDRM_PolicyEnabled = No(0).
+ACMTRM: _mapAndPublish: ---> TRM state changed (3/0/0) while LOCKED(1), TRM: 259200/-(255) 4294967295/-(255) M=255/4294967295/4294967295 ---(255)/---(255) L=255 BS=255 R=255 RP=259200/255 UP=86400/255, RAW: -(255) -(255).
+ACMTRM: _mapAndPublish: ---> HIDRM state changed (1) while LOCKED(1), enabled=0 E=255/255.
+ACMLockdownModeKernelService: init: called, .
+ACMLockdownModeKernelService: init: returning, result = true.
+AppleCredentialManager: initImpl: KE[1] INITED.
+AppleCredentialManager: initImpl: returning, KE[1] -> true.
+AppleCredentialManager: startImpl: called, KE[1].
+ACM: TRMAccCache_SetupEmpty: called, cacheSize=48 expiration=2592000.
+ACMTRM: start: security.mac.acm.root_pivot_occurred sysctl registered.
+ACMLockdownModeKernelService: start: called, .
+ACMLockdownModeKernelService: start: returning, result = true.
+AppleCredentialManager: startImpl: initializing power management.
+AppleCredentialManager: startImpl: will join SEPManager's PM tree in getSEPEndpoint().
+AppleCredentialManager: startImpl: registering notifications.
+AppleCredentialManager: startImpl: KE[1] STARTED.
+AppleCredentialManager: startImpl: returning, KE[1] -> true.
+AppleCredentialManager: start: started KE[1] (ready=YES) -> true.
+"AppleSEPKeyStore":pid:0,:373: starting (BUILT: Jul 14 2026 21:25:47) ("normal" variant 🌽 , 2383.0.22.0.2)
+"AppleSEPKeyStore":pid:0,:492: _sep_enabled = 1
+"AppleSEPKeyStore":pid:0,:553: ioPerfControl is enabled: 1, 1
+virtual bool CoreAnalyticsHub::start(IOService *)::150:CoreAnalyticsHub start
+AppleARMBacklight::start: Using new Backlight Architecture 1
+AppleARMBacklight::start: _lMaxProduct=142540800
+AppleARMBacklight::start: _lMidProduct=10158080
+AppleARMBacklight::start: _lMinProduct=65536
+AppleARMBacklight::exportCalibration: _lMaxProduct=142540800, _lMidProduct=10158080, _lMinProduct=65536, _lMaxPanel=142540800, _lMidPanel=10158080, _lMinPanel=65536, _milliAmps2NitsScaleFactor=0
+AppleARMBacklight::start: no backlight enable function
+AppleARMBacklight::start: no backlight update function
+AppleARMBacklight::start: _minDACLevel=153 _maxDACLevel=2047
+AppleCredentialManager: waitForSEPEndpointOutsideACMCommandGate: waiting (cmd=25).
+virtual bool CoreAnalyticsHub::start(IOService *)::229:CoreAnalyticsHub start completed
+com.apple.AppleFSCompressionTypeZlib kmod start
+apfs_module_start:3381: load: com.apple.filesystems.apfs, v3283.0.13, apfs-3283.0.13, 2026/07/14
+TrustedClockingKEXT::init - Hello from the kernel!
+TrustedClockingKEXT::probe - Probing hardware...
+com.apple.AppleFSCompressionTypeZlib load succeeded
+virtual bool AppleARMLightEmUp::start(IOService *): starting...
+Setting up notifier for CoreAnalyticsHub
+TrustedClockingKEXT::start - Starting AoE Clocking driver...
+TrustedClockingKEXT::setupTransportAndPublisherForCallbacks - transport=<ptr> publisher=<ptr>
+TrustedClockingKEXT::start - AoE Clocking driver started successfully!
+apfs_sysctl_register:1328: done registering sysctls.
+L2TP domain init
+L2TP domain init complete
+Load request for com.apple.nke.pptp failed: -603946991
+AppleOLYHAL::probe: score = 1000
+AppleOLYHAL::start: entry with provider <ptr>
+AppleOLYHAL::start: found wlan-olyhal-abort boot-arg, bailing
+BSD root: md0, major 3, minor 0
+apfs_vfsop_mountroot:3156: apfs: mountroot called!
+container_rootmount:2638: boot from ramdisk /dev/md0
+dev_init:296: md0 device accelerated crypto: 0 (compiled @ Jul 14 2026 21:11:49)
+dev_init:299: md0 device_handle block size 512 block count 466944 features 0 internal 
+nx_mount:1156: md0 initializing cache w/hash_size 1024 and cache size 4096
+nx_mount:1481: md0 checkpoint search: largest xid 70, best xid 70 @ 5
+nx_mount:1508: md0 stable checkpoint indices: desc 4 data 297
+fs_lookup_root_snapshot_name:375: md0s1 failed to get root-snapshot-name from DT
+apfs_find_named_root_snapshot_xid:2153: md0s1 failed to retrieve default root snapshot xid: No such file or directory (2)
+apfs_find_named_root_snapshot_xid:2191: md0s1 The global payload bytes pointer is NULL
+apfs_vfsop_mount:2914: md0s1 failed to find named root snapshot: Need authenticator (81)
+apfs_log_op_with_proc:3279: md0s1 mounting volume ramdisk, requested by: kernel_task (pid 0); parent: kernel_task (pid 0)
+apfs_vfsop_mount:3017: md0s1 fs iokit node was not found
+handle_mount:893: md0s1 vol-uuid: 9342A00E-8535-46B8-B92B-A2E9EE40E5BA block size: 4096 block count: 58368 (unencrypted; flags: 0x1; features: 8.0.2)
+handle_mount:906: md0s1 setting dev block size to 4096 from 512
+apfs_log_op_with_proc:3279: md0s1 mount-complete volume ramdisk, requested by: kernel_task (pid 0); parent: kernel_task (pid 0)
+[uart] Started AppleSerialShim.
+4122200us IOThunderboltFamily (build 21:11:30 Jul 14 2026)
+Identified Serial Port qemuport3 at 0x385210000(<ptr>)
+Identified Serial Port qemuport0 at 0x385204000(<ptr>)
+Identified Serial Port qemuport1 at 0x385208000(<ptr>)
+Identified Serial Port qemuport2 at 0x38520c000(<ptr>)
+Darwin Ignition Sequence Version 1.0.0: Tue Jul 14 21:12:31 PDT 2026; root:libignition-64~11776/libignition_core/RELEASE_ARM64E
+libignition: 1: arguments           :
+libignition: 1:   ignition level    : 0x5
+libignition: 1:   force dylib root  : 0x0
+libignition: 1:   halt after stage  : n/a
+libignition: 1: configuration         :
+libignition: 1:   program             : launchd
+libignition: 1:   os environment      : n/a
+libignition: 1:   rd                  : md0
+libignition: 1:   arp0                : n/a
+libignition: 1:   rp                  : n/a
+libignition: 1:   pivot src           : n/a
+libignition: 1:   root ramdisk        : 0x0
+libignition: 1:   restore             : 0x0
+libignition: 1:   root device info    : 0x0
+libignition: 1:   can haz debugger    : 0x0
+libignition: 1:   rootfs mount flags  : 0x1480d001
+libignition: 1:   ecid                : 0x0
+libignition: 1:   hardware target     : d47ap
+libignition: 1:   initproc            : 0x1
+libignition: 1:   single user         : 0x0
+libignition: 1:   userspace reboot    : 0x0
+libignition: 1:   secure boot level   : 0x0
+libignition: 1:   os version          : n/a
+libignition: 1: parameters          :
+libignition: 1:   version           : 0x1
+libignition: 1:   argc              : 0x1
+libignition: 1:   log fd            : 0xffffffffffffffff
+libignition: 1:   platform          : 0x2
+libignition: 1: boot spec           :
+libignition: 1:   name              : ramdisk
+libignition: 1:   stage count       : 0x2
+libignition: 1:        hello: commence primary ignition
+libignition: 1:        hello: hello from launchd.1
+libignition: 1:      goodbye: ignition sequence complete
+dyld[1]: result from check_np(): -1, errno 12
+com.apple.xpc.launchd|1970-01-01 00:00:05.641046 <Notice>: hello, launchd UUID: 97DA6BFE-F657-3EE4-BE1D-D8A05D029321
+com.apple.xpc.launchd|1970-01-01 00:00:05.737771 <Notice>: no mach port for persistent services: 2
+com.apple.xpc.launchd|1970-01-01 00:00:05.738962 <Notice>: Darwin Bootstrapper Version 7.0.0: Fri Jul 10 23:04:38 PDT 2026; root:libxpc_executables-3298.0.21~14/launchd/RELEASE_ARM64E
+com.apple.xpc.launchd|1970-01-01 00:00:05.739468 <Notice>: boot-args = rd=md0 serial=3 -v -noprogress wdt=-1 wlan-olyhal-abort
+com.apple.xpc.launchd|1970-01-01 00:00:05.739695 <Notice>: Restore environment starting.
+com.apple.xpc.launchd|1970-01-01 00:00:05.757491 (system) <Notice>: entering ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.759165 (system) <Notice>: created
+com.apple.xpc.launchd|1970-01-01 00:00:05.772264 (exclaves-boot) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.775603 (fsck) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.775870 (mount-phase-1) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.776021 (data-protection) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.776157 (finish-obliteration) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.776290 (detect-installed-roots) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.776415 (select-boot-mode) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.776539 (commit-boot-mode) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.776699 <Notice>: boot-mode committed: (null)
+com.apple.xpc.launchd|1970-01-01 00:00:05.776836 (restore-datapartition) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.787114 (restore-datapartition) <Notice>: optional boot task not present
+com.apple.xpc.launchd|1970-01-01 00:00:05.788426 (mount-phase-2) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.788713 (init-with-data-volume) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.790064 (fixup-mobile-tmp) <Notice>: Doing boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.791223 (fixup-mobile-tmp) <Error>: could not set create /private/var/mobile/tmp: Read-only file system
+com.apple.xpc.launchd|1970-01-01 00:00:05.791368 (fixup-mobile-tmp) <Notice>: Finished boot task
+com.apple.xpc.launchd|1970-01-01 00:00:05.791508 (MSUEarlyBootTask) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.791635 (MobileAssetEarlyBootTask) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.791763 (fips) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.791890 (keybag) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.792140 (usermanagerd) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.792270 (dirs_cleaner) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.792390 (dirs_cleaner-usr) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.792647 <Notice>: launchd logging initialized. name: com.apple.xpc.launchd pid: 1
+com.apple.xpc.launchd|1970-01-01 00:00:05.801103 <Notice>: Flushed 31 logs [limit: 20]
+com.apple.xpc.launchd|1970-01-01 00:00:05.802287 (xpcroleaccountd) <Notice>: Skipping boot-task
+System Policy: launchd(1) allow process-exec* /usr/libexec/xpcproxy
+com.apple.xpc.launchd|1970-01-01 00:00:05.802339 (init_featureflags) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802371 (auearlyboot) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802379 (aidearlyboot) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802386 (tzinit) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802393 (finish-restore) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802401 (finish-demo-restore) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802473 (sysstatuscheck) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802480 (prng_seedctl) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802532 <Error>: Unable to open /System/Library/xpc/launchd.plist [2:No such file or directory]
+com.apple.xpc.launchd|1970-01-01 00:00:05.802548 (launchd_cache_loader) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802557 (workload-properties-init) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802564 (init-exclavekit) <Notice>: Skipping boot-task
+com.apple.xpc.launchd|1970-01-01 00:00:05.802577 <Error>: No MRM cache found
+com.apple.xpc.launchd|1970-01-01 00:00:05.803122 (trial-factors-v1) <Notice>: reading known trial factors from 0 paths
+com.apple.xpc.launchd|1970-01-01 00:00:05.803146 (trial-factors-v1) <Notice>: reading active trial factors from /private/var/mobile/Library/Trial/NamespaceDescriptors/v2/activeLowLevelFactors.plist
+com.apple.xpc.launchd|1970-01-01 00:00:05.803278 (trial-factors-v1) <Warning>: failed to process path: /private/var/mobile/Library/Trial/NamespaceDescriptors/v2/activeLowLevelFactors.plist: No such file or directory: 2
+com.apple.xpc.launchd|1970-01-01 00:00:05.803385 (boot) <Notice>: Early boot complete. Continuing system boot.
+com.apple.xpc.launchd|1970-01-01 00:00:05.810396 (user/501) <Notice>: entering ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.810564 (user/501) <Notice>: created
+com.apple.xpc.launchd|1970-01-01 00:00:05.810766 (system) <Notice>: entering bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.810776 (user/501) <Notice>: entering bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.832263 (com.jprx.bash) <Notice>: This service is defined to be constantly running and is inherently inefficient.
+com.apple.xpc.launchd|1970-01-01 00:00:05.833156 (user/501) <Notice>: pending spawn, domain in on-demand-only mode: com.jprx.bash
+com.apple.xpc.launchd|1970-01-01 00:00:05.836512 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemonsAltAccount, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.836565 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.836581 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.836593 (user/501) <Error>: Failed to bootstrap path: path = /System/Library/DeveloperModeLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.836605 (user/501) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.836615 (user/501) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.836784 (user/501) <Notice>: exiting bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.836845 (user/501) <Notice>: exiting ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.836982 (user/501/com.jprx.bash) <Notice>: internal event: WILL_SPAWN, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.837098 (user/501/com.jprx.bash) <Notice>: service state: spawn scheduled
+System Policy: xpcproxy(3) allow process-exec* /bin/bash
+AMFI: Launch Constraint Violation (not enforcing), error info: c[6]p[2]m[3]e[255], (Process was launched as a system service unexpectedly but met System Service constraints) launching proc[vc: 1 pid: 3]: /bin/bash, launch type 1, failure proc [vc: 1 pid: com.apple.xpc.launchd|1970-01-01 00:00:05.837126 (user/501/com.jprx.bash) <Notice>: service state: spawning
+com.apple.xpc.launchd|1970-01-01 00:00:05.842830 <Warning>: kpersona_find_by_type() failed with ret -1 errno 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:05.842904 (user/501) <Error>: Unable to find persona with type 6: 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:05.843029 (user/501/com.jprx.bash) <Notice>: launching: speculative
+com.apple.xpc.launchd|1970-01-01 00:00:06.123138 <Notice>: Flushed 38 logs [limit: 20]
+com.apple.xpc.launchd|1970-01-01 00:00:05.859510 (user/501/com.jprx.bash [3]) <Notice>: xpcproxy spawned with pid 3
+com.apple.xpc.launchd|1970-01-01 00:00:05.859733 (user/501/com.jprx.bash [3]) <Notice>: internal event: SPAWNED, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.859816 (user/501/com.jprx.bash [3]) <Notice>: service state: xpcproxy
+com.apple.xpc.launchd|1970-01-01 00:00:05.860479 (user/501/com.jprx.bash [3]) <Notice>: internal event: SOURCE_ATTACH, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:05.860744 (system) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemonsAltAccount, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.860755 (system) <Error>: Failed to bootstrap path: path = /System/Library/NanoLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.860763 (system) <Error>: Failed to bootstrap path: path = /System/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.860775 (system) <Error>: Failed to bootstrap path: path = /System/Library/DeveloperModeLaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.860783 (system) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchDaemons, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.860790 (system) <Error>: Failed to bootstrap path: path = /AppleInternal/Library/LaunchAngels, error = 2: No such file or directory
+com.apple.xpc.launchd|1970-01-01 00:00:05.860805 (system) <Notice>: exiting bootstrap mode
+com.apple.xpc.launchd|1970-01-01 00:00:05.860814 (system) <Notice>: exiting ondemand mode
+com.apple.xpc.launchd|1970-01-01 00:00:06.163636 <Warning>: kpersona_find_by_type() failed with ret -1 errno 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:06.163772 (user/501) <Error>: Unable to find persona with type 6: 3 - No such process
+com.apple.xpc.launchd|1970-01-01 00:00:06.195178 (user/501/com.jprx.bash [3]) <Notice>: service state: running
+com.apple.xpc.launchd|1970-01-01 00:00:06.195343 (user/501/com.jprx.bash [3]) <Notice>: internal event: INIT, code = 0
+com.apple.xpc.launchd|1970-01-01 00:00:06.195422 (user/501/com.jprx.bash [3]) <Notice>: Successfully spawned bash[3] because speculative
+bash-5.3# com.apple.xpc.launchd|1970-01-01 00:00:06.500640 (pid/3 [bash]) <Notice>: uncorking exec source upfront
+com.apple.xpc.launchd|1970-01-01 00:00:06.500820 (pid/3 [bash]) <Notice>: created
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+/private/var/tmp/iotest
+System Policy: bash(4) allow process-exec* /private/var/tmp/iotest
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+IOT pid=4 b  IOKit framework load test
+IOT root=7691
+IOT iterkr=0x0
+IOT svc[0]=D47AP
+IOT svc[1]=options
+IOT svc[2]=IODTNVRAMDiags
+IOT svc[3]=IODTNVRAMPlatformNotifier
+IOT svc[4]=options-common
+IOT DONE services=268
+bash-5.3# ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+ACMTRM: waitForSEPEndpoint: timed out waiting for AppleSEPManager (timeoutMs=5000).
+/private/var/tmp/iokitfuzz &
+[1] 5
+bash-5.3# System Policy: bash(5) allow process-exec* /private/var/tmp/iokitfuzz
+IKF START pid=5 only=* t=-1 sel=0x0..0x1ff deep=0
+IKF root=2323 iterkr=0x0
+System Policy: iokitfuzz(5) deny(1) iokit-open-user-client RootDomainUserClient
+IOUC RootDomainUserClient failed MACF in process pid 5, iokitfuzz
+IOUC RootDomainUserClient failed MACF in process pid 5, iokitfuzz
+IOUC RootDomainUserClient failed MACF in process pid 5, iokitfuzz
+IOUC RootDomainUserClient failed MACF in process pid 5, iokitfuzz
+panic(cpu 0 caller 0xfffffff02b3e30d8): Kernel data abort. at pc 0xfffffff028865598, lr 0xfffffff028865ce8 (saved state: 0xffffffebc10c3640)
+	  x0:  0x0000000000000000 x1:  0x0000000000000000  x2:  0x0000000000000080  x3:  0x0000000000000000
+	  x4:  0x0000000000000000 x5:  0x0000000000000000  x6:  0x0000000000000027  x7:  0x000000001543f58b
+	  x8:  0x0000000000000001 x9:  0x0000000000000000  x10: 0xffffffe0cdb2ce40  x11: 0x0000000000000040
+	  x12: 0x0000000000000e40 x13: 0xffffffdce69d42c0  x14: 0x0000000000000040  x15: 0xfffffff027dc1000
+	  x16: 0x000000000000002f x17: 0xfffffff02b71a300  x18: 0x0000000000000000  x19: 0xffffffe0cda74800
+	  x20: 0xffffffe0cda74800 x21: 0xffffffe0cda74800  x22: 0x0000000000000000  x23: 0xcda1ffdfe7c91860
+	  x24: 0xffffffdf01de1cc0 x25: 0xffffffdf01de1cc0  x26: 0xffffffde1bbb3120  x27: 0xcda1ffde1bbb3120
+	  x28: 0xcda1ffe0cda74800 fp:  0xffffffebc10c39b0  lr:  0xfffffff028865ce8  sp:  0xffffffebc10c3990
+	  pc:  0xfffffff028865598 cpsr: 0x60403208         esr: 0x0000000096000006  far: 0x0000000000000000
+
+Nested panic detected - entry count: 2 panic_caller: 0xfffffff02b3e30d8
+Kernel text exec slide: 0x0000000023b00000
+Kernel text exec base: 0xfffffff02ab04000
+Kernel UUID: 09C85910-8327-37E3-8AFE-1CF3F99052EF
+Panicked thread: 0xffffffdfe7a5d8f0, backtrace: 0xffffffebc10c2170, tid: 439
+		  lr: 0xfffffff02ab5678c  fp: 0xffffffebc10c21f0
+		  lr: 0xfffffff02ab560b4  fp: 0xffffffebc10c23c0
+		  lr: 0xfffffff02b3d395c  fp: 0xffffffebc10c23e0
+		  lr: 0xfffffff02b3e30d8  fp: 0xffffffebc10c2560
+		  lr: 0xfffffff02ad0b4d4  fp: 0xffffffebc10c2610
+		  lr: 0xfffffff02ad09c54  fp: 0xffffffebc10c26e0
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c26f0
+		  lr: 0xfffffff02ad122f8  fp: 0xffffffebc10c2ba0
+		  lr: 0xfffffff02ab56d1c  fp: 0xffffffebc10c2c40
+		  lr: 0xfffffff02ad0b62c  fp: 0xffffffebc10c2cb0
+		  lr: 0xfffffff02ad09848  fp: 0xffffffebc10c2d80
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c2d90
+		  lr: 0xfffffff02ab57074  fp: 0xffffffebc10c3130
+		  lr: 0xfffffff02ab56264  fp: 0xffffffebc10c3300
+		  lr: 0xfffffff02b3d395c  fp: 0xffffffebc10c3320
+		  lr: 0xfffffff02b3e30d8  fp: 0xffffffebc10c34a0
+		  lr: 0xfffffff02ad0b4d4  fp: 0xffffffebc10c3550
+		  lr: 0xfffffff02ad09c54  fp: 0xffffffebc10c3620
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c3630
+		  lr: 0xfffffff028865598  fp: 0xffffffebc10c39b0
+		  lr: 0xfffffff028865ce8  fp: 0xffffffebc10c39f0
+		  lr: 0xfffffff02b2937a0  fp: 0xffffffebc10c3a60
+		  lr: 0xfffffff02b32ebd4  fp: 0xffffffebc10c3b00
+		  lr: 0xfffffff02acc95a8  fp: 0xffffffebc10c3b60
+		  lr: 0xfffffff02ab8f3c8  fp: 0xffffffebc10c3c00
+		  lr: 0xfffffff02ab3205c  fp: 0xffffffebc10c3c60
+		  lr: 0xfffffff02ab48130  fp: 0xffffffebc10c3d90
+		  lr: 0xfffffff02ad04160  fp: 0xffffffebc10c3e40
+		  lr: 0xfffffff02ad09ee8  fp: 0xffffffebc10c3f10
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c3f20
+		  lr: 0x00000001060e0cd4  fp: 0x0000000000000000
+      Kernel Extensions in backtrace:
+         com.apple.driver.AppleAstrisGpioProbe(1.0.1)[8E8F2179-B229-3890-978A-3DC745194A21]@0xfffffff028864b60->0xfffffff0288692a7
+            dependency: com.apple.driver.AppleARMPlatform(1.0.2)[47B57FF5-66AE-3033-BBC1-C6E96DE0E33B]@0xfffffff0285d0d50->0xfffffff0286271f7
+Nested panic string:
+Kernel data abort. at pc 0xfffffff02ad122f8, lr 0xfffffff02ab56d1c (saved state: 0xffffffebc10c2700)
+	  x0:  0xfffffff027049254 x1:  0x0000000000000002  x2:  0x0000000000000000  x3:  0x0000000000000000
+	  x4:  0x0000000000000010 x5:  0x0000000000000001  x6:  0x0000000000000001  x7:  0xfffffff02b3e30d8
+	  x8:  0x0000000000000000 x9:  0xf35951f5cd3500ed  x10: 0x0000000000000002  x11: 0x0000000000000000
+	  x12: 0x000000000000003e x13: 0x0000000000000000  x14: 0x0000000000000000  x15: 0x0000000000000001
+	  x16: 0xfffffff02b39dff4 x17: 0x000000000000d507  x18: 0x0000000000000000  x19: 0xfffffff02b764908
+	  x20: 0x0000000000000000 x21: 0xfffffff02b767000  x22: 0x0000000000000000  x23: 0xfffffff02b6ff000
+	  x24: 0xfffffff027049254 x25: 0xfffffff02b6ff000  x26: 0xfffffff02b6dc000  x27: 0xfffffff02b764000
+	  x28: 0x0000000000000001 fp:  0xffffffebc10c2ba0  lr:  0xfffffff02ab56d1c  sp:  0xffffffebc10c2a50
+	  pc:  0xfffffff02ad122f8 cpsr: 0x204033c8         esr: 0x0000000096000046  far: 0x00000000000000b1
+
+<end nested panic string>
+panic(cpu 0 caller 0xfffffff02b3e30d8): Kernel data abort. at pc 0xfffffff028865598, lr 0xfffffff028865ce8 (saved state: 0xffffffebc10c3640)
+	  x0:  0x0000000000000000 x1:  0x0000000000000000  x2:  0x0000000000000080  x3:  0x0000000000000000
+	  x4:  0x0000000000000000 x5:  0x0000000000000000  x6:  0x0000000000000027  x7:  0x000000001543f58b
+	  x8:  0x0000000000000001 x9:  0x0000000000000000  x10: 0xffffffe0cdb2ce40  x11: 0x0000000000000040
+	  x12: 0x0000000000000e40 x13: 0xffffffdce69d42c0  x14: 0x0000000000000040  x15: 0xfffffff027dc1000
+	  x16: 0x000000000000002f x17: 0xfffffff02b71a300  x18: 0x0000000000000000  x19: 0xffffffe0cda74800
+	  x20: 0xffffffe0cda74800 x21: 0xffffffe0cda74800  x22: 0x0000000000000000  x23: 0xcda1ffdfe7c91860
+	  x24: 0xffffffdf01de1cc0 x25: 0xffffffdf01de1cc0  x26: 0xffffffde1bbb3120  x27: 0xcda1ffde1bbb3120
+	  x28: 0xcda1ffe0cda74800 fp:  0xffffffebc10c39b0  lr:  0xfffffff028865ce8  sp:  0xffffffebc10c3990
+	  pc:  0xfffffff028865598 cpsr: 0x60403208         esr: 0x0000000096000006  far: 0x0000000000000000
+
+Nested panic detected - entry count: 3 panic_caller: 0xfffffff02b3e30d8
+Kernel text exec slide: 0x0000000023b00000
+Kernel text exec base: 0xfffffff02ab04000
+Kernel UUID: 09C85910-8327-37E3-8AFE-1CF3F99052EF
+Panicked thread: 0xffffffdfe7a5d8f0, backtrace: 0xffffffebc10c1230, tid: 439
+		  lr: 0xfffffff02ab5678c  fp: 0xffffffebc10c12b0
+		  lr: 0xfffffff02ab560b4  fp: 0xffffffebc10c1480
+		  lr: 0xfffffff02b3d395c  fp: 0xffffffebc10c14a0
+		  lr: 0xfffffff02b3e30d8  fp: 0xffffffebc10c1620
+		  lr: 0xfffffff02ad0b4d4  fp: 0xffffffebc10c16d0
+		  lr: 0xfffffff02ad09c54  fp: 0xffffffebc10c17a0
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c17b0
+		  lr: 0xfffffff02ad122f8  fp: 0xffffffebc10c1c60
+		  lr: 0xfffffff02ab56d1c  fp: 0xffffffebc10c1d00
+		  lr: 0xfffffff02ad0b62c  fp: 0xffffffebc10c1d70
+		  lr: 0xfffffff02ad09848  fp: 0xffffffebc10c1e40
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c1e50
+		  lr: 0xfffffff02ab57074  fp: 0xffffffebc10c21f0
+		  lr: 0xfffffff02ab56264  fp: 0xffffffebc10c23c0
+		  lr: 0xfffffff02b3d395c  fp: 0xffffffebc10c23e0
+		  lr: 0xfffffff02b3e30d8  fp: 0xffffffebc10c2560
+		  lr: 0xfffffff02ad0b4d4  fp: 0xffffffebc10c2610
+		  lr: 0xfffffff02ad09c54  fp: 0xffffffebc10c26e0
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c26f0
+		  lr: 0xfffffff02ad122f8  fp: 0xffffffebc10c2ba0
+		  lr: 0xfffffff02ab56d1c  fp: 0xffffffebc10c2c40
+		  lr: 0xfffffff02ad0b62c  fp: 0xffffffebc10c2cb0
+		  lr: 0xfffffff02ad09848  fp: 0xffffffebc10c2d80
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c2d90
+		  lr: 0xfffffff02ab57074  fp: 0xffffffebc10c3130
+		  lr: 0xfffffff02ab56264  fp: 0xffffffebc10c3300
+		  lr: 0xfffffff02b3d395c  fp: 0xffffffebc10c3320
+		  lr: 0xfffffff02b3e30d8  fp: 0xffffffebc10c34a0
+		  lr: 0xfffffff02ad0b4d4  fp: 0xffffffebc10c3550
+		  lr: 0xfffffff02ad09c54  fp: 0xffffffebc10c3620
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c3630
+		  lr: 0xfffffff028865598  fp: 0xffffffebc10c39b0
+		  lr: 0xfffffff028865ce8  fp: 0xffffffebc10c39f0
+		  lr: 0xfffffff02b2937a0  fp: 0xffffffebc10c3a60
+		  lr: 0xfffffff02b32ebd4  fp: 0xffffffebc10c3b00
+		  lr: 0xfffffff02acc95a8  fp: 0xffffffebc10c3b60
+		  lr: 0xfffffff02ab8f3c8  fp: 0xffffffebc10c3c00
+		  lr: 0xfffffff02ab3205c  fp: 0xffffffebc10c3c60
+		  lr: 0xfffffff02ab48130  fp: 0xffffffebc10c3d90
+		  lr: 0xfffffff02ad04160  fp: 0xffffffebc10c3e40
+		  lr: 0xfffffff02ad09ee8  fp: 0xffffffebc10c3f10
+		  lr: 0xfffffff02ab07574  fp: 0xffffffebc10c3f20
+		  lr: 0x00000001060e0cd4  fp: 0x0000000000000000
+      Kernel Extensions in backtrace:
+         com.apple.driver.AppleAstrisGpioProbe(1.0.1)[8E8F2179-B229-3890-978A-3DC745194A21]@0xfffffff028864b60->0xfffffff0288692a7
+            dependency: com.apple.driver.AppleARMPlatform(1.0.2)[47B57FF5-66AE-3033-BBC1-C6E96DE0E33B]@0xfffffff0285d0d50->0xfffffff0286271f7
+Nested panic string:
+Kernel data abort. at pc 0xfffffff02ad122f8, lr 0xfffffff02ab56d1c (saved state: 0xffffffebc10c17c0)
+	  x0:  0xfffffff027049254 x1:  0x0000000000000002  x2:  0x0000000000000000  x3:  0x0000000000000000
+	  x4:  0x0000000000000010 x5:  0x0000000000000001  x6:  0x0000000000000001  x7:  0xfffffff02b3e30d8
+	  x8:  0x0000000000000000 x9:  0xf35951f5cd3500ed  x10: 0x0000000000000002  x11: 0x0000000000000000
+	  x12: 0x000000000000003e x13: 0x0000000000000000  x14: 0x0000000000000000  x15: 0x0000000000000001
+	  x16: 0xfffffff02b39dff4 x17: 0x000000000000d507  x18: 0x0000000000000000  x19: 0xfffffff02b764908
+	  x20: 0x0000000000000000 x21: 0xfffffff02b767000  x22: 0x0000000000000000  x23: 0xfffffff02b6ff000
+	  x24: 0xfffffff027049254 x25: 0xfffffff02b6ff000  x26: 0xfffffff02b6dc000  x27: 0xfffffff02b764000
+	  x28: 0x0000000000000001 fp:  0xffffffebc10c1c60  lr:  0xfffffff02ab56d1c  sp:  0xffffffebc10c1b10
+	  pc:  0xfffffff02ad122f8 cpsr: 0x204033c8         esr: 0x0000000096000046  far: 0x00000000000000b1
+
+<end nested panic string>
+panic(cpu 0 caller 0xfffffff02b3e30d8): Kernel data abort. at pc 0xfffffff028865598, lr 0xfffffff028865ce8 (saved state: 0xffffffebc10c3640)
+	  x0:  0x0000000000000000 x1:  0x0000000000000000  x2:  0x0000000000000080  x3:  0x0000000000000000
+	  x4:  0x0000000000000000 x5:  0x0000000000000000  x6:  0x0000000000000027  x7:  0x000000001543f58b
+	  x8:  0x0000000000000001 x9:  0x0000000000000000  x10: 0xffffffe0cdb2ce40  x11: 0x0000000000000040
+	  x12: 0x0000000000000e40 x13: 0xffffffdce69d42c0  x14: 0x0000000000000040  x15: 0xfffffff027dc1000
+	  x16: 0x000000000000002f x17: 0xfffffff02b71a300  x18: 0x0000000000000000  x19: 0xffffffe0cda74800
+	  x20: 0xffffffe0cda74800 x21: 0xffffffe0cda74800  x22: 0x0000000000000000  x23: 0xcda1ffdfe7c91860
+	  x24: 0xffffffdf01de1cc0 x25: 0xffffffdf01de1cc0  x26: 0xffffffde1bbb3120  x27: 0xcda1ffde1bbb3120
+	  x28: 0xcda1ffe0cda74800 fp:  0xffffffebc10c39b0  lr:  0xfffffff028865ce8  sp:  0xffffffebc10c3990
+	  pc:  0xfffffff028865598 cpsr: 0x60403208         esr: 0x0000000096000006  far: 0x0000000000000000
+
+Nested panic detected - entry count: 4 panic_caller: 0xfffffff02b3e30d8
+Kernel text exec slide: 0x0000000023b00000
+Kernel text exec base: 0xfffffff02ab04000
+Kernel UUID: 09C85910-8327-37E3-8AFE-1CF3F99052EF
+Panicked thread: 0xffffffdfe7a5d8f0, backtrace: 0xffffffebc10c02f0, tid: 439
+Nested panic count exceeds limit 5, machine will reset or spin

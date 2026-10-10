@@ -4143,3 +4143,106 @@ Swift-мостом). DoS-краш сервиса — низкоценный ба
    классы из символов сервиса) — уточнить фолбэк-набор; (б) RE svc.bin
    на @catch вокруг decode; (в) end-to-end plant в feedEntries с триггером
    чтения (нужен оператор).
+
+## §200. IOKit-фаззинг в VM-госте и живая ANE-поверхность на устройстве (v192)
+
+### Пайплайн: извлечение dylib оказалось не нужным
+
+План «вырезать libIOKit из dyld-кэша устройства» (§195-бэклог) отменён по
+ходу дела: **ramdisk гостя уже содержит IOKit-фреймворк по точному
+install-path** `/System/Library/Frameworks/IOKit.framework/Versions/A/IOKit`
+(arm64e, 1.4 МБ), все шесть зависимостей (libenergytrace, CoreFoundation,
+libz.1, libbsm.0, libSystem, libobjc) тоже на месте. Урок методологии:
+**проверять ramdisk ПЕРЕД тягачом кэша** — pull 131 МБ .03 + попытка полного
+пулла 5.9 ГБ (77 сабфайлов, убит на середине) были лишними; bq44-дамп на
+устройстве (7.15 ГБ, `Documents/dycache`) подлежит чистке (`FUZZ_BQ44_CLEAN=1`).
+
+Сборка/инжекция: `xcrun -sdk iphoneos clang -target arm64-apple-ios17.0 ...
+-framework IOKit` (kIOMasterPortDefault недоступен в iOS-SDK →
+kIOMainPortDefault; IOConnectTrap0 недоступен → trap-путь не покрыт),
+cdhash → `firmware/all_hashes` → `build_tc.py`, копия в ramdisk **с
+последующей md5-сверкой** (без верификации cp непрозрачен). Запуск через
+gpty; в госте **нет /tmp** — редирект `> /tmp/...` роняет запуск команды
+(наблюдалось, маскировалось под «не дошло»).
+
+### Два воспроизводимых kernel data abort (оба — через IOServiceOpen)
+
+1. **AppleAstrisGpioProbe, type=0** — `Kernel data abort at pc
+   0xfffffff028865598` (кекст+0xA38), far=0x0 (NULL+поле), ESR 0x96000006.
+   Детерминирован: ×4 в четырёх независимых загрузках, репро
+   `iokitfuzz Astris 0 0 0 1` — входит в кекст и падает ДО своей
+   авторизации. Кекст **есть в retail-кэкше 24A5390f** (строки: своя
+   авторизация, `cscommand_t`-гейты с готовыми warning'ами про out-of-bounds
+   и buffer overflow, RelayGet, `function-grape_cs`), **НО сервиса в
+   IORegistry устройства нет** (matching → nil ×3 из песочницы) — нуб
+   девайс-борда-специфичный, на retail-железе не публикуется. На устройстве
+   недостижим; баг закрыт для нашей цели, отмечен для отчёта.
+2. **H1xANELoadBalancer, type=0** — `Kernel data abort at pc
+   0xfffffff02a352168` внутри `com.apple.iokit.IOSurface(402.5)` (+0x1ea68),
+   far=0x140, в бэктрейсе `AppleH16ANEInterface(10.16.2)` (lr кекста +0xa230).
+   Цепочка: open ANE-сервиса → newUserClient H16ANE → вызов в IOSurface по
+   NULL. ×2. В qemu ANE-железа нет — NULL от неинициализированного стека.
+
+Оба открытия из контекста root в госте прошли MACF (логировался deny только
+на `RootDomainUserClient`); гостевой MACF подтверждает: **даже root в
+restore-окружении получает iokit-open deny на отдельные классы**.
+
+### Устройство: живая ANE-поверхность из песочницы
+
+- `H1xANELoadBalancer` **существует в IORegistry устройства** (service
+  0x7807/0x600b/0x7c03, class подтверждён) — три независимых измерения.
+  Astris-семейство: nil (консистентно с гостевым поведением нуба).
+- **open type=1 → kr=0x0, conn выдан** — соединение с ANE user-client
+  открыто ИЗ ПЕСОЧНИЦЫ и закрыто после теста. type=0/2/3 → 0xe00002c7
+  (NotReady), паники нет — на реальном железе (ANE инициализирован) та
+  ветка, что роняет qemu, отвечает штатно. Это **первый новый открытый
+  сервис из песочницы со времён §142–145** (там 5/460: AppleJPEGDriver,
+  AppleKeyStore, IOHIDEventService, IOMobileFramebuffer, IOSurfaceRoot;
+  H1xANELoadBalancer в reach_list.h не входил вообще).
+- Свип через соединение (согласован с оператором): 512 селекторов × 4 формы
+  (пусто/0xff/PRNG256/PRNG4K) → **все 512 = 0xe00002c2 BadArgument**, osz
+  не тронут (буфер не изменён); SetNotificationPort → 0xe00002c7; проба
+  форматов 700 вызовов (insz 1..2048 × nsc 0/1/2/4/8 × 10 селекторов) →
+  **0 non-BadArg**. Итого 1212 вызовов: сплошной верхнеуровневый
+  формат-гейт до диспетчера селекторов (§143: 0x2c2 ≠ баг). Контур
+  закрыт для слепого перебора; следующий шаг — **статика
+  AppleH16ANEInterface из retail-кэкша** (carve_fileset.py + objdump
+  externalMethod → точечные селектор/размеры), нулевой риск.
+
+### Инструменты и отбраковки (класс §144)
+
+- `vm/iotest.c` — контроль загрузки фреймворка в госте (268 сервисов
+  реестра, MIG жив); `vm/iokitfuzz.c` v7 — enumerate → дедуп по классу →
+  **fork на каждую пару (класс,type)** с watchdog 60 с (WNOHANG+SIGKILL),
+  TRY-лог ДО fork, per-sel лог ДО вызова, exclude `'!Astris,!H1xANE'`.
+  Зачем fork: `IOServiceOpen(AppleKeyStore)` в госте завис НАВСЕГДА
+  (нет keybag) — до fork это останавливало весь свип.
+- **Полный свип v7**: 79 классов, 316 пар, **OPEN=0, WEDGE=0, HIT=0,
+  паник=0** (с двумя исключениями): root в госте не смог открыть НИ ОДНОГО
+  userclient из не-паникеров. Прежнее допущение «в госте root открывает
+  всё» для userclient'ов НЕВЕРНО — гостевой restore-профиль тоже
+  репрессивен; ценность гостя — дешёвые паники, а не «все открыты».
+- `p_astris` (фаза устройства): existence-matching + open (gated
+  `FUZZ_ASTRIS_OPEN`) + свип (gated `FUZZ_ASTRIS_FUZZ`); профили
+  `/System/Library/Sandbox/Profiles` (1 файл, про ANE ничего нет).
+- Отбраковано: `sandbox_check(pid,"iokit-open-user-client",type,...)` —
+  контролы AppleM2ScalerCSCDriver и IOSurfaceRoot (оба ИЗВЕСТНО
+  открываются) дали deny при type=0 и −1 при 1..3 → детектор невалиден,
+  вердикт по H1xANE из него НЕ брать. Пойманы и починены: over-release
+  (IOServiceGetMatchingService потребляет словарь — ARC-dict через
+  __bridge убивал фазу после первой строки); strnstr-лимит на haystack
+  вместо паттерна; `'!'` у КАЖДОГО паттерна exclude (literal `!H1xANE`
+  не найдётся в имени класса).
+
+### Состояние и направления
+
+- Soak v191 завершён при свопе: ipfuzz **110.8 млн раундов** без паники
+  (ioctlfuzz+ipopt-поверхность устойчива).
+- Логи: `results/v192-iokitfuzz-panic-astris.log`,
+  `results/v192-iokitfuzz-panic-h16ane.log`,
+  `results/v192-astris-device-open-fuzz.log`.
+- Направление v193: (а) госте — v8 с open-матрицей (child логит kr
+  неудачных open: MACF-deny vs ошибка драйвера → что реально достижимо
+  в госте); (б) устройство — статика AppleH16ANEInterface → точечный свип
+  ANE по восстановленным форматам; (в) Astris — закрыт (нет сервиса на
+  retail), только в отчёт.

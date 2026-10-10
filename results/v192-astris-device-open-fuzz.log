@@ -1,0 +1,1067 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_ASTRIS=1
+[main] env FUZZ_ASTRIS_OPEN=1
+[main] env FUZZ_ASTRIS_FUZZ=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7b03
+[scaler] conn 0x7b03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[astris] v192 retail-kernel Astris probe existence check (no open)
+[astris] loop i=0 name=AppleAstrisGpioProbe begin
+[astris] dict ok, matching...
+[astris] matching AppleAstrisGpioProbe -> service 0x0 (nil)
+[astris] loop i=1 name=XAstrisGpioProbe begin
+[astris] dict ok, matching...
+[astris] matching XAstrisGpioProbe -> service 0x0 (nil)
+[astris] loop i=2 name=AppleAstrisGpioProbeUserClient begin
+[astris] dict ok, matching...
+[astris] matching AppleAstrisGpioProbeUserClient -> service 0x0 (nil)
+[astris] loop i=3 name=H1xANELoadBalancer begin
+[astris] dict ok, matching...
+[astris] matching H1xANELoadBalancer -> service 0x7713
+[astris]   class=H1xANELoadBalancer
+[astris]   open t=0 -> kr=0xe00002c7 conn=0x0
+[astris]   open t=1 -> kr=0x0 conn=0x7503
+[astris]   SetNotificationPort -> kr=0xe00002c7
+[astris]   sel t=1 sel=0x0 sh=1 in=8
+[astris]   res sel=0x0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1 sh=2 in=256
+[astris]   res sel=0x1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2 sh=3 in=512
+[astris]   res sel=0x2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3 sh=0 in=0
+[astris]   res sel=0x3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4 sh=1 in=8
+[astris]   res sel=0x4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5 sh=2 in=256
+[astris]   res sel=0x5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6 sh=3 in=512
+[astris]   res sel=0x6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7 sh=0 in=0
+[astris]   res sel=0x7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8 sh=1 in=8
+[astris]   res sel=0x8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9 sh=2 in=256
+[astris]   res sel=0x9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa sh=3 in=512
+[astris]   res sel=0xa kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb sh=0 in=0
+[astris]   res sel=0xb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc sh=1 in=8
+[astris]   res sel=0xc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd sh=2 in=256
+[astris]   res sel=0xd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe sh=3 in=512
+[astris]   res sel=0xe kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf sh=0 in=0
+[astris]   res sel=0xf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10 sh=1 in=8
+[astris]   res sel=0x10 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11 sh=2 in=256
+[astris]   res sel=0x11 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12 sh=3 in=512
+[astris]   res sel=0x12 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13 sh=0 in=0
+[astris]   res sel=0x13 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14 sh=1 in=8
+[astris]   res sel=0x14 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15 sh=2 in=256
+[astris]   res sel=0x15 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16 sh=3 in=512
+[astris]   res sel=0x16 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17 sh=0 in=0
+[astris]   res sel=0x17 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18 sh=1 in=8
+[astris]   res sel=0x18 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19 sh=2 in=256
+[astris]   res sel=0x19 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a sh=3 in=512
+[astris]   res sel=0x1a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b sh=0 in=0
+[astris]   res sel=0x1b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c sh=1 in=8
+[astris]   res sel=0x1c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d sh=2 in=256
+[astris]   res sel=0x1d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e sh=3 in=512
+[astris]   res sel=0x1e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f sh=0 in=0
+[astris]   res sel=0x1f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x20 sh=1 in=8
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[astris]   res sel=0x20 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x21 sh=2 in=256
+[astris]   res sel=0x21 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x22 sh=3 in=512
+[astris]   res sel=0x22 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x23 sh=0 in=0
+[astris]   res sel=0x23 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x24 sh=1 in=8
+[astris]   res sel=0x24 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x25 sh=2 in=256
+[astris]   res sel=0x25 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x26 sh=3 in=512
+[astris]   res sel=0x26 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x27 sh=0 in=0
+[astris]   res sel=0x27 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x28 sh=1 in=8
+[astris]   res sel=0x28 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x29 sh=2 in=256
+[astris]   res sel=0x29 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2a sh=3 in=512
+[astris]   res sel=0x2a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2b sh=0 in=0
+[astris]   res sel=0x2b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2c sh=1 in=8
+[astris]   res sel=0x2c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2d sh=2 in=256
+[astris]   res sel=0x2d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2e sh=3 in=512
+[astris]   res sel=0x2e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x2f sh=0 in=0
+[astris]   res sel=0x2f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x30 sh=1 in=8
+[astris]   res sel=0x30 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x31 sh=2 in=256
+[astris]   res sel=0x31 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x32 sh=3 in=512
+[astris]   res sel=0x32 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x33 sh=0 in=0
+[astris]   res sel=0x33 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x34 sh=1 in=8
+[astris]   res sel=0x34 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x35 sh=2 in=256
+[astris]   res sel=0x35 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x36 sh=3 in=512
+[astris]   res sel=0x36 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x37 sh=0 in=0
+[astris]   res sel=0x37 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x38 sh=1 in=8
+[astris]   res sel=0x38 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x39 sh=2 in=256
+[astris]   res sel=0x39 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3a sh=3 in=512
+[astris]   res sel=0x3a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3b sh=0 in=0
+[astris]   res sel=0x3b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3c sh=1 in=8
+[astris]   res sel=0x3c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3d sh=2 in=256
+[astris]   res sel=0x3d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3e sh=3 in=512
+[astris]   res sel=0x3e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x3f sh=0 in=0
+[astris]   res sel=0x3f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x40 sh=1 in=8
+[astris]   res sel=0x40 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x41 sh=2 in=256
+[astris]   res sel=0x41 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x42 sh=3 in=512
+[astris]   res sel=0x42 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x43 sh=0 in=0
+[astris]   res sel=0x43 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x44 sh=1 in=8
+[astris]   res sel=0x44 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x45 sh=2 in=256
+[astris]   res sel=0x45 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x46 sh=3 in=512
+[astris]   res sel=0x46 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x47 sh=0 in=0
+[astris]   res sel=0x47 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x48 sh=1 in=8
+[astris]   res sel=0x48 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x49 sh=2 in=256
+[astris]   res sel=0x49 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4a sh=3 in=512
+[astris]   res sel=0x4a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4b sh=0 in=0
+[astris]   res sel=0x4b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4c sh=1 in=8
+[astris]   res sel=0x4c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4d sh=2 in=256
+[astris]   res sel=0x4d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4e sh=3 in=512
+[astris]   res sel=0x4e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x4f sh=0 in=0
+[astris]   res sel=0x4f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x50 sh=1 in=8
+[astris]   res sel=0x50 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x51 sh=2 in=256
+[astris]   res sel=0x51 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x52 sh=3 in=512
+[astris]   res sel=0x52 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x53 sh=0 in=0
+[astris]   res sel=0x53 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x54 sh=1 in=8
+[astris]   res sel=0x54 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x55 sh=2 in=256
+[astris]   res sel=0x55 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x56 sh=3 in=512
+[astris]   res sel=0x56 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x57 sh=0 in=0
+[astris]   res sel=0x57 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x58 sh=1 in=8
+[astris]   res sel=0x58 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x59 sh=2 in=256
+[astris]   res sel=0x59 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5a sh=3 in=512
+[astris]   res sel=0x5a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5b sh=0 in=0
+[astris]   res sel=0x5b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5c sh=1 in=8
+[astris]   res sel=0x5c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5d sh=2 in=256
+[astris]   res sel=0x5d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5e sh=3 in=512
+[astris]   res sel=0x5e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x5f sh=0 in=0
+[astris]   res sel=0x5f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x60 sh=1 in=8
+[astris]   res sel=0x60 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x61 sh=2 in=256
+[astris]   res sel=0x61 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x62 sh=3 in=512
+[astris]   res sel=0x62 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x63 sh=0 in=0
+[astris]   res sel=0x63 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x64 sh=1 in=8
+[astris]   res sel=0x64 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x65 sh=2 in=256
+[astris]   res sel=0x65 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x66 sh=3 in=512
+[astris]   res sel=0x66 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x67 sh=0 in=0
+[astris]   res sel=0x67 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x68 sh=1 in=8
+[astris]   res sel=0x68 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x69 sh=2 in=256
+[astris]   res sel=0x69 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6a sh=3 in=512
+[astris]   res sel=0x6a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6b sh=0 in=0
+[astris]   res sel=0x6b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6c sh=1 in=8
+[astris]   res sel=0x6c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6d sh=2 in=256
+[astris]   res sel=0x6d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6e sh=3 in=512
+[astris]   res sel=0x6e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x6f sh=0 in=0
+[astris]   res sel=0x6f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x70 sh=1 in=8
+[astris]   res sel=0x70 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x71 sh=2 in=256
+[astris]   res sel=0x71 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x72 sh=3 in=512
+[astris]   res sel=0x72 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x73 sh=0 in=0
+[astris]   res sel=0x73 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x74 sh=1 in=8
+[astris]   res sel=0x74 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x75 sh=2 in=256
+[astris]   res sel=0x75 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x76 sh=3 in=512
+[astris]   res sel=0x76 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x77 sh=0 in=0
+[astris]   res sel=0x77 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x78 sh=1 in=8
+[astris]   res sel=0x78 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x79 sh=2 in=256
+[astris]   res sel=0x79 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7a sh=3 in=512
+[astris]   res sel=0x7a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7b sh=0 in=0
+[astris]   res sel=0x7b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7c sh=1 in=8
+[astris]   res sel=0x7c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7d sh=2 in=256
+[astris]   res sel=0x7d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7e sh=3 in=512
+[astris]   res sel=0x7e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x7f sh=0 in=0
+[astris]   res sel=0x7f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x80 sh=1 in=8
+[astris]   res sel=0x80 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x81 sh=2 in=256
+[astris]   res sel=0x81 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x82 sh=3 in=512
+[astris]   res sel=0x82 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x83 sh=0 in=0
+[astris]   res sel=0x83 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x84 sh=1 in=8
+[astris]   res sel=0x84 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x85 sh=2 in=256
+[astris]   res sel=0x85 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x86 sh=3 in=512
+[astris]   res sel=0x86 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x87 sh=0 in=0
+[astris]   res sel=0x87 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x88 sh=1 in=8
+[astris]   res sel=0x88 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x89 sh=2 in=256
+[astris]   res sel=0x89 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8a sh=3 in=512
+[astris]   res sel=0x8a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8b sh=0 in=0
+[astris]   res sel=0x8b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8c sh=1 in=8
+[astris]   res sel=0x8c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8d sh=2 in=256
+[astris]   res sel=0x8d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8e sh=3 in=512
+[astris]   res sel=0x8e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x8f sh=0 in=0
+[astris]   res sel=0x8f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x90 sh=1 in=8
+[astris]   res sel=0x90 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x91 sh=2 in=256
+[astris]   res sel=0x91 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x92 sh=3 in=512
+[astris]   res sel=0x92 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x93 sh=0 in=0
+[astris]   res sel=0x93 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x94 sh=1 in=8
+[astris]   res sel=0x94 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x95 sh=2 in=256
+[astris]   res sel=0x95 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x96 sh=3 in=512
+[astris]   res sel=0x96 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x97 sh=0 in=0
+[astris]   res sel=0x97 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x98 sh=1 in=8
+[astris]   res sel=0x98 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x99 sh=2 in=256
+[astris]   res sel=0x99 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9a sh=3 in=512
+[astris]   res sel=0x9a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9b sh=0 in=0
+[astris]   res sel=0x9b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9c sh=1 in=8
+[astris]   res sel=0x9c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9d sh=2 in=256
+[astris]   res sel=0x9d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9e sh=3 in=512
+[astris]   res sel=0x9e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x9f sh=0 in=0
+[astris]   res sel=0x9f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa0 sh=1 in=8
+[astris]   res sel=0xa0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa1 sh=2 in=256
+[astris]   res sel=0xa1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa2 sh=3 in=512
+[astris]   res sel=0xa2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa3 sh=0 in=0
+[astris]   res sel=0xa3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa4 sh=1 in=8
+[astris]   res sel=0xa4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa5 sh=2 in=256
+[astris]   res sel=0xa5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa6 sh=3 in=512
+[astris]   res sel=0xa6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa7 sh=0 in=0
+[astris]   res sel=0xa7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa8 sh=1 in=8
+[astris]   res sel=0xa8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xa9 sh=2 in=256
+[astris]   res sel=0xa9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xaa sh=3 in=512
+[astris]   res sel=0xaa kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xab sh=0 in=0
+[astris]   res sel=0xab kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xac sh=1 in=8
+[astris]   res sel=0xac kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xad sh=2 in=256
+[astris]   res sel=0xad kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xae sh=3 in=512
+[astris]   res sel=0xae kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xaf sh=0 in=0
+[astris]   res sel=0xaf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb0 sh=1 in=8
+[astris]   res sel=0xb0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb1 sh=2 in=256
+[astris]   res sel=0xb1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb2 sh=3 in=512
+[astris]   res sel=0xb2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb3 sh=0 in=0
+[astris]   res sel=0xb3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb4 sh=1 in=8
+[astris]   res sel=0xb4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb5 sh=2 in=256
+[astris]   res sel=0xb5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb6 sh=3 in=512
+[astris]   res sel=0xb6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb7 sh=0 in=0
+[astris]   res sel=0xb7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb8 sh=1 in=8
+[astris]   res sel=0xb8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xb9 sh=2 in=256
+[astris]   res sel=0xb9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xba sh=3 in=512
+[astris]   res sel=0xba kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xbb sh=0 in=0
+[astris]   res sel=0xbb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xbc sh=1 in=8
+[astris]   res sel=0xbc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xbd sh=2 in=256
+[astris]   res sel=0xbd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xbe sh=3 in=512
+[astris]   res sel=0xbe kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xbf sh=0 in=0
+[astris]   res sel=0xbf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc0 sh=1 in=8
+[astris]   res sel=0xc0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc1 sh=2 in=256
+[astris]   res sel=0xc1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc2 sh=3 in=512
+[astris]   res sel=0xc2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc3 sh=0 in=0
+[astris]   res sel=0xc3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc4 sh=1 in=8
+[astris]   res sel=0xc4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc5 sh=2 in=256
+[astris]   res sel=0xc5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc6 sh=3 in=512
+[astris]   res sel=0xc6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc7 sh=0 in=0
+[astris]   res sel=0xc7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc8 sh=1 in=8
+[astris]   res sel=0xc8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xc9 sh=2 in=256
+[astris]   res sel=0xc9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xca sh=3 in=512
+[astris]   res sel=0xca kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xcb sh=0 in=0
+[astris]   res sel=0xcb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xcc sh=1 in=8
+[astris]   res sel=0xcc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xcd sh=2 in=256
+[astris]   res sel=0xcd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xce sh=3 in=512
+[astris]   res sel=0xce kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xcf sh=0 in=0
+[astris]   res sel=0xcf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd0 sh=1 in=8
+[astris]   res sel=0xd0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd1 sh=2 in=256
+[astris]   res sel=0xd1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd2 sh=3 in=512
+[astris]   res sel=0xd2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd3 sh=0 in=0
+[astris]   res sel=0xd3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd4 sh=1 in=8
+[astris]   res sel=0xd4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd5 sh=2 in=256
+[astris]   res sel=0xd5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd6 sh=3 in=512
+[astris]   res sel=0xd6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd7 sh=0 in=0
+[astris]   res sel=0xd7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd8 sh=1 in=8
+[astris]   res sel=0xd8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xd9 sh=2 in=256
+[astris]   res sel=0xd9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xda sh=3 in=512
+[astris]   res sel=0xda kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xdb sh=0 in=0
+[astris]   res sel=0xdb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xdc sh=1 in=8
+[astris]   res sel=0xdc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xdd sh=2 in=256
+[astris]   res sel=0xdd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xde sh=3 in=512
+[astris]   res sel=0xde kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xdf sh=0 in=0
+[astris]   res sel=0xdf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe0 sh=1 in=8
+[astris]   res sel=0xe0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe1 sh=2 in=256
+[astris]   res sel=0xe1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe2 sh=3 in=512
+[astris]   res sel=0xe2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe3 sh=0 in=0
+[astris]   res sel=0xe3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe4 sh=1 in=8
+[astris]   res sel=0xe4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe5 sh=2 in=256
+[astris]   res sel=0xe5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe6 sh=3 in=512
+[astris]   res sel=0xe6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe7 sh=0 in=0
+[astris]   res sel=0xe7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe8 sh=1 in=8
+[astris]   res sel=0xe8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xe9 sh=2 in=256
+[astris]   res sel=0xe9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xea sh=3 in=512
+[astris]   res sel=0xea kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xeb sh=0 in=0
+[astris]   res sel=0xeb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xec sh=1 in=8
+[astris]   res sel=0xec kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xed sh=2 in=256
+[astris]   res sel=0xed kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xee sh=3 in=512
+[astris]   res sel=0xee kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xef sh=0 in=0
+[astris]   res sel=0xef kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf0 sh=1 in=8
+[astris]   res sel=0xf0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf1 sh=2 in=256
+[astris]   res sel=0xf1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf2 sh=3 in=512
+[astris]   res sel=0xf2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf3 sh=0 in=0
+[astris]   res sel=0xf3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf4 sh=1 in=8
+[astris]   res sel=0xf4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf5 sh=2 in=256
+[astris]   res sel=0xf5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf6 sh=3 in=512
+[astris]   res sel=0xf6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf7 sh=0 in=0
+[astris]   res sel=0xf7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf8 sh=1 in=8
+[astris]   res sel=0xf8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xf9 sh=2 in=256
+[astris]   res sel=0xf9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xfa sh=3 in=512
+[astris]   res sel=0xfa kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xfb sh=0 in=0
+[astris]   res sel=0xfb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xfc sh=1 in=8
+[astris]   res sel=0xfc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xfd sh=2 in=256
+[astris]   res sel=0xfd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xfe sh=3 in=512
+[astris]   res sel=0xfe kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0xff sh=0 in=0
+[astris]   res sel=0xff kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x100 sh=1 in=8
+[astris]   res sel=0x100 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x101 sh=2 in=256
+[astris]   res sel=0x101 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x102 sh=3 in=512
+[astris]   res sel=0x102 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x103 sh=0 in=0
+[astris]   res sel=0x103 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x104 sh=1 in=8
+[astris]   res sel=0x104 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x105 sh=2 in=256
+[astris]   res sel=0x105 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x106 sh=3 in=512
+[astris]   res sel=0x106 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x107 sh=0 in=0
+[astris]   res sel=0x107 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x108 sh=1 in=8
+[astris]   res sel=0x108 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x109 sh=2 in=256
+[astris]   res sel=0x109 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10a sh=3 in=512
+[astris]   res sel=0x10a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10b sh=0 in=0
+[astris]   res sel=0x10b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10c sh=1 in=8
+[astris]   res sel=0x10c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10d sh=2 in=256
+[astris]   res sel=0x10d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10e sh=3 in=512
+[astris]   res sel=0x10e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x10f sh=0 in=0
+[astris]   res sel=0x10f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x110 sh=1 in=8
+[astris]   res sel=0x110 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x111 sh=2 in=256
+[astris]   res sel=0x111 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x112 sh=3 in=512
+[astris]   res sel=0x112 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x113 sh=0 in=0
+[astris]   res sel=0x113 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x114 sh=1 in=8
+[astris]   res sel=0x114 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x115 sh=2 in=256
+[astris]   res sel=0x115 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x116 sh=3 in=512
+[astris]   res sel=0x116 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x117 sh=0 in=0
+[astris]   res sel=0x117 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x118 sh=1 in=8
+[astris]   res sel=0x118 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x119 sh=2 in=256
+[astris]   res sel=0x119 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11a sh=3 in=512
+[astris]   res sel=0x11a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11b sh=0 in=0
+[astris]   res sel=0x11b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11c sh=1 in=8
+[astris]   res sel=0x11c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11d sh=2 in=256
+[astris]   res sel=0x11d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11e sh=3 in=512
+[astris]   res sel=0x11e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x11f sh=0 in=0
+[astris]   res sel=0x11f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x120 sh=1 in=8
+[astris]   res sel=0x120 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x121 sh=2 in=256
+[astris]   res sel=0x121 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x122 sh=3 in=512
+[astris]   res sel=0x122 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x123 sh=0 in=0
+[astris]   res sel=0x123 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x124 sh=1 in=8
+[astris]   res sel=0x124 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x125 sh=2 in=256
+[astris]   res sel=0x125 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x126 sh=3 in=512
+[astris]   res sel=0x126 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x127 sh=0 in=0
+[astris]   res sel=0x127 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x128 sh=1 in=8
+[astris]   res sel=0x128 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x129 sh=2 in=256
+[astris]   res sel=0x129 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12a sh=3 in=512
+[astris]   res sel=0x12a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12b sh=0 in=0
+[astris]   res sel=0x12b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12c sh=1 in=8
+[astris]   res sel=0x12c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12d sh=2 in=256
+[astris]   res sel=0x12d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12e sh=3 in=512
+[astris]   res sel=0x12e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x12f sh=0 in=0
+[astris]   res sel=0x12f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x130 sh=1 in=8
+[astris]   res sel=0x130 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x131 sh=2 in=256
+[astris]   res sel=0x131 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x132 sh=3 in=512
+[astris]   res sel=0x132 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x133 sh=0 in=0
+[astris]   res sel=0x133 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x134 sh=1 in=8
+[astris]   res sel=0x134 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x135 sh=2 in=256
+[astris]   res sel=0x135 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x136 sh=3 in=512
+[astris]   res sel=0x136 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x137 sh=0 in=0
+[astris]   res sel=0x137 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x138 sh=1 in=8
+[astris]   res sel=0x138 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x139 sh=2 in=256
+[astris]   res sel=0x139 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13a sh=3 in=512
+[astris]   res sel=0x13a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13b sh=0 in=0
+[astris]   res sel=0x13b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13c sh=1 in=8
+[astris]   res sel=0x13c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13d sh=2 in=256
+[astris]   res sel=0x13d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13e sh=3 in=512
+[astris]   res sel=0x13e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x13f sh=0 in=0
+[astris]   res sel=0x13f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x140 sh=1 in=8
+[astris]   res sel=0x140 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x141 sh=2 in=256
+[astris]   res sel=0x141 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x142 sh=3 in=512
+[astris]   res sel=0x142 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x143 sh=0 in=0
+[astris]   res sel=0x143 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x144 sh=1 in=8
+[astris]   res sel=0x144 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x145 sh=2 in=256
+[astris]   res sel=0x145 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x146 sh=3 in=512
+[astris]   res sel=0x146 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x147 sh=0 in=0
+[astris]   res sel=0x147 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x148 sh=1 in=8
+[astris]   res sel=0x148 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x149 sh=2 in=256
+[astris]   res sel=0x149 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14a sh=3 in=512
+[astris]   res sel=0x14a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14b sh=0 in=0
+[astris]   res sel=0x14b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14c sh=1 in=8
+[astris]   res sel=0x14c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14d sh=2 in=256
+[astris]   res sel=0x14d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14e sh=3 in=512
+[astris]   res sel=0x14e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x14f sh=0 in=0
+[astris]   res sel=0x14f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x150 sh=1 in=8
+[astris]   res sel=0x150 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x151 sh=2 in=256
+[astris]   res sel=0x151 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x152 sh=3 in=512
+[astris]   res sel=0x152 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x153 sh=0 in=0
+[astris]   res sel=0x153 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x154 sh=1 in=8
+[astris]   res sel=0x154 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x155 sh=2 in=256
+[astris]   res sel=0x155 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x156 sh=3 in=512
+[astris]   res sel=0x156 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x157 sh=0 in=0
+[astris]   res sel=0x157 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x158 sh=1 in=8
+[astris]   res sel=0x158 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x159 sh=2 in=256
+[astris]   res sel=0x159 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15a sh=3 in=512
+[astris]   res sel=0x15a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15b sh=0 in=0
+[astris]   res sel=0x15b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15c sh=1 in=8
+[astris]   res sel=0x15c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15d sh=2 in=256
+[astris]   res sel=0x15d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15e sh=3 in=512
+[astris]   res sel=0x15e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x15f sh=0 in=0
+[astris]   res sel=0x15f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x160 sh=1 in=8
+[astris]   res sel=0x160 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x161 sh=2 in=256
+[astris]   res sel=0x161 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x162 sh=3 in=512
+[astris]   res sel=0x162 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x163 sh=0 in=0
+[astris]   res sel=0x163 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x164 sh=1 in=8
+[astris]   res sel=0x164 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x165 sh=2 in=256
+[astris]   res sel=0x165 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x166 sh=3 in=512
+[astris]   res sel=0x166 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x167 sh=0 in=0
+[astris]   res sel=0x167 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x168 sh=1 in=8
+[astris]   res sel=0x168 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x169 sh=2 in=256
+[astris]   res sel=0x169 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16a sh=3 in=512
+[astris]   res sel=0x16a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16b sh=0 in=0
+[astris]   res sel=0x16b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16c sh=1 in=8
+[astris]   res sel=0x16c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16d sh=2 in=256
+[astris]   res sel=0x16d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16e sh=3 in=512
+[astris]   res sel=0x16e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x16f sh=0 in=0
+[astris]   res sel=0x16f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x170 sh=1 in=8
+[astris]   res sel=0x170 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x171 sh=2 in=256
+[astris]   res sel=0x171 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x172 sh=3 in=512
+[astris]   res sel=0x172 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x173 sh=0 in=0
+[astris]   res sel=0x173 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x174 sh=1 in=8
+[astris]   res sel=0x174 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x175 sh=2 in=256
+[astris]   res sel=0x175 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x176 sh=3 in=512
+[astris]   res sel=0x176 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x177 sh=0 in=0
+[astris]   res sel=0x177 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x178 sh=1 in=8
+[astris]   res sel=0x178 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x179 sh=2 in=256
+[astris]   res sel=0x179 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17a sh=3 in=512
+[astris]   res sel=0x17a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17b sh=0 in=0
+[astris]   res sel=0x17b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17c sh=1 in=8
+[astris]   res sel=0x17c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17d sh=2 in=256
+[astris]   res sel=0x17d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17e sh=3 in=512
+[astris]   res sel=0x17e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x17f sh=0 in=0
+[astris]   res sel=0x17f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x180 sh=1 in=8
+[astris]   res sel=0x180 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x181 sh=2 in=256
+[astris]   res sel=0x181 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x182 sh=3 in=512
+[astris]   res sel=0x182 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x183 sh=0 in=0
+[astris]   res sel=0x183 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x184 sh=1 in=8
+[astris]   res sel=0x184 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x185 sh=2 in=256
+[astris]   res sel=0x185 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x186 sh=3 in=512
+[astris]   res sel=0x186 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x187 sh=0 in=0
+[astris]   res sel=0x187 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x188 sh=1 in=8
+[astris]   res sel=0x188 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x189 sh=2 in=256
+[astris]   res sel=0x189 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18a sh=3 in=512
+[astris]   res sel=0x18a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18b sh=0 in=0
+[astris]   res sel=0x18b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18c sh=1 in=8
+[astris]   res sel=0x18c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18d sh=2 in=256
+[astris]   res sel=0x18d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18e sh=3 in=512
+[astris]   res sel=0x18e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x18f sh=0 in=0
+[astris]   res sel=0x18f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x190 sh=1 in=8
+[astris]   res sel=0x190 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x191 sh=2 in=256
+[astris]   res sel=0x191 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x192 sh=3 in=512
+[astris]   res sel=0x192 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x193 sh=0 in=0
+[astris]   res sel=0x193 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x194 sh=1 in=8
+[astris]   res sel=0x194 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x195 sh=2 in=256
+[astris]   res sel=0x195 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x196 sh=3 in=512
+[astris]   res sel=0x196 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x197 sh=0 in=0
+[astris]   res sel=0x197 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x198 sh=1 in=8
+[astris]   res sel=0x198 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x199 sh=2 in=256
+[astris]   res sel=0x199 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19a sh=3 in=512
+[astris]   res sel=0x19a kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19b sh=0 in=0
+[astris]   res sel=0x19b kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19c sh=1 in=8
+[astris]   res sel=0x19c kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19d sh=2 in=256
+[astris]   res sel=0x19d kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19e sh=3 in=512
+[astris]   res sel=0x19e kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x19f sh=0 in=0
+[astris]   res sel=0x19f kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a0 sh=1 in=8
+[astris]   res sel=0x1a0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a1 sh=2 in=256
+[astris]   res sel=0x1a1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a2 sh=3 in=512
+[astris]   res sel=0x1a2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a3 sh=0 in=0
+[astris]   res sel=0x1a3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a4 sh=1 in=8
+[astris]   res sel=0x1a4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a5 sh=2 in=256
+[astris]   res sel=0x1a5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a6 sh=3 in=512
+[astris]   res sel=0x1a6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a7 sh=0 in=0
+[astris]   res sel=0x1a7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a8 sh=1 in=8
+[astris]   res sel=0x1a8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1a9 sh=2 in=256
+[astris]   res sel=0x1a9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1aa sh=3 in=512
+[astris]   res sel=0x1aa kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ab sh=0 in=0
+[astris]   res sel=0x1ab kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ac sh=1 in=8
+[astris]   res sel=0x1ac kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ad sh=2 in=256
+[astris]   res sel=0x1ad kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ae sh=3 in=512
+[astris]   res sel=0x1ae kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1af sh=0 in=0
+[astris]   res sel=0x1af kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b0 sh=1 in=8
+[astris]   res sel=0x1b0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b1 sh=2 in=256
+[astris]   res sel=0x1b1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b2 sh=3 in=512
+[astris]   res sel=0x1b2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b3 sh=0 in=0
+[astris]   res sel=0x1b3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b4 sh=1 in=8
+[astris]   res sel=0x1b4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b5 sh=2 in=256
+[astris]   res sel=0x1b5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b6 sh=3 in=512
+[astris]   res sel=0x1b6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b7 sh=0 in=0
+[astris]   res sel=0x1b7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b8 sh=1 in=8
+[astris]   res sel=0x1b8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1b9 sh=2 in=256
+[astris]   res sel=0x1b9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ba sh=3 in=512
+[astris]   res sel=0x1ba kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1bb sh=0 in=0
+[astris]   res sel=0x1bb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1bc sh=1 in=8
+[astris]   res sel=0x1bc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1bd sh=2 in=256
+[astris]   res sel=0x1bd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1be sh=3 in=512
+[astris]   res sel=0x1be kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1bf sh=0 in=0
+[astris]   res sel=0x1bf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c0 sh=1 in=8
+[astris]   res sel=0x1c0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c1 sh=2 in=256
+[astris]   res sel=0x1c1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c2 sh=3 in=512
+[astris]   res sel=0x1c2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c3 sh=0 in=0
+[astris]   res sel=0x1c3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c4 sh=1 in=8
+[astris]   res sel=0x1c4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c5 sh=2 in=256
+[astris]   res sel=0x1c5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c6 sh=3 in=512
+[astris]   res sel=0x1c6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c7 sh=0 in=0
+[astris]   res sel=0x1c7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c8 sh=1 in=8
+[astris]   res sel=0x1c8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1c9 sh=2 in=256
+[astris]   res sel=0x1c9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ca sh=3 in=512
+[astris]   res sel=0x1ca kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1cb sh=0 in=0
+[astris]   res sel=0x1cb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1cc sh=1 in=8
+[astris]   res sel=0x1cc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1cd sh=2 in=256
+[astris]   res sel=0x1cd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ce sh=3 in=512
+[astris]   res sel=0x1ce kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1cf sh=0 in=0
+[astris]   res sel=0x1cf kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d0 sh=1 in=8
+[astris]   res sel=0x1d0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d1 sh=2 in=256
+[astris]   res sel=0x1d1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d2 sh=3 in=512
+[astris]   res sel=0x1d2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d3 sh=0 in=0
+[astris]   res sel=0x1d3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d4 sh=1 in=8
+[astris]   res sel=0x1d4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d5 sh=2 in=256
+[astris]   res sel=0x1d5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d6 sh=3 in=512
+[astris]   res sel=0x1d6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d7 sh=0 in=0
+[astris]   res sel=0x1d7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d8 sh=1 in=8
+[astris]   res sel=0x1d8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1d9 sh=2 in=256
+[astris]   res sel=0x1d9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1da sh=3 in=512
+[astris]   res sel=0x1da kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1db sh=0 in=0
+[astris]   res sel=0x1db kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1dc sh=1 in=8
+[astris]   res sel=0x1dc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1dd sh=2 in=256
+[astris]   res sel=0x1dd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1de sh=3 in=512
+[astris]   res sel=0x1de kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1df sh=0 in=0
+[astris]   res sel=0x1df kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e0 sh=1 in=8
+[astris]   res sel=0x1e0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e1 sh=2 in=256
+[astris]   res sel=0x1e1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e2 sh=3 in=512
+[astris]   res sel=0x1e2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e3 sh=0 in=0
+[astris]   res sel=0x1e3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e4 sh=1 in=8
+[astris]   res sel=0x1e4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e5 sh=2 in=256
+[astris]   res sel=0x1e5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e6 sh=3 in=512
+[astris]   res sel=0x1e6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e7 sh=0 in=0
+[astris]   res sel=0x1e7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e8 sh=1 in=8
+[astris]   res sel=0x1e8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1e9 sh=2 in=256
+[astris]   res sel=0x1e9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ea sh=3 in=512
+[astris]   res sel=0x1ea kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1eb sh=0 in=0
+[astris]   res sel=0x1eb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ec sh=1 in=8
+[astris]   res sel=0x1ec kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ed sh=2 in=256
+[astris]   res sel=0x1ed kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ee sh=3 in=512
+[astris]   res sel=0x1ee kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ef sh=0 in=0
+[astris]   res sel=0x1ef kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f0 sh=1 in=8
+[astris]   res sel=0x1f0 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f1 sh=2 in=256
+[astris]   res sel=0x1f1 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f2 sh=3 in=512
+[astris]   res sel=0x1f2 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f3 sh=0 in=0
+[astris]   res sel=0x1f3 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f4 sh=1 in=8
+[astris]   res sel=0x1f4 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f5 sh=2 in=256
+[astris]   res sel=0x1f5 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f6 sh=3 in=512
+[astris]   res sel=0x1f6 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f7 sh=0 in=0
+[astris]   res sel=0x1f7 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f8 sh=1 in=8
+[astris]   res sel=0x1f8 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1f9 sh=2 in=256
+[astris]   res sel=0x1f9 kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1fa sh=3 in=512
+[astris]   res sel=0x1fa kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1fb sh=0 in=0
+[astris]   res sel=0x1fb kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1fc sh=1 in=8
+[astris]   res sel=0x1fc kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1fd sh=2 in=256
+[astris]   res sel=0x1fd kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1fe sh=3 in=512
+[astris]   res sel=0x1fe kr=0xe00002c2 osz=4096
+[astris]   sel t=1 sel=0x1ff sh=0 in=0
+[astris]   res sel=0x1ff kr=0xe00002c2 osz=4096
+[astris]   probe done: 700 calls, 0 non-BadArg
+[astris]   open t=2 -> kr=0xe00002c7 conn=0x0
+[astris]   open t=3 -> kr=0xe00002c7 conn=0x0
+[astris] loop i=4 name=AppleH16ANEInterface begin
+[astris] dict ok, matching...
+[astris] matching AppleH16ANEInterface -> service 0x0 (nil)
+[astris] scanned 1 sandbox profiles
+[astris] check ty=0 scaler=1 h1x=1 surf=1
+[astris] check ty=1 scaler=-1 h1x=-1 surf=-1
+[astris] check ty=2 scaler=-1 h1x=-1 surf=-1
+[astris] check ty=3 scaler=-1 h1x=-1 surf=-1
+[astris] done
+[probe13] astris-only mode, stop

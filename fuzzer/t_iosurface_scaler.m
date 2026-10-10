@@ -20,6 +20,9 @@
 #include <signal.h>
 #include <dlfcn.h>
 #include <dirent.h>
+#include <sys/stat.h>
+#include <errno.h>
+#include <string.h>
 #include "bad_query.h"
 #include <spawn.h>
 #import <xpc/xpc.h>
@@ -35603,6 +35606,416 @@ static void p_bq43(void) {
     LOG("[bq43] done");
 }
 
+
+// bq44: копия dyld-кэша устройства в Documents/dycache (хост-извлечение
+// libIOKit.B.dylib для iokitfuzz в VM-госте; ramdisk гостя не содержит
+// libIOKit, SDK даёт только tbd). Кэш читаем из песочницы (§181/§177).
+static void p_bq44(void) {
+    const char *src = "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
+    BOOL cleanup = (getenv("FUZZ_BQ44_CLEAN") != NULL);
+    if (cleanup) {
+        NSString *dpath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+        DIR *dd = opendir(dpath.UTF8String);
+        if (dd) {
+            struct dirent *de;
+            while ((de = readdir(dd))) {
+                if (strncmp(de->d_name, "dycache", 7) != 0) continue;
+                NSString *fp = [dpath stringByAppendingPathComponent:@(de->d_name)];
+                // каталог: вычистить детей, потом rmdir (unlink на dir = EISDIR)
+                DIR *kd = opendir(fp.fileSystemRepresentation);
+                if (kd) {
+                    struct dirent *ke;
+                    while ((ke = readdir(kd))) {
+                        if (ke->d_name[0] == '.') continue;
+                        NSString *kf = [fp stringByAppendingPathComponent:@(ke->d_name)];
+                        if (unlink(kf.fileSystemRepresentation) == 0)
+                            LOG("[bq44] removed %s", kf.UTF8String);
+                    }
+                    closedir(kd);
+                    if (rmdir(fp.fileSystemRepresentation) == 0)
+                        LOG("[bq44] rmdir %s", fp.UTF8String);
+                } else if (unlink(fp.fileSystemRepresentation) == 0) {
+                    LOG("[bq44] removed %s", fp.UTF8String);
+                }
+            }
+            closedir(dd);
+        }
+        LOG("[bq44] cleanup done");
+        return;
+    }
+    NSString *home = NSHomeDirectory();
+    NSString *dstn = [home stringByAppendingPathComponent:@"Documents/dycache"];
+    const char *dst = dstn.UTF8String;
+    if (mkdir(dst, 0755) != 0 && errno != EEXIST) {
+        LOG("[bq44] CONTROL FAILED: mkdir %s (%s)", dst, strerror(errno));
+        return;
+    }
+    DIR *d = opendir(src);
+    if (!d) { LOG("[bq44] CONTROL FAILED: cannot opendir %s (%s)", src, strerror(errno)); return; }
+    unsigned long total = 0; int n = 0;
+    struct dirent *de;
+    while ((de = readdir(d))) {
+        if (de->d_name[0] == '.') continue;
+        char sp[512], dp[640];
+        snprintf(sp, sizeof(sp), "%s/%s", src, de->d_name);
+        snprintf(dp, sizeof(dp), "%s/%s", dst, de->d_name);
+        int in = open(sp, O_RDONLY);
+        if (in < 0) { LOG("[bq44] skip %s (%s)", de->d_name, strerror(errno)); continue; }
+        int out = open(dp, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+        if (out < 0) { LOG("[bq44] open %s FAIL %s", dp, strerror(errno)); close(in); continue; }
+        char buf[65536];
+        ssize_t r, w, wf; long long sz = 0;
+        while ((r = read(in, buf, sizeof(buf))) > 0) {
+            w = 0;
+            while (w < r) {
+                wf = write(out, buf + w, (size_t)(r - w));
+                if (wf <= 0) { LOG("[bq44] write %s FAIL %s", dp, strerror(errno)); break; }
+                w += wf;
+            }
+            sz += r;
+        }
+        close(in); close(out);
+        total += (unsigned long)sz; n++;
+        LOG("[bq44] copied %-40s %lld bytes", de->d_name, sz);
+    }
+    closedir(d);
+    LOG("[bq44] DONE files=%d total=%lu bytes", n, total);
+}
+
+
+// bq45: локатор libIOKit.B.dylib в split-кэше (какой сабфайл несёт его
+// маппинги) — чтобы дотянуть на хост ТОЛЬКО нужные сабфайлы (весь кэш
+// 7.15 ГБ, §bq44). Только лог.
+static void p_bq45(void) {
+    LOG("[bq45] v192 locate libIOKit.B.dylib in split dyld cache");
+    const char *cdir =
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
+    NSMutableArray *subs = [NSMutableArray array];
+    NSMutableDictionary *sizes = [NSMutableDictionary dictionary];
+    NSString *headFile = nil;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+            [subs addObject:[NSString stringWithUTF8String:p]];
+            sizes[@(ce->d_name)] = @(st.st_size);
+            if (!strchr(ce->d_name, '.'))
+                headFile = [NSString stringWithUTF8String:p];
+        }
+    }
+    if (cd) closedir(cd);
+    if (subs.count == 0 || !headFile) {
+        LOG("[bq45] CONTROL FAILED: no cache files in %s", cdir);
+        return;
+    }
+    unsigned long long grand = 0;
+    for (NSString *k in sizes) grand += [(NSNumber *)sizes[k] unsignedLongLongValue];
+    LOG("[bq45] %d sub-files, grand total %llu bytes", (int)subs.count, grand);
+
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat cst;
+    fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE,
+                     fd, 0);
+    if (fd < 0 || map == MAP_FAILED) {
+        LOG("[bq45] CONTROL FAILED: head mmap errno %d", errno);
+        if (fd >= 0) close(fd);
+        return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    if (memcmp(hdr->magic, "dyld_v1", 7) != 0) {
+        LOG("[bq45] CONTROL FAILED: head bad magic");
+        munmap(map, (size_t)fsize); close(fd);
+        return;
+    }
+    uint32_t imgOff = 0, imgCnt = 0;
+    BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[256];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        LOG("[bq45] CONTROL FAILED: images table re-validation failed");
+        munmap(map, (size_t)fsize); close(fd);
+        return;
+    }
+    LOG("[bq45] images table off=0x%x cnt=%u", imgOff, imgCnt);
+
+    const char *want[] = { "libIOKit", "IOKit.framework", "libdispatch.dylib", NULL };
+    for (int w = 0; want[w]; w++) {
+        uint64_t addr = 0;
+        char fpath[512] = {0};
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            char pth[512];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+            if (strstr(pth, want[w]) &&
+                (strstr(pth, "/usr/lib/") || strstr(pth, "/System/Library/"))) {
+                addr = raw[0];
+                snprintf(fpath, sizeof(fpath), "%s", pth);
+                break;
+            }
+        }
+        if (!addr) { LOG("[bq45] %s: NOT FOUND in images table", want[w]); continue; }
+        LOG("[bq45] %s @0x%llx path=%s", want[w], (unsigned long long)addr, fpath);
+        // в каком сабфайле лежит его TEXT-маппинг
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                if (addr < mm[m].address ||
+                    addr >= mm[m].address + mm[m].size) continue;
+                LOG("[bq45]   in %s @fileoff 0x%llx (map %u: 0x%llx+0x%llx)",
+                    sf.lastPathComponent.UTF8String,
+                    (unsigned long long)(mm[m].fileOffset + (addr - mm[m].address)),
+                    m, (unsigned long long)mm[m].address,
+                    (unsigned long long)mm[m].size);
+            }
+            close(sfd);
+        }
+    }
+    munmap(map, (size_t)fsize);
+    close(fd);
+    LOG("[bq45] done");
+}
+
+// p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
+// УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
+// отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
+// этого сервиса дал kernel data abort в кексте (§192), а кекст
+// присутствует в retail-кэкше 24A5390f. Открыт ли он из песочницы —
+// решает MACF-политика; здесь только existence-чек; open только по
+// явному FUZZ_ASTRIS_OPEN (риск-тест, спрашивать оператора).
+static void p_astris(void) {
+    LOG("[astris] v192 retail-kernel Astris probe existence check (no open)");
+    static const char *names[] = {
+        "AppleAstrisGpioProbe", "XAstrisGpioProbe",
+        "AppleAstrisGpioProbeUserClient",
+        // v192: второй паникер VM — IOServiceOpen(H1xANELoadBalancer)
+        // -> AppleH16ANEInterface -> IOSurface data abort (§192)
+        "H1xANELoadBalancer", "AppleH16ANEInterface", NULL
+    };
+    for (int i = 0; names[i]; i++) {
+        LOG("[astris] loop i=%d name=%s begin", i, names[i]);
+        @autoreleasepool {
+        // NB: IOServiceGetMatchingService ПОТРЕБЛЯЕТ словарь (+1) —
+        // отдавать ему ARC-NSDictionary через __bridge = over-release
+        // и смерть процесса после первого же вызова (это и обрывало
+        // фазу на строке matching #1). IOServiceMatching() отдаёт +1 ✓
+        CFDictionaryRef m = IOServiceMatching(names[i]);
+        LOG("[astris] dict ok, matching...");
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault, m);
+        LOG("[astris] matching %s -> service 0x%x%s", names[i], s,
+            s ? "" : " (nil)");
+        if (s) {
+            char cls[128] = {0};
+            IOObjectGetClass(s, cls);
+            LOG("[astris]   class=%s", cls);
+            if (getenv("FUZZ_ASTRIS_OPEN")) {
+                for (int t = 0; t < 4; t++) {
+                    mach_port_t conn = 0;
+                    kern_return_t kr =
+                        IOServiceOpen(s, mach_task_self(), t, &conn);
+                    LOG("[astris]   open t=%d -> kr=0x%x conn=0x%x", t, kr, conn);
+                    // v192d: живая поверхность — type=1 открывается из
+                    // песочницы (§192). Свип селекторов с ЛОГОМ селектора
+                    // ДО вызова: при панике ядра постмортем покажет точный
+                    // sel/форму. Риск-тест — только по явному
+                    // FUZZ_ASTRIS_FUZZ (согласуется с оператором).
+                    if (kr == KERN_SUCCESS && conn &&
+                        getenv("FUZZ_ASTRIS_FUZZ")) {
+                        // (а) Many user-client'ов принимают externalMethod
+                        // только после notification port (как AppleM2Scaler
+                        // в этой же фаззе) — ставим и логим.
+                        mach_port_t npt = MACH_PORT_NULL;
+                        kern_return_t knp =
+                            mach_port_allocate(mach_task_self(),
+                                               MACH_PORT_RIGHT_RECEIVE, &npt);
+                        if (knp == KERN_SUCCESS)
+                            knp = IOConnectSetNotificationPort(conn, 0, npt, 0);
+                        LOG("[astris]   SetNotificationPort -> kr=0x%x", knp);
+
+                        static unsigned char inb[0x1000], outb[0x1000];
+                        uint64_t sc[8] = {0};
+                        for (int sel = 0; sel < 0x200; sel++) {
+                            int sh = (sel + t) & 3;
+                            size_t insz;
+                            uint32_t nsc = 0;
+                            switch (sh) {
+                            case 0: insz = 0; break;
+                            case 1: insz = 8; nsc = 4;
+                                    memset(sc, 0xff, sizeof(sc));
+                                    memset(inb, 0xff, sizeof(inb)); break;
+                            case 2: insz = 0x100; sc[0] = 0x4141414141414141ULL;
+                                    sc[1] = 0x100; break;
+                            default: insz = 0x200;
+                                     memset(inb, 0x42, sizeof(inb));
+                                     sc[0] = insz; break;
+                            }
+                            uint32_t nso = 8;
+                            size_t outs = sizeof(outb);
+                            memset(outb, 0xaa, sizeof(outb));
+                            // ЛОГ ДО вызова — постмортем-репро
+                            LOG("[astris]   sel t=%d sel=0x%x sh=%d in=%zu",
+                                t, sel, sh, insz);
+                            kern_return_t kr2 = IOConnectCallMethod(
+                                conn, (uint32_t)sel, sc, nsc, inb, insz,
+                                NULL, &nso, outb, &outs);
+                            // kr ДЛЯ КАЖДОГО селектора (v192e: первый свип
+                            // дал 0 HIT без единого kr — неразличимо
+                            // «все BadArgument» vs «все NotPrivileged»)
+                            LOG("[astris]   res sel=0x%x kr=0x%x osz=%zu",
+                                sel, kr2, outs);
+                            int hit = (kr2 == KERN_SUCCESS) ||
+                                      (kr2 != 0xe00002c2 && kr2 != 0xe00002c1 &&
+                                       kr2 != 0xe00002e2 && kr2 != 0xe00002bc &&
+                                       kr2 != 0xe00002c7);
+                            if (hit)
+                                LOG("[astris]   HIT sel=0x%x kr=0x%x osz=%zu",
+                                    sel, kr2, outs);
+                        }
+
+                        // (б) Проба форматов (v192f): если гейт ждёт
+                        // конкретный размер структуры/число скаляров, то
+                        // 512 селекторов × 4 формы никогда его не достанут
+                        // (все 512 = BadArgument). Перебор insz × nsc на
+                        // узком наборе селекторов; логим только НЕ-BadArg.
+                        static const size_t psz[] = {1,2,4,8,16,24,32,48,
+                                                     64,128,256,512,1024,2048};
+                        static const uint32_t pnsc[] = {0,1,2,4,8};
+                        static const int psel[] = {0,1,2,3,4,8,0x10,0x20,
+                                                   0x40,0x100};
+                        int nprobe = 0, nbad = 0;
+                        for (size_t si = 0; si < sizeof(psz)/sizeof(*psz); si++)
+                        for (int ni = 0; ni < 5; ni++)
+                        for (int pi = 0; pi < 10; pi++) {
+                            size_t isz = psz[si];
+                            uint32_t nc = pnsc[ni];
+                            int s2 = psel[pi];
+                            if (isz > sizeof(inb)) continue;
+                            memset(sc, 0, sizeof(sc));
+                            memset(inb, 0x43, sizeof(inb));
+                            sc[0] = isz;
+                            sc[1] = (uint64_t)s2;
+                            uint32_t no = 8;
+                            size_t oo = sizeof(outb);
+                            nprobe++;
+                            kern_return_t kr3 = IOConnectCallMethod(
+                                conn, (uint32_t)s2, sc, nc, inb, isz,
+                                NULL, &no, outb, &oo);
+                            if (kr3 != 0xe00002c2) {
+                                nbad++;
+                                LOG("[astris]   PROBE sz=%zu nsc=%u sel=0x%x "
+                                    "kr=0x%x osz=%zu",
+                                    isz, nc, s2, kr3, oo);
+                            }
+                        }
+                        LOG("[astris]   probe done: %d calls, %d non-BadArg",
+                            nprobe, nbad);
+                    }
+                    if (kr == KERN_SUCCESS && conn) IOServiceClose(conn);
+                }
+            }
+            IOObjectRelease(s);
+        }
+        } /* autoreleasepool */
+    }
+    // v192b: нулевой риск — что написано в sandbox-профилях про ANE
+    // iokit-open: если правила НЕТ, open упрётся в MACF-дени (0xe00002e2,
+    // кекст не входит, тест безопасен); если ЕСТЬ — open войдёт в кекст
+    // и может повторить qemu-панику (§192) — это уже риск-тест.
+    const char *pdir = "/System/Library/Sandbox/Profiles";
+    DIR *pd = opendir(pdir);
+    if (!pd) {
+        LOG("[astris] profiles dir: %s", strerror(errno));
+    } else {
+        struct dirent *de;
+        int nscan = 0;
+        while ((de = readdir(pd))) {
+            size_t nl = strlen(de->d_name);
+            if (nl < 4 || strcmp(de->d_name + nl - 3, ".sb") != 0) continue;
+            NSString *fp = [NSString stringWithFormat:@"%s/%s", pdir, de->d_name];
+            NSData *d = [NSData dataWithContentsOfFile:fp];
+            if (!d) continue;
+            nscan++;
+            NSString *ps = [[NSString alloc] initWithData:d
+                                                 encoding:NSUTF8StringEncoding];
+            if (!ps) continue;
+            static NSArray<NSString *> *needles;
+            needles = needles ?: @[@"H1xANE", @"H16ANE", @"ANEInterface",
+                                   @"LoadBalancer"];
+            for (NSString *nd in needles) {
+                if ([ps rangeOfString:nd].location != NSNotFound) {
+                    LOG("[astris] profile HIT %s contains '%s'",
+                        de->d_name, nd.UTF8String);
+                    break;
+                }
+            }
+        }
+        closedir(pd);
+        LOG("[astris] scanned %d sandbox profiles", nscan);
+    }
+    // v192c: прямой вердикт MACF через sandbox_check — НОЛЬ РИСКА, сам open
+    // не выполняется. Первая попытка (type=0) НЕВАЛИДНА: контролы
+    // AppleM2ScalerCSCDriver и IOSurfaceRoot (оба ИЗВЕСТНО открываются)
+    // дали 1=deny (§144-дыра — детектор без контроля не результат).
+    // Калибруем матрицу type=0..3: детектор валиден там, где оба контрола
+    // дают 0, и только там значение для H1xANELoadBalancer осмысленно.
+    // NB: libsystem_sandbox — не отдельный файл на iOS (элемент кэша/libSystem),
+    // символ экспортируется уже загруженной libSystem — RTLD_DEFAULT.
+    int (*chk)(pid_t, const char *, int, const char *) =
+        dlsym(RTLD_DEFAULT, "sandbox_check");
+    if (!chk) {
+        LOG("[astris] sandbox_check unavailable: %s", dlerror());
+    } else {
+        for (int ty = 0; ty <= 3; ty++) {
+            int a = chk(getpid(), "iokit-open-user-client", ty,
+                        "AppleM2ScalerCSCDriver");
+            int b = chk(getpid(), "iokit-open-user-client", ty,
+                        "H1xANELoadBalancer");
+            int c = chk(getpid(), "iokit-open-user-client", ty,
+                        "IOSurfaceRoot");
+            LOG("[astris] check ty=%d scaler=%d h1x=%d surf=%d%s", ty,
+                a, b, c,
+                (a == 0 && c == 0) ? "  <- CONTROLS ALLOW, detector valid"
+                                   : "");
+        }
+    }
+    LOG("[astris] done");
+}
+
 // ---------------------------------------------------------------------------
 // V177 (p_bq30): arm the cleanup and hand the window to a Siri query.
 //
@@ -42455,6 +42868,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ41")) { p_bq41(); LOG("[probe13] bq41-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ42")) { p_bq42(); LOG("[probe13] bq42-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ43")) { p_bq43(); LOG("[probe13] bq43-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ44")) { p_bq44(); LOG("[probe13] bq44-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ45")) { p_bq45(); LOG("[probe13] bq45-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
         if (getenv("FUZZ_MDNS")) { p_mdns(); LOG("[probe13] mdns-only mode, stop"); return NULL; }
         if (getenv("FUZZ_LSVC2")) { p_lsvc(); p_ipopt(); LOG("[probe13] lsvc2-only mode, stop"); return NULL; }
