@@ -6,13 +6,13 @@
 [open] IOServiceOpen VCPDRMService failed: 0xe00002e2
 [open] service VCPDRMServiceUserClient not found
 [vcpdrm] no connection, target dead
-[open] AppleM2ScalerCSCDriver -> conn 0x5703
-[scaler] conn 0x5703, s1 13 s2 14
+[open] AppleM2ScalerCSCDriver -> conn 0x4c07
+[scaler] conn 0x4c07, s1 13 s2 14
 [probe12] SetNotificationPort -> 0x00000000
 [bq57] v206.1: NSXPC-клиент к TCCProxy — интроспекция, slide-регистрация недостающих методов по RE-адресам
 [bq51] run ENTER ctl-empty nseq=1
-[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x109c9c900> { count = 1, transaction: 0, voucher = 0x109f785a0, contents =
-	"bsxpc" => <string: 0x109ef6100> { string cache = 0x0, length = 10, contents = "invalidate" }
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x109c80800> { count = 1, transaction: 0, voucher = 0x109d126c0, contents =
+	"bsxpc" => <string: 0x109c3b3c0> { string cache = 0x0, length = 10, contents = "invalidate" }
 }
 [bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
 	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
@@ -112,11 +112,25 @@
 [bq57] ep(sys-mach) = (nil)
 [bq57] ep(targetUser) = (nil)
 [bq57] ep(plain) = (nil)
-[bq57] ep(serviceName) = <BSServiceConnectionEndpoint: 0x109ddf920; target: XPCService:6794:com.apple.extensionkitservice; service: TCCProxy>
-[bq57] configurator: cfg class=BSNSXPCTransport
-[bq57] фабрика -> conn=<NSXPCConnection: 0x109d8c1e0> connection to service with pid -1 named (null)
+[bq57] ep(serviceName) = <BSServiceConnectionEndpoint: 0x109ee9a40; target: XPCService:6864:com.apple.extensionkitservice; service: TCCProxy>
+[bq57] configurator: cfg=BSNSXPCTransport
+[bq57] NSXPCConnectionWithEndpoint:configurator: -> conn=<NSXPCConnection: 0x109e95400> connection to service with pid -1 named (null)
+[bq57] interface = <NSXPCInterface: 0x109c45480> (proto=0x203c54da8)
+[bq57] setRemoteObjectInterface: ok
+[bq57] -[NSXPCConnection activate]: begin
+[bq57] -[NSXPCConnection activate]: ok
 [bq57] протокол = 0x203c54da8
-[bq57] interface = <NSXPCInterface: 0x109f84180>
+[bq57] interface = <NSXPCInterface: 0x109c448c0>
 [bq57] setRemoteObjectInterface: begin
 [bq57] setRemoteObjectInterface: ok
-[bq57] resume: begin
+[bq57] remoteObjectProxy: begin
+[bq57] proxy = <..__NSXPCInterfaceProxy_ExtensionFoundation._EXTCCProxyProtocol: 0x109d13cf0>
+[bq57] сигнатура: <NSMethodSignature: 0xae57f4d137ec1567> argc=4
+[bq57] probing UUID: @
+[bq57] инвокация отправлена…
+[bq57] *** TCCProxy ОТВЕТ: photoServiceAuthorizationStatus=0 error=Unable to resolve plugin for UUID 8A5A22B4-CA63-4C8E-A72D-A24F183AF917 ***
+[bq57] итог: got=1 status=0 err=Unable to resolve plugin for UUID 8A5A22B4-CA63-4C8E-A72D-A24F183AF917
+[bq57] done
+[bq57] VERDICT: 'photoServiceAuthorizationStatus=0 error=Unable to resolve plugin for UUID 8A5A22B4-CA63-4C8E-A72D-A24F183AF917' = TCC-чтение из песочницы; тишина = собирать логи демона
+[bq57] INVALIDATION handler вызван
+[bq57] WD15: 15 c прошло — activate/вызов ещё не завершились?

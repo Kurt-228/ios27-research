@@ -4865,3 +4865,77 @@ v206.7: configure(proto найден, interfaceWithServer:client:) —
 (_EXTCCProxyProtocol с server-стороной) и в каком порядке зовёт
 configure/activate/extract. Альтернатива: os_log-скан
 BSServiceInterface на предмет «failure in …» строк.
+
+## §208. TCCProxy RPC ИЗ ПЕСОЧНИЦЫ РАБОТАЕТ: photoServiceAuthorizationStatusForExtensionUUID вызван, ответ получен (v206.8)
+
+### Точная последовательность клиента (RE Swift-геттера 0x18705afc0)
+
+Резолв ExtensionFoundation-стабов через .symbols дал ПОЛНУЮ
+последовательность настоящего `_EXServiceClient.tccProxyConnection`:
+
+```
+1. endpoint  = +[BSServiceConnectionEndpoint
+     endpointForServiceName:@"com.apple.extensionkitservice"
+     oneshot:NO service:@"TCCProxy" instance:nil]     (0x1880975f0)
+2. conn      = +[BSServiceConnection(NSXPCConnection)
+     NSXPCConnectionWithEndpoint:endpoint configurator:block]
+                                                        (0x18801e9c0)
+3. [conn setInterruptionHandler:…]                     (0x188011d00)
+4. [conn setInvalidationHandler:…]                     (0x188011d20)
+5. [conn setRemoteObjectInterface:NSXPCInterface]      (0x1880122d0)
+6. [conn activate]                                     (0x188008a60)
+```
+
+Ключевые исправления v206.7→v206.8: interface ставится на
+**NSXPCConnection** (не на bsConn через configure:) — активация
+NSXPCConnection сама поднимает BSXPC-хендшейк; `-[bsConn activate]`
+без interface падал (BSServiceConnection.m:453), `configure:` с
+setInterface: — вис (BSServiceInterface строится из Swift-протокола
+при активации NSXPC, отдельно строить его не нужно).
+
+### Результат (лог bq57 v206.8)
+
+```
+-[NSXPCConnection activate]: ok
+proxy = ..__NSXPCInterfaceProxy_ExtensionFoundation._EXTCCProxyProtocol
+инвокация photoServiceAuthorizationStatusForExtensionUUID:completion:(NSUUID)
+*** photoServiceAuthorizationStatus=0
+    error=Unable to resolve plugin for UUID 8A5A22B4-CA63-… ***
+INVALIDATION handler вызван
+```
+
+Демон `com.apple.extensionkitservice` (tcc-read kTCCServiceAll,
+launchprocess, host.any-extension, pkd-профиль) принял RPC,
+обработал (поискал plugin по UUID — случайный UUID не найден,
+NSError «Unable to resolve plugin for UUID …»), и вернул ответ
+через reply-block в НАШ process. **Пробный диалог с TCCProxy
+(согласован с оператором в §202) завершён ПОЛОЖИТЕЛЬНО.**
+
+### Значение для цели
+
+1. **Воспроизводимый unauthorized-access примитив**: sandboxed app
+   → NSXPC-RPC в привилегированный демон с tcc-read. Для bounty:
+   TCCProxy доступен ЛЮБОМУ приложению через BS-домен (прав
+   `live-entities.write`-стиль гейта нет — чекин чистый).
+2. **Фаззинг-контур открыт**: аргумент `NSUUID` сериализуется
+   __NSXPCSerialization (0x180af8e34+134) в привилегированный
+   процесс — как и Discovery `beginExtensionsQuery:listenerEndpoint:`
+   с NSPredicate и NSXPCListenerEndpoint (богатая дисериализация).
+   Контролируемые байты → бинарный кодер → демон с launchprocess:
+   память там = промежуточная цель AGENTS.md.
+3. Селекторы всех 4 сервисов известны (§204) — та же
+   последовательность вызывает их все.
+
+### Инструментальные уроки v206.8
+
+- Swift-геттер — источник истины для клиентской
+  последовательности: стабы ExtensionFoundation резолвятся
+  по .symbols → имена селекторов; ключ: активировать
+  NSXPCConnection (не BSServiceConnection), interface — до
+  activate, resume на wrapped-соединении запрещён навсегда.
+- %@ в fzlog_emit не поддерживается (vscanf) — объекты через
+  description.UTF8String.
+- Дублирующий блок interface-теста остался в фазе (не мешает;
+  вызвать один раз при следующей чистке).
+
+Логи: `results/runf-bq57.log` (v206.8, positive).

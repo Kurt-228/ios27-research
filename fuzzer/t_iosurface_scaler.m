@@ -37915,121 +37915,75 @@ static void p_bq57(void) {
             LOG("[bq57] endpoint НЕ создан — стоп");
             return;
         }
-        // v206.5: путь НАСТОЯЩЕГО клиента (логи os_log: "resume is not
-        // supported on a wrapped BSServiceConnection", BSNSXPCTransport.m:728):
-        // +connectionWithEndpoint:clientContextBuilder: -> BSServiceConnection
-        // -> -activate (BSXPC-хендшейк: чекин-слот + 'wINt') ->
-        // -extractNSXPCConnectionWithConfigurator: -> NSXPCConnection
-        // (resume НЕ звать!)
-        id bsConn = nil;
-        SEL cebSel = @selector(connectionWithEndpoint:clientContextBuilder:);
-        if (bsCls && [bsCls respondsToSelector:cebSel]) {
-            typedef id (*CFn)(Class, SEL, id, void (^)(void));
-            CFn f = (CFn)objc_msgSend;
-            bsConn = f(bsCls, cebSel, endpoint, NULL);
-            LOG("[bq57] +connectionWithEndpoint:clientContextBuilder: -> "
-                "bsConn=%s",
-                bsConn ? [bsConn description].UTF8String : "(nil)");
-        }
-        if (!bsConn) {
-            LOG("[bq57] BSServiceConnection НЕ создан — стоп");
-            return;
-        }
-        // v206.7: НАСТОЯЩИЙ порядок (os_log: "some form of interface
-        // handler must be specified before activation : service=TCCProxy",
-        // BSServiceConnection.m:453): configure(интерфейс) ДО activate.
-        // iface = +[BSServiceInterface interfaceWithServer:client:]
-        // (server = протокол демона _EXTCCProxyProtocol, client = nil),
-        // затем -[bsConn configure: ^(cfg){ [cfg setInterface: iface]; }]
-        id ifaceObj = nil;
-        Class ifaceCls = NSClassFromString(@"BSServiceInterface");
-        if (ifaceCls) {
-            SEL iwscSel = @selector(interfaceWithServer:client:);
-            if ([ifaceCls respondsToSelector:iwscSel]) {
-                typedef id (*IFn)(Class, SEL, Protocol *, Protocol *);
-                IFn f = (IFn)objc_msgSend;
-                Protocol *pr = objc_getProtocol(
-                    "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
-                if (!pr) {
-                    unsigned int pcnt = 0;
-                    Protocol * __unsafe_unretained *pall =
-                        objc_copyProtocolList(&pcnt);
-                    for (unsigned i = 0; i < pcnt; i++) {
-                        const char *nm = protocol_getName(pall[i]);
-                        if (nm && strstr(nm, "TCCProxy")) { pr = pall[i]; break; }
-                    }
-                    if (pall) free(pall);
-                }
-                LOG("[bq57] configure: proto=%p", pr);
-                ifaceObj = f(ifaceCls, iwscSel, pr, nil);
-                LOG("[bq57] +interfaceWithServer:client: -> %s",
-                    ifaceObj ? [ifaceObj description].UTF8String : "(nil)");
-            } else {
-                LOG("[bq57] BSServiceInterface не отвечает "
-                    "interfaceWithServer:client:");
-            }
-        }
-        if (ifaceObj) {
-            SEL cfgSel = @selector(configure:);
-            if ([bsConn respondsToSelector:cfgSel]) {
-                typedef void (*CFn2)(id, SEL, void (^)(id));
-                CFn2 cf = (CFn2)objc_msgSend;
-                LOG("[bq57] -configure: begin (setInterface)");
-                __block id ifaceRef = ifaceObj;
-                cf(bsConn, cfgSel, ^(id cfg) {
-                    LOG("[bq57] configure: cfg=%s",
-                        cfg ? NSStringFromClass([cfg class]).UTF8String
-                            : "(nil)");
-                    SEL siSel = @selector(setInterface:);
-                    if (cfg && [cfg respondsToSelector:siSel]) {
-                        typedef void (*SIFn)(id, SEL, id);
-                        SIFn sf = (SIFn)objc_msgSend;
-                        sf(cfg, siSel, ifaceRef);
-                        LOG("[bq57] configure: setInterface: OK");
-                    } else {
-                        LOG("[bq57] cfg не отвечает setInterface: "
-                            "(список методов в интроспекции выше)");
-                    }
-                });
-                LOG("[bq57] -configure: вернулся");
-            } else {
-                LOG("[bq57] bsConn не отвечает configure:");
-            }
-        }
-        // activate — теперь с интерфейсом
-        SEL actSel = @selector(activate);
-        if ([bsConn respondsToSelector:actSel]) {
-            typedef void (*AFn)(id, SEL);
-            AFn af = (AFn)objc_msgSend;
-            LOG("[bq57] -activate: begin (интерфейс задан)");
-            af(bsConn, actSel);
-            LOG("[bq57] -activate: вернулся");
-        } else {
-            LOG("[bq57] bsConn не отвечает activate");
-        }
+        // v206.8: ТОЧНАЯ последовательность из Swift-геттера
+        // _EXServiceClient.tccProxyConnection (0x18705afc0, RE-дамп):
+        //   1. endpoint = +endpointForServiceName:oneshot:service:instance:
+        //   2. conn = +[BSServiceConnection(NSXPCConnection)
+        //        NSXPCConnectionWithEndpoint:endpoint configurator:block]
+        //        (ЭТО УЖЕ NSXPCConnection — фабрика, не extract!)
+        //   3. setInterruptionHandler: / setInvalidationHandler:
+        //   4. setRemoteObjectInterface:  ← «interface handler»
+        //   5. [conn activate]            ← NSXPCConnection.activate,
+        //        не -[bsConn activate] (тот требует interface ДО
+        //        BSXPC-хендшейка и валился с BSServiceConnection.m:453)
+        // resume на wrapped-соединении по-прежнему НЕ звать.
         NSXPCConnection *conn = nil;
-        SEL extSel = @selector(extractNSXPCConnectionWithConfigurator:);
-        if ([bsConn respondsToSelector:extSel]) {
-            typedef NSXPCConnection *(*EFn)(id, SEL, void (^)(id));
-            EFn ef = (EFn)objc_msgSend;
-            conn = ef(bsConn, extSel, ^(id cfg) {
-                LOG("[bq57] extract-configurator: cfg=%s",
+        SEL facSel2 = @selector(NSXPCConnectionWithEndpoint:configurator:);
+        if (bsCls && [bsCls respondsToSelector:facSel2]) {
+            typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+            FacFn f = (FacFn)objc_msgSend;
+            conn = f(bsCls, facSel2, endpoint, ^(id cfg) {
+                LOG("[bq57] configurator: cfg=%s",
                     cfg ? NSStringFromClass([cfg class]).UTF8String : "-");
                 SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
                 if (cfg && [cfg respondsToSelector:qsel]) {
                     typedef void (*QFn)(id, SEL, NSString *, long);
                     QFn qf = (QFn)objc_msgSend;
                     qf(cfg, qsel, @"bq57.q", (long)0);
-                    LOG("[bq57] extract-configurator: queue задан");
+                    LOG("[bq57] configurator: queue задан");
                 }
             });
-            LOG("[bq57] extractNSXPCConnection -> conn=%s",
+            LOG("[bq57] NSXPCConnectionWithEndpoint:configurator: -> "
+                "conn=%s",
                 conn ? [conn description].UTF8String : "(nil)");
         }
         if (!conn) {
-            LOG("[bq57] NSXPCConnection не извлечён — стоп");
+            LOG("[bq57] NSXPCConnection НЕ создан — стоп");
             return;
         }
+        Protocol *proto2 = objc_getProtocol(
+            "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
+        if (!proto2) {
+            unsigned int pcnt2 = 0;
+            Protocol * __unsafe_unretained *pall2 =
+                objc_copyProtocolList(&pcnt2);
+            for (unsigned i = 0; i < pcnt2; i++) {
+                const char *nm = protocol_getName(pall2[i]);
+                if (nm && strstr(nm, "TCCProxy")) { proto2 = pall2[i]; break; }
+            }
+            if (pall2) free(pall2);
+        }
+        NSXPCInterface *iface2 =
+            proto2 ? [NSXPCInterface interfaceWithProtocol:proto2] : nil;
+        LOG("[bq57] interface = %s (proto=%p)",
+            iface2 ? [iface2 description].UTF8String : "(nil)", proto2);
+        if (iface2) {
+            [conn setInterruptionHandler:^{
+                LOG("[bq57] INTERRUPTION handler вызван");
+            }];
+            [conn setInvalidationHandler:^{
+                LOG("[bq57] INVALIDATION handler вызван");
+            }];
+            [conn setRemoteObjectInterface:iface2];
+            LOG("[bq57] setRemoteObjectInterface: ok");
+        } else {
+            LOG("[bq57] интерфейс не найден — activate без него упадёт, "
+                "стоп");
+            return;
+        }
+        LOG("[bq57] -[NSXPCConnection activate]: begin");
+        [conn activate];
+        LOG("[bq57] -[NSXPCConnection activate]: ok");
 
         Protocol *proto = objc_getProtocol(
             "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
