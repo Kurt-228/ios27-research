@@ -4682,3 +4682,70 @@ tccProxyConnection — NSXPCConnection поверх BSXPC endpoint).
   (interrupted) — различать по адресному диапазону.
 
 Логи: `results/runf-bq56.log`.
+
+## §206. Логи демона решили транспорт: BSNSXPCTransport → стандартный NSXPC; план v206 — реальный клиентский стек (v205.1)
+
+### Логи демона (sudo log collect, оператор)
+
+Первая же сборка os_log дала точный ответ на открытый вопрос §205:
+
+```
+(BoardServices) initializing domain XPCService
+(BoardServices) [6693[invalid-proem]->S:1] Rejected due to malformed checkin_info : (null)
+(ExtensionFoundation) Starting XPC listener for connection request from '6693'
+(BoardServices) BSNSXPCTransport[6693BSXPC(com.apple.fuzz27)->S:2] failed to decode underlying message : message=<xpc object>
+```
+
+- чекин из v202 принят демоном: каждый пробный диалог поднимал
+  NSXPC-листенер ExtensionFoundation («Starting XPC listener») —
+  корень «тишины» был не в BSXPC-слое вовсе;
+- вызовы демона обслуживает **BSNSXPCTransport** — NSXPC поверх
+  BSXPC (как и у настоящего клиента `_EXServiceClient.tccProxyConnection`);
+  наши сырые словари падали в «failed to decode underlying message».
+
+### RE транспортного стека (полный)
+
+- **BSNSXPCTransport** (BoardServices): входящее BSXPC-сообщение →
+  `decodeBoolForKey:'BSNSXPCReplyIsInternal'` +
+  `decodeXPCObjectOfType:forKey:'BSNSXPCMessage'` → внутренний объект
+  передаётся NSXPC-механизме Foundation (block 0x18fb09af4);
+- **NSXPC-wire** (Foundation, `-[NSXPCConnection
+  _decodeAndInvokeMessageWithEvent:reply:flags:]` 0x180b10f44): ключи
+  **"proxynum"** (экспорт-таблица → интерфейс по номеру) и
+  **"sequence"** (reply-корреляция); инвокация сериализуется
+  `__NSXPCSerialization*` (StartDictionaryWrite/AddString/AddInteger/
+  AddObjectRef — бинарный формат, все функции в nlist);
+- клиентский стек доступен ЦЕЛИКОМ через экспортированные классы:
+  `+[BSXPCServiceConnectionEndpoint endpointForMachName:service:instance:]`
+  (0x18faeb898), `+[BSServiceConnection(NSXPCConnection)
+  NSXPCConnectionWithEndpoint:configurator:]` (0x18fafaa94) —
+  класс BSServiceConnectionEndpoint проверяется через isKindOfClass
+  (класс-реф 0x1e0a80450).
+
+### План v206 (p_bq57): настоящий клиент без сырого wire
+
+Из приложения (все объекты — экспортированные классы shared cache,
+доступны через NSClassFromString/objc_getProtocol):
+1. endpoint = `+[BSServiceConnectionEndpoint endpointForMachName:
+   "com.apple.extensionkitservice" service:"TCCProxy" instance:nil]`;
+2. conn = `+[BSServiceConnection(NSXPCConnection)
+   NSXPCConnectionWithEndpoint:endpoint configurator:…]` → NSXPCConnection;
+3. протокол `_EXTCCProxyProtocol` по runtime-имени
+   `_TtP19ExtensionFoundation19_EXTCCProxyProtocol_`
+   (objc_getProtocol) → NSXPCInterface;
+4. `[conn remoteObjectProxyWithErrorHandler:…]` → вызов
+   **photoServiceAuthorizationStatusForExtensionUUID:completion:**
+   (NSUUID) → completion(BOOL, NSError*) — TCC-чтение.
+Foundation сама построит proxynum/sequence/сериализацию — сырой wire
+больше не нужен. Это и есть «пробный диалог с TCCProxy», согласованный
+с оператором; от нас требуется только корректный NSUUID (любой
+extension-UUID, ответ BOOL = авторизационный статус photo-сервиса).
+
+### Инструментальные уроки v206-pre
+
+- os_log демона — решающий инструмент для серверных веток;
+  `sudo log collect --device-name` — только руками оператора
+  (внесено в цикл: после каждой содержательной фазы просить сбор).
+- Транспортная развилка найдена за один сбор: метки
+  «Starting XPC listener» / «failed to decode underlying message»
+  заменить неделимые догадки.
