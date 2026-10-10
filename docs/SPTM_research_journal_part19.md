@@ -3945,3 +3945,106 @@ BPF-интерпретатору ядра в данной сборке.
    приоритет низкий (вероятный VM-артефакт).
 4. Бинарии ramdisk: `ipfuzz`, `ioctlfuzz`, `ioctest`, `sweep`, `probe`
    (все в /private/var/tmp, trustcache собран по all_hashes).
+
+## §198 (v190). bq39: локальный аудит whitelist-декодера LNValue — §188 m1/m2 были формат-отказом; whitelist ПОСЛОТОЧНЫЙ, 6 слотов либеральны (гаджет-поверхность открыта)
+
+### Повод и метод
+
+RE svc.bin офлайн (xcrun objdump/dyld_info; IDA на хосте мертва без
+лицензии) дал точный вызов декодера сервиса:
+
+- `NSKeyedUnarchiver.unarchivedObject(ofClass: LNValue, from:)` —
+  auth-stub `0x10004c6fc` -> Foundation
+  `...unarchivedObject7ofClass4from...`, класс-референс GOT `0x10005FE40`
+  = `LinkMetadata/_OBJC_CLASS_$_LNValue`;
+- log-строка сервиса `"Found nil when unarchiving LNValue"`
+  (VA 0x1000519f0, xref adrp@0x1000156b0) — сервис обрабатывает nil после
+  декода (мягкий пропуск).
+
+bq39 (`p_bq39`, диспетчер `FUZZ_BQ39`): тот же ObjC API в НАШЕМ процессе
+— `dlopen LinkMetadata` (dyld резолвит образ из кэша, on-disk файла нет;
+`LNValue=0x20414c950 LNEntityIdentifier=0x20414cc70
+LNEntityIdentifierValueType=0x20414bca8`) -> 20 прогонов: ctrl (kFz35_C
+оригинал), m0 (plistlib round-trip) и 18 мутаций $objects. Каждый байт
+варианта валидировался plistlib ПЕРЕД вставкой в массив (kFz39_*).
+
+### РЕПАРР §188: m1/m2 в v181 обрезаны с рождения — их «нет» было формат-отказом
+
+- `kFz38_M1[652]` реально инициализирован 612 байтами (sizeof кладёт +40
+  нулей), `kFz38_M2[611]` — 609 (+2); CF (`plutil -lint`) отвергает оба:
+  «Invalid file»; m0 (643) — OK. Т.е. посаженные в §188 байты m1/m2 были
+  НЕВАЛИДНЫМ bplist — NSKeyedUnarchiver отвергал на формате, Siri «нет»
+  — детектировал формат, а не whitelist (§144-дыра той фазы). Обрезка
+  присутствует уже в коммите 65cfd33 (v181) — массивы рождены сломанными
+  (баг генератора прошлой сессии), не портились позже.
+
+### Карта слотов (детектор ctrl/m0 = ACCEPT жив, §144 выполнен)
+
+| слот | глубина | вердикт (валидные байты) |
+|---|---|---|
+| root ({$class: NSDictionary}) | 0 | REJECT 4865 — гейт ofClass работает на $class-объектах |
+| root (сырая NSString) | 0 | **ACCEPT class=NSTaggedPointerString** — сырые plist-значения (нет $class) гейт верхнего уровня обходят ВООБЩЕ; для сервиса это Swift `as?` -> nil -> «Found nil ...» -> мягкий пропуск строки |
+| value -> NSDictionary | 1 | REJECT 4865 |
+| value -> instance LNEntityIdentifierValueType | 1 | REJECT 4864 |
+| value -> NSMutableString | 1 | **декод ПРОШЁЛ**, throw бизнес-валидации LinkServices: `BUG IN CLIENT OF LINKSERVICES: Value  is not member of type IdentifierValue` |
+| value -> вложенный LNValue | 1 | **декод ПРОШЁЛ**, тот же throw |
+| valueType -> NSDictionary | 1 | REJECT 4864 (строг) |
+| exportedContent -> NSData / NSDictionary | 1 | **ACCEPT / ACCEPT** — слот либерален (ожидался Data) |
+| displayRepresentation -> NSDictionary | 1 | **ACCEPT** — либерален |
+| typeIdentifier -> NSDictionary / NSArray | 2 | REJECT 4865 / 4865 (строг, только NSString) |
+| instanceIdentifier -> NSDictionary | 2 | REJECT 4865 (строг) |
+| bundleIdentifier -> NSDictionary | 2 | **ACCEPT** — либерален |
+| stableIdentifier -> NSDictionary / NSString | 2 | **ACCEPT / ACCEPT** — либерален |
+| auditToken -> NSDictionary | 2 | **ACCEPT** — либерален (ожидался Data) |
+| contentType -> NSDictionary | 3 | **ACCEPT** — либерален (глубина 3!) |
+
+Класс-гейт есть только у `value` (допускает {LNEntityIdentifier,
+NSString-подклассы, LNValue}), `valueType`, `typeIdentifier`,
+`instanceIdentifier` и у root для $class-объектов. Шесть слотов (включая
+depth-3 contentType) декодируются без ограничения класса.
+
+### Что это значит
+
+1. **Гаджет-поверхность открыта.** В либеральные слоты можно положить
+   произвольный $class-объект — NSKeyedUnarchiver сервиса проинстанцирует
+   любой класс с initWithCoder из адресного пространства
+   LiveEntityService в момент, когда клиент с `live-entities.read`
+   (navd) прочитает фид. Дальше безопасность зависит только от набора
+   классов с опасным initWithCoder в сервисе и его фреймворках
+   (AppIntentsLiveEntitySupport, IntelligenceFlow{Context,Planner}Runtime
+   — бинарии изъяты, §185/bq21).
+2. **Бизнес-валидация LinkServices кидает исключение** ПОСЛЕ успешного
+   декода (слот value: неизвестное значение типа/пустая строка). Throw
+   всплывает из unarchivedObject (у нас его поймал @try). Если вокруг
+   unarchive в итерации feedEntries сервиса нет @catch — это
+   наблюдаемый краш сервиса, триггеруемый посадкой архива в БД (запись
+   в 8EB68272/db доступна, §170/§184). Проверить: RE сайта 0x1000156b0 в
+   svc.bin на compact-unwind/exception-хендлер.
+3. **§188 переосмыслен**: «whitelist строг на value/valueType» с
+   валидными байтами подтвердилось, но механизм — throw бизнес-валидации
+   (value), а не класс-гейт: NSMutableString и вложенный LNValue в value
+   ДЕКОДИРУЮТСЯ. Старые m1/m2-вердикты списываются на формат.
+
+### Инструмент и ловушки запуска
+
+- `/tmp/bq39_gen.py` — крафтер вариантов: plistlib-мутации $objects +
+   обязательная валидация перед эмитом C-массивов (без неё — риск
+  повторить §188).
+- `results/v190-bq39-decoder-map.log` — полная карта.
+- **runf.sh только запускает — не устанавливает.** Первый прогон bq39
+  молча ушёл в mode=all на СТАРОЙ сборке (диспетчер FUZZ_BQ39 отсутствовал,
+  [bq39] не появился — runf честно зарепортит отсутствие маркера). Перед
+  запуском новой фазы обязателен
+  `xcrun devicectl device install app --device $DEV build/fuzz27.app`.
+
+### Итог v190
+
+1. §188 m1/m2 — формат-отказ (обрезанные массивы), не whitelist;
+   bq39 перепроверил локально с валидными байтами.
+2. Whitelist декодера LNValue — ПОСЛОТОЧНЫЙ: 6 слотов без ограничения
+   класса на глубинах 1–3; root-гейт обходится сырым plist-значением.
+3. Направление v191: (а) bq40 — эксзотические классы в либеральные слоты
+   (NSPredicate/NSUUID/NSURL/NSExpression/NSMutableURLRequest + LN*
+   классы из символов сервиса) — уточнить фолбэк-набор; (б) RE svc.bin
+   на @catch вокруг decode; (в) end-to-end plant в feedEntries с триггером
+   чтения (нужен оператор).

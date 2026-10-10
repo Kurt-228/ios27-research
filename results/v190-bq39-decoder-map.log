@@ -1,0 +1,37 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ39=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x560f
+[scaler] conn 0x560f, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq39] v189 local LNValue decoder whitelist audit (§188 m1/m2 bytes were truncated -> rerun locally, valid bplists)
+[bq39] dlopen /System/Library/PrivateFrameworks/LinkMetadata.framework/LinkMetadata -> 0x36ad769e0 (ok)
+[bq39] classes LNValue=0x20414c950 LNEntityIdentifier=0x20414cc70 LNEntityIdentifierValueType=0x20414bca8
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq39] ctrl      ACCEPT class=LNValue
+[bq39] m0        ACCEPT class=LNValue
+[bq39] m1v       THROW NSInternalInconsistencyException: BUG IN CLIENT OF LINKSERVICES: Value  is not member of type IdentifierValue
+[bq39] m2v       REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] top_dict  REJECT code=4865 err=The data couldn’t be read because it is missing.
+[bq39] top_str   ACCEPT class=NSTaggedPointerString
+[bq39] v_dict    REJECT code=4865 err=The data couldn’t be read because it is missing.
+[bq39] v_vt      REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] v_rec     THROW NSInternalInconsistencyException: BUG IN CLIENT OF LINKSERVICES: Value (IdentifierValue) <redacted> is not member of type IdentifierValue
+[bq39] ec_data   ACCEPT class=LNValue
+[bq39] ec_dict   ACCEPT class=LNValue
+[bq39] dr_dict   ACCEPT class=LNValue
+[bq39] ti_dict   REJECT code=4865 err=The data couldn’t be read because it is missing.
+[bq39] ti_arr    REJECT code=4865 err=The data couldn’t be read because it is missing.
+[bq39] bi_dict   ACCEPT class=LNValue
+[bq39] ii_dict   REJECT code=4865 err=The data couldn’t be read because it is missing.
+[bq39] si_dict   ACCEPT class=LNValue
+[bq39] si_str    ACCEPT class=LNValue
+[bq39] at_dict   ACCEPT class=LNValue
+[bq39] ct_dict   ACCEPT class=LNValue
+[bq39] SUMMARY variants accept=9 reject=9 (accept on *_dict = liberal slot => gadget surface OPEN)
+[bq39] done
+[probe13] bq39-only mode, stop
