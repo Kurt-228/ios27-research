@@ -1,0 +1,117 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ57=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x491b
+[scaler] conn 0x491b, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq57] v206.1: NSXPC-клиент к TCCProxy — интроспекция, slide-регистрация недостающих методов по RE-адресам
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x10589c200> { count = 1, transaction: 0, voucher = 0x105b785a0, contents =
+	"bsxpc" => <string: 0x105af0bd0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq57] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq57] dlopen ext=0x36ad01290 bs=0x36ad72300
+[bq57] классы: epX=0x20403f048 ep=0x20403f110 bs=0x20403f520
+[bq57] epX -> BSXPCServiceConnectionEndpoint
+[bq57] epX instance-methods: 7
+[bq57]   epX -hash
+[bq57]   epX -description
+[bq57]   epX -debugDescription
+[bq57]   epX -isEqual:
+[bq57]   epX -init
+[bq57]   epX -copyWithZone:
+[bq57]   epX -.cxx_destruct
+[bq57] epX class-methods: 0
+[bq57] ep -> BSServiceConnectionEndpoint
+[bq57] ep instance-methods: 21
+[bq57]   ep -initWithBSXPCCoder:
+[bq57]   ep -instance
+[bq57]   ep -isNonLaunching
+[bq57]   ep -hash
+[bq57]   ep -description
+[bq57]   ep -encodeWithBSXPCCoder:
+[bq57]   ep -compare:
+[bq57]   ep -service
+[bq57]   ep -saveAsInjectorEndowmentForKey:
+[bq57]   ep -initWithCoder:
+[bq57]   ep -RBSTarget
+[bq57]   ep -isEqual:
+[bq57]   ep -encodeWithXPCDictionary:
+[bq57]   ep -init
+[bq57]   ep -initWithXPCDictionary:
+[bq57]   ep -isNullEndpoint
+[bq57]   ep -copyWithZone:
+[bq57]   ep -targetDescription
+[bq57]   ep -isEqualToServiceEndpoint:
+[bq57]   ep -.cxx_destruct
+[bq57]   ep -encodeWithCoder:
+[bq57] ep class-methods: 9
+[bq57]   ep +defaultShellMachName
+[bq57]   ep +supportsSecureCoding
+[bq57]   ep +endpointOfLaunchIdentifier:fromLaunchResponse:withService:instance:error:
+[bq57]   ep +nullEndpointForService:instance:
+[bq57]   ep +endpointForServiceName:oneshot:service:instance:
+[bq57]   ep +supportsBSXPCSecureCoding
+[bq57]   ep +endpointForMachName:targetUserIdentifier:service:instance:
+[bq57]   ep +endpointForMachName:service:instance:
+[bq57]   ep +endpointForSystemMachName:service:instance:
+[bq57] bs -> BSServiceConnection
+[bq57] bs instance-methods: 26
+[bq57]   bs -configure:
+[bq57]   bs -isValid
+[bq57]   bs -instance
+[bq57]   bs -configureConnection:
+[bq57]   bs -description
+[bq57]   bs -service
+[bq57]   bs -init
+[bq57]   bs -createMessage
+[bq57]   bs -invalidate
+[bq57]   bs -userInfo
+[bq57]   bs -activate
+[bq57]   bs -.cxx_destruct
+[bq57]   bs -_configureConnection:
+[bq57]   bs -dealloc
+[bq57]   bs -extractNSXPCConnectionWithConfigurator:
+[bq57]   bs -extractNSXPCConnectionWithViewServiceConfigurator:
+[bq57]   bs -remoteProcess
+[bq57]   bs -remoteTarget
+[bq57]   bs -remoteToken
+[bq57]   bs -unsafeRemoteBundleIdentifier
+[bq57]   bs -activeMessageBatch
+[bq57]   bs -createMessageWithCompletion:
+[bq57]   bs -defaultName
+[bq57]   bs -remoteAssertionTarget
+[bq57]   bs -remoteTargetWithAssertionAttributes:
+[bq57]   bs -remoteTokenWrapper
+[bq57] bs class-methods: 5
+[bq57]   bs +connectionWithEndpoint:
+[bq57]   bs +currentContext
+[bq57]   bs +NSXPCConnectionWithEndpoint:clientContextBuilder:configurator:
+[bq57]   bs +NSXPCConnectionWithEndpoint:configurator:
+[bq57]   bs +connectionWithEndpoint:clientContextBuilder:
+[bq57] slide (через -[…Endpoint service]): 489406464
+[bq57] class_addMethod epX +endpointForMachName:… -> 1
+[bq57] фоновый запуск... (фаза возвращается, лог продолжается)
+[probe13] bq57-only mode, stop
+[bq57] lk(name,7,0x200) kr=0x9f out16=0
+[bq57] lk(name,7,0x220) kr=0x9f
+[bq57] lk(name,7,0x208) kr=0x9f
+[bq57] lk(name,2,0x200) kr=0x9a (bs-тип)
+[bq57] lk(name,3,0x200) kr=0x2d
+[bq57] entry(cf3d8)(name,0) = NULL outT=0
+[bq57] entry(cf4ec 'bs')(name,0) = NULL outT=0
+[bq57] ep(sys-mach) = (nil)
+[bq57] ep(targetUser) = (nil)
+[bq57] ep(plain) = (nil)
+[bq57] ep(serviceName) = <BSServiceConnectionEndpoint: 0x105b81540; target: XPCService:6832:com.apple.extensionkitservice; service: TCCProxy>
+[bq57] +connectionWithEndpoint:clientContextBuilder: -> bsConn=<BSXPC(XPCService:6832:com.apple.extensionkitservice[C:5-1])-as(TCCProxy):0x105b78460>
+[bq57] -activate: begin

@@ -37798,11 +37798,16 @@ static void p_bq57(void) {
             (int)ok);
     }
 
-    // v206.4: клиентский блок в ФОНОВУЮ очередь — probe-поток == main,
-    // resume() дедлочился на собственной активации (crash-репортов нет
-    // => deadlock; watchdog на main queue не мог сработать)
+    // v206.6: клиентский блок на MAIN QUEUE (async) — BSXPC activate
+    // внутренне dispatch_sync'ит на очереди соединения, чей target
+    // может быть main; глобальная очередь -> дедлок на v206.5.
+    // Сторожевой таймер — на отдельной serial-очереди (сработает всегда).
+    dispatch_queue_t bq57_wd = dispatch_queue_create("bq57.wd", DISPATCH_QUEUE_SERIAL);
+    dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 15 * NSEC_PER_SEC), bq57_wd, ^{
+        LOG("[bq57] WD15: 15 c прошло — activate/вызов ещё не завершились?");
+    });
     dispatch_semaphore_t bq57_sem = dispatch_semaphore_create(0);
-    dispatch_async(dispatch_get_global_queue(QOS_CLASS_USER_INTERACTIVE, 0),
+    dispatch_async(dispatch_get_main_queue(),
                    ^{
     @try {
     // endpoint v206.3: kr-диагностика уже сделана; фабрики endpoint'ов
@@ -37910,26 +37915,61 @@ static void p_bq57(void) {
             LOG("[bq57] endpoint НЕ создан — стоп");
             return;
         }
-        // фабрика
+        // v206.5: путь НАСТОЯЩЕГО клиента (логи os_log: "resume is not
+        // supported on a wrapped BSServiceConnection", BSNSXPCTransport.m:728):
+        // +connectionWithEndpoint:clientContextBuilder: -> BSServiceConnection
+        // -> -activate (BSXPC-хендшейк: чекин-слот + 'wINt') ->
+        // -extractNSXPCConnectionWithConfigurator: -> NSXPCConnection
+        // (resume НЕ звать!)
+        id bsConn = nil;
+        SEL cebSel = @selector(connectionWithEndpoint:clientContextBuilder:);
+        if (bsCls && [bsCls respondsToSelector:cebSel]) {
+            typedef id (*CFn)(Class, SEL, id, void (^)(void));
+            CFn f = (CFn)objc_msgSend;
+            bsConn = f(bsCls, cebSel, endpoint, NULL);
+            LOG("[bq57] +connectionWithEndpoint:clientContextBuilder: -> "
+                "bsConn=%s",
+                bsConn ? [bsConn description].UTF8String : "(nil)");
+        }
+        if (!bsConn) {
+            LOG("[bq57] BSServiceConnection НЕ создан — стоп");
+            return;
+        }
+        // activate (BSXPC-хендшейк; изнутри заполнит чекин-слот и пошлёт
+        // 'wINt' с s=TCCProxy из endpoint)
+        SEL actSel = @selector(activate);
+        if ([bsConn respondsToSelector:actSel]) {
+            typedef void (*AFn)(id, SEL);
+            AFn af = (AFn)objc_msgSend;
+            LOG("[bq57] -activate: begin");
+            af(bsConn, actSel);
+            LOG("[bq57] -activate: вернулся");
+        } else {
+            LOG("[bq57] bsConn не отвечает activate");
+        }
         NSXPCConnection *conn = nil;
-        if (bsCls && [bsCls respondsToSelector:facSel]) {
-            typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
-            FacFn f = (FacFn)objc_msgSend;
-            conn = f(bsCls, facSel, endpoint, ^(id cfg) {
-                LOG("[bq57] configurator: cfg class=%s",
+        SEL extSel = @selector(extractNSXPCConnectionWithConfigurator:);
+        if ([bsConn respondsToSelector:extSel]) {
+            typedef NSXPCConnection *(*EFn)(id, SEL, void (^)(id));
+            EFn ef = (EFn)objc_msgSend;
+            conn = ef(bsConn, extSel, ^(id cfg) {
+                LOG("[bq57] extract-configurator: cfg=%s",
                     cfg ? NSStringFromClass([cfg class]).UTF8String : "-");
                 SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
                 if (cfg && [cfg respondsToSelector:qsel]) {
                     typedef void (*QFn)(id, SEL, NSString *, long);
                     QFn qf = (QFn)objc_msgSend;
                     qf(cfg, qsel, @"bq57.q", (long)0);
-                    LOG("[bq57] configurator: queue задан");
+                    LOG("[bq57] extract-configurator: queue задан");
                 }
             });
-            LOG("[bq57] фабрика -> conn=%s",
+            LOG("[bq57] extractNSXPCConnection -> conn=%s",
                 conn ? [conn description].UTF8String : "(nil)");
         }
-        if (!conn) { LOG("[bq57] NSXPCConnection НЕ создан — стоп"); return; }
+        if (!conn) {
+            LOG("[bq57] NSXPCConnection не извлечён — стоп");
+            return;
+        }
 
         Protocol *proto = objc_getProtocol(
             "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
@@ -37953,14 +37993,9 @@ static void p_bq57(void) {
         LOG("[bq57] setRemoteObjectInterface: begin");
         [conn setRemoteObjectInterface:iface];
         LOG("[bq57] setRemoteObjectInterface: ok");
-        // сторож: жив ли поток после resume
-        dispatch_after(dispatch_time(DISPATCH_TIME_NOW, 8 * NSEC_PER_SEC),
-                       dispatch_get_main_queue(), ^{
-            LOG("[bq57] WATCHDOG: поток/процесс жив через 8 с после resume");
-        });
-        LOG("[bq57] resume: begin");
-        [conn resume];
-        LOG("[bq57] resume: ok");
+        // v206.5: [conn resume] ЗАПРЕЩЁН на wrapped-соединении
+        // (BSNSXPCTransport.m:728) — соединение уже активировано через
+        // -[BSServiceConnection activate]; идём сразу к proxy/вызову
         __block BOOL got = NO;
         __block BOOL status = NO;
         __block NSError *rerr = nil;

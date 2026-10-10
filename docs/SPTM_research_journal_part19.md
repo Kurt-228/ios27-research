@@ -4815,3 +4815,27 @@ main при замороженном main-runloop. Решающий инстру
   v201 os_crash-урок не повторялся (сначала respondsToSelector).
 - xpc-lookup kr: 0x9f/0x9a — стабильные коды отказа (запомнить для
   будущего сопоставления с BOOTSTRAP/EPERM-семейством).
+
+### v206.5–6 (дополнение §207): resume-запрет подтверждён; новый deadlock в -activate
+
+Логи os_log НАШЕГО процесса (тот же архив) закрыли вопрос §207:
+**«failure in resume of <BSNSXPCTransport> (BSNSXPCTransport.m:728):
+resume is not supported on a wrapped BSServiceConnection»** —
+`[conn resume]` на wrapped-NSXPCConnection запрещён by design.
+Также os_log подтверждает kr 0x9a как libxpc-лог провала
+`__xpc_look_up_endpoint` («assertion failed: … : 0x9a»).
+
+Настоящий путь клиента (Swift-RE 0x18705b0e0+):
+`+endpointForMachName:targetUserIdentifier:service:instance:` →
+`+[BSServiceConnection connectionWithEndpoint:clientContextBuilder:]` →
+`-[BSServiceConnection activate]` →
+`-extractNSXPCConnectionWithConfigurator:` — БЕЗ resume.
+
+v206.5 (глобальная очередь) и v206.6 (main queue):
+`+connectionWithEndpoint:clientContextBuilder:` →
+`bsConn=<BSXPC(XPCService:<pid>:com.apple.extensionkitservice[C:5-1])
+-as(TCCProxy)>` ✓, но `-[BSServiceConnection activate]` блокирует
+навсегда (краш-репортов нет; сторож на независимой очереди не
+срабатывает → процесс заморожен на низком уровне; main-вариант тоже).
+Открытый вопрос: дошёл ли BSXPC-чекин/'activate' до демона —
+решает свежий сбор os_log (запрошен оператору).
