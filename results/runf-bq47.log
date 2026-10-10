@@ -1,0 +1,18 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ47=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5507
+[scaler] conn 0x5507, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq47] mappings=104
+[bq47] TRAMP-SEL vm=0x1f56ce531 owner=dyld_shared_cache_arm64e.26.dyldreadonly -> "endpointForServiceName:oneshot:service:instance:"
+[bq47] trampoline candidates=1
+[bq47] cfstring section owner=dyld_shared_cache_arm64e.25.dylddata matched=0
+[bq47] EF-SEL owner=dyld_shared_cache_arm64e.25.dylddata shown=0
+[bq47] done
+[probe13] bq47-only mode, stop

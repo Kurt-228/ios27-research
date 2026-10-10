@@ -1,0 +1,65 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_XPCENUM=3
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x4a07
+[scaler] conn 0x4a07, s1 19 s2 20
+[probe12] SetNotificationPort -> 0x00000000
+[xpcen] v194 XPC-service reachability from sandbox
+[xpcen] addr com.apple.extensionkit.Discovery [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr com.apple.extensionkit.Launch [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr com.apple.extensionkit.Observer [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr com.apple.extensionkit.TCCProxy [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr Discovery [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr Launch [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr Observer [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr TCCProxy [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr AppExtensionLaunch [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr SceneSessionService [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr com.apple.extensionkit._EXDiscoveryController [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] addr com.apple.extensionkit [ERR]: <dictionary: 0x205d354c0> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d35600> { string cache = 0x0, length = 18, contents = "Connection invalid" }
+}
+[xpcen] msg {service:TCCProxy} [POS]: <dictionary: 0x12e4a0900> { count = 1, transaction: 0, voucher = 0x12e774500, contents =
+	"bsxpc" => <string: 0x12e43e430> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[xpcen] msg {serviceName:TCCProxy} [POS]: <dictionary: 0x12e4a0900> { count = 1, transaction: 0, voucher = 0x12e774500, contents =
+	"bsxpc" => <string: 0x12e43e430> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[xpcen] msg {domain:TCCProxy} [POS]: <dictionary: 0x12e4a0900> { count = 1, transaction: 0, voucher = 0x12e7745f0, contents =
+	"bsxpc" => <string: 0x12e43e430> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[xpcen] msg {_service:TCCProxy} [POS]: <dictionary: 0x12e4a0900> { count = 1, transaction: 0, voucher = 0x12e774500, contents =
+	"bsxpc" => <string: 0x12e43e430> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[xpcen] msg {xpc.service:TCCProxy} [POS]: <dictionary: 0x12e4a0900> { count = 1, transaction: 0, voucher = 0x12e7745f0, contents =
+	"bsxpc" => <string: 0x12e43e430> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[xpcen] done-marker
+[xpcen] xpcenum-only mode, stop

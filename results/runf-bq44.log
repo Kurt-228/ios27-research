@@ -1,0 +1,15 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ44=1
+[main] env FUZZ_BQ44_ONLY=dyld_shared_cache_arm64e.26.dyldreadonly
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7e13
+[scaler] conn 0x7e13, s1 14 s2 19
+[probe12] SetNotificationPort -> 0x00000000
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq44] copied dyld_shared_cache_arm64e.26.dyldreadonly 189235200 bytes
+[bq44] DONE files=1 total=189235200 bytes
+[probe13] bq44-only mode, stop

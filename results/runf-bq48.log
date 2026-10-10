@@ -1,0 +1,183 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ48=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7e03
+[scaler] conn 0x7e03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq48] mappings=82
+[bq48] dyld_shared_cache_arm64e.25.dylddata fsz=0xd980000
+[bq48]   vm 0x1e0108000 +0x4000 foff 0x0
+[bq48]   vm 0x1e6940000 +0x24000 foff 0x4838000
+[bq48] dyld_shared_cache_arm64e.33 fsz=0x5c000
+[bq48]   vm 0x2180a4000 +0x58000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.34 fsz=0x7c50000
+[bq48]   vm 0x218400000 +0x7c10000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.02 fsz=0x38000
+[bq48]   vm 0x188134000 +0x34000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.05 fsz=0x7d2c000
+[bq48]   vm 0x190400000 +0x7cec000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.51 fsz=0x48000
+[bq48]   vm 0x2600c4000 +0x44000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.69 fsz=0x7cdc000
+[bq48]   vm 0x2b0400000 +0x7c9c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.60 fsz=0x30000
+[bq48]   vm 0x290068000 +0x2c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.58 fsz=0x8000
+[bq48]   vm 0x282780000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.67 fsz=0x7cfc000
+[bq48]   vm 0x2a8400000 +0x7cbc000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.04 fsz=0x48000
+[bq48]   vm 0x1900b8000 +0x44000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.03 fsz=0x7cf8000
+[bq48]   vm 0x188400000 +0x7cb8000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.35 fsz=0x30000
+[bq48]   vm 0x220010000 +0x2c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.32 fsz=0x7ce4000
+[bq48]   vm 0x210400000 +0x7ca4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.59 fsz=0x7ca8000
+[bq48]   vm 0x288400000 +0x7c68000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.66 fsz=0x4c000
+[bq48]   vm 0x2a809c000 +0x48000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.61 fsz=0x7d0c000
+[bq48]   vm 0x290400000 +0x7ccc000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.68 fsz=0x4c000
+[bq48]   vm 0x2b00bc000 +0x48000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.50 fsz=0x7d04000
+[bq48]   vm 0x258400000 +0x7cc4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.72 fsz=0x3c000
+[bq48]   vm 0x2c00d4000 +0x38000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.43 fsz=0x3c000
+[bq48]   vm 0x2400f4000 +0x38000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.44 fsz=0x7cc8000
+[bq48]   vm 0x240400000 +0x7c88000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.10 fsz=0x34000
+[bq48]   vm 0x1a80dc000 +0x30000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.28 fsz=0x7d00000
+[bq48]   vm 0x200400000 +0x7cc0000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.17 fsz=0x7d5c000
+[bq48]   vm 0x1c0400000 +0x7d1c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.21 fsz=0x7cd8000
+[bq48]   vm 0x1d0400000 +0x7c98000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.19 fsz=0x7d60000
+[bq48]   vm 0x1c8400000 +0x7d20000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.45 fsz=0x38000
+[bq48]   vm 0x248088000 +0x34000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.42 fsz=0x7d34000
+[bq48]   vm 0x238400000 +0x7cf4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.74 fsz=0x40000
+[bq48]   vm 0x2c8018000 +0x3c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.73 fsz=0x7c58000
+[bq48]   vm 0x2c0400000 +0x7c18000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.18 fsz=0x48000
+[bq48]   vm 0x1c811c000 +0x44000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.27 fsz=0x8000
+[bq48]   vm 0x1fce34000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.20 fsz=0x58000
+[bq48]   vm 0x1d0120000 +0x54000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.29 fsz=0x50000
+[bq48]   vm 0x2080c0000 +0x4c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.16 fsz=0x3c000
+[bq48]   vm 0x1c010c000 +0x38000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.11 fsz=0x7d54000
+[bq48]   vm 0x1a8400000 +0x7d14000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.76.dyldreadonly fsz=0x10000
+[bq48]   vm 0x2d3c64000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.symbols fsz=0x488ec000
+[bq48]   vm 0x2fbf70000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.26.dyldreadonly fsz=0xb478000
+[bq48]   vm 0x1f1a18000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.57.dyldreadonly fsz=0x384000
+[bq48]   vm 0x282400000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.55 fsz=0x50000
+[bq48]   vm 0x2700d0000 +0x4c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.77.dyldlinkedit fsz=0x28440000
+[bq48]   vm 0x2d3c70000 +0x4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.52 fsz=0x7cb4000
+[bq48]   vm 0x260400000 +0x7c74000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.64 fsz=0x34000
+[bq48]   vm 0x2a0068000 +0x30000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.63 fsz=0x7ca8000
+[bq48]   vm 0x298400000 +0x7c68000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.37 fsz=0x68000
+[bq48]   vm 0x228140000 +0x64000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.08 fsz=0x3c000
+[bq48]   vm 0x1a00d8000 +0x38000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.30 fsz=0x7cc0000
+[bq48]   vm 0x208400000 +0x7c80000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.06 fsz=0x34000
+[bq48]   vm 0x1980ec000 +0x30000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.39 fsz=0x78000
+[bq48]   vm 0x2300c4000 +0x74000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.01 fsz=0x7d74000
+[bq48]   vm 0x180400000 +0x7d34000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.62 fsz=0x44000
+[bq48]   vm 0x2980cc000 +0x40000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.65 fsz=0x7cdc000
+[bq48]   vm 0x2a0400000 +0x7c9c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.53 fsz=0x48000
+[bq48]   vm 0x268074000 +0x44000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.54 fsz=0x7d10000
+[bq48]   vm 0x268400000 +0x7cd0000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.07 fsz=0x7d18000
+[bq48]   vm 0x198400000 +0x7cd8000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.38 fsz=0x7d04000
+[bq48]   vm 0x228400000 +0x7cc4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.31 fsz=0x5c000
+[bq48]   vm 0x210080000 +0x58000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.36 fsz=0x7d80000
+[bq48]   vm 0x220400000 +0x7d40000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.09 fsz=0x7d1c000
+[bq48]   vm 0x1a0400000 +0x7cdc000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.14 fsz=0x38000
+[bq48]   vm 0x1b8128000 +0x34000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.13 fsz=0x7d68000
+[bq48]   vm 0x1b0400000 +0x7d28000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.56.dylddata fsz=0xe358000
+[bq48]   vm 0x27011c000 +0x4000 foff 0x0
+[bq48]   vm 0x2783a4000 +0x4000 foff 0x6288000
+[bq48] dyld_shared_cache_arm64e.22 fsz=0x44000
+[bq48]   vm 0x1d8098000 +0x40000 foff 0x0
+[bq48] dyld_shared_cache_arm64e fsz=0xc0000
+[bq48]   vm 0x180000000 +0xbc000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.49 fsz=0x54000
+[bq48]   vm 0x2580f4000 +0x50000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.71 fsz=0x7d14000
+[bq48]   vm 0x2b8400000 +0x7cd4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.47 fsz=0x6c000
+[bq48]   vm 0x250094000 +0x68000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.40 fsz=0x7d14000
+[bq48]   vm 0x230400000 +0x7cd4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.23 fsz=0x7cfc000
+[bq48]   vm 0x1d8400000 +0x7cbc000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.24 fsz=0x50000
+[bq48]   vm 0x1e00bc000 +0x4c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.12 fsz=0x44000
+[bq48]   vm 0x1b0114000 +0x40000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.15 fsz=0x7d4c000
+[bq48]   vm 0x1b8400000 +0x7d0c000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.41 fsz=0x7c000
+[bq48]   vm 0x2380d4000 +0x78000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.46 fsz=0x7cd4000
+[bq48]   vm 0x248400000 +0x7c94000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.70 fsz=0x44000
+[bq48]   vm 0x2b809c000 +0x40000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.48 fsz=0x7d34000
+[bq48]   vm 0x250400000 +0x7cf4000 foff 0x0
+[bq48] dyld_shared_cache_arm64e.75.dylddata fsz=0x7c50000
+[bq48]   vm 0x2c8054000 +0x4000 foff 0x0
+[bq48]   vm 0x2cdd50000 +0x4000 foff 0x3cfc000
+[bq48] tramp 0x1880975e0 -> selvm=0x1f5daa470 owner=NONE hex= txt=................................................
+[bq48] tramp 0x1880975f0 -> selvm=0x1f56ce531 owner=NONE hex= txt=................................................
+[bq48] tramp 0x188097600 -> selvm=0x1f523b396 owner=NONE hex= txt=................................................
+[bq48] tramp 0x188097610 -> selvm=0x1f60c7418 owner=NONE hex= txt=................................................
+[bq48] tramp 0x188097620 -> selvm=0x1f60c7446 owner=NONE hex= txt=................................................
+[bq48] tramp 0x188097630 -> selvm=0x1f60c745b owner=NONE hex= txt=................................................
+[bq48] tramp 0x188097640 -> selvm=0x1f600b214 owner=NONE hex= txt=................................................
+[bq48] tramp 0x188097650 -> selvm=0x1f55539f0 owner=NONE hex= txt=................................................
+[bq48] done
+[probe13] bq48-only mode, stop

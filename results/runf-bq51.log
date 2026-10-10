@@ -1,0 +1,171 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ51=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7a27
+[scaler] conn 0x7a27, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq51] v199 BSXPC checkin (lp+s+i): wire-формат первого сообщения
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8800> { count = 1, transaction: 0, voucher = 0x105d527b0, contents =
+	"bsxpc" => <string: 0x105ec1710> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq51] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq51] run ENTER ctl-lp-only nseq=1
+[bq51] ctl-lp-only ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98550, contents =
+	"bsxpc" => <string: 0x105ec25b0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-lp-only ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-lp-only nev=2
+[bq51] ctl-lp-only: nev=2 tag=invalidate -> partial-checkin REJECTED (как и ожидалось)
+[bq51] run ENTER checkin-s=TCCProxy nseq=1
+[bq51] checkin-s=TCCProxy ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98410, contents =
+	"bsxpc" => <string: 0x105dbbdb0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=TCCProxy ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=TCCProxy nev=2
+[bq51] checkin-s=TCCProxy: rejected tag=invalidate
+[bq51] run ENTER checkin-s=TCCProxy,i=default nseq=1
+[bq51] checkin-s=TCCProxy,i=default ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98190, contents =
+	"bsxpc" => <string: 0x105dbbde0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=TCCProxy,i=default ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=TCCProxy,i=default nev=2
+[bq51] checkin-s=TCCProxy,i=default: rejected tag=invalidate
+[bq51] run ENTER checkin-s=Discovery nseq=1
+[bq51] checkin-s=Discovery ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98190, contents =
+	"bsxpc" => <string: 0x105c393b0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=Discovery ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=Discovery nev=2
+[bq51] checkin-s=Discovery: rejected tag=invalidate
+[bq51] run ENTER checkin-s=Discovery,i=default nseq=1
+[bq51] checkin-s=Discovery,i=default ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98820, contents =
+	"bsxpc" => <string: 0x108474210> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=Discovery,i=default ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=Discovery,i=default nev=2
+[bq51] checkin-s=Discovery,i=default: rejected tag=invalidate
+[bq51] run ENTER checkin-s=Launch nseq=1
+[bq51] checkin-s=Launch ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98820, contents =
+	"bsxpc" => <string: 0x108474180> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=Launch ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=Launch nev=2
+[bq51] checkin-s=Launch: rejected tag=invalidate
+[bq51] run ENTER checkin-s=Launch,i=default nseq=1
+[bq51] checkin-s=Launch,i=default ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98820, contents =
+	"bsxpc" => <string: 0x1084742d0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=Launch,i=default ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=Launch,i=default nev=2
+[bq51] checkin-s=Launch,i=default: rejected tag=invalidate
+[bq51] run ENTER checkin-s=Observer nseq=1
+[bq51] checkin-s=Observer ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98820, contents =
+	"bsxpc" => <string: 0x1084741b0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=Observer ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=Observer nev=2
+[bq51] checkin-s=Observer: rejected tag=invalidate
+[bq51] run ENTER checkin-s=Observer,i=default nseq=1
+[bq51] checkin-s=Observer,i=default ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98820, contents =
+	"bsxpc" => <string: 0x108474330> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=Observer,i=default ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=Observer,i=default nev=2
+[bq51] checkin-s=Observer,i=default: rejected tag=invalidate
+[bq51] run ENTER checkin-s=com.apple.extensionkitservice.TCCProxy nseq=1
+[bq51] checkin-s=com.apple.extensionkitservice.TCCProxy ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98820, contents =
+	"bsxpc" => <string: 0x108474240> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=com.apple.extensionkitservice.TCCProxy ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=com.apple.extensionkitservice.TCCProxy nev=2
+[bq51] checkin-s=com.apple.extensionkitservice.TCCProxy: rejected tag=invalidate
+[bq51] run ENTER checkin-s=com.apple.extensionkitservice.TCCProxy,i=default nseq=1
+[bq51] checkin-s=com.apple.extensionkitservice.TCCProxy,i=default ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f985f0, contents =
+	"bsxpc" => <string: 0x108474d80> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=com.apple.extensionkitservice.TCCProxy,i=default ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=com.apple.extensionkitservice.TCCProxy,i=default nev=2
+[bq51] checkin-s=com.apple.extensionkitservice.TCCProxy,i=default: rejected tag=invalidate
+[bq51] run ENTER checkin-s=XPCService.TCCProxy nseq=1
+[bq51] checkin-s=XPCService.TCCProxy ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f985f0, contents =
+	"bsxpc" => <string: 0x1084748a0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=XPCService.TCCProxy ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=XPCService.TCCProxy nev=2
+[bq51] checkin-s=XPCService.TCCProxy: rejected tag=invalidate
+[bq51] run ENTER checkin-s=XPCService.TCCProxy,i=default nseq=1
+[bq51] checkin-s=XPCService.TCCProxy,i=default ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98460, contents =
+	"bsxpc" => <string: 0x108476bb0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] checkin-s=XPCService.TCCProxy,i=default ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT checkin-s=XPCService.TCCProxy,i=default nev=2
+[bq51] checkin-s=XPCService.TCCProxy,i=default: rejected tag=invalidate
+[bq51] run ENTER seq-checkin+activate+sel(TCCProxy) nseq=3
+[bq51] seq-checkin+activate+sel(TCCProxy) ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98780, contents =
+	"bsxpc" => <string: 0x108476c10> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] seq-checkin+activate+sel(TCCProxy) ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] seq-checkin+activate+sel(TCCProxy) ev#3 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98320, contents =
+	"bsxpc" => <string: 0x1084771b0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] seq-checkin+activate+sel(TCCProxy) ev#4 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT seq-checkin+activate+sel(TCCProxy) nev=4
+[bq51] seq TCCProxy: rejected tag=invalidate nev=4
+[bq51] run ENTER seq-checkin+activate+sel(Launch) nseq=3
+[bq51] seq-checkin+activate+sel(Launch) ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98190, contents =
+	"bsxpc" => <string: 0x1084776c0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] seq-checkin+activate+sel(Launch) ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] seq-checkin+activate+sel(Launch) ev#3 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8b00> { count = 1, transaction: 0, voucher = 0x105f98190, contents =
+	"bsxpc" => <string: 0x108477a20> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] seq-checkin+activate+sel(Launch) ev#4 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT seq-checkin+activate+sel(Launch) nev=4
+[bq51] seq Launch: rejected tag=invalidate
+[bq51] done: ctl=1 ctl2=1 pos=0 alive(molch)=0 rejected=14
+[bq51] VERDICT: все варианты (включая полный checkin lp+s+i) получили invalidate — сервис-идентификаторы 's' не совпали с servicesByIdentifier домена, нужен точный ключ
+[probe13] bq51-only mode, stop

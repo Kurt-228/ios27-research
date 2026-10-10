@@ -1,0 +1,21 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ45=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7f0f
+[scaler] conn 0x7f0f, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq45] v192 locate libIOKit.B.dylib in split dyld cache
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq45] 79 sub-files, grand total 5936120160 bytes
+[bq45] images table off=0x2a8 cnt=4690
+[bq45] BootstrapServices: NOT FOUND in images table
+[bq45] ExtensionFoundation @0x186fb0000 path=/System/Library/Frameworks/ExtensionFoundation.framework/ExtensionFoundation
+[bq45]   in dyld_shared_cache_arm64e.01 @fileoff 0x6bb0000 (map 0: 0x180400000+0x7d34000)
+[bq45] ExtensionKit.framework @0x20f79a000 path=/System/Library/Frameworks/ExtensionKit.framework/ExtensionKit
+[bq45]   in dyld_shared_cache_arm64e.30 @fileoff 0x739a000 (map 0: 0x208400000+0x7c80000)
+[bq45] done
+[probe13] bq45-only mode, stop

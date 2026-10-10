@@ -1,0 +1,747 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ46=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5e03
+[scaler] conn 0x5e03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq46] images=4690, subfiles=79
+[bq46] dyld_shared_cache_arm64e.25.dylddata: SEL-POOL selector-pool(+0x531) @0x1f56ce531 -> ""
+[bq46] dyld_shared_cache_arm64e.25.dylddata: covers SpringBoardServices @0x19a966000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq46] dyld_shared_cache_arm64e.03: bsxpc @fileoff 0x6dcc924 vm=0x18f1cc924 img=/System/Library/Frameworks/CoreMedia.framework/CoreMedia
+[bq46]   ctx 0x6dcc524:  value
+[bq46]   ctx 0x6dcc52b: No Key Datatype Namespace
+[bq46]   ctx 0x6dcc545: KeyEmitter_EmitDatatypeDeclarationBox
+[bq46]   ctx 0x6dcc56b: No Key Datatype Value
+[bq46]   ctx 0x6dcc581: No Key Datatype
+[bq46]   ctx 0x6dcc591: Datatype not data
+[bq46]   ctx 0x6dcc5a3: Failed to calculate string buffer
+[bq46]   ctx 0x6dcc5c5: KeyEmitter_LanguageTagDeclarationBox
+[bq46]   ctx 0x6dcc5ea: Failed to fill string buffer
+[bq46]   ctx 0x6dcc607: key not string
+[bq46]   ctx 0x6dcc616: DependencyListsEmitterApplierFunction
+[bq46]   ctx 0x6dcc63c: value not array
+[bq46]   ctx 0x6dcc64c: ExtensionTokenData
+[bq46]   ctx 0x6dcc65f: ExtensionPath
+[bq46]   ctx 0x6dcc66d: ServerShouldCrashOnRegistrationExhaustion
+[bq46]   ctx 0x6dcc697: fsbregserver_trace
+[bq46]   ctx 0x6dcc6aa: FigSandboxRegistrationServerStart
+[bq46]   ctx 0x6dcc6cc: FigSandboxRegistrationServerStart_block_invoke
+[bq46]   ctx 0x6dcc6fb: FigSandboxServerXPCQueue
+[bq46]   ctx 0x6dcc714: FigSandboxSupportDump
+[bq46]   ctx 0x6dcc72a: FigSandboxRegistrationServerStart_block_invoke_2
+[bq46]   ctx 0x6dcc75b: <<<< SandboxRegServer(XPC) >>>>
+[bq46]   ctx 0x6dcc77b: FigSandboxRegistration_ServerXPC.c
+[bq46]   ctx 0x6dcc79e: kFigSandboxRegistrationError_NoSandboxRegistrationServer
+[bq46]   ctx 0x6dcc7d7: Sandbox registration server not running
+[bq46]   ctx 0x6dcc7ff: FigSandboxRegistrationServerCopyRegistrationForID
+[bq46]   ctx 0x6dcc831: object is not the expected FigSandboxRegistration type
+[bq46]   ctx 0x6dcc868: NULL inSandboxReg
+[bq46]   ctx 0x6dcc87a: FigXPCMessageSetSandboxRegistration
+[bq46]   ctx 0x6dcc89e: invalid message
+[bq46]   ctx 0x6dcc8ae: NULL parameterName
+[bq46]   ctx 0x6dcc8c1: NULL outSandboxReg
+[bq46]   ctx 0x6dcc8d4: FigXPCMessageCopySandboxRegistration
+[bq46]   ctx 0x6dcc8f9: FigSandboxRegistrationServerDumpMappings
+[bq46]   ctx 0x6dcc922: fsbsxpc_removeAssertionForPIDOnQueue
+[bq46]   ctx 0x6dcc947: RemoveAssociationsForPID
+[bq46]   ctx 0x6dcc960: fsbsxpc_addAssertionForPIDOnQueue
+[bq46]   ctx 0x6dcc982: pid : %d = {
+[bq46]   ctx 0x6dcc98f: %@} 
+[bq46]   ctx 0x6dcc994: %d} 
+[bq46] dyld_shared_cache_arm64e.03: bsxpc @fileoff 0x6dcc962 vm=0x18f1cc962 img=/System/Library/Frameworks/CoreMedia.framework/CoreMedia
+[bq46]   ctx 0x6dcc562: ationBox
+[bq46]   ctx 0x6dcc56b: No Key Datatype Value
+[bq46]   ctx 0x6dcc581: No Key Datatype
+[bq46]   ctx 0x6dcc591: Datatype not data
+[bq46]   ctx 0x6dcc5a3: Failed to calculate string buffer
+[bq46]   ctx 0x6dcc5c5: KeyEmitter_LanguageTagDeclarationBox
+[bq46]   ctx 0x6dcc5ea: Failed to fill string buffer
+[bq46]   ctx 0x6dcc607: key not string
+[bq46]   ctx 0x6dcc616: DependencyListsEmitterApplierFunction
+[bq46]   ctx 0x6dcc63c: value not array
+[bq46]   ctx 0x6dcc64c: ExtensionTokenData
+[bq46]   ctx 0x6dcc65f: ExtensionPath
+[bq46]   ctx 0x6dcc66d: ServerShouldCrashOnRegistrationExhaustion
+[bq46]   ctx 0x6dcc697: fsbregserver_trace
+[bq46]   ctx 0x6dcc6aa: FigSandboxRegistrationServerStart
+[bq46]   ctx 0x6dcc6cc: FigSandboxRegistrationServerStart_block_invoke
+[bq46]   ctx 0x6dcc6fb: FigSandboxServerXPCQueue
+[bq46]   ctx 0x6dcc714: FigSandboxSupportDump
+[bq46]   ctx 0x6dcc72a: FigSandboxRegistrationServerStart_block_invoke_2
+[bq46]   ctx 0x6dcc75b: <<<< SandboxRegServer(XPC) >>>>
+[bq46]   ctx 0x6dcc77b: FigSandboxRegistration_ServerXPC.c
+[bq46]   ctx 0x6dcc79e: kFigSandboxRegistrationError_NoSandboxRegistrationServer
+[bq46]   ctx 0x6dcc7d7: Sandbox registration server not running
+[bq46]   ctx 0x6dcc7ff: FigSandboxRegistrationServerCopyRegistrationForID
+[bq46]   ctx 0x6dcc831: object is not the expected FigSandboxRegistration type
+[bq46]   ctx 0x6dcc868: NULL inSandboxReg
+[bq46]   ctx 0x6dcc87a: FigXPCMessageSetSandboxRegistration
+[bq46]   ctx 0x6dcc89e: invalid message
+[bq46]   ctx 0x6dcc8ae: NULL parameterName
+[bq46]   ctx 0x6dcc8c1: NULL outSandboxReg
+[bq46]   ctx 0x6dcc8d4: FigXPCMessageCopySandboxRegistration
+[bq46]   ctx 0x6dcc8f9: FigSandboxRegistrationServerDumpMappings
+[bq46]   ctx 0x6dcc922: fsbsxpc_removeAssertionForPIDOnQueue
+[bq46]   ctx 0x6dcc947: RemoveAssociationsForPID
+[bq46]   ctx 0x6dcc960: fsbsxpc_addAssertionForPIDOnQueue
+[bq46]   ctx 0x6dcc982: pid : %d = {
+[bq46]   ctx 0x6dcc98f: %@} 
+[bq46]   ctx 0x6dcc994: %d} 
+[bq46]   ctx 0x6dcc999: HandleSandboxRegistrationMessage
+[bq46]   ctx 0x6dcc9ba: Object is not a FigSandboxRegistration
+[bq46] dyld_shared_cache_arm64e.03: bsxpc @fileoff 0x776e061 vm=0x18fb6e061 img=/System/Library/PrivateFrameworks/BoardServices.framework/BoardServices
+[bq46]   ctx 0x776dc61: idate before dealloc
+[bq46]   ctx 0x776dc76: cannot set the delegate after activation
+[bq46]   ctx 0x776dc9f: cannot activate after invalidation
+[bq46]   ctx 0x776dcc2: cannot activate twice
+[bq46]   ctx 0x776dcd8: failed to register monitor for service %@
+[bq46]   ctx 0x776dd02: environment
+[bq46]   ctx 0x776dd0e: cannot query after invalidation
+[bq46]   ctx 0x776dd2e: cannot query before activation
+[bq46]   ctx 0x776dd4d: v32@?0@"BSServiceConnectionEndpoint"8@"NSSet"16^B24
+[bq46]   ctx 0x776dd81: endpointToEnvironments
+[bq46]   ctx 0x776dd98: initializing
+[bq46]   ctx 0x776dda5: delegate
+[bq46]   ctx 0x776ddb1: -init is not allowed on BSServiceConnectionListener
+[bq46]   ctx 0x776dde5: BSServiceConnectionListener.m
+[bq46]   ctx 0x776de03: v24@?0@"BSServiceConnectionListener"8@"BSServiceListenerConnection"16
+[bq46]   ctx 0x776de49: failed to register listener for instance %@ of service %@ in domain %@
+[bq46]   ctx 0x776de90: must configure a delegate
+[bq46]   ctx 0x776deaa: must configure a domain
+[bq46]   ctx 0x776dec2: failed to find domain '%@' : manager=%@
+[bq46]   ctx 0x776deea: must configure a service
+[bq46]   ctx 0x776df03: failed to find service '%@' in domain '%@' : manager=%@
+[bq46]   ctx 0x776df3b: valid
+[bq46]   ctx 0x776df41: v16@?0@"<BSServiceConnectionListenerConfiguring>"8
+[bq46]   ctx 0x776df74: attempt to set domain after configuration has been sealed
+[bq46]   ctx 0x776dfae: attempt to set service after configuration has been sealed
+[bq46]   ctx 0x776dfe9: attempt to set instance after configuration has been sealed
+[bq46]   ctx 0x776e025: attempt to set delegate after configuration has been sealed
+[bq46]   ctx 0x776e061: bsxpc_SEL
+[bq46]   ctx 0x776e06b: bsxpc_BATCH
+[bq46]   ctx 0x776e077: bsxpc_CID
+[bq46]   ctx 0x776e081: bsxpc_CIDr
+[bq46]   ctx 0x776e08c: bsxpc
+[bq46]   ctx 0x776e092: childIdentifier > 0
+[bq46]   ctx 0x776e0a6: BSXPCServiceConnectionMessage.m
+[bq46]   ctx 0x776e0c6: can not send the same message twice
+[bq46]   ctx 0x776e0ea: only messages with a reply can be sent synchronously
+[bq46]   ctx 0x776e11f: only async messages are batchable
+[bq46]   ctx 0x776e141: XPC error received on message reply handler
+[bq46]   ctx 0x776e16d: Must have a connection replyQueue that understands how to schedule replies : %@
+[bq46]   ctx 0x776e1bd: B24@?0Q8@"NSObject<OS_xpc_object>"16
+[bq46] dyld_shared_cache_arm64e.03: bsxpc @fileoff 0x776e06b vm=0x18fb6e06b img=/System/Library/PrivateFrameworks/BoardServices.framework/BoardServices
+[bq46]   ctx 0x776dc6b: re dealloc
+[bq46]   ctx 0x776dc76: cannot set the delegate after activation
+[bq46]   ctx 0x776dc9f: cannot activate after invalidation
+[bq46]   ctx 0x776dcc2: cannot activate twice
+[bq46]   ctx 0x776dcd8: failed to register monitor for service %@
+[bq46]   ctx 0x776dd02: environment
+[bq46]   ctx 0x776dd0e: cannot query after invalidation
+[bq46]   ctx 0x776dd2e: cannot query before activation
+[bq46]   ctx 0x776dd4d: v32@?0@"BSServiceConnectionEndpoint"8@"NSSet"16^B24
+[bq46]   ctx 0x776dd81: endpointToEnvironments
+[bq46]   ctx 0x776dd98: initializing
+[bq46]   ctx 0x776dda5: delegate
+[bq46]   ctx 0x776ddb1: -init is not allowed on BSServiceConnectionListener
+[bq46]   ctx 0x776dde5: BSServiceConnectionListener.m
+[bq46]   ctx 0x776de03: v24@?0@"BSServiceConnectionListener"8@"BSServiceListenerConnection"16
+[bq46]   ctx 0x776de49: failed to register listener for instance %@ of service %@ in domain %@
+[bq46]   ctx 0x776de90: must configure a delegate
+[bq46]   ctx 0x776deaa: must configure a domain
+[bq46]   ctx 0x776dec2: failed to find domain '%@' : manager=%@
+[bq46]   ctx 0x776deea: must configure a service
+[bq46]   ctx 0x776df03: failed to find service '%@' in domain '%@' : manager=%@
+[bq46]   ctx 0x776df3b: valid
+[bq46]   ctx 0x776df41: v16@?0@"<BSServiceConnectionListenerConfiguring>"8
+[bq46]   ctx 0x776df74: attempt to set domain after configuration has been sealed
+[bq46]   ctx 0x776dfae: attempt to set service after configuration has been sealed
+[bq46]   ctx 0x776dfe9: attempt to set instance after configuration has been sealed
+[bq46]   ctx 0x776e025: attempt to set delegate after configuration has been sealed
+[bq46]   ctx 0x776e061: bsxpc_SEL
+[bq46]   ctx 0x776e06b: bsxpc_BATCH
+[bq46]   ctx 0x776e077: bsxpc_CID
+[bq46]   ctx 0x776e081: bsxpc_CIDr
+[bq46]   ctx 0x776e08c: bsxpc
+[bq46]   ctx 0x776e092: childIdentifier > 0
+[bq46]   ctx 0x776e0a6: BSXPCServiceConnectionMessage.m
+[bq46]   ctx 0x776e0c6: can not send the same message twice
+[bq46]   ctx 0x776e0ea: only messages with a reply can be sent synchronously
+[bq46]   ctx 0x776e11f: only async messages are batchable
+[bq46]   ctx 0x776e141: XPC error received on message reply handler
+[bq46]   ctx 0x776e16d: Must have a connection replyQueue that understands how to schedule replies : %@
+[bq46]   ctx 0x776e1bd: B24@?0Q8@"NSObject<OS_xpc_object>"16
+[bq46] dyld_shared_cache_arm64e.03: bsxpc @fileoff 0x776e077 vm=0x18fb6e077 img=/System/Library/PrivateFrameworks/BoardServices.framework/BoardServices
+[bq46]   ctx 0x776dc77: annot set the delegate after activation
+[bq46]   ctx 0x776dc9f: cannot activate after invalidation
+[bq46]   ctx 0x776dcc2: cannot activate twice
+[bq46]   ctx 0x776dcd8: failed to register monitor for service %@
+[bq46]   ctx 0x776dd02: environment
+[bq46]   ctx 0x776dd0e: cannot query after invalidation
+[bq46]   ctx 0x776dd2e: cannot query before activation
+[bq46]   ctx 0x776dd4d: v32@?0@"BSServiceConnectionEndpoint"8@"NSSet"16^B24
+[bq46]   ctx 0x776dd81: endpointToEnvironments
+[bq46]   ctx 0x776dd98: initializing
+[bq46]   ctx 0x776dda5: delegate
+[bq46]   ctx 0x776ddb1: -init is not allowed on BSServiceConnectionListener
+[bq46]   ctx 0x776dde5: BSServiceConnectionListener.m
+[bq46]   ctx 0x776de03: v24@?0@"BSServiceConnectionListener"8@"BSServiceListenerConnection"16
+[bq46]   ctx 0x776de49: failed to register listener for instance %@ of service %@ in domain %@
+[bq46]   ctx 0x776de90: must configure a delegate
+[bq46]   ctx 0x776deaa: must configure a domain
+[bq46]   ctx 0x776dec2: failed to find domain '%@' : manager=%@
+[bq46]   ctx 0x776deea: must configure a service
+[bq46]   ctx 0x776df03: failed to find service '%@' in domain '%@' : manager=%@
+[bq46]   ctx 0x776df3b: valid
+[bq46]   ctx 0x776df41: v16@?0@"<BSServiceConnectionListenerConfiguring>"8
+[bq46]   ctx 0x776df74: attempt to set domain after configuration has been sealed
+[bq46]   ctx 0x776dfae: attempt to set service after configuration has been sealed
+[bq46]   ctx 0x776dfe9: attempt to set instance after configuration has been sealed
+[bq46]   ctx 0x776e025: attempt to set delegate after configuration has been sealed
+[bq46]   ctx 0x776e061: bsxpc_SEL
+[bq46]   ctx 0x776e06b: bsxpc_BATCH
+[bq46]   ctx 0x776e077: bsxpc_CID
+[bq46]   ctx 0x776e081: bsxpc_CIDr
+[bq46]   ctx 0x776e08c: bsxpc
+[bq46]   ctx 0x776e092: childIdentifier > 0
+[bq46]   ctx 0x776e0a6: BSXPCServiceConnectionMessage.m
+[bq46]   ctx 0x776e0c6: can not send the same message twice
+[bq46]   ctx 0x776e0ea: only messages with a reply can be sent synchronously
+[bq46]   ctx 0x776e11f: only async messages are batchable
+[bq46]   ctx 0x776e141: XPC error received on message reply handler
+[bq46]   ctx 0x776e16d: Must have a connection replyQueue that understands how to schedule replies : %@
+[bq46]   ctx 0x776e1bd: B24@?0Q8@"NSObject<OS_xpc_object>"16
+[bq46]   ctx 0x776e1e5: internal timeout
+[bq46] dyld_shared_cache_arm64e.03: bsxpc @fileoff 0x776e081 vm=0x18fb6e081 img=/System/Library/PrivateFrameworks/BoardServices.framework/BoardServices
+[bq46]   ctx 0x776dc81: the delegate after activation
+[bq46]   ctx 0x776dc9f: cannot activate after invalidation
+[bq46]   ctx 0x776dcc2: cannot activate twice
+[bq46]   ctx 0x776dcd8: failed to register monitor for service %@
+[bq46]   ctx 0x776dd02: environment
+[bq46]   ctx 0x776dd0e: cannot query after invalidation
+[bq46]   ctx 0x776dd2e: cannot query before activation
+[bq46]   ctx 0x776dd4d: v32@?0@"BSServiceConnectionEndpoint"8@"NSSet"16^B24
+[bq46]   ctx 0x776dd81: endpointToEnvironments
+[bq46]   ctx 0x776dd98: initializing
+[bq46]   ctx 0x776dda5: delegate
+[bq46]   ctx 0x776ddb1: -init is not allowed on BSServiceConnectionListener
+[bq46]   ctx 0x776dde5: BSServiceConnectionListener.m
+[bq46]   ctx 0x776de03: v24@?0@"BSServiceConnectionListener"8@"BSServiceListenerConnection"16
+[bq46]   ctx 0x776de49: failed to register listener for instance %@ of service %@ in domain %@
+[bq46]   ctx 0x776de90: must configure a delegate
+[bq46]   ctx 0x776deaa: must configure a domain
+[bq46]   ctx 0x776dec2: failed to find domain '%@' : manager=%@
+[bq46]   ctx 0x776deea: must configure a service
+[bq46]   ctx 0x776df03: failed to find service '%@' in domain '%@' : manager=%@
+[bq46]   ctx 0x776df3b: valid
+[bq46]   ctx 0x776df41: v16@?0@"<BSServiceConnectionListenerConfiguring>"8
+[bq46]   ctx 0x776df74: attempt to set domain after configuration has been sealed
+[bq46]   ctx 0x776dfae: attempt to set service after configuration has been sealed
+[bq46]   ctx 0x776dfe9: attempt to set instance after configuration has been sealed
+[bq46]   ctx 0x776e025: attempt to set delegate after configuration has been sealed
+[bq46]   ctx 0x776e061: bsxpc_SEL
+[bq46]   ctx 0x776e06b: bsxpc_BATCH
+[bq46]   ctx 0x776e077: bsxpc_CID
+[bq46]   ctx 0x776e081: bsxpc_CIDr
+[bq46]   ctx 0x776e08c: bsxpc
+[bq46]   ctx 0x776e092: childIdentifier > 0
+[bq46]   ctx 0x776e0a6: BSXPCServiceConnectionMessage.m
+[bq46]   ctx 0x776e0c6: can not send the same message twice
+[bq46]   ctx 0x776e0ea: only messages with a reply can be sent synchronously
+[bq46]   ctx 0x776e11f: only async messages are batchable
+[bq46]   ctx 0x776e141: XPC error received on message reply handler
+[bq46]   ctx 0x776e16d: Must have a connection replyQueue that understands how to schedule replies : %@
+[bq46]   ctx 0x776e1bd: B24@?0Q8@"NSObject<OS_xpc_object>"16
+[bq46]   ctx 0x776e1e5: internal timeout
+[bq46] dyld_shared_cache_arm64e.17: bsxpc @fileoff 0x59d3687 vm=0x1c5dd3687 img=/System/Library/PrivateFrameworks/PosterFoundation.framework/PosterFoundation
+[bq46]   ctx 0x59d3287: ityExtensions must be released before dealloc
+[bq46]   ctx 0x59d32b5: bad format string for %@
+[bq46]   ctx 0x59d32ce: extensionURL
+[bq46]   ctx 0x59d32db: cannot extend access of %@ with invalid auditToken %@
+[bq46]   ctx 0x59d3311: contentsExtensionURL
+[bq46]   ctx 0x59d3326: hostStorageURL
+[bq46]   ctx 0x59d3335: :purged
+[bq46]   ctx 0x59d333d:  sHandle=%lli
+[bq46]   ctx 0x59d334b:  sURL=%@ sDest=%@
+[bq46]   ctx 0x59d335d:  sURL=%@
+[bq46]   ctx 0x59d3366: q24@?0@"NSString"8@"NSString"16
+[bq46]   ctx 0x59d3386: %@:%lu
+[bq46]   ctx 0x59d338d: @"NSString"16@?0@"NSString"8
+[bq46]   ctx 0x59d33aa:  eCount=%u(%u) eReasons=%@
+[bq46]   ctx 0x59d33c5: <%@:%p%@ %@%@%@>
+[bq46]   ctx 0x59d33d6: <%@:%p%@ descriptor='%@' role='%@' contents='%s'%@%@>
+[bq46]   ctx 0x59d340c: <%@:%p%@ role='%@' contents='%s'%@%@>
+[bq46]   ctx 0x59d3432: q24@?0@"PFServerPosterPath"8@"PFServerPosterPath"16
+[bq46]   ctx 0x59d3466: q24@?0@"PFPosterPath"8@"PFPosterPath"16
+[bq46]   ctx 0x59d348e: cachedServerPaths = %llu {
+[bq46]   ctx 0x59d34ac: otherPaths = %llu {
+[bq46]   ctx 0x59d34c0: invalid role: %@, supported roles for device class: %@
+[bq46]   ctx 0x59d34f7: B24@?0@"NSURL"8@"NSError"16
+[bq46]   ctx 0x59d3513: Unable to copy files
+[bq46]   ctx 0x59d3528: B32@?0@"PFPosterPath"8@"PFPosterPath"16^@24
+[bq46]   ctx 0x59d3554: com.apple.posterkit.provider.contents.userInfo
+[bq46]   ctx 0x59d3583: cannot extend validity after invalidation of %@
+[bq46]   ctx 0x59d35b3: validity overflow of %@
+[bq46]   ctx 0x59d35cb: validity underflow of %@
+[bq46]   ctx 0x59d35e4: v16@?0@"BSSimpleAssertion"8
+[bq46]   ctx 0x59d3600: %@: cannot extend access of %@ due to sandbox errno=%i (%s)
+[bq46]   ctx 0x59d363c: %@: cannot extend host storage access of %@ due to sandbox errno=%i (%s)
+[bq46]   ctx 0x59d3687: bsxpc
+[bq46]   ctx 0x59d368d: bsxpc-hostStorage
+[bq46]   ctx 0x59d369f: nsxpc
+[bq46]   ctx 0x59d36a5: nsxpc-hostStorage
+[bq46]   ctx 0x59d36bb: NSURL
+[bq46]   ctx 0x59d36c1: [_bs_assert_object isKindOfClass:NSURLClass]
+[bq46]   ctx 0x59d36ee: containerURL must be a fileURL directory : %@
+[bq46]   ctx 0x59d371c: providerURL must be a fileURL directory : %@
+[bq46] dyld_shared_cache_arm64e.17: bsxpc @fileoff 0x59d368d vm=0x1c5dd368d img=/System/Library/PrivateFrameworks/PosterFoundation.framework/PosterFoundation
+[bq46]   ctx 0x59d328d: ensions must be released before dealloc
+[bq46]   ctx 0x59d32b5: bad format string for %@
+[bq46]   ctx 0x59d32ce: extensionURL
+[bq46]   ctx 0x59d32db: cannot extend access of %@ with invalid auditToken %@
+[bq46]   ctx 0x59d3311: contentsExtensionURL
+[bq46]   ctx 0x59d3326: hostStorageURL
+[bq46]   ctx 0x59d3335: :purged
+[bq46]   ctx 0x59d333d:  sHandle=%lli
+[bq46]   ctx 0x59d334b:  sURL=%@ sDest=%@
+[bq46]   ctx 0x59d335d:  sURL=%@
+[bq46]   ctx 0x59d3366: q24@?0@"NSString"8@"NSString"16
+[bq46]   ctx 0x59d3386: %@:%lu
+[bq46]   ctx 0x59d338d: @"NSString"16@?0@"NSString"8
+[bq46]   ctx 0x59d33aa:  eCount=%u(%u) eReasons=%@
+[bq46]   ctx 0x59d33c5: <%@:%p%@ %@%@%@>
+[bq46]   ctx 0x59d33d6: <%@:%p%@ descriptor='%@' role='%@' contents='%s'%@%@>
+[bq46]   ctx 0x59d340c: <%@:%p%@ role='%@' contents='%s'%@%@>
+[bq46]   ctx 0x59d3432: q24@?0@"PFServerPosterPath"8@"PFServerPosterPath"16
+[bq46]   ctx 0x59d3466: q24@?0@"PFPosterPath"8@"PFPosterPath"16
+[bq46]   ctx 0x59d348e: cachedServerPaths = %llu {
+[bq46]   ctx 0x59d34ac: otherPaths = %llu {
+[bq46]   ctx 0x59d34c0: invalid role: %@, supported roles for device class: %@
+[bq46]   ctx 0x59d34f7: B24@?0@"NSURL"8@"NSError"16
+[bq46]   ctx 0x59d3513: Unable to copy files
+[bq46]   ctx 0x59d3528: B32@?0@"PFPosterPath"8@"PFPosterPath"16^@24
+[bq46]   ctx 0x59d3554: com.apple.posterkit.provider.contents.userInfo
+[bq46]   ctx 0x59d3583: cannot extend validity after invalidation of %@
+[bq46]   ctx 0x59d35b3: validity overflow of %@
+[bq46]   ctx 0x59d35cb: validity underflow of %@
+[bq46]   ctx 0x59d35e4: v16@?0@"BSSimpleAssertion"8
+[bq46]   ctx 0x59d3600: %@: cannot extend access of %@ due to sandbox errno=%i (%s)
+[bq46]   ctx 0x59d363c: %@: cannot extend host storage access of %@ due to sandbox errno=%i (%s)
+[bq46]   ctx 0x59d3687: bsxpc
+[bq46]   ctx 0x59d368d: bsxpc-hostStorage
+[bq46]   ctx 0x59d369f: nsxpc
+[bq46]   ctx 0x59d36a5: nsxpc-hostStorage
+[bq46]   ctx 0x59d36bb: NSURL
+[bq46]   ctx 0x59d36c1: [_bs_assert_object isKindOfClass:NSURLClass]
+[bq46]   ctx 0x59d36ee: containerURL must be a fileURL directory : %@
+[bq46]   ctx 0x59d371c: providerURL must be a fileURL directory : %@
+[bq46] dyld_shared_cache_arm64e.17: bsxpc @fileoff 0x59d7860 vm=0x1c5dd7860 img=/System/Library/PrivateFrameworks/PosterFoundation.framework/PosterFoundation
+[bq46]   ctx 0x59d7460: code sandbox token for %{public}@: No XPC object found
+[bq46]   ctx 0x59d7497: [%{public}@] failed to decode sandbox token: Bad XPC object: %s %@ : <%{public}@ path=%{public}@>
+[bq46]   ctx 0x59d74f9: [%{public}@] failed to consume sandboxToken %@ with %{darwin.errno}d : <%{public}@ path=%{public}@>
+[bq46]   ctx 0x59d755d: %p Failure to fault in application extensionRecord for identity %{public}@: %{public}@
+[bq46]   ctx 0x59d75b4: No poster providers were found for "%{public}@"
+[bq46]   ctx 0x59d75e4: created purgeable contents=%{public}@
+[bq46]   ctx 0x59d760a: failure in %@ of <%@:%p> (%@:%i)
+[bq46]   ctx 0x59d762b: SandboxExtensionError: domain=%{publid}@ code=%lli reason=%{public}@
+[bq46]   ctx 0x59d7670: failed to release hostStorageSandboxExtensionHandle with errno=%i (%{public}s) : %{public}@
+[bq46]   ctx 0x59d76cc: released hostStorageSandboxExtensionHandle : %{public}@
+[bq46]   ctx 0x59d7704: _temporaryDirectoryURLWithBasenamePrefix: built=%p prefix=%{public}@ override=%{public}@
+[bq46]   ctx 0x59d775d: failed to build temporary directory with prefix=%{public}@ override=%{public}@: %{public}@
+[bq46]   ctx 0x59d77b8: erasing userInfo: %{public}i %{public}@ (path=%@)
+[bq46]   ctx 0x59d77ea: Failed to decode PFPosterPath with invalid role: %{public}@, supported roles for device class: %{pub
+[bq46]   ctx 0x59d7854: created and bsxpc encoded sandboxToken %@ : %@
+[bq46]   ctx 0x59d7883: created and bsxpc encoded hostStorageSandboxToken %@ : %@
+[bq46]   ctx 0x59d78bd: created and nsxpc encoded sandboxToken %@ : %@
+[bq46]   ctx 0x59d78ec: created and nsxpc encoded hostStorageSandboxToken %@ : %@
+[bq46]   ctx 0x59d7926: unable to setup scratch url=%{public}@: %{public}@
+[bq46]   ctx 0x59d7959: unable to setup scratch snapshot cache url=%{public}@: %{public}@
+[bq46]   ctx 0x59d799b: unable to setup scratch url to be excluded from backup=%{public}@: %{public}@
+[bq46]   ctx 0x59d79e9: Unable to create host storage directory: %{public}@
+[bq46]   ctx 0x59d7a1d: Unable to exclude host storage from backup: %{public}@
+[bq46]   ctx 0x59d7a54: Unable to set file protection on host storage: %{public}@
+[bq46]   ctx 0x59d7a8e: sandboxToken was invalid XPC type %s in %@ from %{public}@ with %{darwin.errno}d : <%{public}@ %{pub
+[bq46]   ctx 0x59d7b09: sandboxToken was invalid XPC type %s in %@ from %{public}@ with %{darwin.errno}d : <%{public}@ path=
+[bq46]   ctx 0x59d7b79: failed to consume sandboxToken %@ from %{public}@ with %{darwin.errno}d : <%{public}@ %{public}@ pat
+[bq46]   ctx 0x59d7beb: failed to consume sandboxToken %@ from %{public}@ with %{darwin.errno}d : <%{public}@ path=%{public}
+[bq46]   ctx 0x59d7c52: consumed %{pub
+[bq46] dyld_shared_cache_arm64e.17: bsxpc @fileoff 0x59d788f vm=0x1c5dd788f img=/System/Library/PrivateFrameworks/PosterFoundation.framework/PosterFoundation
+[bq46]   ctx 0x59d748f: t found
+[bq46]   ctx 0x59d7497: [%{public}@] failed to decode sandbox token: Bad XPC object: %s %@ : <%{public}@ path=%{public}@>
+[bq46]   ctx 0x59d74f9: [%{public}@] failed to consume sandboxToken %@ with %{darwin.errno}d : <%{public}@ path=%{public}@>
+[bq46]   ctx 0x59d755d: %p Failure to fault in application extensionRecord for identity %{public}@: %{public}@
+[bq46]   ctx 0x59d75b4: No poster providers were found for "%{public}@"
+[bq46]   ctx 0x59d75e4: created purgeable contents=%{public}@
+[bq46]   ctx 0x59d760a: failure in %@ of <%@:%p> (%@:%i)
+[bq46]   ctx 0x59d762b: SandboxExtensionError: domain=%{publid}@ code=%lli reason=%{public}@
+[bq46]   ctx 0x59d7670: failed to release hostStorageSandboxExtensionHandle with errno=%i (%{public}s) : %{public}@
+[bq46]   ctx 0x59d76cc: released hostStorageSandboxExtensionHandle : %{public}@
+[bq46]   ctx 0x59d7704: _temporaryDirectoryURLWithBasenamePrefix: built=%p prefix=%{public}@ override=%{public}@
+[bq46]   ctx 0x59d775d: failed to build temporary directory with prefix=%{public}@ override=%{public}@: %{public}@
+[bq46]   ctx 0x59d77b8: erasing userInfo: %{public}i %{public}@ (path=%@)
+[bq46]   ctx 0x59d77ea: Failed to decode PFPosterPath with invalid role: %{public}@, supported roles for device class: %{pub
+[bq46]   ctx 0x59d7854: created and bsxpc encoded sandboxToken %@ : %@
+[bq46]   ctx 0x59d7883: created and bsxpc encoded hostStorageSandboxToken %@ : %@
+[bq46]   ctx 0x59d78bd: created and nsxpc encoded sandboxToken %@ : %@
+[bq46]   ctx 0x59d78ec: created and nsxpc encoded hostStorageSandboxToken %@ : %@
+[bq46]   ctx 0x59d7926: unable to setup scratch url=%{public}@: %{public}@
+[bq46]   ctx 0x59d7959: unable to setup scratch snapshot cache url=%{public}@: %{public}@
+[bq46]   ctx 0x59d799b: unable to setup scratch url to be excluded from backup=%{public}@: %{public}@
+[bq46]   ctx 0x59d79e9: Unable to create host storage directory: %{public}@
+[bq46]   ctx 0x59d7a1d: Unable to exclude host storage from backup: %{public}@
+[bq46]   ctx 0x59d7a54: Unable to set file protection on host storage: %{public}@
+[bq46]   ctx 0x59d7a8e: sandboxToken was invalid XPC type %s in %@ from %{public}@ with %{darwin.errno}d : <%{public}@ %{pub
+[bq46]   ctx 0x59d7b09: sandboxToken was invalid XPC type %s in %@ from %{public}@ with %{darwin.errno}d : <%{public}@ path=
+[bq46]   ctx 0x59d7b79: failed to consume sandboxToken %@ from %{public}@ with %{darwin.errno}d : <%{public}@ %{public}@ pat
+[bq46]   ctx 0x59d7beb: failed to consume sandboxToken %@ from %{public}@ with %{darwin.errno}d : <%{public}@ path=%{public}
+[bq46]   ctx 0x59d7c52: consumed %{public}@ decoded sandboxToken %@ : <%{public}@ %{p
+[bq46] dyld_shared_cache_arm64e.17: bsxpc @fileoff 0x5a6cd75 vm=0x1c5e6cd75 img=/System/Library/PrivateFrameworks/PosterBoardServices.framework/PosterBoardServices
+[bq46]   ctx 0x5a6c975:  of %{public}@ for client %{public}@ due to bad auditToken %{public}@
+[bq46]   ctx 0x5a6c9bb: <%{public}@:%p> notifying client %{public}@ of updates=%{public}@
+[bq46]   ctx 0x5a6c9fd: <%{public}@:%p> notifying client %{public}@ of snapshot updates=%{public}@
+[bq46]   ctx 0x5a6ca48: <%{public}@:%p> notifying client %{public}@ of role observer updates=%{public}@
+[bq46]   ctx 0x5a6ca98: <%{public}@:%p> failed to prepare role update of %{public}@/%{public}@ for client %{public}@ due to 
+[bq46]   ctx 0x5a6cb16: <%{public}@:%p> failed to prepare suggestion descriptor sandbox extension for update of %{public}@/%
+[bq46]   ctx 0x5a6cbbb: <%{public}@:%p> failed to prepare suggestion descriptor sandbox extension for update of %{public}@ f
+[bq46]   ctx 0x5a6cc55: <%{public}@:%p> notifying client %{public}@ of poster collection role observer updates=%{public}@
+[bq46]   ctx 0x5a6ccb7: <%{public}@:%p> Activating %lu clients
+[bq46]   ctx 0x5a6ccde: <%{public}@:%p> Activating client that connected earlier: %@
+[bq46]   ctx 0x5a6cd1b: failure in %{public}@ (%{public}@:%i) : %{public}@
+[bq46]   ctx 0x5a6cd4e: failed to consume sandboxToken %@ from bsxpc with errno=%i (%{public}s) : <%{public}@ path=%{public}
+[bq46]   ctx 0x5a6cdb5: [asset] failed to consume sandboxToken %@ from bsxpc with errno=%i (%{public}s) : <PRSPosterUpdateSe
+[bq46]   ctx 0x5a6ce39: Entitlement failure at %{public}@: missing entitlement %{public}@
+[bq46]   ctx 0x5a6ce7b: Building PRSPosterUpdate for ambient widgets: %{public}@
+[bq46]   ctx 0x5a6ceb4: [ReapOnStartup] Reaping stale data from channel identifier %{public}@
+[bq46]   ctx 0x5a6cefa: Trash cleanup after channel reap failed: %{public}@
+[bq46]   ctx 0x5a6cf2e: Channel reap failed; skipping trash cleanup. Underlying error: %{public}@
+[bq46]   ctx 0x5a6cf78: [ReapOnChannelUpdate][StateUpdate] Reaping stale data from channel identifier %{public}@
+[bq46]   ctx 0x5a6cfd1: [ReapOnChannelUpdate][GalleryUpdate] Reaping stale data from channel identifier %{public}@
+[bq46]   ctx 0x5a6d02c: Encountered invalid gallery creation date. Returning [NSDate distantPast].
+[bq46]   ctx 0x5a6d077: reapStaleSnapshots called on base PRSPosterChannel (no snapshots to reap). This is expected for daem
+[bq46]   ctx 0x5a6d0e5: Cannot relinquish extension instance for reason %{public}@, because Poster Configuration Extension I
+[bq46]   ctx 0x5a6d15b: <%{public}@:%p interrupted
+[bq46] dyld_shared_cache_arm64e.17: bsxpc @fileoff 0x5a6cde4 vm=0x1c5e6cde4 img=/System/Library/PrivateFrameworks/PosterBoardServices.framework/PosterBoardServices
+[bq46]   ctx 0x5a6c9e4: }@ of updates=%{public}@
+[bq46]   ctx 0x5a6c9fd: <%{public}@:%p> notifying client %{public}@ of snapshot updates=%{public}@
+[bq46]   ctx 0x5a6ca48: <%{public}@:%p> notifying client %{public}@ of role observer updates=%{public}@
+[bq46]   ctx 0x5a6ca98: <%{public}@:%p> failed to prepare role update of %{public}@/%{public}@ for client %{public}@ due to 
+[bq46]   ctx 0x5a6cb16: <%{public}@:%p> failed to prepare suggestion descriptor sandbox extension for update of %{public}@/%
+[bq46]   ctx 0x5a6cbbb: <%{public}@:%p> failed to prepare suggestion descriptor sandbox extension for update of %{public}@ f
+[bq46]   ctx 0x5a6cc55: <%{public}@:%p> notifying client %{public}@ of poster collection role observer updates=%{public}@
+[bq46]   ctx 0x5a6ccb7: <%{public}@:%p> Activating %lu clients
+[bq46]   ctx 0x5a6ccde: <%{public}@:%p> Activating client that connected earlier: %@
+[bq46]   ctx 0x5a6cd1b: failure in %{public}@ (%{public}@:%i) : %{public}@
+[bq46]   ctx 0x5a6cd4e: failed to consume sandboxToken %@ from bsxpc with errno=%i (%{public}s) : <%{public}@ path=%{public}
+[bq46]   ctx 0x5a6cdb5: [asset] failed to consume sandboxToken %@ from bsxpc with errno=%i (%{public}s) : <PRSPosterUpdateSe
+[bq46]   ctx 0x5a6ce39: Entitlement failure at %{public}@: missing entitlement %{public}@
+[bq46]   ctx 0x5a6ce7b: Building PRSPosterUpdate for ambient widgets: %{public}@
+[bq46]   ctx 0x5a6ceb4: [ReapOnStartup] Reaping stale data from channel identifier %{public}@
+[bq46]   ctx 0x5a6cefa: Trash cleanup after channel reap failed: %{public}@
+[bq46]   ctx 0x5a6cf2e: Channel reap failed; skipping trash cleanup. Underlying error: %{public}@
+[bq46]   ctx 0x5a6cf78: [ReapOnChannelUpdate][StateUpdate] Reaping stale data from channel identifier %{public}@
+[bq46]   ctx 0x5a6cfd1: [ReapOnChannelUpdate][GalleryUpdate] Reaping stale data from channel identifier %{public}@
+[bq46]   ctx 0x5a6d02c: Encountered invalid gallery creation date. Returning [NSDate distantPast].
+[bq46]   ctx 0x5a6d077: reapStaleSnapshots called on base PRSPosterChannel (no snapshots to reap). This is expected for daem
+[bq46]   ctx 0x5a6d0e5: Cannot relinquish extension instance for reason %{public}@, because Poster Configuration Extension I
+[bq46]   ctx 0x5a6d15b: <%{public}@:%p interrupted
+[bq46]   ctx 0x5a6d176: <%{public}@:%p remotely invalidated
+[bq46]   ctx 0x5a6d19a: %{public}@:%p failed to lookup endpoint
+[bq46]   ctx 0x5a6d1c2: Data store is being deleted by pro
+[bq46] dyld_shared_cache_arm64e.11: bsxpc @fileoff 0x82df96 vm=0x1a8c2df96 img=/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices
+[bq46]   ctx 0x82db96: init is not allowed on FBSWorkspaceSceneRemnant
+[bq46]   ctx 0x82dbc6: FBSWorkspaceSceneRemnant.m
+[bq46]   ctx 0x82dbe1: [identity isValid]
+[bq46]   ctx 0x82dbf4: FBSSceneParameters
+[bq46]   ctx 0x82dc07: [_bs_assert_object isKindOfClass:FBSSceneParametersClass]
+[bq46]   ctx 0x82dc43: __ForceNewScene
+[bq46]   ctx 0x82dc53: __FromLaunchApp
+[bq46]   ctx 0x82dc63: LSOpenSensitiveURLOption
+[bq46]   ctx 0x82dc7c: __ActivateSuspended
+[bq46]   ctx 0x82dc90: __ActivateAsClassic
+[bq46]   ctx 0x82dca4: __ActivateForEvent
+[bq46]   ctx 0x82dcb7: __DebugOptions
+[bq46]   ctx 0x82dcc6: __PayloadURL
+[bq46]   ctx 0x82dcd3: __PayloadAnnotation
+[bq46]   ctx 0x82dce7: __PayloadOptions
+[bq46]   ctx 0x82dcf8: __Arguments
+[bq46]   ctx 0x82dd04: __Environment
+[bq46]   ctx 0x82dd12: __StandardOutPath
+[bq46]   ctx 0x82dd24: __StandardErrorPath
+[bq46]   ctx 0x82dd38: __DebugOnNextLaunch
+[bq46]   ctx 0x82dd4c: __CancelDebugOnNextLaunch
+[bq46]   ctx 0x82dd66: __DisableASLR
+[bq46]   ctx 0x82dd74: __WaitForDebugger
+[bq46]   ctx 0x82dd86: __ExtensionBundleID
+[bq46]   ctx 0x82dd9a: __ExtensionPointID
+[bq46]   ctx 0x82ddad: __PreferredCPU
+[bq46]   ctx 0x82ddbc: __EnableMTE
+[bq46]   ctx 0x82ddc8: __UnlockDevice
+[bq46]   ctx 0x82ddd7: __PromptUnlockDevice
+[bq46]   ctx 0x82ddec: __ServiceAvailabilityTimeout
+[bq46]   ctx 0x82de09: __LaunchImage
+[bq46]   ctx 0x82de17: __LaunchOrigin
+[bq46]   ctx 0x82de26: __Actions
+[bq46]   ctx 0x82de30: __LaunchIntent
+[bq46]   ctx 0x82de3f: __Persona
+[bq46]   ctx 0x82de49: __DocumentOpen4LS
+[bq46]   ctx 0x82de5b: __UserActivity4LS
+[bq46]   ctx 0x82de6d: __PayloadIsValid4LS
+[bq46]   ctx 0x82de81: __AppLink4LS
+[bq46]   ctx 0x82de8e: __BrowserAppLinkState4LS
+[bq46] dyld_shared_cache_arm64e.77.dyldlinkedit: bsxpc @fileoff 0xd8b1744 vm=0x0 img=?
+[bq46]   ctx 0xd8b1344: ESo6UIViewCcAEmFWC
+[bq46]   ctx 0xd8b135a: 7defaultyA2EmFWC
+[bq46]   ctx 0xd8b1381: PreviewO
+[bq46]   ctx 0xd8b138d: preview4menuA2bCE7PreviewOSg_So6UIMenuCtcfC
+[bq46]   ctx 0xd8b13d2: pZMV
+[bq46]   ctx 0xd8b13dc: PasteControlConfigurationC5UIKitE11cornerStyleSo8UIButtonCACE0C0V06CornerF0Ov
+[bq46]   ctx 0xd8b142d: SplitViewControllerColumnV5UIKitE10_inspectorABvgZ
+[bq46]   ctx 0xd8b1463: TextItemMenuConfigurationC5UIKitE7
+[bq46]   ctx 0xd8b1489: WritingToolsResultOptionsV5UIKitE18presentationIntentABv
+[bq46]   ctx 0xd8b14dc: EdgeInsetsVisualizerViewCMa
+[bq46]   ctx 0xd8b14fb: FloatingBarContainerViewCMa
+[bq46]   ctx 0xd8b151a: ZoomTransitionControllerCMa
+[bq46]   ctx 0xd8b1558: 1descriptionSSvg
+[bq46]   ctx 0xd8b156c: 6debugDescriptionSSvg
+[bq46]   ctx 0xd8b15a6: ABycf
+[bq46]   ctx 0xd8b15b8: 5UIKitE
+[bq46]   ctx 0xd8b160d: _update_3for5usageySo09_UIVisualC10DescriptorCSg_So01_hC11EnvironmentCSgSo01_hC13ViewUsageHintVtF
+[bq46]   ctx 0xd8b1672: isEqualySbypSgF
+[bq46]   ctx 0xd8b16a1: 4modeABSo01_abC4ModeV_tcf
+[bq46]   ctx 0xd8b16be: 5coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b16e0: ABycf
+[bq46]   ctx 0xd8b16f2: 5UIKitE
+[bq46]   ctx 0xd8b1742: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b176d: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b1791: 4hashSivg
+[bq46]   ctx 0xd8b179e: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b17d0: 7isEqualySbypSgF
+[bq46]   ctx 0xd8b17ed: 5UIKitE
+[bq46]   ctx 0xd8b1800: IntelligenceLatencyEffectC
+[bq46]   ctx 0xd8b181e: ResourceConditionsManagerCMa
+[bq46]   ctx 0xd8b183e: SceneBarSizeClassResolverC
+[bq46]   ctx 0xd8b185e: UISceneAccessoryRegistrationC
+[bq46]   ctx 0xd8b18cb: SheetPresentationControllerC5UIKitE21preferredCornerRadius12CoreGraphics7CGFloatVSgv
+[bq46]   ctx 0xd8b1923: ViewSpringAnimationBehaviorCMa
+[bq46]   ctx 0xd8b1945: WindowSceneActivationActionC5UIKitE5title8subtitle5image10identifier20discoverabilityTitle10attribut
+[bq46]   ctx 0xd8b1a51: 5UIKitEABycf
+[bq46]   ctx 0xd8b1aa5: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b1ad0: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b1af4: 4hashSivg
+[bq46]   ctx 0xd8b1b01: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46] dyld_shared_cache_arm64e.77.dyldlinkedit: bsxpc @fileoff 0xd8b1aa7 vm=0x0 img=?
+[bq46]   ctx 0xd8b16a7: BSo01_abC4ModeV_tcf
+[bq46]   ctx 0xd8b16be: 5coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b16e0: ABycf
+[bq46]   ctx 0xd8b16f2: 5UIKitE
+[bq46]   ctx 0xd8b1742: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b176d: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b1791: 4hashSivg
+[bq46]   ctx 0xd8b179e: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b17d0: 7isEqualySbypSgF
+[bq46]   ctx 0xd8b17ed: 5UIKitE
+[bq46]   ctx 0xd8b1800: IntelligenceLatencyEffectC
+[bq46]   ctx 0xd8b181e: ResourceConditionsManagerCMa
+[bq46]   ctx 0xd8b183e: SceneBarSizeClassResolverC
+[bq46]   ctx 0xd8b185e: UISceneAccessoryRegistrationC
+[bq46]   ctx 0xd8b18cb: SheetPresentationControllerC5UIKitE21preferredCornerRadius12CoreGraphics7CGFloatVSgv
+[bq46]   ctx 0xd8b1923: ViewSpringAnimationBehaviorCMa
+[bq46]   ctx 0xd8b1945: WindowSceneActivationActionC5UIKitE5title8subtitle5image10identifier20discoverabilityTitle10attribut
+[bq46]   ctx 0xd8b1a51: 5UIKitEABycf
+[bq46]   ctx 0xd8b1aa5: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b1ad0: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b1af4: 4hashSivg
+[bq46]   ctx 0xd8b1b01: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b1b33: 7isEqualySbypSgF
+[bq46]   ctx 0xd8b1b50: 5UIKitE
+[bq46]   ctx 0xd8b1b84: 5UIKitEABycf
+[bq46]   ctx 0xd8b1bbd: 5UIKitEABycf
+[bq46]   ctx 0xd8b1bd5: FontPickerSceneHostingImplC
+[bq46]   ctx 0xd8b1bf4: ParallaxTransitionCardViewCMa
+[bq46]   ctx 0xd8b1c15: SceneBarAlignmentsResolverC
+[bq46]   ctx 0xd8b1c34: TabBarContentLayoutManagerC
+[bq46]   ctx 0xd8b1c53: ViewAlphaOverrideAssertionC
+[bq46]   ctx 0xd8b1cc5: 10Foundation18AttributeContainerV_tcfC
+[bq46]   ctx 0xd8b1cef: SDySo21NSAttributedStringKeyaypG_tcfC
+[bq46]   ctx 0xd8b1db6: attributesAE
+[bq46]   ctx 0xd8b1dc6: highlightsShySo0abcD9HighlightaGv
+[bq46]   ctx 0xd8b1deb: lineHeightSdSgv
+[bq46]   ctx 0xd8b1dfe: textColorsSaySo7UIColorCGv
+[bq46]   ctx 0xd8b1e86: attributesSDySo21NSAttributedStri
+[bq46] dyld_shared_cache_arm64e.77.dyldlinkedit: bsxpc @fileoff 0xd8b4cf5 vm=0x0 img=?
+[bq46]   ctx 0xd8b4932: _update_3for5usageySo09_UIVisualD10DescriptorC_So01_iD11EnvironmentCSo01_iD13ViewUsageHintVtF
+[bq46]   ctx 0xd8b4993: isEqualySbypSgF
+[bq46]   ctx 0xd8b49c2: 14_expectedUsageSo09_UIVisuald4ViewG4HintVyF
+[bq46]   ctx 0xd8b49f2: 25_needsUpdateForTransition4from2to5usageSbSo09_UIVisualD11EnvironmentCSg_AJSo01_mD13ViewUsageHintVt
+[bq46]   ctx 0xd8b4a5b: 5coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b4a7d: ABycf
+[bq46]   ctx 0xd8b4a8f: 5UIKitE
+[bq46]   ctx 0xd8b4ad1: _update_3for5usageySo09_UIVisualD10DescriptorCSg_So01_iD11EnvironmentCSgSo01_iD13ViewUsageHintVtF
+[bq46]   ctx 0xd8b4b36: isEqualySbypSgF
+[bq46]   ctx 0xd8b4b65: 25_needsUpdateForTransition4from2to5usageSbSo09_UIVisualD11EnvironmentCSg_AJSo01_mD13ViewUsageHintVt
+[bq46]   ctx 0xd8b4bce: 5coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b4bf0: ABycf
+[bq46]   ctx 0xd8b4c02: 5UIKitE
+[bq46]   ctx 0xd8b4c15: ContentLightEffectC
+[bq46]   ctx 0xd8b4c2c: RimHighlightEffectC
+[bq46]   ctx 0xd8b4c79: coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b4c95: frameABSo6CGRectV_tcf
+[bq46]   ctx 0xd8b4cb7: 5UIKitE5
+[bq46]   ctx 0xd8b4cf3: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b4d1e: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b4d42: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b4d7c: 5UIKitE
+[bq46]   ctx 0xd8b4db0: 5UIKitEABycf
+[bq46]   ctx 0xd8b4dc8: ceneSafeAreaEdgeInsetResolverC
+[bq46]   ctx 0xd8b4dea: earchControllerTrackableStateC
+[bq46]   ctx 0xd8b4e42: compactUserbcD9ThresholdAB12CoreGraphics7CGFloatV_tcf
+[bq46]   ctx 0xd8b4e7b: regularUserbcD9ThresholdAB12CoreGraphics7CGFloatV_tcf
+[bq46]   ctx 0xd8b4edd: 4userbcD09dimensionSo0abcD0V12CoreGraphics7CGFloatV_tF
+[bq46]   ctx 0xd8b4f17: 9fixedUserbcD0ABSo0abcD0V_tcf
+[bq46]   ctx 0xd8b4f5a: 0bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b4f84: 1descriptionSSvg
+[bq46]   ctx 0xd8b4fd8: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b4ffc: 4hashSivg
+[bq46]   ctx 0xd8b5009: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b503b: 7isEqualySbypSgF
+[bq46]   ctx 0xd8b504f: ABycf
+[bq46]   ctx 0xd8b5061: 5UIKitE
+[bq46]   ctx 0xd8b5074: ApplicationIntelligenceSupportCMa
+[bq46]   ctx 0xd8b5099: Intelligence
+[bq46]   ctx 0xd8b50a9: NavigationButtonBarWrapperViewC
+[bq46] dyld_shared_cache_arm64e.77.dyldlinkedit: bsxpc @fileoff 0xd8b4f5b vm=0x0 img=?
+[bq46]   ctx 0xd8b4b65: 25_needsUpdateForTransition4from2to5usageSbSo09_UIVisualD11EnvironmentCSg_AJSo01_mD13ViewUsageHintVt
+[bq46]   ctx 0xd8b4bce: 5coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b4bf0: ABycf
+[bq46]   ctx 0xd8b4c02: 5UIKitE
+[bq46]   ctx 0xd8b4c15: ContentLightEffectC
+[bq46]   ctx 0xd8b4c2c: RimHighlightEffectC
+[bq46]   ctx 0xd8b4c79: coderABSgSo7NSCoderC_tcf
+[bq46]   ctx 0xd8b4c95: frameABSo6CGRectV_tcf
+[bq46]   ctx 0xd8b4cb7: 5UIKitE5
+[bq46]   ctx 0xd8b4cf3: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b4d1e: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b4d42: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b4d7c: 5UIKitE
+[bq46]   ctx 0xd8b4db0: 5UIKitEABycf
+[bq46]   ctx 0xd8b4dc8: ceneSafeAreaEdgeInsetResolverC
+[bq46]   ctx 0xd8b4dea: earchControllerTrackableStateC
+[bq46]   ctx 0xd8b4e42: compactUserbcD9ThresholdAB12CoreGraphics7CGFloatV_tcf
+[bq46]   ctx 0xd8b4e7b: regularUserbcD9ThresholdAB12CoreGraphics7CGFloatV_tcf
+[bq46]   ctx 0xd8b4edd: 4userbcD09dimensionSo0abcD0V12CoreGraphics7CGFloatV_tF
+[bq46]   ctx 0xd8b4f17: 9fixedUserbcD0ABSo0abcD0V_tcf
+[bq46]   ctx 0xd8b4f5a: 0bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b4f84: 1descriptionSSvg
+[bq46]   ctx 0xd8b4fd8: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b4ffc: 4hashSivg
+[bq46]   ctx 0xd8b5009: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b503b: 7isEqualySbypSgF
+[bq46]   ctx 0xd8b504f: ABycf
+[bq46]   ctx 0xd8b5061: 5UIKitE
+[bq46]   ctx 0xd8b5074: ApplicationIntelligenceSupportCMa
+[bq46]   ctx 0xd8b5099: Intelligence
+[bq46]   ctx 0xd8b50a9: NavigationButtonBarWrapperViewC
+[bq46]   ctx 0xd8b50d1: UserInterfaceSizeClassResolverC
+[bq46]   ctx 0xd8b512d: 5UIKitEABycf
+[bq46]   ctx 0xd8b5145: EdgeEffectViewInteractionCMa
+[bq46]   ctx 0xd8b5165: PocketElectionInteractionC
+[bq46]   ctx 0xd8b51a6: 5UIKitEABycf
+[bq46]   ctx 0xd8b51be: croll
+[bq46]   ctx 0xd8b51c7: liderFluidVisualElementFactoryC
+[bq46]   ctx 0xd8b51fa: ManagerCMa
+[bq46]   ctx 0xd8b5208: OptionsCMa
+[bq46] dyld_shared_cache_arm64e.77.dyldlinkedit: bsxpc @fileoff 0xd8b5591 vm=0x0 img=?
+[bq46]   ctx 0xd8b51a6: 5UIKitEABycf
+[bq46]   ctx 0xd8b51be: croll
+[bq46]   ctx 0xd8b51c7: liderFluidVisualElementFactoryC
+[bq46]   ctx 0xd8b51fa: ManagerCMa
+[bq46]   ctx 0xd8b5208: OptionsCMa
+[bq46]   ctx 0xd8b5239: 5UIKitEABycf
+[bq46]   ctx 0xd8b5251: ControllerTransition
+[bq46]   ctx 0xd8b5269: GeometryObserverInteractionC
+[bq46]   ctx 0xd8b5290: View
+[bq46]   ctx 0xd8b52af: 13resolvedValue2in12CoreGraphics7CGFloatVSgSo0abcD17ResolutionContext_p_tF
+[bq46]   ctx 0xd8b52fd: 6custom10identifier8resolverABSo0abcD10IdentifieraSg_12CoreGraphics7CGFloatVSgSo0abcD17ResolutionCon
+[bq46]   ctx 0xd8b53db: IOSC5UIKitE21interfaceOrientationsSo26UIInterfaceOrientationMaskVSgv
+[bq46]   ctx 0xd8b5423: MacC5UIKitE11systemFrameSo6CGRectVSgv
+[bq46]   ctx 0xd8b544e: CollectionViewCompositionalLayoutC5UIKitE4list5usingAbC0aD17ListConfigurationV_tFZ
+[bq46]   ctx 0xd8b54a4: SheetPresentationControllerDetentC5UIKitE
+[bq46]   ctx 0xd8b54d1: WindowSceneGeometryPreferences
+[bq46]   ctx 0xd8b5516: 5UIKitEABycf
+[bq46]   ctx 0xd8b554f: 5UIKitEABycf
+[bq46]   ctx 0xd8b558f: 10bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b55ba: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b55de: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b5619: 5UIKitE
+[bq46]   ctx 0xd8b563a: llectorInteractionCMa
+[bq46]   ctx 0xd8b5653: ntainerInteractionCMa
+[bq46]   ctx 0xd8b566e: eneSafeAreaCornerInsetResolverC
+[bq46]   ctx 0xd8b5691: rollPocketCo
+[bq46]   ctx 0xd8b56a3: MaterialLuminanceAggregatorProxyC
+[bq46]   ctx 0xd8b56c8: ResourceConditionsSceneExtensionC
+[bq46]   ctx 0xd8b572c: 5UIKitE6screenABSo0A0C_tcf
+[bq46]   ctx 0xd8b5786: 03tabbC0ABSo0abC0C_tcf
+[bq46]   ctx 0xd8b57a0: 8instanceAByp_tcf
+[bq46]   ctx 0xd8b57be: 5UIKitE
+[bq46]   ctx 0xd8b57d8: BarControllerVisualStyle_PhoneC
+[bq46]   ctx 0xd8b57fb: SidebarBatchUpdatesTransactionCMa
+[bq46]   ctx 0xd8b5822: ScreenSimpleBoundingPathUtilitiesC
+[bq46]   ctx 0xd8b5851: UIWindowSceneActivationConfigurationC5UIKitE12userActivity7options7previewABSo06NSUserG0C_So0abC14Re
+[bq46]   ctx 0xd8b5943: 1descriptionSSvg
+[bq46]   ctx 0xd8b5957: 3defaultValuesABSgyt_tcf
+[bq46]   ctx 0xd8b5981: 24settingsContro
+[bq46] dyld_shared_cache_arm64e.77.dyldlinkedit: bsxpc @fileoff 0xd8b67f8 vm=0x0 img=?
+[bq46]   ctx 0xd8b6404: 5UIKitEABycf
+[bq46]   ctx 0xd8b643d: 5UIKitEABycf
+[bq46]   ctx 0xd8b6455: ButtonBarButtonSelectedIndicatorViewCMa
+[bq46]   ctx 0xd8b6480: IntelligenceLightSourceConfigurationC
+[bq46]   ctx 0xd8b64a9: ResourceConditionsSceneHostComponentC
+[bq46]   ctx 0xd8b64ed: 2_UI
+[bq46]   ctx 0xd8b64fa: 4_UI
+[bq46]   ctx 0xd8b6511: 8_UIScrollPocket
+[bq46]   ctx 0xd8b654d: 5UIKitEABycf
+[bq46]   ctx 0xd8b658d: 5UIKitEABycf
+[bq46]   ctx 0xd8b65a5: DragSessionIntelligenceAdoptionAgencyC
+[bq46]   ctx 0xd8b65cf: FloatingTabBarBatchUpdatesTransactionCMa
+[bq46]   ctx 0xd8b65fb: TextViewAnimatedPlaceholderIdentifierC
+[bq46]   ctx 0xd8b6656: 05setupcD0yyF
+[bq46]   ctx 0xd8b6667: 10isExpandedSbyF
+[bq46]   ctx 0xd8b667b: 21setHostIsTextVerticalyySbF
+[bq46]   ctx 0xd8b669b: ABycf
+[bq46]   ctx 0xd8b66ad: 5UIKitE
+[bq46]   ctx 0xd8b66c7: KeyboardCandidateSceneHostingControllerC
+[bq46]   ctx 0xd8b66f3: PopoverPresentationControllerSourceItemP5UIKitE5frame2inSo6CGRectVSgSo6UIViewC_tF
+[bq46]   ctx 0xd8b6758: 28containsOrientationDependentG0Sbvg
+[bq46]   ctx 0xd8b6780: 4safecD6Insets3for15statusBarHiddenSo06UIEdgeJ0VSo22UIInterfaceOrientationV_SbtF
+[bq46]   ctx 0xd8b67f7: 0bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46]   ctx 0xd8b6821: 1descriptionSSvg
+[bq46]   ctx 0xd8b685b: 25supportsBSXPCSecureCodingSbyFZ
+[bq46]   ctx 0xd8b687f: 4hashSivg
+[bq46]   ctx 0xd8b688c: 6encode14withBSXPCCoderySo13BSXPCEncoding_p_tF
+[bq46]   ctx 0xd8b68be: 7isEqualySbypSgF
+[bq46]   ctx 0xd8b68da: 5UIKitE
+[bq46]   ctx 0xd8b690e: 5UIKitEABycf
+[bq46]   ctx 0xd8b6926: ceneSafeAreaEdgeInsetConcreteResolverC
+[bq46]   ctx 0xd8b6950: plitViewControllerAdaptivePanelLayoutC
+[bq46]   ctx 0xd8b6982: _UIS
+[bq46]   ctx 0xd8b69af: 07_parenteF0ABSgv
+[bq46]   ctx 0xd8b69c4: 14_textAnimationyABSSFZ
+[bq46]   ctx 0xd8b6a04: 5UIKitE11descriptionSSv
+[bq46]   ctx 0xd8b6a1f: s23CustomStringConvertible5UIKitMc
+[bq46]   ctx 0xd8b6a55: 28containsOrientationDependentG0Sbvg
+[bq46]   ctx 0xd8b6a7d: 4safecD6Insets3for15statusBarHiddenSo06UIEdgeJ0VSo22UIInterfaceOrientationV_SbtF
+[bq46]   ctx 0xd8b6af4: 0bsxpcCoderABSgSo13BSXPCDecoding_p_tcf
+[bq46] dyld_shared_cache_arm64e.07: covers SpringBoardServices @0x19a966000
+[bq46] skip dyld_shared_cache_arm64e.atlas: bad hdr mo=1667326720 mc=796091752
+[bq46] dyld_shared_cache_arm64e.56.dylddata: SEL-POOL selector-pool(+0x531) @0x1f56ce531 -> ""
+[bq46] dyld_shared_cache_arm64e.56.dylddata: covers SpringBoardServices @0x19a966000
+[bq46] dyld_shared_cache_arm64e.75.dylddata: SEL-POOL selector-pool(+0x531) @0x1f56ce531 -> ""
+[bq46] dyld_shared_cache_arm64e.75.dylddata: covers SpringBoardServices @0x19a966000
+[bq46] bsxpc total hits=19
+[bq46] done
+[probe13] bq46-only mode, stop

@@ -4404,3 +4404,122 @@ bootstrap-сообщения; (б) если адресация подсерви�
 карта их методов (TCCProxy приоритет: чтение kTCCServiceAll-базы) и
 согласованный с оператором пробный диалог; (в) fuzz-контур — только после
 карты интерфейса.
+
+## §203. BSXPC extensionkitservice: чекин живёт в приватном libxpc-слоте, а не в первом сообщении — хендшейк из песочницы работает (v195–v202)
+
+### Тупик «первого сообщения» (bq44–bq52)
+
+Все пробы v195–v199 (activate/connect/SEL/голые словари/теги bsxpc) и
+полный «чекин» `{lp, s, i}` первым сообщением (bq51, v199: 6
+сервис-имён × 2 инстанса + 3-сообщевые последовательности; bq52, v200:
+`'mx'` root-пробы) получали один и тот же `{"bsxpc":"invalidate"}`.
+Контроли при этом жили (§144): голое `{}` → invalidate, lp-only →
+invalidate. RE v199 декодировал серверный путь:
+`+[BSXPCServiceConnection _connectionWithIncomingXPCConnection:forEndpoint:]`
+(0x18fb00044) читает `'lp'` (обязателен, иначе «Rejected due to
+malformed checkin_info» → invalidate) из объекта, полученного вызовом
+`0x1900f58c0(x1)`; затем `+[BSServiceListenerConnection
+_connectionFromIncomingConnection:]` (0x18fb03924) декодирует из
+initiating-context `'s'` (0x1e0a7e7a8 → CFSTR 's' 0x1e9e288f8,
+обязателен — nil даёт cancel `-[BSXPCServiceConnection cancel]`
+0x18fb21db8) и `'i'` (0x1e0a7e7b0 → 0x1e9e28918); lookup в
+`servicesByIdentifier` домена (`objectForKey:` на [[spec]+0x18]),
+мимо — «Unknown service … Invalidating the connection».
+
+### Резолв кэш-стабов: настоящий механизм (v200)
+
+Все `0x190xxxxx` — стабы `/usr/lib/objc/libobjcMsgSend1.dylib`;
+`0x1900f5xxx` оказались branch-тунками (adrp+add+br) на реальные
+функции. Резолв через nlist `.symbols` (маппинг 16.3M записей; blob
+`.symbols` = {nlistOffset=0x12540, nlistCount=0xf83360, stringsOffset,
+entries: 4690 образов по 8 байт} при заголовке 0x4000):
+
+- `0x1900f58c0` → libxpc `0x1805b18c8` =
+  **`_xpc_connection_get_bs_checkin_info`** — чекин читается НЕ из
+  первого сообщения на проводе, а из **приватного слота соединения**:
+  сериализатор `conn+0x90` + размер `conn+0x98`, one-shot (слот
+  обнуляется после чтения), только peer-kind (`conn+0x18 == 2`) и
+  не-live (`conn+0x40 == 0`), не listener («Attempt to fetch the
+  bs_checkin_info on a live/listener/non-peer connection»);
+- `0x1900f5810` → BaseBoard `BSStoreTokenFromXPCConnectionToVar`
+  (audit-token → BSAuditToken → `-pid` → targetWithPid:);
+- `0x1900f5910` → libxpc-регион `__xpc_*_impl` (описание для лога
+  реджекта).
+
+Доставка: КЛИЕНТ до resume заполняет слот
+`xpc_connection_set_bs_type` (0x1805b1510) +
+`xpc_connection_set_bs_checkin_info` (0x1805b1664, сериализует словарь,
+требует bs_type ≠ NONE); при resume libxpc шлёт setup-сообщение
+**'wINt'** (msgh_id 0x77494e74, чекин на +0x34) или 'w00t' (0x77303074,
+без чекина); сервер-парсер копирует payload в слот (тег сериализации
+0x996d4fd9, memcpy с +0x34), гейты: port-derivation (0x1805b4784,
+«Failed to verify check-in connection port was derived from the
+listener port») и CS-requirement («Dropping check-in message due to
+code signing requirement»). bs_type: 0=NONE, 1=TBD, 2=SPECIFIC,
+3=ANY; для kind==0 (соединение по имени, не из endpoint) разрешён
+только TBD.
+
+Серверные пути после чтения слота: `'mx'` в чекине → root-путь
+(`configure:` 0x18faf39dc + блок-диспетчер 0x18fb01098, «Incoming root
+connection is»/«Activating incoming root connection», без service
+lookup); без `'mx'` → wrap (`'s'` обязателен) → lookup → «Registering
+incoming connection» + диспетчер 0x18fae48b4 (теги bsxpc:
+activate/connect/invalidate/interrupt; connect читает bsxpc_context +
+lp). Домен extensionkitservice: mult=3 (дефолт 0x18fb15778 — в plist
+нет 'Multiplexing'), идентификаторы сервисов — голые ключи plist
+Services без трансформаций (строитель 0x18fb17890): Discovery/Launch/
+Observer/TCCProxy.
+
+### v201: краш-урок bs_type
+
+Первый прогон bq53 убил приложение: `set_bs_type(conn, 3)` на
+kind==0-соединении → os_crash «Cannot set specific when not from
+endpoint». Попутно подтверждено: **обе функции ЭКСПОРТИРОВАНЫ** —
+`dlsym("xpc_connection_set_bs_type") = 0x19d86d510` и
+`dlsym("xpc_connection_set_bs_checkin_info") = 0x19d86d664`, ровно
+slide+RE (slide = 0x1d2bc000 = dladdr(xpc_connection_create).dli_fbase
+0x19d855000 − файловый base libxpc 0x180599000).
+
+### v202 (bq53): ЖИВОЙ ХЕНДШЕЙК
+
+Вызовы напрямую extern-символами (линкер биндит экспорт из кэша),
+`set_bs_type(c, 1)` + `set_bs_checkin_info(c, dict)` ДО resume:
+
+- контроль `{}` → invalidate OK (§144);
+- V0 (TBD, слот пуст): invalidate пришёл только на ПОСЛЕДУЮЩИЙ
+  activate, не на resume — с TBD без чекина сервер BSXPC-обёртку
+  откладывает;
+- V1 (lp-only): `bsxpc=interrupt`;
+- **V2–V7 (полный чекин `{lp,s}` × 4 сервиса; `{lp,mx}`; `{lp,s,i}`):
+  MOLCH на resume 2.5 с, activate → ОТВЕТ `{"bsxpc":"activate"}`,
+  transaction 1 — хендшейк ПРИНЯТ, соединение зарегистрировано.**
+  Первый живой диалог с extensionkitservice со времён §202.
+
+SEL-вызов (`bsxpc_SEL=description`) ответа пока не даёт — формат
+вызова/ответа = следующая итерация.
+
+### Значение вектора
+
+Из песочницы достижим ЖИВОЙ BSXPC-диалог с процессом, у которого
+`tcc.manager.access.read = [kTCCServiceAll]`, `launchprocess`,
+`host.any-extension`, `domain-extension.proxy` (§202). Следующий шаг —
+формат вызова методов TCCProxy (чтение TCC-базы): карта селекторов
+сервиса в бинаре extensionkitservice (70 КБ, читается on-device),
+затем — согласованный с оператором пробный диалог.
+
+### Инструментальные уроки v195–v202
+
+- ARC: параметры-массивы xpc-объектов — только
+  `xpc_object_t __strong *` (иначе «passing address of non-scalar
+  object to __autoreleasing parameter»); ручной `xpc_release` под ARC
+  = over-release и смерть фазы (bq50).
+- Кэш-стабы `0x1900xxxxx` резолвятся локально: branch-тунк
+  (adrp+add+br) → цель → nlist `.symbols`; для адресов вне локальных
+  сабфайлов — hexdump-окна on-device (bq52, `pread` заголовков
+  маппингов).
+- os_crash внутри приватной API = смерть приложения: не звать
+  `set_bs_type(2|3)` на kind==0-соединениях.
+- CVE-2026-84607/65410 — запатчены на 24A5390f (главное перепроверено
+  на своём кексте); CVE-2026-84616 — userspace, не приоритет.
+
+Логи: `results/runf-bq44..53.log`, `results/v194-xpcenum*.log`.

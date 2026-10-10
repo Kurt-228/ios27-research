@@ -1,0 +1,96 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ53=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7903
+[scaler] conn 0x7903, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq53] v202: checkin через приватный libxpc-API (bs_type=TBD, экспортированные символы)
+[bq53] libxpc runtime base 0x19d855000 slide 0x1d2bc000
+[bq53] dlsym(set_bs_type)=0x19d86d510 dlsym(set_bs_checkin_info)=0x19d86d664
+[bq51] run ENTER ctl-empty nseq=1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x10609c800> { count = 1, transaction: 0, voucher = 0x106370690, contents =
+	"bsxpc" => <string: 0x10603de30> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq53] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq53] run ENTER V0-nocheckin bs_type=1 nseq=1
+[bq53] V0-nocheckin set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V0-nocheckin БЕЗ чекина (контроль)
+[bq53] V0-nocheckin после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V0-nocheckin ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x10609c800> { count = 1, transaction: 0, voucher = 0x106370410, contents =
+	"bsxpc" => <string: 0x1062ebd20> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq53] V0-nocheckin ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq53] V0-nocheckin total nev=2
+[bq53] run ENTER V1-lp-only bs_type=1 nseq=1
+[bq53] V1-lp-only set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V1-lp-only set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V1-lp-only после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V1-lp-only ev#1 [MSG] bsxpc=interrupt: <dictionary: 0x10609c800> { count = 1, transaction: 0, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x1062e9bc0> { string cache = 0x0, length = 9, contents = "interrupt" }
+}
+[bq53] V1-lp-only ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq53] V1-lp-only total nev=2
+[bq53] run ENTER V2-s=TCCProxy bs_type=1 nseq=2
+[bq53] V2-s=TCCProxy set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V2-s=TCCProxy set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V2-s=TCCProxy после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V2-s=TCCProxy ev#1 [MSG] bsxpc=activate: <dictionary: 0x10609c800> { count = 1, transaction: 1, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x10888c000> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq53] V2-s=TCCProxy total nev=1
+[bq53] run ENTER V3-s=Discovery bs_type=1 nseq=2
+[bq53] V3-s=Discovery set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V3-s=Discovery set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V3-s=Discovery после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V3-s=Discovery ev#1 [MSG] bsxpc=activate: <dictionary: 0x10609c800> { count = 1, transaction: 1, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x10888c660> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq53] V3-s=Discovery total nev=1
+[bq53] run ENTER V4-s=Launch bs_type=1 nseq=2
+[bq53] V4-s=Launch set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V4-s=Launch set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V4-s=Launch после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V4-s=Launch ev#1 [MSG] bsxpc=activate: <dictionary: 0x10609c800> { count = 1, transaction: 1, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x10888cff0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq53] V4-s=Launch total nev=1
+[bq53] run ENTER V5-s=Observer bs_type=1 nseq=2
+[bq53] V5-s=Observer set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V5-s=Observer set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V5-s=Observer после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V5-s=Observer ev#1 [MSG] bsxpc=activate: <dictionary: 0x10609c800> { count = 1, transaction: 1, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x10888d0b0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq53] V5-s=Observer total nev=1
+[bq53] run ENTER V6-mx-root bs_type=1 nseq=2
+[bq53] V6-mx-root set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V6-mx-root set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V6-mx-root после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V6-mx-root ev#1 [MSG] bsxpc=activate: <dictionary: 0x10609c800> { count = 1, transaction: 1, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x10888c660> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq53] V6-mx-root total nev=1
+[bq53] run ENTER V7-TCCProxy+i bs_type=1 nseq=2
+[bq53] V7-TCCProxy+i set_bs_type(1) вернулся (TBD-only для kind==0)
+[bq53] V7-TCCProxy+i set_bs_checkin_info -> 1 (СЛОТ ЗАПОЛНЕН)
+[bq53] V7-TCCProxy+i после resume+2.5s nev=0 (MOLCH — ЧЕКИН ПРИНЯТ?)
+[bq53] V7-TCCProxy+i ev#1 [MSG] bsxpc=activate: <dictionary: 0x10609c800> { count = 1, transaction: 1, voucher = 0x106370cd0, contents =
+	"bsxpc" => <string: 0x10888dd40> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq53] V7-TCCProxy+i total nev=1
+[bq53] done
+[bq53] VERDICT: строки 'MOLCH — ЧЕКИН ПРИНЯТ?' = слот доставлен и принят сервером (гейты port-derivation/CS пройдены) — читать ev-строки диалога (activate/SEL); invalidate на полном чекине при живых контролях = серверный гейт режет чекин — RE 0x1805b4784 (port-derivation) и 0x1805b65xx (CS-requirement) следующая итерация
+[probe13] bq53-only mode, stop
