@@ -3763,3 +3763,86 @@ Load Address: 0xfffffff02700c000
 `~/darwin-vm/firmware/` — iPhone17,3 24A5390f (d47ap/t8140); `boot_proof_t8140_bash.log`
 (311 строк, полный boot до bash-5.3#); `firmware_t8130_backup/bootkc_t8130`
 (73MB, kernelcache t8130). qemu-sptm: `-s` → port 1234, serial → TCP 4556.
+
+## §196 (v188). VM-лаборатория: пайплайн «собрать→положить в ramdisk→запустить→вывод» + первый ядерный фаззер IP_OPTIONS
+
+### Пайплайн выполнения кода в госте (после §195 serial-эпопеи)
+
+Цель этапа: не заливать бинари через serial (квирки tty-буфера убили множество
+попыток), а класть их в ramdisk-образ с хоста. Рабочая схема, проверенная
+end-to-end (`/bin/probe` и `/private/var/tmp/probe` выполнены в госте):
+
+1. **Сборка**: `xcrun -sdk iphoneos clang -target arm64-apple-ios17.0 prog.c -o prog && codesign -s - prog`.
+2. **Положить в образ — БЕЗ sudo**: `hdiutil attach -owners on -mountpoint $MNT firmware/ramdisk.dmg`
+   (образ user-owned, монтируется от kurt228) → `cp prog $MNT/private/var/tmp/` →
+   `chmod 755` → `detach`. В госте `/private/var/tmp` = 1777, файл виден как
+   `mobile:wheel` (хост-uid 501) и world-exec — **AMFI пускает** (см. п. 4).
+   Альтернатива с sudo: `sudo ~/darwin-vm/addprog.sh prog` → `/bin/probe`
+   (root:wheel, добавляет cdhash автоматически).
+3. **Trustcache**: `codesign -d -vvv prog | grep cdhash= >> firmware/all_hashes`
+   (если нет) + `./build_tc.py firmware/all_hashes firmware/ramdisk.tc` — без sudo.
+4. **Запуск гостя**: `socat PTY,link=/tmp/gpty,rawer,echo=0,ignoreeof EXEC:"/tmp/run_qemu.sh",pty,setsid,ctty`
+   + **один** `cat < /tmp/gpty > pty_console.log` с первой секунды (захват boot-лога).
+   stdin-fifo для `-serial mon:stdio` не работает (qemu stdio-mux теряет ввод без tty);
+   PTY через socat — работает.
+5. **Команды**: python `os.open('/tmp/gpty', O_RDWR|O_NOCTTY)` + non-blocking,
+   запись с retry (EAGAIN = tty-ввод переполнен → читать и ждать), ответы
+   приходят **с задержкой десятки секунд** — читать повторными drain-сессиями.
+
+### Ловушки serial/PTY (дополнение к §195)
+
+- Boot ненадёжен: ~50% попыток зависает на SEP-poll (`0xfffffff02abc5914`,
+  ACMTRM молчит). Детект: `grep "spawned bash" pty_console.log` за 400 с,
+  иначе рестарт. Авто-цикл «старт → ждать 400с → рестарт» проходит с 1–2 попыток.
+- **Два `cat`-читателя на одном PTY = данные делятся, лог затирается truncate'ом**
+  (потеряно несколько захватов). Ровно один читатель.
+- Детектор SIGALRM (`alarm(2)` → `write(1)` в фоне) **не сработал** — ALIVE=0;
+  детектор живости фаззера = `MILESTONE`-write в основном цикле (~1/с).
+  По §144: подтверждено, что MILESTONE реально доходят в лог.
+- `set -e` + `pkill` отсутствующего процесса = exit 1 на середине установки.
+
+### Recon гостя (root, полный вывод в pty_console.log)
+
+- `uname -a`: `Darwin localhost 27.0.0 ... xnu-13432.0.94.502.2~2/RELEASE_ARM64_T8140 iPhone17,3`.
+- `/` = `dev/md0` **apfs read-only** — runtime-запись в ФС невозможна; вывод только в консоль.
+- `/System/Library/Extensions` = 6 kext (AppleHPM, AppleSPURose, IOHIDFamily,
+  IOThunderboltFamily, IOUSBDeviceFamily, IOUSBHostFamily).
+- `/dev`: bpf0-3, pf, oslog, oslog_stream, monotonic, klog, qemuport0-3, md0 —
+  поверхность для root-ioctl-исследований.
+- System Policy логирует каждый exec (`System Policy: bash(N) allow process-exec* ...`) —
+  sandbox в госте активен, bash в нём.
+- kASLR: mach_header найден по `0xfffffff027004000` → **slide = 0x20000000**
+  (bootkc __TEXT=0xfffffff007004000). AppleSEPManager загружен по тому же slide
+  (код `paciasp` по `__TEXT_EXEC+slide` чтением через lldb). Bootkc-сегменты:
+  `kc_map.py` (`~/darwin-vm/kc_map.py`): __TEXT_EXEC 0xfffffff008410000 +0x2fe8000
+  (kernel+prelinked kext'ы), __PRELINK_TEXT 0xfffffff00700c000 +0xda0000.
+- Извлечение: `xcrun ipsw kernel extract firmware/bootkc --all -o /tmp/kc27_t8140`
+  → 306 kext'ов, включая `com.apple.kernel` (12.5MB, source 13432.0.94.502.2);
+  CTF/символов нет (production).
+
+### Первый ядерный фаззер: IP_OPTIONS (запущен)
+
+`vmprobe/ipfuzz.c` → `/private/var/tmp/ipfuzz` (в образе, trustcache обновлён).
+UDP-сокет, бесконечный цикл: генерация 5 режимов мусорных IP-опций (случайные
+байты; валидная структура с кривым copy; LSRR/SSRR с pointer вне границ;
+NOP-цепочка+мусор; timestamp с кривым pointer/overflow) → `setsockopt(IP_OPTIONS)`
+→ при успехе `getsockopt` + `sendto` на loopback:9 (путь передачи).
+
+**Релевантность устройству (§165/§173)**: парсер IP-опций в ядре общий, на
+24A5390f легальные опции включая LSRR принимаются **из песочницы** — если
+парсер ядра имеет баг, триггер переносим на устройство. Здесь — кривые входы,
+которые на устройстве недоступны/рискованны, в VM безопасны (паника = рестарт).
+
+Статус первого запуска: round=32000+ (ok=4705, fail=27295), ядро живо,
+лог растёт, фоновый монитор `/tmp/fuzzmon.log` (30-с интервал: свежесть
+MILESTONE + живость qemu). Паника/завис = пропажа MILESTONE >60 с или смерть qemu.
+
+### Итог v188
+
+1. **Лаборатория полноценна**: собственный код в ramdisk без sudo (self-serve
+   через `/private/var/tmp`), вывод в консоль с первой секунды, команды через PTY.
+2. **Ядерный фаззинг запущ**: IP_OPTIONS-парсер под нагрузкой, детектор
+   живости работает (MILESTONE). Первая итерация — без паник.
+3. Открытые следующие шаги: ioctl-поверхность /dev (bpf/pf/oslog) как вторая
+   фаза; сравнение «root в гость vs песочница устройства» для оценки
+   переносимости находок.
