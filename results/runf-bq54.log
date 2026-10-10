@@ -1,0 +1,86 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ54=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7633
+[scaler] conn 0x7633, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq54] v203: формат вызова на живом соединении (checkin+activate+probe)
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x107ca0800> { count = 1, transaction: 0, voucher = 0x107d68690, contents =
+	"bsxpc" => <string: 0x107dcbf90> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq54] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq54] run ENTER P0-empty kind=0
+[bq54] P0-empty checkin slot -> 1
+[bq54] P0-empty ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc0500, contents =
+	"bsxpc" => <string: 0x107c3adf0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P0-empty activate: nev=1 (ACK получен)
+[bq54] P0-empty probe done: nev=1 nreply=0
+[bq54] P0-empty re-activate: nev=1 (канал тих/мёртв?)
+[bq54] run ENTER P1-SEL-description kind=1
+[bq54] P1-SEL-description checkin slot -> 1
+[bq54] P1-SEL-description ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc0140, contents =
+	"bsxpc" => <string: 0x107c3b600> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P1-SEL-description activate: nev=1 (ACK получен)
+[bq54] P1-SEL-description probe done: nev=1 nreply=0
+[bq54] P1-SEL-description re-activate: nev=1 (канал тих/мёртв?)
+[bq54] run ENTER P2-SEL+r kind=2
+[bq54] P2-SEL+r checkin slot -> 1
+[bq54] P2-SEL+r ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc06e0, contents =
+	"bsxpc" => <string: 0x107eeebe0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P2-SEL+r activate: nev=1 (ACK получен)
+[bq54] P2-SEL+r probe done: nev=1 nreply=0
+[bq54] P2-SEL+r re-activate: nev=1 (канал тих/мёртв?)
+[bq54] run ENTER P3-tag-selector kind=3
+[bq54] P3-tag-selector checkin slot -> 1
+[bq54] P3-tag-selector ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc06e0, contents =
+	"bsxpc" => <string: 0x107c3b3c0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P3-tag-selector activate: nev=1 (ACK получен)
+[bq54] P3-tag-selector probe done: nev=1 nreply=0
+[bq54] P3-tag-selector re-activate: nev=1 (канал тих/мёртв?)
+[bq54] run ENTER P4-SEL+CID kind=4
+[bq54] P4-SEL+CID checkin slot -> 1
+[bq54] P4-SEL+CID ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc06e0, contents =
+	"bsxpc" => <string: 0x10a4b02d0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P4-SEL+CID activate: nev=1 (ACK получен)
+[bq54] P4-SEL+CID probe done: nev=1 nreply=0
+[bq54] P4-SEL+CID re-activate: nev=1 (канал тих/мёртв?)
+[bq54] run ENTER P5-connect kind=5
+[bq54] P5-connect checkin slot -> 1
+[bq54] P5-connect ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc06e0, contents =
+	"bsxpc" => <string: 0x10a4b0990> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P5-connect activate: nev=1 (ACK получен)
+[bq54] P5-connect ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq54] P5-connect probe done: nev=2 nreply=0
+[bq54] P5-connect re-activate: nev=2 (канал жив)
+[bq54] run ENTER P6-SEL-withreply kind=6
+[bq54] P6-SEL-withreply checkin slot -> 1
+[bq54] P6-SEL-withreply ev#1 [MSG] bsxpc=activate: <dictionary: 0x107ca0800> { count = 1, transaction: 1, voucher = 0x107fc06e0, contents =
+	"bsxpc" => <string: 0x10a4b03c0> { string cache = 0x0, length = 8, contents = "activate" }
+}
+[bq54] P6-SEL-withreply activate: nev=1 (ACK получен)
+[bq54] P6-SEL-withreply REPLY(kind6): <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq54] P6-SEL-withreply probe done: nev=1 nreply=1
+[bq54] P6-SEL-withreply re-activate: nev=1 (канал жив)
+[bq54] done
+[bq54] VERDICT: смотреть ev#2/reply каждого P*: ответ != invalidate = вызов дошёл до сервиса; re-activate жив = соединение пережило пробу; полный разбор следующей итерацией
+[probe13] bq54-only mode, stop
