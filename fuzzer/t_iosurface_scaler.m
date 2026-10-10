@@ -35820,6 +35820,39 @@ static void p_bq45(void) {
 // явному FUZZ_ASTRIS_OPEN (риск-тест, спрашивать оператора).
 static void p_astris(void) {
     LOG("[astris] v192 retail-kernel Astris probe existence check (no open)");
+    // v192j: собственные entitlement'ы процесса. Тест
+    // com.apple.ane.iokit-user-access в ent.plist installs без ошибки,
+    // но «MIS вырезал при установке» и «драйвер читает, но не гейтит»
+    // неразличимы без прямого чтения. Контроль — application-groups
+    // (известно работают: bad_query от них зависит); если оба nil —
+    // детектор сломан (§144), вердикт не выносить.
+    {
+        LOG("[astris] ent-read begin");
+        void *(*mk)(CFAllocatorRef) = (void *(*)(CFAllocatorRef))
+            dlsym(RTLD_DEFAULT, "SecTaskCreateFromSelf");
+        CFTypeRef (*get)(void *, CFStringRef, CFErrorRef *) =
+            (CFTypeRef (*)(void *, CFStringRef, CFErrorRef *))
+            dlsym(RTLD_DEFAULT, "SecTaskCopyValueForEntitlement");
+        LOG("[astris] ent-read dlsym mk=%p get=%p", mk, get);
+        if (!mk || !get) {
+            LOG("[astris] ent-read: SecTask API недоступен");
+        } else {
+            void *task = mk(kCFAllocatorDefault);
+            static const char *ents[] = {
+                "com.apple.security.application-groups",
+                "com.apple.ane.iokit-user-access", NULL };
+            for (int e = 0; ents[e]; e++) {
+                CFStringRef kn = CFStringCreateWithCString(
+                    NULL, ents[e], kCFStringEncodingUTF8);
+                CFTypeRef v = task ? get(task, kn, NULL) : NULL;
+                LOG("[astris] self-ent %s -> %s", ents[e],
+                    v ? "PRESENT" : "ABSENT");
+                if (v) CFRelease(v);
+                CFRelease(kn);
+            }
+            if (task) CFRelease(task);
+        }
+    }
     static const char *names[] = {
         "AppleAstrisGpioProbe", "XAstrisGpioProbe",
         "AppleAstrisGpioProbeUserClient",
@@ -35844,7 +35877,8 @@ static void p_astris(void) {
             IOObjectGetClass(s, cls);
             LOG("[astris]   class=%s", cls);
             if (getenv("FUZZ_ASTRIS_OPEN")) {
-                for (int t = 0; t < 4; t++) {
+                for (int t = 0; t < 8; t++) {   // v192i: 4..7 = type-свип
+                                                 // (type=4 второй принятый)
                     mach_port_t conn = 0;
                     kern_return_t kr =
                         IOServiceOpen(s, mach_task_self(), t, &conn);
@@ -35944,6 +35978,58 @@ static void p_astris(void) {
                         }
                         LOG("[astris]   probe done: %d calls, %d non-BadArg",
                             nprobe, nbad);
+
+                        // (в) Скалярная форма (v192g): пробы (б) всегда
+                        // несли structureInput — если таблица диспетчера
+                        // требует «скаляры БЕЗ структуры», ни одна форма
+                        // её не давала (sh=0 был только nsc=0). Перебор
+                        // nsc=1..8 × insz=0 × sel 0..0x7f.
+                        int ns2 = 0, nbad2 = 0;
+                        for (uint32_t nc = 1; nc <= 8; nc++)
+                        for (int s2 = 0; s2 < 0x80; s2++) {
+                            memset(sc, 0, sizeof(sc));
+                            for (uint32_t k = 0; k < nc; k++)
+                                sc[k] = 0xffffffffffffffffULL;
+                            uint32_t no = 8;
+                            size_t oo = sizeof(outb);
+                            ns2++;
+                            kern_return_t kr4 = IOConnectCallMethod(
+                                conn, (uint32_t)s2, sc, nc, NULL, 0,
+                                NULL, &no, outb, &oo);
+                            if (kr4 != 0xe00002c2) {
+                                nbad2++;
+                                LOG("[astris]   SCALAR nsc=%u sel=0x%x "
+                                    "kr=0x%x osz=%zu", nc, s2, kr4, oo);
+                            }
+                        }
+                        LOG("[astris]   scalar done: %d calls, %d non-BadArg",
+                            ns2, nbad2);
+
+                        // (г) Type-свип (v192h): open принимал только
+                        // type=1 (0/2/3 → NotReady) — но type это произвольный
+                        // UInt32, за пределами 0..3 может быть отдельный
+                        // клиент (в кексте два класса: H11ANEInUserClient и
+                        // H11ANEInDirectPathClient — может, разные type).
+                        if (t == 1) {
+                            int nty = 0, nokt = 0;
+                            for (uint32_t ty = 8; ty < 0x100; ty++) {
+                                mach_port_t c2 = 0;
+                                kern_return_t krt =
+                                    IOServiceOpen(s, mach_task_self(), ty, &c2);
+                                nty++;
+                                if (krt == KERN_SUCCESS) {
+                                    nokt++;
+                                    LOG("[astris]   TYPE-HIT type=%u conn=0x%x",
+                                        ty, c2);
+                                    if (c2) IOServiceClose(c2);
+                                } else if (krt != 0xe00002c7 &&
+                                           krt != 0xe00002c2) {
+                                    LOG("[astris]   type=%u kr=0x%x", ty, krt);
+                                }
+                            }
+                            LOG("[astris]   typesweep: %d tried, %d opened",
+                                nty, nokt);
+                        }
                     }
                     if (kr == KERN_SUCCESS && conn) IOServiceClose(conn);
                 }

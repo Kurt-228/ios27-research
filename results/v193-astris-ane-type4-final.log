@@ -1,0 +1,39 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_ASTRIS=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4b13
+[scaler] conn 0x4b13, s1 173 s2 174
+[probe12] SetNotificationPort -> 0x00000000
+[astris] v192 retail-kernel Astris probe existence check (no open)
+[astris] ent-read begin
+[astris] ent-read dlsym mk=0x1a674b620 get=0x1a674b4ac
+[astris] self-ent com.apple.security.application-groups -> PRESENT
+[astris] self-ent com.apple.ane.iokit-user-access -> ABSENT
+[astris] loop i=0 name=AppleAstrisGpioProbe begin
+[astris] dict ok, matching...
+[astris] matching AppleAstrisGpioProbe -> service 0x0 (nil)
+[astris] loop i=1 name=XAstrisGpioProbe begin
+[astris] dict ok, matching...
+[astris] matching XAstrisGpioProbe -> service 0x0 (nil)
+[astris] loop i=2 name=AppleAstrisGpioProbeUserClient begin
+[astris] dict ok, matching...
+[astris] matching AppleAstrisGpioProbeUserClient -> service 0x0 (nil)
+[astris] loop i=3 name=H1xANELoadBalancer begin
+[astris] dict ok, matching...
+[astris] matching H1xANELoadBalancer -> service 0x7b03
+[astris]   class=H1xANELoadBalancer
+[astris] loop i=4 name=AppleH16ANEInterface begin
+[astris] dict ok, matching...
+[astris] matching AppleH16ANEInterface -> service 0x0 (nil)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[astris] scanned 1 sandbox profiles
+[astris] check ty=0 scaler=1 h1x=1 surf=1
+[astris] check ty=1 scaler=-1 h1x=-1 surf=-1
+[astris] check ty=2 scaler=-1 h1x=-1 surf=-1
+[astris] check ty=3 scaler=-1 h1x=-1 surf=-1
+[astris] done
+[probe13] astris-only mode, stop

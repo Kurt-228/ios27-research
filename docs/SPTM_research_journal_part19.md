@@ -4246,3 +4246,84 @@ restore-окружении получает iokit-open deny на отдельн�
   в госте); (б) устройство — статика AppleH16ANEInterface → точечный свип
   ANE по восстановленным форматам; (в) Astris — закрыт (нет сервиса на
   retail), только в отчёт.
+
+## §201. ANE-линия закрыта: type=4, сплошной BadArgument-гейт, MIS-отсечение entitlement (v193)
+
+### Расширение карты типов ANE
+
+`IOServiceOpen(H1xANELoadBalancer)` принимает **два** type: 1 и 4 (свип
+0..0xff: 252 проверки, остальные → NotReady/BadArgument). На ОБОИХ
+соединениях полный свип идентичен и безуспешен: 512 селекторов × 4 формы +
+проба форматов 700 (insz 1..2048 × nsc 0..8 × 10 селекторов) + скалярная
+форма 1024 (nsc 1..8, insz=0) = **2236 вызовов на тип, все 0xe00002c2
+BadArgument**, выходные буферы не тронуты, SetNotificationPort → NotReady.
+Итого по ANE из песочницы: 4472 вызова, ноль исключений из формат-гейта.
+Кекст (carve `com_apple_driver_AppleH16ANEInterface.macho`, 2.27 МБ, xref-RE
+через objdump): два класса клиентов (H11ANEInUserClient,
+H11ANEInDirectPathClient), entitlement `com.apple.ane.iokit-user-access`
+вычисляется в initWithTask в байт-поле объекта (сравнение с
+kOSBooleanTrue), рядом `com.apple.ane.allow-dataChaining-access`; лог-строка
+`External Method Call with selector %u result %u [Client: %s, PID: %d]`
+подтверждает existence диспетчеризации, но таблица IOExternalMethodDispatch
+не поднимается офлайн (nsyms=0, PAC-подписанные указатели в DATA_CONST).
+
+### Entitlement-инъекция: MIS режет на установке (определённый негатив)
+
+Тест (согласован с оператором): `com.apple.ane.iokit-user-access = YES`
+добавлен в ent.plist (python plistlib — **plutil -insert не принимает
+точки в имени ключа**, трактует как keypath), 5 app-groups не тронуты.
+Установка: **«This app cannot be installed because its integrity could not
+be verified» (IXUserPresentableErrorDomain 14)** — MIS отвергает приватный
+entitlement вне provisioning-профиля. Прошлый прогон «с entitlement»
+фактически гонял старый бинарь: проверка установки `grep -ci installed`
+была обманута текстом ошибки (в нём тоже есть «Install») — **проверять
+exit-код devicectl, не текст**. ent.plist откачен из бэкапа byte-identical
+с HEAD, установка восстановлена (exit 0).
+
+Вердикт: на стоке iOS песочница **не может** получить ANE-entitlement →
+методы ANE- user-client'ов закрыты для нас by design (BadArgument на
+верхнем уровне, обход форматами исчерпан). Единственное достижимое —
+open/close типов 1 и 4.
+
+### Детектор собственных entitlement'ов (с контролем, §144)
+
+`SecTaskCreateFromSelf` + `SecTaskCopyValueForEntitlement` через
+dlsym(RTLD_DEFAULT) в фазе p_astris: контроль
+`com.apple.security.application-groups` → **PRESENT** (наши entitlement'ы
+реально доходят до процесса), ANE-ключ → ABSENT (после отката, как и
+ожидалось). Детектор валиден и остаётся в фазе.
+
+### Гостевой iokitfuzz v8: матрица отказов
+
+fork+watchdog v7 переигран с логом kr неудачных open: **316/316 пар
+(класс,type) → единый kr=0x10000003** (нетипичный для IOReturn-таблиц,
+единый sandbox-трансляционный отказ), OPEN=0, WEDGE=0, HIT=0. Root в
+госте не открывает НИ ОДНОГО userclient, кроме двух паникеров (оба — в
+MACF-allow-списке или их open-path не доходит до политики). Допущение §196
+«в госте root открывает всё» для userclient'ов **закрыто окончательно**:
+ценность гостя — только бесплатные паники известных кекстов.
+
+### Итог по ANE-вектору и инструментальные уроки
+
+ANE-фаззинг из песочницы **закрыт**: оба доступных типа дают единый
+верхнеуровневый гейт, entitlement-путь перекрыт MIS на стоке. Открытые
+заметки на будущее: привилегированные клиенты (ANEPrivilegedVMAccessUserClient,
+ANEDriverDebugClient) достижимы только вне песочницы; на госте возможен
+отдельный трек — разработка эксплойта поверх паники H16ANE→IOSurface
+(far=0x140) в среде, где паники бесплатны.
+
+Уроки инструмента v193: (1) plutil -insert — точки в имени ключа =
+keypath, использовать plistlib; (2) верификация установки — exit-код
+devicectl, grep по тексту обманывается; (3) наличие строки в бинаре ≠
+выполнение кода (отладочный вывод вставлен ПЕРЕД первым логом фазы);
+(4) static-массив const-строк компилируется всегда — не использовать
+его наличие как маркер выполнения.
+
+Логи: `results/v193-astris-ane-type4-final.log`,
+`results/v193-ane-ent-install-fail.log`.
+
+Направление v194: (а) гость — эксплойт-разработка по данным-аборту
+IOSurface (NULL+0x140, caller AppleH16ANEInterface) в qemu; (б) устройство
+— ANE закрыт, вернуться к открытым поверхностям §171 (IP_OPTIONS парсер
+опций — LSRR принят) или к loopback-демонам; (в) ent.plist — откат
+подтверждён, держать 5 app-groups нетронутыми.

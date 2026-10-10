@@ -75,7 +75,12 @@ static void do_service(io_service_t svc, const char *cls, int type,
 {
     mach_port_t conn = 0;
     kern_return_t kr = IOServiceOpen(svc, mach_task_self(), type, &conn);
-    if (kr) _exit(0);
+    if (kr) {
+        // v8: МАТРИЦА отказов — до v7 все неудачи были тихие (child
+        // exit-0), OPEN=0 неотличим от «MACF deny» и «драйвер отказал».
+        printf("IKF openerr %s t=%d kr=0x%x\n", cls, type, kr);
+        _exit(0);
+    }
     printf("IKF OPEN %s t=%d\n", cls, type);
 
     static unsigned char in[0x4000], out[0x4000];
