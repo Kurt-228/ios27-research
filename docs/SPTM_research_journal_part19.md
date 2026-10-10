@@ -4839,3 +4839,29 @@ v206.5 (глобальная очередь) и v206.6 (main queue):
 срабатывает → процесс заморожен на низком уровне; main-вариант тоже).
 Открытый вопрос: дошёл ли BSXPC-чекин/'activate' до демона —
 решает свежий сбор os_log (запрошен оператору).
+
+### v206.7 (§207-доп): interface-требование активации подтверждено; текущий фронт
+
+os_log v206.5-6 дал точный диагноз зависания `-activate`:
+**«failure in activate of <BSServiceInitiatingConnection>
+(BSServiceConnection.m:453): some form of interface handler must be
+specified before activation : service=TCCProxy»** — активация
+требует BSServiceInterface, заданный через `-configure:` →
+`-[_BSServiceConnectionConfiguration setInterface:]`, ДО activate.
+RE-карта дополнена: `+[BSServiceInterface interfaceWithServer:client:]`
+(0x18fb1eac8), `+interfaceWithIdentifier:configurator:` (0x18fb26ee8),
+`-[BSServiceInterface clientMessagingExpectation]`/`server`/`client`.
+
+v206.7: configure(proto найден, interfaceWithServer:client:) —
+подвисает внутри `-[bsConn configure:]` (или interface-билдера Swift-
+метаданных). Дамон-сторона: endpoint-соединение (`0x7907030000`)
+активируется как peer ✓, но инвалидируется через ~1.2 мс
+«client cancelled or exited» — т.е. клиент висит ДО хендшейка,
+демон ни в чём не виноват.
+
+Точная точка зависания v206.7 — следующий шаг: swift-RE
+`_EXServiceClient.tccProxyConnection` getter (0x18705afc0) — как
+настоящий клиент строит BSServiceInterface из протокола
+(_EXTCCProxyProtocol с server-стороной) и в каком порядке зовёт
+configure/activate/extract. Альтернатива: os_log-скан
+BSServiceInterface на предмет «failure in …» строк.

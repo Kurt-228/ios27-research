@@ -37935,13 +37935,73 @@ static void p_bq57(void) {
             LOG("[bq57] BSServiceConnection НЕ создан — стоп");
             return;
         }
-        // activate (BSXPC-хендшейк; изнутри заполнит чекин-слот и пошлёт
-        // 'wINt' с s=TCCProxy из endpoint)
+        // v206.7: НАСТОЯЩИЙ порядок (os_log: "some form of interface
+        // handler must be specified before activation : service=TCCProxy",
+        // BSServiceConnection.m:453): configure(интерфейс) ДО activate.
+        // iface = +[BSServiceInterface interfaceWithServer:client:]
+        // (server = протокол демона _EXTCCProxyProtocol, client = nil),
+        // затем -[bsConn configure: ^(cfg){ [cfg setInterface: iface]; }]
+        id ifaceObj = nil;
+        Class ifaceCls = NSClassFromString(@"BSServiceInterface");
+        if (ifaceCls) {
+            SEL iwscSel = @selector(interfaceWithServer:client:);
+            if ([ifaceCls respondsToSelector:iwscSel]) {
+                typedef id (*IFn)(Class, SEL, Protocol *, Protocol *);
+                IFn f = (IFn)objc_msgSend;
+                Protocol *pr = objc_getProtocol(
+                    "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
+                if (!pr) {
+                    unsigned int pcnt = 0;
+                    Protocol * __unsafe_unretained *pall =
+                        objc_copyProtocolList(&pcnt);
+                    for (unsigned i = 0; i < pcnt; i++) {
+                        const char *nm = protocol_getName(pall[i]);
+                        if (nm && strstr(nm, "TCCProxy")) { pr = pall[i]; break; }
+                    }
+                    if (pall) free(pall);
+                }
+                LOG("[bq57] configure: proto=%p", pr);
+                ifaceObj = f(ifaceCls, iwscSel, pr, nil);
+                LOG("[bq57] +interfaceWithServer:client: -> %s",
+                    ifaceObj ? [ifaceObj description].UTF8String : "(nil)");
+            } else {
+                LOG("[bq57] BSServiceInterface не отвечает "
+                    "interfaceWithServer:client:");
+            }
+        }
+        if (ifaceObj) {
+            SEL cfgSel = @selector(configure:);
+            if ([bsConn respondsToSelector:cfgSel]) {
+                typedef void (*CFn2)(id, SEL, void (^)(id));
+                CFn2 cf = (CFn2)objc_msgSend;
+                LOG("[bq57] -configure: begin (setInterface)");
+                __block id ifaceRef = ifaceObj;
+                cf(bsConn, cfgSel, ^(id cfg) {
+                    LOG("[bq57] configure: cfg=%s",
+                        cfg ? NSStringFromClass([cfg class]).UTF8String
+                            : "(nil)");
+                    SEL siSel = @selector(setInterface:);
+                    if (cfg && [cfg respondsToSelector:siSel]) {
+                        typedef void (*SIFn)(id, SEL, id);
+                        SIFn sf = (SIFn)objc_msgSend;
+                        sf(cfg, siSel, ifaceRef);
+                        LOG("[bq57] configure: setInterface: OK");
+                    } else {
+                        LOG("[bq57] cfg не отвечает setInterface: "
+                            "(список методов в интроспекции выше)");
+                    }
+                });
+                LOG("[bq57] -configure: вернулся");
+            } else {
+                LOG("[bq57] bsConn не отвечает configure:");
+            }
+        }
+        // activate — теперь с интерфейсом
         SEL actSel = @selector(activate);
         if ([bsConn respondsToSelector:actSel]) {
             typedef void (*AFn)(id, SEL);
             AFn af = (AFn)objc_msgSend;
-            LOG("[bq57] -activate: begin");
+            LOG("[bq57] -activate: begin (интерфейс задан)");
             af(bsConn, actSel);
             LOG("[bq57] -activate: вернулся");
         } else {
