@@ -1,0 +1,29 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ42=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x560b
+[scaler] conn 0x560b, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq42] v190 exact gate-semantics matrix (bq39-41: dict+NSObject=ACCEPT, dict alone=REJECT; which predicate over ($classname,$classes) passes?)
+[bq42] dlopen /System/Library/PrivateFrameworks/LinkMetadata.framework/LinkMetadata -> 0x36ad769e0 (ok)
+[bq42] classes LNValue=0x20414c950
+[bq39] ctrl      ACCEPT class=LNValue
+[bq39] m0        ACCEPT class=LNValue
+[bq39] m_dict_full REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_dict_objonly REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_mdict   REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq39] m_mdict_objonly REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_null_full REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_null_objonly REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_mstring ACCEPT class=LNValue
+[bq39] m_marray  REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_pred_objonly REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] m_mdata   REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq42] SUMMARY accept=1 reject(incl throw)=9 (m_dict_full ACCEPT = generator-formula confirmed)
+[bq42] done
+[probe13] bq42-only mode, stop

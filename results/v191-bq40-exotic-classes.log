@@ -1,0 +1,30 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ40=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4b23
+[scaler] conn 0x4b23, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq40] v190 fallback-set audit for liberal slots (§198: NSDictionary passed decode -> which classes does the gate admit?)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq40] dlopen /System/Library/PrivateFrameworks/LinkMetadata.framework/LinkMetadata -> 0x36ad769e0 (ok)
+[bq40] classes LNValue=0x20414c950
+[bq39] ctrl      ACCEPT class=LNValue
+[bq39] m0        ACCEPT class=LNValue
+[bq39] ex_object REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_null   REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_uuid   REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_url    REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_pred   REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_set    REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_mset   REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_idxset REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_ei     REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_vt     REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq39] ex_ec_object REJECT code=4864 err=The data couldn’t be read because it isn’t in the correct format.
+[bq40] SUMMARY accept=0 reject(incl throw)=11 (ex_object THROW = gate admits arbitrary classes)
+[bq40] done
+[probe13] bq40-only mode, stop

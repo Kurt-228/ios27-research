@@ -4025,6 +4025,101 @@ depth-3 contentType) декодируются без ограничения кл
    (value), а не класс-гейт: NSMutableString и вложенный LNValue в value
    ДЕКОДИРУЮТСЯ. Старые m1/m2-вердикты списываются на формат.
 
+## §199 (v191). bq40–bq43: гейт добит до конца — произвольные классы закрыты, сырые значения отбрасываются сеттерами; эскалация через декодер LNValue ЗАКРЫТ, остался DoS-кандидат
+
+### bq40: эксзотические классы в либеральные слоты — все REJECT
+
+`$classname=EXOTIC + $classes=[EXOTIC]` в stableIdentifier (и
+cross-slot в exportedContent): NSNull, NSUUID, NSURL, NSPredicate, NSSet,
+NSMutableSet, NSIndexSet, NSMutableData, NSObject, LNEntityIdentifier,
+LNEntityIdentifierValueType — **REJECT 4864 все 11 вариантов**. Слот
+принимает NSDictionary (инлайн, §198) — но НЕ как $class-инстанцию.
+
+### bq41: спуф $classes не работает
+
+`$classname=NSNull + $classes=[NSDictionary, NSObject]` (и NSNull с
+честным `[NSNull]`, NSObject/NsPredicate/NSUUID/LNEntityIdentifier со
+спуфом) — REJECT 4864 все 8. Проверка идёт по РЕАЛЬНОМУ классу
+($classname -> class), не по массиву $classes из архива. Спуф-вектор
+закрыт. Вылезла аномалия: `NSDictionary + $classes=[NSDictionary]` (без
+NSObject) тоже REJECT, а bq39-формула `[NSDictionary, NSObject]` — ACCEPT.
+
+### bq42: разбор аномалии — инлайн vs $class-инстанция
+
+`m_dict_full` (NSDictionary+[NSDictionary, NSObject], ровно формула
+bq39, но через UID-ссылку в $objects) — **REJECT**. Причина найдена в
+генераторе: bq39 `mkdict()` возвращал словарь, который присваивался в
+слот ИНЛАЙНО (сырое plist-значение в поле архива) — оно НЕ проходит
+$class-машинерию вовсе. Т.е. «принимающие» слоты §198 принимали СЫРЫЕ
+значения, а не объекты. Следствие: единственные $class-инстанции,
+проходящие на si-слоте, — с `$classes` содержащим NSString
+(`NSMutableString+[NSString,NSObject]` — ACCEPT, единственный успех
+bq42); NSDictionary/NSArray/NSData/NSNull/NSPredicate-$class — REJECT.
+
+### bq43: property-census — инъекция в состояние объекта НЕ работает
+
+Декодированные из «принимающих» вариантов LNValue (si_dict, si_str,
+bi_dict, ec_dict, at_dict, dr_dict, ct_dict) — census всех свойств
+(KVC): **каждое мутантное свойство = nil** (включая si_str: сырая
+строка 'FZSI' тоже отброшена, хотя allowed-гейт NSString-инстанции
+пропускает). Сеттеры LNValue/LNEntityIdentifier тип-чекают присваиваемое
+и дропают неверное — состояние объекта байт-в-байт эквивалентно ctrl
+(те же nil). **Типовой путаницы нет, gadget-поверхность мертва.**
+
+### Итоговая модель декодера (все глубины, полная)
+
+1. Top: сервис зовёт Swift `unarchivedObject(ofClass: LNValue.self)` —
+   ObjC-гейта для сырых plist-значений нет (top_str ACCEPT в bq39), но
+   Swift-мост вернёт nil -> лог «Found nil when unarchiving LNValue» ->
+   мягкий пропуск строки. Для сервиса безвредно.
+2. `value`/`valueType`/`typeIdentifier`/`instanceIdentifier` — строгие:
+   класс-гейт проверяет и сырые значения (по нативному классу), и
+   $class-инстанции (по реальному классу).
+3. Прочие слоты (`exportedContent`, `displayRepresentation`,
+   `bundleIdentifier`, `stableIdentifier`, `auditToken`, `contentType`):
+   decode без классовой проверки -> сырые значения ДОХОДЯТ до
+   сеттеров, но сеттеры отбрасывают по типу (bq43) -> объект не меняется.
+4. $class-инстанции везде: allowed = маленький набор (на si подтверждён
+   NSString); эксзотика и спуф закрыты.
+5. **Выживший вектор**: маскарад `value`-слота (NSMutableString,
+   вложенный LNValue, строка вне enum IdentifierValue) -> decode
+   проходит -> бизнес-валидация LinkServices кидает
+   NSInternalInconsistencyException («BUG IN CLIENT OF LINKSERVICES:
+   ... is not member of type IdentifierValue») -> исключение всплывает
+   из unarchivedObject; в svc.bin **нет ни одного objc_begin_catch**
+   (grep дисассемблеи: 0 хендлеров) -> Swift-вызывающий ObjC-исключения
+   не ловит -> краш LiveEntityService при чтении строки клиентом с
+   `live-entities.read` (navd). DoS-кандидат; эскалации не даёт;
+   наблюдаемость рестарта сервиса из песочницы слабая.
+6. Декодер-поверхность сервиса ИСЧЕРПАНА: fixups показывают ровно ОДИН
+   keyed-unarchive API (`unarchivedObject7ofClass4from`, auth-stub
+   0x10004c6fc) и ровно один whitelist (LNValue). NSKeyedArchiver тоже
+   импортируется — сервис что-то архивирует (write-back в БД, согласуется
+   с §184).
+
+### Решение по линии bq
+
+Эскалация через feed-БД/декодер LNValue **закрыта** (нет произвольной
+инстанциации классов, нет инъекции в состояние, top-level защищён
+Swift-мостом). DoS-краш сервиса — низкоценный баунти, требует оператора
+(посадка + триггер чтения + наблюдение) — откладывается. bq-линия
+исчерпана как вектор эскалации.
+
+Следующие живые направления (карта AGENTS.md): IP_OPTIONS/LSRR как
+инструмент (легальные опции достижимы, §165/§189), loopback-демоны
+через публичные фреймворки (не пробовались), VM-soak (идёт), AppleMSG
+(§169).
+
+### Инструмент v191
+
+- `/tmp/bq40_gen.py`, `/tmp/bq41_gen.py`, `/tmp/bq42_gen.py` —
+  крафтеры (валидация plistlib перед эмитом); `p_bq40`–`p_bq43` в
+  t_iosurface_scaler.m, диспетчеры FUZZ_BQ40–BQ43.
+- Логи: results/v190-bq39-decoder-map.log (§198), v191-bq40..bq43.
+- **runf.sh не устанавливает билд** — после каждой новой фазы обязателен
+  `devicectl device install app` (первый прогон bq39 молча ушёл в
+  mode=all на старой сборке).
+
 ### Инструмент и ловушки запуска
 
 - `/tmp/bq39_gen.py` — крафтер вариантов: plistlib-мутации $objects +

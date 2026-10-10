@@ -1,0 +1,136 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ43=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5e03
+[scaler] conn 0x5e03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq43] v191 property-census of decoded LNValue — raw-value type confusion check
+[bq43] dlopen LinkMetadata -> 0x36ad769e0
+[bq43] LNValue=0x20414c950
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq43] ctrl DECODE ACCEPT
+[bq43] ctrl LNValue.value = LNEntityIdentifier
+[bq43] ctrl LNValue.valueType = LNEntityIdentifierValueType
+[bq43] ctrl LNValue.exportedContent = nil
+[bq43] ctrl LNValue.displayRepresentation = nil
+[bq43] ctrl LNValue.description = __NSCFString
+[bq43] ctrl LNValue.identifier THROW NSUnknownKeyException
+[bq43] ctrl LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] ctrl value.typeIdentifier = __NSCFString
+[bq43] ctrl value.instanceIdentifier = __NSCFString
+[bq43] ctrl value.bundleIdentifier = __NSCFConstantString
+[bq43] ctrl value.stableIdentifier = nil
+[bq43] ctrl value.auditToken = nil
+[bq43] ctrl value.description = __NSCFString
+[bq43] ctrl valueType.contentType = nil
+[bq43] si_dict DECODE ACCEPT
+[bq43] si_dict LNValue.value = LNEntityIdentifier
+[bq43] si_dict LNValue.valueType = LNEntityIdentifierValueType
+[bq43] si_dict LNValue.exportedContent = nil
+[bq43] si_dict LNValue.displayRepresentation = nil
+[bq43] si_dict LNValue.description = __NSCFString
+[bq43] si_dict LNValue.identifier THROW NSUnknownKeyException
+[bq43] si_dict LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] si_dict value.typeIdentifier = __NSCFString
+[bq43] si_dict value.instanceIdentifier = __NSCFString
+[bq43] si_dict value.bundleIdentifier = __NSCFConstantString
+[bq43] si_dict value.stableIdentifier = nil
+[bq43] si_dict value.auditToken = nil
+[bq43] si_dict value.description = __NSCFString
+[bq43] si_dict valueType.contentType = nil
+[bq43] si_str DECODE ACCEPT
+[bq43] si_str LNValue.value = LNEntityIdentifier
+[bq43] si_str LNValue.valueType = LNEntityIdentifierValueType
+[bq43] si_str LNValue.exportedContent = nil
+[bq43] si_str LNValue.displayRepresentation = nil
+[bq43] si_str LNValue.description = __NSCFString
+[bq43] si_str LNValue.identifier THROW NSUnknownKeyException
+[bq43] si_str LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] si_str value.typeIdentifier = __NSCFString
+[bq43] si_str value.instanceIdentifier = __NSCFString
+[bq43] si_str value.bundleIdentifier = __NSCFConstantString
+[bq43] si_str value.stableIdentifier = nil
+[bq43] si_str value.auditToken = nil
+[bq43] si_str value.description = __NSCFString
+[bq43] si_str valueType.contentType = nil
+[bq43] bi_dict DECODE ACCEPT
+[bq43] bi_dict LNValue.value = LNEntityIdentifier
+[bq43] bi_dict LNValue.valueType = LNEntityIdentifierValueType
+[bq43] bi_dict LNValue.exportedContent = nil
+[bq43] bi_dict LNValue.displayRepresentation = nil
+[bq43] bi_dict LNValue.description = __NSCFString
+[bq43] bi_dict LNValue.identifier THROW NSUnknownKeyException
+[bq43] bi_dict LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] bi_dict value.typeIdentifier = __NSCFString
+[bq43] bi_dict value.instanceIdentifier = __NSCFString
+[bq43] bi_dict value.bundleIdentifier = nil
+[bq43] bi_dict value.stableIdentifier = nil
+[bq43] bi_dict value.auditToken = nil
+[bq43] bi_dict value.description = __NSCFString
+[bq43] bi_dict valueType.contentType = nil
+[bq43] ec_dict DECODE ACCEPT
+[bq43] ec_dict LNValue.value = LNEntityIdentifier
+[bq43] ec_dict LNValue.valueType = LNEntityIdentifierValueType
+[bq43] ec_dict LNValue.exportedContent = nil
+[bq43] ec_dict LNValue.displayRepresentation = nil
+[bq43] ec_dict LNValue.description = __NSCFString
+[bq43] ec_dict LNValue.identifier THROW NSUnknownKeyException
+[bq43] ec_dict LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] ec_dict value.typeIdentifier = __NSCFString
+[bq43] ec_dict value.instanceIdentifier = __NSCFString
+[bq43] ec_dict value.bundleIdentifier = __NSCFConstantString
+[bq43] ec_dict value.stableIdentifier = nil
+[bq43] ec_dict value.auditToken = nil
+[bq43] ec_dict value.description = __NSCFString
+[bq43] ec_dict valueType.contentType = nil
+[bq43] at_dict DECODE ACCEPT
+[bq43] at_dict LNValue.value = LNEntityIdentifier
+[bq43] at_dict LNValue.valueType = LNEntityIdentifierValueType
+[bq43] at_dict LNValue.exportedContent = nil
+[bq43] at_dict LNValue.displayRepresentation = nil
+[bq43] at_dict LNValue.description = __NSCFString
+[bq43] at_dict LNValue.identifier THROW NSUnknownKeyException
+[bq43] at_dict LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] at_dict value.typeIdentifier = __NSCFString
+[bq43] at_dict value.instanceIdentifier = __NSCFString
+[bq43] at_dict value.bundleIdentifier = __NSCFConstantString
+[bq43] at_dict value.stableIdentifier = nil
+[bq43] at_dict value.auditToken = nil
+[bq43] at_dict value.description = __NSCFString
+[bq43] at_dict valueType.contentType = nil
+[bq43] dr_dict DECODE ACCEPT
+[bq43] dr_dict LNValue.value = LNEntityIdentifier
+[bq43] dr_dict LNValue.valueType = LNEntityIdentifierValueType
+[bq43] dr_dict LNValue.exportedContent = nil
+[bq43] dr_dict LNValue.displayRepresentation = nil
+[bq43] dr_dict LNValue.description = __NSCFString
+[bq43] dr_dict LNValue.identifier THROW NSUnknownKeyException
+[bq43] dr_dict LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] dr_dict value.typeIdentifier = __NSCFString
+[bq43] dr_dict value.instanceIdentifier = __NSCFString
+[bq43] dr_dict value.bundleIdentifier = __NSCFConstantString
+[bq43] dr_dict value.stableIdentifier = nil
+[bq43] dr_dict value.auditToken = nil
+[bq43] dr_dict value.description = __NSCFString
+[bq43] dr_dict valueType.contentType = nil
+[bq43] ct_dict DECODE ACCEPT
+[bq43] ct_dict LNValue.value = LNEntityIdentifier
+[bq43] ct_dict LNValue.valueType = LNEntityIdentifierValueType
+[bq43] ct_dict LNValue.exportedContent = nil
+[bq43] ct_dict LNValue.displayRepresentation = nil
+[bq43] ct_dict LNValue.description = __NSCFString
+[bq43] ct_dict LNValue.identifier THROW NSUnknownKeyException
+[bq43] ct_dict LNValue.valueTypeDisplayName THROW NSUnknownKeyException
+[bq43] ct_dict value.typeIdentifier = __NSCFString
+[bq43] ct_dict value.instanceIdentifier = __NSCFString
+[bq43] ct_dict value.bundleIdentifier = __NSCFConstantString
+[bq43] ct_dict value.stableIdentifier = nil
+[bq43] ct_dict value.auditToken = nil
+[bq43] ct_dict value.description = __NSCFString
+[bq43] ct_dict valueType.contentType = nil
+[bq43] done
+[probe13] bq43-only mode, stop
