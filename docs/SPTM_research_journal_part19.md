@@ -5033,3 +5033,44 @@ NSError «Unable to resolve plugin for UUID …»), и вернул ответ
 Логи/инструменты: /tmp/re2.py (восстановлен, автодетект stride),
 /tmp/stubmap.json (77930 стабов), /tmp/re_logs/{exquery,service_impl,
 canrun,identities}.txt.
+
+### §209-доп. v209.2-3: Discovery RPC жив; canRun-гейт режет наш audit token
+
+Фаза p_bq58 (v209.2, лог results/runf-bq58.log): стек v206.8 с
+service=«Discovery» протокол
+`_TtP19ExtensionFoundation27_EXDiscoveryServiceProtocol_` —
+endpoint/conn/interface/activate/proxy поднялись без сюрпризов;
+`_EXQuery` создан через `+extensionPointIdentifierQuery:`
+(десигнейтед init `initWithExtensionPointIdentifier:predicate:`
+ВЕСИТ: RE 0x186fc51d0 — внутри `+[... sharedInstance]` +
+`queryAllowsDuplicates`, конфиг-чтение с sync-XPC на main => deadlock;
+плейн `-init` тоже виснет; только фабрики класса безопасны) +
+`-setPredicate:` (TRUEPREDICATE).
+
+Вызов `extensionsWith:reply:` — **ОТВЕТ ДЕМОНА ПОЛУЧЕН**:
+
+```
+result=nil error="Host is not entitled to observe"
+domain=com.apple.extensionKit.errorDomain code=16
+```
+
+Это ровно строка из RE-дампа `Service.extensions(with:)` (0x1870496a0):
+гейт `_EXDiscoveryController.canRun(query:)` →
+`AuditToken.canHostOrDiscoverAnyExtension` (0x186fc01fc) —
+entitlement `com.apple.private.extensionkit.host.any-extension`
+есть только у самого демона. Per-record ветка canRun
+(0x186fc1cb0, перечисление LSExtensionPointRecord + CapabilityManager)
+для `com.apple.widgetkit-extension` тоже не прошла.
+
+Значение:
+1. Транспорт Discovery полностью работает (десериализация _EXQuery,
+   NSPredicate внутри, reply-блок) — гейт единственный барьер.
+2. TCCProxy (v206.8) не гейтился вовсе; Observer
+   (`beginObservingWithConfiguration:reply:`) и Launch
+   (`invalidateLaunchAssertionsForExtensionAuditToken:reply:`) —
+   следующие кандидаты: их гейты независимы.
+3. Для Discovery: entitled-клиент = процесс с host.any-extension
+   (расширения/хосты). Пути обхода не искать в canRun (audit_token
+   процесса, подпись) — это тупик для нашего профиля; но
+   bad_query-escape (W в системные контейнеры) + PlugInKit-подкладка
+   appex — гипотеза на потом.

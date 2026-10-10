@@ -1,0 +1,95 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ58=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x7c07
+[scaler] conn 0x7c07, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq58] v209: Discovery extensionsWith:reply: c NSPredicate
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x109c98800> { count = 1, transaction: 0, voucher = 0x109f78780, contents =
+	"bsxpc" => <string: 0x109c39ef0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq58] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq58] dlopen ext=0x36ad01290
+[bq58] классы: ep=0x20403f110 bs=0x20403f520 _EXQuery=0x20403b2b8
+[bq57] _EXQuery -> _EXQuery
+[bq57] _EXQuery instance-methods: 31
+[bq57]   _EXQuery -matches:
+[bq57]   _EXQuery -extensionPointIdentifier
+[bq57]   _EXQuery -predicate
+[bq57]   _EXQuery -setPredicate:
+[bq57]   _EXQuery -excludeDisabled
+[bq57]   _EXQuery -hash
+[bq57]   _EXQuery -setPlatform:
+[bq57]   _EXQuery -includePostprocessing
+[bq57]   _EXQuery -includeUpdatingApps
+[bq57]   _EXQuery -initWithCoder:
+[bq57]   _EXQuery -excludeLockedApps
+[bq57]   _EXQuery -isEqual:
+[bq57]   _EXQuery -allowedRestrictionReasons
+[bq57]   _EXQuery -setExcludeLockedApps:
+[bq57]   _EXQuery -matchesRecord:
+[bq57]   _EXQuery -platform
+[bq57]   _EXQuery -setIncludeRestricted:
+[bq57]   _EXQuery -setAllowsDuplicates:
+[bq57]   _EXQuery -allowsDuplicates
+[bq57]   _EXQuery -init
+[bq57]   _EXQuery -setExcludeDisabled:
+[bq57]   _EXQuery -setAllowedRestrictionReasons:
+[bq57]   _EXQuery -setIncludeUpdatingApps:
+[bq57]   _EXQuery -includeRestricted
+[bq57]   _EXQuery -copyWithZone:
+[bq57]   _EXQuery -setExtensionPointIdentifier:
+[bq57]   _EXQuery -setIncludePostprocessing:
+[bq57]   _EXQuery -initWithExtensionPointIdentifier:predicate:
+[bq57]   _EXQuery -.cxx_destruct
+[bq57]   _EXQuery -encodeWithCoder:
+[bq57]   _EXQuery -initWithExtensionPointIdentifier:
+[bq57] _EXQuery class-methods: 8
+[bq57]   _EXQuery +executeQuery:
+[bq57]   _EXQuery +supportsSecureCoding
+[bq57]   _EXQuery +executeQuery:completionHandler:
+[bq57]   _EXQuery +executeQueries:
+[bq57]   _EXQuery +allExtensionsQuery
+[bq57]   _EXQuery +executeQueries:completionHandler:
+[bq57]   _EXQuery +extensionPointIdentifierQuery:
+[bq57]   _EXQuery +extensionPointIdentifierQuery:platform:
+[bq58] _EXQuery NSSecureCoding: initWithCoder=1 encodeWithCoder=1 supportsSecureCoding=1
+[bq58] фоновый запуск...
+[probe13] bq58-only mode, stop
+[bq58] ep(Discovery) = <BSServiceConnectionEndpoint: 0x109f812a0; target: XPCService:6932:com.apple.extensionkitservice; service: Discovery>
+[bq58] conn=<NSXPCConnection: 0x109d9caa0> connection to service with pid -1 named (null)
+[bq58] протокол Discovery = 0x203c54ce8
+[bq58] interface = <NSXPCInterface: 0x109f44400>
+[bq58] setRemoteObjectInterface: ok
+[bq58] activate: begin
+[bq58] activate: ok
+[bq58] proxy=<..__NSXPCInterfaceProxy_ExtensionFoundation._EXDiscoveryServiceProtocol: 0x109f78780>
+[bq58] _EXQuery ctor respondsToSelector=1 (класс: _EXQuery)
+[bq58] pred: begin
+[bq58] pred ok
+[bq58] +extensionPointIdentifierQuery: begin
+[bq58] +extensionPointIdentifierQuery: ok
+[bq58] query=OK
+[bq58] setPredicate: begin
+[bq58] setPredicate: ok
+[bq58] query=<_EXQuery: 0x109c5af40> pred=TRUEPREDICATE
+[bq58] сигнатура extensionsWith:reply: = <NSMethodSignature: 0x88b9ac56c8fd2db7> argc=4
+[bq58] invoke extensionsWith:reply:…
+[bq58] *** Discovery ОТВЕТ: result=nil (-) error=Host is not entitled to observe ***
+[bq58] итог: got=1 err=Host is not entitled to observe
+[bq58] err domain=com.apple.extensionKit.errorDomain code=16 userinfo={
+    NSLocalizedDescription = "Host is not entitled to observe";
+}
+[bq58] VERDICT-ОТКАЗ: 'Host is not entitled to observe' — canRun-гейт или десериализация; сверить с ос_логом демона
+[bq58] done
+[bq58] INVALIDATION

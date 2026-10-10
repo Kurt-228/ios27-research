@@ -38071,6 +38071,246 @@ static void p_bq57(void) {
 }
 
 
+// p_bq58 — v209/§209: Discovery-запрос с NSPredicate из песочницы.
+// Цепочка (RE §209): Service.extensions(with:) -> canRun (гейт
+// audit-token) -> identities(matching:) -> [query.predicate
+// evaluateWithObject:LSExtensionPointRecord] В ДЕМОНЕ (0x186fc829c,
+// стаб 0x1880980a0). allowEvaluation-гейт на NSPredicate-initWithCoder
+// НЕ ставится (§209) — predicate injection вектор.
+// Первая проба: TRUEPREDICATE (только доставка, без инъекции).
+// Ответ демона различает: canRun-отказ («Host is not entitled to
+// observe») vs пустой результат (прошло до предиката).
+static void p_bq58(void) {
+    LOG("[bq58] v209: Discovery extensionsWith:reply: c NSPredicate");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq58.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq58] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq58] CONTROL FAILED (§144)"); return; }
+
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    LOG("[bq58] dlopen ext=%p", hExt);
+
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    Class qCls = NSClassFromString(@"_EXQuery");
+    LOG("[bq58] классы: ep=%p bs=%p _EXQuery=%p", epCls, bsCls, qCls);
+    if (qCls) {
+        bq57_dump(qCls, "_EXQuery");
+        LOG("[bq58] _EXQuery NSSecureCoding: initWithCoder=%d "
+            "encodeWithCoder=%d supportsSecureCoding=%d",
+            (int)[qCls instancesRespondToSelector:
+                  NSSelectorFromString(@"initWithCoder:")],
+            (int)[qCls instancesRespondToSelector:
+                  NSSelectorFromString(@"encodeWithCoder:")],
+            (int)[qCls respondsToSelector:
+                  NSSelectorFromString(@"supportsSecureCoding")]);
+    }
+    if (!epCls || !bsCls || !qCls) {
+        LOG("[bq58] классы недоступны — стоп");
+        return;
+    }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    @try {
+        // endpoint Discovery
+        SEL svcNameSel =
+            @selector(endpointForServiceName:oneshot:service:instance:);
+        id endpoint = nil;
+        if ([epCls respondsToSelector:svcNameSel]) {
+            typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *,
+                              NSString *);
+            EFn f = (EFn)objc_msgSend;
+            endpoint = f(epCls, svcNameSel,
+                         @"com.apple.extensionkitservice", NO,
+                         @"Discovery", nil);
+        }
+        LOG("[bq58] ep(Discovery) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+        if (!endpoint) { LOG("[bq58] endpoint НЕ создан — стоп"); return; }
+
+        // conn (v206.8 последовательность)
+        SEL facSel2 = @selector(NSXPCConnectionWithEndpoint:configurator:);
+        if (![bsCls respondsToSelector:facSel2]) {
+            LOG("[bq58] фабрика недоступна — стоп");
+            return;
+        }
+        typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+        FacFn ff = (FacFn)objc_msgSend;
+        NSXPCConnection *conn = ff(bsCls, facSel2, endpoint, ^(id cfg) {
+            SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+            if (cfg && [cfg respondsToSelector:qsel]) {
+                typedef void (*QFn)(id, SEL, NSString *, long);
+                QFn qf = (QFn)objc_msgSend;
+                qf(cfg, qsel, @"bq58.q", (long)0);
+            }
+        });
+        LOG("[bq58] conn=%s",
+            conn ? [conn description].UTF8String : "(nil)");
+        if (!conn) return;
+
+        Protocol *proto = objc_getProtocol(
+            "_TtP19ExtensionFoundation27_EXDiscoveryServiceProtocol_");
+        if (!proto) {
+            unsigned int pcnt = 0;
+            Protocol * __unsafe_unretained *pall =
+                objc_copyProtocolList(&pcnt);
+            for (unsigned i = 0; i < pcnt; i++) {
+                const char *nm = protocol_getName(pall[i]);
+                if (nm && strstr(nm, "DiscoveryServiceProtocol")) {
+                    proto = pall[i]; break;
+                }
+            }
+            if (pall) free(pall);
+        }
+        LOG("[bq58] протокол Discovery = %p", proto);
+        if (!proto) { LOG("[bq58] протокол не найден — стоп"); [conn invalidate]; return; }
+        NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:proto];
+        LOG("[bq58] interface = %s",
+            iface ? [iface description].UTF8String : "(nil)");
+        if (!iface) { [conn invalidate]; return; }
+        [conn setInterruptionHandler:^{
+            LOG("[bq58] INTERRUPTION");
+        }];
+        [conn setInvalidationHandler:^{
+            LOG("[bq58] INVALIDATION");
+        }];
+        [conn setRemoteObjectInterface:iface];
+        LOG("[bq58] setRemoteObjectInterface: ok");
+        LOG("[bq58] activate: begin");
+        [conn activate];
+        LOG("[bq58] activate: ok");
+        fsync(fileno(stderr));
+
+        id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            LOG("[bq58] proxy ERROR: %s",
+                err ? err.localizedDescription.UTF8String : "-");
+        }];
+        LOG("[bq58] proxy=%s",
+            proxy ? [proxy description].UTF8String : "(nil)");
+        if (!proxy) { [conn invalidate]; return; }
+
+        // _EXQuery c TRUEPREDICATE (только доставка)
+        SEL qcSel = NSSelectorFromString(
+            @"initWithExtensionPointIdentifier:predicate:");
+        LOG("[bq58] _EXQuery ctor respondsToSelector=%d "
+            "(класс: %s)",
+            (int)[qCls instancesRespondToSelector:qcSel],
+            NSStringFromClass(qCls).UTF8String);
+        // v209.2: designated init висит (RE 0x186fc51d0: внутри
+        // +[... sharedInstance] + queryAllowsDuplicates — конфиг-
+        // чтение, вероятно sync-XPC на main => deadlock). Идём через
+        // фабрики класса: +extensionPointIdentifierQuery: / 
+        // +allExtensionsQuery, затем -setPredicate:.
+        LOG("[bq58] pred: begin"); fsync(fileno(stderr));
+        NSPredicate *pred = [NSPredicate predicateWithFormat:@"TRUEPREDICATE"];
+        LOG("[bq58] pred ok"); fsync(fileno(stderr));
+        typedef id (*QIFn)(id, SEL, NSString *);
+        QIFn qf = (QIFn)objc_msgSend;
+        id query = nil;
+        SEL epqSel = @selector(extensionPointIdentifierQuery:);
+        SEL allSel = @selector(allExtensionsQuery);
+        if ([qCls respondsToSelector:epqSel]) {
+            LOG("[bq58] +extensionPointIdentifierQuery: begin"); fsync(fileno(stderr));
+            query = qf(qCls, epqSel, @"com.apple.widgetkit-extension");
+            LOG("[bq58] +extensionPointIdentifierQuery: ok"); fsync(fileno(stderr));
+        }
+        if (!query && [qCls respondsToSelector:allSel]) {
+            LOG("[bq58] +allExtensionsQuery: begin"); fsync(fileno(stderr));
+            typedef id (*AFn)(id, SEL);
+            AFn af = (AFn)objc_msgSend;
+            query = af(qCls, allSel);
+            LOG("[bq58] +allExtensionsQuery: ok"); fsync(fileno(stderr));
+        }
+        LOG("[bq58] query=%s", query ? "OK" : "(nil)"); fsync(fileno(stderr));
+        if (query) {
+            SEL spSel = @selector(setPredicate:);
+            if ([query respondsToSelector:spSel]) {
+                LOG("[bq58] setPredicate: begin"); fsync(fileno(stderr));
+                typedef void (*SPFn)(id, SEL, NSPredicate *);
+                SPFn sp = (SPFn)objc_msgSend;
+                sp(query, spSel, pred);
+                LOG("[bq58] setPredicate: ok"); fsync(fileno(stderr));
+            } else {
+                LOG("[bq58] setPredicate: НЕ отвечает");
+            }
+        }
+        LOG("[bq58] query=%s pred=%s",
+            query ? [query description].UTF8String : "(nil)",
+            pred ? [pred predicateFormat].UTF8String : "-");
+        if (!query) { LOG("[bq58] query не создан — стоп"); [conn invalidate]; return; }
+
+        SEL sel = NSSelectorFromString(@"extensionsWith:reply:");
+        NSMethodSignature *sig =
+            [proxy methodSignatureForSelector:sel];
+        LOG("[bq58] сигнатура extensionsWith:reply: = %s argc=%lu",
+            sig ? [sig description].UTF8String : "(nil)",
+            (unsigned long)(sig ? sig.numberOfArguments : 0));
+        if (!sig) {
+            LOG("[bq58] сигнатуры нет — стоп");
+            [conn invalidate];
+            return;
+        }
+        __block BOOL got = NO;
+        __block id result = nil;
+        __block NSError *rerr = nil;
+        void (^reply)(id, NSError *) = ^(id res, NSError *error) {
+            got = YES;
+            result = res;
+            rerr = error;
+            LOG("[bq58] *** Discovery ОТВЕТ: result=%s (%s) error=%s ***",
+                res ? "NON-NIL" : "nil",
+                res ? NSStringFromClass([res class]).UTF8String : "-",
+                error ? error.localizedDescription.UTF8String : "-");
+        };
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        [inv setSelector:sel];
+        [inv setArgument:&query atIndex:2];
+        [inv setArgument:&reply atIndex:3];
+        LOG("[bq58] invoke extensionsWith:reply:…");
+        [inv invokeWithTarget:proxy];
+        for (int t = 0; t < 50 && !got; t++) usleep(100000);
+        LOG("[bq58] итог: got=%d err=%s",
+            (int)got, rerr ? rerr.localizedDescription.UTF8String : "-");
+        if (rerr) {
+            LOG("[bq58] err domain=%s code=%lld userinfo=%s",
+                rerr.domain.UTF8String, (long long)rerr.code,
+                rerr.userInfo ? [rerr.userInfo description].UTF8String
+                              : "-");
+            LOG("[bq58] VERDICT-ОТКАЗ: '%s' — canRun-гейт или "
+                "десериализация; сверить с ос_логом демона",
+                rerr.localizedDescription.UTF8String);
+        } else if (got) {
+            LOG("[bq58] VERDICT-ДОСТАВКА: reply получен, результат %s — "
+                "предикат ДОШЁЛ до демона; следующий шаг — FUNCTION-"
+                "инъекция (§209)",
+                result ? [result description].UTF8String : "nil");
+        } else {
+            LOG("[bq58] VERDICT-ТИШИНА: reply не пришёл за 5 с — "
+                "собирать ос_лог демона (beginExtensionsQuery путь)");
+        }
+        [conn invalidate];
+        LOG("[bq58] done");
+    } @catch (NSException *e) {
+        LOG("[bq58] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq58] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -45554,6 +45794,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ55")) { p_bq55(); LOG("[probe13] bq55-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ56")) { p_bq56(); LOG("[probe13] bq56-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ57")) { p_bq57(); LOG("[probe13] bq57-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ58")) { p_bq58(); LOG("[probe13] bq58-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
