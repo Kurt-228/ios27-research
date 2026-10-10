@@ -4939,3 +4939,97 @@ NSError «Unable to resolve plugin for UUID …»), и вернул ответ
   вызвать один раз при следующей чистке).
 
 Логи: `results/runf-bq57.log` (v206.8, positive).
+
+## §209. Тулкит восстановлен (фикс маппингов iOS 27); найдено ТОЧНОЕ место исполнения клиентского NSPredicate в extensionkitservice (v209)
+
+### Фикс RE-тулкита (критично для всех будущих сканов)
+
+`/tmp` вычищен — venv и re2.py пересозданы. При восстановлении найден и
+исправлен дефект парсера маппингов, из-за которого .25/.26 читались
+частично (пул селекторов 0x1f4fd48f0 был NO-READ):
+
+- iOS 27 `dyld_cache_mapping_info` имеет РАЗНЫЙ stride в разных типах
+  сабкэшей: `.01/.03/.30` = 0x20, `.25.dylddata` = 0x40 (slide-битмапы),
+  `.26.dyldreadonly` = 0x20 c двумя копиями массива. Автодетект по
+  валидности полей; правильные диапазоны:
+  - .26 = [0x1f1a1c000-0x1fce34000] file+0x4000 (весь 189 МБ read-only);
+  - .25 покрывает [0x1e010c000-0x1efa10000] семью сегментов.
+- Настоящие `_objc_msgSend$*` стабы живут в СВОИХ регионах (Swift-
+  стабы 0x187f00000-0x188134000, LS-стабы 0x18811xxxx), а nlist-значения
+  `_objc_msgSend$*` в .symbols указывают на ДРУГИЕ адреса (0x186fb5xxx
+  — обычный код). Резолв стабов только adrp+add-декодом: 77930 стабов
+  декодировано из 0x187f00000-0x188134000, карта в /tmp/stubmap.json.
+- Из-за этого прежние сканы «кто вызывает evaluateWithObject» были
+  ложны (сканировали несуществующие цели). Правильный метод: сначала
+  adrp-декод региона стабов → потом raw word-scan bl (0x25) / b (0x05)
+  на реальные адреса стабов. capstone-итератор по большим буферам
+  обрывается на данных — только word-scan.
+
+### Демон-сторона Discovery полностью восстановлена
+
+Реализация `beginExtensionsQuery:listenerEndpoint:reply:` —
+**`ExtensionFoundation.Service`** (базовый класс демона, Swift):
+
+- `Service.extensions(with:reply:)` (0x187049524): →
+  `_EXDiscoveryController.canRun(query:)` (0x186fc1ad8, static; гейт
+  audit-token: `AuditToken.canHostOrDiscoverAnyExtension` 0x186fc01fc;
+  при отказе — ошибка «Host is not entitled to observe», 0x1870d8780) →
+  `_EXDiscoveryController.identities(matching:)` (0x186fc614c).
+- `_EXQuery.matches(record:)` (0x186fc84fc, LSApplicationRecord) —
+  ТОЛЬКО сравнение bundleID + CapabilityManager; предиката там нет.
+- **Исполнение предиката** — в замыкании `identities(matching:)` по
+  LSExtensionPointRecord:
+  `0x186fc829c: bl _objc_msgSend$evaluateWithObject:`
+  (стаб 0x1880980a0) — `[query.predicate evaluateWithObject:record]`
+  В ПРИВИЛЕГИРОВАННОМ ПРОЦЕССЕ (tcc-read kTCCServiceAll,
+  launchprocess, host.any-extension, профиль pkd).
+- Второй сайт: `_EXQuery.matches(_EXExtensionIdentity:)`
+  (0x18705094c → bl evaluateWithObject:) — та же семантика.
+- LaunchServices-контура: `LSEnumerator.setPredicate:`,
+  `LSPlugInQueryWithQueryDictionary._enumerateWithXPCConnection:block:`
+  → `matchesPlugin:pluginData:withDatabase:` (0x186d9ded8) —
+  lsd-сторона, отдельная поверхность.
+
+### allowEvaluation-гейт — НЕ ЗАКРЫТ (главный результат §209)
+
+Защита Foundation: предикат, декодированный из архива, должен быть
+явно `allowEvaluation`-нут перед исполнением. Скан всего .01
+(0x180400000-0x188134000) на bl/b в стабы
+`_disallowEvaluation` (0x188005c30) / `allowEvaluation` (0x188008e30):
+
+- `_disallowEvaluation` вызывается РОВНО ОДИН раз во всём .01 — из
+  `-[NSSortDescriptor initWithCoder:]` (0x180e6e7c4). То есть
+  **`-[NSPredicate initWithCoder:]` и NSExpression-декодер НЕ
+  помечают десериализованный предикат как неразрешённый**.
+- `allowEvaluation` — только рекурсивные self-вызовы Foundation
+  (NSComparison/NSFunction/NSCompound/NSSubquery/NSTernary/...)
+  и один UIKit-валидатор. **ExtensionFoundation/демон никогда не
+  вызывает allowEvaluation** — значит гейт просто не задействован на
+  этом пути.
+- Вывод: NSPredicate из `_EXQuery`, доставленный NSXPC-декодером,
+  ИСПОЛНЯЕТСЯ в демоне без проверки «trusted». Если NSKeyedArchiver
+  пропустит NSFunctionExpression (FUNCTION(self, sel, args) —
+  классическая predicate injection → произвольные селекторы на
+  объектах демона), это прямой путь к коду/чтению в незасандбок-
+  енном процессе. Требует живой проверки (см. план).
+
+### План v210 (фаза p_bq58)
+
+1. Стек v206.8 (endpointForServiceName → NSXPCConnectionWithEndpoint
+   → interface → activate), service=«Discovery», протокол с
+   `beginExtensionsQuery:listenerEndpoint:reply:`.
+2. `_EXQuery` из ObjC: NSClassFromString(@\"_EXQuery\") (Swift-класс
+   ExtensionFoundation, в кэше), ctor
+   `initWithExtensionPointIdentifier:predicate:` (символ fTo
+   0x186fbedfc подтверждает ObjC-экспозицию).
+3. Пробные предикаты по нарастающей: TRUEPREDICATE → keyPath на
+   SELF → FUNCTION(self,'description') → FUNCTION(self,<целевой
+   селектор>). Ответ/тишина демона + ос_лог оператора решают,
+   где гейт.
+4. Контроль §144: canRun-отказ («Host is not entitled») — валидный
+   негатив; пустой результат с TRUEPREDICATE — «дошло, исполнилось,
+   не нашлось записей» — валидный позитив пути доставки.
+
+Логи/инструменты: /tmp/re2.py (восстановлен, автодетект stride),
+/tmp/stubmap.json (77930 стабов), /tmp/re_logs/{exquery,service_impl,
+canrun,identities}.txt.
