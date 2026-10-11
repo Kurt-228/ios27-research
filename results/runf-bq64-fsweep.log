@@ -1,0 +1,37 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ64=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7f13
+[scaler] conn 0x7f13, s1 14 s2 170
+[probe12] SetNotificationPort -> 0x00000000
+[bq64] v210.9: глубокий мутационный слой
+[bq51] run ENTER ctl-empty nseq=1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x138498900> { count = 1, transaction: 0, voucher = 0x1387ac500, contents =
+	"bsxpc" => <string: 0x138597420> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq64] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq64] диапазон мутаций: 2057..2063 (контроль m=0 всегда первым)
+[bq64] dlopen ext=0x36ad01290 bs=0x36ad72300 ep=0x20403f110 bs=0x20403f520 tr=0x20403ed00
+[bq64] swizzle sendMessageWithReply: orig=0x1acdc6c98
+[bq64] swizzle sendMessage: orig=0x1acdc5ddc
+[bq64] фоновый запуск...
+[probe13] bq64-only mode, stop
+[bq64] M0-КОНТРОЛЬ -> rc=0 ПРОШЛО: status=0 err=Unable to resolve plugin for UUID 060BF71C-CBF6-4535-BF08-887CEACF6E9A (детектор ОК)
+[bq64] m=2057 -> rc=0 ПРОШЛО: status=0 err=Unable to resolve plugin for UUID 47AE2022-6720-45F5-AB95-799837E79425
+[bq64] m=2058 -> rc=0 ПРОШЛО: status=0 err=Unable to resolve plugin for UUID 22FA1901-A8AA-4992-ADAF-9F3FF789120C
+[bq64] m=2059 -> rc=0 ПРОШЛО: status=0 err=Unable to resolve plugin for UUID 16F42B6F-6E56-42DA-A8BC-F33EFD57AD15
+[bq64] m=2060 -> rc=2 иной ответ: Couldn’t communicate with a helper application.
+[bq64] m=2061 -> rc=2 иной ответ: Couldn’t communicate with a helper application.
+[bq64] m=2062 -> rc=2 иной ответ: Couldn’t communicate with a helper application.
+[bq64] m=2063 -> rc=2 иной ответ: Couldn’t communicate with a helper application.
+[bq64] СВОДКА [2057..2063]: rc0=3 rc1=0 rc2=4 (rc0=прошло,rc1=тишина,rc2=отверг)
+[bq64] ВНИМАНИЕ: rc=1 при мутациях = потенциальный вис демона; rc=0 у byte-swip = не-валидируемый байт — занести в журнал

@@ -39074,6 +39074,19 @@ static xpc_object_t bq63_mutate(xpc_object_t inv) {
     int m = bq63_mut;
     // v210.9: глубокие диапазоны (байт-свип 1..495, typesig 496..511,
     // длины 512..523, class 524..531) — до switch-канонических 1..10
+    // v210.12: МЕТА-слои — поля диспетчера (f/proxynum), root НЕ трогаем.
+    //   2000..2127: f = 0..127       (хэш/индекс метода в диспетчере)
+    //   2200..2210: proxynum = 0..10 (номер прокси/протокола)
+    if (m >= 2000 && m <= 2127) {
+        xpc_dictionary_set_uint64(inv, "f", (uint64_t)(m - 2000));
+        free(b);
+        return inv;
+    }
+    if (m >= 2200 && m <= 2210) {
+        xpc_dictionary_set_uint64(inv, "proxynum", (uint64_t)(m - 2200));
+        free(b);
+        return inv;
+    }
     if (m >= 496) {
         if (m <= 495 + 165) {           // 496..660: byte ^= 0xFF
             int i = m - 496;
@@ -39256,7 +39269,7 @@ static int bq63_dialog_once(Class epCls, Class bsCls, int mutIdx,
             [inv setArgument:&uuid atIndex:2];
             [inv setArgument:&completion atIndex:3];
             [inv invokeWithTarget:proxy];
-            for (int t = 0; t < 30 && !got; t++) usleep(100000);
+            for (int t = 0; t < 60 && !got; t++) usleep(100000);
             if (got && resp
                 && [resp containsString:@"Unable to resolve plugin"]) {
                 rc = 0;
@@ -39381,7 +39394,7 @@ static void p_bq64(void) {
         if (fe) mfrom = atoi(fe);
         if (te) mto = atoi(te);
         if (mfrom < 0) mfrom = 0;
-        if (mto > 1021) mto = 1021;
+        if (mto > 2300) mto = 2300;
         if (mto < mfrom) mto = mfrom;
     }
     LOG("[bq64] диапазон мутаций: %d..%d (контроль m=0 всегда первым)",
@@ -39441,6 +39454,175 @@ static void p_bq64(void) {
         "занести в журнал");
     });
     LOG("[bq64] фоновый запуск...");
+}
+
+// p_bq65 — v210.13: Observer-сервис: beginObservingWithConfiguration:reply:
+// (§204: последний из 4 сервисов, чей доступ не проверен; TCCProxy✓
+// Discovery=canRun-гейт Launch✓). Конфиг — codable-ОБЪЕКТ (богатая
+// десериализация в демоне), первый вызов с nil (проба гейта).
+static void p_bq65(void) {
+    LOG("[bq65] v210.13: Observer beginObserving probe");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq65.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq65] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq65] CONTROL FAILED (§144)"); return; }
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    LOG("[bq65] dlopen ext=%p bs=%p ep=%p bs=%p",
+        hExt, hBS, epCls, bsCls);
+    if (!epCls || !bsCls) return;
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    @try {
+        SEL svcNameSel =
+            @selector(endpointForServiceName:oneshot:service:instance:);
+        typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+        EFn f = (EFn)objc_msgSend;
+        id endpoint = f(epCls, svcNameSel, @"com.apple.extensionkitservice",
+                         NO, @"Observer", nil);
+        LOG("[bq65] ep(Observer) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+        if (!endpoint) return;
+        SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+        typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+        FacFn ff = (FacFn)objc_msgSend;
+        NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg) {
+            SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+            if (cfg && [cfg respondsToSelector:qsel]) {
+                typedef void (*QFn)(id, SEL, NSString *, long);
+                QFn qf = (QFn)objc_msgSend;
+                qf(cfg, qsel, @"bq65.q", (long)0);
+            }
+        });
+        if (!conn) { LOG("[bq65] conn=nil"); return; }
+        // протокол Observer: перебор протоколов ExtensionFoundation,
+        // ищем тот, чей interface знает beginObservingWithConfiguration:
+        static const char *cands[] = {
+            "_TtP19ExtensionFoundation18_EXServiceProtocol_",
+            "_TtP19ExtensionFoundation23_EXQueryResultsProtocol_",
+            "_TtP19ExtensionFoundation31_EXCapabilitySessionXPCProtocol_",
+            "_TtP19ExtensionFoundation34EXDefaultImplementationXPCProtocol_",
+            NULL };
+        Protocol *proto = NULL;
+        const char *protoname = NULL;
+        for (int i = 0; cands[i] && !proto; i++) {
+            Protocol *p = objc_getProtocol(cands[i]);
+            if (!p) continue;
+            NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:p];
+            if (!iface) continue;
+            // у interface есть методы протокола; проверяем через
+            // описание? проще: метод в протоколе:
+            struct objc_method_description has;
+            has.name = @selector(beginObservingWithConfiguration:reply:);
+            has.types = NULL;
+            // protocol_getMethodDescription не экспортирован в iOS SDK
+            // напрямую — но objc runtime имеет; зовём через dlsym
+            static struct objc_method_description (*pgmd)(Protocol *, SEL, BOOL, BOOL) = NULL;
+            if (!pgmd) pgmd = (void *)dlsym(RTLD_DEFAULT,
+                                           "protocol_getMethodDescription");
+            if (pgmd) {
+                struct objc_method_description d = pgmd(p,
+                    @selector(beginObservingWithConfiguration:reply:),
+                    true, true);
+                if (!d.name)
+                    d = pgmd(p,
+                        @selector(beginObservingWithConfiguration:reply:),
+                        true, false);
+                if (d.name) { proto = p; protoname = cands[i]; }
+            }
+        }
+        LOG("[bq65] Observer-протокол: %s",
+            protoname ? protoname : "НЕ НАЙДЕН среди кандидатов");
+        if (!proto) {
+            // фолбэк: перечислить все протоколы с "Service" в имени
+            unsigned int pcnt = 0;
+            Protocol * __unsafe_unretained *pall = objc_copyProtocolList(&pcnt);
+            for (unsigned i = 0; i < pcnt; i++) {
+                const char *nm = protocol_getName(pall[i]);
+                if (nm && strstr(nm, "Protocol") && strstr(nm, "Extension")) {
+                    LOG("[bq65] протокол-кандидат: %s", nm);
+                }
+            }
+            if (pall) free(pall);
+            [conn invalidate];
+            return;
+        }
+        NSXPCInterface *iface = [NSXPCInterface interfaceWithProtocol:proto];
+        [conn setInvalidationHandler:^{ LOG("[bq65] INVALIDATION"); }];
+        [conn setRemoteObjectInterface:iface];
+        [conn activate];
+        LOG("[bq65] activate: ok");
+        fsync(fileno(stderr));
+        id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            LOG("[bq65] proxy ERROR: %s",
+                err ? err.localizedDescription.UTF8String : "-");
+        }];
+        if (!proxy) { [conn invalidate]; return; }
+        SEL sel = @selector(beginObservingWithConfiguration:reply:);
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        LOG("[bq65] sig argc=%lu ret=%s",
+            (unsigned long)(sig ? sig.numberOfArguments : 0),
+            sig ? (sig.methodReturnType ?: "?") : "-");
+        if (sig && sig.numberOfArguments == 4) {
+            __block BOOL got = NO;
+            __block NSString *resp = nil;
+            void (^reply)(id, NSError *) = ^(id upd, NSError *error) {
+                got = YES;
+                if (error) resp = [NSString stringWithFormat:@"err=%@ (%@ code %lld)",
+                    error.localizedDescription, error.domain,
+                    (long long)error.code];
+                else resp = [NSString stringWithFormat:@"update=%@",
+                    upd ? [upd description] : @"nil"];
+                LOG("[bq65] *** Observer ОТВЕТ: %@ ***", resp);
+            };
+            // v210.14: настоящий ObserverConfiguration (ObjC-класс из
+            // ExtensionFoundation, NSSecureCoding); nil отвергался —
+            // вероятно декодер требует объект
+            // v210.15: init() — fatalError (проверено: класс только
+            // декодируемый, init?(coder:) единственный ctor). Конфиг
+            // можно построить только craft-кодером по RE encode(with:)
+            // — следующая итерация. Пока nil.
+            Class cfgCls = NSClassFromString(@"ObserverConfiguration");
+            LOG("[bq65] ObserverConfiguration класс=%p (init() — fatal, "
+                "только init?(coder:))", cfgCls);
+            id cfg = nil;
+            NSInvocation *inv =
+                [NSInvocation invocationWithMethodSignature:sig];
+            [inv setSelector:sel];
+            [inv setArgument:&cfg atIndex:2];
+            [inv setArgument:&reply atIndex:3];
+            [inv invokeWithTarget:proxy];
+            for (int t = 0; t < 60 && !got; t++) usleep(100000);
+            LOG("[bq65] итог got=%d %s", (int)got,
+                got ? "— Observer ДОСТУПЕН (конфиг nil принят)"
+                    : "— тишина/разрыв (гейт или декод)");
+        } else {
+            LOG("[bq65] сигнатура не 4 арг — %@", sig ? @"иная" : @"нет");
+        }
+        [conn invalidate];
+        LOG("[bq65] done");
+    } @catch (NSException *e) {
+        LOG("[bq65] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq65] фоновый запуск...");
 }
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
@@ -46933,6 +47115,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ62")) { p_bq62(); LOG("[probe13] bq62-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ63")) { p_bq63(); LOG("[probe13] bq63-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ64")) { p_bq64(); LOG("[probe13] bq64-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ65")) { p_bq65(); LOG("[probe13] bq65-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
