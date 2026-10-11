@@ -39260,7 +39260,7 @@ static int bq63_dialog_once(Class epCls, Class bsCls, int mutIdx,
             if (got && resp
                 && [resp containsString:@"Unable to resolve plugin"]) {
                 rc = 0;
-                snprintf(outNote, noteSz, "plugin-err (норм)");
+                snprintf(outNote, noteSz, "ПРОШЛО: %s", resp.UTF8String ?: "?");
             } else if (got) {
                 rc = 2;
                 snprintf(outNote, noteSz, "иной ответ: %s",
