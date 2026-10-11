@@ -39049,6 +39049,21 @@ static IMP bq63_orig_smwr = NULL;
 static IMP bq63_orig_sm = NULL;
 
 static xpc_object_t bq63_mutate(xpc_object_t inv) {
+    // typesig-варианты для глубокого слоя (v210.9)
+    static const char *g_tsigs[] = {
+        "v32@0:8@16@16",     // block -> object
+        "v32@0:8*16@?24",    // arg1 -> raw pointer
+        "v36@0:8{?=8I}16@?24", // arg1 -> struct 8I
+        "v32@0:8@16@?16",
+        "v32@0:8@16@?32",
+        "v8@0:8",            // меньше аргументов
+        "v40@0:8@16@24@32@?40", // больше аргументов
+        "@32@0:8@16@?24",    // возврат объекта
+        "v32@0:8@16@?2@",   // битый оффсет
+        "v32@0:8@16@?999",  // гигантский оффсет
+        "v-1@0:8@16@?24",   // отрицательный фрейм
+        "v0@0:8@16@?24",    // нулевой фрейм
+    };
     if (bq63_mut <= 0) return inv; // 0 = контроль
     // работать с копией root
     xpc_object_t root = xpc_dictionary_get_value(inv, "root");
@@ -39057,6 +39072,71 @@ static xpc_object_t bq63_mutate(xpc_object_t inv) {
     unsigned char *b = malloc(n);
     memcpy(b, xpc_data_get_bytes_ptr(root), n);
     int m = bq63_mut;
+    // v210.9: глубокие диапазоны (байт-свип 1..495, typesig 496..511,
+    // длины 512..523, class 524..531) — до switch-канонических 1..10
+    if (m >= 496) {
+        if (m <= 495 + 165) {           // 496..660: byte ^= 0xFF
+            int i = m - 496;
+            if (i < (int)n) b[i] ^= 0xFF;
+        } else if (m <= 660 + 165) {    // 661..825: byte ^= 0x01
+            int i = m - 661;
+            if (i < (int)n) b[i] ^= 0x01;
+        } else if (m <= 825 + 165) {    // 826..990: byte += 1
+            int i = m - 826;
+            if (i < (int)n) b[i]++;
+        } else if (m <= 990 + (int)(sizeof(g_tsigs)
+                                    / sizeof(g_tsigs[0]))) {
+            // typesig-инъекции: подмена строки сигнатуры метода
+            // (управляет диспетчеризацией декодера демона)
+            int ti = m - 991;
+            if (ti >= 0 && ti < (int)(sizeof(g_tsigs)
+                                      / sizeof(g_tsigs[0]))) {
+                // подмена typesig ВНУТРИ блоба: маркер 0x7f110f len15
+                for (size_t i = 0; i + 18 <= n; i++) {
+                    if (b[i] == 0x7f && b[i+1] == 0x11
+                        && b[i+2] == 0x0f) {
+                        size_t sl = strlen(g_tsigs[ti]);
+                        if (sl > 15) sl = 15;
+                        memset(b + i + 3, 0, 15);
+                        memcpy(b + i + 3, g_tsigs[ti], sl);
+                        break;
+                    }
+                }
+            }
+        } else if (m <= 1002 + 12) {
+            // длины-поля: маркеры 7f113c (селектор 60), 7f110f
+            // (typesig 15), 4f1110 (uuid 16) — вариации +/-/0/FF
+            // байты длины (верифицировано по реальному блобу):
+            // селектор len@19 (маркер 7f113c@17), typesig len@82
+            // (маркер 7f110f@80), uuid len@148 (маркер 4f1110@146)
+            static const int lenpos[3] = { 19, 82, 148 };
+            static const unsigned char vals[4] = { 0x00, 0xFF, 0x3d, 0x0e };
+            int vi = m - 1003;
+            if (vi >= 0 && vi < 12) {
+                int which = vi / 4, what = vi % 4;
+                int pos = lenpos[which % 3];
+                if (pos < (int)n) b[pos] = vals[what];
+            }
+        } else {
+            // class-подмены (длина 6, маркер 0x77 + "NSUUID")
+            static const char *g_classes[] = {
+                "NSURL", "NSNull", "NSSet", "NSEnum",
+                "NSDate", "NSError", "NSURL1",
+            };
+            int ci = m - 1015;
+            if (ci >= 0 && ci < 7) {
+                for (size_t i = 0; i + 6 <= n; i++) {
+                    if (!memcmp(b + i, "NSUUID", 6)) {
+                        memcpy(b + i, g_classes[ci], 6);
+                        break;
+                    }
+                }
+            }
+        }
+        xpc_dictionary_set_data(inv, "root", b, n);
+        free(b);
+        return inv;
+    }
     switch (m) {
         case 1: { // UUID-байты -> 0 (маркер 4f1110 на 146, UUID с 149)
             for (int i = 149; i < 165 && i < (int)n; i++) b[i] = 0x00;
@@ -39265,6 +39345,102 @@ static void p_bq63(void) {
     LOG("[bq63] ВСЕ мутации done — rc: 0=норм,1=тишина/разрыв,2=иной");
     });
     LOG("[bq63] фоновый запуск...");
+}
+
+// p_bq64 — v210.9: ГЛУБОКИЙ мутационный слой (relay-автоматизация).
+// Диапазон мутаций через env BQ64_FROM/BQ64_TO (default 0..15).
+// Индексация мутаций (общая с bq63_mutate):
+//   0        — контроль
+//   1..10    — канонические (bq63)
+//   496..660 — byte[i] ^= 0xFF
+//   661..825 — byte[i] ^= 0x01
+//   826..990 — byte[i] += 1
+//   991..1002 — typesig-инъекции (12)
+//   1003..1014 — длины-поля (12)
+//   1015..1021 — class-подмены (7)
+static void p_bq64(void) {
+    LOG("[bq64] v210.9: глубокий мутационный слой");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq64.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq64] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq64] CONTROL FAILED (§144)"); return; }
+    int mfrom = 0, mto = 15;
+    {
+        const char *fe = getenv("BQ64_FROM");
+        const char *te = getenv("BQ64_TO");
+        if (fe) mfrom = atoi(fe);
+        if (te) mto = atoi(te);
+        if (mfrom < 0) mfrom = 0;
+        if (mto > 1021) mto = 1021;
+        if (mto < mfrom) mto = mfrom;
+    }
+    LOG("[bq64] диапазон мутаций: %d..%d (контроль m=0 всегда первым)",
+        mfrom, mto);
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    Class trCls = NSClassFromString(@"BSNSXPCTransport");
+    LOG("[bq64] dlopen ext=%p bs=%p ep=%p bs=%p tr=%p",
+        hExt, hBS, epCls, bsCls, trCls);
+    if (!epCls || !bsCls || !trCls) return;
+    {
+        Method m = class_getInstanceMethod(
+            trCls, @selector(sendMessageWithReply:onQueue:replyHandler:));
+        if (m) {
+            bq63_orig_smwr = method_setImplementation(
+                m, (IMP)bq63_hook_smwr);
+            LOG("[bq64] swizzle sendMessageWithReply: orig=%p",
+                bq63_orig_smwr);
+        }
+        m = class_getInstanceMethod(trCls, @selector(sendMessage:));
+        if (m) {
+            bq63_orig_sm = method_setImplementation(m, (IMP)bq63_hook_sm);
+            LOG("[bq64] swizzle sendMessage: orig=%p", bq63_orig_sm);
+        }
+    }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    int stat[3] = {0, 0, 0};
+    // §144: контроль всегда
+    {
+        char note[256];
+        int rc = bq63_dialog_once(epCls, bsCls, 0, note, sizeof(note));
+        LOG("[bq64] M0-КОНТРОЛЬ -> rc=%d %s %s", rc, note,
+            rc == 0 ? "(детектор ОК)" : "(ДЕТЕКТОР СЛОМАН!)");
+        fsync(fileno(stderr));
+    }
+    for (int mi = mfrom; mi <= mto; mi++) {
+        if (mi == 0) continue;
+        char note[256];
+        int rc = bq63_dialog_once(epCls, bsCls, mi, note, sizeof(note));
+        stat[rc < 0 ? 0 : (rc > 2 ? 2 : rc)]++;
+        LOG("[bq64] m=%d -> rc=%d %s", mi, rc, note);
+        fsync(fileno(stderr));
+        usleep(200000);
+    }
+    LOG("[bq64] СВОДКА [%d..%d]: rc0=%d rc1=%d rc2=%d "
+        "(rc0=прошло,rc1=тишина,rc2=отверг)", mfrom, mto,
+        stat[0], stat[1], stat[2]);
+    LOG("[bq64] ВНИМАНИЕ: rc=1 при мутациях = потенциальный вис "
+        "демона; rc=0 у byte-swip = не-валидируемый байт — "
+        "занести в журнал");
+    });
+    LOG("[bq64] фоновый запуск...");
 }
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
@@ -46756,6 +46932,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ61")) { p_bq61(); LOG("[probe13] bq61-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ62")) { p_bq62(); LOG("[probe13] bq62-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ63")) { p_bq63(); LOG("[probe13] bq63-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ64")) { p_bq64(); LOG("[probe13] bq64-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
