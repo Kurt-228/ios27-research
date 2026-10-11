@@ -5120,3 +5120,73 @@ NSSecureCoding-объектов (NSUUID → произвольные NSSecureCod
 Следующая фаза (p_bq61): replay снятого invoke через raw-канал —
 доказательство, что мы можем слать МУТИРОВАННЫЕ invoke не поднимая
 NSXPC-клиента вообще.
+
+## §210. Wire-формат полностью снят; Launch ДОСТУПЕН; in-channel мутационный фаззинг работает (v210)
+
+### os_log dev5: Launch-разрыв был НЕ гейтом
+
+«received an undecodable message (incompatible reply block signature
+for invalidateLaunchAssertionsForExtensionAuditToken:reply: (wire:
+block @? БЕЗ аргументов)» — настоящий reply = **void(^)(void)** (Swift
+yyc). После фикса (v209.7): **reply(void) вызван для ОБЕИХ проб** —
+наш audit token И 32 нуля → **Launch-сервис доступен из песочницы без
+гейта**: произвольный audit_token → инвалидация launch assertions в
+RBS привилегированного демона (bounty-примитив #2, следующий фаззинг-
+таргет). Бонус из bq58: «Host is missing entitlement:
+com.apple.private.chrono-extension-host» — canRun требует host-
+entitlement конкретного EP (widgetkit→chrono-host), т.е. перебор EP
+даёт список требований; возможен EP без требования.
+
+### Полный wire NSXPC-над-BSXPC (снифер bq62: swizzle -[BSXPC
+ServiceConnectionMessage createMessage] — метод у runtime-класса
+Message ЕСТЬ, у BSXPCServiceConnection — НЕТ; перебор всех классов
+с createMessage зависает — ABI опасен, только точные имена)
+
+```
+activate:  {bsxpc:"activate"} → ACK {bsxpc:"activate"} (bq53-хендшейк)
+connect:   {bsxpc:"connect", bsxpc_CID:<uint64>, bsxpc_CIDr:false,
+             bsxpc_context:{bsx_class:"BSXPCCoder",
+                            message:{s:"TCCProxy", lp:"[C:5-1]"}}}
+invoke:    {BSNSXPCMessage:{f:<хэш селектора>, proxynum:<n>,
+                             sequence:<n>, replysig:"…",
+                             root:<bplist17: [селектор, typesig,
+                                  {class:"NSUUID", NS.uuidbytes}]},
+             bsxpc_CID:<тот же>, bsxpc_CIDr:false}
+```
+
+Raw-replay (bq61 v210.6: activate→connect→invoke) — демон на connect
+отвечает invalidate{bsxpc_CIDr:TRUE, bsxpc_CID:наш} — connect-гейт
+(childIdentifier/isRoot-состояние) не пройден; не дожато, НО проще
+путь через in-channel (ниже).
+
+### In-channel мутационный фаззинг декодера демона (p_bq63, v210.7)
+
+Хук на `-[BSNSXPCTransport sendMessageWithReply:onQueue:replyHandler:]`
+**модифицирует** invoke-wire перед отправкой по ЖИВОМУ легитимному
+каналу. 11 мутаций, каждая на новом соединении; контроль M0 в каждом
+прогоне; три класса исходов: rc=0 plugin-err (декодер принял, исполнил,
+не нашёл плагин), rc=2 Couldn't communicate (undecodable → демон разорвал),
+rc=1 тишина. Прогон v210.8 (лог results/runf-bq63.log, 0 крашей):
+
+| мутация | rc | вывод |
+|---|---|---|
+| M1/M2 UUID-байты → 00/FF (149-165) | 0 | **данные аргумента полностью контролируемы, проходят до LS-поиска** |
+| M3 class NSUUID→NSNull | 2 | class-валидация по сигнатуре |
+| M4 селектор→X | 2 | селектор валидируется |
+| M5 хвост^FF, M6 обрезка-10, M10 длина селектора 3c→3d | 2 | структурные → parse-fail |
+| M7 sequence=999 | **0** | sequence НЕ валидируется |
+| M9 replysig мусор | **0** | replysig НЕ валидируется |
+| M8 f=999 | 2 | f (хэш селектора) валидируется |
+
+Значение: воспроизводимый мутационный контур на декодере
+(`__NSXPCSerializationDecodeInvocation*` + NSSecureCoding-путь в
+привилегированном процессе), автоматизируемый через relay; поведение
+декодера дифференцировано. Следующий слой: систематический перебор
+длин/тегов bplist17 (мутации длины вложенных объектов, подмена class
+на другие NSSecureCoding-классы равной длины, typesig-строка) —
+цель memory-corruption в демоне.
+
+Инструментальные заметки: enum классов через objc_getClassList(NULL,0)
++ два вызова (одним нельзя), malloc→(Class*)(void*); свизл createMessage
+только по typeEncoding[0]=='@'; RBSXPCCoder.createMessage — единственный
+другой createMessage, НЕ трогать.

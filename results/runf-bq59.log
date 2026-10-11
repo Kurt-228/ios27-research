@@ -1,0 +1,47 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ59=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5613
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[scaler] conn 0x5613, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq59] v209.4: Launch invalidateLaunchAssertions probe
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x106498900> { count = 1, transaction: 0, voucher = 0x10670c050, contents =
+	"bsxpc" => <string: 0x10643a430> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq59] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq59] dlopen=0x36ad01290 ep=0x20403f110 bs=0x20403f520
+[bq59] фоновый запуск...
+[probe13] bq59-only mode, stop
+[bq59] task_info(TASK_AUDIT_TOKEN) kr=0 cnt=5 tok=70e6f70302000000700100000000000001000000000000000000000000000000
+[bq59] selfTok=OK
+[bq59] svc=Launch begin
+[bq59] ep=<BSServiceConnectionEndpoint: 0x1065d7d80; target: XPCService:6993:com.apple.extensionkitservice; service: Launch>
+[bq59] proto=0x203c55408
+[bq59] svc=Launch activated
+[bq59] svc=Launch sig argc=4 ret=v arg2={?=[8I]} arg3=@?
+[bq59] svc=Launch invoke…
+[bq59] *** svc=Launch ОТВЕТ: reply(void) вызван (ошибок нет = assertions инвалидтированы) ***
+[bq59] svc=Launch итог got=1
+[bq59] svc=Launch done
+[bq59] svc=Launch begin
+[bq59] svc=Launch INVALIDATION
+[bq59] ep=<BSServiceConnectionEndpoint: 0x1065d4480; target: XPCService:6993:com.apple.extensionkitservice; service: Launch>
+[bq59] proto=0x203c55408
+[bq59] svc=Launch activated
+[bq59] svc=Launch sig argc=4 ret=v arg2={?=[8I]} arg3=@?
+[bq59] svc=Launch invoke…
+[bq59] *** svc=Launch ОТВЕТ: reply(void) вызван (ошибок нет = assertions инвалидтированы) ***
+[bq59] svc=Launch итог got=1
+[bq59] svc=Launch done
+[bq59] svc=Launch INVALIDATION
+[bq59] ВСЁ done

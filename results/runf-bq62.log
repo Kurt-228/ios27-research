@@ -1,0 +1,108 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ62=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5d03
+[scaler] conn 0x5d03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq62] v210.2: wire-снифер createMessage (финальная обёртка)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq51] run ENTER ctl-empty nseq=1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x106094900> { count = 1, transaction: 0, voucher = 0x106330230, contents =
+	"bsxpc" => <string: 0x1061919b0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x205d35460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x205d355d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq62] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq62] dlopen bs=0x36ad72300 ext=0x36ad01290 conn=0x20403f3e0 batch=0x20403e8c8
+[bq57] bsConn -> BSXPCServiceConnection
+[bq57] bsConn instance-methods: 10
+[bq57]   bsConn -_isInvalidated
+[bq57]   bsConn -shouldSendMessage:
+[bq57]   bsConn -description
+[bq57]   bsConn -_noteChildConnectionDidInvalidate:
+[bq57]   bsConn -init
+[bq57]   bsConn -updateAuditTokenFromReplyMessage:fromActivationGeneration:
+[bq57]   bsConn -invalidate
+[bq57]   bsConn -_isClientInvalidated
+[bq57]   bsConn -.cxx_destruct
+[bq57]   bsConn -dealloc
+[bq57] bsConn class-methods: 0
+[bq62] Message-класс = 0x20403f480
+[bq57] bsxpcmsg -> BSXPCServiceConnectionMessage
+[bq57] bsxpcmsg instance-methods: 8
+[bq57]   bsxpcmsg -send
+[bq57]   bsxpcmsg -sendSynchronously
+[bq57]   bsxpcmsg -expectsReply
+[bq57]   bsxpcmsg -initWithMessage:
+[bq57]   bsxpcmsg -sendSynchronouslyWithError:
+[bq57]   bsxpcmsg -invalidate
+[bq57]   bsxpcmsg -createReply
+[bq57]   bsxpcmsg -.cxx_destruct
+[bq57] bsxpcmsg class-methods: 0
+[bq62] Message.createMessage type=@16@0:8
+[bq62] swizzle Message.createMessage orig=0x1acd09ae0
+[bq62] swizzle appendMessage: orig=0x1acdc4cdc
+[bq62] фоновый запуск...
+[probe13] bq62-only mode, stop
+[bq62] ep=<BSServiceConnectionEndpoint: 0x10632cfe0; target: XPCService:7032:com.apple.extensionkitservice; service: TCCProxy>
+[bq62] activate: begin (сниф ON)
+[bq62] createMessage -> <dictionary: 0x106067060> { count = 2, transaction: 0, voucher = 0x0, contents =
+	"s" => <string: 0x1062ff720> { string cache = 0x0, length = 8, contents = "TCCProxy" }
+	"lp" => <string: 0x1062ffdb0> { string cache = 0x0, length = 7, contents = "[C:5-1]" }
+}
+[bq62] kv s=<string: 0x1062ff720> { string cache = 0x0, length = 8, contents = "TCCProxy" }
+[bq62] kv lp=<string: 0x1062ffdb0> { string cache = 0x0, length = 7, contents = "[C:5-1]" }
+[bq62] createMessage -> <dictionary: 0x106067300> { count = 4, transaction: 0, voucher = 0x0, contents =
+	"bsxpc_CIDr" => <bool: 0x205d35350>: false
+	"bsxpc_CID" => <uint64: 0x8c9e6a98957e1ef7>: 1
+	"bsxpc_context" => <dictionary: 0x106067360> { count = 2, transaction: 0, voucher = 0x0, contents =
+		"bsx_class" => <string: 0x1062ffa50> { string cache = 0x0, length = 10, contents = "BSXPCCoder" }
+		"message" => <dictionary: 0x106067060> { count = 2, transaction: 0, voucher = 0x0, contents =
+			"s" => <string: 0x1062ff720> { string cache = 0x0, length = 8, contents = "TCCProxy" }
+			"lp" => <string: 0x1062ffdb0> { string cache = 0x0, length = 7, contents = "[C:5-1]" }
+		}
+	}
+	"bsxpc" => <string: 0x1062fffc0> { string cache = 0x0, length = 7, contents = "connect" }
+}
+[bq62] kv bsxpc_CIDr=<bool: 0x205d35350>: false
+[bq62] kv bsxpc_CID=<uint64: 0x8c9e6a98957e1ef7>: 1
+[bq62] kv bsxpc_context=<dictionary: 0x106067360> { count = 2, transaction: 0, voucher = 0x0, contents =
+	"bsx_class" => <string: 0x1062ffa50> { string cache = 0x0, length = 10, contents = "BSXPCCoder" }
+	"message" => <dictionary: 0x106067060> { count = 2, transaction: 0, voucher = 0x0, contents =
+		"s" => <string: 0x1062ff720> { string cache = 0x0, length = 8, contents = "TCCProxy" }
+		"lp" => <string: 0x1062ffdb0> { string cache = 0x0, length = 7, contents = "[C:5-1]" }
+	}
+}
+[bq62] kv bsxpc=<string: 0x1062fffc0> { string cache = 0x0, length = 7, contents = "connect" }
+[bq62] activate: ok
+[bq62] invoke: UUID=43CE5F0C-B2CF-491E-8249-96F030286379
+[bq62] createMessage -> <dictionary: 0x106067360> { count = 3, transaction: 0, voucher = 0x0, contents =
+	"BSNSXPCMessage" => <dictionary: 0x106067780> { count = 5, transaction: 0, voucher = 0x0, contents =
+		"f" => <uint64: 0x8c9e6a98957e1ff7>: 33
+		"root" => <data: 0x106325540>: { length = 166 bytes, contents = 0x62706c6973743137a0a5000000000000007f113c70686f74... }
+		"proxynum" => <uint64: 0x8c9e6a98957e1ef7>: 1
+		"replysig" => <string: 0x1062ffa50> { string cache = 0x0, length = 20, contents = "v20@?0B8@"NSError"12" }
+		"sequence" => <uint64: 0x8c9e6a98957e1ef7>: 1
+	}
+	"bsxpc_CIDr" => <bool: 0x205d35350>: false
+	"bsxpc_CID" => <uint64: 0x8c9e6a98957e1ef7>: 1
+}
+[bq62] kv BSNSXPCMessage=<dictionary: 0x106067780> { count = 5, transaction: 0, voucher = 0x0, contents =
+	"f" => <uint64: 0x8c9e6a98957e1ff7>: 33
+	"root" => <data: 0x106325540>: { length = 166 bytes, contents = 0x62706c6973743137a0a5000000000000007f113c70686f74... }
+	"proxynum" => <uint64: 0x8c9e6a98957e1ef7>: 1
+	"replysig" => <string: 0x1062ffa50> { string cache = 0x0, length = 20, contents = "v20@?0B8@"NSError"12" }
+	"sequence" => <uint64: 0x8c9e6a98957e1ef7>: 1
+}
+[bq62] kv bsxpc_CIDr=<bool: 0x205d35350>: false
+[bq62] kv bsxpc_CID=<uint64: 0x8c9e6a98957e1ef7>: 1
+[bq62] ОТВЕТ: status=0 err=Unable to resolve plugin for UUID 43CE5F0C-B2CF-491E-8249-96F030286379
+[bq62] итог got=1
+[bq62] done
+[bq62] INVALIDATION

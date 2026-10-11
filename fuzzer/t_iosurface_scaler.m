@@ -38385,13 +38385,13 @@ static void bq59_svc_call(Class epCls, Class bsCls, const char *svc,
     }
     __block BOOL got = NO;
     __block NSError *rerr = nil;
-    void (^reply)(NSError *) = ^(NSError *error) {
+    // v209.7: ос_лог демона: "incompatible reply block signature" —
+    // настоящий reply для invalidateLaunchAssertionsForExtensionAuditToken:reply:
+    // это void(^)(void) (Swift yyc), БЕЗ NSError-аргумента.
+    void (^reply)(void) = ^{
         got = YES;
-        rerr = error;
-        LOG("[bq59] *** svc=%s ОТВЕТ: error=%s (domain=%s code=%lld) ***",
-            svc, error ? error.localizedDescription.UTF8String : "(none)",
-            error ? error.domain.UTF8String : "-",
-            error ? (long long)error.code : 0LL);
+        LOG("[bq59] *** svc=%s ОТВЕТ: reply(void) вызван (ошибок нет = "
+            "assertions инвалидтированы) ***", svc);
     };
     NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
     [inv setSelector:sel];
@@ -38688,6 +38688,583 @@ static void p_bq60(void) {
     }
     });
     LOG("[bq60] фоновый запуск...");
+}
+
+// p_bq61 — v210: REPLAY invoke через RAW-BSXPC-канал (без NSXPC).
+// База: сниф bq60 — invoke-словарь {f:33, proxynum:1, sequence:1,
+// replysig:"v20@?0B8@\"NSError\"12", root:<bplist17 166б>}.
+// Хендшейк bq53 (bs_type=1 + чекин {lp,s=TCCProxy} + activate-ACK),
+// затем invoke с ПАТЧНУТЫМ UUID → ответ демона «Unable to resolve
+// plugin for UUID <НОВЫЙ>» = доказательство, что invoke можно слать
+// (и мутировать) ВООБЩЕ БЕЗ NSXPC-клиента. Это открывает
+// мутационный wire-фаззинг декодера демона (§209-доп.2).
+static const char *bq61_root_hex =
+    "62706c6973743137a0a5000000000000007f113c"
+    "70686f746f53657276696365417574686f72697a6174696f6e537461747573"
+    "466f72457874656e73696f6e555549443a636f6d706c6574696f6e3a007f11"
+    "0f76333240303a38403136403f323400a0a500000000000000d0a400000000"
+    "0000007724636c61737300774e5355554944007d4e532e7575696462797465"
+    "73004f111072a3c5a80c6343a1b30467947839dda8e0";
+
+static xpc_object_t bq61_invoke_dict(NSUUID *newUuid, uint64_t seqno) {
+    // блоб из hex (сниф bq60, 166 байт) + патч UUID-байтов
+    size_t hexlen = strlen(bq61_root_hex);
+    size_t blen = hexlen / 2;
+    unsigned char *buf = malloc(blen);
+    for (size_t i = 0; i < blen; i++) {
+        unsigned v;
+        sscanf(bq61_root_hex + i*2, "%2x", &v);
+        buf[i] = (unsigned char)v;
+    }
+    int patched = 0;
+    if (newUuid) {
+        // искать маркер 4f1110 (CFData len16) и заменить следующие 16
+        for (size_t i = 0; i + 19 <= blen; i++) {
+            if (buf[i] == 0x4f && buf[i+1] == 0x11 && buf[i+2] == 0x10) {
+                uuid_t ub;
+                [newUuid getUUIDBytes:ub];
+                memcpy(buf + i + 3, ub, 16);
+                patched = 1;
+                break;
+            }
+        }
+    }
+    LOG("[bq61] блоб %zu байт, UUID-patched=%d", blen, patched);
+    xpc_object_t inv = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_uint64(inv, "f", 33);
+    xpc_dictionary_set_uint64(inv, "proxynum", 1);
+    xpc_dictionary_set_uint64(inv, "sequence", seqno);
+    xpc_dictionary_set_string(inv, "replysig", "v20@?0B8@\"NSError\"12");
+    xpc_dictionary_set_data(inv, "root", buf, blen);
+    free(buf);
+    // v210.6: обёртка из снифа bq62 — финальный wire:
+    // {BSNSXPCMessage: invoke, bsxpc_CIDr: false, bsxpc_CID: <cid>}
+    xpc_object_t wrap = xpc_dictionary_create(NULL, NULL, 0);
+    xpc_dictionary_set_value(wrap, "BSNSXPCMessage", inv);
+    xpc_dictionary_set_bool(wrap, "bsxpc_CIDr", false);
+    xpc_dictionary_set_uint64(wrap, "bsxpc_CID", seqno ? 1 : 1);
+    return wrap;
+}
+
+static void p_bq61(void) {
+    LOG("[bq61] v210: replay invoke через raw-BSXPC (без NSXPC-клиента)");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq61.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq61] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq61] CONTROL FAILED (§144)"); return; }
+    LOG("[bq61] dlsym(set_bs_type)=%p set_bs_checkin_info=%p",
+        dlsym(RTLD_DEFAULT, "xpc_connection_set_bs_type"),
+        dlsym(RTLD_DEFAULT, "xpc_connection_set_bs_checkin_info"));
+
+    NSUUID *nu = [NSUUID UUID];
+    LOG("[bq61] новый UUID для replay: %s", nu.UUIDString.UTF8String);
+
+    // v210.6: полная последовательность из снифа bq62:
+    // activate → connect{bsxpc_CID:1, bsx_class, message{s,lp}} →
+    // invoke-обёртка {BSNSXPCMessage, bsxpc_CIDr, bsxpc_CID}
+    {
+        xpc_object_t d = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(d, "lp", "BSXPC(com.apple.fuzz27)");
+        xpc_dictionary_set_string(d, "s", "TCCProxy");
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        // connect
+        xpc_object_t innerMsg = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(innerMsg, "s", "TCCProxy");
+        xpc_dictionary_set_string(innerMsg, "lp", "[C:5-1]");
+        xpc_object_t ctx = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(ctx, "bsx_class", "BSXPCCoder");
+        xpc_dictionary_set_value(ctx, "message", innerMsg);
+        xpc_object_t conn = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_bool(conn, "bsxpc_CIDr", false);
+        xpc_dictionary_set_uint64(conn, "bsxpc_CID", 1);
+        xpc_dictionary_set_value(conn, "bsxpc_context", ctx);
+        xpc_dictionary_set_string(conn, "bsxpc", "connect");
+        // invoke (UUID патчнут, sequence=1)
+        xpc_object_t inv = bq61_invoke_dict(nu, 1);
+        xpc_object_t seq[3] = { act, conn, inv };
+        bq53_dialog(q, "R1-full-replay", 1, d, seq, 3);
+    }
+    // Контроль: без патча (оригинальный UUID) + sequence=2
+    {
+        xpc_object_t d = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(d, "lp", "BSXPC(com.apple.fuzz27)");
+        xpc_dictionary_set_string(d, "s", "TCCProxy");
+        xpc_object_t act = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(act, "bsxpc", "activate");
+        xpc_object_t innerMsg = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(innerMsg, "s", "TCCProxy");
+        xpc_dictionary_set_string(innerMsg, "lp", "[C:5-1]");
+        xpc_object_t ctx = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_string(ctx, "bsx_class", "BSXPCCoder");
+        xpc_dictionary_set_value(ctx, "message", innerMsg);
+        xpc_object_t conn = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_dictionary_set_bool(conn, "bsxpc_CIDr", false);
+        xpc_dictionary_set_uint64(conn, "bsxpc_CID", 2);
+        xpc_dictionary_set_value(conn, "bsxpc_context", ctx);
+        xpc_dictionary_set_string(conn, "bsxpc", "connect");
+        xpc_object_t inv = bq61_invoke_dict(nil, 2);
+        xpc_object_t seq[3] = { act, conn, inv };
+        bq53_dialog(q, "R2-replay-orig-uuid", 1, d, seq, 3);
+    }
+    LOG("[bq61] done — искать ответ с UUID %s (успех) и "
+        "72A3C5A8-0C63-43A1-B304-67947839DDA8 (контроль)",
+        nu.UUIDString.UTF8String);
+}
+
+// p_bq62 — v210.2: полный wire-снифер — хук на
+// -[BSXPCServiceConnection createMessage] (финальная xpc-обёртка,
+// которую _sendWithMode: шлёт в канал: bsxpc_BATCH и пр.) + хук на
+// appendMessage:/commitWithReason: batch-механики. Даёт ТОЧНЫЙ
+// wire-format для raw-replay invoke (bq61 послал «сырой» NSXPC-
+// словарь без обёртки — тишина; обёртка = ключ 'BSNSXPCMessage'
+// внутри BSXPC-сообщения из §210-RE).
+static volatile int bq62_active = 0;
+static IMP bq62_orig_createMessage = NULL;
+static IMP bq62_orig_appendMessage = NULL;
+
+static xpc_object_t bq62_hook_createMessage(id self, SEL _cmd) {
+    xpc_object_t r = ((xpc_object_t (*)(id, SEL))bq62_orig_createMessage)(
+        self, _cmd);
+    if (bq62_active && r) {
+        char *d = xpc_copy_description(r);
+        LOG("[bq62] createMessage -> %s", d ?: "(nil)");
+        free(d);
+        if (xpc_get_type(r) == XPC_TYPE_DICTIONARY) {
+            xpc_dictionary_apply(r, ^bool(const char *key, xpc_object_t v) {
+                if (xpc_get_type(v) == XPC_TYPE_ARRAY) {
+                    LOG("[bq62] ARRAY key=%s count=%zu", key,
+                        xpc_array_get_count(v));
+                    xpc_array_apply(v, ^bool(size_t idx, xpc_object_t el) {
+                        char *ed = xpc_copy_description(el);
+                        LOG("[bq62]   [%zu] %s", idx, ed ?: "?");
+                        free(ed);
+                        if (xpc_get_type(el) == XPC_TYPE_DICTIONARY) {
+                            xpc_dictionary_apply(el,
+                                ^bool(const char *k2, xpc_object_t v2) {
+                                if (xpc_get_type(v2) == XPC_TYPE_DATA) {
+                                    size_t n = xpc_data_get_length(v2);
+                                    size_t hn = n < 400 ? n : 400;
+                                    const unsigned char *bb =
+                                        xpc_data_get_bytes_ptr(v2);
+                                    char *hex = malloc(hn*2+1);
+                                    for (size_t i = 0; i < hn; i++)
+                                        snprintf(hex+i*2, 3, "%02x", bb[i]);
+                                    hex[hn*2] = 0;
+                                    LOG("[bq62]   [%zu] DATA %s len=%zu "
+                                        "hex=%s%s", idx, k2, n, hex,
+                                        n > hn ? "…" : "");
+                                    free(hex);
+                                } else {
+                                    char *sd = xpc_copy_description(v2);
+                                    LOG("[bq62]   [%zu] %s=%s", idx, k2,
+                                        sd ?: "?");
+                                    free(sd);
+                                }
+                                return true;
+                            });
+                        }
+                        return true;
+                    });
+                } else {
+                    char *sd = xpc_copy_description(v);
+                    LOG("[bq62] kv %s=%s", key, sd ?: "?");
+                    free(sd);
+                }
+                return true;
+            });
+        }
+        fsync(fileno(stderr));
+    }
+    return r;
+}
+
+static void bq62_hook_appendMessage(id self, SEL _cmd, id msg) {
+    if (bq62_active) {
+        LOG("[bq62] batch appendMessage: msg=%s",
+            msg ? [msg description].UTF8String : "(nil)");
+    }
+    ((void (*)(id, SEL, id))bq62_orig_appendMessage)(self, _cmd, msg);
+}
+
+static void p_bq62(void) {
+    LOG("[bq62] v210.2: wire-снифер createMessage (финальная обёртка)");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq62.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq62] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq62] CONTROL FAILED (§144)"); return; }
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    Class bsConnCls = NSClassFromString(@"BSXPCServiceConnection");
+    Class batchCls = NSClassFromString(@"BSXPCServiceConnectionMessageBatch");
+    LOG("[bq62] dlopen bs=%p ext=%p conn=%p batch=%p",
+        hBS, hExt, bsConnCls, batchCls);
+    if (bsConnCls) bq57_dump(bsConnCls, "bsConn");
+    // v210.5: перебор классов зависает — только ТОЧНЫЕ классы по имени.
+    // Wire создаёт BSXPCServiceConnectionMessage (из _sendWithMode:
+    // x0=self=Message, SEL createMessage) — дампируем его методы.
+    {
+        Class msgCls = NSClassFromString(
+            @"BSXPCServiceConnectionMessage");
+        LOG("[bq62] Message-класс = %p", msgCls);
+        if (msgCls) {
+            bq57_dump(msgCls, "bsxpcmsg");
+            Method m = class_getInstanceMethod(msgCls,
+                                               @selector(createMessage));
+            if (m) {
+                const char *te = method_getTypeEncoding(m);
+                LOG("[bq62] Message.createMessage type=%s", te ?: "?");
+                if (te && te[0] == '@') {
+                    bq62_orig_createMessage = method_setImplementation(
+                        m, (IMP)bq62_hook_createMessage);
+                    LOG("[bq62] swizzle Message.createMessage orig=%p",
+                        bq62_orig_createMessage);
+                }
+            } else {
+                LOG("[bq62] Message.createMessage в runtime НЕТ — "
+                    "свизлим send/_sendWithMode:");
+                SEL sm = @selector(_sendWithMode:);
+                Method m2 = class_getInstanceMethod(msgCls, sm);
+                LOG("[bq62] Message._sendWithMode: method=%p", m2);
+                SEL sm3 = @selector(send);
+                Method m3 = class_getInstanceMethod(msgCls, sm3);
+                LOG("[bq62] Message.send method=%p", m3);
+            }
+        }
+    }
+    fsync(fileno(stderr));
+    if (batchCls) {
+        Method m = class_getInstanceMethod(batchCls,
+                                           @selector(appendMessage:));
+        if (m) {
+            bq62_orig_appendMessage = method_setImplementation(
+                m, (IMP)bq62_hook_appendMessage);
+            LOG("[bq62] swizzle appendMessage: orig=%p",
+                bq62_orig_appendMessage);
+        }
+    }
+    fsync(fileno(stderr));
+
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    if (!epCls || !bsCls) { LOG("[bq62] нет ep/bs классов"); return; }
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    @try {
+        SEL svcNameSel =
+            @selector(endpointForServiceName:oneshot:service:instance:);
+        typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+        EFn f = (EFn)objc_msgSend;
+        id endpoint = f(epCls, svcNameSel,
+                        @"com.apple.extensionkitservice", NO,
+                        @"TCCProxy", nil);
+        LOG("[bq62] ep=%s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+        if (!endpoint) return;
+        SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+        typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+        FacFn ff = (FacFn)objc_msgSend;
+        NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg) {});
+        if (!conn) { LOG("[bq62] conn=nil"); return; }
+        Protocol *proto = objc_getProtocol(
+            "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
+        NSXPCInterface *iface = proto
+            ? [NSXPCInterface interfaceWithProtocol:proto] : nil;
+        if (!iface) { [conn invalidate]; return; }
+        [conn setInvalidationHandler:^{ LOG("[bq62] INVALIDATION"); }];
+        [conn setRemoteObjectInterface:iface];
+        LOG("[bq62] activate: begin (сниф ON)");
+        bq62_active = 1;
+        [conn activate];
+        LOG("[bq62] activate: ok");
+        fsync(fileno(stderr));
+        id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            LOG("[bq62] proxy ERROR: %s",
+                err ? err.localizedDescription.UTF8String : "-");
+        }];
+        if (!proxy) { bq62_active = 0; [conn invalidate]; return; }
+        SEL sel = NSSelectorFromString(
+            @"photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        if (!sig) { bq62_active = 0; [conn invalidate]; return; }
+        __block BOOL got = NO;
+        void (^completion)(BOOL, NSError *) = ^(BOOL st, NSError *error) {
+            got = YES;
+            LOG("[bq62] ОТВЕТ: status=%d err=%s", (int)st,
+                error ? error.localizedDescription.UTF8String : "-");
+        };
+        NSUUID *uuid = [NSUUID UUID];
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        [inv setSelector:sel];
+        [inv setArgument:&uuid atIndex:2];
+        [inv setArgument:&completion atIndex:3];
+        LOG("[bq62] invoke: UUID=%s", uuid.UUIDString.UTF8String);
+        [inv invokeWithTarget:proxy];
+        for (int t = 0; t < 50 && !got; t++) usleep(100000);
+        bq62_active = 0;
+        LOG("[bq62] итог got=%d", (int)got);
+        [conn invalidate];
+        LOG("[bq62] done");
+    } @catch (NSException *e) {
+        bq62_active = 0;
+        LOG("[bq62] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq62] фоновый запуск...");
+}
+
+// p_bq63 — v210.7: IN-CHANNEL МУТАЦИОННЫЙ ФАЗЗИНГ декодера демона.
+// Хук на BSNSXPCTransport.sendMessageWithReply: МОДИФИЦИРУЕТ invoke-wire
+// (root=bplist17, f/sequence/replysig) перед отправкой по ЖИВОМУ
+// легитимному каналу (чекин/CID/сессия — всё честное). Мутация #0 =
+// контроль без изменений (детектор: «Unable to resolve plugin for
+// UUID <текущий>»); остальные — точечные повреждения. Ответ демона /
+// разрыв / тишина / краш = сигнатуры. Каждая мутация — новый диалог.
+static volatile int bq63_mut = -1;   // -1 = выкл, >=0 = индекс мутации
+static IMP bq63_orig_smwr = NULL;
+static IMP bq63_orig_sm = NULL;
+
+static xpc_object_t bq63_mutate(xpc_object_t inv) {
+    if (bq63_mut <= 0) return inv; // 0 = контроль
+    // работать с копией root
+    xpc_object_t root = xpc_dictionary_get_value(inv, "root");
+    if (!root || xpc_get_type(root) != XPC_TYPE_DATA) return inv;
+    size_t n = xpc_data_get_length(root);
+    unsigned char *b = malloc(n);
+    memcpy(b, xpc_data_get_bytes_ptr(root), n);
+    int m = bq63_mut;
+    switch (m) {
+        case 1: { // UUID-байты -> 0 (маркер 4f1110 на 146, UUID с 149)
+            for (int i = 149; i < 165 && i < (int)n; i++) b[i] = 0x00;
+            break; }
+        case 2: { // UUID-байты -> FF
+            for (int i = 149; i < 165 && i < (int)n; i++) b[i] = 0xFF;
+            break; }
+        case 3: { // class NSUUID -> NSNull (та же длина 6)
+            const unsigned char from[] = "NSUUID";
+            const unsigned char to[] = "NSNull";
+            for (size_t i = 0; i + 6 <= n; i++)
+                if (!memcmp(b + i, from, 6)) { memcpy(b + i, to, 6); break; }
+            break; }
+        case 4: { // selector: первый байт -> X (сломать имя)
+            for (size_t i = 0; i + 20 <= n; i++) {
+                if (!memcmp(b + i, "photoServiceAuth", 16)) {
+                    b[i] = 'X'; break; }
+            }
+            break; }
+        case 5: // последний байт ^= FF
+            b[n-1] ^= 0xFF; break;
+        case 6: // обрезать хвост на 10 байт
+            if (n > 10) n -= 10;
+            break;
+        case 7: // sequence = 999 (в словаре)
+            xpc_dictionary_set_uint64(inv, "sequence", 999);
+            break;
+        case 8: // f = 999
+            xpc_dictionary_set_uint64(inv, "f", 999);
+            break;
+        case 9: // replysig мусор
+            xpc_dictionary_set_string(inv, "replysig", "v99@?0B8@9");
+            break;
+        case 10: { // длина-поле селектора (маркер 0x7f11 3c=60) -> 3d
+            for (size_t i = 0; i + 3 <= n; i++) {
+                if (b[i] == 0x7f && b[i+1] == 0x11 && b[i+2] == 0x3c) {
+                    b[i+2] = 0x3d; break; }
+            }
+            break; }
+    }
+    xpc_dictionary_set_data(inv, "root", b, n);
+    free(b);
+    return inv;
+}
+
+static void bq63_hook_smwr(id self, SEL _cmd, xpc_object_t msg,
+                           dispatch_queue_t q, xpc_handler_t h) {
+    if (bq63_mut >= 0 && msg
+        && xpc_get_type(msg) == XPC_TYPE_DICTIONARY
+        && xpc_dictionary_get_value(msg, "root")) {
+        msg = bq63_mutate(msg);
+    }
+    ((void (*)(id, SEL, xpc_object_t, dispatch_queue_t,
+               xpc_handler_t))bq63_orig_smwr)(self, _cmd, msg, q, h);
+}
+static void bq63_hook_sm(id self, SEL _cmd, xpc_object_t msg) {
+    ((void (*)(id, SEL, xpc_object_t))bq63_orig_sm)(self, _cmd, msg);
+}
+
+// один диалог: мутация mutIdx, возврат: 0=reply-Err-plugin (норм),
+// 1=тишина/разрыв, 2=иной ответ
+static int bq63_dialog_once(Class epCls, Class bsCls, int mutIdx,
+                            char *outNote, size_t noteSz) {
+    bq63_mut = -1;
+    SEL svcNameSel =
+        @selector(endpointForServiceName:oneshot:service:instance:);
+    typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+    EFn f = (EFn)objc_msgSend;
+    id endpoint = f(epCls, svcNameSel, @"com.apple.extensionkitservice",
+                    NO, @"TCCProxy", nil);
+    if (!endpoint) { snprintf(outNote, noteSz, "no-ep"); return 1; }
+    SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+    typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+    FacFn ff = (FacFn)objc_msgSend;
+    NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg) {
+        SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+        if (cfg && [cfg respondsToSelector:qsel]) {
+            typedef void (*QFn)(id, SEL, NSString *, long);
+            QFn qf = (QFn)objc_msgSend;
+            qf(cfg, qsel, @"bq63.q", (long)0);
+        }
+    });
+    if (!conn) { snprintf(outNote, noteSz, "no-conn"); return 1; }
+    Protocol *proto = objc_getProtocol(
+        "_TtP19ExtensionFoundation19_EXTCCProxyProtocol_");
+    NSXPCInterface *iface = proto
+        ? [NSXPCInterface interfaceWithProtocol:proto] : nil;
+    if (!iface) { [conn invalidate]; snprintf(outNote, noteSz, "no-iface"); return 1; }
+    __block BOOL got = NO;
+    __block BOOL interrupted = NO;
+    __block NSString *resp = nil;
+    [conn setInterruptionHandler:^{ interrupted = YES; }];
+    [conn setInvalidationHandler:^{ interrupted = YES; }];
+    [conn setRemoteObjectInterface:iface];
+    bq63_mut = mutIdx;
+    [conn activate];
+    id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+        got = YES; resp = err.localizedDescription;
+    }];
+    int rc = 1;
+    if (proxy) {
+        SEL sel = NSSelectorFromString(
+            @"photoServiceAuthorizationStatusForExtensionUUID:completion:");
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        if (sig) {
+            NSUUID *uuid = [NSUUID UUID];
+            void (^completion)(BOOL, NSError *) = ^(BOOL st, NSError *error) {
+                got = YES;
+                resp = error
+                    ? [NSString stringWithFormat:@"status=%d err=%@",
+                       (int)st, error.localizedDescription]
+                    : [NSString stringWithFormat:@"status=%d", (int)st];
+            };
+            NSInvocation *inv =
+                [NSInvocation invocationWithMethodSignature:sig];
+            [inv setSelector:sel];
+            [inv setArgument:&uuid atIndex:2];
+            [inv setArgument:&completion atIndex:3];
+            [inv invokeWithTarget:proxy];
+            for (int t = 0; t < 30 && !got; t++) usleep(100000);
+            if (got && resp
+                && [resp containsString:@"Unable to resolve plugin"]) {
+                rc = 0;
+                snprintf(outNote, noteSz, "plugin-err (норм)");
+            } else if (got) {
+                rc = 2;
+                snprintf(outNote, noteSz, "иной ответ: %s",
+                         resp.UTF8String ?: "?");
+            } else if (interrupted) {
+                rc = 1;
+                snprintf(outNote, noteSz, "тишина/разрыв");
+            } else {
+                rc = 1;
+                snprintf(outNote, noteSz, "тишина 3с");
+            }
+        } else {
+            snprintf(outNote, noteSz, "no-sig");
+        }
+    } else {
+        snprintf(outNote, noteSz, "no-proxy");
+    }
+    bq63_mut = -1;
+    [conn invalidate];
+    return rc;
+}
+
+static void p_bq63(void) {
+    LOG("[bq63] v210.7: in-channel мутационный фаззинг декодера демона");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq63.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq63] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq63] CONTROL FAILED (§144)"); return; }
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    Class trCls = NSClassFromString(@"BSNSXPCTransport");
+    LOG("[bq63] dlopen ext=%p bs=%p ep=%p bs=%p tr=%p",
+        hExt, hBS, epCls, bsCls, trCls);
+    if (!epCls || !bsCls || !trCls) return;
+    {
+        Method m = class_getInstanceMethod(
+            trCls, @selector(sendMessageWithReply:onQueue:replyHandler:));
+        if (m) {
+            bq63_orig_smwr = method_setImplementation(
+                m, (IMP)bq63_hook_smwr);
+            LOG("[bq63] swizzle sendMessageWithReply: orig=%p",
+                bq63_orig_smwr);
+        }
+        m = class_getInstanceMethod(trCls, @selector(sendMessage:));
+        if (m) {
+            bq63_orig_sm = method_setImplementation(m, (IMP)bq63_hook_sm);
+            LOG("[bq63] swizzle sendMessage: orig=%p", bq63_orig_sm);
+        }
+    }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    static const char *names[] = {
+        "M0-контроль(без мутаций)", "M1-uuid-нули", "M2-uuid-FF",
+        "M3-NSUUID->NSNull", "M4-sel-X", "M5-хвост^FF", "M6-обрезка-10",
+        "M7-seq999", "M8-f999", "M9-replysig-мусор", "M10-sellen3d"
+    };
+    const int NM = 11;
+    for (int mi = 0; mi < NM; mi++) {
+        char note[256];
+        int rc = bq63_dialog_once(epCls, bsCls, mi, note, sizeof(note));
+        LOG("[bq63] %s -> rc=%d %s",
+            names[mi], rc, note);
+        fsync(fileno(stderr));
+        usleep(300000);
+    }
+    LOG("[bq63] ВСЕ мутации done — rc: 0=норм,1=тишина/разрыв,2=иной");
+    });
+    LOG("[bq63] фоновый запуск...");
 }
 
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
@@ -46176,6 +46753,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ58")) { p_bq58(); LOG("[probe13] bq58-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ59")) { p_bq59(); LOG("[probe13] bq59-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ60")) { p_bq60(); LOG("[probe13] bq60-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ61")) { p_bq61(); LOG("[probe13] bq61-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ62")) { p_bq62(); LOG("[probe13] bq62-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ63")) { p_bq63(); LOG("[probe13] bq63-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
