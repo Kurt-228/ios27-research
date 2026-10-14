@@ -3,16 +3,16 @@
 [main] env FUZZ_BQ66=1
 [main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
 [open] IOServiceOpen VCPDRMService failed: 0xe00002e2
-[mig] bootstrap-name phase done; add learned names to cand_names[]
 [open] service VCPDRMServiceUserClient not found
 [vcpdrm] no connection, target dead
-[open] AppleM2ScalerCSCDriver -> conn 0x4b1b
-[scaler] conn 0x4b1b, s1 13 s2 15
+[open] AppleM2ScalerCSCDriver -> conn 0x7007
+[scaler] conn 0x7007, s1 13 s2 15
 [probe12] SetNotificationPort -> 0x00000000
 [bq66] v211: ObserverConfiguration craft-кодер
 [bq51] run ENTER ctl-empty nseq=1
-[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x12e47ca00> { count = 1, transaction: 0, voucher = 0x12e7443c0, contents =
-	"bsxpc" => <string: 0x12e43bc90> { string cache = 0x0, length = 10, contents = "invalidate" }
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x146498000> { count = 1, transaction: 0, voucher = 0x1467742d0, contents =
+	"bsxpc" => <string: 0x14658f0f0> { string cache = 0x0, length = 10, contents = "invalidate" }
 }
 [bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x2071cd460> { count = 1, transaction: 0, voucher = 0x0, contents =
 	"XPCErrorDescription" => <string: 0x2071cd5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
@@ -22,25 +22,31 @@
 [bq66] dlopen ext=0x366501290
 [bq66] фоновый запуск...
 [probe13] bq66-only mode, stop
-[bq66] listener=OK endpoint=<NSXPCListenerEndpoint: 0x12e74cd40>
+[bq66] listener=OK RESUMED endpoint=<NSXPCListenerEndpoint: 0x14671be40>
+[bq66] LSExtensionPointRecord=0x205464ac8
+[bq66] _EX_init id=com.apple.widgetkit-extension plat=0 -> nil err=The operation couldn’t be completed. (OSStatus error -10814.)
+[bq66] _EX_init id=com.apple.widgetkit-extension plat=1 -> OK
+[bq66] record=LSExtensionPointRecord
+[bq66] record-архив 1864 байт
 [bq66] класс=0x206767ff8
 [bq66] initWithCoder: begin — смотреть запросы выше/ниже
-[bq66] decodeArrayOfObjectsOfClasses _extensionPointRecords -> __NSArray0
+[bq66] decodeArrayOfObjectsOfClasses _extensionPointRecords classes=NSData -> __NSSingleObjectArrayI
 [bq66] decodeOfClass _id cls=NSUUID -> __NSConcreteUUID
 [bq66] decodeOfClass _endpoint cls=NSXPCListenerEndpoint -> NSXPCListenerEndpoint
 [bq66] decodeInt64 allowed -> 0
 [bq66] decodeBool _options.includePostprocessing -> 0
 [bq66] decodeBool _options.includeUpdatingApps -> 0
-[bq66] decodeBool _options.includeRestricted -> 0
-[bq66] decodeBool _options.excludeLockedApps -> 0
-[bq66] decodeBool _options.allowsDuplicates -> 0
-[bq66] initWithCoder: -> <ObserverConfiguration: 0x12e7403c0>
+[bq66] decodeBool _options.includeRestricted -> 1
+[bq66] decodeBool _options.excludeLockedApps -> 1
+[bq66] decodeBool _options.allowsDuplicates -> 1
+[bq66] initWithCoder: -> <ObserverConfiguration: 0x14670d480>
 [bq66] архив: 0 байт
-[bq66] ep(Observer) = <BSServiceConnectionEndpoint: 0x12e74cf00; target: XPCService:4164:com.apple.extensionkitservice; service: Observer>
+[bq66] ep(Observer) = <BSServiceConnectionEndpoint: 0x146719e00; target: XPCService:4240:com.apple.extensionkitservice; service: Observer>
 [bq66] activate ok
 [bq66] sig argc=4
 [bq66] invoke beginObserving…
 [bq66] *** Observer ОТВЕТ: upd=nil err=Failed to add observer ***
 [bq66] итог got=1 — ОТВЕТ ЕСТЬ (смотреть выше)
+[bq66] +10с ожидания reverse-подключений завершено
 [bq66] done
 [bq66] INVALIDATION

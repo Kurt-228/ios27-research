@@ -39695,8 +39695,13 @@ static NSDictionary *bq66_answers = nil;
 - (nullable NSArray *)decodeArrayOfObjectsOfClasses:(NSSet *)cs
                                              forKey:(NSString *)k {
     id v = bq66_answers[k];
-    LOG("[bq66] decodeArrayOfObjectsOfClasses %s -> %s",
-        k.UTF8String ?: "?",
+    NSMutableString *cls = [NSMutableString string];
+    for (id c in cs) {
+        if (cls.length) [cls appendString:@","];
+        [cls appendString:NSStringFromClass(c)];
+    }
+    LOG("[bq66] decodeArrayOfObjectsOfClasses %s classes=%s -> %s",
+        k.UTF8String ?: "?", cls.UTF8String ?: "-",
         v ? NSStringFromClass([v class]).UTF8String : "(nil)");
     return v;
 }
@@ -39736,6 +39741,59 @@ static NSDictionary *bq66_answers = nil;
 - (void)encodeBytes:(const void *)b length:(NSUInteger)l forKey:(NSString *)k {}
 @end
 
+// v211.2: catch-all экспорт и listener-delegate — демон соединяется
+// обратно к NSXPCListenerEndpoint из конфига и зовёт observer:reply:
+@interface BQ66CatchAll : NSObject
+@end
+@implementation BQ66CatchAll
+- (void)observer:(id)obj reply:(id)blk {
+    LOG("[bq66] *** ДЕМОН ВЫЗВАЛ observer: obj=%s ***",
+        obj ? NSStringFromClass([obj class]).UTF8String : "nil");
+    if (obj) {
+        char *d = NULL;
+        @try { d = (char *)[(id)obj description].UTF8String; } @catch (...) {}
+        LOG("[bq66] obj desc: %s", d ?: "-");
+    }
+    if (blk) {
+        // ожидаем void(^)(void) (как Launch-reply); если сигнатура
+        // иная — увидим в логах и уточним
+        void *bp = (__bridge void *)blk;
+        typedef void (*Bq66VoidFn)(void *);
+        ((Bq66VoidFn)bp)(NULL);
+        LOG("[bq66] observer-reply блок вызван");
+    }
+}
+- (NSMethodSignature *)methodSignatureForSelector:(SEL)sel {
+    LOG("[bq66] catchAll methodSignatureForSelector: %s",
+        sel_getName(sel));
+    return [NSMethodSignature signatureWithObjCTypes:"v32@0:8@16@?24"];
+}
+- (void)forwardInvocation:(NSInvocation *)inv {
+    LOG("[bq66] catchAll forwardInvocation: %s argc=%lu",
+        sel_getName(inv.selector),
+        (unsigned long)inv.methodSignature.numberOfArguments);
+}
+@end
+
+@interface BQ66ListenerDelegate : NSObject <NSXPCListenerDelegate>
+@end
+@implementation BQ66ListenerDelegate
+- (BOOL)listener:(NSXPCListener *)l
+shouldAcceptNewConnection:(NSXPCConnection *)nc {
+    LOG("[bq66] *** ДЕМОН СОЕДИНИЛСЯ К НАШЕМУ LISTENER: pid=%d ***",
+        (int)[nc processIdentifier]);
+    Protocol *proto = objc_getProtocol(
+        "_TtP19ExtensionFoundation18_EXServiceProtocol_");
+    if (proto) [nc setExportedInterface:
+        [NSXPCInterface interfaceWithProtocol:proto]];
+    [nc setExportedObject:[[BQ66CatchAll alloc] init]];
+    [nc resume];
+    LOG("[bq66] reverse-соединение поднято (catch-all экспорт)");
+    fsync(fileno(stderr));
+    return YES;
+}
+@end
+
 static void p_bq66(void) {
     LOG("[bq66] v211: ObserverConfiguration craft-кодер");
     fsync(fileno(stderr));
@@ -39761,19 +39819,98 @@ static void p_bq66(void) {
     @try {
         // ответы крафт-кодера (RE §211)
         NSXPCListener *lst = [NSXPCListener anonymousListener];
+        lst.delegate = [[BQ66ListenerDelegate alloc] init];
+        [lst resume];
         NSXPCListenerEndpoint *lep = lst.endpoint;
-        LOG("[bq66] listener=%s endpoint=%s",
+        LOG("[bq66] listener=%s RESUMED endpoint=%s",
             lst ? "OK" : "(nil)",
             lep ? [lep description].UTF8String : "(nil)");
         static unsigned char z16[16];
+        // v211.7: element-проба — NSKeyedArchive настоящего
+        // LSExtensionPointRecord (класс NSSecureCoding)
+        __block NSData *bq66_recEl = [NSData data];
+        static dispatch_queue_t bq66_prepq;
+        static dispatch_once_t bq66_once;
+        dispatch_once(&bq66_once, ^{
+            bq66_prepq = dispatch_queue_create("bq66.prep",
+                                               DISPATCH_QUEUE_SERIAL);
+        });
+        // LS-init делает sync-XPC к lsd — на main это deadlock;
+        // готовим на фоновой очереди
+        dispatch_sync(bq66_prepq, ^{
+            Class recCls = NSClassFromString(@"LSExtensionPointRecord");
+            if (!recCls) {
+                void *hCS = dlopen(
+                    "/System/Library/Frameworks/CoreServices"
+                    ".framework/CoreServices", RTLD_LAZY | RTLD_LOCAL);
+                LOG("[bq66] dlopen CoreServices=%p", hCS);
+                recCls = NSClassFromString(@"LSExtensionPointRecord");
+            }
+            LOG("[bq66] LSExtensionPointRecord=%p", recCls);
+            // v211.8: initWithIdentifier: виснет (sync-lsd даже вне
+            // main) — _EX-категория (ExtensionFoundation) первой;
+            // LS-init-ы не трогаем вовсе.
+            id rec = nil;
+            if (recCls) {
+                SEL ex = NSSelectorFromString(
+                    @"_EX_initWithIdentifier:platform:parentAppRecord:error:");
+                if ([recCls instancesRespondToSelector:ex]) {
+                    typedef id (*EFn)(id, SEL, NSString *,
+                                      unsigned int, id, NSError **);
+                    EFn f = (EFn)objc_msgSend;
+                    static const unsigned int plats[] = { 0, 1, 2, 3,
+                                                        4, 5, 0x100 };
+                    static const char *ids[] = {
+                        "com.apple.widgetkit-extension",
+                        "com.apple.uiwidgets-extension", NULL };
+                    for (int ii = 0; ids[ii] && !rec; ii++) {
+                        for (int pi = 0;
+                             pi < (int)(sizeof(plats)/sizeof(plats[0]))
+                                 && !rec; pi++) {
+                            NSError *er = nil;
+                            rec = f([recCls alloc], ex,
+                                    @(ids[ii]), plats[pi], nil, &er);
+                            LOG("[bq66] _EX_init id=%s plat=%u -> %s%s%s",
+                                ids[ii], plats[pi],
+                                rec ? "OK" : "nil",
+                                er ? " err=" : "",
+                                er ? er.localizedDescription.UTF8String : "");
+                        }
+                    }
+                } else {
+                    LOG("[bq66] _EX_init недоступен");
+                }
+            }
+            LOG("[bq66] record=%s",
+                rec ? NSStringFromClass([rec class]).UTF8String : "(nil)");
+            if (rec) {
+                NSData *d = [NSKeyedArchiver
+                    archivedDataWithRootObject:rec
+                          requiringSecureCoding:NO
+                                          error:NULL];
+                if (d) {
+                    bq66_recEl = d;
+                    LOG("[bq66] record-архив %zu байт", (size_t)d.length);
+                }
+            }
+        });
         bq66_answers = @{
             // v211.1: decodeOfClass _id -> NSUUID (из лога крафт-кодера)
             @"_id" : [NSUUID UUID],
-            @"_extensionPointRecords" : @[],
+            // v211.4: witness encode = 16-байт элементы (Swift String!)
+            // → records это ИМЕНА extension-point (watch-set).
+            // Проба: widgetkit (известный EP, был в bq58).
+            // элементы — NSData: проба = NSKeyedArchive record
+            @"_extensionPointRecords" : @[bq66_recEl],
             @"_endpoint" : (lep ?: [NSNull null]),
             @".allowedRestrictionReasons" : @0,
-            @".includePostprocessing" : @NO,
-            @".includeUpdatingApps" : @NO,
+            // v211.3: все-NO + пустые records = пустой watch-set —
+            // гипотеза причины "Failed to add observer". YES-пробы.
+            @".includePostprocessing" : @YES,
+            @".includeUpdatingApps" : @YES,
+            @"_options.includeRestricted" : @YES,
+            @"_options.excludeLockedApps" : @YES,
+            @"_options.allowsDuplicates" : @YES,
             @"_identities" : @[],
             @"_disabledCount" : @0,
             @"_unelectedCount" : @0,
@@ -39872,6 +40009,10 @@ static void p_bq66(void) {
         LOG("[bq66] итог got=%d — %s", (int)got,
             got ? "ОТВЕТ ЕСТЬ (смотреть выше)" :
             "тишина (ос_лог демона решит)");
+        // держим соединение 10с — демон может подключиться к listener
+        // и/или пушить обновления асинхронно после ответа
+        for (int t = 0; t < 100; t++) usleep(100000);
+        LOG("[bq66] +10с ожидания reverse-подключений завершено");
         [conn invalidate];
         LOG("[bq66] done");
     } @catch (NSException *e) {

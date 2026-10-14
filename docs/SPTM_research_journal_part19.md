@@ -5355,3 +5355,28 @@ resumed (v211.2 — resume + обработчик, ожидаем соедине
 NB: [NSKeyedArchiver archivedDataWithRootObject:] вернул 0 байт на
 инстансе — encode(with:) требует NSCoder с keyed-coding; для байтов
 основы мутаций использовать in-channel сниф (bq60-стиль), не архив.
+
+### §211-доп. v211.2-9: Observer-итерации — «Failed to add observer» сидит в LocalLSDatabaseObserver (данные, не entitlement)
+
+Итерации крафт-конфига (каждая — контроль M0 + ctl-empty §144):
+
+| версия | изменение | ответ демона |
+|---|---|---|
+| v211.2 | listener resumed + delegate + catch-all экспорт (`_EXServiceProtocol`), 10с ожидания reverse | «Failed to add observer», reverse-подключения НЕТ |
+| v211.3 | options все YES | то же |
+| v211.4 | records = [NSString] | ЗАВИСАНИЕ локального декода (элемент ≠ строка) |
+| v211.5 | records = [пустой NSData] | то же «Failed»; classes=**NSData** (лог allowed-classes) |
+| v211.6 | records = [байты идентификатора] | то же |
+| v211.7-8 | records = [NSKeyedArchive настоящего record] | то же (архив 1864 б) |
+| v211.9 | record создан: `_EX_initWithIdentifier:platform:parentAppRecord:error:` **platform=1 OK** (plat=0 → OSStatus -10814; initWithIdentifier: виснет даже вне main — sync-lsd) | то же |
+
+RE-карта ветки: beginObserving-замыкание → `LocalLSDatabaseObserver.makeSequence(for:host:)` (0x186fcca40) → **`update(identity:host:)` THROWS** (0x186fcc078) → reply «Failed to add observer» (код 0x13, 0x18704a9bc). update читает локальную LS-БД по identity (Set<AppExtensionPoint> из records + 5 Bool) и host (auditToken соединения). «Host is not entitled to observe» — ДРУГАЯ строка (Discovery-gейт): Observer-гейт НЕ entitlement.
+
+Открытые вопросы (для следующей итерации):
+1. **Формат элемента records** — НЕ строка, НЕ байты идентификатора, NSKeyedArchive-проба не сняла ошибку. Witness record↔Data (PAC-disc 0x99dd/0x48d8, протокол `ExtensionFoundation.Database.ExtensionPointRecord`, symbolic 0x1870e3602) — резолв его методов даст точный бинарный формат; либо os_log демона покажет, ЧТО бросает update().
+2. Возможно host-зависимость: update(host: auditToken) — наш app не extension-host; форма ошибки не entitlement, но семантически «нет наблюдаемых» → бросает. Различит os_log.
+3. `+[LSExtensionPointRecord extensionPointRecordForCurrentProcess]` (0x186db9b44) — альтернативный путь к record без lsd-hang.
+
+Инструментальное: `objc_getClassList` — только двумя вызовами (NULL,0 → n; буфер → n); LS-init-ы (initWithIdentifier:) — sync-lsd deadlock даже на фоновой очереди; _EX-категорийные init-ы легковесны. ARC-блоки: void*-cast через __bridge.
+
+Запрос оператору: `sudo log collect` после свежего bq66-прогона — предикат extensionkitservice + eventMessage CONTAINS[c] "observer" — строка throw-сайта update() закроет вопрос 1/2.
