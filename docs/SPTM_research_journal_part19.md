@@ -5873,3 +5873,49 @@ assertions) — **разные непересекающиеся assertion-про
 Bounty-факт дня: sandboxed app → lifecycle-assertion на
 SpringBoard/launchd/runningboardd с полным набором
 планировочных флагов, удерживаемый демоном неограниченно.
+
+## §217. TERMINATE-примитив: RBSTerminateRequest построен, execute — клиентский дедлок (v221)
+
+### Карта terminate-пути (RE nlist)
+
+```
++[RBSTerminateContext defaultContextWithExplanation:]  (или initWithExplanation:)
+-[RBSTerminateRequest initWithProcessIdentifier:context:]
+-[RBSTerminateRequest execute:error:]
+  → [RBSConnection sharedInstance] (ЛАЗИ!)
+  → -[RBSConnection executeTerminateRequest:assertion:error:]
+```
+
+p_bq73: context ✓, request(9999) ✓ созданы (классы в процессе живы);
+`execute:` **ВИСИТ** (>2 мин, процесс жив, 0 краш-репортов).
+
+### RE execute: (0x18c20fac0) — источник дедлока
+
+`execute:` → ленивый `RBSConnection sharedInstance` → если синглтон
+не инициализирован: клиент строит RBS-соединение с нуля
+(handshake — §213-доп.2 логи: «Received handshake request from pid
+N») → **на main-queue-вызове это синхронный handshake-дедлок**
+(наш execute из main-queue-блока). Ос-лог fuzz27 недоступен
+(privacy-маска process-уровня) — но RE-карта достаточно: путь
+execute → sharedInstance → handshake-queue известен.
+
+### Итог этапа (§209–§217) — что воспроизведено из песочницы
+
+| примитив | путь | статус |
+|---|---|---|
+| TCCProxy RPC | extensionkitservice: NSXPC | ✓ (bq57) |
+| Launch invalidate (audit_token) | extensionkitservice: NSXPC | ✓ (bq59) |
+| RBS acquire/hold | runningboardd: RBSXPC | ✓ 63с, ос-трейс (§216) |
+| **target=любой pid** | RBSXPC | ✓ launchd/SB/runningboardd (§214) |
+| **flags=любые 64 бита** | RBSXPC | ✓ не валидируются (§215) |
+| RBS terminate | RBSXPC | request построен; execute — клиентский handshake-дедлок (лечится: connection-prewarm на фоновой очереди ДО main-блока) |
+
+### Следующая итерация (v222)
+
+1. Prewarm RBSConnection на фоновой очереди до main-вызова
+   (`sharedInstance` + дождаться `connectionQueue` handshake) →
+   execute из main на живом синглтоне.
+2. Если handshake пройдёт — terminate(9999).execute → демон ответит
+   err (не our pid) → термин-примитив «терминация произвольного
+   процесса из песочницы» — сильнейший из найденных (после
+   acquire: это уже не lifecycle-маркер, а УПРАВЛЕНИЕ terminацией).

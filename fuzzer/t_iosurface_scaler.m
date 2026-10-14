@@ -41142,6 +41142,121 @@ static void p_bq72(void) {
     LOG("[bq72] фоновый запуск...");
 }
 
+// p_bq73 — v221: STEADY-STATE acquire + TERMINATE-примитив.
+// A) steady-state: acquire через 12с после старта фазы (вне
+//    launch-фазы; v220 был created-inactive из-за start-time-defining)
+//    — держим 20с, ос-лог покажет active.
+// B) RBSTerminateRequest(initWithProcessIdentifier:context:).execute:
+//    — ТЕРМИНАЦИЯ процессов из песочницы! Безопасные пробы:
+//    fake pid 9999 (ожидаем err), наш pid НЕ трогаем (создал бы
+//    crash-report — детектируемо, но разрушительно для прогона).
+static void p_bq73(void) {
+    LOG("[bq73] v221: steady-acquire + terminate-примитив");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq73.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq73] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq73] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        Class tCls = NSClassFromString(@"RBSTarget");
+        Class aCls = NSClassFromString(@"RBSAssertion");
+        Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+        Class trCls = NSClassFromString(@"RBSTerminateRequest");
+        Class tcCls = NSClassFromString(@"RBSTerminateContext");
+        LOG("[bq73] классы: t=%p a=%p la=%p TR=%p TC=%p",
+            tCls, aCls, laCls, trCls, tcCls);
+        if (!trCls || !tcCls) { LOG("[bq73] terminate-классов нет"); return; }
+
+        // ===== B) TERMINATE (безопасно: fake pid) =====
+        // RBSTerminateContext defaultContextWithExplanation:
+        typedef id (*DCFn)(Class, SEL, NSString *);
+        DCFn dcf = (DCFn)objc_msgSend;
+        id ctx = [tcCls respondsToSelector:
+                  @selector(defaultContextWithExplanation:)]
+            ? dcf(tcCls, @selector(defaultContextWithExplanation:),
+                  @"bq73 probe") : nil;
+        if (!ctx) {
+            typedef id (*IEFn)(id, SEL, NSString *);
+            IEFn ief = (IEFn)objc_msgSend;
+            ctx = ief([tcCls alloc], @selector(initWithExplanation:),
+                      @"bq73 probe");
+        }
+        LOG("[bq73] B: context=%s",
+            ctx ? NSStringFromClass([ctx class]).UTF8String : "(nil)");
+        // RBSTerminateRequest initWithProcessIdentifier:context:
+        typedef id (*IPFn)(id, SEL, id, id);
+        IPFn ipf = (IPFn)objc_msgSend;
+        id req = ipf([trCls alloc],
+                     @selector(initWithProcessIdentifier:context:),
+                     @(9999), ctx);
+        LOG("[bq73] B: request(9999)=%s",
+            req ? NSStringFromClass([req class]).UTF8String : "(nil)");
+        if (req) {
+            // execute:error: — вызов демону!
+            NSError *terr = nil;
+            typedef BOOL (*EXFn)(id, SEL, NSError **);
+            EXFn exf = (EXFn)objc_msgSend;
+            BOOL tok = exf(req, @selector(execute:error:), &terr);
+            LOG("[bq73] B: *** terminate(9999).execute -> %d err=%s ***",
+                (int)tok,
+                terr ? terr.localizedDescription.UTF8String : "(none)");
+            fsync(fileno(stderr));
+        }
+        // ===== A) STEADY-STATE acquire (после B — фаза в steady) =====
+        if (!tCls || !aCls || !laCls) { LOG("[bq73] A: нет классов"); return; }
+        typedef id (*CFn)(Class, SEL);
+        CFn cf = (CFn)objc_msgSend;
+        id tgt = cf(tCls, @selector(currentProcess));
+        typedef id (*AFn)(Class, SEL, unsigned long long,
+                          unsigned long long);
+        AFn af = (AFn)objc_msgSend;
+        id la = af(laCls, @selector(attributeWithReason:flags:),
+                   4ull, 1ull);
+        typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+        IFn f = (IFn)objc_msgSend;
+        id as = f([aCls alloc],
+                  @selector(initWithExplanation:target:attributes:),
+                  @"bq73 steady-probe", tgt, @[la]);
+        NSError *aerr = nil;
+        typedef BOOL (*AFn2)(id, SEL, NSError **);
+        AFn2 aq = (AFn2)objc_msgSend;
+        BOOL ok = aq(as, @selector(acquireWithError:), &aerr);
+        LOG("[bq73] A: steady acquire -> %d err=%s", (int)ok,
+            aerr ? aerr.localizedDescription.UTF8String : "(none)");
+        for (int t = 1; t <= 4; t++) {
+            usleep(5000000);
+            SEL vldSel = @selector(isValid);
+            BOOL vld = [as respondsToSelector:vldSel]
+                ? ((BOOL (*)(id, SEL))objc_msgSend)(as, vldSel) : NO;
+            LOG("[bq73] A: hold %2ds: valid=%d", t * 5, (int)vld);
+            fsync(fileno(stderr));
+        }
+        [as invalidate];
+        LOG("[bq73] done (B terminate(9999) + A steady-hold 20s) — ос_лог "
+            "runningboardd: terminate-request от нашего pid на 9999 и "
+            "active/inactive steady-assertion)");
+    } @catch (NSException *e) {
+        LOG("[bq73] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq73] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -48640,6 +48755,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ70")) { p_bq70(); LOG("[probe13] bq70-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ71")) { p_bq71(); LOG("[probe13] bq71-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ72")) { p_bq72(); LOG("[probe13] bq72-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ73")) { p_bq73(); LOG("[probe13] bq73-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
