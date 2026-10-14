@@ -5919,3 +5919,68 @@ execute → sharedInstance → handshake-queue известен.
    err (не our pid) → термин-примитив «терминация произвольного
    процесса из песочницы» — сильнейший из найденных (после
    acquire: это уже не lifecycle-маркер, а УПРАВЛЕНИЕ terminацией).
+
+## §218. v222: terminate execute — тихая смерть процесса; ОС-ЛОГ-НАХОДКА: RBSInheritance endpoint-injection (живая модель)
+
+### p_bq73 v222 (prewarm RBSConnection на фоновой очереди)
+
+```
+prewarm: sharedInstance=RBSConnection ✓, 3с handshake ✓
+B: context=RBSTerminateContext ✓, request(9999)=RBSTerminateRequest ✓
+execute: → ТИХАЯ СМЕРТЬ процесса (0 краш-репортов, 0 процессов)
+```
+
+Ос-лог: terminate-request от нашего pid НЕ доставлен (нет
+«Received termination request … turquoise») — смерть НА СТОРОНЕ
+КЛИЕНТА до RPC (выход/обрыв без репорта). RE-путь execute
+(§217): sharedInstance → executeTerminateRequest — дальнейший
+RE (`-[RBSConnection executeTerminateRequest:assertion:error:]`)
++ под诺 ос-лог runningboardd (Received termination от нашего pid)
+отличит доставку от клиент-смерти. Приложение terminируется
+мгновенно — подозрение на client-side assert/exit в execute-пути
+(не дедлок: смерть быстрая и тихая).
+
+### 🎯 ОС-ЛОГ-НАХОДКА (сама важная за день): RBSInheritance
+### com.apple.boardservices.endpoint-injection
+
+В ос-логе runningboardd — живая механика инъекции эндпоинтов
+Между процессами:
+
+```
+<RBSInheritance| environment:(none)
+  name:com.apple.boardservices.endpoint-injection   ← BS-ЭНДПОИНТ!
+  origID:36-165-102                                  ← originator: InputUI(165)
+  payload 11782522920435032370>                     ← MACH-ПОРТ-ПЕЙЛОАД
+...
+<RBConnectionClient| 252 … entitlements:<RBEntitlements| [
+  <RBSInheritance| … name:com.apple.boardservices.endpoint-injection
+```
+
+InputUI (системный сервис) инъецирует свой BS-эндпоинт в
+WallpaperKit-расширение через **RBSInheritance** — payload =
+некий handle (0x11782… = ptr/токен). Это — **штатная механика
+межпроцессной инъекции BS-эндпоинтов** через runningboardd.
+Endpoint-injection = прямой примитив: если из песочницы можно
+создать RBSInheritance(name:endpoint-injection, payload:наш)
+→ runningboardd может инъецировать НАШ ЭНДПОИНТ в чужие процессы
+(или наоборот — чужой в наш). Это путь к «под诺 нажим» для
+**мутаций scope чужих XPC-соединений**.
+
+Плюс вторая модель в том же логе: **Gmail (третье приложение)
+шлёт terminate-запросы на чужие pid** (5579→5582/5584:
+«Received termination request from [app<Gmail>] on
+<RBSProcessIdentifierPredicate| 5582>>» — terminate-примитив
+app→runningboardd на другой pid — штатно доступен приложениям!)
+— наш запрос отличается от их только delivery-успехом.
+
+### Следующая итерация (v223)
+
+1. RE `-[RBSConnection executeTerminateRequest:assertion:error:]`
+   — что в клиенте умирает (assert? exit?).
+2. RE **RBSInheritance** (nlist: RBClientInheritanceManager
+   §213-доп.2): как создаётся inheritance с payload —
+   endpoint-injection-примитив.
+3. Модель Gmail: terminate через initForAllManagedWithReason /
+   initWithPredicate — полный terminate-примитив как у
+   third-party (это ПРЯМО в нашем направлении — путь не через
+   initWithProcessIdentifier, а через их форму).

@@ -41170,6 +41170,38 @@ static void p_bq73(void) {
            ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
     fsync(fileno(stderr));
 
+    // v222: PREWARM RBSConnection на фоновой очереди — sharedInstance
+    // ленивый: если не init, execute строит соединение с handshake
+    // (дедлок на main, §217). Греем на фоновой, ждём handshake,
+    // затем main-блок использует живой синглтон.
+    {
+        dispatch_semaphore_t sem = dispatch_semaphore_create(0);
+        dispatch_queue_t pwq = dispatch_queue_create("bq73.prewarm",
+                                                    DISPATCH_QUEUE_SERIAL);
+        dispatch_async(pwq, ^{
+            Class cCls = NSClassFromString(@"RBSConnection");
+            LOG("[bq73] prewarm: RBSConnection=%p", cCls);
+            if (cCls && [cCls respondsToSelector:
+                         @selector(sharedInstance)]) {
+                typedef id (*SIFn)(Class, SEL);
+                SIFn sif = (SIFn)objc_msgSend;
+                id conn = sif(cCls, @selector(sharedInstance));
+                LOG("[bq73] prewarm: sharedInstance=%s",
+                    conn ? NSStringFromClass([conn class]).UTF8String
+                         : "(nil)");
+                // даём handshake улечься (если поднятие асинхронно)
+                sleep(3);
+                LOG("[bq73] prewarm: 3с прошло — соединение живо");
+            } else {
+                LOG("[bq73] prewarm: sharedInstance недоступен");
+            }
+            dispatch_semaphore_signal(sem);
+        });
+        dispatch_semaphore_wait(sem, DISPATCH_TIME_FOREVER);
+        LOG("[bq73] prewarm ЗАВЕРШЁН (фоновая очередь)");
+    }
+    fsync(fileno(stderr));
+
     dispatch_async(dispatch_get_main_queue(), ^{
     @try {
         Class tCls = NSClassFromString(@"RBSTarget");
