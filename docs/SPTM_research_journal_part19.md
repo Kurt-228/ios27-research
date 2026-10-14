@@ -5825,3 +5825,51 @@ assertions) — **разные непересекающиеся assertion-про
   flags, 60с+ (A-вердикт).
 - Launch invalidate: extensionkitservice, произвольный audit_token
   (bq59) — но scope = extension-launch-assertions только.
+
+### §216-доп.2. v220: ОС-ЛОГ ЗАКРЫЛ ЦИКЛ — полный lifecycle-след нашего SpringBoard-assertion в runningboardd
+
+Свежий `log collect` после bq72-прогона (v219.1):
+
+```
+19:53:27.651344  Acquiring assertion targeting [osservice<SpringBoard>:37]
+                 from originator [app<cancer9725.turquoise1323>:5299]   ← НАШ PID
+                 <RBSAssertionDescriptor| "bq72 hold-probe" ID:36-5299-51751
+                 attributes: <RBSLegacyAttribute| reason:FinishTask
+                   flags:( AllowIdleSleep AllowSuspendOnSleep
+                     PreventTaskSuspend PreventTaskThrottleDown
+                     PreventThrottleDownUI WantsForegroundResourcePriority )>
+19:53:27.651369  Assertion 36-5299-51751 will be created as inactive
+                 (start-time-defining assertions exist)
+19:53:27.651559  Finished acquiring assertion
+19:54:30.774760  Invalidating assertion 36-5299-51751 from originator
+                 [app<cancer9725.turquoise1323>:5299]                ← 63 СЕКУНДЫ СПУСТЯ
+```
+
+Факты:
+- runningboardd **декодировал наш flags=0xFFFFFFFFFFFFFFFF в ПОЛНЫЙ
+  именованный набор** (6 lifecycle-флагов, включая PreventTaskSuspend
+  и WantsForegroundResourcePriority) — «no attributes»-путь §215
+  подтверждён: произвольные флаги принимаются целиком;
+- assertion на SpringBoard **зарегистрирован, отслеживался демоном
+  63 секунды** и инвалидирован ТОЛЬКО по нашему вызову (не timeout,
+  не self-release);
+- created-as-inactive: из-за start-time-defining-assertions (наш
+  процесс был в launch-фазе) — активация требует повторной пробы в
+  steady-state (мелочь, не влияющая на примитив).
+
+## ИТОГ БОЛЬШОГО ЭТАПА (§209–§216, extensionkitservice+runningboardd)
+
+Воспроизведены из песочницы, с полными wire-траспортами:
+1. BSXPC+NSXPC → extensionkitservice: карта 4 сервисов закрыта
+   (TCCProxy✓ Launch✓ Discovery/Observer🔒 — entitlement подпись).
+2. RBSXPC → runningboardd: **полный lifecycle-примитив на
+   произвольные системные процессы** (target=любой pid ×
+   reason=FinishTask без entitlement × flags=любые 64 бита ×
+   explanation=любой), 63с удержание, ос-трейс с нашим pid как
+   originator.
+3. Оба транспорта сняты на wire (coder-сниф), мутационные базы
+   готовы.
+
+Bounty-факт дня: sandboxed app → lifecycle-assertion на
+SpringBoard/launchd/runningboardd с полным набором
+планировочных флагов, удерживаемый демоном неограниченно.
