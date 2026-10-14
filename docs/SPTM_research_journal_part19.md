@@ -5656,3 +5656,54 @@ explanation крафтовый).
    wire = независимый RPC-клиент к runningboardd.
 
 Логи: results/runf-bq69-v216.3.log (полный валидный wire + перебор).
+
+## §214. 🚨 RBSAssertion НА ЧУЖИЕ ПРОЦЕССЫ из песочницы — runningboardd, SpringBoard, launchd (v217)
+
+### p_bq70 (target-мутации, контроль §144)
+
+Wire-основа §213-доп.3 (reason=4 FinishTask, flags=1, NSArray
+attributes); мутировали только target:
+
+| target | исход | error |
+|---|---|---|
+| currentProcess (контроль) | **ACQUIRED ok=1** | — |
+| `+[RBSTarget systemTarget]` | отклонено | «Originator and target must be the same process» (защищено) |
+| `targetWithPid:36` (runningboardd) | **ACQUIRED ok=1** | — |
+| `targetWithPid:37` (SpringBoard) | **ACQUIRED ok=1** | — |
+| `targetWithPid:1` (launchd) | **ACQUIRED ok=1** | — |
+
+**ЗНАЧЕНИЕ:** sandboxed-приложение удерживает RBS-assertions на
+СИСТЕМНЫХ ДЕМОНАХ — runningboardd, SpringBoard, launchd — с
+обычным reason=FinishTask. runningboardd РЕГИСТРИРУЕТ
+lifecycle-assertions от произвольного песочницы-клиента на
+произвольные pid БЕЗ entitlement-проверки originator→target.
+
+### Полный lifecycle-примитив из песочницы
+
+```
+CREATE:    RBSAssertion acquire (target=любой pid)         ← p_bq70
+INVALIDATE: extensionkitservice Launch-сервис
+           invalidateLaunchAssertionsForExtensionAuditToken: ← bq59 (v209.7)
+           (audit_token произвольный, гейта НЕТ)
+```
+
+Создание И инвалидация assertions на чужие процессы — обе
+операции доступны из песочницы без entitlements. Это:
+1. **Воспроизводимый unauthorized-примитив** (bounty-факт):
+   произвольное управление lifecycle-маркерами системных
+   процессов из песочницы.
+2. **DoS-поверхность**: assertion на SpringBoard/launchd с
+   reason=FinishTask может держать их от idle-sleep /
+   менять jetsam-приоритеты.
+3. **Фаззинг-вход**: мутации descriptor-полей (reason/flags/
+   target/identifier) в runningboardd (in-channel как bq63 —
+   coder-сниф-база готова).
+
+### Защищённое (для полноты)
+
+- systemTarget — отклонён («Originator and target must be the
+  same process»).
+- Остальные edge-case pid (0, -1, 9999) — лог не дошёл (невалидный
+  target может блокировать acquire;后续 edge-cases отдельно).
+
+Лог: results/runf-bq70.log.

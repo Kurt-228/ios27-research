@@ -1,0 +1,33 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ70=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x5803
+[scaler] conn 0x5803, s1 32 s2 67
+[probe12] SetNotificationPort -> 0x00000000
+[bq70] v217: target-мутации RBSAssertion
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x107c7c900> { count = 1, transaction: 0, voucher = 0x107f7c500, contents =
+	"bsxpc" => <string: 0x107dac120> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x2071cd460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x2071cd5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq70] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq70] dlopen RBS=0x366509960
+[bq70] фоновый запуск...
+[probe13] bq70-only mode, stop
+[bq70] КОНТРОЛЬ currentProcess        -> *** АСQUIRED *** acquire=1 err=(none)
+[bq70] systemTarget                           -> отклонено acquire=0 err=The operation couldn’t be completed. Originator and target must be the same process
+[bq70] targetWithPid:36 runningboardd         -> *** АСQUIRED *** acquire=1 err=(none)
+[bq70] targetWithPid:37 SpringBoard           -> *** АСQUIRED *** acquire=1 err=(none)
+[bq70] targetWithPid:1 launchd                -> *** АСQUIRED *** acquire=1 err=(none)
+*** Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'must specify a valid pid'
+*** First throw call stack:
+(0x19ede6fa0 0x19eb64298 0x19f658760 0x1aa935ec4 0x1aa949050 0x10275cb1c 0x1cd99cccc 0x1cd9b6fd4 0x1cd9ac370 0x1cd9ac040 0x19ed98648 0x19ed89798 0x19ed8a700 0x2493c7f24 0x1a302c860 0x1026e52d4 0x19ebdb630)
+libc++abi: terminating due to uncaught exception of type NSException
