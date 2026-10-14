@@ -5380,3 +5380,57 @@ RE-карта ветки: beginObserving-замыкание → `LocalLSDatabase
 Инструментальное: `objc_getClassList` — только двумя вызовами (NULL,0 → n; буфер → n); LS-init-ы (initWithIdentifier:) — sync-lsd deadlock даже на фоновой очереди; _EX-категорийные init-ы легковесны. ARC-блоки: void*-cast через __bridge.
 
 Запрос оператору: `sudo log collect` после свежего bq66-прогона — предикат extensionkitservice + eventMessage CONTAINS[c] "observer" — строка throw-сайта update() закроет вопрос 1/2.
+
+### §211-доп.2. v212: os_log закрыл Observer — host-entitlement гейт (тот же, что Discovery)
+
+Свежий прогон bq66 (v211.9, реальный record platform=1 доставлен) +
+`sudo log collect`:
+
+```
+extensionkitservice: Failed to start observering with error:
+Error Domain=com.apple.extensionKit.errorDomain Code=16
+```
+
+Строка = RE 0x18704a914 (замыкание beginObserving) — update(identity:host:)
+THROWS code=16. **Code=16 — тот же код, что «Host is not entitled to
+observe» (bq58, Discovery)**. И пустой records-набор (v211.2/5) бросал
+то же → гейт НЕ в данных, а на уровне хоста.
+
+RE `AuditToken.canHostOrDiscoverAnyExtension` (0x186fc01fc): читает
+ПОДПИСАННЫЕ entitlement'ы нашего audit token (0x186fc4858 =
+SecTaskCreateWithAuditToken → SecTaskCopyValueForEntitlement-путь,
+AMFI-валидация) и требует один из:
+
+- `com.apple.private.extensionkit.extension-management`
+- `com.apple.private.extensionkit.host.any-extension`
+
+MIS вырезает оба при установке (профиль их не разрешает; §192 —
+установленные entitlement'ы обрезаны по профилю). Forge невозможен:
+это не файл, а кодовая подпись.
+
+**ИТОГ КАРТЫ ДОСТУПА (v212, финальная):**
+
+| сервис | метод | гейт | статус |
+|---|---|---|---|
+| TCCProxy | photoServiceAuthorizationStatusForExtensionUUID: | НЕТ | ✅ ДОСТУПЕН (bq57) |
+| Launch | invalidateLaunchAssertionsForExtensionAuditToken: | НЕТ (нулевой токен прошёл!) | ✅ ДОСТУПЕН (bq59) |
+| Discovery | extensionsWith:/beginExtensionsQuery: | host-entitlement | 🔒 ЗАКРЫТ (bq58) |
+| Observer | beginObservingWithConfiguration: | host-entitlement | 🔒 ЗАКРЫТ (bq66/os_log) |
+
+Observer-техника (craft-кодер) сохранена в арсенале: живой инстанс
+класса с единственным init?(coder:) — метод для закрытых codable-классов
+в любой будущей поверхности.
+
+### Следующая поверхность (единственный живой мутационный таргет)
+
+**Launch-сервис: audit_token_t (32 БАЙТА, by-value) в RBS-путь
+привилегированного демона — БЕЗ ГЕЙТА** (нулевой токен → reply OK!).
+Мутации полей токена (pid/uid/gid/flags — формат audit_token_t:
+pid, version, host pid, audit uid/euid/egid/uid/gid, ruid/rgid, ...,
+asid) → RBS-lookup/invalidation-пути. План p_bq67: byte-sweep 32 байт
+(^FF/^01/+1 по аналогии с bq64) + структурные подмены (pid=self демона
+4589, чужие pid, uid=0).
+
+TCCProxy root-блоб исчерпан (990 мутаций, чисто); Observer/Discovery
+закрыты подписью — Launch-токен ЕДИНСТВЕННЫЙ оставшийся управляемый
+вход в демона.
