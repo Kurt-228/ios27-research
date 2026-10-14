@@ -5473,3 +5473,46 @@ Launch-вызов (`invalidateLaunchAssertionsForExtensionAuditToken:reply:`,
 proxy) к другим BS-доменам; либо LaunchListener-конфиг
 (`_endpoint` из ObserverConfiguration = NSXPCListenerEndpoint —
 кривая listener-эндпоинтов как отдельная поверхность).
+
+## §213. p_bq68: BS-стек ВЫХОДИТ ЗА ПРЕДЕЛЫ extensionkitservice — живой канал к RunningBoard (v213)
+
+Перечисление BS-доменов тремя фабриками endpoint'ов
+(`endpointForServiceName:` / `endpointForSystemMachName:` /
+`nullEndpointForService:`), контроль — extensionkitservice (§144):
+
+- `endpointForServiceName:` (svc-параметр обязателен, «Service»
+  проходит как метка): из 16 имён резолвит ТОЛЬКО
+  extensionkitservice — BS-домен не шире одного демона.
+- **`endpointForSystemMachName:`** — резолвит ТРИ системных
+  mach-имени (target = сырое имя): `com.apple.lsd.mapdb`,
+  **`com.apple.tccd`**, **`com.apple.runningboard`**. LiveEntityService,
+  frontboard.*/pluginkd/navd/… — nil.
+- connect+activate (BS-обёртка, 'wINt'-чекин):
+  - lsd.mapdb → **INTERRUPT** (демон рвёт: не-BS слушатель);
+  - tccd → **INTERRUPT** (сам TCC-демон рвёт — его XPC-валидация
+    отвергает чекин);
+  - **runningboard → ХЕНДШЕЙК ЖИВОЙ** (1.5с: ни invalidate, ни
+    interrupt) — **канал к RunningBoard из песочницы**.
+
+### Значение
+
+RunningBoard — демон управления процессами (spawn/assertions/
+handles), сидит на mach-имени `com.apple.runningboard` (обычно
+требует RBSDomain-клиента). BS-обёртка (`NSXPCConnectionWithEndpoint`)
+с SYS-эндпоинтом даёт **живое XPC-соединение к его listener-порту
+из песочницы** — воспроизводимый unauthorized-канал (bounty-факт).
+RunningBoardServices построен на BoardServices — потому чекин
+принят.
+
+### Следующие шаги
+
+1. **Сниф RB-wire в нашем же процессе**: fuzz27 (UIKit) — живой
+   RB-клиент (`Acquiring assertion: Shared Background Assertion…`
+   в логах). Swizzle RBS-транспорт (`RBXPCConnection*`/RBS_* send*)
+   → эталонные байты RPC RunningBoard — replay их через BS-канал.
+2. RE формата RBXPC-сообщений (RunningBoardServices, клиент в
+   нашем процессе — живой источник форм).
+3. Мутационный слой по образцу bq63/64 (root-блоб) на RB-RPC.
+
+Инструментальное: BS-фабрики различны по охвату (ServiceName =
+только BS-реестр; SystemMachName = системные mach-имена).

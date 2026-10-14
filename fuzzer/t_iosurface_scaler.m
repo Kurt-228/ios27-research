@@ -40226,6 +40226,213 @@ static void p_bq67(void) {
     LOG("[bq67] фоновый запуск...");
 }
 
+// p_bq68 — v213: ПЕРЕЧИСЛЕНИЕ BS-доменов через фабрику endpoint'ов.
+// extensionkitservice (4 сервиса) исчерпан: оба открытых входа чисты,
+// Discovery/Observer за подписью. Тот же стек к ДРУГИМ BS-сервисам:
+// endpointForServiceName:<имя>: — резолв XPCService:<pid>:<имя> =
+// признак живого BS-сервиса (запуск демона по требованию? логируем).
+// Кандидаты: LiveEntityService (закрыт по имени §181, BS-путь не
+// проверен), lsd.* (mapdb виден в логах демона), tccd, runningboard,
+// BS-инъецируемые (frontboard.open, workspace-service, PointerUI),
+// pluginkd. Контроль — extensionkitservice (резолвится).
+static void p_bq68(void) {
+    LOG("[bq68] v213: перечисление BS-доменов");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq68.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq68] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq68] CONTROL FAILED (§144)"); return; }
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    LOG("[bq68] dlopen bs=%p ep=%p bs=%p", hBS, epCls, bsCls);
+    if (!epCls || !bsCls) return;
+    SEL svcNameSel =
+        @selector(endpointForServiceName:oneshot:service:instance:);
+    if (![epCls respondsToSelector:svcNameSel]) {
+        LOG("[bq68] фабрика недоступна — стоп");
+        return;
+    }
+    typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+    EFn f = (EFn)objc_msgSend;
+    // v213.1: service-параметр ОБЯЗАТЕЛЕН (bq68: nil→nil даже на контроле;
+    // extensionkitservice резолвился только с service=@"TCCProxy" и пр.)
+    // Перебор: имена демонов x идентификаторы протоколов.
+    static const char *names[] = {
+        "com.apple.extensionkitservice",          // КОНТРОЛЬ (резолвится)
+        "com.apple.appintents.LiveEntityService", // §181: XPC-имя закрыто
+        "com.apple.lsd.mapdb",                    // активировался в логе демона
+        "com.apple.lsd.xpc",
+        "com.apple.lsd.updaters",
+        "com.apple.tccd",
+        "com.apple.runningboard",
+        "com.apple.frontboard.open",              // BS-инъекция (лог fuzz27)
+        "com.apple.frontboard.workspace-service",// BS-инъекция
+        "com.apple.PointerUI.pointeruid.default-service", // BS-отказ в логе
+        "com.apple.pluginkd",
+        "com.apple.mobiletimerd",
+        "com.apple.callservicesd",
+        "com.apple.mediaremoted",
+        "com.apple.navd",
+        "com.apple.appintents.xpc",
+        NULL };
+    static const char *svcs[] = {
+        "Service", "TCCProxy", "Discovery", "Launch", "Observer",
+        "Read", "Write", "Connection", "Session", "Management",
+        NULL };
+    __block int resolved = 0;
+    dispatch_async(dispatch_get_main_queue(), ^{
+    int idx = 0;
+    for (const char **nm = names; *nm; nm++, idx++) {
+        @autoreleasepool {
+        NSString *name = [NSString stringWithUTF8String:*nm];
+        // v213.1: перебор service-идентификаторов до первого резолва
+        id ep = nil;
+        const char *epsvc = NULL;
+        for (const char **sv = svcs; *sv && !ep; sv++) {
+            ep = f(epCls, svcNameSel, name, NO,
+                   [NSString stringWithUTF8String:*sv], nil);
+            if (ep) epsvc = *sv;
+        }
+        {
+            char lbl[80];
+            snprintf(lbl, sizeof(lbl), "%s", *nm);
+            LOG("[bq68] %-52s -> %s%s", lbl,
+                ep ? "OK svc=" : "(nil)",
+                epsvc ? epsvc : "");
+        }
+        if (ep) {
+            resolved++;
+            // живой BS-сервис: соединяемся, активируем — события?
+            SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+            typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+            FacFn ff = (FacFn)objc_msgSend;
+            __block BOOL invalidated = NO;
+            __block BOOL interrupted = NO;
+            NSXPCConnection *conn = ff(bsCls, facSel, ep, ^(id cfg) {
+                SEL qsel = NSSelectorFromString(
+                    @"queueWithName:serviceQuality:");
+                if (cfg && [cfg respondsToSelector:qsel]) {
+                    typedef void (*QFn)(id, SEL, NSString *, long);
+                    QFn qf = (QFn)objc_msgSend;
+                    qf(cfg, qsel, @"bq68.q", (long)0);
+                }
+            });
+            LOG("[bq68] %-52s conn=%s", *nm,
+                conn ? [conn description].UTF8String : "(nil)");
+            if (conn) {
+                [conn setInterruptionHandler:^{
+                    interrupted = YES;
+                    LOG("[bq68] %s INTERRUPT", *nm);
+                }];
+                [conn setInvalidationHandler:^{
+                    invalidated = YES;
+                    LOG("[bq68] %s INVALIDATE", *nm);
+                }];
+                @try {
+                    [conn activate];
+                    LOG("[bq68] %-52s activate OK (живой BS-хендшейк)", *nm);
+                } @catch (NSException *e) {
+                    LOG("[bq68] %-52s activate ИСКЛ: %s", *nm,
+                        e.reason ? e.reason.UTF8String : "?");
+                }
+                usleep(1200000);
+                LOG("[bq68] %-52s итог: invalidated=%d interrupted=%d — "
+                    "%s", *nm, (int)invalidated, (int)interrupted,
+                    (!invalidated && !interrupted)
+                        ? "ХЕНДШЕЙК ЖИВОЙ (сервис принял!)"
+                        : "отверг/разорвал");
+                [conn invalidate];
+            }
+        }
+        fsync(fileno(stderr));
+        } // pool
+    }
+    LOG("[bq68] СВОДКА: резолвится %d из %d имён — резолвнутые = "
+        "живые BS-домены (следующий фаззинг-таргет)", resolved, idx);
+    // v213.2: остальные фабрики endpoint'ов — SystemMachName и null
+    {
+        SEL sysSel2 = @selector(endpointForSystemMachName:service:instance:);
+        SEL nullSel2 = @selector(nullEndpointForService:instance:);
+        LOG("[bq68] фабрики: sys=%d null=%d",
+            (int)[epCls respondsToSelector:sysSel2],
+            (int)[epCls respondsToSelector:nullSel2]);
+        typedef id (*SysFn)(Class, SEL, NSString *, NSString *, NSString *);
+        typedef id (*NullFn)(Class, SEL, NSString *, NSString *);
+        SysFn sf = (SysFn)objc_msgSend;
+        NullFn nf = (NullFn)objc_msgSend;
+        int rsys = 0, rnull = 0;
+        for (const char **nm = names; *nm; nm++) {
+            @autoreleasepool {
+            NSString *name = [NSString stringWithUTF8String:*nm];
+            id ep1 = [epCls respondsToSelector:sysSel2]
+                ? sf(epCls, sysSel2, name, @"Service", nil) : nil;
+            if (ep1) rsys++;
+            LOG("[bq68] SYS %-52s -> %s", *nm,
+                ep1 ? [ep1 description].UTF8String : "(nil)");
+            // v213.3: к SYS-эндпоинту — connect+activate (живой хендшейк?
+            // демон не-BS может отвергнуть 'wINt'-чекин)
+            if (ep1) {
+                SEL facSel2 = @selector(
+                    NSXPCConnectionWithEndpoint:configurator:);
+                typedef NSXPCConnection *(*FacFn)(Class, SEL, id,
+                                                  void (^)(id));
+                FacFn ff2 = (FacFn)objc_msgSend;
+                __block BOOL inval = NO, intr = NO;
+                NSXPCConnection *c2 = ff2(bsCls, facSel2, ep1, ^(id cfg) {
+                    SEL qs = NSSelectorFromString(
+                        @"queueWithName:serviceQuality:");
+                    if (cfg && [cfg respondsToSelector:qs]) {
+                        typedef void (*QFn)(id, SEL, NSString *, long);
+                        QFn q = (QFn)objc_msgSend;
+                        q(cfg, qs, @"bq68s.q", (long)0);
+                    }
+                });
+                LOG("[bq68] SYS %-52s conn=%s", *nm,
+                    c2 ? [c2 description].UTF8String : "(nil)");
+                if (c2) {
+                    [c2 setInterruptionHandler:^{
+                        intr = YES; LOG("[bq68] %s INTERRUPT", *nm); }];
+                    [c2 setInvalidationHandler:^{
+                        inval = YES; LOG("[bq68] %s INVALIDATE", *nm); }];
+                    @try {
+                        [c2 activate];
+                        usleep(1500000);
+                        LOG("[bq68] SYS %-52s итог: inval=%d intr=%d — %s",
+                            *nm, (int)inval, (int)intr,
+                            (!inval && !intr)
+                                ? "ХЕНДШЕЙК ЖИВОЙ!! (канал к демону)"
+                                : "отверг (ожиданно для не-BS демона)");
+                    } @catch (NSException *e) {
+                        LOG("[bq68] SYS %s activate ИСКЛ: %s", *nm,
+                            e.reason ? e.reason.UTF8String : "?");
+                    }
+                    [c2 invalidate];
+                }
+            }
+            id ep2 = [epCls respondsToSelector:nullSel2]
+                ? nf(epCls, nullSel2, @"Service", nil) : nil;
+            if (ep2) rnull++;
+            LOG("[bq68] NULL(svc=Service) -> %s",
+                ep2 ? [ep2 description].UTF8String : "(nil)");
+            } // pool
+        }
+        LOG("[bq68] SYS-резолвы: %d", rsys);
+    }
+    });
+    LOG("[bq68] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -47719,6 +47926,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ65")) { p_bq65(); LOG("[probe13] bq65-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ66")) { p_bq66(); LOG("[probe13] bq66-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ67")) { p_bq67(); LOG("[probe13] bq67-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ68")) { p_bq68(); LOG("[probe13] bq68-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
