@@ -5803,3 +5803,25 @@ INVALIDATE extensionkitservice Launch (audit_token произвольный,
 Оба транспорта (BSXPC+NSXPC / RBSXPC) сняты на wire, воспроизведены
 из песочницы, оба демона принимают произвольные данные клиентов.
 Логи: results/runf-bq72-hold.log (+bq59-хвост в том же прогоне).
+
+### §216-доп. v219.1: A-вердикт подтверждён чисто; B — assertion-пространства демонов НЕ пересекаются
+
+Повторный bq72 с безопасным выводом (description + respondsToSelector-
+cast; v219 KVC/прямые cast'ы давали мусор):
+
+**A (SpringBoard, flags=ALL):** `valid=1` на ВСЕХ отметках 0–60с,
+desc=`<RBSAssertion>` — итог §216 подтверждён корректным детектором:
+runningboardd держит наш assertion на чужом системном процессе.
+
+**B (cross-service):** RBS-acquire(our) valid=1 → Launch-invalidate
+(наш audit_token) → valid=1 **УЦЕЛЕЛ**. Вердикт: extensionkitservice
+Launch (extension launch assertions) и runningboardd RBS (lifecycle
+assertions) — **разные непересекающиеся assertion-пространства**;
+инвалидация одного демона не трогает другого. Cross-service связки
+нет (это закрытие гипотезы §214.2, честный негатив).
+
+Итоговая карта примитивов из песочницы (все воспроизведено):
+- RBS acquire/hold: runningboardd, произвольный target × произвольные
+  flags, 60с+ (A-вердикт).
+- Launch invalidate: extensionkitservice, произвольный audit_token
+  (bq59) — но scope = extension-launch-assertions только.

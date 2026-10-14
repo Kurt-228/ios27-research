@@ -41060,16 +41060,20 @@ static void p_bq72(void) {
             (int)ok, err ? err.localizedDescription.UTF8String : "(none)");
         fsync(fileno(stderr));
         if (ok) {
-            id st = [as37 valueForKey:@"state"];
-            id iid = [as37 valueForKey:@"identifier"];
-            LOG("[bq72] A: state=%@ id=%@", st, iid);
-            for (int t = 1; t <= 6; t++) {
-                usleep(10000000);
-                st = [as37 valueForKey:@"state"];
-                BOOL vld = ((BOOL (*)(id, SEL))objc_msgSend)(
-                    as37, @selector(isValid));
-                LOG("[bq72] A: hold %ds: state=%@ valid=%d", t * 10,
-                    st, (int)vld);
+            // v219.1: безопасный вывод — description (метод есть, §213)
+            // вместо KVC-мусора; isValid через respondsToSelector+cast
+            SEL vldSel = @selector(isValid);
+            for (int t = 0; t <= 6; t++) {
+                if (t) usleep(10000000);
+                const char *ds = [as37 description].UTF8String;
+                BOOL vld = NO;
+                if ([as37 respondsToSelector:vldSel]) {
+                    typedef BOOL (*VFn)(id, SEL);
+                    VFn vf = (VFn)objc_msgSend;
+                    vld = vf(as37, vldSel);
+                }
+                LOG("[bq72] A: hold %3ds: valid=%d desc=%.220s",
+                    t * 10, (int)vld, ds ?: "?");
                 fsync(fileno(stderr));
             }
         }
@@ -41090,30 +41094,40 @@ static void p_bq72(void) {
             err2 ? err2.localizedDescription.UTF8String : "(none)");
         fsync(fileno(stderr));
         if (ok2) {
-            BOOL vldBefore = ((BOOL (*)(id, SEL))objc_msgSend)(
-                asSelf, @selector(isValid));
+            // v219.1: valid через respondsToSelector-безопасный cast,
+            // полный дамп до/после (description)
+            SEL vldSel2 = @selector(isValid);
+            typedef BOOL (*VFn)(id, SEL);
+            VFn vf2 = (VFn)objc_msgSend;
+            BOOL vldBefore = [asSelf respondsToSelector:vldSel2]
+                ? vf2(asSelf, vldSel2) : NO;
+            const char *dsBefore = [asSelf description].UTF8String;
+            LOG("[bq72] B: ДО Launch-invalidate: valid=%d desc=%.200s",
+                (int)vldBefore, dsBefore ?: "?");
+            fsync(fileno(stderr));
             // Launch invalidate: наш audit_token by-value (32 Б)
             static unsigned char tok[32];
             memset(tok, 0, sizeof(tok));
-            mach_msg_type_number_t cnt = 8;
+            mach_msg_type_number_t cnt2 = 8;
             (void)task_info(mach_task_self(), 17 /* TASK_AUDIT_TOKEN */,
-                            (task_info_t)tok, &cnt);
+                            (task_info_t)tok, &cnt2);
             bq59_svc_call(epCls, bsCls, "Launch",
                 "_TtP19ExtensionFoundation24_EXLaunchServiceProtocol_",
                 "invalidateLaunchAssertionsForExtensionAuditToken:reply:",
                 ^(NSInvocation *inv) {
                     [inv setArgument:tok atIndex:2];
                 });
-            sleep(2);
-            BOOL vldAfter = ((BOOL (*)(id, SEL))objc_msgSend)(
-                asSelf, @selector(isValid));
-            id stAfter = [asSelf valueForKey:@"state"];
-            LOG("[bq72] B: ПОСЛЕ Launch-invalidate: valid %d->%d "
-                "state=%@ — %s", (int)vldBefore, (int)vldAfter, stAfter,
+            sleep(3);
+            BOOL vldAfter = [asSelf respondsToSelector:vldSel2]
+                ? vf2(asSelf, vldSel2) : NO;
+            const char *dsAfter = [asSelf description].UTF8String;
+            LOG("[bq72] B: ПОСЛЕ: valid=%d desc=%.200s — %s",
+                (int)vldAfter, dsAfter ?: "?",
                 (vldBefore && !vldAfter)
-                    ? "CROSS-SERVICE ИНВАЛИДАЦИЯ РАБОТАЕТ (2 демона!)"
-                    : "assertion уцелел (Launch не тронул RBS-assertion "
-                      "или timing)");
+                    ? "CROSS-SERVICE ИНВАЛИДАЦИЯ (RBS-acquire инвалиди"
+                      "рован через extensionkitservice Launch — 2 демона)"
+                    : "уцелел (Launch не тронул RBS-assertion / scope "
+                      "различен — ос_лог runningboardd решит)");
             fsync(fileno(stderr));
         }
         [asSelf invalidate];
