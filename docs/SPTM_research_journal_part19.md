@@ -5516,3 +5516,44 @@ RunningBoardServices построен на BoardServices — потому чек
 
 Инструментальное: BS-фабрики различны по охвату (ServiceName =
 только BS-реестр; SystemMachName = системные mach-имена).
+
+### §213-доп. v214-215: сниф RB-wire в процессе — va_list-хук был источником зависаний; acquire-путь жив (v215)
+
+**p_bq69 (сниф RunningBoard-wire в fuzz27):**
+
+- Классы RB живы в процессе: RBSXPCMessage, RBSXPCCoder,
+  RBSAssertion, RBSConnection (+sharedInstance/handshakeQueue),
+  RBSProcessHandle (51 метод; handleForIdentifier:forceLookup…).
+- **va_list-хук = источник зависаний v214.1-3**: свизл
+  `+[RBSXPCMessage messageForMethod:varguments:]` с сигнатурой
+  `va_list` по значению — ABI-опасен (arm64 va_list =
+  __va_list_tag*); acquire (UIKit beginBackgroundTask И прямой
+  RBSAssertion) висели навсегда с хуком; без хука (v214.5,
+  BQ69_HOOK unset) — acquire ВОЗВРАТИЛСЯ («missing valid target»).
+  Урок: varargs-методы НЕ свизлить (только фиксированные
+  сигнатуры).
+- **acquire-путь живой (v215)**: RBSAssertion init
+  (explanation:target:attributes:) + target =
+  `+[RBSProcessHandle handleForIdentifier:error:](@(pid))` → OK;
+  init падает NSInvalidArgumentException copyWithZone: (target
+  должен быть codable-типом, не handle) — значит нужен
+  RBSTarget-тип/descriptor. RPC до демона на этом пути ещё не
+  дошёл (messageForMethod не звался до исключения).
+- beginBackgroundTask из фазовой нити тоже виснет (acquire-путь
+  sync на main-очередь RBS-соединения приложения); на main —
+  падает так же из-за va_list-хука; чистый main-путь не проверен
+  (следующий шаг).
+
+**Следующие шаги (bq70):**
+1. Свизл `messageForMethod:arguments:` (НЕ varguments) — сниф
+   RPC на рабочем пути.
+2. RBSAssertion через правильный target-тип (RE
+   RBSTarget/RBIdentityDescriptor из nlist; loadable-классы
+   RunningBoard), либо descriptor-путь
+   (-_initWithDescriptor:service:).
+3. После эталона — replay через BS-канал к runningboard (bq68:
+   хендшейк живой).
+
+Логи: results/runf-bq69-v215.log. Инструментальное: va_list
+(arm64) — по ссылке в __va_list_tag; сигнатура varargs-IMP
+требует идентичного ABI — свизл varargs-методов запрещён.

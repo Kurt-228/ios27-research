@@ -40433,6 +40433,211 @@ static void p_bq68(void) {
     LOG("[bq68] фоновый запуск...");
 }
 
+// p_bq69 — v214: СНИФ RunningBoard-wire В НАШЕМ ПРОЦЕССЕ.
+static void bq69_fire_on_main(void);
+// fuzz27 (UIKit) — живой RB-клиент (background assertions в логах).
+// Задача: найти клиентский транспорт RunningBoardServices в
+// рантайме, свизлить отправку/создание сообщений, триггернуть
+// assertion → эталонный RB-RPC для replay через BS-канал (bq68).
+static IMP bq69_orig_msgForMethod = NULL;
+static IMP bq69_orig_msgForMethodV = NULL;
+static volatile int bq69_sniff = 0;
+
+static id bq69_hook_msgForMethod(id self, SEL _cmd, NSString *method,
+                                  id args) {
+    id r = ((id (*)(id, SEL, NSString *, id))bq69_orig_msgForMethod)(
+        self, _cmd, method, args);
+    if (bq69_sniff) {
+        LOG("[bq69] RB-RPC: method=%s args=%s", method.UTF8String ?: "?",
+            args ? NSStringFromClass([args class]).UTF8String : "(nil)");
+        fsync(fileno(stderr));
+    }
+    return r;
+}
+static id bq69_hook_msgForMethodV(id self, SEL _cmd, NSString *method,
+                                   const char *enc, va_list ap) {
+    id r = ((id (*)(id, SEL, NSString *, const char *, va_list))
+        bq69_orig_msgForMethodV)(self, _cmd, method, enc, ap);
+    if (bq69_sniff) {
+        LOG("[bq69] RB-RPC(V): method=%s enc=%s",
+            method.UTF8String ?: "?", enc ?: "?");
+        fsync(fileno(stderr));
+    }
+    return r;
+}
+
+static void p_bq69(void) {
+    LOG("[bq69] v214: сниф RB-wire в процессе");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq69.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq69] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq69] CONTROL FAILED (§144)"); return; }
+
+    // RunningBoardServices грузится/UIKit'ом при старте; всё равно dlopen
+    void *hRBS = dlopen(
+        "/System/Library/PrivateFrameworks/RunningBoardServices"
+        ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    void *hRB = dlopen(
+        "/System/Library/PrivateFrameworks/RunningBoard.framework"
+        "/RunningBoard", RTLD_LAZY | RTLD_LOCAL);
+    LOG("[bq69] dlopen RBS=%p RB=%p", hRBS, hRB);
+
+    // какие RB-классы живут в нашем процессе?
+    static const char *probes[] = {
+        "RBSXPCMessage", "RBSXPCCoder", "RBSAssertion",
+        "RBSDomain", "_RBSDomain", "RBSConnection", "RBClient",
+        "RBConnection", "RBSProcessHandle", "RBProcessHandle",
+        "BKSProcessAssertion", NULL };
+    for (int i = 0; probes[i]; i++) {
+        Class c = NSClassFromString([NSString stringWithUTF8String:probes[i]]);
+        LOG("[bq69] класс %-24s = %p", probes[i], c);
+        if (c) bq57_dump(c, probes[i]);
+    }
+    fsync(fileno(stderr));
+
+    // свизл RBSXPCMessage-фабрик (класс-методы)
+    // v214.5: свизлы messageForMethod — НЕ ставим (varargs-хук
+    // va_list ABI-опасен; acquire виснет с хуком). Чистый acquire.
+    // Сниф — hook arguments: (не varguments), низкий риск.
+    if (getenv("BQ69_HOOK")) {
+        Class msgCls = NSClassFromString(@"RBSXPCMessage");
+        if (msgCls) {
+            Method mm1 = class_getClassMethod(msgCls,
+                NSSelectorFromString(@"messageForMethod:arguments:"));
+            if (mm1) {
+                bq69_orig_msgForMethod = method_setImplementation(
+                    mm1, (IMP)bq69_hook_msgForMethod);
+                LOG("[bq69] swizzle +messageForMethod:arguments: "
+                    "orig=%p", bq69_orig_msgForMethod);
+            } else {
+                LOG("[bq69] messageForMethod:arguments: НЕТ — только "
+                    "varguments (не хукаем: va_list ABI)");
+            }
+        }
+    } else {
+        LOG("[bq69] свизлы OFF (BQ69_HOOK unset) — чистый acquire");
+    }
+    fsync(fileno(stderr));
+
+    // v214.2: v214.1 не сработал — performSelector:afterDelay на
+    // ФАЗОВОЙ нити (runloop не крутится) => таймер не выстрелит.
+    // Триггер прямо из фазовой нити: acquire-путь UIKit из не-main
+    // нити — штатный (v192: фоновые задачи работали), в отличие от
+    // main-queue блока (v214 дедлок с dispatch_sync(main) в acquire).
+    LOG("[bq69] сниф ON; триггер на main-async (модель v206.8)");
+    bq69_sniff = 1;
+    dispatch_async(dispatch_get_main_queue(), ^{
+        bq69_fire_on_main();
+    });
+    LOG("[bq69] фоновый запуск (fire на main)");
+}
+
+static void bq69_fire_on_main(void) {
+    // v214.3-4: beginBackgroundTask из фазовой нити виснет (acquire
+    // sync на main-очередь RBS-соединения). ПРЯМОЙ RBSAssertion
+    // НА MAIN-НИТИ (модель v206.8: BSXPC-операции на main работают).
+    LOG("[bq69] fire(main): ПРЯМОЙ RBSAssertion");
+    fsync(fileno(stderr));
+    @try {
+        Class aCls = NSClassFromString(@"RBSAssertion");
+        if (!aCls) { LOG("[bq69] RBSAssertion нет"); return; }
+        // v215: target = НАШ процесс (handleForIdentifier), attrs —
+        // настоящие RBS-атрибуты (v214: missing valid target).
+        Class hCls = NSClassFromString(@"RBSProcessHandle");
+        id target = nil;
+        if (hCls && [hCls respondsToSelector:
+                       @selector(handleForIdentifier:error:)]) {
+            typedef id (*HFn)(Class, SEL, id, NSError **);
+            HFn hf = (HFn)objc_msgSend;
+            NSError *herr = nil;
+            // идентификатор — pid (NSNumber) или строка bundle-id?
+            // пробуем оба
+            target = hf(hCls, @selector(handleForIdentifier:error:),
+                        @(getpid()), &herr);
+            LOG("[bq69] handleForIdentifier(pid) -> %s err=%s",
+                target ? "OK" : "nil",
+                herr ? herr.localizedDescription.UTF8String : "-");
+            if (!target) {
+                herr = nil;
+                target = hf(hCls,
+                            @selector(handleForIdentifier:error:),
+                            @"cancer9725.turquoise1323", &herr);
+                LOG("[bq69] handleForIdentifier(bundle) -> %s",
+                    target ? "OK" : "nil");
+            }
+        }
+        if (!target) {
+            // initWithIdentity: — identity это pid?
+            if (hCls) {
+                typedef id (*IFn)(id, SEL, id);
+                IFn fi = (IFn)objc_msgSend;
+                target = fi([hCls alloc],
+                            @selector(initWithIdentity:),
+                            @(getpid()));
+                LOG("[bq69] initWithIdentity(pid) -> %s",
+                    target ? "OK" : "nil");
+            }
+        }
+        LOG("[bq69] target=%s",
+            target ? NSStringFromClass([target class]).UTF8String
+                   : "(nil)");
+        NSDictionary *attrs = @{
+            @"TestAttribute" : @YES,
+        };
+        typedef id (*IFn)(id, SEL, NSString *, id, NSDictionary *);
+        IFn f = (IFn)objc_msgSend;
+        id expl = @"bq69 probe";
+        id assertion = nil;
+        SEL initSel = @selector(
+            initWithExplanation:target:attributes:);
+        if ([aCls instancesRespondToSelector:initSel]) {
+            assertion = f([aCls alloc], initSel, expl, target, attrs);
+        }
+        if (!assertion && [aCls instancesRespondToSelector:
+                           @selector(_initWithDescriptor:service:)]) {
+            // fallback: descriptor-путь
+            LOG("[bq69] init explanation не сработал — descriptor-путь");
+        }
+        if (!assertion && [aCls instancesRespondToSelector:
+                           @selector(init)]) {
+            assertion = [[aCls alloc] init];
+        }
+        if (!assertion) { LOG("[bq69] assertion не создан"); return; }
+        LOG("[bq69] assertion=%s",
+            NSStringFromClass([assertion class]).UTF8String);
+        SEL acq = @selector(acquireWithError:);
+        if ([assertion respondsToSelector:acq]) {
+            NSError *err = nil;
+            typedef BOOL (*AFn)(id, SEL, NSError **);
+            AFn af = (AFn)objc_msgSend;
+            BOOL ok = af(assertion, acq, &err);
+            LOG("[bq69] acquireWithError: -> %d err=%s", (int)ok,
+                err ? err.localizedDescription.UTF8String : "(none)");
+        } else {
+            LOG("[bq69] acquireWithError: не отвечает");
+        }
+    } @catch (NSException *e) {
+        LOG("[bq69] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    sleep(3);  // даём асинхронным RPC (invalidate и пр.) улечься
+    bq69_sniff = 0;
+    LOG("[bq69] сниф OFF — выше список RB-RPC (replay-база)");
+    fsync(fileno(stderr));
+}
+
+
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -47927,6 +48132,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ66")) { p_bq66(); LOG("[probe13] bq66-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ67")) { p_bq67(); LOG("[probe13] bq67-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ68")) { p_bq68(); LOG("[probe13] bq68-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ69")) { p_bq69(); LOG("[probe13] bq69-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
