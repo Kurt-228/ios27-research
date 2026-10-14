@@ -1,0 +1,127 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ74=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4e0b
+[scaler] conn 0x4e0b, s1 77 s2 82
+[probe12] SetNotificationPort -> 0x00000000
+[bq74] v224: RBSInheritance рантайм-зонд
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x10649c600> { count = 1, transaction: 0, voucher = 0x1065358b0, contents =
+	"bsxpc" => <string: 0x1066a4360> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x2071cd460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x2071cd5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq74] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq74] фоновый запуск...
+[probe13] bq74-only mode, stop
+[bq74] класс RBSInheritance                 = 0x205467de8
+[bq57] RBSInheritance -> RBSInheritance
+[bq57] RBSInheritance instance-methods: 14
+[bq57]   RBSInheritance -_initWithNamespace:environment:encodedEndowment:originatingIdentifier:attributePath:
+[bq57]   RBSInheritance -initWithRBSXPCCoder:
+[bq57]   RBSInheritance -hash
+[bq57]   RBSInheritance -description
+[bq57]   RBSInheritance -environment
+[bq57]   RBSInheritance -encodeWithRBSXPCCoder:
+[bq57]   RBSInheritance -isEqual:
+[bq57]   RBSInheritance -endowmentNamespace
+[bq57]   RBSInheritance -init
+[bq57]   RBSInheritance -endowment
+[bq57]   RBSInheritance -copyWithZone:
+[bq57]   RBSInheritance -originatingIdentifier
+[bq57]   RBSInheritance -.cxx_destruct
+[bq57]   RBSInheritance -encodedEndowment
+[bq57] RBSInheritance class-methods: 1
+[bq57]   RBSInheritance +supportsRBSXPCSecureCoding
+[bq74] класс RBClientInheritanceManager     = 0x0
+[bq74] класс RBSInheritanceManager          = 0x0
+[bq74] класс RBSEndowment                   = 0x0
+[bq74] класс RBSEndowmentProxy              = 0x0
+[bq74] класс RBSConnection                  = 0x205468c98
+[bq57] RBSConnection -> RBSConnection
+[bq57] RBSConnection instance-methods: 37
+[bq57]   RBSConnection -hostProcessForInstance:error:
+[bq57]   RBSConnection -async_didChangeInheritances:completion:
+[bq57]   RBSConnection -limitationsForInstance:error:
+[bq57]   RBSConnection -acquireAssertion:error:
+[bq57]   RBSConnection -preventLaunchPredicatesWithError:
+[bq57]   RBSConnection -invalidateAssertion:error:
+[bq57]   RBSConnection -async_observedProcessExitEvents:completion:
+[bq57]   RBSConnection -executeTerminateRequest:assertion:error:
+[bq57]   RBSConnection -async_observedPreventLaunchPredicatesUpdate:completion:
+[bq57]   RBSConnection -processName:
+[bq57]   RBSConnection -async_processDidExit:withContext:
+[bq57]   RBSConnection -identifiersForStateCaptureSubsystems:
+[bq57]   RBSConnection -async_observedProcessStatesDidChange:completion:
+[bq57]   RBSConnection -init
+[bq57]   RBSConnection -statesForPredicate:withDescriptor:error:
+[bq57]   RBSConnection -subscribeToProcessDeath:handler:
+[bq57]   RBSConnection -busyExtensionInstancesFromSet:error:
+[bq57]   RBSConnection -portForIdentifier:
+[bq57]   RBSConnection -lastExitContextForInstance:error:
+[bq57]   RBSConnection -async_willExpireAssertionsSoon
+[bq57]   RBSConnection -async_assertionWillInvalidate:
+[bq57]   RBSConnection -captureStateForSubsystem:error:
+[bq57]   RBSConnection -invalidateAssertionWithIdentifier:error:
+[bq57]   RBSConnection -unsubscribeProcessStateMonitor:configuration:
+[bq57]   RBSConnection -infoPlistResultForInstance:forKeys:error:
+[bq57]   RBSConnection -handleForPredicate:error:
+[bq57]   RBSConnection -subscribeProcessStateMonitor:configuration:error:
+[bq57]   RBSConnection -executeLaunchRequest:
+[bq57]   RBSConnection -intendToExit:withStatus:
+[bq57]   RBSConnection -reset
+[bq57]   RBSConnection -isIdentityAnAngel:withError:
+[bq57]   RBSConnection -handleForKey:
+[bq57]   RBSConnection -.cxx_destruct
+[bq57]   RBSConnection -dealloc
+[bq57]   RBSConnection -async_assertionsDidInvalidate:withError:
+[bq57]   RBSConnection -saveEndowment:withError:
+[bq57]   RBSConnection -assertionDescriptorsByPidWithFlattenedAttributes:error:
+[bq57] RBSConnection class-methods: 5
+[bq57]   RBSConnection +sharedInstance
+[bq57]   RBSConnection +handshakeQueue
+[bq57]   RBSConnection +testConnectionWithConnection:
+[bq57]   RBSConnection +connectionQueue
+[bq57]   RBSConnection +setInDaemon
+[bq74] класс RBSTerminateContext            = 0x205467b90
+[bq57] RBSTerminateContext -> RBSTerminateContext
+[bq57] RBSTerminateContext instance-methods: 26
+[bq57]   RBSTerminateContext -setExplanation:
+[bq57]   RBSTerminateContext -initWithRBSXPCCoder:
+[bq57]   RBSTerminateContext -hash
+[bq57]   RBSTerminateContext -description
+[bq57]   RBSTerminateContext -setReportType:
+[bq57]   RBSTerminateContext -setAdditionalPayload:
+[bq57]   RBSTerminateContext -explanation
+[bq57]   RBSTerminateContext -encodeWithRBSXPCCoder:
+[bq57]   RBSTerminateContext -isEqual:
+[bq57]   RBSTerminateContext -setExceptionDomain:
+[bq57]   RBSTerminateContext -initWithExplanation:
+[bq57]   RBSTerminateContext -init
+[bq57]   RBSTerminateContext -preventIfBeingDebugged
+[bq57]   RBSTerminateContext -setPreventIfBeingDebugged:
+[bq57]   RBSTerminateContext -setAttributes:
+[bq57]   RBSTerminateContext -exceptionDomain
+[bq57]   RBSTerminateContext -copyWithZone:
+[bq57]   RBSTerminateContext -setExceptionCode:
+[bq57]   RBSTerminateContext -exceptionCode
+[bq57]   RBSTerminateContext -maximumTerminationResistance
+[bq57]   RBSTerminateContext -setMaximumTerminationResistance:
+[bq57]   RBSTerminateContext -reportType
+[bq57]   RBSTerminateContext -shouldTerminatePlugIns
+[bq57]   RBSTerminateContext -additionalPayload
+[bq57]   RBSTerminateContext -.cxx_destruct
+[bq57]   RBSTerminateContext -attributes
+[bq57] RBSTerminateContext class-methods: 2
+[bq57]   RBSTerminateContext +supportsRBSXPCSecureCoding
+[bq57]   RBSTerminateContext +defaultContextWithExplanation:
+[bq74] RBConnectionClient=0x0 (saveEndowment в карте §213)
+[bq74] — RBSConnection полный дамп выше; искать inherit/endow — v225
+[bq74] done — список классов/методов = карта для endpoint-injection-пробы

@@ -41316,6 +41316,66 @@ static void p_bq73(void) {
     LOG("[bq73] фоновый запуск...");
 }
 
+// p_bq74 — v224: RBSInheritance endpoint-injection — РУНТАЙМ-ЗОНД.
+// Ос-лог §218: <RBSInheritance| name:com.apple.boardservices.endpoint-injection
+// payload 11782...> — механика инъекции BS-эндпоинтов через runningboardd.
+// Кэш-сканы недоступны (диск деградировал) — рантайм-интроспекция
+// классов на устройстве: RBSInheritance/RBClientInheritanceManager/
+// RBSConnection-методы (saveEndowment §213-доп.2) + перебор селекторов.
+static void p_bq74(void) {
+    LOG("[bq74] v224: RBSInheritance рантайм-зонд");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq74.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq74] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq74] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    dlopen("/System/Library/PrivateFrameworks/BoardServices"
+           ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        static const char *probes[] = {
+            "RBSInheritance", "RBClientInheritanceManager",
+            "RBSInheritanceManager", "RBSEndowment", "RBSEndowmentProxy",
+            "RBSConnection", "RBSTerminateContext", NULL };
+        for (int i = 0; probes[i]; i++) {
+            Class c = NSClassFromString(
+                [NSString stringWithUTF8String:probes[i]]);
+            LOG("[bq74] класс %-30s = %p", probes[i], c);
+            if (c) bq57_dump(c, probes[i]);
+        }
+        // RBConnectionClient saveEndowment: (§213-доп.2) — среатор?
+        Class cc = NSClassFromString(@"RBConnectionClient");
+        LOG("[bq74] RBConnectionClient=%p (saveEndowment в карте §213)",
+            cc);
+        // RBSConnection все методы — ищем inheritance/endowment
+        Class rc = NSClassFromString(@"RBSConnection");
+        if (rc) {
+            LOG("[bq74] — RBSConnection полный дамп выше; искать "
+                "inherit/endow — v225");
+        }
+        LOG("[bq74] done — список классов/методов = карта для "
+            "endpoint-injection-пробы");
+    } @catch (NSException *e) {
+        LOG("[bq74] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq74] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -48815,6 +48875,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ71")) { p_bq71(); LOG("[probe13] bq71-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ72")) { p_bq72(); LOG("[probe13] bq72-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ73")) { p_bq73(); LOG("[probe13] bq73-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ74")) { p_bq74(); LOG("[probe13] bq74-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

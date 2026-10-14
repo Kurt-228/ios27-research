@@ -6024,3 +6024,49 @@ terminate за подписью. Crash-diff 0, фаза жива, все дет�
 
 Дальше по приоритету: RBSInheritance endpoint-injection (§218-2)
 и мутационный фаззинг acquire-wire (bq64-стиль по coder-сниф-базе).
+
+## §220. v224: RBSInheritance — рантайм-карта (диск-деградация обойдена зондом)
+
+### Инфраструктура: кэш-сканы недоступны (временно)
+
+Диск Mac mini деградировал (uptime 3.5д, load ~3, swap активен):
+1.2GB .symbols-сканы (grep/mmap) — таймауты на любом объёме >64KB
+(чтение 64KB = 2.8s, 256KB = 17.5s). RE-инструмент жив (venv,
+re2.py), но тяжёлые сканы — до перезагрузки/освобождения диска.
+Обход: рантайм-зонды на устройстве (классы уже в памяти).
+
+### RBSInheritance (0x205467de8, жив в процессе)
+
+```
+-_initWithNamespace:environment:encodedEndowment:
+           originatingIdentifier:attributePath:
+-encodeWithRBSXPCCoder: / -initWithRBSXPCCoder:  (RBSXPC-wire!)
+-endowmentNamespace / -endowment / -encodedEndowment
+-originatingIdentifier / -environment / -attributePath
++supportsRBSXPCSecureCoding
+```
+
+Структура = ос-лог §218: `<RBSInheritance| name:boardservices
+.endpoint-injection origID:36-165-102 payload>`:
+**namespace = com.apple.boardservices.endpoint-injection,
+encodedEndowment = payload (mach-порт-токен),
+originatingIdentifier = origID**.
+
+Путь инъекции: inheritance кладётся в **attributes RBSAssertion
+(при acquire)** → runningboardd наследует эндоументы целевому
+процессу (ос-лог: «injecting inherited from 'UIScene:…'» —
+SpringBoard инъецируетPosterKit'у). Ключ: `-[RBSConnection
+async_didChangeInheritances:completion:]` — клиент УХАЖИВАЕТ
+изменения наследований от демона.
+
+### v225-план (по данным зонда)
+
+1. RE `_initWithNamespace:` — сигнатуры полей (диск вернётся) или
+   эмпирика: initWithNamespace:@"com.apple.boardservices.
+   endpoint-injection" + encodedEndowment=наш endpoint-токен.
+2. acquire с inheritance-атрибутом → ос-лог покажет, примет ли
+   демон наследование от sandboxed originator.
+3. `async_didChangeInheritances:` — подп诺 на входящие инъекции.
+
+Лог: results/runf-bq74-v224.log. RBSConnection-карта расширена
+(async_observedProcessExitEvents, identifiersForStateCapture…).
