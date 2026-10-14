@@ -5557,3 +5557,58 @@ RunningBoardServices построен на BoardServices — потому чек
 Логи: results/runf-bq69-v215.log. Инструментальное: va_list
 (arm64) — по ссылке в __va_list_tag; сигнатура varargs-IMP
 требует идентичного ABI — свизл varargs-методов запрещён.
+
+### §213-доп.2. v214-216: RBSAssertion acquire-путь полностью расколот; сниф через RBSXPCCoder; «no attributes» — сервер-сайда
+
+**Эволюция p_bq69 (каждая итерация — контроль §144):**
+
+1. v214.1-4: acquire-путь (UIKit beginBackgroundTask / прямой
+   RBSAssertion) — виснет. **Источник всех зависаний — мой свизл
+   `+[RBSXPCMessage messageForMethod:varguments:]` с va_list по
+   значению (arm64 ABI: va_list = указатель на __va_list_tag).**
+   Без хука — acquire живой (v214.5). Урок: **varargs-методы
+   НЕ свизлить никогда**.
+2. v215: target = `+[RBSProcessHandle handleForIdentifier:]` →
+   падение copyWithZone: → RE `-[RBSAssertionDescriptor target]` =
+   **RBSTarget***. v215.1: `+[RBSTarget currentProcess]` → OK.
+3. v215.2: attributes = `@[RBSLegacyAttribute]` → «no attributes» —
+   демеон. v216: reason = RBSAssertionReason ENUM (не строка;
+   строка → snprintf-мусор в requestedReason).
+4. **v216 сниф-прорыв: свизл `-[RBSXPCCoder encode*:forKey:]`
+   (фиксированные сигнатуры — ABI-безопасно)** — полный wire
+   acquire-RPC снят (65 инвокаций в логе):
+
+```
+encObj rbs_argument_0 = RBSAssertionDescriptor
+ ├ identifier: nil
+ ├ target: RBSTarget
+ │  ├ processIdentifier: RBSProcessIdentifier { _pid: наш pid }
+ │  ├ processIdentity/environment/endpoint: nil
+ ├ explanation: const-string
+ ├ attributes: { "legacy": RBSLegacyAttribute {
+ │     requestedReason, reason (enum!), flags } }
+ └ rbs_selector: tagged-string
+```
+
+5. v216.1: перебор reason 0..64 (каждый acquire) — **ВСЕ дают
+   «no attributes» с сервера**. Демон требует иной состав
+   attributes-словаря (не legacy-одиночный) либо иной
+   descriptor-валидности (identifier nil?). Ошибка —
+   RBS_DOMAIN: серверная валидация descriptor'а.
+
+**Значение:** полный RB-wire (RBSXPCMessage-формат:
+rbs_argument_N + rbs_selector, RBSXPCCoder-примитивы) воспроизведён
+из песочницы; acquire-RPC доходит до runningboardd (сниф-доказано);
+осталась серверная валидация состава attributes (RE
+`-[RBSLegacyAttribute _isOriginatorValidForContext:errorReason:]` /
+`_isTargetValidForContext:` или ос_лог runningboardd «no attributes»
+— следующая итерация).
+
+**Запрос оператору** (после свежего bq69-прогона):
+```
+sudo /usr/bin/log collect --device-name "iPhone (Kurt)" --last 15m
+log show <archive> --info --debug --predicate 'processImagePath CONTAINS "runningboardd"'
+```
+— строка серверной валидации (как §211 os_log закрыл Observer).
+
+Логи: results/runf-bq69-v216.log (сниф-wire, 65 инвокаций).

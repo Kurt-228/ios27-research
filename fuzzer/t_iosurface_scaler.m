@@ -40442,6 +40442,47 @@ static void bq69_fire_on_main(void);
 static IMP bq69_orig_msgForMethod = NULL;
 static IMP bq69_orig_msgForMethodV = NULL;
 static volatile int bq69_sniff = 0;
+static IMP bq69_orig_encObj = NULL;
+static IMP bq69_orig_encStr = NULL;
+static IMP bq69_orig_encInt = NULL;
+static IMP bq69_orig_encBool = NULL;
+static IMP bq69_orig_encXPC = NULL;
+
+// v216: сниф RBSXPCCoder — фиксированные сигнатуры (varargs не трогаем!)
+static void bq69_hook_encObj(id self, SEL _cmd, id obj, NSString *key) {
+    if (bq69_sniff)
+        LOG("[bq69] encObj %s = %s",
+            key.UTF8String ?: "?",
+            obj ? NSStringFromClass([obj class]).UTF8String : "(nil)");
+    ((void (*)(id, SEL, id, NSString *))bq69_orig_encObj)(
+        self, _cmd, obj, key);
+}
+static void bq69_hook_encStr(id self, SEL _cmd, NSString *v, NSString *key) {
+    if (bq69_sniff)
+        LOG("[bq69] encStr %s = %s", key.UTF8String ?: "?",
+            v ? [v description].UTF8String : "(nil)");
+    ((void (*)(id, SEL, NSString *, NSString *))bq69_orig_encStr)(
+        self, _cmd, v, key);
+}
+static void bq69_hook_encInt(id self, SEL _cmd, long long v, NSString *key) {
+    if (bq69_sniff)
+        LOG("[bq69] encInt %s = %lld", key.UTF8String ?: "?", v);
+    ((void (*)(id, SEL, long long, NSString *))bq69_orig_encInt)(
+        self, _cmd, v, key);
+}
+static void bq69_hook_encBool(id self, SEL _cmd, BOOL v, NSString *key) {
+    if (bq69_sniff)
+        LOG("[bq69] encBool %s = %d", key.UTF8String ?: "?", (int)v);
+    ((void (*)(id, SEL, BOOL, NSString *))bq69_orig_encBool)(
+        self, _cmd, v, key);
+}
+static void bq69_hook_encXPC(id self, SEL _cmd, id x, NSString *key) {
+    if (bq69_sniff)
+        LOG("[bq69] encXPC %s = %s", key.UTF8String ?: "?",
+            x ? NSStringFromClass([x class]).UTF8String : "(nil)");
+    ((void (*)(id, SEL, id, NSString *))bq69_orig_encXPC)(
+        self, _cmd, x, key);
+}
 
 static id bq69_hook_msgForMethod(id self, SEL _cmd, NSString *method,
                                   id args) {
@@ -40506,6 +40547,38 @@ static void p_bq69(void) {
     fsync(fileno(stderr));
 
     // свизл RBSXPCMessage-фабрик (класс-методы)
+    // v216: сниф RBSXPCCoder (фиксированные сигнатуры — ABI-безопасно)
+    if (getenv("BQ69_HOOK")) {
+        Class cdrCls = NSClassFromString(@"RBSXPCCoder");
+        if (cdrCls) {
+            Method m;
+            m = class_getInstanceMethod(cdrCls,
+                @selector(encodeObject:forKey:));
+            if (m) { bq69_orig_encObj = method_setImplementation(
+                m, (IMP)bq69_hook_encObj); }
+            m = class_getInstanceMethod(cdrCls,
+                @selector(encodeString:forKey:));
+            if (m) { bq69_orig_encStr = method_setImplementation(
+                m, (IMP)bq69_hook_encStr); }
+            m = class_getInstanceMethod(cdrCls,
+                @selector(encodeInt64:forKey:));
+            if (m) { bq69_orig_encInt = method_setImplementation(
+                m, (IMP)bq69_hook_encInt); }
+            m = class_getInstanceMethod(cdrCls,
+                @selector(encodeBool:forKey:));
+            if (m) { bq69_orig_encBool = method_setImplementation(
+                m, (IMP)bq69_hook_encBool); }
+            m = class_getInstanceMethod(cdrCls,
+                @selector(encodeXPCObject:forKey:));
+            if (m) { bq69_orig_encXPC = method_setImplementation(
+                m, (IMP)bq69_hook_encXPC); }
+            LOG("[bq69] coder-хуки: obj=%p str=%p int=%p bool=%p xpc=%p",
+                bq69_orig_encObj, bq69_orig_encStr, bq69_orig_encInt,
+                bq69_orig_encBool, bq69_orig_encXPC);
+        } else {
+            LOG("[bq69] RBSXPCCoder НЕТ");
+        }
+    }
     // v214.5: свизлы messageForMethod — НЕ ставим (varargs-хук
     // va_list ABI-опасен; acquire виснет с хуком). Чистый acquire.
     // Сниф — hook arguments: (не varguments), низкий риск.
@@ -40551,49 +40624,89 @@ static void bq69_fire_on_main(void) {
     @try {
         Class aCls = NSClassFromString(@"RBSAssertion");
         if (!aCls) { LOG("[bq69] RBSAssertion нет"); return; }
-        // v215: target = НАШ процесс (handleForIdentifier), attrs —
-        // настоящие RBS-атрибуты (v214: missing valid target).
-        Class hCls = NSClassFromString(@"RBSProcessHandle");
+        // v215.1: target = RBSTarget (RE: descriptor.target возвращает
+        // RBSTarget*; v215 падал copyWithZone на ProcessHandle).
+        // +[RBSTarget currentProcess] — правильный конструктор.
+        Class tCls = NSClassFromString(@"RBSTarget");
         id target = nil;
-        if (hCls && [hCls respondsToSelector:
-                       @selector(handleForIdentifier:error:)]) {
-            typedef id (*HFn)(Class, SEL, id, NSError **);
-            HFn hf = (HFn)objc_msgSend;
-            NSError *herr = nil;
-            // идентификатор — pid (NSNumber) или строка bundle-id?
-            // пробуем оба
-            target = hf(hCls, @selector(handleForIdentifier:error:),
-                        @(getpid()), &herr);
-            LOG("[bq69] handleForIdentifier(pid) -> %s err=%s",
-                target ? "OK" : "nil",
-                herr ? herr.localizedDescription.UTF8String : "-");
-            if (!target) {
-                herr = nil;
-                target = hf(hCls,
-                            @selector(handleForIdentifier:error:),
-                            @"cancer9725.turquoise1323", &herr);
-                LOG("[bq69] handleForIdentifier(bundle) -> %s",
-                    target ? "OK" : "nil");
-            }
+        if (tCls && [tCls respondsToSelector:@selector(currentProcess)]) {
+            typedef id (*CFn)(Class, SEL);
+            CFn cf = (CFn)objc_msgSend;
+            target = cf(tCls, @selector(currentProcess));
         }
-        if (!target) {
-            // initWithIdentity: — identity это pid?
-            if (hCls) {
-                typedef id (*IFn)(id, SEL, id);
-                IFn fi = (IFn)objc_msgSend;
-                target = fi([hCls alloc],
-                            @selector(initWithIdentity:),
-                            @(getpid()));
-                LOG("[bq69] initWithIdentity(pid) -> %s",
-                    target ? "OK" : "nil");
-            }
+        if (!target && tCls
+            && [tCls respondsToSelector:@selector(targetWithPid:)]) {
+            typedef id (*PFn)(Class, SEL, int);
+            PFn pf = (PFn)objc_msgSend;
+            target = pf(tCls, @selector(targetWithPid:), getpid());
         }
-        LOG("[bq69] target=%s",
+        LOG("[bq69] target=%s (%s)",
             target ? NSStringFromClass([target class]).UTF8String
-                   : "(nil)");
-        NSDictionary *attrs = @{
-            @"TestAttribute" : @YES,
-        };
+                   : "(nil)",
+            target ? [target description].UTF8String : "-");
+        if (!target) { LOG("[bq69] target НЕТ — стоп"); return; }
+        // v215.2: attrs = РЕАЛЬНЫЙ RBSAttribute: +[RBSLegacyAttribute
+        // attributeWithReason:flags:] (модель UIKit background task:
+        // reason + флаги). v215.1 упал «no attributes» на словаре.
+        // v216.1: reason = RBSAssertionReason ENUM (int), не строка!
+        // (v215.2 строка -> snprintf-мусор в requestedReason).
+        // Перебор 0..64, каждый acquireWithError — ищем не-«no attributes».
+        Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+        id legacyAttr = nil;
+        int reasonHit = -1;
+        if (laCls && [laCls respondsToSelector:
+                        @selector(attributeWithReason:flags:)]) {
+            typedef id (*AFn)(Class, SEL, unsigned long long,
+                              unsigned long long);
+            AFn af = (AFn)objc_msgSend;
+            for (unsigned long long rr = 0; rr <= 64 && reasonHit < 0; rr++) {
+                id la = af(laCls,
+                           @selector(attributeWithReason:flags:), rr, 0ull);
+                if (!la) continue;
+                NSDictionary *a2 = @{ @"legacy" : la };
+                typedef id (*IFn)(id, SEL, NSString *, id, NSDictionary *);
+                IFn f2 = (IFn)objc_msgSend;
+                id as2 = f2([aCls alloc],
+                            @selector(initWithExplanation:target:attributes:),
+                            @"bq69 probe", target, a2);
+                if (!as2) continue;
+                NSError *er2 = nil;
+                typedef BOOL (*AFn2)(id, SEL, NSError **);
+                AFn2 aq2 = (AFn2)objc_msgSend;
+                BOOL ok = aq2(as2, @selector(acquireWithError:), &er2);
+                NSString *eds = er2
+                    ? er2.localizedDescription : @"(none)";
+                if (![eds containsString:@"no attributes"]) {
+                    reasonHit = (int)rr;
+                    legacyAttr = la;
+                    LOG("[bq69] reason=%llu ПРОШЛО no-attr гейт: ok=%d "
+                        "err=%@", rr, (int)ok, eds);
+                }
+                [as2 invalidate];
+            }
+        }
+        LOG("[bq69] reason-перебор: hit=%d", reasonHit);
+        if (reasonHit < 0) {
+            LOG("[bq69] ни один reason 0..64 не прошёл — RE "
+                "attributeWithReason:flags: (тип 1-го аргумента)");
+            return;
+        }
+        if (!laCls) {
+            // fallback: поиск любого attributeWith-класса
+            Class condCls = NSClassFromString(@"RBSConditionAttribute");
+            if (condCls) {
+                typedef id (*CFn)(Class, SEL, id, id);
+                CFn cf = (CFn)objc_msgSend;
+                legacyAttr = cf(condCls,
+                    @selector(attributeWithCondition:value:), nil, nil);
+            }
+        }
+        LOG("[bq69] legacyAttr=%s",
+            legacyAttr ? NSStringFromClass([legacyAttr class]).UTF8String
+                       : "(nil)");
+        NSDictionary *attrs = legacyAttr
+            ? @{ @"legacy" : legacyAttr }
+            : @{};
         typedef id (*IFn)(id, SEL, NSString *, id, NSDictionary *);
         IFn f = (IFn)objc_msgSend;
         id expl = @"bq69 probe";
@@ -40602,11 +40715,6 @@ static void bq69_fire_on_main(void) {
             initWithExplanation:target:attributes:);
         if ([aCls instancesRespondToSelector:initSel]) {
             assertion = f([aCls alloc], initSel, expl, target, attrs);
-        }
-        if (!assertion && [aCls instancesRespondToSelector:
-                           @selector(_initWithDescriptor:service:)]) {
-            // fallback: descriptor-путь
-            LOG("[bq69] init explanation не сработал — descriptor-путь");
         }
         if (!assertion && [aCls instancesRespondToSelector:
                            @selector(init)]) {
