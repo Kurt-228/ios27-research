@@ -1,0 +1,43 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ72=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x480b
+[scaler] conn 0x480b, s1 32 s2 67
+[probe12] SetNotificationPort -> 0x00000000
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq72] v219: hold + cross-service lifecycle
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x108094900> { count = 1, transaction: 0, voucher = 0x108374410, contents =
+	"bsxpc" => <string: 0x10817ca80> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x2071cd460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x2071cd5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq72] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq72] dlopen RBS=0x366509960 ext=0x366501290 ep=0x2054d7110 bs=0x2054d7520
+[bq72] фоновый запуск...
+[probe13] bq72-only mode, stop
+[bq72] A: acquire(SpringBoard, flags=ALL) -> 1 err=(none)
+[bq72] A: state=@ id=@
+[bq72] A: hold 10s: state=@ valid=-1854750867
+[bq72] A: hold 20s: state=@ valid=-1854750867
+[bq72] A: hold 30s: state=@ valid=-1854750867
+[bq72] A: hold 40s: state=@ valid=-1854750867
+[bq72] A: hold 50s: state=@ valid=-1854750867
+[bq72] A: hold 60s: state=@ valid=-1854750867
+[bq72] B: acquire(our) -> 1 err=(none)
+[bq59] svc=Launch begin
+[bq59] ep=<BSServiceConnectionEndpoint: 0x108334240; target: XPCService:5155:com.apple.extensionkitservice; service: Launch>
+[bq59] proto=0x2050ed408
+[bq59] svc=Launch activated
+[bq59] svc=Launch sig argc=4 ret=v arg2={?=[8I]} arg3=@?
+[bq59] svc=Launch invoke…
+[bq59] *** svc=Launch ОТВЕТ: reply(void) вызван (ошибок нет = assertions инвалидтированы) ***
+[bq59] svc=Launch итог got=1
+[bq59] svc=Launch done
+[bq59] svc=Launch INVALIDATION

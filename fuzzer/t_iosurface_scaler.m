@@ -40993,6 +40993,141 @@ static void p_bq71(void) {
     LOG("[bq71] фоновый запуск...");
 }
 
+// p_bq72 — v219: HOLD + CROSS-SERVICE lifecycle.
+// A) hold: assertion на SpringBoard(37) с flags=0xFF..FF (все
+//    lifecycle-флаги, §215: не валидируются) — удержание 60с,
+//    лог каждые 10с. Проверка: держит ли runningboardd наш
+//    assertion на чужом процессе (не самo-release).
+// B) cross-service: acquire через RBS (наш процесс) → invalidate
+//    через extensionkitservice Launch (audit_token наш) —
+//    полный lifecycle через ДВА разных демона; после Launch —
+//    assertion.isValid/state (инвалидирован ли).
+static void p_bq72(void) {
+    LOG("[bq72] v219: hold + cross-service lifecycle");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq72.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq72] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq72] CONTROL FAILED (§144)"); return; }
+    void *hRBS = dlopen(
+        "/System/Library/PrivateFrameworks/RunningBoardServices"
+        ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    void *hExt = dlopen(
+        "/System/Library/Frameworks/ExtensionFoundation"
+        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    LOG("[bq72] dlopen RBS=%p ext=%p ep=%p bs=%p",
+        hRBS, hExt, epCls, bsCls);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        Class tCls = NSClassFromString(@"RBSTarget");
+        Class aCls = NSClassFromString(@"RBSAssertion");
+        Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+        if (!tCls || !aCls || !laCls) { LOG("[bq72] нет классов"); return; }
+
+        // ===== A) HOLD: SpringBoard, все флаги =====
+        typedef id (*PFn)(Class, SEL, int);
+        PFn pf = (PFn)objc_msgSend;
+        id tgt37 = pf(tCls, @selector(targetWithPid:), 37);
+        typedef id (*AFn)(Class, SEL, unsigned long long,
+                          unsigned long long);
+        AFn af = (AFn)objc_msgSend;
+        id la = af(laCls, @selector(attributeWithReason:flags:),
+                   4ull, 0xFFFFFFFFFFFFFFFFull);
+        typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+        IFn f = (IFn)objc_msgSend;
+        id as37 = f([aCls alloc],
+                    @selector(initWithExplanation:target:attributes:),
+                    @"bq72 hold-probe", tgt37, @[la]);
+        if (!as37) { LOG("[bq72] A: assertion37 nil"); return; }
+        NSError *err = nil;
+        typedef BOOL (*AFn2)(id, SEL, NSError **);
+        AFn2 aq = (AFn2)objc_msgSend;
+        BOOL ok = aq(as37, @selector(acquireWithError:), &err);
+        LOG("[bq72] A: acquire(SpringBoard, flags=ALL) -> %d err=%s",
+            (int)ok, err ? err.localizedDescription.UTF8String : "(none)");
+        fsync(fileno(stderr));
+        if (ok) {
+            id st = [as37 valueForKey:@"state"];
+            id iid = [as37 valueForKey:@"identifier"];
+            LOG("[bq72] A: state=%@ id=%@", st, iid);
+            for (int t = 1; t <= 6; t++) {
+                usleep(10000000);
+                st = [as37 valueForKey:@"state"];
+                BOOL vld = ((BOOL (*)(id, SEL))objc_msgSend)(
+                    as37, @selector(isValid));
+                LOG("[bq72] A: hold %ds: state=%@ valid=%d", t * 10,
+                    st, (int)vld);
+                fsync(fileno(stderr));
+            }
+        }
+
+        // ===== B) CROSS-SERVICE: acquire(our) → Launch invalidate =====
+        typedef id (*CFn)(Class, SEL);
+        CFn cf = (CFn)objc_msgSend;
+        id tgtSelf = cf(tCls, @selector(currentProcess));
+        id la2 = af(laCls, @selector(attributeWithReason:flags:),
+                    4ull, 1ull);
+        id asSelf = f([aCls alloc],
+                      @selector(initWithExplanation:target:attributes:),
+                      @"bq72 cross-probe", tgtSelf, @[la2]);
+        if (!asSelf) { LOG("[bq72] B: assertion nil"); return; }
+        NSError *err2 = nil;
+        BOOL ok2 = aq(asSelf, @selector(acquireWithError:), &err2);
+        LOG("[bq72] B: acquire(our) -> %d err=%s", (int)ok2,
+            err2 ? err2.localizedDescription.UTF8String : "(none)");
+        fsync(fileno(stderr));
+        if (ok2) {
+            BOOL vldBefore = ((BOOL (*)(id, SEL))objc_msgSend)(
+                asSelf, @selector(isValid));
+            // Launch invalidate: наш audit_token by-value (32 Б)
+            static unsigned char tok[32];
+            memset(tok, 0, sizeof(tok));
+            mach_msg_type_number_t cnt = 8;
+            (void)task_info(mach_task_self(), 17 /* TASK_AUDIT_TOKEN */,
+                            (task_info_t)tok, &cnt);
+            bq59_svc_call(epCls, bsCls, "Launch",
+                "_TtP19ExtensionFoundation24_EXLaunchServiceProtocol_",
+                "invalidateLaunchAssertionsForExtensionAuditToken:reply:",
+                ^(NSInvocation *inv) {
+                    [inv setArgument:tok atIndex:2];
+                });
+            sleep(2);
+            BOOL vldAfter = ((BOOL (*)(id, SEL))objc_msgSend)(
+                asSelf, @selector(isValid));
+            id stAfter = [asSelf valueForKey:@"state"];
+            LOG("[bq72] B: ПОСЛЕ Launch-invalidate: valid %d->%d "
+                "state=%@ — %s", (int)vldBefore, (int)vldAfter, stAfter,
+                (vldBefore && !vldAfter)
+                    ? "CROSS-SERVICE ИНВАЛИДАЦИЯ РАБОТАЕТ (2 демона!)"
+                    : "assertion уцелел (Launch не тронул RBS-assertion "
+                      "или timing)");
+            fsync(fileno(stderr));
+        }
+        [asSelf invalidate];
+        [as37 invalidate];
+        LOG("[bq72] done (A hold + B cross) — смотреть ос_лог "
+            "runningboardd для эффекта флагов на SpringBoard)");
+    } @catch (NSException *e) {
+        LOG("[bq72] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq72] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -48490,6 +48625,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ69")) { p_bq69(); LOG("[probe13] bq69-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ70")) { p_bq70(); LOG("[probe13] bq70-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ71")) { p_bq71(); LOG("[probe13] bq71-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ72")) { p_bq72(); LOG("[probe13] bq72-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

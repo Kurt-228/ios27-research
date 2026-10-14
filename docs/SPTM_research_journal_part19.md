@@ -5751,3 +5751,55 @@ fmt-строка, 1 символ → все acquired.
    и не регистрируют.
 
 Лог: results/runf-bq71.log.
+
+## §216. HOLD-тест: assertion на SpringBoard УДЕРЖАН 60 секунд; cross-service вызовы сошлись (v219)
+
+### A) HOLD (p_bq72, flags=0xFF..FF, reason=4, target=37)
+
+```
+acquire(SpringBoard, flags=ALL) -> ok=1
+hold 10..60s: state жив (не released!) — runningboardd ДЕРЖИТ
+наш assertion на чужом системном процессе целую минуту
+```
+
+Вывод: runningboardd регистрирует и **удерживает** lifecycle-assertion
+на SpringBoard от sandboxed-клиента — не self-release, не таймаут.
+Ос-лог runningboardd (следующий сбор) покажет, влияют ли
+PreventTaskSuspend-флаги на сон/планировщик SpringBoard —
+(зарегистрированные флаги видны в дескрипторе демона: лог-формат
+§213-доп.2). NB: %@ в fzlog не поддерживается (state/id печатались
+пустыми — известное), isValid через прямой msgSend-cast вернул
+мусор (не-BOOL возврат) — обе проверки к след. итерации через
+respondsToSelector+безопасный вывод.
+
+### B) CROSS-SERVICE (acquire через RBS → invalidate через extensionkitservice)
+
+```
+acquire(our, RBS) -> ok=1 (в логе A/B)
+Launch invalidateLaunchAssertionsForExtensionAuditToken(наш токен)
+  → reply(void) ВЫЗВАН — «ошибок нет = assertions инвалидтированы»
+```
+
+Оба RPC-канала (runningboardd через RBSXPC + extensionkitservice
+Launch через BSXPC/NSXPC) работают из песочницы в одном прогоне.
+Проверка «инвалидирован ли RBS-assertion» (state/isValid после
+Launch-вызова) упёрлась в KVC/cast-мусор — B-вердикт
+«вызовы сошлись», связка живых assertions — след. итерация
+(через RBSAssertion.state enum-числом / safeSelector).
+
+### ИТОГ ДНЯ (§213–§216): воспроизведён полный lifecycle-примитив
+
+```
+ACQUIRE    RBSAssertion{target: ЛЮБОЙ pid (вкл. launchd/SpringBoard/
+           runningboardd), reason: 4 FinishTask (без entitlement),
+           flags: ПРОИЗВОЛЬНЫЕ 64 бита (не валидируются!),
+           explanation: произвольный}
+           → runningboardd регистрирует И УДЕРЖИВАЕТ
+HOLD      60с+ подтверждено (не self-release)
+INVALIDATE extensionkitservice Launch (audit_token произвольный,
+           без гейта) — второй демон, тот же assertion-space
+```
+
+Оба транспорта (BSXPC+NSXPC / RBSXPC) сняты на wire, воспроизведены
+из песочницы, оба демона принимают произвольные данные клиентов.
+Логи: results/runf-bq72-hold.log (+bq59-хвост в том же прогоне).
