@@ -5612,3 +5612,47 @@ log show <archive> --info --debug --predicate 'processImagePath CONTAINS "runnin
 — строка серверной валидации (как §211 os_log закрыл Observer).
 
 Логи: results/runf-bq69-v216.log (сниф-wire, 65 инвокаций).
+
+### §213-доп.3. v216.2-3: RBSAssertion acquire ИЗ ПЕСОЧНИЦЫ РАБОТАЕТ (reason=4, NSArray-attributes)
+
+**Ground truth через UIKit (v216.2):** beginBackgroundTask НА MAIN
+(хуки чистые, va_list-урок §213-доп.2 учтён) → bt=2 acquired;
+coder-сниф снял валидный wire:
+
+```
+rbs_argument_0 = RBSAssertionDescriptor:
+  identifier: nil, target: RBSTarget{pid}, explanation: CFString
+  attributes: __NSArrayI_Transfer        ← NSArray (НЕ dict!)
+  RBSLegacyAttribute: requestedReason=4, reason=4, flags=1
+```
+
+**Три отличия от моего ручного дескриптора (все найдены):**
+1. attributes = **NSArray**<RBSAttribute> (я давал NSDictionary —
+   v215.2/v216.1 все 65 reason «мимо» были из-за ТИПА);
+2. reason = **4** (RBSAssertionReason.FinishTask — классика);
+3. flags = **1**.
+
+**v216.3 перебор (каждый acquire, контроль UIKit bt в том же
+прогоне):** reason 0–3 → отклонено; **reason=4 → ok=1 acquired!**
+Плюс финальный acquireWithError: ok=1 — НАШ ПРОЦЕСС УДЕРЖИВАЕТ
+RBS-assertion с полностью ручным дескриптором (target=RBSTarget
+currentProcess, attributes=@[RBSLegacyAttribute reason:4 flags:1],
+explanation крафтовый).
+
+### Значение (для цели)
+
+1. **Полный RBS-wire воспроизведён**: rbs_argument_0 =
+   RBSAssertionDescriptor{identifier?, target, explanation,
+   attributes[], rbs_selector} через RBSXPCCoder-примитивы —
+   сравним с NSXPC-blob bq60: база для мутационного фаззинга
+   runningboardd (in-channel как bq63).
+2. **Assertion-примитив из песочницы**: приложение может
+   приобретать/удерживать RBS-assertions с крафтовыми полями
+   (explanation произвольный, identifier nil, target наш pid,
+   reason enum). Следующий шаг мутаций: target = ДРУГОЙ процесс
+   (targetWithPid: чужой pid → assertion на чужой процесс?!),
+   reason/flags вне enum, identifier-подмена.
+3. **Связка с bq68**: BS-канал к runningboard (SYS-mach) + этот
+   wire = независимый RPC-клиент к runningboardd.
+
+Логи: results/runf-bq69-v216.3.log (полный валидный wire + перебор).

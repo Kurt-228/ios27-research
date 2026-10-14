@@ -40616,11 +40616,34 @@ static void p_bq69(void) {
 }
 
 static void bq69_fire_on_main(void) {
-    // v214.3-4: beginBackgroundTask из фазовой нити виснет (acquire
-    // sync на main-очередь RBS-соединения). ПРЯМОЙ RBSAssertion
-    // НА MAIN-НИТИ (модель v206.8: BSXPC-операции на main работают).
-    LOG("[bq69] fire(main): ПРЯМОЙ RBSAssertion");
+    // v216.2: GROUND TRUTH — UIKit beginBackgroundTask НА MAIN
+    // (v214.3 вис из-за va_list-хука; теперь хуки чистые).
+    // Coder-сниф снимет ВАЛИДНЫЙ wire реального acquire.
+    LOG("[bq69] fire(main): UIKit beginBackgroundTask (ground truth)");
     fsync(fileno(stderr));
+    @try {
+        UIApplication *app = [UIApplication sharedApplication];
+        if (app) {
+            UIBackgroundTaskIdentifier bt =
+                [app beginBackgroundTaskWithExpirationHandler:^{
+                    LOG("[bq69] bt expired");
+                }];
+            LOG("[bq69] UIKit bt=%llu (валидный wire выше в снифе)",
+                (unsigned long long)bt);
+            fsync(fileno(stderr));
+            sleep(2);
+            if (bt != UIBackgroundTaskInvalid) {
+                [app endBackgroundTask:bt];
+                LOG("[bq69] endBackgroundTask (release wire)");
+            }
+        } else {
+            LOG("[bq69] sharedApplication nil — фаза до UIApplicationMain?");
+        }
+    } @catch (NSException *e) {
+        LOG("[bq69] UIKit ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    LOG("[bq69] ——— далее мой ручной descriptor для сравнения ———");
     @try {
         Class aCls = NSClassFromString(@"RBSAssertion");
         if (!aCls) { LOG("[bq69] RBSAssertion нет"); return; }
@@ -40663,8 +40686,10 @@ static void bq69_fire_on_main(void) {
                 id la = af(laCls,
                            @selector(attributeWithReason:flags:), rr, 0ull);
                 if (!la) continue;
-                NSDictionary *a2 = @{ @"legacy" : la };
-                typedef id (*IFn)(id, SEL, NSString *, id, NSDictionary *);
+                // v216.3: attributes = NSArray (ground truth UIKit:
+                // __NSArrayI_Transfer, НЕ NSDictionary!)
+                NSArray *a2 = @[ la ];
+                typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
                 IFn f2 = (IFn)objc_msgSend;
                 id as2 = f2([aCls alloc],
                             @selector(initWithExplanation:target:attributes:),
@@ -40676,11 +40701,14 @@ static void bq69_fire_on_main(void) {
                 BOOL ok = aq2(as2, @selector(acquireWithError:), &er2);
                 NSString *eds = er2
                     ? er2.localizedDescription : @"(none)";
-                if (![eds containsString:@"no attributes"]) {
+                if (ok) {
                     reasonHit = (int)rr;
                     legacyAttr = la;
-                    LOG("[bq69] reason=%llu ПРОШЛО no-attr гейт: ok=%d "
-                        "err=%@", rr, (int)ok, eds);
+                    LOG("[bq69] reason=%llu ПРОШЛО: ok=1 err=%@",
+                        rr, eds);
+                } else {
+                    LOG("[bq69] reason=%llu отклонено: %@",
+                        rr, eds);
                 }
                 [as2 invalidate];
             }
@@ -40704,10 +40732,8 @@ static void bq69_fire_on_main(void) {
         LOG("[bq69] legacyAttr=%s",
             legacyAttr ? NSStringFromClass([legacyAttr class]).UTF8String
                        : "(nil)");
-        NSDictionary *attrs = legacyAttr
-            ? @{ @"legacy" : legacyAttr }
-            : @{};
-        typedef id (*IFn)(id, SEL, NSString *, id, NSDictionary *);
+        NSArray *attrs = legacyAttr ? @[ legacyAttr ] : @[];
+        typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
         IFn f = (IFn)objc_msgSend;
         id expl = @"bq69 probe";
         id assertion = nil;

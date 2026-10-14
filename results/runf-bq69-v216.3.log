@@ -1,0 +1,375 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ69=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5a03
+[scaler] conn 0x5a03, s1 82 s2 87
+[probe12] SetNotificationPort -> 0x00000000
+[bq69] v214: сниф RB-wire в процессе
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] run ENTER ctl-empty nseq=1
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x12e490900> { count = 1, transaction: 0, voucher = 0x12e798320, contents =
+	"bsxpc" => <string: 0x12e71e130> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x2071cd460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x2071cd5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq69] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq69] dlopen RBS=0x366509960 RB=0x36647c998
+[bq69] класс RBSXPCMessage            = 0x205468ab8
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq69] класс RBSXPCCoder              = 0x205468a90
+[bq57] RBSXPCCoder -> RBSXPCCoder
+[bq57] RBSXPCCoder instance-methods: 29
+[bq57]   RBSXPCCoder -encodeObject:forKey:
+[bq57]   RBSXPCCoder -XPCConnection
+[bq57]   RBSXPCCoder -containsValueForKey:
+[bq57]   RBSXPCCoder -encodeDouble:forKey:
+[bq57]   RBSXPCCoder -initWithRBSXPCCoder:
+[bq57]   RBSXPCCoder -encodeInt64:forKey:
+[bq57]   RBSXPCCoder -encodeBool:forKey:
+[bq57]   RBSXPCCoder -message
+[bq57]   RBSXPCCoder -encodeXPCObject:forKey:
+[bq57]   RBSXPCCoder -decodeInt64ForKey:
+[bq57]   RBSXPCCoder -encodeCollection:forKey:
+[bq57]   RBSXPCCoder -encodeUInt64:forKey:
+[bq57]   RBSXPCCoder -init
+[bq57]   RBSXPCCoder -decodeCollectionOfClass:containingClass:forKey:
+[bq57]   RBSXPCCoder -_implicitDecodeXPCObjectForKey:
+[bq57]   RBSXPCCoder -createMessage
+[bq57]   RBSXPCCoder -encodeDictionary:forKey:
+[bq57]   RBSXPCCoder -decodeXPCObjectOfType:forKey:
+[bq57]   RBSXPCCoder -decodeDictionaryOfClass:forKey:
+[bq57]   RBSXPCCoder -_finishCoding
+[bq57]   RBSXPCCoder -decodeUInt64ForKey:
+[bq57]   RBSXPCCoder -initWithMessage:
+[bq57]   RBSXPCCoder -decodeDoubleForKey:
+[bq57]   RBSXPCCoder -decodeStringForKey:
+[bq57]   RBSXPCCoder -_removeValueForKey:
+[bq57]   RBSXPCCoder -decodeBoolForKey:
+[bq57]   RBSXPCCoder -.cxx_destruct
+[bq57]   RBSXPCCoder -decodeObjectOfClass:forKey:
+[bq57]   RBSXPCCoder -dealloc
+[bq57] RBSXPCCoder class-methods: 5
+[bq57]   RBSXPCCoder +rbs_testNSEncode:andDecodeOfExpectedClass:
+[bq57]   RBSXPCCoder +rbs_testEncode:andDecodeOfExpectedClass:
+[bq57]   RBSXPCCoder +coder
+[bq57]   RBSXPCCoder +supportsRBSXPCSecureCoding
+[bq57]   RBSXPCCoder +coderWithMessage:
+[bq69] класс RBSAssertion             = 0x2054686a8
+[bq57] RBSAssertion -> RBSAssertion
+[bq57] RBSAssertion instance-methods: 28
+[bq57]   RBSAssertion -fb_setWorkspaceState:
+[bq57]   RBSAssertion -fb_workspaceState
+[bq57]   RBSAssertion -isValid
+[bq57]   RBSAssertion -removeObserver:
+[bq57]   RBSAssertion -description
+[bq57]   RBSAssertion -invalidateWithError:
+[bq57]   RBSAssertion -explanation
+[bq57]   RBSAssertion -target
+[bq57]   RBSAssertion -debugDescription
+[bq57]   RBSAssertion -init
+[bq57]   RBSAssertion -descriptor
+[bq57]   RBSAssertion -addObserver:
+[bq57]   RBSAssertion -setInvalidationHandler:
+[bq57]   RBSAssertion -invalidate
+[bq57]   RBSAssertion -.cxx_destruct
+[bq57]   RBSAssertion -dealloc
+[bq57]   RBSAssertion -attributes
+[bq57]   RBSAssertion -state
+[bq57]   RBSAssertion -identifier
+[bq57]   RBSAssertion -acquireWithInvalidationHandler:
+[bq57]   RBSAssertion -acquireWithError:
+[bq57]   RBSAssertion -initWithExplanation:target:attributes:
+[bq57]   RBSAssertion -_initWithDescriptor:service:
+[bq57]   RBSAssertion -_initWithServerValidatedDescriptor:
+[bq57]   RBSAssertion -_initWithServerValidatedDescriptor:service:
+[bq57]   RBSAssertion -_serverInvalidateWithError:
+[bq57]   RBSAssertion -invalidateSyncWithError:
+[bq57]   RBSAssertion -setExpirationWarningHandler:
+[bq57] RBSAssertion class-methods: 0
+[bq69] класс RBSDomain                = 0x0
+[bq69] класс _RBSDomain               = 0x0
+[bq69] класс RBSConnection            = 0x205468c98
+[bq57] RBSConnection -> RBSConnection
+[bq57] RBSConnection instance-methods: 37
+[bq57]   RBSConnection -hostProcessForInstance:error:
+[bq57]   RBSConnection -async_didChangeInheritances:completion:
+[bq57]   RBSConnection -limitationsForInstance:error:
+[bq57]   RBSConnection -acquireAssertion:error:
+[bq57]   RBSConnection -preventLaunchPredicatesWithError:
+[bq57]   RBSConnection -invalidateAssertion:error:
+[bq57]   RBSConnection -async_observedProcessExitEvents:completion:
+[bq57]   RBSConnection -executeTerminateRequest:assertion:error:
+[bq57]   RBSConnection -async_observedPreventLaunchPredicatesUpdate:completion:
+[bq57]   RBSConnection -processName:
+[bq57]   RBSConnection -async_processDidExit:withContext:
+[bq57]   RBSConnection -identifiersForStateCaptureSubsystems:
+[bq57]   RBSConnection -async_observedProcessStatesDidChange:completion:
+[bq57]   RBSConnection -init
+[bq57]   RBSConnection -statesForPredicate:withDescriptor:error:
+[bq57]   RBSConnection -subscribeToProcessDeath:handler:
+[bq57]   RBSConnection -busyExtensionInstancesFromSet:error:
+[bq57]   RBSConnection -portForIdentifier:
+[bq57]   RBSConnection -lastExitContextForInstance:error:
+[bq57]   RBSConnection -async_willExpireAssertionsSoon
+[bq57]   RBSConnection -async_assertionWillInvalidate:
+[bq57]   RBSConnection -captureStateForSubsystem:error:
+[bq57]   RBSConnection -invalidateAssertionWithIdentifier:error:
+[bq57]   RBSConnection -unsubscribeProcessStateMonitor:configuration:
+[bq57]   RBSConnection -infoPlistResultForInstance:forKeys:error:
+[bq57]   RBSConnection -handleForPredicate:error:
+[bq57]   RBSConnection -subscribeProcessStateMonitor:configuration:error:
+[bq57]   RBSConnection -executeLaunchRequest:
+[bq57]   RBSConnection -intendToExit:withStatus:
+[bq57]   RBSConnection -reset
+[bq57]   RBSConnection -isIdentityAnAngel:withError:
+[bq57]   RBSConnection -handleForKey:
+[bq57]   RBSConnection -.cxx_destruct
+[bq57]   RBSConnection -dealloc
+[bq57]   RBSConnection -async_assertionsDidInvalidate:withError:
+[bq57]   RBSConnection -saveEndowment:withError:
+[bq57]   RBSConnection -assertionDescriptorsByPidWithFlattenedAttributes:error:
+[bq57] RBSConnection class-methods: 5
+[bq57]   RBSConnection +sharedInstance
+[bq57]   RBSConnection +handshakeQueue
+[bq57]   RBSConnection +testConnectionWithConnection:
+[bq57]   RBSConnection +connectionQueue
+[bq57]   RBSConnection +setInDaemon
+[bq69] класс RBClient                 = 0x0
+[bq69] класс RBConnection             = 0x0
+[bq69] класс RBSProcessHandle         = 0x205468c70
+[bq57] RBSProcessHandle -> RBSProcessHandle
+[bq57] RBSProcessHandle instance-methods: 51
+[bq57]   RBSProcessHandle -fb_canTaskSuspend
+[bq57]   RBSProcessHandle -matchesProcess:
+[bq57]   RBSProcessHandle -lastExitContext
+[bq57]   RBSProcessHandle -executablePath
+[bq57]   RBSProcessHandle -isValid
+[bq57]   RBSProcessHandle -initWithIdentity:
+[bq57]   RBSProcessHandle -hostProcess
+[bq57]   RBSProcessHandle -initWithRBSXPCCoder:
+[bq57]   RBSProcessHandle -isXPCService
+[bq57]   RBSProcessHandle -instance
+[bq57]   RBSProcessHandle -bundle
+[bq57]   RBSProcessHandle -hash
+[bq57]   RBSProcessHandle -description
+[bq57]   RBSProcessHandle -processPredicate
+[bq57]   RBSProcessHandle -rbs_pid
+[bq57]   RBSProcessHandle -hasConsistentLaunchdJob
+[bq57]   RBSProcessHandle -isDaemon
+[bq57]   RBSProcessHandle -name
+[bq57]   RBSProcessHandle -identity
+[bq57]   RBSProcessHandle -debugDescription
+[bq57]   RBSProcessHandle -encodeWithRBSXPCCoder:
+[bq57]   RBSProcessHandle -currentState
+[bq57]   RBSProcessHandle -initWithCoder:
+[bq57]   RBSProcessHandle -isEqual:
+[bq57]   RBSProcessHandle -pid
+[bq57]   RBSProcessHandle -platform
+[bq57]   RBSProcessHandle -isManaged
+[bq57]   RBSProcessHandle -beforeTranslocationBundlePath
+[bq57]   RBSProcessHandle -init
+[bq57]   RBSProcessHandle -auditToken
+[bq57]   RBSProcessHandle -xpcServiceIdentifier
+[bq57]   RBSProcessHandle -isApplication
+[bq57]   RBSProcessHandle -isReported
+[bq57]   RBSProcessHandle -daemonJobLabel
+[bq57]   RBSProcessHandle -uuid
+[bq57]   RBSProcessHandle -euid
+[bq57]   RBSProcessHandle -.cxx_destruct
+[bq57]   RBSProcessHandle -encodeWithCoder:
+[bq57]   RBSProcessHandle -dealloc
+[bq57]   RBSProcessHandle -isLifecycleManaged
+[bq57] RBSProcessHandle class-methods: 11
+[bq57]   RBSProcessHandle +supportsSecureCoding
+[bq57]   RBSProcessHandle +handleForIdentifier:error:
+[bq57]   RBSProcessHandle +forceLookupIdentifer:error:
+[bq57]   RBSProcessHandle +observeForImminentAssertionsExpiration:
+[bq57]   RBSProcessHandle +handleForLegacyHandle:error:
+[bq57]   RBSProcessHandle +handleForKey:fetchIfNeeded:
+[bq57]   RBSProcessHandle +handleForPredicate:error:
+[bq57]   RBSProcessHandle +supportsRBSXPCSecureCoding
+[bq57]   RBSProcessHandle +handleForIdentifier:pidVersion:error:
+[bq57]   RBSProcessHandle +handleForAuditToken:error:
+[bq57]   RBSProcessHandle +currentProcess
+[bq69] класс RBProcessHandle          = 0x0
+[bq69] класс BKSProcessAssertion      = 0x296afde98
+[bq57] BKSProcessAssertion -> BKSProcessAssertion
+[bq57] BKSProcessAssertion instance-methods: 17
+[bq57]   BKSProcessAssertion -setFlags:
+[bq57]   BKSProcessAssertion -_legacyReasonForReason:
+[bq57]   BKSProcessAssertion -initWithPID:flags:reason:name:
+[bq57]   BKSProcessAssertion -_legacyFlagsForFlags:
+[bq57]   BKSProcessAssertion -assertion:didInvalidateWithError:
+[bq57]   BKSProcessAssertion -reason
+[bq57]   BKSProcessAssertion -flags
+[bq57]   BKSProcessAssertion -initWithBundleIdentifier:pid:flags:reason:name:withHandler:acquire:
+[bq57]   BKSProcessAssertion -acquire
+[bq57]   BKSProcessAssertion -initWithBundleIdentifier:flags:reason:name:
+[bq57]   BKSProcessAssertion -initWithBundleIdentifier:flags:reason:name:withHandler:acquire:
+[bq57]   BKSProcessAssertion -invalidate
+[bq57]   BKSProcessAssertion -initWithPID:flags:reason:name:withHandler:
+[bq57]   BKSProcessAssertion -.cxx_destruct
+[bq57]   BKSProcessAssertion -dealloc
+[bq57]   BKSProcessAssertion -initWithBundleIdentifier:flags:reason:name:withHandler:
+[bq57]   BKSProcessAssertion -initWithPID:flags:reason:name:withHandler:acquire:
+[bq57] BKSProcessAssertion class-methods: 1
+[bq57]   BKSProcessAssertion +NameForReason:
+[bq69] coder-хуки: obj=0x1aa933998 str=0x0 int=0x1aa943d28 bool=0x1aa953930 xpc=0x1aa94ee98
+[bq69] messageForMethod:arguments: НЕТ — только varguments (не хукаем: va_list ABI)
+[bq69] сниф ON; триггер на main-async (модель v206.8)
+[bq69] fire(main): UIKit beginBackgroundTask (ground truth)
+[bq69] фоновый запуск (fire на main)
+[probe13] bq69-only mode, stop
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFString
+[bq69] encObj attributes = __NSArrayI_Transfer
+[bq69] encInt requestedReason = 4
+[bq69] encInt reason = 4
+[bq69] encInt flags = 1
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] UIKit bt=2 (валидный wire выше в снифе)
+[bq69] encObj rbs_argument_0 = RBSAssertionIdentifier
+[bq69] encInt serverPid = 36
+[bq69] encInt clientPid = 5000
+[bq69] encInt count = 48342
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] endBackgroundTask (release wire)
+[bq69] ——— далее мой ручной descriptor для сравнения ———
+[bq69] target=RBSTarget (5000)
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFConstantString
+[bq69] encObj attributes = __NSSingleObjectArrayI
+[bq69] encInt requestedReason = 0
+[bq69] encInt reason = 0
+[bq69] encInt flags = 0
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] reason=0 отклонено: @
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFConstantString
+[bq69] encObj attributes = __NSSingleObjectArrayI
+[bq69] encInt requestedReason = 1
+[bq69] encInt reason = 1
+[bq69] encInt flags = 0
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] reason=1 отклонено: @
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFConstantString
+[bq69] encObj attributes = __NSSingleObjectArrayI
+[bq69] encInt requestedReason = 2
+[bq69] encInt reason = 2
+[bq69] encInt flags = 0
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] reason=2 отклонено: @
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFConstantString
+[bq69] encObj attributes = __NSSingleObjectArrayI
+[bq69] encInt requestedReason = 3
+[bq69] encInt reason = 3
+[bq69] encInt flags = 0
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] reason=3 отклонено: @
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFConstantString
+[bq69] encObj attributes = __NSSingleObjectArrayI
+[bq69] encInt requestedReason = 4
+[bq69] encInt reason = 4
+[bq69] encInt flags = 0
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] reason=4 ПРОШЛО: ok=1 err=@
+[bq69] encObj rbs_argument_0 = RBSAssertionIdentifier
+[bq69] encInt serverPid = 36
+[bq69] encInt clientPid = 5000
+[bq69] encInt count = 48347
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] reason-перебор: hit=4
+[bq69] legacyAttr=RBSLegacyAttribute
+[bq69] assertion=RBSAssertion
+[bq69] encObj rbs_argument_0 = RBSAssertionDescriptor
+[bq69] encObj identifier = (nil)
+[bq69] encObj target = RBSTarget
+[bq69] encObj processIdentifier = RBSProcessIdentifier
+[bq69] encInt _pid = 5000
+[bq69] encObj processIdentity = (nil)
+[bq69] encObj environment = (nil)
+[bq69] encXPC endpoint = (nil)
+[bq69] encObj endpoint = (nil)
+[bq69] encObj explanation = __NSCFConstantString
+[bq69] encObj attributes = __NSSingleObjectArrayI
+[bq69] encInt requestedReason = 4
+[bq69] encInt reason = 4
+[bq69] encInt flags = 0
+[bq69] encObj rbs_selector = NSIndirectTaggedPointerString
+[bq69] acquireWithError: -> 1 err=(none)
+*** Terminating app due to uncaught exception 'NSInternalInconsistencyException', reason: 'BUG IN CLIENT OF RUNNINGBOARD: Dealloc called before invalidate for assertion <RBSAssertion:0x12e794380| state:RBSAssertionStateValid descriptor:<<RBSAssertionDescriptor| "bq69 probe" ID:36-5000-48348 target:5000>>'
+*** First throw call stack:
+(0x19ede6fa0 0x19eb64298 0x19f658760 0x1aa96f170 0x1aa93c328 0x100138474 0x1cd99cccc 0x1cd9b6fd4 0x1cd9ac370 0x1cd9ac040 0x19ed98648 0x19ed89798 0x19ed8a700 0x2493c7f24 0x1a302c860 0x1000c12d4 0x19ebdb630)
+libc++abi: terminating due to uncaught exception of type NSException
