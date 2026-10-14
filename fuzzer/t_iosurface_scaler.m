@@ -39625,6 +39625,263 @@ static void p_bq65(void) {
     LOG("[bq65] фоновый запуск...");
 }
 
+// p_bq66 — v211: ObserverConfiguration craft-кодер.
+// RE (§211): init?(coder:) — единственный ctor (init() = fatal).
+// Ключи архива: "_id" (Data), "_extensionPointRecords" (NSArray<Data>),
+// "_endpoint" (объект; гипотеза NSXPCListenerEndpoint),
+// "_options" → decode<Options>: ".allowedRestrictionReasons" Int64,
+// ".includePostprocessing" Bool, ".includeUpdatingApps" Bool.
+// nil по любому ключу → brk#1. Крафт: NSCoder-субкласс с полным
+// логированием (эмпирическое открытие типов), ответы из словаря.
+// Далее: NSKeyedArchiver(instance) → байты = база для мутаций;
+// beginObservingWithConfiguration: → реакция демона.
+@interface BQ66CraftCoder : NSCoder
+@end
+static NSDictionary *bq66_answers = nil;
+@implementation BQ66CraftCoder
+- (BOOL)containsValueForKey:(NSString *)k {
+    BOOL r = k ? (bq66_answers[k] != nil) : NO;
+    LOG("[bq66] containsValue %s -> %d", k.UTF8String ?: "?", (int)r);
+    return r;
+}
+- (nullable id)decodeObjectForKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeObject %s -> %s", k.UTF8String ?: "?",
+        v ? NSStringFromClass([v class]).UTF8String : "(nil)");
+    return v;
+}
+- (nullable id)decodeObjectOfClass:(Class)c forKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeOfClass %s cls=%s -> %s", k.UTF8String ?: "?",
+        c ? NSStringFromClass(c).UTF8String : "?",
+        v ? NSStringFromClass([v class]).UTF8String : "(nil)");
+    return v;
+}
+- (nullable id)decodeObjectOfClasses:(NSSet *)cs forKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeOfClasses %s -> %s", k.UTF8String ?: "?",
+        v ? NSStringFromClass([v class]).UTF8String : "(nil)");
+    return v;
+}
+- (NSInteger)decodeIntegerForKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeInteger %s -> %lld", k.UTF8String ?: "?",
+        (long long)([v isKindOfClass:[NSNumber class]] ? [v longLongValue] : 0));
+    return [v isKindOfClass:[NSNumber class]] ? [v longLongValue] : 0;
+}
+- (int64_t)decodeInt64ForKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeInt64 %s -> %lld", k.UTF8String ?: "?",
+        (long long)([v isKindOfClass:[NSNumber class]] ? [v longLongValue] : 0));
+    return [v isKindOfClass:[NSNumber class]] ? [v longLongValue] : 0;
+}
+- (int32_t)decodeInt32ForKey:(NSString *)k {
+    return (int32_t)[self decodeIntegerForKey:k];
+}
+- (BOOL)decodeBoolForKey:(NSString *)k {
+    id v = bq66_answers[k];
+    BOOL r = [v isKindOfClass:[NSNumber class]] && [v boolValue];
+    LOG("[bq66] decodeBool %s -> %d", k.UTF8String ?: "?", (int)r);
+    return r;
+}
+- (double)decodeDoubleForKey:(NSString *)k {
+    LOG("[bq66] decodeDouble %s -> 0.0", k.UTF8String ?: "?");
+    return 0.0;
+}
+- (float)decodeFloatForKey:(NSString *)k {
+    LOG("[bq66] decodeFloat %s -> 0.0", k.UTF8String ?: "?");
+    return 0.0f;
+}
+- (nullable NSArray *)decodeArrayOfObjectsOfClasses:(NSSet *)cs
+                                             forKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeArrayOfObjectsOfClasses %s -> %s",
+        k.UTF8String ?: "?",
+        v ? NSStringFromClass([v class]).UTF8String : "(nil)");
+    return v;
+}
+- (nullable NSArray *)decodeArrayOfObjectsForKey:(NSString *)k {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeArrayOfObjects %s -> %s",
+        k.UTF8String ?: "?",
+        v ? NSStringFromClass([v class]).UTF8String : "(nil)");
+    return v;
+}
+- (nullable const uint8_t *)decodeBytesForKey:(NSString *)k
+                              returnedLength:(NSUInteger *)lp {
+    id v = bq66_answers[k];
+    LOG("[bq66] decodeBytes %s", k.UTF8String ?: "?");
+    if ([v isKindOfClass:[NSData class]]) {
+        if (lp) *lp = [v length];
+        return (const uint8_t *)[v bytes];
+    }
+    if (lp) *lp = 0;
+    return NULL;
+}
+// encode-примитивы (не должны зваться при декодировании)
+- (void)encodeObject:(id)o forKey:(NSString *)k {
+    LOG("[bq66] !!! encodeObject вызван на craft-кодере: %s",
+        k.UTF8String ?: "?");
+}
+- (void)encodeInteger:(NSInteger)i forKey:(NSString *)k {
+    LOG("[bq66] !!! encodeInteger вызван: %s", k.UTF8String ?: "?");
+}
+- (void)encodeBool:(BOOL)b forKey:(NSString *)k {
+    LOG("[bq66] !!! encodeBool вызван: %s", k.UTF8String ?: "?");
+}
+- (void)encodeInt64:(int64_t)v forKey:(NSString *)k {
+    LOG("[bq66] !!! encodeInt64 вызван: %s", k.UTF8String ?: "?");
+}
+- (void)encodeDouble:(double)d forKey:(NSString *)k {}
+- (void)encodeBytes:(const void *)b length:(NSUInteger)l forKey:(NSString *)k {}
+@end
+
+static void p_bq66(void) {
+    LOG("[bq66] v211: ObserverConfiguration craft-кодер");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq66.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq66] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq66] CONTROL FAILED (§144)"); return; }
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    LOG("[bq66] dlopen ext=%p", hExt);
+
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    @try {
+        // ответы крафт-кодера (RE §211)
+        NSXPCListener *lst = [NSXPCListener anonymousListener];
+        NSXPCListenerEndpoint *lep = lst.endpoint;
+        LOG("[bq66] listener=%s endpoint=%s",
+            lst ? "OK" : "(nil)",
+            lep ? [lep description].UTF8String : "(nil)");
+        static unsigned char z16[16];
+        bq66_answers = @{
+            // v211.1: decodeOfClass _id -> NSUUID (из лога крафт-кодера)
+            @"_id" : [NSUUID UUID],
+            @"_extensionPointRecords" : @[],
+            @"_endpoint" : (lep ?: [NSNull null]),
+            @".allowedRestrictionReasons" : @0,
+            @".includePostprocessing" : @NO,
+            @".includeUpdatingApps" : @NO,
+            @"_identities" : @[],
+            @"_disabledCount" : @0,
+            @"_unelectedCount" : @0,
+        };
+        fsync(fileno(stderr));
+
+        Class cfgCls = NSClassFromString(@"ObserverConfiguration");
+        LOG("[bq66] класс=%p", cfgCls);
+        if (!cfgCls) return;
+        BQ66CraftCoder *coder = [[BQ66CraftCoder alloc] init];
+        LOG("[bq66] initWithCoder: begin — смотреть запросы выше/ниже");
+        fsync(fileno(stderr));
+        id cfg = [[cfgCls alloc] initWithCoder:coder];
+        LOG("[bq66] initWithCoder: -> %s",
+            cfg ? [cfg description].UTF8String : "(nil)");
+        fsync(fileno(stderr));
+        if (!cfg) {
+            LOG("[bq66] конфиг nil — см. логи запросов; итерация ответов");
+            return;
+        }
+        // архив инстанса = будущая база мутаций
+        NSData *arch = [NSKeyedArchiver archivedDataWithRootObject:cfg
+                                                 requiringSecureCoding:NO
+                                                                 error:NULL];
+        LOG("[bq66] архив: %zu байт", (size_t)(arch ? arch.length : 0));
+        if (arch) {
+            const unsigned char *b = arch.bytes;
+            size_t hn = arch.length < 256 ? arch.length : 256;
+            char *hex = malloc(hn * 2 + 1);
+            for (size_t i = 0; i < hn; i++)
+                snprintf(hex + i*2, 3, "%02x", b[i]);
+            hex[hn*2] = 0;
+            LOG("[bq66] arch hex=%s%s", hex, arch.length > hn ? "…" : "");
+            free(hex);
+        }
+        // Observer-вызов
+        Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+        Class bsCls = NSClassFromString(@"BSServiceConnection");
+        if (!epCls || !bsCls) { LOG("[bq66] нет классов BS"); return; }
+        SEL svcNameSel =
+            @selector(endpointForServiceName:oneshot:service:instance:);
+        typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+        EFn f = (EFn)objc_msgSend;
+        id endpoint = f(epCls, svcNameSel, @"com.apple.extensionkitservice",
+                        NO, @"Observer", nil);
+        LOG("[bq66] ep(Observer) = %s",
+            endpoint ? [endpoint description].UTF8String : "(nil)");
+        if (!endpoint) return;
+        SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+        typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+        FacFn ff = (FacFn)objc_msgSend;
+        NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg2) {
+            SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+            if (cfg2 && [cfg2 respondsToSelector:qsel]) {
+                typedef void (*QFn)(id, SEL, NSString *, long);
+                QFn qf = (QFn)objc_msgSend;
+                qf(cfg2, qsel, @"bq66.q", (long)0);
+            }
+        });
+        if (!conn) { LOG("[bq66] conn=nil"); return; }
+        Protocol *proto = objc_getProtocol(
+            "_TtP19ExtensionFoundation18_EXServiceProtocol_");
+        NSXPCInterface *iface = proto
+            ? [NSXPCInterface interfaceWithProtocol:proto] : nil;
+        if (!iface) { [conn invalidate]; return; }
+        [conn setInvalidationHandler:^{ LOG("[bq66] INVALIDATION"); }];
+        [conn setRemoteObjectInterface:iface];
+        [conn activate];
+        LOG("[bq66] activate ok");
+        fsync(fileno(stderr));
+        id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+            LOG("[bq66] proxy ERROR: %s",
+                err ? err.localizedDescription.UTF8String : "-");
+        }];
+        if (!proxy) { [conn invalidate]; return; }
+        SEL sel = @selector(beginObservingWithConfiguration:reply:);
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        LOG("[bq66] sig argc=%lu", (unsigned long)(sig ? sig.numberOfArguments : 0));
+        if (!sig || sig.numberOfArguments != 4) {
+            LOG("[bq66] сигнатура не та"); [conn invalidate]; return;
+        }
+        __block BOOL got = NO;
+        void (^reply)(id, NSError *) = ^(id upd, NSError *error) {
+            got = YES;
+            LOG("[bq66] *** Observer ОТВЕТ: upd=%s err=%s ***",
+                upd ? [upd description].UTF8String : "nil",
+                error ? error.localizedDescription.UTF8String : "-");
+        };
+        NSInvocation *inv = [NSInvocation invocationWithMethodSignature:sig];
+        [inv setSelector:sel];
+        [inv setArgument:&cfg atIndex:2];
+        [inv setArgument:&reply atIndex:3];
+        LOG("[bq66] invoke beginObserving…");
+        [inv invokeWithTarget:proxy];
+        for (int t = 0; t < 60 && !got; t++) usleep(100000);
+        LOG("[bq66] итог got=%d — %s", (int)got,
+            got ? "ОТВЕТ ЕСТЬ (смотреть выше)" :
+            "тишина (ос_лог демона решит)");
+        [conn invalidate];
+        LOG("[bq66] done");
+    } @catch (NSException *e) {
+        LOG("[bq66] ИСКЛЮЧЕНИЕ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq66] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -47116,6 +47373,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ63")) { p_bq63(); LOG("[probe13] bq63-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ64")) { p_bq64(); LOG("[probe13] bq64-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ65")) { p_bq65(); LOG("[probe13] bq65-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ66")) { p_bq66(); LOG("[probe13] bq66-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -5294,3 +5294,64 @@ entitlement (bq58) | Observer — декодер конфига (bq65, не ге
    доступ Observer → мутации codable-конфига.
 2. Launch audit_token (32B by-value) — мутации полей токена → RBS.
 3. replysig/client-side decode (не валидируется демоном).
+
+## §211. ObserverConfiguration craft-кодер: инстанс создан, Observer-вызов доставлен, демон ответил (v211)
+
+### RE схемы (encode 0x1870781c0 / init?(coder:) 0x1870789bc)
+
+ObserverConfiguration (NSSecureCoding, init() = fatalError, единственный
+ctor — init?(coder:), nil по любому обязательному ключу → brk#1):
+"_id", "_extensionPointRecords", "_endpoint", "_options" (+ Options:
+RE encode-расширения показало ".allowedRestrictionReasons" и пр. —
+это оказался Options от _EXQuery; настоящие ключи Observer-Options
+открыты эмпирически, см. ниже).
+
+### Крафт-кодер (p_bq66) — эмпирическое открытие полной схемы
+
+NSCoder-субкласс (BQ66CraftCoder) с логированием всех примитивов и
+словарём ответов; class-примитивы arrayOfObjectsOfClasses обязателен.
+Две итерации: NSData для "_id" → decodeOfClass показал ожидание
+**NSUUID**; итоговая карта (лог results/runf-bq66.log):
+
+| ключ | запрошено как | тип |
+|---|---|---|
+| `_extensionPointRecords` | decodeArrayOfObjectsOfClasses | NSArray |
+| `_id` | decodeObjectOfClass | **NSUUID** |
+| `_endpoint` | decodeObjectOfClass | **NSXPCListenerEndpoint** |
+| `_options.includePostprocessing` | decodeBool | Bool |
+| `_options.includeUpdatingApps` | decodeBool | Bool |
+| `_options.includeRestricted` | decodeBool | Bool |
+| `_options.excludeLockedApps` | decodeBool | Bool |
+| `_options.allowsDuplicates` | decodeBool | Bool |
+
+`[[ObserverConfiguration alloc] initWithCoder:craft]` → **живой
+инстанс** `<ObserverConfiguration: 0x…>`.
+
+### Observer-вызов: ДЕМОН ОБРАБОТАЛ КРАФТ-КОНФИГ
+
+beginObservingWithConfiguration:reply:(инстанс) через service=
+"Observer" (протокол _TtP19ExtensionFoundation18_EXServiceProtocol_) —
+**ответ демона: "Failed to add observer"** (upd=nil err=...). Это НЕ
+гейт: крафтовый конфиг прошёл NSXPC-сериализацию, декодер демона
+принял все поля, Observer-машинерия запустилась и упала на шаге
+add-observer — наиболее вероятная причина: демон соединяется ОБРАТНО
+к NSXPCListenerEndpoint из конфига, а наш anonymous-listener не
+resumed (v211.2 — resume + обработчик, ожидаем соединение демона).
+
+### Значение для цели
+
+1. 4-й сервис исследуем полностью; карта доступа: TCCProxy✓ Launch✓
+   Observer✓(крафт) Discovery=entitlement-гейт.
+2. **ObserverConfiguration = управляемая NSSecureCoding-поверхность
+   в демоне**: NSUUID (16 байт), NSXPCListenerEndpoint (mach-порт
+   + UUID внутри!), массив records, 5 Bool. Мутации wire-архива
+   конфига (in-channel как bq63) бьют по декодеру демона
+   (NSKeyedUnarchiver-путь + endpoint-резолв mach-порта) —
+   следующий слой фаззинга.
+3. Если listener-resume снимет "Failed to add observer" — демон
+   начнёт ПУШИТЬ ObserverUpdate-батчи в наш процесс по своему
+   соединению: канал входящих данных из привилегированного процесса.
+
+NB: [NSKeyedArchiver archivedDataWithRootObject:] вернул 0 байт на
+инстансе — encode(with:) требует NSCoder с keyed-coding; для байтов
+основы мутаций использовать in-channel сниф (bq60-стиль), не архив.
