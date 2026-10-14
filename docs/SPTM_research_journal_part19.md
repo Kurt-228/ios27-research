@@ -5984,3 +5984,43 @@ app→runningboardd на другой pid — штатно доступен пр
    initWithPredicate — полный terminate-примитив как у
    third-party (это ПРЯМО в нашем направлении — путь не через
    initWithProcessIdentifier, а через их форму).
+
+## §219. v223: terminate-примитив расколот ДО КОНЦА — «Client not entitled» (entitlement-гейт)
+
+### RE executeTerminateRequest:assertion:error: (0x18c1fc8b4) — источник смерти §218
+
+```
+if assertion == nil && request.attributes.count == 0:
+    → handleFailureInMethod (FATAL os_assertion) → тихая смерть
+else:
+    → messageForMethod:'executeTerminateRequest:identifier:error:'
+    → sendToConnection → RPC демону
+    → decodeBool → «Received terminate request response»
+```
+
+v222 умирал из-за nil-assertion (не дедлок!). v223: живой
+holder-assertion (наш acquire §216) → execute → **RPC доставлен**:
+
+```
+executeTerminateRequest(9999, holder) → FALSE,
+err = «Client not entitled»
+```
+
+### Итог по terminate
+
+Демон runningboardd валидирует entitlement на terminate-путь
+(в отличие от acquire: произвольный target/flags БЕЗ гейта §214-215).
+Terminate-примитив **закрыт подписью** (как Discovery/Observer у
+extensionkitservice). Полная RBS-карта:
+
+| примитив | гейт | источник |
+|---|---|---|
+| acquire (target/flags/explanation произвольные) | НЕТ | §214-215, 63с hold §216 |
+| invalidate (audit_token произвольный) | НЕТ | bq59 (Launch-сервис) |
+| executeTerminateRequest | **«Client not entitled»** | §219 |
+
+RBS-поверхность исчерпана: acquire/invalidate открыты (bounty-факт),
+terminate за подписью. Crash-diff 0, фаза жива, все детекторы §144.
+
+Дальше по приоритету: RBSInheritance endpoint-injection (§218-2)
+и мутационный фаззинг acquire-wire (bq64-стиль по coder-сниф-базе).

@@ -41237,22 +41237,17 @@ static void p_bq73(void) {
                      @(9999), ctx);
         LOG("[bq73] B: request(9999)=%s",
             req ? NSStringFromClass([req class]).UTF8String : "(nil)");
-        if (req) {
-            // execute:error: — вызов демону!
-            NSError *terr = nil;
-            typedef BOOL (*EXFn)(id, SEL, NSError **);
-            EXFn exf = (EXFn)objc_msgSend;
-            BOOL tok = exf(req, @selector(execute:error:), &terr);
-            LOG("[bq73] B: *** terminate(9999).execute -> %d err=%s ***",
-                (int)tok,
-                terr ? terr.localizedDescription.UTF8String : "(none)");
-            fsync(fileno(stderr));
-        }
-        // ===== A) STEADY-STATE acquire (после B — фаза в steady) =====
-        if (!tCls || !aCls || !laCls) { LOG("[bq73] A: нет классов"); return; }
+        // v223: RE executeTerminateRequest (0x18c1fc8b4): nil assertion
+        // + пустые attributes → FATAL handleFailureInMethod → тихая
+        // смерть (§217-218). execute: требует ЖИВОЙ assertion (наш
+        // acquire!) — строим её ДО execute, кладём в 3-й аргумент.
+        // Правильная сигнатура: execute: (request, error) — это
+        // категорийная обёртка; прямой -[RBSConnection
+        // executeTerminateRequest:assertion:error:] = 4 арга.
+        if (!tCls || !aCls || !laCls) { LOG("[bq73] B: нет классов A"); return; }
         typedef id (*CFn)(Class, SEL);
         CFn cf = (CFn)objc_msgSend;
-        id tgt = cf(tCls, @selector(currentProcess));
+        id tgtSelf = cf(tCls, @selector(currentProcess));
         typedef id (*AFn)(Class, SEL, unsigned long long,
                           unsigned long long);
         AFn af = (AFn)objc_msgSend;
@@ -41260,27 +41255,59 @@ static void p_bq73(void) {
                    4ull, 1ull);
         typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
         IFn f = (IFn)objc_msgSend;
-        id as = f([aCls alloc],
-                  @selector(initWithExplanation:target:attributes:),
-                  @"bq73 steady-probe", tgt, @[la]);
+        id asSelf = f([aCls alloc],
+                      @selector(initWithExplanation:target:attributes:),
+                      @"bq73 terminate-holder", tgtSelf, @[la]);
         NSError *aerr = nil;
         typedef BOOL (*AFn2)(id, SEL, NSError **);
         AFn2 aq = (AFn2)objc_msgSend;
-        BOOL ok = aq(as, @selector(acquireWithError:), &aerr);
-        LOG("[bq73] A: steady acquire -> %d err=%s", (int)ok,
+        BOOL aok = aq(asSelf, @selector(acquireWithError:), &aerr);
+        LOG("[bq73] B: holder-assertion acquire -> %d err=%s", (int)aok,
             aerr ? aerr.localizedDescription.UTF8String : "(none)");
+        if (req && aok) {
+            // прямой 4-аргументный: executeTerminateRequest:assertion:error:
+            Class cCls = NSClassFromString(@"RBSConnection");
+            id conn = [cCls respondsToSelector:@selector(sharedInstance)]
+                ? ((id (*)(Class, SEL))objc_msgSend)(
+                    cCls, @selector(sharedInstance)) : nil;
+            LOG("[bq73] B: conn=%s", conn ? "OK" : "(nil)");
+            if (conn && [conn respondsToSelector:
+                @selector(executeTerminateRequest:assertion:error:)]) {
+                NSError *terr = nil;
+                typedef BOOL (*ETFn)(id, SEL, id, id, NSError **);
+                ETFn etf = (ETFn)objc_msgSend;
+                BOOL tok = etf(conn,
+                    @selector(executeTerminateRequest:assertion:error:),
+                    req, asSelf, &terr);
+                LOG("[bq73] B: *** executeTerminateRequest(9999, holder) "
+                    "-> %d err=%s ***", (int)tok,
+                    terr ? terr.localizedDescription.UTF8String : "(none)");
+                fsync(fileno(stderr));
+            } else {
+                // фолбэк: execute: с живым assertion (категорийная
+                // обёртка сама подставит holder)
+                NSError *terr = nil;
+                typedef BOOL (*EXFn)(id, SEL, NSError **);
+                EXFn exf = (EXFn)objc_msgSend;
+                BOOL tok = exf(req, @selector(execute:error:), &terr);
+                LOG("[bq73] B: *** terminate(9999).execute(holder жив) "
+                    "-> %d err=%s ***", (int)tok,
+                    terr ? terr.localizedDescription.UTF8String : "(none)");
+                fsync(fileno(stderr));
+            }
+        }
+        // ===== A) STEADY-STATE hold (asSelf уже acquired выше) =====
         for (int t = 1; t <= 4; t++) {
             usleep(5000000);
             SEL vldSel = @selector(isValid);
-            BOOL vld = [as respondsToSelector:vldSel]
-                ? ((BOOL (*)(id, SEL))objc_msgSend)(as, vldSel) : NO;
+            BOOL vld = [asSelf respondsToSelector:vldSel]
+                ? ((BOOL (*)(id, SEL))objc_msgSend)(asSelf, vldSel) : NO;
             LOG("[bq73] A: hold %2ds: valid=%d", t * 5, (int)vld);
             fsync(fileno(stderr));
         }
-        [as invalidate];
-        LOG("[bq73] done (B terminate(9999) + A steady-hold 20s) — ос_лог "
-            "runningboardd: terminate-request от нашего pid на 9999 и "
-            "active/inactive steady-assertion)");
+        [asSelf invalidate];
+        LOG("[bq73] done (B terminate(9999,holder) + A hold 20s) — ос_лог "
+            "runningboardd: terminate от нашего pid на 9999 + holder)");
     } @catch (NSException *e) {
         LOG("[bq73] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
             e.reason ? e.reason.UTF8String : "?");
