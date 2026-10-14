@@ -40879,6 +40879,120 @@ static void p_bq70(void) {
     LOG("[bq70] фоновый запуск...");
 }
 
+// p_bq71 — v218: DESCRIPTOR-МУТАЦИИ RBSAssertion (reason/flags вне
+// enum, explanation, идентификаторные поля). Эталон §214:
+// target=currentProcess, reason=4, flags=1 — контроль в каждом
+// прогоне; каждая мутация = живой acquire-RPC к runningboardd.
+// Сигнатуры: 0=acquired, 1=отклонено(err), 2=тишина, 3=краш-риск.
+static int bq71_acquire_mut(int reason, unsigned long long flags,
+                            NSString *expl, char *outNote,
+                            size_t noteSz) {
+    Class tCls = NSClassFromString(@"RBSTarget");
+    Class aCls = NSClassFromString(@"RBSAssertion");
+    Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+    if (!tCls || !aCls || !laCls) {
+        snprintf(outNote, noteSz, "нет классов");
+        return -1;
+    }
+    typedef id (*CFn)(Class, SEL);
+    CFn cf = (CFn)objc_msgSend;
+    id target = cf(tCls, @selector(currentProcess));
+    if (!target) { snprintf(outNote, noteSz, "target nil"); return -1; }
+    typedef id (*AFn)(Class, SEL, unsigned long long,
+                      unsigned long long);
+    AFn af = (AFn)objc_msgSend;
+    id la = af(laCls, @selector(attributeWithReason:flags:),
+               (unsigned long long)reason, flags);
+    if (!la) { snprintf(outNote, noteSz, "attr nil (reason?)"); return 1; }
+    typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+    IFn f = (IFn)objc_msgSend;
+    id as = f([aCls alloc],
+              @selector(initWithExplanation:target:attributes:),
+              expl ?: @"bq71 probe", target, @[la]);
+    if (!as) { snprintf(outNote, noteSz, "assertion nil"); return 1; }
+    NSError *err = nil;
+    typedef BOOL (*AFn2)(id, SEL, NSError **);
+    AFn2 aq = (AFn2)objc_msgSend;
+    BOOL ok = aq(as, @selector(acquireWithError:), &err);
+    snprintf(outNote, noteSz, "acquire=%d err=%s", (int)ok,
+             err ? err.localizedDescription.UTF8String : "(none)");
+    usleep(1200000);
+    [as invalidate];
+    return ok ? 1 : 0;
+}
+
+static void p_bq71(void) {
+    LOG("[bq71] v218: descriptor-мутации RBSAssertion");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq71.q",
+                                               DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq71] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq71] CONTROL FAILED (§144)"); return; }
+    void *hRBS = dlopen(
+        "/System/Library/PrivateFrameworks/RunningBoardServices"
+        ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    LOG("[bq71] dlopen RBS=%p", hRBS);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    struct { int reason; unsigned long long flags; const char *expl;
+             const char *name; } cases[] = {
+        // КОНТРОЛЬ (эталон §214)
+        { 4,    1,   "bq71 probe",            "M0 КОНТРОЛЬ reason=4 flags=1" },
+        // reason вне enum
+        { 0,    1,   "bq71 probe",            "M1 reason=0" },
+        { 1,    1,   "bq71 probe",            "M2 reason=1" },
+        { 2,    1,   "bq71 probe",            "M3 reason=2" },
+        { 3,    1,   "bq71 probe",            "M4 reason=3" },
+        { 5,    1,   "bq71 probe",            "M5 reason=5" },
+        { 6,    1,   "bq71 probe",            "M6 reason=6" },
+        { 7,    1,   "bq71 probe",            "M7 reason=7" },
+        { 8,    1,   "bq71 probe",            "M8 reason=8" },
+        { 16,   1,   "bq71 probe",            "M9 reason=16" },
+        { 0x7FFFFFFF, 1, "bq71 probe",        "M10 reason=0x7FFFFFFF" },
+        { -1,   1,   "bq71 probe",            "M11 reason=-1 (0xFF..FF)" },
+        // flags мутации
+        { 4,    0,   "bq71 probe",            "M12 flags=0" },
+        { 4,    2,   "bq71 probe",            "M13 flags=2" },
+        { 4,    0xFF, "bq71 probe",           "M14 flags=0xFF" },
+        { 4,    0xFFFFFFFF, "bq71 probe",      "M15 flags=0xFFFFFFFF" },
+        { 4,    0xFFFFFFFFFFFFFFFFull, "bq71", "M16 flags=0xFF..FF (64)" },
+        // explanation-инъекции
+        { 4,    1,   "",                      "M17 explanation пустой" },
+        { 4,    1,   "%s%s%s%s%s%s",          "M18 explanation fmt" },
+        { 4,    1,   "a",                     "M19 explanation 1симв" },
+        { 4,    1,   NULL,                    "M20 explanation nil" },
+    };
+    int acq = 0, rej = 0;
+    for (unsigned i = 0; i < sizeof(cases)/sizeof(cases[0]); i++) {
+        char note[256];
+        NSString *e = cases[i].expl
+            ? [NSString stringWithUTF8String:cases[i].expl] : nil;
+        int r = bq71_acquire_mut(cases[i].reason, cases[i].flags,
+                                  e, note, sizeof(note));
+        if (r == 1) acq++;
+        else rej++;
+        LOG("[bq71] %-28s -> %s",
+            cases[i].name, note);
+        fsync(fileno(stderr));
+        usleep(400000);
+    }
+    LOG("[bq71] СВОДКА: acquired=%d rejected=%d (контроль M0 должен "
+        "быть acquired)", acq, rej);
+    });
+    LOG("[bq71] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -48375,6 +48489,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ68")) { p_bq68(); LOG("[probe13] bq68-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ69")) { p_bq69(); LOG("[probe13] bq69-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ70")) { p_bq70(); LOG("[probe13] bq70-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ71")) { p_bq71(); LOG("[probe13] bq71-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

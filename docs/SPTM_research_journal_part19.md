@@ -5707,3 +5707,47 @@ INVALIDATE: extensionkitservice Launch-сервис
   target может блокировать acquire;后续 edge-cases отдельно).
 
 Лог: results/runf-bq70.log.
+
+## §215. Descriptor-мутации: runningboardd — flags НЕ ВАЛИДИРУЮТСЯ, reason — entitlement-gated enum (v218)
+
+### p_bq71 (21 мутация, контроль M0 в прогоне)
+
+Каждая проба = живой acquire-RPC (target=currentProcess, эталон
+§214). Серверная валидация runningboardd по полям:
+
+**reason (RBSAssertionReason enum):**
+- 4 (FinishTask) → **ACQUIRED — единственный без entitlement**
+- 1, 2, 3, 5, 7, 8, 16 → «Client is missing required
+  entitlement» (валидные enum-значения, гейтовые)
+- 0, 6, 0x7FFFFFFF, −1 → «Invalid assertion reason provided»
+
+**flags — НЕ ВАЛИДИРУЮТСЯ:** 0, 2, 0xFF, 0xFFFFFFFF,
+**0xFFFFFFFFFFFFFFFF (все 64 бита!)** → ВСЕ ACQUIRED.
+Флаги из живых примеров (§213-доп.2 лог): AllowIdleSleep,
+PreventTaskSuspend, PreventTaskThrottleDown,
+WantsForegroundResourcePriority — их БИТЫ можно ставить
+произвольно при reason=4.
+
+**explanation — НЕ ВАЛИДИРУЕТСЯ:** пустая строка, nil,
+fmt-строка, 1 символ → все acquired.
+
+### Значение
+
+Связка §214 (target=любой pid) + §215 (flags=любые):
+**assertion на ЛЮБОЙ системный процесс с ПРОИЗВОЛЬНОЙ
+комбинацией lifecycle-флагов** (включая PreventTaskSuspend
+на SpringBoard/launchd) — из песочницы, без entitlements.
+Причина-поле гейтовано (4=FinishTask — свободно), но флаги
+управляют поведением планировщика независимо от причины.
+
+1. **Bounty-факт усилен**: произвольный target × произвольные
+   flags × невалидируемый explanation.
+2. **DoS-поверхность подтверждена**: PreventTaskSuspend-флаги
+   на launchd/SpringBoard (не проверяли удержание — только
+   acquire+invalidate; поведение сна целевого процесса —
+   отдельная проба с ос_логом).
+3. **Фаззинг-заметка**: валидация reason — серверная строка в
+   runningboardd (os_log); invalid-значения не бросают, но
+   и не регистрируют.
+
+Лог: results/runf-bq71.log.
