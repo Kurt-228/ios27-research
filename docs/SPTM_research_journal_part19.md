@@ -5434,3 +5434,42 @@ asid) → RBS-lookup/invalidation-пути. План p_bq67: byte-sweep 32 ба�
 TCCProxy root-блоб исчерпан (990 мутаций, чисто); Observer/Discovery
 закрыты подписью — Launch-токен ЕДИНСТВЕННЫЙ оставшийся управляемый
 вход в демона.
+
+### §212. p_bq67: audit_token_t byte-sweep — 133 мутации, ВСЕ reply OK (v212)
+
+Launch-вызов (`invalidateLaunchAssertionsForExtensionAuditToken:reply:`,
+32 Б by-value) — полный byte-sweep по модели bq64:
+
+| слой | мутации | исход |
+|---|---|---|
+| m=0 контроль (self token, hex 70e6410502000000700100…) | — | **reply OK** (детектор жив §144) |
+| byte ^= 0xFF (m=1..32) | 32 | **все reply OK** |
+| byte ^= 0x01 (m=101..132) | 32 | все reply OK |
+| byte += 1 (m=201..232) | 32 | все reply OK |
+| структурные (m=301..308: pid=0/1/4589, uid-поля=0, все нули, все FF, vers=2, «0xFFFFFFFF» префикс) | 8 | все reply OK |
+
+- 133 мутации, rc1/rc2 = **0 во всех партиях**, крашей 0 (crashdiff
+  чист после каждой партии).
+- Вывод: `audit_token_t` декодируется спокойно, глубокой обработки
+  токена в Launch-ветке НЕТ (lookup/invalidation по токену —
+  RBS-путь; отсутствие видимой реакции = «нечего инвалидтировать»,
+  ошибки не бросаются). Как и root-блоб TCCProxy: поверхность
+  декодирования исчерпана, аномалий нет.
+
+### ИТОГ БОЛЬШОЙ КАРТЫ extensionkitservice (v212, все 4 сервиса)
+
+| сервис | гейт | поверхностный фаззинг |
+|---|---|---|
+| TCCProxy | нет | root-blob: 990 мутаций, чисто |
+| Launch | нет | audit_token: 133 мутации, чисто |
+| Discovery | host-entitlement (подпись) | — |
+| Observer | host-entitlement (подпись) | — |
+
+Транспорт (BSXPC+NSXPC) воспроизведён полностью; управляемые
+входы демона (root-blob, audit_token) — исчерпаны без аномалий.
+Следующий приоритет: поиск СЛЕДУЮЩЕГО сервиса с богатыми
+десериализаторами за BS-транспортом — применить тот же стек
+(endpoint → NSXPCConnectionWithEndpoint → interface → activate →
+proxy) к другим BS-доменам; либо LaunchListener-конфиг
+(`_endpoint` из ObserverConfiguration = NSXPCListenerEndpoint —
+кривая listener-эндпоинтов как отдельная поверхность).

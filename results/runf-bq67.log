@@ -1,0 +1,52 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ67=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7e23
+[scaler] conn 0x7e23, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq67] v212: audit_token_t byte-sweep (Launch, без гейта)
+[bq51] run ENTER ctl-empty nseq=1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x1564a4000> { count = 1, transaction: 0, voucher = 0x1567b43c0, contents =
+	"bsxpc" => <string: 0x1565888a0> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x2071cd460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x2071cd5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq67] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq67] dlopen ext=0x366501290 bs=0x366532300 ep=0x2054d7110 bs=0x2054d7520
+[bq67] self token kr=0 cnt=5 tok=7066410502000000700100000000000001000000000000000000000000000000 (контроль m=0)
+[bq67] диапазон 301..308
+[bq67] фоновый запуск...
+[bq67] m=301 токен=0000000002000000700100000000000001000000000000000000000000000000
+[probe13] bq67-only mode, stop
+[bq67] m=301 *** reply(void) ВЫЗВАН ***
+[bq67] m=301 -> rc=0 reply OK (демон обработал)
+[bq67] m=302 токен=0101010102000000700100000000000001000000000000000000000000000000
+[bq67] m=302 *** reply(void) ВЫЗВАН ***
+[bq67] m=302 -> rc=0 reply OK (демон обработал)
+[bq67] m=303 токен=ed11000002000000700100000000000001000000000000000000000000000000
+[bq67] m=303 *** reply(void) ВЫЗВАН ***
+[bq67] m=303 -> rc=0 reply OK (демон обработал)
+[bq67] m=304 токен=7066410502000000000000000000000000000000000000000000000000000000
+[bq67] m=304 *** reply(void) ВЫЗВАН ***
+[bq67] m=304 -> rc=0 reply OK (демон обработал)
+[bq67] m=305 токен=0000000000000000000000000000000000000000000000000000000000000000
+[bq67] m=305 *** reply(void) ВЫЗВАН ***
+[bq67] m=305 -> rc=0 reply OK (демон обработал)
+[bq67] m=306 токен=ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff
+[bq67] m=306 *** reply(void) ВЫЗВАН ***
+[bq67] m=306 -> rc=0 reply OK (демон обработал)
+[bq67] m=307 токен=7066410502000000700100000000000001000000000000000000000000000000
+[bq67] m=307 *** reply(void) ВЫЗВАН ***
+[bq67] m=307 -> rc=0 reply OK (демон обработал)
+[bq67] m=308 токен=ffffffffffffffff700100000000000001000000000000000000000000000000
+[bq67] m=308 *** reply(void) ВЫЗВАН ***
+[bq67] m=308 -> rc=0 reply OK (демон обработал)
+[bq67] СВОДКА [301..308]: rc0=8 rc1=0 rc2=0 (rc0=reply, rc1=тишина, rc2=разрыв)
+[bq67] АНОМАЛИИ = rc1/rc2 на мутациях (контроль m=0 должен быть rc0); краши — crashdiff

@@ -40023,6 +40023,209 @@ static void p_bq66(void) {
     LOG("[bq66] фоновый запуск...");
 }
 
+// p_bq67 — v212: ГЛУБОКИЙ мутационный фаззинг audit_token_t (32 Б,
+// by-value) в Launch-вызове. Гейта НЕТ (bq59: 32 нуля -> reply OK —
+// контроль), все 32 байта полностью управляемы. Схемы:
+//   m=0            — контроль (наш настоящий токен, без мутаций)
+//   m=1..32        — byte[i] ^= 0xFF
+//   m=101..132     — byte[i] ^= 0x01
+//   m=201..232     — byte[i] += 1
+//   m=301..308     — структурные: pid=0, pid=1, pid демона (find),
+//                    uid=0, uid=501, vers=2, asid=0xFFFF, все нули
+// Сигнатуры исхода: 0=reply (норм), 1=тишина, 2=proxy-err(разрыв),
+// детектор жив = контроль m=0 -> reply OK.
+static int bq67_dialog_once(Class epCls, Class bsCls,
+                             const unsigned char tok[32], int m,
+                             char *outNote, size_t noteSz) {
+    unsigned char buf[32];
+    memcpy(buf, tok, 32);
+    switch (m) {
+        case 0: break;
+        default: {
+            int i;
+            if (m >= 1 && m <= 32) { i = m - 1; buf[i] ^= 0xFF; }
+            else if (m >= 101 && m <= 132) { i = m - 101; buf[i] ^= 0x01; }
+            else if (m >= 201 && m <= 232) { i = m - 201; buf[i]++; }
+            else { snprintf(outNote, noteSz, "bad m"); return 1; }
+            break; }
+        case 301: memset(buf + 0, 0, 4); break;              // pid=0
+        case 302: memset(buf + 0, 1, 4); break;              // pid=1
+        case 303: {                                          // pid демона
+            int dpid = 4589;
+            memcpy(buf + 0, &dpid, 4);
+            break; }
+        case 304: {                                          // uid=0
+            uint32_t z = 0;
+            memcpy(buf + 8, &z, 4);   // поле возле pid/vers (формат TBD)
+            memcpy(buf + 12, &z, 4);
+            memcpy(buf + 16, &z, 4);
+            break; }
+        case 305: memset(buf, 0, 32); break;                 // все нули
+        case 306: memset(buf, 0xFF, 32); break;              // все FF
+        case 307: {                                          // vers=2
+            uint32_t v2 = 2;
+            memcpy(buf + 4, &v2, 4);
+            break; }
+        case 308: {
+            static const unsigned char pat[8] = {0xFF,0xFF,0xFF,0xFF,
+                                                 0xFF,0xFF,0xFF,0xFF};
+            memcpy(buf, pat, 8);
+            break; }
+    }
+    char hex[65];
+    for (int i = 0; i < 32; i++) snprintf(hex + i*2, 3, "%02x", buf[i]);
+    LOG("[bq67] m=%d токен=%s", m, hex);
+    fsync(fileno(stderr));
+    SEL svcNameSel =
+        @selector(endpointForServiceName:oneshot:service:instance:);
+    typedef id (*EFn)(Class, SEL, NSString *, BOOL, NSString *, NSString *);
+    EFn f = (EFn)objc_msgSend;
+    id endpoint = f(epCls, svcNameSel, @"com.apple.extensionkitservice",
+                    NO, @"Launch", nil);
+    if (!endpoint) { snprintf(outNote, noteSz, "no-ep"); return 1; }
+    SEL facSel = @selector(NSXPCConnectionWithEndpoint:configurator:);
+    typedef NSXPCConnection *(*FacFn)(Class, SEL, id, void (^)(id));
+    FacFn ff = (FacFn)objc_msgSend;
+    NSXPCConnection *conn = ff(bsCls, facSel, endpoint, ^(id cfg) {
+        SEL qsel = NSSelectorFromString(@"queueWithName:serviceQuality:");
+        if (cfg && [cfg respondsToSelector:qsel]) {
+            typedef void (*QFn)(id, SEL, NSString *, long);
+            QFn qf = (QFn)objc_msgSend;
+            qf(cfg, qsel, @"bq67.q", (long)0);
+        }
+    });
+    if (!conn) { snprintf(outNote, noteSz, "no-conn"); return 1; }
+    Protocol *proto = objc_getProtocol(
+        "_TtP19ExtensionFoundation24_EXLaunchServiceProtocol_");
+    NSXPCInterface *iface = proto
+        ? [NSXPCInterface interfaceWithProtocol:proto] : nil;
+    if (!iface) { [conn invalidate]; snprintf(outNote, noteSz, "no-iface"); return 1; }
+    __block BOOL got = NO;
+    __block BOOL interrupted = NO;
+    [conn setInterruptionHandler:^{ interrupted = YES; }];
+    [conn setInvalidationHandler:^{ interrupted = YES; }];
+    [conn setRemoteObjectInterface:iface];
+    [conn activate];
+    id proxy = [conn remoteObjectProxyWithErrorHandler:^(NSError *err) {
+        got = YES;
+        LOG("[bq67] m=%d proxy ERROR: %s", m,
+            err ? err.localizedDescription.UTF8String : "-");
+    }];
+    int rc = 1;
+    if (proxy) {
+        SEL sel = NSSelectorFromString(
+            @"invalidateLaunchAssertionsForExtensionAuditToken:reply:");
+        NSMethodSignature *sig = [proxy methodSignatureForSelector:sel];
+        if (sig) {
+            __block BOOL replied = NO;
+            void (^reply)(void) = ^{
+                replied = YES;
+                LOG("[bq67] m=%d *** reply(void) ВЫЗВАН ***", m);
+            };
+            NSInvocation *inv =
+                [NSInvocation invocationWithMethodSignature:sig];
+            [inv setSelector:sel];
+            [inv setArgument:buf atIndex:2];
+            [inv setArgument:&reply atIndex:3];
+            [inv invokeWithTarget:proxy];
+            for (int t = 0; t < 60 && !replied && !interrupted; t++)
+                usleep(100000);
+            if (replied) {
+                rc = 0;
+                snprintf(outNote, noteSz, "reply OK (демон обработал)");
+            } else if (interrupted) {
+                rc = 2;
+                snprintf(outNote, noteSz, "разрыв/ interruption");
+            } else {
+                rc = 1;
+                snprintf(outNote, noteSz, "тишина 6с");
+            }
+        } else {
+            snprintf(outNote, noteSz, "no-sig");
+        }
+    } else {
+        snprintf(outNote, noteSz, "no-proxy");
+    }
+    [conn invalidate];
+    return rc;
+}
+
+static void p_bq67(void) {
+    LOG("[bq67] v212: audit_token_t byte-sweep (Launch, без гейта)");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq67.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq67] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq67] CONTROL FAILED (§144)"); return; }
+    void *hExt = dlopen("/System/Library/Frameworks/ExtensionFoundation"
+                        ".framework/ExtensionFoundation", RTLD_LAZY | RTLD_LOCAL);
+    void *hBS = dlopen("/System/Library/PrivateFrameworks/BoardServices"
+                       ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    Class epCls = NSClassFromString(@"BSServiceConnectionEndpoint");
+    Class bsCls = NSClassFromString(@"BSServiceConnection");
+    LOG("[bq67] dlopen ext=%p bs=%p ep=%p bs=%p", hExt, hBS, epCls, bsCls);
+    if (!epCls || !bsCls) return;
+
+    // наш настоящий audit token
+    unsigned char tok[32];
+    memset(tok, 0, sizeof(tok));
+    {
+        mach_msg_type_number_t cnt = 8;
+        kern_return_t kr = task_info(mach_task_self(),
+                                     17 /* TASK_AUDIT_TOKEN */,
+                                     (task_info_t)tok, &cnt);
+        char hex[65];
+        for (int i = 0; i < 32; i++) snprintf(hex + i*2, 3, "%02x", tok[i]);
+        LOG("[bq67] self token kr=%d cnt=%d tok=%s%s (контроль m=0)",
+            kr, (int)cnt, hex, kr ? " — FALLBACK НУЛИ (контроль валиден: "
+            "bq59 32-нуля -> reply OK)" : "");
+    }
+
+    int mfrom = 0, mto = 12;
+    {
+        const char *fe = getenv("BQ67_FROM");
+        const char *te = getenv("BQ67_TO");
+        if (fe) mfrom = atoi(fe);
+        if (te) mto = atoi(te);
+        if (mto > 308) mto = 308;
+        if (mto < mfrom) mto = mfrom;
+    }
+    LOG("[bq67] диапазон %d..%d", mfrom, mto);
+    fsync(fileno(stderr));
+
+    // NB: массив-параметр нельзя захватывать в блок — держим static-копию
+    static unsigned char bq67_tok[32];
+    memcpy(bq67_tok, tok, 32);
+    dispatch_async(dispatch_get_main_queue(),
+                   ^{
+    int stat[3] = {0, 0, 0};
+    for (int mi = mfrom; mi <= mto; mi++) {
+        char note[128];
+        int rc = bq67_dialog_once(epCls, bsCls, bq67_tok, mi,
+                                   note, sizeof(note));
+        if (mi >= 1) stat[rc < 0 ? 0 : (rc > 2 ? 2 : rc)]++;
+        LOG("[bq67] m=%d -> rc=%d %s", mi, rc, note);
+        fsync(fileno(stderr));
+        usleep(250000);
+    }
+    LOG("[bq67] СВОДКА [%d..%d]: rc0=%d rc1=%d rc2=%d "
+        "(rc0=reply, rc1=тишина, rc2=разрыв)", mfrom, mto,
+        stat[0], stat[1], stat[2]);
+    LOG("[bq67] АНОМАЛИИ = rc1/rc2 на мутациях (контроль m=0 должен "
+        "быть rc0); краши — crashdiff");
+    });
+    LOG("[bq67] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -47515,6 +47718,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ64")) { p_bq64(); LOG("[probe13] bq64-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ65")) { p_bq65(); LOG("[probe13] bq65-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ66")) { p_bq66(); LOG("[probe13] bq66-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ67")) { p_bq67(); LOG("[probe13] bq67-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
