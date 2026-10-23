@@ -6226,3 +6226,33 @@ boardservices.endpoint-injection) добавлен в SET соединения �
    инъекция нашего mach-порта в ЧУЖОЙ процесс.
 
 Лог: results/runf-bq76-v226.log.
+
+### §222-доп. v227: ос-лог — наследование НЕ доставлено (нужен Domain-атрибут)
+
+Ос-лог после bq76-прогона (v226): наш ConnectionClient (21183) в
+state-dump демона показывает **пустой inheritanceManager** —
+добавление RBSInheritance в _inheritances соединения НЕ дошло
+до демоновой регистрации наследования (acquire=1, но «Saved
+endowment grant» / «Inheritance changeset» от нашего pid НЕТ).
+
+**Живая модель (ос-лог, InputUI→Tweetie2):**
+```
+1) acquire с attributes: [RBSDomainAttribute|
+     domain:"com.apple.frontboard" name:"WorkspaceEndpointInjection"]
+2) Демон: «Saved endowment grant adding inheritance
+   <RBSInheritance| name:boardservices.endpoint-injection …>»
+3) Демон: «Inheritance changeset: gained {…}»
+```
+
+**Различие с нашим:** мы использовали RBSLegacyAttribute reason=4;
+InputUI — RBSDomainAttribute(frontboard/WorkspaceEndpointInjection).
+Endpoint-injection-наследование применяется при acquire только
+с Domain-атрибутом соответствующего типа (frontboard/endpoint-
+injection), не с Legacy FinishTask.
+
+v228-план: acquire с `+[RBSDomainAttribute
+attributeWithDomain:name:]` (domain:com.apple.frontboard,
+name:WorkspaceEndpointInjection — как InputUI) + наш
+RBSInheritance в _inheritances → демон должен зарегистрировать
+наследование («Saved endowment grant» / «changeset gained»).
+Альтернативный domain: com.apple.boardservices.
