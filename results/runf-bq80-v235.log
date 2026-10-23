@@ -1,0 +1,67 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ80=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7f0b
+[scaler] conn 0x7f0b, s1 245 s2 246
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[probe12] SetNotificationPort -> 0x00000000
+[bq80] v235: LiveEntity-фаззинг — БД-разведка
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x1058a0900> { count = 1, transaction: 0, voucher = 0x1059653b0, contents =
+	"bsxpc" => <string: 0x105836160> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x1f176d460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f176d5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq80] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq80] фоновый запуск...
+[probe13] bq80-only mode, stop
+[bq80] stat(/var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db) -> -1 errno=1
+[bq80] прямой путь закрыт — bad_query-escape §170
+[bq80] escape handle -> 1
+[bq80] stat после escape -> 0
+[bq80] *** БД: /var/containers/Data/System/8EB68272-6502-49E9-B688-25CA4774CFE4/db size=114688 uid=501 mode=644 ***
+[bq80] sqlite3_open(RO) -> 0 db=0x105b2ca80
+[bq80] TABLE: CREATE TABLE "feedMetadata" (
+        "feedId" TEXT PRIMARY KEY NOT NULL,
+        "lastUpdate" TEXT NOT NULL
+    )
+[bq80] TABLE: CREATE TABLE "feedEntries" (
+        "feedId" TEXT NOT NULL,
+        "bootId" TEXT NOT NULL,
+        "bundleId" TEXT NOT NULL,
+        "entityId" TEXT NOT NULL,
+        "lastUpdate" TEXT NOT NULL,
+        "lnValue" BLOB NOT NULL,
+        "metadata" BLOB,
+        PRIMARY KEY ("feedId", "bundleId", "entityID"),
+        FOREIGN KEY ("feedId") REFERENCES "feedMetadata"("feedId")
+    )
+[bq80] feedEntries cols=7
+[bq80] row0[feedId] TEXT=media.groupingInfo
+[bq80] row0[bootId] TEXT=F3207479-CBEF-4EBF-85D6-7AEF1AF294B3
+[bq80] row0[bundleId] TEXT=com.apple.MediaRemoteAppIntentsExtension
+[bq80] row0[entityId] TEXT=NowPlayingGroupingInfoEntity/A013C7FC-2CB0-480F-8A97-77B5F26D90BE􁁺8EB00804-50EF-4F64-ADB6-877FCAAFFDDE􁁺false
+[bq80] row0[lastUpdate] TEXT=2026-10-23T08:22:46.751
+[bq80] row0[lnValue] BLOB 878 bytes
+[bq80] row0[lnValue] hex=62706c6973743030d4010203040506070a582476657273696f6e592461726368697665725424746f7058246f626a6563747312000186a05f100f4e534b657965…
+[bq80] row1[feedId] TEXT=nowPlaying.localPlayingMedia
+[bq80] row1[bootId] TEXT=F3207479-CBEF-4EBF-85D6-7AEF1AF294B3
+[bq80] row1[bundleId] TEXT=com.apple.siri.AudioAppIntentsExtension
+[bq80] row1[entityId] TEXT=SiriKitSongEntity/nowPlaying
+[bq80] row1[lastUpdate] TEXT=2026-10-23T11:00:55.245
+[bq80] row1[lnValue] BLOB 712 bytes
+[bq80] row1[lnValue] hex=62706c6973743030d4010203040506070a582476657273696f6e592461726368697665725424746f7058246f626a6563747312000186a05f100f4e534b657965…
+[bq80] row2[feedId] TEXT=nowPlaying.localPlayingMedia
+[bq80] row2[bootId] TEXT=F3207479-CBEF-4EBF-85D6-7AEF1AF294B3
+[bq80] row2[bundleId] TEXT=com.apple.siri.AudioAppIntentsExtension
+[bq80] row2[entityId] TEXT=SiriKitAlbumEntity/nowPlaying
+[bq80] row2[lastUpdate] TEXT=2026-10-23T11:00:55.245
+[bq80] row2[lnValue] BLOB 713 bytes
+[bq80] row2[lnValue] hex=62706c6973743030d4010203040506070a582476657273696f6e592461726368697665725424746f7058246f626a6563747312000186a05f100f4e534b657965…
+[bq80] done — схема и base-запись для LNValue-мутаций готовы

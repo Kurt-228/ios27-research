@@ -6514,3 +6514,46 @@ Hook encodeXPCObject:forKey: — XPC-объекты (mach-порты, endpoints)
 dlsym-резолв работает. xpc_object_t = id (toll-free).
 
 Лог: results/runf-bq79-v234.log.
+
+## §228. v235: LiveEntity-фаззинг — БД доступна через escape, LNValue = NSKeyedArchive (bplist00)
+
+### БД-разведка (p_bq80)
+
+Прямой путь `/var/containers/Data/System/8EB68272-…/db` закрыт
+из песочницы (stat errno=1), **bad_query-escape §170 открывает**
+(handle=1 → stat OK):
+
+```
+БД: 114688 bytes, uid=501 (наш!), mode=644 (RW!)
+feedEntries: feedId, bootId, bundleId, entityId, lastUpdate, lnValue
+feedMetadata: (схема)
+```
+
+**lnValue = BLOB 878 bytes, формат: NSKeyedArchive (bplist00)!**
+
+Живые записи: `media.groupingInfo` (com.apple.MediaRemoteAppIntentsExtension),
+`nowPlaying.localPlayingMedia` (com.apple.siri.AudioAppIntentsExtension) —
+сервис перечитывает БД при каждом клиентском запросе (§184).
+
+### План v236: LNValue-мутации
+
+1. Прочитать валидную запись (база мутаций = 878-byte bplist00)
+2. INSERT мутированной записи с тем же feedId (перезапись)
+3. Сервис перечитает при следующем клиентском запросе (звонок/
+   медиа) → LNValue-декодер десериализует мутированные байты
+4. Детектор: crashdiff (LiveEntityService crash)
+
+Мутации:
+- bplist00 byte-sweep (bq64-модель: ^=FF/^=01/+1)
+- class-name подмена в $classname (class confusion → arbitrary
+  class instantiation в привилегированном сервисе!)
+- NSKeyedArchive object-graph mutations ($null injection,
+  reference cycles, massive arrays)
+- oid/$classes подмена (decoder dispatch)
+
+**NSKeyedArchive в привилегированном сервисе** — классический
+вектор arbitrary-object-instantiation: если secure-кодинг-белый-
+лист неполон, контролируемые байты → несанкционированные классы
+→ код в сервисе с frontboard.launchapplications.
+
+Лог: results/runf-bq80-v235.log.
