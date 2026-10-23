@@ -41929,6 +41929,270 @@ static void p_bq77(void) {
     LOG("[bq77] фоновый запуск...");
 }
 
+// p_bq78 — v229: WIRE-МУТАЦИОННЫЙ ФАЗЗИНГ runningboardd.
+// Hook RBSXPCMessage.sendToConnection:error: — перехват XPC-объекта
+// ПЕРЕД отправкой → мутация байтов → демон декодирует мутированное.
+// Слои (по bq64-модели):
+//   M0 = контроль (без мутаций → acquire=1 известен)
+//   Слой 1: byte-slip внутри serialized descriptor (rbs_argument_0)
+//   Слой 2: подмена ключей wire-словаря
+//   Слой 3: типы значений (int→string, data→int)
+// Детектор: acquire исход (0=OK, 1=err, тишина=аномалия) + crashdiff.
+static IMP bq78_orig_send = NULL;
+static volatile int bq78_mut = -1;
+static volatile int bq78_lastRc = -1;
+
+static BOOL bq78_hook_send(id self, SEL _cmd, id conn, NSError **err) {
+    if (bq78_mut >= 0) {
+        // получаем внутренний XPC-объект сообщения
+        // RBSXPCMessage ivar: _message (xpc_object_t) — из карты §213
+        Ivar msgIvar = class_getInstanceVariable([self class],
+                                                 "_xpcMessage");
+        if (!msgIvar) {
+            msgIvar = class_getInstanceVariable([self class],
+                                                "_message");
+        }
+        if (msgIvar) {
+            xpc_object_t xo = (xpc_object_t)object_getIvar(self, msgIvar);
+            if (xo) {
+                char *desc = xpc_copy_description(xo);
+                LOG("[bq78] m=%d msg=%s", bq78_mut,
+                    desc ? desc : "?");
+                free(desc);
+                if (xpc_get_type(xo) == XPC_TYPE_DICTIONARY) {
+                    int m = bq78_mut;
+                    switch (m) {
+                        case 0: // контроль — не трогаем
+                            break;
+                        case 1: { // rbs_argument_0 ^= byte[0]
+                            xpc_object_t a0 = xpc_dictionary_get_value(
+                                xo, "rbs_argument_0");
+                            if (a0 && xpc_get_type(a0) == XPC_TYPE_DATA) {
+                                size_t n = xpc_data_get_length(a0);
+                                const unsigned char *bp =
+                                    xpc_data_get_bytes_ptr(a0);
+                                if (n > 16) {
+                                    unsigned char *b = malloc(n);
+                                    memcpy(b, bp, n);
+                                    b[16] ^= 0xFF;  // середина блоба
+                                    xpc_dictionary_set_data(
+                                        xo, "rbs_argument_0", b, n);
+                                    free(b);
+                                    LOG("[bq78] m=1: arg0[16]^=FF");
+                                }
+                            }
+                            break; }
+                        case 2: { // rbs_argument_0 ^= byte[0]
+                            xpc_object_t a0 = xpc_dictionary_get_value(
+                                xo, "rbs_argument_0");
+                            if (a0 && xpc_get_type(a0) == XPC_TYPE_DATA) {
+                                size_t n = xpc_data_get_length(a0);
+                                const unsigned char *bp =
+                                    xpc_data_get_bytes_ptr(a0);
+                                if (n > 0) {
+                                    unsigned char *b = malloc(n);
+                                    memcpy(b, bp, n);
+                                    b[0] ^= 0xFF;
+                                    xpc_dictionary_set_data(
+                                        xo, "rbs_argument_0", b, n);
+                                    free(b);
+                                    LOG("[bq78] m=2: arg0[0]^=FF");
+                                }
+                            }
+                            break; }
+                        case 3: { // rbs_argument_0 tail chop -4
+                            xpc_object_t a0 = xpc_dictionary_get_value(
+                                xo, "rbs_argument_0");
+                            if (a0 && xpc_get_type(a0) == XPC_TYPE_DATA) {
+                                size_t n = xpc_data_get_length(a0);
+                                const unsigned char *bp =
+                                    xpc_data_get_bytes_ptr(a0);
+                                if (n > 8) {
+                                    xpc_dictionary_set_data(
+                                        xo, "rbs_argument_0", bp, n-4);
+                                    LOG("[bq78] m=3: arg0 chop -4 (%zu→%zu)",
+                                        n, n-4);
+                                }
+                            }
+                            break; }
+                        case 4: { // rbs_selector подмена
+                            xpc_object_t sel = xpc_dictionary_get_value(
+                                xo, "rbs_selector");
+                            if (sel && xpc_get_type(sel) == XPC_TYPE_STRING) {
+                                const char *sv = xpc_string_get_string_ptr(sel);
+                                if (sv && strlen(sv) > 4) {
+                                    xpc_dictionary_set_string(
+                                        xo, "rbs_selector", "XXXX");
+                                    LOG("[bq78] m=4: sel='XXXX'");
+                                }
+                            }
+                            break; }
+                        case 5: { // target pid = -1
+                            xpc_object_t t = xpc_dictionary_get_value(
+                                xo, "target");
+                            if (t && xpc_get_type(t) == XPC_TYPE_DATA) {
+                                size_t n = xpc_data_get_length(t);
+                                const unsigned char *bp =
+                                    xpc_data_get_bytes_ptr(t);
+                                if (n >= 8) {
+                                    unsigned char *b = malloc(n);
+                                    memcpy(b, bp, n);
+                                    memset(b, 0xFF, 8); // pid=-1 весь
+                                    xpc_dictionary_set_data(
+                                        xo, "target", b, n);
+                                    free(b);
+                                    LOG("[bq78] m=5: target pid=-1");
+                                }
+                            }
+                            break; }
+                        case 6: { // unknown key
+                            xpc_dictionary_set_int64(xo, "bq78_fake", 999);
+                            LOG("[bq78] m=6: +fake key");
+                            break; }
+                        case 7: { // rbs_argument_0 тип-подмена: data→int
+                            xpc_object_t a0 = xpc_dictionary_get_value(
+                                xo, "rbs_argument_0");
+                            if (a0 && xpc_get_type(a0) == XPC_TYPE_DATA) {
+                                xpc_dictionary_set_int64(
+                                    xo, "rbs_argument_0", 0xDEAD);
+                                LOG("[bq78] m=7: arg0 data→int");
+                            }
+                            break; }
+                        case 8: { // explanation binary garbage
+                            xpc_object_t e = xpc_dictionary_get_value(
+                                xo, "explanation");
+                            if (e && xpc_get_type(e) == XPC_TYPE_STRING) {
+                                static char garbage[16];
+                                for (int i = 0; i < 15; i++)
+                                    garbage[i] = (char)(0x80 + i);
+                                garbage[15] = 0;
+                                xpc_dictionary_set_string(
+                                    xo, "explanation", garbage);
+                                LOG("[bq78] m=8: explanation=binary");
+                            }
+                            break; }
+                        case 9: { // attributes дублирование
+                            xpc_object_t a = xpc_dictionary_get_value(
+                                xo, "attributes");
+                            if (a) {
+                                xpc_dictionary_set_value(
+                                    xo, "attributes_backup", a);
+                                LOG("[bq78] m=9: +attributes dup");
+                            }
+                            break; }
+                    }
+                }
+            }
+        } else {
+            LOG("[bq78] m=%d: ivar сообщения НЕ найден — дамп классов:",
+                bq78_mut);
+            bq57_dump([self class], "RBSXPCMessage");
+        }
+    }
+    BOOL r = ((BOOL (*)(id, SEL, id, NSError **))bq78_orig_send)(
+        self, _cmd, conn, err);
+    if (bq78_mut >= 0) {
+        bq78_lastRc = (int)r;
+        LOG("[bq78] m=%d send->%d", bq78_mut, (int)r);
+    }
+    return r;
+}
+
+static int bq78_acquire_once(Class tCls, Class aCls, Class laCls,
+                              int mut, char *outNote, size_t noteSz) {
+    // mutation включается ГЛОБАЛЬНО на время этого acquire
+    bq78_mut = mut;
+    bq78_lastRc = -1;
+    typedef id (*CFn)(Class, SEL);
+    CFn cf = (CFn)objc_msgSend;
+    id tgt = cf(tCls, @selector(currentProcess));
+    typedef id (*AFn)(Class, SEL, unsigned long long, unsigned long long);
+    AFn af = (AFn)objc_msgSend;
+    id la = af(laCls, @selector(attributeWithReason:flags:), 4ull, 1ull);
+    typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+    IFn f = (IFn)objc_msgSend;
+    id as = f([aCls alloc],
+              @selector(initWithExplanation:target:attributes:),
+              @"bq78 wire-mut", tgt, @[la]);
+    NSError *err = nil;
+    typedef BOOL (*AFn2)(id, SEL, NSError **);
+    AFn2 aq = (AFn2)objc_msgSend;
+    BOOL ok = aq(as, @selector(acquireWithError:), &err);
+    bq78_mut = -1;
+    snprintf(outNote, noteSz, "acquire=%d err=%.80s", (int)ok,
+             err ? err.localizedDescription.UTF8String : "(none)");
+    [as invalidate];
+    return ok ? 0 : 1;
+}
+
+static void p_bq78(void) {
+    LOG("[bq78] v229: wire-мутационный фаззинг runningboardd");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq78.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq78] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq78] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    // hook RBSXPCMessage.sendToConnection:error:
+    {
+        Class msgCls = NSClassFromString(@"RBSXPCMessage");
+        if (!msgCls) { LOG("[bq78] RBSXPCMessage нет"); return; }
+        bq57_dump(msgCls, "RBSXPCMessage");
+        SEL sendSel = NSSelectorFromString(@"sendToConnection:error:");
+        Method m = class_getInstanceMethod(msgCls, sendSel);
+        if (m) {
+            bq78_orig_send = method_setImplementation(m,
+                (IMP)bq78_hook_send);
+            LOG("[bq78] hook sendToConnection: orig=%p",
+                bq78_orig_send);
+        } else {
+            LOG("[bq78] sendToConnection: НЕ НАЙДЕН — смотреть дамп");
+            return;
+        }
+    }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    Class tCls = NSClassFromString(@"RBSTarget");
+    Class aCls = NSClassFromString(@"RBSAssertion");
+    Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+    if (!tCls || !aCls || !laCls) { LOG("[bq78] нет классов"); return; }
+
+    static const int NM = 10;
+    static const char *names[] = {
+        "M0-КОНТРОЛЬ", "M1-arg0[16]^FF", "M2-arg0[0]^FF",
+        "M3-arg0-chop-4", "M4-selector=XXXX", "M5-target-pid=-1",
+        "M6-fake-key", "M7-arg0-data→int", "M8-expl-binary",
+        "M9-attr-dup"
+    };
+    int stat[3] = {0, 0, 0};
+    for (int mi = 0; mi < NM; mi++) {
+        char note[256];
+        int rc = bq78_acquire_once(tCls, aCls, laCls, mi,
+                                    note, sizeof(note));
+        if (mi > 0) stat[rc]++;
+        LOG("[bq78] %-18s -> rc=%d %s", names[mi], rc, note);
+        fsync(fileno(stderr));
+        usleep(400000);
+    }
+    LOG("[bq78] СВОДКА: rc0=%d rc1=%d (аномалии: тишина/краш = "
+        "crashdiff); контроль M0 должен быть rc0", stat[0], stat[1]);
+    });
+    LOG("[bq78] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -49432,6 +49696,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ75")) { p_bq75(); LOG("[probe13] bq75-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ76")) { p_bq76(); LOG("[probe13] bq76-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ77")) { p_bq77(); LOG("[probe13] bq77-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ78")) { p_bq78(); LOG("[probe13] bq78-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -6297,3 +6297,27 @@ extension (как InputUI→Tweetie2: originator InputUI — host UI).
 Открытые примитивы (bounty-факт): **acquire на произвольные
 системные процессы с произвольными lifecycle-флагами + invalidate
 по произвольному audit_token** — всё остальное за подписью.
+
+### §224. v229: wire-фаззинг runningboardd — hook sendToConnection: работает, ivar-поиск
+
+**p_bq78**: hook `-[RBSXPCMessage sendToConnection:error:]` —
+перехват живой (orig=0x194ee568c, 10 вызовов за прогон, send
+возвращает ~108659584 — большое число, вероятно xpc-conn ID).
+
+**Проблема**: RBSXPCMessage — Swift-класс, **НЕ имеет ivar
+`_xpcMessage` / `_message`** (11 методов: method/reply/isEmpty/
+sendToConnection:*3/decode*2 — внутренний XPC-объект под другим
+именем или в Swift-поле без ObjC-экспозиции). Мутации НЕ
+применялись (все 10 acquire=1 = обычные немутации).
+
+Все 10 мутаций → acquire=1 → декодер демона жив (но данные не
+были мутированы — пустой негатив, детектор M0=acquire=1 ✓).
+
+**v230-задача**: найти XPC-объект внутри RBSXPCMessage:
+1. `-[RBSXPCMessage method]` — вероятно возвращает xpc_dict
+2. Свизл `-method` (или dump всех ivar'ов через
+   class_copyIvarList — Swift-поля видны если @objc)
+3. Альтернативно: hook на уровне `+[RBSXPCCoder coderWithMessage:]`
+   — coder строится ИЗ message → перехватить здесь
+
+Лог: results/runf-bq78-v229.log.

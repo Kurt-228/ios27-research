@@ -1,0 +1,231 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ78=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4d13
+[scaler] conn 0x4d13, s1 215 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[bq78] v229: wire-мутационный фаззинг runningboardd
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x106488700> { count = 1, transaction: 0, voucher = 0x10655def0, contents =
+	"bsxpc" => <string: 0x1066c4270> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x1f176d460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f176d5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq78] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] hook sendToConnection: orig=0x194ee568c
+[bq78] фоновый запуск...
+[probe13] bq78-only mode, stop
+[bq78] m=0: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=0 send->108659584
+[bq78] M0-КОНТРОЛЬ -> rc=0 acquire=1 err=(none)
+[bq78] m=1: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=1 send->108659776
+[bq78] M1-arg0[16]^FF     -> rc=0 acquire=1 err=(none)
+[bq78] m=2: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=2 send->108659904
+[bq78] M2-arg0[0]^FF      -> rc=0 acquire=1 err=(none)
+[bq78] m=3: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=3 send->108659968
+[bq78] M3-arg0-chop-4     -> rc=0 acquire=1 err=(none)
+[bq78] m=4: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=4 send->108660160
+[bq78] M4-selector=XXXX   -> rc=0 acquire=1 err=(none)
+[bq78] m=5: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=5 send->108660288
+[bq78] M5-target-pid=-1   -> rc=0 acquire=1 err=(none)
+[bq78] m=6: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=6 send->108660416
+[bq78] M6-fake-key        -> rc=0 acquire=1 err=(none)
+[bq78] m=7: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=7 send->108660544
+[bq78] M7-arg0-data→int -> rc=0 acquire=1 err=(none)
+[bq78] m=8: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=8 send->108660672
+[bq78] M8-expl-binary     -> rc=0 acquire=1 err=(none)
+[bq78] m=9: ivar сообщения НЕ найден — дамп классов:
+[bq57] RBSXPCMessage -> RBSXPCMessage
+[bq57] RBSXPCMessage instance-methods: 11
+[bq57]   RBSXPCMessage -method
+[bq57]   RBSXPCMessage -reply
+[bq57]   RBSXPCMessage -isEmpty
+[bq57]   RBSXPCMessage -sendToConnection:replyQueue:completion:
+[bq57]   RBSXPCMessage -init
+[bq57]   RBSXPCMessage -decodeArgumentCollection:withClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:error:
+[bq57]   RBSXPCMessage -.cxx_destruct
+[bq57]   RBSXPCMessage -sendToConnection:
+[bq57]   RBSXPCMessage -decodeArgumentWithClass:atIndex:allowNil:error:
+[bq57]   RBSXPCMessage -sendToConnection:completion:
+[bq57] RBSXPCMessage class-methods: 2
+[bq57]   RBSXPCMessage +messageForMethod:varguments:
+[bq57]   RBSXPCMessage +messageForXPCMessage:
+[bq78] m=9 send->108660800
+[bq78] M9-attr-dup        -> rc=0 acquire=1 err=(none)
+[bq78] СВОДКА: rc0=9 rc1=0 (аномалии: тишина/краш = crashdiff); контроль M0 должен быть rc0
