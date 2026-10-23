@@ -42321,12 +42321,60 @@ static void bq79_hook_encObj(id self, SEL _cmd, id obj, NSString *key) {
             case 8:
                 if (strcmp(k, "explanation") == 0) {
                     LOG("[bq79] m=8: explanation=repeat");
-                    bq79_mut = -1; // отключаем на время 2-го encode
+                    bq79_mut = -1;
                     ((void (*)(id, SEL, id, NSString *))
                         bq79_orig_encObj)(self, _cmd,
                         @"bq79-first", key);
                     bq79_mut = m;
-                    obj = @"bq79-second"; // 2-й encode того же ключа
+                    obj = @"bq79-second";
+                }
+                break;
+            case 9: // explanation 1MB
+                if (strcmp(k, "explanation") == 0) {
+                    static char *huge = NULL;
+                    if (!huge) {
+                        huge = malloc(1 << 20);
+                        memset(huge, 0x41, (1 << 20) - 1);
+                        huge[(1 << 20) - 1] = 0;
+                    }
+                    obj = [NSString stringWithUTF8String:huge];
+                    LOG("[bq79] m=9: explanation=1MB");
+                }
+                break;
+            case 10: // attributes → пустой array
+                if (strcmp(k, "attributes") == 0) {
+                    obj = @[];
+                    LOG("[bq79] m=10: attributes=empty");
+                }
+                break;
+            case 11: // target → чужой класс (NSString)
+                if (strcmp(k, "target") == 0) {
+                    obj = @"NOT_A_TARGET";
+                    LOG("[bq79] m=11: target=NSString");
+                }
+                break;
+            case 12: // processIdentifier → NSNumber вместо объекта
+                if (strcmp(k, "processIdentifier") == 0) {
+                    obj = @999999999;
+                    LOG("[bq79] m=12: procId=NSNumber");
+                }
+                break;
+            case 13: // _pid → экстремум
+                if (strcmp(k, "_pid") == 0) {
+                    obj = @(2147483647);
+                    LOG("[bq79] m=13: _pid=INT_MAX");
+                }
+                break;
+            case 14: // reason → отрицательный (внутри attrs)
+                if (strcmp(k, "reason") == 0 || strcmp(k, "requestedReason") == 0) {
+                    obj = @(-2147483648);
+                    LOG("[bq79] m=14: reason=INT_MIN");
+                }
+                break;
+            case 15: // flags → строка вместо int (type confusion)
+                if (strcmp(k, "flags") == 0) {
+                    obj = @"NOT_A_NUMBER";
+                    LOG("[bq79] m=15: flags=NSString");
                 }
                 break;
         }
@@ -42403,11 +42451,14 @@ static void p_bq79(void) {
     Class laCls = NSClassFromString(@"RBSLegacyAttribute");
     if (!tCls || !aCls || !laCls) { LOG("[bq79] нет классов"); return; }
 
-    static const int NM = 9;
+    static const int NM = 16;
     static const char *names[] = {
         "M0-КОНТРОЛЬ", "M1-expl-binary", "M2-expl-8KB",
         "M3-target=nil", "M4-target=NSNull", "M5-attrs=NSString",
-        "M6-ident=binary", "M7-procId=nil", "M8-expl-double"
+        "M6-ident=binary", "M7-procId=nil", "M8-expl-double",
+        "M9-expl-1MB", "M10-attrs=empty", "M11-target=NSString",
+        "M12-procId=NSNumber", "M13-pid=INT_MAX", "M14-reason=INT_MIN",
+        "M15-flags=NSString"
     };
     int stat[3] = {0, 0, 0};
     for (int mi = 0; mi < NM; mi++) {

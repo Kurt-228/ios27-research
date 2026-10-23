@@ -6382,3 +6382,39 @@ wire с нелегальными значениями.
 mach-порты) — критические объекты.
 
 Лог: results/runf-bq79-v231.log.
+
+### §225-доп. v231.1: полный свип 16 мутаций — reason=INT_MIN и flags=NSString ПРОШЛИ (type-confusion vector!)
+
+Расширенный свип (16 мутаций, контроль M0 ✓, 0 крашей):
+
+| мутация | исход | значение |
+|---|---|---|
+| M9 explanation=**1MB** | **acquired** | лимита НЕТ — 1MB строка хранится демоном |
+| M10 attributes=empty | err «no attributes» | строгая валидация count>0 |
+| M11 target=NSString | err «missing valid target» | строгая валидация класса |
+| M12 processIdentifier=NSNumber | err «same process» | строгая валидация |
+| M13 **_pid=INT_MAX(2147483647)** | **acquired** | экстремум принят! |
+| M14 **reason=INT_MIN(-2147483648)** | **acquired** | отрицательный reason принят! |
+| M15 **flags=NSString** | **acquired** | **СТРОКА вместо INT64 — type confusion!** |
+
+**Критические находки:**
+1. **flags=NSString acquired**: encodeObject кладёт строку в
+   поле flags → демон декодирует как int64 → если decoder
+   молча принимает NSNumber/String в int-слот → type confusion
+   (int64→трактуется как указатель на строку или мусор).
+2. **reason=INT_MIN**: отрицательный reason не в enum (§215:
+   4=FinishTask) — но acquired! Значит сервер-валидация reason
+   (§215 «Invalid assertion reason») сработала только на
+   reason 0..64 при кодировании через RBSLegacyAttribute —
+   при encodeObject-хуке (подмена ПОСЛЕ RBSLegacyAttribute
+   создания) значение уходит БЕЗ валидации → reason INT_MIN
+   зарегистрирован.
+3. **_pid=INT_MAX**: target = RBSProcessIdentifier(pid=2^31-1) —
+   assertion на несуществующий процесс acquired → runningboardd
+   держит assertion на фантомный pid.
+
+**Аномалий (тишина/краш) = 0** — декодер демона process-safe на
+всех 16. Type-confusion (flags=string) — предмет для ос-лога:
+что демон записал в assertion-стейт при flags=NSString?
+
+Лог: results/runf-bq79-v231-full.log.
