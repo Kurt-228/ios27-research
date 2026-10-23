@@ -7061,3 +7061,39 @@ semantic-дифф → фильтрация security-релевантных из�
 
 Ghidra запущен на обеих версиях ядра (12.4МБ каждая) — функциональный
 дифф network stack (mbuf/ip_options/route) в работе.
+
+### §236-дополнение: ТОЧНАЯ УЯЗВИМОСТЬ в Ghidra-декомпиляте — m_makespace signedness
+
+**Функция**: `m_makespace()` — generic mbuf utility, вызывается из
+TCP/IP output path (8 callers: tcp_output, ip_output, checksum).
+
+**435 (VULNERABLE) FUN_fffffff00ad56cd0:**
+```c
+uVar6 = param_4 + uVar6;       // off = off + len — INT OVERFLOW
+iVar1 = uVar4 - uVar6;         // remaining = m_len - (off+len)
+if (0 < iVar1) {               // SIGNED! off+len<0 → iVar1>0 → PASS
+    if (uVar3 < uVar4) {
+        PANIC("mbuf %p len (%d) < off+len (%d+%d)");  // %d = SIGNED
+    }
+    // ... продолжает с OOB offset → KERNEL CORRUPTION
+```
+
+**B115 (FIXED) FUN_fffffff00ada278c:**
+```c
+if (uVar6 < (ulong)uVar5 + (ulong)uVar4) {  // UNSIGNED — ловит overflow
+    PANIC("mbuf %p len (%u) < off+len (%u+%u)");  // %u = UNSIGNED
+```
+
+**Эксплойт-механика**: caller передаёт `off`/`len` derived от network-
+поля → если off+len переполняется в отрицательное → signed check
+проходит → mbuf manipulation с OOB offset → kernel write.
+
+**Callers**: 8 мест в __TEXT_EXEC, все в TCP/IP processing
+(byte-swap паттерны указывают на header manipulation).
+Достижимы из песочницы через: TCP connect/send (port 1080),
+UDP sendto, setsockopt(IP_OPTIONS).
+
+**IP_OPTIONS setsockopt**: EINVAL на len>40 — валидатор режет
+прямые overflow-опции. Но m_makespace вызывается из более
+глубоких путей (checksum, tcp header build) где off/len
+вычисляются из полей пакета.
