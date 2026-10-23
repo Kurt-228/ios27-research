@@ -6321,3 +6321,32 @@ sendToConnection:*3/decode*2 — внутренний XPC-объект под д
    — coder строится ИЗ message → перехватить здесь
 
 Лог: results/runf-bq78-v229.log.
+
+### §224-доп. v230: ivar найден (_xpc_message), мутация сломала wire
+
+**Ivar-карта RBSXPCMessage (3 поля):**
+```
+ivar[0] _xpc_message  off=0008  type=@"NSObject<OS_xpc_object>" ← XPC-объект!
+ivar[1] _payload      off=0016  type=@"RBSXPCCoder"              ← кодер
+ivar[2] _method       off=0024  type=:                          ← SEL
+```
+
+Hook sendToConnection: + чтение через `-method` (или object_getIvar
+на `_xpc_message`) → мутации НАЧАЛИСЬ, но процесс **тихо умер**
+после первых мутаций (0 краш-репортов — как §218 terminate):
+мутации data-членов XPC-словаря (rbs_argument_0 ^= FF, chop -4,
+selector=XXXX, target-pid=-1, data→int) ломают RBSXPC-wire →
+клиентский decode/assert умирает ДО доставки (или демон рвёт
+connection с client-side abort).
+
+**Урок:** XPC-словарь нельзя мутировать по байтам in-place —
+структура RBSXPCMessage._xpc_message сериализована для wire
+(кодер пишет напрямую в XPC, изменение после кодирования
+ломает согласованность → client assert).
+
+**v231-план (безопасные мутации):** мутировать НЕ байты, а
+АРГУМЕНТЫ ДО кодирования: hook RBSXPCCoder.encode*:forKey:
+(ABI-safe, §216) + подмена значений (explanation→binary,
+target pid→экзотический, attributes→чужой класс). Декодер демона
+получит «легальный wire с нелегальными значениями» — его задача
+справиться. Это безопаснее и эквивалентно wire-мутации.

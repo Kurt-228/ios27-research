@@ -41952,9 +41952,62 @@ static BOOL bq78_hook_send(id self, SEL _cmd, id conn, NSError **err) {
             msgIvar = class_getInstanceVariable([self class],
                                                 "_message");
         }
-        if (msgIvar) {
-            xpc_object_t xo = (xpc_object_t)object_getIvar(self, msgIvar);
-            if (xo) {
+        // v230: полный ivar-dump Swift-класса (включая не-@objc поля)
+        static BOOL dumped = NO;
+        if (!dumped) {
+            dumped = YES;
+            unsigned int ic2 = 0;
+            Ivar *ivs2 = class_copyIvarList([self class], &ic2);
+            LOG("[bq78] RBSXPCMessage ivarCount=%u", ic2);
+            for (unsigned i2 = 0; i2 < ic2; i2++) {
+                const char *n2 = ivar_getName(ivs2[i2]);
+                const char *t2 = ivar_getTypeEncoding(ivs2[i2]);
+                ptrdiff_t o2 = ivar_getOffset(ivs2[i2]);
+                LOG("[bq78]   ivar[%u] %-28s off=%04zd type=%s", i2,
+                    n2 ?: "?", (long)o2, t2 ?: "?");
+            }
+            if (ivs2) free(ivs2);
+            // -method: возвращает внутренний объект?
+            SEL mSel = @selector(method);
+            if ([self respondsToSelector:mSel]) {
+                typedef id (*MFn)(id, SEL);
+                MFn mf = (MFn)objc_msgSend;
+                id meth = mf(self, mSel);
+                LOG("[bq78]   -method = %s",
+                    meth ? NSStringFromClass([meth class]).UTF8String
+                         : "(nil)");
+                if (meth) {
+                    char *md = xpc_copy_description(
+                        (xpc_object_t)meth);
+                    LOG("[bq78]   -method desc: %.400s", md ?: "?");
+                    free(md);
+                }
+            }
+            SEL rSel = @selector(reply);
+            if ([self respondsToSelector:rSel]) {
+                typedef id (*RFn)(id, SEL);
+                RFn rf = (RFn)objc_msgSend;
+                id rep = rf(self, rSel);
+                LOG("[bq78]   -reply = %s",
+                    rep ? NSStringFromClass([rep class]).UTF8String
+                        : "(nil)");
+            }
+        }
+        // пробуем method как источник
+        SEL mSel2 = @selector(method);
+        xpc_object_t xo = nil;
+        if ([self respondsToSelector:mSel2]) {
+            typedef id (*MFn)(id, SEL);
+            MFn mf = (MFn)objc_msgSend;
+            id meth = mf(self, mSel2);
+            if (meth && xpc_get_type((xpc_object_t)meth)
+                              == XPC_TYPE_DICTIONARY) {
+                xo = (xpc_object_t)meth;
+                LOG("[bq78] m=%d: -method = XPC_DICT ✓", bq78_mut);
+            }
+        }
+        if (xo) {
+        {
                 char *desc = xpc_copy_description(xo);
                 LOG("[bq78] m=%d msg=%s", bq78_mut,
                     desc ? desc : "?");
@@ -42084,9 +42137,7 @@ static BOOL bq78_hook_send(id self, SEL _cmd, id conn, NSError **err) {
                 }
             }
         } else {
-            LOG("[bq78] m=%d: ivar сообщения НЕ найден — дамп классов:",
-                bq78_mut);
-            bq57_dump([self class], "RBSXPCMessage");
+            LOG("[bq78] m=%d: XPC-объект не найден", bq78_mut);
         }
     }
     BOOL r = ((BOOL (*)(id, SEL, id, NSError **))bq78_orig_send)(
