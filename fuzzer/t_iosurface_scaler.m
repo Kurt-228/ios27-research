@@ -43865,6 +43865,119 @@ static void p_bq85(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
+// security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
+// что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
+// Тест: доступ к системным бинарникам, deprecated APIs, IOMFB, authkit.
+static void p_bq87(void) {
+    LOG("[bq87] v246: sandbox-лазейки 27.0 (b4), закрытые в 27.2 (§236)");
+    fsync(fileno(stderr));
+
+    // === 1. Системные бинарники (I/sbin/halt, K/sbin/reboot, F/bin/mv) ===
+    {
+        const char *bins[] = {"/sbin/halt", "/sbin/reboot", "/bin/mv",
+                               "/bin/ls", "/sbin/mount", "/usr/bin/killall", NULL};
+        for (int i = 0; bins[i]; i++) {
+            struct stat st = {0};
+            int src = stat(bins[i], &st);
+            int frc = access(bins[i], X_OK);
+            FILE *f = fopen(bins[i], "rb");
+            LOG("[bq87] %-20s stat=%d X_OK=%d fopen=%s uid=%d mode=%o",
+                bins[i], src, frc, f ? "READ!" : "denied",
+                src == 0 ? (int)st.st_uid : -1, src == 0 ? (st.st_mode & 0777) : 0);
+            if (f) {
+                // читаем первый байт (Mach-O magic)
+                uint32_t magic = 0;
+                fread(&magic, 4, 1, f);
+                LOG("[bq87]   magic=%#x (%s)", magic,
+                    magic == 0xFEEDFACF ? "Mach-O 64!" : "?");
+                fclose(f);
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 2. SystemConfiguration deprecated-get-network-info ===
+    {
+        void *sc = dlopen(
+            "/System/Library/Frameworks/SystemConfiguration.framework/SystemConfiguration",
+            RTLD_LAZY);
+        LOG("[bq87] SystemConfiguration dlopen → %p %s",
+            sc, sc ? "ОТКРЫТ!" : "(denied)");
+        if (sc) {
+            // deprecated APIs
+            const char *syms[] = {
+                "SCNetworkReachabilityCreateWithName",
+                "SCNetworkInterfaceCopyAll",
+                "SCNetworkServiceCopyAll",
+                "SCPreferencesGetValue",
+                "SCDynamicStoreCreate",
+                NULL};
+            for (int i = 0; syms[i]; i++) {
+                void *a = dlsym(sc, syms[i]);
+                LOG("[bq87]   dlsym(%s) → %p", syms[i], a);
+            }
+            dlclose(sc);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 3. IOMFB Debug/Layer (IIOMFBDebug, IIOMFBLayer) ===
+    {
+        // IOKit user client для framebuffer debug
+        io_service_t svc = IOServiceGetMatchingService(
+            kIOMainPortDefault, IOServiceMatching("AppleMobileFramebuffer"));
+        if (!svc) svc = IOServiceGetMatchingService(
+            kIOMainPortDefault, IOServiceMatching("IOMobileFramebufferAP"));
+        LOG("[bq87] IOMFB service → %x %s", svc,
+            svc ? "НАЙДЕН!" : "not found");
+        if (svc) {
+            for (uint32_t type = 0; type <= 3; type++) {
+                io_connect_t c = 0;
+                kern_return_t kr = IOServiceOpen(svc, mach_task_self(), type, &c);
+                LOG("[bq87]   IOMFB open type %u → kr=%#x %s", type, kr,
+                    kr == KERN_SUCCESS ? "ОТКРЫТ!" : "denied");
+                if (kr == KERN_SUCCESS && c) {
+                    IOServiceClose(c);
+                }
+            }
+            IOObjectRelease(svc);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 4. authkit.xpc / другие XPC из новых правил ===
+    {
+        const char *xpc_services[] = {
+            "com.apple.authkit.xpc",
+            "com.apple.akd.xpc",
+            "com.apple.ManagedSettingsAgent",
+            "com.apple.ak.authkit",
+            NULL};
+        // bootstrap_look_up недоступна с 3 args на iOS —
+        // проверяем через mach lookup (наш существующий xpc-механизм)
+        LOG("[bq87] XPC: пропущено (bootstrap API недоступен из нового SDK)");
+        fsync(fileno(stderr));
+    }
+
+    // === 5. Sandbox profile — что нам разрешено (dump через sysctl) ===
+    {
+        char buf[4096];
+        size_t len = sizeof(buf) - 1;
+        int rc = sysctlbyname("kern.sandbox.extensions", buf, &len, NULL, 0);
+        LOG("[bq87] sysctl sandbox.extensions → rc=%d len=%zu", rc, len);
+        if (rc == 0 && len > 0) {
+            buf[len] = 0;
+            LOG("[bq87]   extensions: %s", buf);
+        }
+        rc = sysctlbyname("security.mac.sandbox.enabled", buf, &len, NULL, 0);
+        LOG("[bq87] sysctl sandbox.enabled → rc=%d", rc);
+    }
+
+    LOG("[bq87] ИТОГ: сканирование завершено");
+    fsync(fileno(stderr));
+}
+
 // p_bq86 — v245: MBUF SIGNEDNESS через IP_OPTIONS (§236).
 // XNU 27.0 (24A435): mbuf bounds check `len (%d) < off+len (%d+%d)` —
 // SIGNED. 27.2 (24B115): `(%u)` — UNSIGNED. Отрицательный off/len
@@ -52352,6 +52465,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ84")) { p_bq84(); LOG("[probe13] bq84-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ85")) { p_bq85(); LOG("[probe13] bq85-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ86")) { p_bq86(); LOG("[probe13] bq86-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ87")) { p_bq87(); LOG("[probe13] bq87-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

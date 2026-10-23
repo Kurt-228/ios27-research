@@ -7097,3 +7097,28 @@ UDP sendto, setsockopt(IP_OPTIONS).
 прямые overflow-опции. Но m_makespace вызывается из более
 глубоких путей (checksum, tcp header build) где off/len
 вычисляются из полей пакета.
+
+### §237. v246: SANDBOX-ЛАЗЕЙКИ — IOMFB user client ВСЕ 4 ТИПА ОТКРЫТЫ; SystemConfiguration deprecated APIs доступны
+
+**security_sandbox дифф 27.0→27.2**: +187 новых правил. Проверка на b4:
+
+**IOMFB (AppleMobileFramebuffer)**:
+- Service: AppleMobileFramebuffer → **FOUND** (0x5c13)
+- **IOServiceOpen type 0,1,2,3 → ВСЕ KERN_SUCCESS (ОТКРЫТЫ!)**
+- 27.2 добавил правила `IOMFBDebug` и `IOMFBLayer` → Apple закрыл
+  эти user clients как security risk
+- Display controller user client из песочницы = НОВАЯ поверхность
+
+**SystemConfiguration deprecated APIs**:
+- dlopen → **ОТКРЫТ**
+- SCNetworkReachabilityCreateWithName ✓
+- SCNetworkInterfaceCopyAll ✓  
+- SCNetworkServiceCopyAll ✓
+- SCPreferencesGetValue ✓
+- SCDynamicStoreCreate ✓
+- 27.2: `deprecated-get-network-info` → Apple закрыл deprecated network info
+
+**Системные бинарники** (/sbin/halt, /bin/mv, etc.): уже закрыты в 27.0.
+
+**Приоритет**: IOMFB user client — если внешние методы обрабатывают
+malformed данные без валидации → kernel memory corruption.
