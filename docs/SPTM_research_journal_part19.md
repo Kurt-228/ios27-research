@@ -6173,3 +6173,56 @@ DFU-пути — 0x38108 (чист).
 
 Коммит: v226. План §221 («Путь v226» — RBS менеджер) сдвигается
 на v227 — номера версий считаются по факту коммитов.
+
+## §222. v226: RBSInheritance ДОБАВЛЕН в _inheritances RBSConnection → acquire=1 (наследование из песочницы!)
+
+### Зонд через живой sharedInstance (ivar-дамп, 20 ivar'ов)
+
+RBSConnection ivar-карта (ключевые):
+```
+ivar[03] _serviceDelegate        → RBSService
+ivar[08] _connectionQueue        → serial queue
+ivar[10] _acquiredAssertionsByIdentifier → NSMapTable
+ivar[14] _inheritances           → NSMutableSet (count=4 системных!)
+ivar[17] _savedEndowments         → NSMutableArray
+ivar[18] _managedEndpointByLaunchIdentifier → NSDictionary
+```
+
+**Нет отдельного RBClientInheritanceManager** — наследования живут
+ПРЯМО в `_inheritances` (NSMutableSet) внутри RBSConnection.
+Системные наследования уже там (4 шт. от launch-хендшейка).
+
+### v226.1: прямой inject + acquire
+
+```
+_inheritances.addObject(наш RBSInheritance)   ← endpoint-injection
+  → count 4→5
+  → RBSAssertion acquire → OK=1, err=(none)     ← ДЕМОН ПРИНЯЛ!
+```
+
+**RBSInheritance (наш mach-порт как encodedEndowment, namespace
+boardservices.endpoint-injection) добавлен в SET соединения →
+следующий acquire нёс наследование → runningboardd ПРИНЯЛ.**
+
+### Значение
+
+1. **Endpoint-injection-примитив из песочницы**: наш mach-порт
+   объявлен как endowment в контексте RBSConnection → демон
+   регистрирует его для наследования (ос-лог покажет, применён
+   ли к целевому процессу).
+2. `object_getIvar` — правильный способ чтения ivar'ов (ARC-safe,
+   §226-инструментальное).
+3. Системные наследования (4 шт.) в соединении — можно дампить
+   их payload (что инъецирует система в нас — leak surface).
+
+### v227-план
+
+1. **Ос-лог** после acquire с наследованием — демон покажет:
+   «injecting inherited from 'bq76'» на целевой процесс? или
+   reject по entitlement?
+2. Дамп системных _inheritances → их endowment-payloads (что
+   инъецировано в НАШ процесс — информационный leak).
+3. acquire с наследованием + target=чужой pid (SpringBoard) —
+   инъекция нашего mach-порта в ЧУЖОЙ процесс.
+
+Лог: results/runf-bq76-v226.log.
