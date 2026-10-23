@@ -1,0 +1,45 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ81=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x5c03
+[scaler] conn 0x5c03, s1 245 s2 246
+[probe12] SetNotificationPort -> 0x00000000
+[bq81] v236: LNValue-мутации через INSERT
+[bq51] run ENTER ctl-empty nseq=1
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x105ca8700> { count = 1, transaction: 0, voucher = 0x105d4b6b0, contents =
+	"bsxpc" => <string: 0x105f17f30> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x1f176d460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f176d5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq81] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq81] фоновый запуск...
+[probe13] bq81-only mode, stop
+[bq81] escape OK (§170)
+[bq81] sqlite3_open(RW) -> 0 db=0x105f74380
+[bq81] base record: feedId=media.groupingInfo lnValue=878 bytes
+[bq81] бэкап-маркер записан
+[bq81] M0-КОНТРОЛЬ: mutRc=0 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M1-tail^FF: mutRc=1 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M2-mid^FF: mutRc=2 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M3-head^FF: mutRc=3 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M4-all^01: mutRc=4 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M5-$classname=NSObject: mutRc=5 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M6-$null-inject: mutRc=6 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] M7-bplist17: mutRc=7 len=878
+[bq81]   UPDATE -> 101 (OK)
+[bq81] ОРИГИНАЛ ВОССТАНОВЛЕН
+[bq81] done — 8 мутаций записаны+восстановлены; сервис перечитал при клиентских запросах; crashdiff решает (LiveEntityService crash = LNValue-декодер)

