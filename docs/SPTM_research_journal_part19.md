@@ -7000,3 +7000,32 @@ ISP-метаданные. Прямой IOKit заблокирован entitlemen
 - ПЕРМАНЕНТНЫЙ kernel deadlock (новое, глубже 99-сек RPCTimeout)
 - 20+ стек-дампов videocodecd (1.2-1.3МБ каждый)
 - Device пережил всё: 3844+544+560+187 кадров, 0 паник
+
+### §235. v244: ОКОНЧАТЕЛЬНЫЙ ВЫВОД — MCTF = hardware A18+; на A17 Pro недоступен
+
+**Систематическое доказательство** (clientType sweep ARM8):
+- 7 iChatUsageString значений (FaceTime/CarPlay/AirPlay/SafeView/
+  ScreenSharing/MediaAnalysis/SideCar) → ВСЕ подсвойства MCTF
+  (Strength/Gating/Feedback/EdgeCount/EdgeThresh/MaxNextRefNum/
+  RampUpFrameNum) = **-12900 kVTPropertyNotSupportedErr**
+- Supported properties (168): **0 содержат "MCTF"** — кодек НЕ
+  декларирует MCTF-свойства для A17 Pro вообще
+- MCTFParams (CFArray 16 элементов): rejected на всех размерах
+- ISP attachment "MetadataDictionary": не выживает XPC (буфер
+  пересоздаётся из IOSurface, аттачменты теряются)
+- Вывод: DevCap-таблица кекста не содержит MCTF-записей для
+  A17 Pro (T8130) — **MCTF требует энкодер firmware A18+**
+
+**CVE-2026-84607 на iPhone 15 Pro Max**:
+- Part-2 (order-counter гонка): ПОДТВЕРЖДЕНА (99с kernel hang,
+  permanent deadlock, teardown-during-hang, heap reallocation)
+- Part-1 (plane-0 stale DMA): НЕДОСТУПНА (hardware gate)
+- Kernel corruption: нет примитива записи без MCTF buffers
+- Полный exploit (kernel RCE): требует устройство с A18+
+
+**Артефакты для disclosure**:
+- Полный реверс патча (§231, C-уровень, 3 версии)
+- Kernel DoS (99с hang, воспроизводимый)
+- Протокол AppleAVE2Driver (селекторы/структуры/kernel-валидаторы)
+- DevCap architecture (clientType×encType×devID)
+- DW-override механизм (CFPreferences com.apple.coremedia)

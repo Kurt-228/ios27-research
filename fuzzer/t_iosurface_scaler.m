@@ -44079,6 +44079,279 @@ static void p_bq84(void) {
         return;
     }
 
+    if (arm == 8) {
+        // ARM8: clientType sweep — все 7 значений iChatUsageString →
+        // проверяем: принимаются ли подсвойства MCTF (Strength, Gating)?
+        // DevCap-таблица [clientType×encType][devID] — правильный clientType
+        // открывает MCTF-подсвойства.
+        const char *usages[] = {"FaceTime", "CarPlay", "AirPlay",
+                                "SafeView", "ScreenSharing",
+                                "MediaAnalysis", "SideCar"};
+        LOG("[bq84] ARM8: clientType sweep (7 значений)");
+        bq83_ctx *c = calloc(1, sizeof(*c));
+        c->sem = dispatch_semaphore_create(0);
+        for (int ui = 0; ui < 7; ui++) {
+            VTCompressionSessionRef s = NULL;
+            OSStatus st = bq83_create(&s, 1280, 720, c);
+            if (st != noErr) {
+                LOG("[bq84] ARM8: %s: create FAILED %d", usages[ui], (int)st);
+                continue;
+            }
+            // Спуфим clientType
+            CFStringRef u = CFStringCreateWithCString(
+                kCFAllocatorDefault, usages[ui], kCFStringEncodingUTF8);
+            OSStatus ust = VTSessionSetProperty(s,
+                CFSTR("iChatUsageString"), u);
+            CFRelease(u);
+            // Пробуем подсвойства MCTF
+            int s1 = bq83_setnum(s, CFSTR("MCTFStrengthLevel"), 12);
+            int s2 = bq83_setbool(s, CFSTR("MCTFEnableGating"), true);
+            int s3 = bq83_setbool(s, CFSTR("MCTFEnableFeedback"), true);
+            int s4 = bq83_setnum(s, CFSTR("MCTFEdgeCount"), 4);
+            int s5 = bq83_setnum(s, CFSTR("MCTFEdgeThresh"), 3);
+            int s6 = bq83_setnum(s, CFSTR("MCTFMaxNextRefNum"), 1);
+            int s7 = bq83_setnum(s, CFSTR("MCTFRampUpFrameNum"), 0);
+            int ok = (s1 == 0) + (s2 == 0) + (s3 == 0) + (s4 == 0)
+                   + (s5 == 0) + (s6 == 0) + (s7 == 0);
+            LOG("[bq84] ARM8: %-14s usage->%d | Str=%d Gat=%d FB=%d "
+                "EC=%d ET=%d NR=%d RU=%d | %d/7 принято",
+                usages[ui], (int)ust, s1, s2, s3, s4, s5, s6, s7, ok);
+            if (ok > 0) {
+                // Нашли! Пробуем encode с MCTF
+                bq83_setbool(s, CFSTR("EnableMCTF"), true);
+                bq83_setnum(s, CFSTR("MCTFLatencyMode"), 1);
+                int e0 = c->errs, d0 = c->done, sb0 = c->sbs;
+                bool le = false;
+                for (int f = 0; f < 3; f++)
+                    bq83_encode_one(s, 1280, 720, f, 0, &le, 0);
+                sleep(1);
+                LOG("[bq84] ARM8: %s ENCODE: done+%d errs+%d sbs+%d %s",
+                    usages[ui], c->done - d0, c->errs - e0, c->sbs - sb0,
+                    (c->sbs - sb0) > 0 ? "*** MCTF РАБОТАЕТ! ***" :
+                    (c->errs - e0) > 0 ? "-17691" : "???");
+            }
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+        }
+        LOG("[bq84] ИТОГ ARM8");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    if (arm == 7) {
+        // ARM7: MCTFParams — session-level CFArray (НЕ per-frame attachment!
+        // Выживает XPC → кодек в videocodecd получает его при сессии).
+        // Формат (§233): 16 элементов [0-7]=char, [8]=SInt16, [9-12]=char,
+        // [13-15]=SInt32.
+        LOG("[bq84] ARM7: MCTFParams probe (session-level, XPC-safe)");
+        bq83_ctx *c = calloc(1, sizeof(*c));
+        c->sem = dispatch_semaphore_create(0);
+        VTCompressionSessionRef s = NULL;
+        OSStatus st = bq83_create(&s, 1280, 720, c);
+        if (st != noErr) {
+            LOG("[bq84] ARM7: create FAILED %d", (int)st);
+            return;
+        }
+        // Сначала: принимается ли MCTFParams вообще?
+        // Пробуем массив из 16 int
+        CFMutableArrayRef arr = CFArrayCreateMutable(kCFAllocatorDefault, 16,
+            &kCFTypeArrayCallBacks);
+        int vals[16] = {0, 12, 1, 1, 4, 3, 1, 0,   // [0-7] char
+                       12,                          // [8] SInt16: strength
+                       0, 0, 0, 0,                 // [9-12] char
+                       0, 0x7fffffff, 0};         // [13-15] SInt32
+        for (int i = 0; i < 16; i++) {
+            CFNumberRef n = CFNumberCreate(kCFAllocatorDefault,
+                kCFNumberIntType, &vals[i]);
+            CFArrayAppendValue(arr, n);
+            CFRelease(n);
+        }
+        OSStatus pst = VTSessionSetProperty(s, CFSTR("MCTFParams"), arr);
+        LOG("[bq84] ARM7: MCTFParams [16 int] -> %d (%s)", (int)pst,
+            pst == noErr ? "ПРИНЯТ!" : "rejected");
+        CFRelease(arr);
+
+        // Пробуем разные размеры: 8, 10, 12, 14, 16
+        int sizes[] = {8, 10, 12, 14, 16, 20, 24};
+        for (int si = 0; si < 7; si++) {
+            CFMutableArrayRef a2 = CFArrayCreateMutable(kCFAllocatorDefault,
+                0, &kCFTypeArrayCallBacks);
+            for (int i = 0; i < sizes[si]; i++) {
+                int v = (i == 1) ? 12 : 0;
+                CFNumberRef n = CFNumberCreate(kCFAllocatorDefault,
+                    kCFNumberIntType, &v);
+                CFArrayAppendValue(a2, n);
+                CFRelease(n);
+            }
+            pst = VTSessionSetProperty(s, CFSTR("MCTFParams"), a2);
+            LOG("[bq84] ARM7: MCTFParams [%d int] -> %d", sizes[si], (int)pst);
+            CFRelease(a2);
+            if (pst == noErr) break;
+        }
+        // Теперь с MCTFParams + EnableMCTF → encode → есть ли прогресс?
+        // Пересоздаём сессию с MCTFParams
+        VTCompressionSessionInvalidate(s);
+        CFRelease(s);
+        s = NULL;
+        st = bq83_create(&s, 1280, 720, c);
+        if (st == noErr) {
+            // MCTF набор
+            bq83_setbool(s, CFSTR("EnableMCTF"), true);
+            bq83_setnum(s, CFSTR("MCTFLatencyMode"), 1);
+            bq83_setbool(s, CFSTR("AllowTemporalCompression"), true);
+            // MCTFParams — главный кандидат
+            CFMutableArrayRef arr2 = CFArrayCreateMutable(kCFAllocatorDefault,
+                16, &kCFTypeArrayCallBacks);
+            int vals2[16] = {0, 12, 1, 1, 4, 3, 1, 0,
+                            12, 0, 0, 0, 0,
+                            0, 0x7fffffff, 0};
+            for (int i = 0; i < 16; i++) {
+                CFNumberRef n = CFNumberCreate(kCFAllocatorDefault,
+                    kCFNumberIntType, &vals2[i]);
+                CFArrayAppendValue(arr2, n);
+                CFRelease(n);
+            }
+            pst = VTSessionSetProperty(s, CFSTR("MCTFParams"), arr2);
+            LOG("[bq84] ARM7: 2nd session MCTFParams -> %d", (int)pst);
+            CFRelease(arr2);
+            // encode 3 кадра БЕЗ ISP attachment (MCTFParams = session-level)
+            g_bq83_isp = 0;
+            bool le = false;
+            for (int f = 0; f < 3; f++)
+                if (bq83_encode_one(s, 1280, 720, f, 0, &le, 0) == noErr)
+                    c->inflight++;
+            sleep(2);
+            LOG("[bq84] ARM7: done=%d errs=%d sbs=%d  %s",
+                c->done, c->errs, c->sbs,
+                c->errs == 0 && c->sbs > 0
+                    ? "*** MCTFParams РАБОТАЕТ! ***"
+                    : (c->sbs > 0 ? "частично" : "-17691 остался"));
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+        }
+        LOG("[bq84] ИТОГ ARM7");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    if (arm == 6) {
+        // ARM6: найти контейнер videocodecd по mtime активности →
+        // AVE_LogPath в ЕГО tmp → kill videocodecd → encode → читаем
+        // лог FIG через escape → точная причина MCTF-отказа.
+        const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+        const uint64_t F_DEF = 0x0000008000000000ULL;
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        LOG("[bq84] ARM6 escape handle=%lld", (long long)h);
+        if (h < 0) return;
+        const char *base = "/var/containers/Data/System";
+        DIR *d = opendir(base);
+        if (!d) { LOG("[bq84] ARM6 opendir errno %d", errno); return; }
+        struct dirent *de;
+        char best[256] = "";
+        time_t best_mtime = 0;
+        int ncont = 0;
+        while ((de = readdir(d)) != NULL) {
+            if (de->d_name[0] == '.') continue;
+            ncont++;
+            char tp[600];
+            // tmp mtime
+            snprintf(tp, sizeof(tp), "%s/%s/tmp", base, de->d_name);
+            struct stat st = {0};
+            if (stat(tp, &st) == 0 && st.st_mtime > best_mtime) {
+                best_mtime = st.st_mtime;
+                snprintf(best, sizeof(best), "%s/%s", base, de->d_name);
+            }
+            // Library mtime
+            snprintf(tp, sizeof(tp), "%s/%s/Library", base, de->d_name);
+            if (stat(tp, &st) == 0 && st.st_mtime > best_mtime) {
+                best_mtime = st.st_mtime;
+                snprintf(best, sizeof(best), "%s/%s", base, de->d_name);
+            }
+        }
+        closedir(d);
+        LOG("[bq84] ARM6: контейнеров=%d, самый свежий: %s (mtime %lld)",
+            ncont, best[0] ? best : "-", (long long)best_mtime);
+        if (best[0]) {
+            // Список tmp/ самого свежего контейнера
+            char tp[600];
+            snprintf(tp, sizeof(tp), "%s/tmp", best);
+            DIR *td = opendir(tp);
+            if (td) {
+                struct dirent *te;
+                while ((te = readdir(td)) != NULL) {
+                    if (te->d_name[0] == '.') continue;
+                    char fp[700];
+                    snprintf(fp, sizeof(fp), "%s/%s", tp, te->d_name);
+                    struct stat st2 = {0};
+                    if (stat(fp, &st2) == 0)
+                        LOG("[bq84] ARM6 tmp: %s (%lld bytes, mtime %lld)",
+                            te->d_name, (long long)st2.st_size,
+                            (long long)st2.st_mtime);
+                }
+                closedir(td);
+            }
+            // Путь для AVE_LogPath
+            char logpath[700];
+            snprintf(logpath, sizeof(logpath), "%s/tmp/ave_fig.log", best);
+            LOG("[bq84] ARM6: AVE_LogPath = %s", logpath);
+            // Пишем префы с этим путём
+            bq84_setpref_str(CFSTR("AVE_LogPath"), logpath);
+            bq84_setpref_int(CFSTR("AVE_Level"), 8);
+            bq84_setpref_int(CFSTR("AVE_LogConsole"), 1);
+            bq84_setpref_int(CFSTR("AVE_Verbose"), 1);
+            bq84_setpref_int(CFSTR("AVE_KernelVerbose"), 1);
+            bq84_setpref_int(CFSTR("AVE_FirmwareVerbose"), 1);
+            bq84_setpref_bool(CFSTR("AVE_EnableMCTF"), true);
+            bq84_setpref_int(CFSTR("AVE_MCTFStrengthLevel"), 12);
+            bq84_setpref_bool(CFSTR("AVE_MCTFEnableGating"), true);
+            bq84_setpref_bool(CFSTR("AVE_MCTFEnableFeedback"), true);
+            bq84_setpref_int(CFSTR("AVE_MCTFLatencyMode"), 1);
+            bq84_setpref_str(CFSTR("AVE_MCTF_SMap"),
+                "C0x0 I0x0 L0x0 U0x7fffffff S0xc "
+                "C0xffffffff I0x1 L0x0 U0x7fffffff S0xc");
+            CFPreferencesAppSynchronize(CFSTR("com.apple.coremedia"));
+            LOG("[bq84] ARM6: префы записаны с LogPath=%s", logpath);
+            // Mini-encode
+            bq83_ctx *c = calloc(1, sizeof(*c));
+            c->sem = dispatch_semaphore_create(0);
+            VTCompressionSessionRef s = NULL;
+            OSStatus st = bq83_create(&s, 1280, 720, c);
+            if (st == noErr) {
+                bq83_apply_mctf(s, 12, 0, 1, 0);
+                g_bq83_isp = 1;
+                bool le = false;
+                for (int f = 0; f < 3; f++)
+                    bq83_encode_one(s, 1280, 720, f, 0, &le, 0);
+                g_bq83_isp = 0;
+                sleep(2);
+                VTCompressionSessionInvalidate(s);
+                CFRelease(s);
+                LOG("[bq84] ARM6: encode done=%d errs=%d", c->done, c->errs);
+            }
+            // Читаем лог
+            snprintf(logpath, sizeof(logpath), "%s/tmp/ave_fig.log", best);
+            FILE *f = fopen(logpath, "r");
+            if (f) {
+                char line[512];
+                int n = 0;
+                LOG("[bq84] ARM6: === FIG LOG ===");
+                while (fgets(line, sizeof(line), f) && n++ < 200) {
+                    size_t L = strlen(line);
+                    if (L && line[L - 1] == '\n') line[L - 1] = 0;
+                    LOG("[bq84][fig] %s", line);
+                }
+                fclose(f);
+                LOG("[bq84] ARM6: === конец (%d строк) ===", n);
+            } else {
+                LOG("[bq84] ARM6: лог НЕ создан (%s) errno %d",
+                    logpath, errno);
+            }
+        }
+        LOG("[bq84] ИТОГ ARM6");
+        fsync(fileno(stderr));
+        return;
+    }
+
     if (arm == 3) {
         // ARM3: карта «контейнер → владелец» (MCMMetadata) + контейнер
         // видеocodecd: tmp/ave_fig.log, Library/Preferences (§176-стиль).
