@@ -6828,3 +6828,87 @@ systemCrashLogs (relay/crashdiff.sh).
    (param_5+0x88) — найти парсер метаданных и подсунуть синтетику.
 4. Плотность гонки: THREADS=2 (два клиента на одном HwC — общий
    SVESched), бёрст Reset-команд, увеличение частоты реконфигов.
+
+## §233. v241: p_bq84 — прямой IOKit-клиент заблокирован entitlement'ом; DW-override слой com.apple.coremedia доступен из приложения; ISP-подделка; protocol §233 полностью расшифрован
+
+### Прямой IOKit-клиент (p_bq84): ЗАБЛОКИРОВАН
+
+IOServiceOpen("AppleAVE2Driver") из песочницы → **kIOReturnNotPermitted
+(0xe00002e2) на ВСЕХ типах 1..5** — user client требует entitlement
+(в кексте есть IOUserClientEntitlements + com.apple.driver.AppleVE...).
+Протокол из ave.videoencoder (декомпилят) полностью расшифрован и
+сохранён: IOServiceMatching → IOServiceOpen(type) →
+  sel 1  Open    in 0x760 (шапка + "913.29.1"@0x28 + DW_Cfg 0x610@0x38) out 0x38;
+  sel 2  Close   in 0x28;   sel 3 Config in 0x38 (+scalar handle);
+  sel 4  Prepare in 0x12c00; sel 5 Start in 0x12c10;
+  sel 6  Stop / 7 Process / 8 Complete / 10 Reset in 0x30 (шапка+handle).
+DW_Cfg-дефолты (транскрипция AVE_DW_Cfg_Init — ~35 sentinel-полей,
+остальное нули) и гейт валидации CheckParam_Open расшифрованы.
+Kernel-зеркало: AVE_UCCmd_CheckParam_{Open,Close,Config,Prepare,Start,
+Stop,Process,Complete,Flush,Reset} + AVE_Client_{...} — все layouts готовы
+для replay, если найдётся дверь с entitlement'ом.
+
+### КЛЮЧЕВАЯ НАХОДКА: CFPreferences домен com.apple.coremedia
+
+**Песочница РАЗРЕШАЕТ чтение/запись CFPreferences домена
+com.apple.coremedia** (CFPreferencesSetAppValue → synchronize →
+readback TRUE). Это домен DW-override слоя кодека (~120 AVE_* ключей,
+читаются ЖИВО на каждый сеттер + AVE_DW_Init при загрузке библиотеки):
+
+- MCTF: AVE_EnableMCTF, AVE_MCTFStrengthLevel, AVE_MCTFEnableGating/
+  Feedback, AVE_MCTFLatencyMode, AVE_MCTFMaxNextRefNum,
+  AVE_MCTFRampUpFrameNum, AVE_MCTFStrengthDelta, AVE_MCTFTogglePeriod,
+  **AVE_MCTF_SMap** (строка-override таблицы поддержки MCTF!)
+- профиль: AVE_Usage, AVE_DWMode, AVE_PropertyMode, AVE_SchedPolicy
+- лог: AVE_Verbose, AVE_LogConsole, AVE_LogPath (в /tmp),
+  AVE_KernelVerbose, AVE_FirmwareVerbose
+
+### AVE_MCTF_SMap: грамматика расшифрована (§233)
+
+Парсер AVE_MCTF_SMap_Parse: строка = пары «Буква=значение» (hex с 0x):
+`C<sensorID> I<entryIdx 0|1> T<extra> L<rangeLo> U<rangeHi> P<mid>
+S<strength-commit>` — коммит 'S' пишет {sensorID, mask=ALL-BITS,
+workMode=0 (WILDCARD — парсер жёстко зануляет!), ranges[7]:{lo,hi,str}}
+в запись 0xb8. **Override поддерживает 2 записи** (I0/I1).
+
+### ISP-метаданные: ключи расшифрованы (§233)
+
+FIG требует на КАЖДОМ кадре аттачмент **"MetadataDictionary"**
+(CFDictionary) — 16 внутренних ключей расшифрованы из cfstring-констант:
+SNR, NormalizedSNR, ExposureTime, AGC, ispDGain, sensorDGain,
+ispDGainRangeExpansionFactor, **SensorID** (SInt32 → SMap match!),
+ScalingFactor, LuxLevel, QuadraBinningFactor, BayerBinningFactor,
+Fnumber, TemporalNoiseReductionBand0Strength (+ModulationEnabled).
+Все подделаны в p_bq84 (g_bq83_isp: CVBufferSetAttachment на кадр).
+
+### Архитектура энкодера на iOS 27 (уточнение §231)
+
+Видеопуть: app(песочница) → VTCompressionSession → **videocodecd**
+(/usr/libexec/videocodecd, XPC-брокер с entitlement'ом, pid виден) →
+ave.videoencoder (в videocodecd!) → IOServiceOpen("AppleAVE2Driver").
+Кодек НЕ in-process — FIG исполняется в videocodecd. DW-конфиг читается
+ОДИН раз при загрузке библиотеки (AVE_DW_Init) → prefs применимы только
+после рестарта videocodecd (devicectl terminate работает!). Прямой
+iChatUsageString-спуф из app даёт VT-свойство, но FIG в videocodecd.
+
+### Текущий статус MCTF-армингa (§232 → §233)
+
+- ARM4 (SMap-преф + рестарт videocodecd): -17691 остался
+- ARM5 (SMap + ISP-подделка "MetadataDictionary" SensorID=0): -17691 остался
+- FIG гейтит MCTF ещё где-то (ChromaFmt==1 проверка в сессии-конфиге
+  FIG + DevCap pixelFmt-таблица clientType×encType×devID — третье
+  измерение). Требует: правильный chroma format (420 == enum 1?) +
+  clientType (FaceTime из videocodecd?) + возможно SMap в момент
+  session-create (не сеттером).
+
+### Part-2 (order-счётчик) — БЕЗ MCTF, гонка в планировщике SVE
+
+2-thread race hammer (100 циклов × 2 клиента × 20 кадров, reconf-шторм,
+teardown mid-flight): >1600 кадров, 0 паник на c41 — гонка не поймана
+при такой плотности; errs=24 (дропы reconf — ожидаемо). Ядро живо.
+
+### Файлы
+
+- fuzzer/t_iosurface_scaler.m: p_bq84 (ARM1-5 режимы), g_bq83_isp,
+  bq84_setpref_*, DW-дефолты, SMap-строка, ISP-аттачмент
+- results/diffs/ghidra/funcs/: декомпиляты ключевых функций

