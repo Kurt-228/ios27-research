@@ -1,0 +1,86 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ89=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7d03
+[scaler] conn 0x7d03, s1 25 s2 27
+[probe12] SetNotificationPort -> 0x00000000
+[bq89] v249: parent-suballoc OOB v3 — resType=0 child + 0x80-parent (§240/§241)
+[open] IOGPU -> conn 0x7903
+[bq89] conn 0x7903
+[bq89] CONTROL sel8 texture(0x80): kr=0 rid=1 OK — база жива
+[bq89] IOSurface 0x10a164510 id 61
+[bq89] NEG-CTL parent surf(0x82) sid=61: kr=0 rid=2
+[bq89] PARENT primary = rid_ctl(1, тип 0x80, prot 0); NEG = rid_surf(2)
+[bq89] PROTSWEEP prot=0: kr=0 rid=3 *** PROT PASS → parent+0x14 == popcount(prot) ***
+[bq89] prot-out +000: 00 00 00 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq89] prot-out +010: 40 42 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] prot-out +020: 00 00 00 00 03 00 00 00 00 40 00 00 00 00 00 00
+[bq89] prot-out +030: cf ca 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] prot-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] prot-out +050: 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] PROTSWEEP prot=0x1: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x2: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x3: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x4: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x5: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x6: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x7: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x8: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0x9: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0xa: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0xb: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0xc: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0xd: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0xe: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP prot=0xf: kr=0xe00002be rid=0 gate
+[bq89] PROTSWEEP итог: проходящий prot=0
+[bq89] CHILD 1/6 ctl D=0                          kr=0 rid=4 OK
+[bq89] child-out +000: 00 00 00 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +010: 00 43 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +020: 00 00 00 00 04 00 00 00 00 40 00 00 00 00 00 00
+[bq89] child-out +030: 04 d8 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +050: 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] CHILD 2/6 ctl D=+0x100 (внутри)      kr=0 rid=5 OK
+[bq89] child-out +000: 00 01 00 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +010: c0 43 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +020: 00 00 00 00 05 00 00 00 00 40 00 00 00 00 00 00
+[bq89] child-out +030: 20 d8 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +050: 00 3f 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] CHILD 3/6 OOB D=+0x100000                  kr=0 rid=6 *** OOB ПРИНЯТ (БАГА §240!) ***
+[bq89] child-out +000: 00 00 10 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +010: 80 44 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +020: 00 00 00 00 06 00 00 00 00 40 00 00 00 00 00 00
+[bq89] child-out +030: 43 d8 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +050: 00 40 f0 ff ff ff ff ff 00 00 00 00 00 00 00 00
+[bq89] CHILD 4/6 OOB D=+0x10000000                kr=0 rid=7 *** OOB ПРИНЯТ (БАГА §240!) ***
+[bq89] child-out +000: 00 00 00 10 40 01 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +010: 40 45 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +020: 00 00 00 00 07 00 00 00 00 40 00 00 00 00 00 00
+[bq89] child-out +030: 6b d8 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +050: 00 40 00 f0 ff ff ff ff 00 00 00 00 00 00 00 00
+[bq89] CHILD 5/6 OOB D=-0x100000 (buffer<base)    kr=0 rid=8 *** OOB ПРИНЯТ (БАГА §240!) ***
+[bq89] child-out +000: 00 00 f0 ff ff 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +010: 00 46 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +020: 00 00 00 00 08 00 00 00 00 40 00 00 00 00 00 00
+[bq89] child-out +030: 90 d8 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +050: 00 40 10 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] CHILD 6/6 OOB size=0x100000 > parent       kr=0 rid=9 *** OOB ПРИНЯТ (БАГА §240!) ***
+[bq89] child-out +000: 00 00 00 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +010: c0 46 e0 04 01 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +020: 00 00 00 00 09 00 00 00 00 40 00 00 00 00 00 00
+[bq89] child-out +030: bb d8 67 31 03 00 00 00 fa 42 30 00 00 00 00 00
+[bq89] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] child-out +050: 00 40 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq89] NEGCTL surf-parent ctl: kr=0xe00002be rid=0 rejected (0x82&0x7f=2≠0 — ожидаемо)
+[bq89] ИТОГ v3: prot-гейт измерен, матрица завершена (живо? = нет паники)
+[probe13] bq89-only mode, stop

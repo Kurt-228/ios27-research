@@ -7214,3 +7214,61 @@ out_handle, parent_id=param_9). Атака: client_buffer << client_base
 
 **Next (p_bq89)**: найти селектор user-client'а → craft parent_id +
 buffer < base → создать ресурс с OOB offset → GPU submit → паника?
+
+### §241 (v249). p_bq89 v3: УЯЗВИМОСТЬ ПОДТВЕРЖДЕНА НА УСТРОЙСТВЕ — sel8 suballoc-child принимает OOB offset
+
+**Поправка к §240 (полный реверс диспетчера FUN_24c40a4)**: suballoc-ветка
+достижима ТОЛЬКО при resType==0 (`uVar2<0x40` → `uVar2==0` →
+`uVar3=parent_id` → FUN_24b11e4 с resType-арг 0). v1/v2 били по resType=0x80 —
+тот уходит в нормальный путь FUN_24d64810 (wire мусорного client buffer → NULL
+→ тот же 0x2be, но МИМО уязвимости). Ещё гейт: `(resType&0xf)==0` → wire-limit
+`size ≤ device_limit`, cache_mode(+0x04) rot < 10.
+
+**Гейты FUN_24b11e4 (b4 == 435 до фикса, подтверждены декомпилом 435)**:
+parent lookup "from shared"; `popcount(child_prot) == parent+0x14`;
+`parent byte+0x10 & 0x7f == 0` (0x80 ✓, IOSurface 0x82 ✗); `parent+0x28 != 0`;
+`size != 0`. Затем b4 пишет `plVar2[9] = client_buffer - client_base` AS-IS;
+27.0 добавил ДВА reject'а: "client_buffer precedes client_base" +
+"child resource (offset, size) exceeds parent memory size"
+(`offset < parent_size && size <= parent_size - offset`).
+
+**Прогон v3** (results/run-bq89-v3-confirm.log, runf bq89, устройство живо):
+
+| кейс | результат |
+|---|---|
+| CONTROL sel8 0x80-текстура | kr=0 rid=1 ✓ |
+| PROTSWEEP prot 0..0xf, parent=rid_ctl | проходит ТОЛЬКО prot=0 → parent+0x14==0; гейт popcount подтверждён |
+| child ctl D=0 / D=+0x100 | kr=0 rid=4/5 ✓ (база suballoc жива) |
+| child OOB D=+0x100000 | **kr=0 rid=6 ПРИНЯТ** |
+| child OOB D=+0x10000000 | **kr=0 rid=7 ПРИНЯТ** |
+| child OOB D=-0x100000 (buffer<base) | **kr=0 rid=8 ПРИНЯТ** |
+| child OOB size=0x100000 > parent 0x4000 | **kr=0 rid=9 ПРИНЯТ** |
+| NEGCTL IOSurface-родитель (0x82) | 0xe00002be rejected — гейт типа подтверждён |
+
+**Out-struct оракул (hexdumps)**: +0x00 u32 = эхо offset (для −0x100000
+пишется 0xfff00000); +0x50 u64 = **parent_size − offset БЕЗ clamp** — для
+D=+0x100000 ядро вернуло 0xffffffffffff4000 (wrap), для D=−0x100000 —
+0x10004000; т.е. ядро само вычисляет «окно child внутри parent»
+[parent_gpuva+offset, parent_gpuva+parent_size) без каких-либо bounds.
++0x28 = 0x4000 (len parent); +0x10 u64 = адрес объекта per-rid, stride 0x80
+(layout-leak).
+
+**Примитив (подтверждён на 24A5390f)**: из app-sandbox через
+IOGPUDeviceUserClient sel8 (type-1 conn, открыт из нашего процесса §129) —
+child-ресурс = GPU-окно с полностью контролируемым D (offset, включая
+отрицательный) и size; parent = собственная 0x80-текстура. 27.0 закрыл
+окно двумя reject'ами → b4→27.0 = security fix, наш билд уязвим. Класс:
+GPU OOB mapping, kernel-reachable (IOGPUFamily), достигается без
+entitlement'ов. Паники/краша на создании нет (lazy mapping) — для
+эскалации нужен дерференс.
+
+**Next (p_bq90)**: дерференс OOB-окна — (а) sel38/sel39 replace_backing на
+child: если backing = окно → CPU-side OOB write без GPU submit (требует RE
+sel38-обработчика: пишет ли он в parent_gpuva+offset); (б) GPU submit
+(sel42/46/25 + agx_cmd_template.md) с текстурой child → чтение/запись вне
+VRAM-окна parent → чужие GPU-аллокации/ядро.
+
+**Артефакты**: Ghidra-декомпилы заархивированы `results/kc-extract/decomp/`
+(19 МБ gzip: gpu_{b4,435,B115}, agx_435/B115, disp_*, iomg_*, kernel_435/B115,
+ave2_{b4,rel,b115}, ave_venc; README.md с картой сборок) — из temp-каталога
+до его потери.

