@@ -7122,3 +7122,33 @@ UDP sendto, setsockopt(IP_OPTIONS).
 
 **Приоритет**: IOMFB user client — если внешние методы обрабатывают
 malformed данные без валидации → kernel memory corruption.
+
+### §238. v246+: map_block_buf — ТОЧНАЯ OOB READ УЯЗВИМОСТЬ (IOMobileGraphics-DCP)
+
+**Функция**: `map_block_buf` — мапит user-буфер в kernel для display/GPU.
+
+**B115 (FIXED) — валидация ДОБАВЛЕНА (27.2):**
+```c
+uVar1 = addr_offs + 8;    // нужно 8 байт для адреса
+uVar2 = size_offs + 4;    // нужно 4 байта для размера
+if (block_size < max(uVar1, uVar2)) {
+    PANIC("map_block_buf: pbt=%u block_size=%zu too small "
+          "for addr_offs=%u size_offs=%u");   // ← НОВАЯ ПРОВЕРКА
+}
+// Только после валидации:
+addr = *(long *)(block + addr_offs);
+size = *(int *)(block + size_offs);
+```
+
+**435 (VULNERABLE, наш b4): НЕТ этой проверки.**
+Прямой OOB read: `addr = *(long *)(block + addr_offs)` — если
+addr_offs > block_size → kernel heap OOB READ.
+
+**Вызов**: set_block → map_block_buf; caller = display pipeline
+(IOMFB). User client AppleMobileFramebuffer открыт из песочницы
+(4/4 типа kr=0). 27.2 sandbox закрыл IOMFBDebug+IOMFBLayer = Apple
+признал риск.
+
+**Примитив**: kernel heap OOB READ (leak kernel pointers).
+**Next**: Ghidra на AppleMobileDispH16P-DCP → найти external method
+selector → craft malicious block → IOConnectCallMethod.
