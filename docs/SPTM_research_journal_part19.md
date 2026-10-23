@@ -6966,3 +6966,37 @@ p_bq85 с heartbeat-детектором (10мс опрос, порог 3с, rea
    в какой AVE-функции ядро застряло (Close? Reset? ProcessIntr?).
 3. Если kernel стек покажет lock на shared ресурсе →
    teardown соседа = lock-free-доступ к locked-ресурсу → UAF write.
+
+### §234-финал: v242-243 — REALLOC-во-время-hang работает; ПЕРМАНЕНТНЫЙ kernel deadlock обнаружен; архитектурный барьер identified
+
+**v243 (REALLOC)**: watchdog после KILL соседа немедленно создавал третью
+VT-сессию → kernel выделял из heap во время hang → кадр отправлен →
+500мс удержание → invalidate. Подтверждено логом:
+```
+REALLOC #1: третья сессия создана ВО ВРЕМЯ hang (kernel heap reuse!)
+REALLOC #1: кадр отправлен — kernel heap REALLOCATED во время hang!
+```
+
+**ПЕРМАНЕНТНЫЙ deadlock**: после c2 (два KILL + два REALLOC) хаммер
+застрял НАВСЕГДА (20+ минут без прогресса). fuzz27 и videocodecd живы,
+но оба IOKit-пути заморожены. Это глубже обычного 99-сек RPCTimeout —
+kernel AVE2 internal lock deadlock. Убийство fuzz27 (devicectl
+terminate) разрешило deadlock через kernel IOKit cleanup — 0 паник.
+
+**Архитектурный барьер UAF**: зависший IOKit-путь принадлежит
+videocodecd (userspace XPC handler). XPC watchdog убивает videocodecd
+→ путь умирает вместе с процессом → stale указатели никогда не
+используются. Kernel workloop (AVE_HwC/ProcessIntr_MCTF) НЕ застревает
+без MCTF — обрабатывает только MCTF-кадры.
+
+**Вывод**: для kernel-side UAF нужен MCTF arm (kernel workloop в
+гонке) — обратно к §233: FIG гейтит MCTF по ChromaFmt(==1) +
+clientType(FaceTime) + DevCap pixelFmt[clientType×encType×devID] +
+ISP-метаданные. Прямой IOKit заблокирован entitlement'ом.
+
+**Достижения ночи**:
+- 11+ teardown-during-hang (watchdog работает идеально)
+- 2× kernel heap reallocation during hang (REALLOC работает)
+- ПЕРМАНЕНТНЫЙ kernel deadlock (новое, глубже 99-сек RPCTimeout)
+- 20+ стек-дампов videocodecd (1.2-1.3МБ каждый)
+- Device пережил всё: 3844+544+560+187 кадров, 0 паник
