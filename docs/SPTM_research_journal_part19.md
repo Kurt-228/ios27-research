@@ -6745,3 +6745,86 @@ encode → реконфигурация/flush/смена frameNumber
 corruption. Контроль §144 обязателен: (а) та же сессия без MCTF — не
 падает; (б) редкие реконфиги — не падает; частота реконфигов = основная
 переменная. Устройство на b4 — уязвимая версия.
+
+## §232. v239: p_bq83 на устройстве — достижимость AppleAVE2 подтверждена end-to-end; userspace-гейт MCTF локализован (ISP-метаданные FIG); order-гонка пока не поймана
+
+Фаза p_bq83 написана и развёрнута (диспетчер FUZZ_BQ83, VideoToolbox/
+CoreVideo/CoreMedia добавлены в build.sh). Все прогоны через
+relay/runf.sh с маркером [bq83], детектор — panic-ребут + корпус
+systemCrashLogs (relay/crashdiff.sh).
+
+### Эмпирика (устройство, 24A5390f)
+
+1. **Достижимость ядра из песочницы подтверждена ПОЛНОСТЬЮ, со
+   статистикой**: hardware-HEVC (RequireHardware, 'hvc1') encode из
+   нашего app-песочницы работает — 480/480 кадров успешных
+   (sbs=480, реальные output-буферы), 60 kernel-сессий AVE2 с
+   teardown mid-flight, 0 ошибок. Каждая VT-сессия = полный цикл
+   IOServiceOpen("AppleAVE2Driver") → fw Start → encode → invalidate.
+   Контроль §144 (long: одна сессия, ожидание каждого кадра) — чист.
+2. **Userspace-грабли VT на iOS 27**: CFRelease(output CMSampleBuffer)
+   в output-callback = over-release → EXC_BREAKPOINT в CoreFoundation
+   внутри VT-очереди (краш-репорт сохранён:
+   results/bq83/fuzz27-2026-10-23-224446-vt-callback-overrelease.ips).
+   В фазе буферы больше не освобождаем (утечка безвредна).
+3. **MCTF-гейт локализован точно**:
+   - принимаются (noErr): `EnableMCTF`, `MCTFLatencyMode`,
+     `AllowTemporalCompression`, `iChatUsageString`;
+   - отвергаются (-12900 kVTPropertyNotSupportedErr):
+     `MCTFStrengthLevel`, `MCTFEnableGating/Feedback`, `MCTFEdge*`,
+     `TemporalNoiseReductionBand0Strength`;
+   - при принятом `EnableMCTF` КАЖДЫЙ кадр падает
+     kVTSessionMalfunctionErr (-17691) — на всех 4 chroma-форматах
+     (NV12-v8/f8, P010-10b, I420-8b) → дело НЕ в формате.
+4. **iChatUsageString = clientType-спуф**: из CFString-констант
+   ave.videoencoder вытащены все 7 значений — **FaceTime→0, CarPlay→1,
+   AirPlay→2, SafeView→3, ScreenSharing→4, MediaAnalysis→5, SideCar→7**
+   (сеттер мапит строку на _E_AVE_ClientType). Спуф принимается, но
+   MCTF не оживает → clientType не единственное условие.
+5. **Причина -17691 (из декомпилята ave_venc.c)**: FIG MCTF per-frame
+   гейтинг читает **ISP-метаданные камеры**
+   (`AVE_MCTF_GetGatingType(_S_AVE_ISP_Metadata*, DevType, WorkMode,
+   MCTF_Mode, GatingType*)`, sensor scaling factors, биннинг) —
+   MCTF это фича камерного конвейера (FaceTime). Синтетические кадры
+   без ISP-аттачментов не проходят гейтинг → SendFrameMCTF fail →
+   -17691. Механизм поддержки: DevCap-таблица
+   [clientType×encType][devID] → AVE_PixelFmt_CheckSupportedType
+   (opFlags|0x3c0 — MCTF-биты).
+6. **DW-override слой** (может включать MCTF принудительно, ключи
+   читаются ЖИВО на каждый сеттер): CFPreferences домен
+   **com.apple.coremedia** — `AVE_EnableMCTF`, `AVE_Usage`,
+   `AVE_MCTFEnableGating/Feedback`, `AVE_MCTFMaxNextRefNum`,
+   `AVE_MCTFOffToOnPerfThreshold`, ~120 ключей всего (перечислены из
+   декомпилята); лог «defaults write %s = %s» подтверждает применение.
+   Запись из песочницы не проверена — кандидат на escape-правку
+   plist'а (cfprefsd-домен), но MCTF-гейтинг ISP это не обойдёт.
+7. **RECONF-шторм** (структурные свойства mid-stream:
+   MaxKeyFrameInterval/NumberOfTemporalLayers/bitrate, каждые 2
+   кадра): форсирует внутренние реконфигурации (ядро получает
+   Reset/Config против in-flight Process — цель part-2 гонки);
+   наблюдаемое поведение: сессия переживает, кадры на переходах
+   дропаются (-12912 + kVTEncodeInfo_FrameDropped), 30 циклов × 20
+   кадров — 0 паник. Окно гонки узкое, плотность пока недостаточна.
+
+### Статус по CVE-2026-84607 (§231)
+
+- part-1 (stale plane-0 дескриптор GetMCTFOutBuf): требует MCTF-сессии
+  в ядре → заблокирован userspace-гейтом FIG (ISP-метаданные).
+- part-2 (order-счётчик SVESched+[0xa8], гонка Reset↔Process):
+  MCTF не требует, хаммер запущен, паники пока нет.
+
+### План v240 (в порядке ожидаемой отдачи)
+
+1. **Прямой IOKit-клиент AppleAVE2** по протоколу из ave_venc.c
+   (декомпилен полностью, есть struct-layouts команд и обёртки
+   IOConnectCall*): обходит userspace-гейт FIG целиком, даёт полный
+   контроль чередования команд Start/Reset/Process/Flush = гонка
+   прямо в ядре. Протокол: AVE_UCInfo_*/Client_* команды, главное —
+   воспроизвести Open+Start с MCTF-конфигом (uPropCfg.sMCTF) без FIG.
+2. MCTFParams-массив: полный реверс AVE_MCTF_Retrieve (позиционный
+   CFArray: [0..7]=char → поля 0x00..0x1c, [8]=SInt16 → +0x20, …) —
+   явные параметры могут обойти ISP-зависимый гейтинг.
+3. ISP-аттачменты: какой ключ FIG читает из CVPixelBuffer/CMSample
+   (param_5+0x88) — найти парсер метаданных и подсунуть синтетику.
+4. Плотность гонки: THREADS=2 (два клиента на одном HwC — общий
+   SVESched), бёрст Reset-команд, увеличение частоты реконфигов.

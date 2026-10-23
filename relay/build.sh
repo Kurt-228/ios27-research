@@ -31,7 +31,7 @@ MAIN_SRCS="$MAIN_SRCS fuzzer/bad_query.c"
 $CLANG -arch arm64 \
     -isysroot "$SDK" -miphoneos-version-min=17.0 \
     -fobjc-arc -O1 \
-    -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface -framework Metal -framework CoreGraphics -framework QuartzCore -framework AVFoundation -framework ImageIO -framework MediaPlayer \
+    -framework Foundation -framework UIKit -framework IOKit -framework CoreFoundation -framework IOSurface -framework Metal -framework CoreGraphics -framework QuartzCore -framework AVFoundation -framework ImageIO -framework MediaPlayer -framework VideoToolbox -framework CoreVideo -framework CoreMedia \
     -lsqlite3 \
     -Wl,-rpath,@executable_path/Frameworks \
     $MAIN_SRCS "$OUT/Frameworks/libiotrace.dylib" -o "$OUT/fuzz27"
