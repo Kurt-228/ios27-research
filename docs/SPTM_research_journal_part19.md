@@ -7177,3 +7177,40 @@ GPU-команды. Прямой userspace-путь закрыт.
 | apfs sealed volume | OOB checks | Файловая система — не достижимо из песочницы |
 | ANE remap | Не security | Multi-core фичи |
 | XNU kernel +24KB | В основном mbuf/route | Сеть — наш лучший путь |
+
+### §240. v248: GPU-ДИФФ b4→27.0 — ТОЧНАЯ УЯЗВИМОСТЬ: parent-resource offset БЕЗ bounds check
+
+**Метод**: стринг-дифф IOGPUFamily b4(24A5390f)→27.0(24A435) — окно
+security-фиксов (только это окно содержит CVE-патчи; 27.0→27.2 уже
+post-release).
+
+**НОВЫЕ в 27.0 (отсутствуют в b4):**
+```
+%s: client_buffer (0x%llx) precedes client_base (0x%llx).
+%s: child resource (offset=0x%llx, size=0x%llx) exceeds parent memory size 0x%llx.
+```
+
+**Функция**: создание GPU-ресурса из parent_resource_id (texture view).
+435: FUN_fffffff009d4276c @0x247584c — С CHECK:
+```c
+uVar1 = param_6 - param_7;                      // offset = buffer - base
+if (param_6 < param_7) REJECT "precedes";       // ← b4: НЕТ
+if (!(offset < parent_size && offset+size <= parent_size)) REJECT; // ← b4: НЕТ
+```
+b4: FUN_fffffff009d64d34 @0x24b11e4 — БЕЗ CHECK:
+```c
+plVar2[9] = param_6 - param_7;  // offset пишется в ресурс AS-IS
+```
+
+**Примитив**: GPU-текстура с offset за пределами parent VRAM →
+GPU-чтение/запись вне региона → kernel memory corruption через
+GPU/DART. Достижимо из песочницы: scaler-коннект (§8/§117) открыт,
+parent_resource_id — параметр sel-вызова.
+
+**Параметры (b4 сигнатура)**: (client*, buffer_obj, resType=0x80 std,
+protect, client_base=param_5, client_buffer=param_6, size=param_7,
+out_handle, parent_id=param_9). Атака: client_buffer << client_base
+(отрицательный offset) ИЛИ offset+size > parent size.
+
+**Next (p_bq89)**: найти селектор user-client'а → craft parent_id +
+buffer < base → создать ресурс с OOB offset → GPU submit → паника?
