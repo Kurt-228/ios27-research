@@ -6418,3 +6418,31 @@ mach-порты) — критические объекты.
 что демон записал в assertion-стейт при flags=NSString?
 
 Лог: results/runf-bq79-v231-full.log.
+
+### §225-доп.2. v232: ос-лог — encodeObject не ловит reason/flags (int-поля); (null)-attributes зарегистрирован; double-encode перезаписывает
+
+Ос-лог после bq79-v231-full (pid 21533, 17:21–17:24):
+
+1. **reason/flags НЕ мутированы** в descriptor демона: все записи
+   показывают `reason:FinishTask flags:(PreventTaskSuspend)` —
+   M13/M14/M15 якобы acquired с оригинальными значениями.
+   Причина: encodeObject:forKey: ловит ТОЛЬКО объектные ключи
+   (explanation/target/attributes); reason/flags кодируются через
+   `encodeInt64:forKey:` / `encodeBool:forKey:` — НЕ свизлены.
+   Мутации M13–15 не применялись → acquire=1 = обычный успех
+   (без type-confusion). Честный негатив.
+
+2. **`(null)-attributes` acquired** (M3 target=nil, ID:351979):
+   демон зарегистрировал assertion с attributes:[(null)] — наш
+   клиент вернул err («Originator and target must be same»),
+   но демонский стейт содержит assertion с NULL attrs.
+
+3. **Double-encode перезаписывает** (M8, «bq79-second» ID:351982):
+   первый encode «bq79-first» перезаписан вторым — last-wins.
+
+4. **M7 procId=nil → target:system** (ID:351981): nil
+   processIdentifier декодирован как system-target — assertion
+   на СИСТЕМУ (target:system) от sandboxed-клиента!
+
+v233-план (правильные int-хуки): добавить encodeInt64:forKey: +
+encodeBool:forKey: в hook → мутировать reason/flags ПО-НАСТОЯЩЕМУ.
