@@ -7152,3 +7152,28 @@ addr_offs > block_size → kernel heap OOB READ.
 **Примитив**: kernel heap OOB READ (leak kernel pointers).
 **Next**: Ghidra на AppleMobileDispH16P-DCP → найти external method
 selector → craft malicious block → IOConnectCallMethod.
+
+### §239. v247: IOMFB UC probe — DUMB клиент; map_block_buf за DCP pipeline
+
+**IOMobileFramebufferAP user client (все 4 типа kr=0):**
+- External methods: **0** (никакой селектор 0-63 не отвечает)
+- MapMemory: **0** (все типы rejected)
+- SetNotificationPort: **4/4 типа OK** (async display events)
+- Struct get: **0**
+
+Вывод: IOMFB UC — тупой клиент (только notifications).
+`map_block_buf` в IOMobileGraphicsFamily-DCP достигается только
+из display pipeline (DCP) — через Metal/ScreenCapture/
+GPU-команды. Прямой userspace-путь закрыт.
+
+### Полный дифф-аудит 27.0→27.2 (v245-v247):
+
+| Вектор | Статус | Проблема |
+|---|---|---|
+| m_makespace signedness | Точная уязвимость | TCP/IP путь — IP_OPTIONS setsockopt даёт EINVAL, нужен indirect |
+| map_block_buf OOB | Точная уязвимость | За DCP, не напрямую из userspace |
+| AF_LINK gateway | Новая валидация | Нужно проверить routing socket |
+| sandbox +133 | Правила | IOMFB UC открыт но dumb |
+| apfs sealed volume | OOB checks | Файловая система — не достижимо из песочницы |
+| ANE remap | Не security | Multi-core фичи |
+| XNU kernel +24KB | В основном mbuf/route | Сеть — наш лучший путь |

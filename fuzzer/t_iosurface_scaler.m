@@ -43865,6 +43865,132 @@ static void p_bq85(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq88 — v247: IOMFB user client — PROBE external methods (§238).
+// AppleMobileFramebuffer UC открыт (4/4 типа kr=0, §237). Пробуем
+// IOConnectCallMethod селекторы 0-31 с разными арг-shapes.
+// Цель: найти external method → display pipeline → set_block →
+// map_block_buf (без bounds check в b4 = OOB).
+static void p_bq88(void) {
+    LOG("[bq88] v247: IOMFB UC external method probe (§238)");
+    fsync(fileno(stderr));
+
+    io_service_t svc = 0;
+    const char *svc_names[] = {"AppleMobileFramebuffer", "IOMobileFramebufferAP",
+                                "AppleMobileDispH16P", "AppleCLCD2", "AppleDisplayPipe",
+                                "IOMobileFramebuffer", "AGXDevice", NULL};
+    const char *matched = NULL;
+    for (int i = 0; svc_names[i]; i++) {
+        svc = IOServiceGetMatchingService(
+            kIOMainPortDefault, IOServiceMatching(svc_names[i]));
+        if (svc) { matched = svc_names[i]; break; }
+    }
+    if (!svc) {
+        LOG("[bq88] НИ ОДИН display service не найден");
+        return;
+    }
+    LOG("[bq88] service=%s (%#x)", matched, svc);
+
+    for (uint32_t ctype = 0; ctype <= 3; ctype++) {
+        io_connect_t c = 0;
+        kern_return_t kr = IOServiceOpen(svc, mach_task_self(), ctype, &c);
+        if (kr != KERN_SUCCESS || !c) {
+            LOG("[bq88] type %u open kr=%#x", ctype, kr);
+            continue;
+        }
+        LOG("[bq88] === type %u conn=%#x ===", ctype, c);
+
+        // Probe: struct in, struct out (самый общий формат)
+        for (uint32_t sel = 0; sel < 64; sel++) {
+            uint64_t iin[8] = {0};
+            uint64_t iout[16] = {0};
+            uint32_t ioutn = 16;
+            // 8 scalar input
+            kern_return_t k1 = IOConnectCallMethod(c, sel,
+                iin, 8, NULL, 0, iout, &ioutn, NULL, NULL);
+            if (k1 == KERN_SUCCESS) {
+                LOG("[bq88]   SCALAR sel=%u → OK! out=%u vals", sel, ioutn);
+                for (uint32_t j = 0; j < ioutn && j < 4; j++)
+                    LOG("[bq88]     out[%u]=%#llx", j, iout[j]);
+            } else if (k1 != 0xe00002e2 && k1 != kIOReturnBadArgument &&
+                       k1 != kIOReturnUnsupported) {
+                // Не "unsupported" и не "bad argument" — интересно!
+                LOG("[bq88]   SCALAR sel=%u → kr=%#x (ИНТЕРЕСНО)", sel, k1);
+            }
+
+            // struct in (64 bytes), scalar out
+            uint8_t s_in[64] = {0};
+            k1 = IOConnectCallStructMethod(c, sel, s_in, sizeof(s_in),
+                                           NULL, NULL);
+            if (k1 == KERN_SUCCESS) {
+                LOG("[bq88]   STRUCT sel=%u → OK!", sel);
+            } else if (k1 != 0xe00002e2 && k1 != kIOReturnBadArgument &&
+                       k1 != kIOReturnUnsupported && k1 != 0x2e2) {
+                LOG("[bq88]   STRUCT sel=%u → kr=%#x", sel, k1);
+            }
+        }
+        IOServiceClose(c);
+        fsync(fileno(stderr));
+    }
+
+    // Пробуем и IOMobileFramebufferAP (альтернативное имя)
+    svc = IOServiceGetMatchingService(
+        kIOMainPortDefault, IOServiceMatching("IOMobileFramebufferAP"));
+    if (svc) {
+        LOG("[bq88] IOMobileFramebufferAP found: %#x", svc);
+        io_connect_t c = 0;
+        kern_return_t kr = IOServiceOpen(svc, mach_task_self(), 0, &c);
+        if (kr == KERN_SUCCESS && c) {
+            LOG("[bq88] AP conn=%#x — probing 32 selectors", c);
+            for (uint32_t sel = 0; sel < 32; sel++) {
+                uint64_t iin[4] = {0};
+                uint64_t iout[16] = {0};
+                uint32_t ioutn = 16;
+                kern_return_t k1 = IOConnectCallMethod(c, sel,
+                    iin, 4, NULL, 0, iout, &ioutn, NULL, NULL);
+                if (k1 == KERN_SUCCESS) {
+                    LOG("[bq88]   AP sel=%u → OK!", sel);
+                }
+            }
+            // === MapMemory probe: маппинг display surfaces ===
+            for (uint32_t type = 0; type < 8; type++) {
+                for (uint32_t idx = 0; idx < 4; idx++) {
+                    mach_vm_address_t addr = 0;
+                    vm_size_t size = 0;
+                    kern_return_t mr = IOConnectMapMemory(c, type,
+                        mach_task_self(), &addr, &size, 0);
+                    if (mr == KERN_SUCCESS && addr && size) {
+                        LOG("[bq88]   MapMemory type=%u → addr=%#llx size=%zu "
+                            "*** НАЙДЕНО! ***", type, addr, size);
+                    }
+                }
+            }
+            // === SetNotificationPort probe ===
+            for (uint32_t type = 0; type < 4; type++) {
+                kern_return_t nr = IOConnectSetNotificationPort(c, type,
+                    MACH_PORT_NULL, 0);
+                if (nr == KERN_SUCCESS) {
+                    LOG("[bq88]   SetNotificationPort type=%u → OK", type);
+                }
+            }
+            // === GetStruct sizes ===
+            for (uint32_t sel = 0; sel < 32; sel++) {
+                uint8_t out[256] = {0};
+                size_t osz = sizeof(out);
+                kern_return_t sr = IOConnectCallStructMethod(c, sel,
+                    NULL, 0, out, &osz);
+                if (sr == KERN_SUCCESS) {
+                    LOG("[bq88]   GetStruct sel=%u → OK size=%zu", sel, osz);
+                }
+            }
+            IOServiceClose(c);
+        }
+        IOObjectRelease(svc);
+    }
+
+    LOG("[bq88] ИТОГ: probe завершён");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -52466,6 +52592,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ85")) { p_bq85(); LOG("[probe13] bq85-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ86")) { p_bq86(); LOG("[probe13] bq86-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ87")) { p_bq87(); LOG("[probe13] bq87-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ88")) { p_bq88(); LOG("[probe13] bq88-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
