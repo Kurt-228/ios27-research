@@ -7029,3 +7029,35 @@ ISP-метаданные. Прямой IOKit заблокирован entitlemen
 - Протокол AppleAVE2Driver (селекторы/структуры/kernel-валидаторы)
 - DevCap architecture (clientType×encType×devID)
 - DW-override механизм (CFPreferences com.apple.coremedia)
+
+### §236. v245: Систематический kernel-дифф 27.0→27.2 — security-фиксы в XNU
+
+**Метод**: размерный дифф 264 кекстов (b4→27.0→27.2) + строковый
+semantic-дифф → фильтрация security-релевантных изменений.
+
+**Топ находки (27.0→27.2, security-relevant):**
+
+1. **XNU kernel (com_apple_kernel, +24KB)**:
+   - `mbuf %p len (%d) < off+len (%d+%d)` → `(%u)` — **SIGNED→UNSIGNED**
+     в mbuf bounds check! Классическая signedness-бага: отрицательный
+     offset bypass проверку в 27.0, исправлено в 27.2.
+   - `rejecting AF_LINK gateway on index %u with unusable link address` —
+     НОВАЯ валидация sockaddr_dl (nlen/alen/sdl_len) в routing
+   - `route %s link address does not fit (sdl_alen %u)` — bounds check
+   - `_vfs_context_allows_unmunged_atime` — новая функция (VFS)
+
+2. **security_sandbox (+12944)**: +133 новых правила
+   (BatteryDischargeService, IOMFBLayer, applejpeg, libjxl...)
+
+3. **apfs (+4633)**: "Invalid residency reason %d, **out of bounds**" +
+   sealed volume decompression/hole checks
+
+4. **AppleH16ANEInterface (+55925)**: Memory remap by mailbox,
+   multi-core, AGX peer — в основном фичи, не security
+
+**Приоритет: mbuf signedness** — наш IP_OPTIONS-вектор (§165: парсер
+принимает LSRR!) идёт через mbuf processing. Отрицательный offset
+в IP options parsing → mbuf OOB → kernel memory corruption.
+
+Ghidra запущен на обеих версиях ядра (12.4МБ каждая) — функциональный
+дифф network stack (mbuf/ip_options/route) в работе.
