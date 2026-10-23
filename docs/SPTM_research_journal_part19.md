@@ -6912,3 +6912,29 @@ teardown mid-flight): >1600 кадров, 0 паник на c41 — гонка �
 - fuzzer/t_iosurface_scaler.m: p_bq84 (ARM1-5 режимы), g_bq83_isp,
   bq84_setpref_*, DW-дефолты, SMap-строка, ISP-аттачмент
 - results/diffs/ghidra/funcs/: декомпиляты ключевых функций
+
+### §233-дополнение: ПЕРВОЕ ПРОЯВЛЕНИЕ ГОНКИ — 4× kernel hang (RPCTimeout 99с)
+
+2-thread race hammer (100 циклов × 2 клиента × 20 кадров, RECONF-шторм,
+teardown mid-flight): **3844 кадра, 3726 успешных, 118 дропов, 0 паник —
+НО 4× videocodecd RPCTimeout** (23:48/23:50/23:52/23:53):
+
+```
+reason: videocodecd: RPCTimeout terminating 22816 for 22762
+  (com.apple.coremedia.videocodecd.compressionsession:msgh_id: 18305)
+  (timeout: 99 sec)
+```
+
+XPC watchdog убивал videocodecd 4 раза: **kernel IOKit-путь (Reset/Process)
+застревал на 99+ секунд** — reconf-шторм ломал scheduler state. Также
+inflight=-1 (callback для непосчитанного кадра — session state
+рассинхронизирован). Это НЕ crash, но окно гонки §231 проявилось:
+kernel держал lock/state на 99с во время Reset-vs-Process.
+
+Дамп: results/bq83/videocodecd-RPCTimeout-hang-2026-10-23-234837.ips
+(1.1MB stackshot, 4 дампа в systemCrashLogs).
+
+Следующий шаг v242: teardown ДРУГОГО клиента во время hang (ядро
+застряло → ресурсы под lock → invalidate соседнего соединения →
+потенциальный UAF) + плотнее RECONF (структурные свойства ProfileLevel/
+AllowFrameReordering/TemporalLayers на каждый кадр).
