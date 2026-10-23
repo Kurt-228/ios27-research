@@ -42259,7 +42259,67 @@ static void p_bq78(void) {
 //   M7 = processIdentifier → nil
 //   M8 = double encode (explanation twice — конфликтор keys)
 static IMP bq79_orig_encObj = NULL;
+static IMP bq79_orig_encInt = NULL;
+static IMP bq79_orig_encBool = NULL;
 static volatile int bq79_mut = -1;
+
+// v233: encodeInt64:forKey: — reason/flags/value НАСТОЯЩИЕ int-мутации
+static void bq79_hook_encInt(id self, SEL _cmd, long long v, NSString *key) {
+    int m = bq79_mut;
+    if (m > 0 && key) {
+        const char *k = key.UTF8String;
+        switch (m) {
+            case 14: // reason = INT_MIN (настоящий, через int-канал!)
+                if (strcmp(k, "reason") == 0 || strcmp(k, "requestedReason") == 0) {
+                    v = -2147483648LL;
+                    LOG("[bq79] m=14: %s=INT_MIN (int-канал)", k);
+                }
+                break;
+            case 15: // flags = экстремум (не NSString — int через int-канал)
+                if (strcmp(k, "flags") == 0) {
+                    v = 0x7FFFFFFFFFFFFFFFLL;
+                    LOG("[bq79] m=15: flags=INT64_MAX (int-канал)");
+                }
+                break;
+            case 16: // reason = huge positive (не enum!)
+                if (strcmp(k, "reason") == 0 || strcmp(k, "requestedReason") == 0) {
+                    v = 0x7FFFFFFF00000000LL; // > 2^32
+                    LOG("[bq79] m=16: %s=0x7FFFFFFF00000000 (int)", k);
+                }
+                break;
+            case 17: // _pid = отрицательный
+                if (strcmp(k, "_pid") == 0) {
+                    v = -1;
+                    LOG("[bq79] m=17: _pid=-1 (int-канал)");
+                }
+                break;
+            case 18: // requestedReason = 0 (invalid по §215)
+                if (strcmp(k, "requestedReason") == 0) {
+                    v = 0;
+                    LOG("[bq79] m=18: requestedReason=0");
+                }
+                break;
+        }
+    }
+    ((void (*)(id, SEL, long long, NSString *))bq79_orig_encInt)(
+        self, _cmd, v, key);
+}
+
+// v233: encodeBool:forKey: — boolean-мутации
+static void bq79_hook_encBool(id self, SEL _cmd, BOOL v, NSString *key) {
+    int m = bq79_mut;
+    if (m == 19 && key) {
+        const char *k = key.UTF8String;
+        if (strcmp(k, "targetsAllManagedProcesses") == 0
+            || strcmp(k, "allow") == 0
+            || strcmp(k, "preventIfBeingDebugged") == 0) {
+            LOG("[bq79] m=19: %s: %d→1", k, (int)v);
+            v = YES;
+        }
+    }
+    ((void (*)(id, SEL, BOOL, NSString *))bq79_orig_encBool)(
+        self, _cmd, v, key);
+}
 
 static void bq79_hook_encObj(id self, SEL _cmd, id obj, NSString *key) {
     int m = bq79_mut;
@@ -42371,10 +42431,9 @@ static void bq79_hook_encObj(id self, SEL _cmd, id obj, NSString *key) {
                     LOG("[bq79] m=14: reason=INT_MIN");
                 }
                 break;
-            case 15: // flags → строка вместо int (type confusion)
+            case 15: // flags через obj-hook (не применяется — int-канал)
                 if (strcmp(k, "flags") == 0) {
-                    obj = @"NOT_A_NUMBER";
-                    LOG("[bq79] m=15: flags=NSString");
+                    LOG("[bq79] m=15(obj): flags — int-канал");
                 }
                 break;
         }
@@ -42428,7 +42487,7 @@ static void p_bq79(void) {
            ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
     fsync(fileno(stderr));
 
-    // hook encodeObject:forKey: (ABI-safe, модель §216)
+    // hook encodeObject:forKey: + encodeInt64:forKey: + encodeBool:forKey:
     {
         Class cdrCls = NSClassFromString(@"RBSXPCCoder");
         if (!cdrCls) { LOG("[bq79] RBSXPCCoder нет"); return; }
@@ -42438,9 +42497,22 @@ static void p_bq79(void) {
             bq79_orig_encObj = method_setImplementation(m,
                 (IMP)bq79_hook_encObj);
             LOG("[bq79] hook encodeObject: orig=%p", bq79_orig_encObj);
+        }
+        Method mi = class_getInstanceMethod(cdrCls,
+            @selector(encodeInt64:forKey:));
+        if (mi) {
+            bq79_orig_encInt = method_setImplementation(mi,
+                (IMP)bq79_hook_encInt);
+            LOG("[bq79] hook encodeInt64: orig=%p", bq79_orig_encInt);
         } else {
-            LOG("[bq79] encodeObject:forKey: не найден");
-            return;
+            LOG("[bq79] encodeInt64:forKey: не найден — RE сигнатуры");
+        }
+        Method mb = class_getInstanceMethod(cdrCls,
+            @selector(encodeBool:forKey:));
+        if (mb) {
+            bq79_orig_encBool = method_setImplementation(mb,
+                (IMP)bq79_hook_encBool);
+            LOG("[bq79] hook encodeBool: orig=%p", bq79_orig_encBool);
         }
     }
     fsync(fileno(stderr));
@@ -42451,14 +42523,16 @@ static void p_bq79(void) {
     Class laCls = NSClassFromString(@"RBSLegacyAttribute");
     if (!tCls || !aCls || !laCls) { LOG("[bq79] нет классов"); return; }
 
-    static const int NM = 16;
+    static const int NM = 20;
     static const char *names[] = {
         "M0-КОНТРОЛЬ", "M1-expl-binary", "M2-expl-8KB",
         "M3-target=nil", "M4-target=NSNull", "M5-attrs=NSString",
         "M6-ident=binary", "M7-procId=nil", "M8-expl-double",
         "M9-expl-1MB", "M10-attrs=empty", "M11-target=NSString",
-        "M12-procId=NSNumber", "M13-pid=INT_MAX", "M14-reason=INT_MIN",
-        "M15-flags=NSString"
+        "M12-procId=NSNumber", "M13-pid=INT_MAX",
+        "M14-reason=INT_MIN", "M15-flags=INT64_MAX",
+        "M16-reason=0x7FFF00000000", "M17-pid=-1",
+        "M18-requestedReason=0", "M19-bool-override"
     };
     int stat[3] = {0, 0, 0};
     for (int mi = 0; mi < NM; mi++) {

@@ -6446,3 +6446,38 @@ mach-порты) — критические объекты.
 
 v233-план (правильные int-хуки): добавить encodeInt64:forKey: +
 encodeBool:forKey: в hook → мутировать reason/flags ПО-НАСТОЯЩЕМУ.
+
+### §226. v233: int-канал (encodeInt64/encodeBool) — reason=INT_MIN ВАЛИДИРУЕТСЯ, flags=INT64_MAX ПРОХОДИТ
+
+Добавлены encodeInt64:forKey: + encodeBool:forKey: хуки — теперь
+reason/flags/_pid мутируются ПО-НАСТОЯЩЕМУ (§225-доп.2 диагностика
+исправлена). 20 мутаций, контроль M0 ✓, 0 крашей.
+
+| мутация | канал | исход | вывод |
+|---|---|---|---|
+| M14 reason=INT_MIN | int | **«Invalid assertion reason»** | ✅ ДЕМОН ВАЛИДИРУЕТ enum по int-каналу |
+| M15 **flags=INT64_MAX(0x7FFF..)** | int | **acquired=1** | ⚠️ ВСЕ 64 бита флагов приняты |
+| M16 reason=0x7FFFFFFF00000000 | int | «Invalid reason» | enum-валидация |
+| M17 _pid=-1 | int | «same process» | fallback к originator |
+| M18 requestedReason=0 | int | «Invalid reason» | enum-валидация |
+| M19 bool-override | bool | **acquired=1** | bool-мутации молча приняты |
+
+**Ключевые выводы:**
+1. **reason: сервер-валидация enum работает** через int-канал
+   (§215 подтверждён на настоящих мутациях) — reason закрыт.
+2. **flags=0x7FFFFFFFFFFFFFFF acquired** — ВСЕ 64 бита
+   lifecycle-флагов принимаются без ограничений. И §214 (§215)
+   флаги=0xFF..FF — не валидируются вовсе.
+3. **bool-override** — encodeBool-канал не валидируется.
+
+**Финальный профиль runningboardd (§213–§226):**
+- target: строгий (RBSTarget класс)
+- reason: enum-валидирован (4=FinishTask единственный свободный)
+- **flags: без ограничений (все 64 бита!)** 
+- explanation: binary/1MB — без ограничений
+- identifier: binary — без ограничений
+- attributes: класс-валидирован
+- processIdentifier: nil→system fallback
+- bool: без валидации
+
+Лог: results/runf-bq79-v233.log.
