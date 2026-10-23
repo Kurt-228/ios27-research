@@ -6481,3 +6481,36 @@ reason/flags/_pid мутируются ПО-НАСТОЯЩЕМУ (§225-доп.2
 - bool: без валидации
 
 Лог: results/runf-bq79-v233.log.
+
+### §227. v234: encodeXPCObject — mach-порты: тип-подмены проходят, task_self-порт убивает клиента
+
+Hook encodeXPCObject:forKey: — XPC-объекты (mach-порты, endpoints):
+
+| мутация | endpoint → | исход |
+|---|---|---|
+| M20 | nil | **acquired=1** (демон принял!) |
+| M21 | NSNumber | **acquired=1** (число вместо порта — type confusion!) |
+| M22 | NSString | **acquired=1** (строка вместо порта!) |
+| M23 | NSData (fake) | **acquired=1** (байты вместо порта!) |
+| M24 | **xpc_mach_send_create(mach_task_self())** | **КЛИЕНТ УМЕР** (тихо, 0 краш-репортов; runningboardd ЖИВ) |
+| M25-26 | не дошли | процесс мёртв после M24 |
+
+**Анализ:**
+1. M20–M23: демон принимает nil/NSNumber/NSString/NSData в
+   endpoint-слоте XPC — **type confusion на XPC-канале** —
+   но декодер справляется (0 крашей демона).
+2. **M24 — самое интересное**: передача НАШЕГО task_self-порта
+   как endpoint → клиент умирает тихо (0 репортов, как §218
+   terminate nil-assertion). runningboardd ПРИНЯЛ порт и ЖИВ.
+   Причина смерти: либо os_assert на клиенте (port-copy
+   semantics), либо демон что-то сделал с портом (заимствование
+   send right → инвалидация → клиент видит port death → exit).
+3. **Передача task_self-порта демону** — даже если клиент
+   умирает, демон получил send right на НАШ task-порт →
+   потенциально может манипулировать нашим процессом (концепт
+   для дальнейшего исследования).
+
+Инструментальное: xpc_mach_send_create — private libxpc,
+dlsym-резолв работает. xpc_object_t = id (toll-free).
+
+Лог: results/runf-bq79-v234.log.

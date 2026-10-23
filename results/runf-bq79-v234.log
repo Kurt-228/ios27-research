@@ -1,0 +1,75 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ79=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] AppleM2ScalerCSCDriver -> conn 0x7d0f
+[open] service VCPDRMServiceUserClient not found
+[scaler] conn 0x7d0f, s1 215 s2 244
+[vcpdrm] no connection, target dead
+[probe12] SetNotificationPort -> 0x00000000
+[bq79] v231: безопасный wire-фаззинг (encode-хук)
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x106498900> { count = 1, transaction: 0, voucher = 0x10676c460, contents =
+	"bsxpc" => <string: 0x1066f5650> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x1f176d460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f176d5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq79] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq79] hook encodeObject: orig=0x194ed3998
+[bq79] hook encodeInt64: orig=0x194ee3d28
+[bq79] hook encodeBool: orig=0x194ef3930
+[bq79] hook encodeXPCObject: orig=0x194eeee98
+[bq79] фоновый запуск...
+[probe13] bq79-only mode, stop
+[bq79] M0-КОНТРОЛЬ -> rc=0 acquire=1 err=(none)
+[bq79] m=1: explanation=binary
+[bq79] M1-expl-binary     -> rc=0 acquire=1 err=(none)
+[bq79] m=2: explanation=8KB
+[bq79] M2-expl-8KB        -> rc=0 acquire=1 err=(none)
+[bq79] m=3: target=nil
+[bq79] M3-target=nil      -> rc=1 acquire=0 err=The operation couldn’t be completed. missing valid target
+[bq79] m=4: target=NSNull
+[bq79] M4-target=NSNull   -> rc=1 acquire=0 err=The operation couldn’t be completed. missing valid target
+[bq79] m=5: attributes=[NSString]
+[bq79] M5-attrs=NSString  -> rc=1 acquire=0 err=The operation couldn’t be completed. Cannot acquire an assertion with no attributes
+[bq79] m=6: identifier=binary-str
+[bq79] M6-ident=binary    -> rc=0 acquire=1 err=(none)
+[bq79] m=7: processIdentifier=nil
+[bq79] M7-procId=nil      -> rc=1 acquire=0 err=The operation couldn’t be completed. Originator and target must be the same process
+[bq79] m=8: explanation=repeat
+[bq79] M8-expl-double     -> rc=0 acquire=1 err=(none)
+[bq79] m=9: explanation=1MB
+[bq79] M9-expl-1MB        -> rc=0 acquire=1 err=(none)
+[bq79] m=10: attributes=empty
+[bq79] M10-attrs=empty    -> rc=1 acquire=0 err=The operation couldn’t be completed. Cannot acquire an assertion with no attributes
+[bq79] m=11: target=NSString
+[bq79] M11-target=NSString -> rc=1 acquire=0 err=The operation couldn’t be completed. missing valid target
+[bq79] m=12: procId=NSNumber
+[bq79] M12-procId=NSNumber -> rc=1 acquire=0 err=The operation couldn’t be completed. Originator and target must be the same process
+[bq79] M13-pid=INT_MAX    -> rc=0 acquire=1 err=(none)
+[bq79] m=14: requestedReason=INT_MIN (int-канал)
+[bq79] m=14: reason=INT_MIN (int-канал)
+[bq79] M14-reason=INT_MIN -> rc=1 acquire=0 err=The operation couldn’t be completed. Invalid assertion reason provided
+[bq79] m=15: flags=INT64_MAX (int-канал)
+[bq79] M15-flags=INT64_MAX -> rc=0 acquire=1 err=(none)
+[bq79] m=16: requestedReason=0x7FFFFFFF00000000 (int)
+[bq79] m=16: reason=0x7FFFFFFF00000000 (int)
+[bq79] M16-reason=0x7FFF00000000 -> rc=1 acquire=0 err=The operation couldn’t be completed. Invalid assertion reason provided
+[bq79] m=17: _pid=-1 (int-канал)
+[bq79] M17-pid=-1         -> rc=1 acquire=0 err=The operation couldn’t be completed. Originator and target must be the same process
+[bq79] m=18: requestedReason=0
+[bq79] M18-requestedReason=0 -> rc=1 acquire=0 err=The operation couldn’t be completed. Invalid assertion reason provided
+[bq79] M19-bool-override  -> rc=0 acquire=1 err=(none)
+[bq79] m=20: endpoint=nil
+[bq79] M20-endpoint=nil   -> rc=0 acquire=1 err=(none)
+[bq79] m=21: endpoint=NSNumber
+[bq79] M21-endpoint=NSNumber -> rc=0 acquire=1 err=(none)
+[bq79] m=22: endpoint=NSString
+[bq79] M22-endpoint=NSString -> rc=0 acquire=1 err=(none)
+[bq79] m=23: endpoint=fake-NSData
+[bq79] M23-endpoint=fakeData -> rc=0 acquire=1 err=(none)
+[bq79] m=24: endpoint=task_self port=515
