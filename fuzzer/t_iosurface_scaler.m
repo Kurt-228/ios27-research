@@ -42244,6 +42244,188 @@ static void p_bq78(void) {
     LOG("[bq78] фоновый запуск...");
 }
 
+// p_bq79 — v231: БЕЗОПАСНЫЙ WIRE-ФАЗЗИНГ через encode-хук.
+// §224-доп: in-place мутация XPC ломает wire → клиент умирает.
+// Правильный путь: hook RBSXPCCoder.encodeObject:forKey: (ABI-safe)
+// и подмена ЗНАЧЕНИЙ ДО кодирования → демон декодирует легальный
+// wire с нелегальными значениями.
+//   M0 = контроль (без подмен → acquire=1)
+//   M1 = explanation → binary garbage (0x80..0x8F)
+//   M2 = explanation → 8KB строка
+//   M3 = target → nil (демон ждет объект?)
+//   M4 = target → NSNull
+//   M5 = attributes → NSArray с NSString вместо RBSAttribute
+//   M6 = identifier → чужая строка (массив байт)
+//   M7 = processIdentifier → nil
+//   M8 = double encode (explanation twice — конфликтор keys)
+static IMP bq79_orig_encObj = NULL;
+static volatile int bq79_mut = -1;
+
+static void bq79_hook_encObj(id self, SEL _cmd, id obj, NSString *key) {
+    int m = bq79_mut;
+    if (m > 0 && key) {
+        const char *k = key.UTF8String;
+        switch (m) {
+            case 1:
+                if (strcmp(k, "explanation") == 0) {
+                    static char garb[17];
+                    for (int i = 0; i < 16; i++)
+                        garb[i] = (char)(0x80 + i);
+                    garb[16] = 0;
+                    obj = [NSString stringWithUTF8String:garb];
+                    LOG("[bq79] m=1: explanation=binary");
+                }
+                break;
+            case 2:
+                if (strcmp(k, "explanation") == 0) {
+                    static char big[8192];
+                    memset(big, 'A', 8191);
+                    big[8191] = 0;
+                    obj = [NSString stringWithUTF8String:big];
+                    LOG("[bq79] m=2: explanation=8KB");
+                }
+                break;
+            case 3:
+                if (strcmp(k, "target") == 0) {
+                    obj = nil;
+                    LOG("[bq79] m=3: target=nil");
+                }
+                break;
+            case 4:
+                if (strcmp(k, "target") == 0) {
+                    obj = [NSNull null];
+                    LOG("[bq79] m=4: target=NSNull");
+                }
+                break;
+            case 5:
+                if (strcmp(k, "attributes") == 0 && obj
+                    && [obj isKindOfClass:[NSArray class]]) {
+                    obj = @[@"NOT_AN_ATTRIBUTE"];
+                    LOG("[bq79] m=5: attributes=[NSString]");
+                }
+                break;
+            case 6:
+                if (strcmp(k, "identifier") == 0 && !obj) {
+                    static const char fake[] =
+                        {0x01,0x02,0x03,0x04,0x05,0x06,0x07,0x08,0};
+                    obj = [NSString stringWithUTF8String:fake];
+                    LOG("[bq79] m=6: identifier=binary-str");
+                }
+                break;
+            case 7:
+                if (strcmp(k, "processIdentifier") == 0) {
+                    obj = nil;
+                    LOG("[bq79] m=7: processIdentifier=nil");
+                }
+                break;
+            case 8:
+                if (strcmp(k, "explanation") == 0) {
+                    LOG("[bq79] m=8: explanation=repeat");
+                    bq79_mut = -1; // отключаем на время 2-го encode
+                    ((void (*)(id, SEL, id, NSString *))
+                        bq79_orig_encObj)(self, _cmd,
+                        @"bq79-first", key);
+                    bq79_mut = m;
+                    obj = @"bq79-second"; // 2-й encode того же ключа
+                }
+                break;
+        }
+    }
+    ((void (*)(id, SEL, id, NSString *))bq79_orig_encObj)(
+        self, _cmd, obj, key);
+}
+
+static int bq79_acquire_once(Class tCls, Class aCls, Class laCls,
+                              int mut, char *outNote, size_t noteSz) {
+    bq79_mut = mut;
+    typedef id (*CFn)(Class, SEL);
+    CFn cf = (CFn)objc_msgSend;
+    id tgt = cf(tCls, @selector(currentProcess));
+    typedef id (*AFn)(Class, SEL, unsigned long long, unsigned long long);
+    AFn af = (AFn)objc_msgSend;
+    id la = af(laCls, @selector(attributeWithReason:flags:), 4ull, 1ull);
+    typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+    IFn f = (IFn)objc_msgSend;
+    id as = f([aCls alloc],
+              @selector(initWithExplanation:target:attributes:),
+              @"bq79 probe", tgt, @[la]);
+    NSError *err = nil;
+    typedef BOOL (*AFn2)(id, SEL, NSError **);
+    AFn2 aq = (AFn2)objc_msgSend;
+    BOOL ok = aq(as, @selector(acquireWithError:), &err);
+    bq79_mut = -1;
+    snprintf(outNote, noteSz, "acquire=%d err=%.90s", (int)ok,
+             err ? err.localizedDescription.UTF8String : "(none)");
+    [as invalidate];
+    return ok ? 0 : 1;
+}
+
+static void p_bq79(void) {
+    LOG("[bq79] v231: безопасный wire-фаззинг (encode-хук)");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq79.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq79] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq79] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    // hook encodeObject:forKey: (ABI-safe, модель §216)
+    {
+        Class cdrCls = NSClassFromString(@"RBSXPCCoder");
+        if (!cdrCls) { LOG("[bq79] RBSXPCCoder нет"); return; }
+        Method m = class_getInstanceMethod(cdrCls,
+            @selector(encodeObject:forKey:));
+        if (m) {
+            bq79_orig_encObj = method_setImplementation(m,
+                (IMP)bq79_hook_encObj);
+            LOG("[bq79] hook encodeObject: orig=%p", bq79_orig_encObj);
+        } else {
+            LOG("[bq79] encodeObject:forKey: не найден");
+            return;
+        }
+    }
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    Class tCls = NSClassFromString(@"RBSTarget");
+    Class aCls = NSClassFromString(@"RBSAssertion");
+    Class laCls = NSClassFromString(@"RBSLegacyAttribute");
+    if (!tCls || !aCls || !laCls) { LOG("[bq79] нет классов"); return; }
+
+    static const int NM = 9;
+    static const char *names[] = {
+        "M0-КОНТРОЛЬ", "M1-expl-binary", "M2-expl-8KB",
+        "M3-target=nil", "M4-target=NSNull", "M5-attrs=NSString",
+        "M6-ident=binary", "M7-procId=nil", "M8-expl-double"
+    };
+    int stat[3] = {0, 0, 0};
+    for (int mi = 0; mi < NM; mi++) {
+        char note[256];
+        int rc = bq79_acquire_once(tCls, aCls, laCls, mi,
+                                    note, sizeof(note));
+        if (mi > 0) stat[rc < 3 ? rc : 2]++;
+        LOG("[bq79] %-18s -> rc=%d %s", names[mi], rc, note);
+        fsync(fileno(stderr));
+        usleep(400000);
+    }
+    LOG("[bq79] СВОДКА: rc0=%d rc1=%d rc2=%d "
+        "(rc0=acquired, rc1=err, rc2=крашриск)", stat[0], stat[1],
+        stat[2]);
+    });
+    LOG("[bq79] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -49748,6 +49930,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ76")) { p_bq76(); LOG("[probe13] bq76-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ77")) { p_bq77(); LOG("[probe13] bq77-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ78")) { p_bq78(); LOG("[probe13] bq78-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ79")) { p_bq79(); LOG("[probe13] bq79-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

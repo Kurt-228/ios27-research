@@ -6350,3 +6350,35 @@ connection с client-side abort).
 target pid→экзотический, attributes→чужой класс). Декодер демона
 получит «легальный wire с нелегальными значениями» — его задача
 справиться. Это безопаснее и эквивалентно wire-мутации.
+
+## §225. v231: безопасный wire-фаззинг runningboardd — 9 мутаций, 0 аномалий, профиль декодера
+
+Hook RBSXPCCoder.encodeObject:forKey: (ABI-safe, §216-модель) —
+подмена значений ДО кодирования → демон декодирует легальный
+wire с нелегальными значениями.
+
+| мутация | ключ | исход | поведение демона |
+|---|---|---|---|
+| M0 контроль | — | **acquire=1** ✓ | (детектор §144 жив) |
+| M1 explanation=binary (0x80..0x8F) | explanation | **acquire=1** | binary принят |
+| M2 explanation=8KB | explanation | **acquire=1** | нет лимита длины |
+| M3 target=nil | target | err «missing valid target» | strict type check |
+| M4 target=NSNull | target | err «missing valid target» | strict |
+| M5 attributes=@[NSString] | attributes | err «no attributes» | class validation |
+| M6 identifier=binary-str | identifier | **acquire=1** | binary в ID принят |
+| M7 processIdentifier=nil | processIdentifier | err «same process» | fallback к originator |
+| M8 explanation double-encode | explanation | **acquire=1** | duplicate keys OK |
+
+0 крашей, 0 зависаний (процесс жив). Декодер runningboardd:
+- **СТРОГИЙ по типам**: target (RBSTarget-only), attributes
+  (RBSAttribute-only), processIdentifier (nil→self fallback)
+- **ТОЛЕРАНТНЫЙ к данным**: binary в explanation/identifier,
+  8KB strings, duplicate keys — всё принято
+
+**Открытые поверхности для следующего слоя**: binary explanation
+хранится в assertion (демон-стейт) → возможно ретранслируется в
+ос-лог/отчёты (информационный leak). Длина 8KB без лимита —
+проверить 1MB (exhaustion). Слой 2: encodeXPCObject (endpoints,
+mach-порты) — критические объекты.
+
+Лог: results/runf-bq79-v231.log.
