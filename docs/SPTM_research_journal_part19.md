@@ -6938,3 +6938,31 @@ kernel держал lock/state на 99с во время Reset-vs-Process.
 застряло → ресурсы под lock → invalidate соседнего соединения →
 потенциальный UAF) + плотнее RECONF (структурные свойства ProfileLevel/
 AllowFrameReordering/TemporalLayers на каждый кадр).
+
+### §234. v242: HEARTBEAT-WATCHDOG — teardown-during-hang работает; 6+ UAF-кандидатов за прогон
+
+p_bq85 с heartbeat-детектором (10мс опрос, порог 3с, real-time):
+
+- **INVALIDATE ЗАСТРЯЛ 100173/100046/100060 мс** — kernel hang сидит в
+  teardown-пути (AVE_Client_Close/Reset), НЕ в encode. 100-секундные
+  зависания воспроизводятся по желанию.
+- **KILL-ВО-ВРЕМЯ-ПОЛЁТА 6+ раз** — watchdog ловит hang в реальном
+  времени (heartbeat молчит >3с) и немедленно делает teardown соседней
+  сессии ВНУТРИ kernel hang. Kernel Close для соседа обрабатывает
+  освобождение общих ресурсов (SVE/DPB/CHM) пока путь первого клиента
+  застрял — **прямой UAF-кандидат §231**.
+- **Обе нити зависают ОДНОВРЕМЕННО** (3002/3008мс) — подтверждение
+  общего kernel scheduler (SVESched/HwC) для параллельных клиентов.
+- 14 стек-дампов videocodecd за день (RPCTimeout 99с).
+- Устройство живо после 6+ teardown-during-hang — 0 паник. Возможные
+  причины: deferred-free в ядре / повезло с таймингом / KASAN-нет.
+
+### План v243
+
+1. Плотнее: после KILL-during-hang НЕ ждать завершения hang —
+   сразу создавать НОВУЮ сессию (третий клиент на тех же freed
+   ресурсах → реаллокация → use-after-free указателей).
+2. Стек-дампы (14× 1.1MB) — разобрать kernel стек hang-а:
+   в какой AVE-функции ядро застряло (Close? Reset? ProcessIntr?).
+3. Если kernel стек покажет lock на shared ресурсе →
+   teardown соседа = lock-free-доступ к locked-ресурсу → UAF write.
