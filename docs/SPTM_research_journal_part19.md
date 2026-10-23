@@ -6114,3 +6114,62 @@ RE/зонд `RBClientInheritanceManager`-создания: наследован�
 from 'UIScene:…'» — SpringBoard шлёт через service-контекст.
 Диск-деградация продолжается — зонды (рантайм) приоритетнее
 кэш-сканов до перезагрузки хоста.
+
+## §222. v226: обход загрузочной цепи t8130 — SecureROM/SEProm/PMP/SmartIO (офлайн-статический RE)
+
+Сессия вне RBS-ветки (по запросу: пройтись по SecureROM и прочим
+бинарникам загрузочной цепи). Детали и цитаты адресов:
+`results/securerom/findings/bootchain-survey.md`; декомпы всех четырёх
+бинарей + Ghidra-скрипт + срезалка закоммичены в
+`results/securerom/bootchain-decomp/` (пересоздание: Ghidra 12.1.4
+headless — IDA на хосте мертва, лицензия).
+
+### Инвентарь (дополняет §167)
+
+Плаcтекстом (plaintext im4p → Mach-O) оказались ещё двое:
+**t8130pmp** (pmp.macho, base 0x1000000) и **SmartIOFirmware_ASCv6**
+(Realtek ASC-контроллер, base 0) — выкачаны range-fetch'ем из IPSW
+(`relay/fetch_ipsw_members.py`, новый инструмент). Шифрованные
+iBoot/iBEC/iBSS/LLB/SPTM/TXM/sep-fw — по-прежнему закрыты (§167).
+
+### Главный факт: SecureROM/SEProm — memory-safe механически
+
+Обе ROM используют «толстые указатели» (ptr+base+bound) с range-check
+на каждом доступе + stack-cookie (`_DAT_fc038a88` в 277 функциях ROM,
+`_DAT_02200008` в SEProm) + poisoned-init `0xaaaaaaaaaaaaaaaa`
+(213/174). Аудированы:
+
+- **DER/TLV-ядро `FUN_00038108`** — чисто: канонический DER (запрет
+  ведущих нулей, 1..8 октетов), length ≤ remaining либо clamp-режим,
+  аккумулятор тега с проверкой `>>0x39` ДО сдвига (wrap невозможен);
+- **IMG4-слой** (4CC-константы `'IMG4'` 0x34d40, `'IM4P'` 0x34f14,
+  `'PAYP'` 0x35038 + схемный экстрактор `FUN_000387e4`,
+  `offset+0x10 ≤ outsize`) — чисто;
+- DFU/USB-транспорт (§167) перепроверен — подтверждён.
+
+### Опровержение кандидата (§144 в действии)
+
+«DER-desync в FUN_00011c38» (гипотеза сессии-1) **опровергнут**:
+raw-disasm (`disasm_rom.py 0x11c38 0x11e60`) показывает цикл проверки
+дескрипторных структур с ветками на panic, DER-парсинга там нет —
+«тег-константы» 0x1f/0x82/0x30 были артефактом недеконвертированных
+`.word` (Ghidra: «Type propagation not settling»). Положительный
+результат от нерабочего детектора. Единственный DER-парсер на
+DFU-пути — 0x38108 (чист).
+
+### Живые цели (следующая итерация)
+
+1. **PMP** — НЕ использует checked-pointer дисциплину (0 совпадений
+   grep'ом): `FUN_01012568` (8252 B, vtable-диспетчер по таблицам
+   `DAT_010969a0/010969b0` — вероятно mailbox AP→PMP),
+   `FUN_0100be20` (5796 B). Главный кандидат.
+2. **SmartIO** `FUN_000182f0` (2984 B, инициализация Realtek ASC;
+   data-driven `__platform_memmove` в стек с длиной из ROM-данных —
+   не attacker-controlled, но кадр не сверен), `FUN_0000934c`.
+3. **SEProm AKE** (`AKE_MACKey`/`AKE_ExtractorKey` @0x35a30) —
+   крипто-поверхность не аудирована.
+4. SecureROM verifier-логика (таблицы сертификатов 0x53a20–0x53cc8) —
+   проверялся только memory-safety, не accept/reject-корректность.
+
+Коммит: v226. План §221 («Путь v226» — RBS менеджер) сдвигается
+на v227 — номера версий считаются по факту коммитов.
