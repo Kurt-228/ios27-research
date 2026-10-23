@@ -1,0 +1,32 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ77=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x461b
+[scaler] conn 0x461b, s1 215 s2 226
+[probe12] SetNotificationPort -> 0x00000000
+[bq77] v228: inheritance через DomainAttribute
+[bq51] run ENTER ctl-empty nseq=1
+[bq51] ctl-empty ev#1 [MSG] bsxpc=invalidate: <dictionary: 0x13c470700> { count = 1, transaction: 0, voucher = 0x13c550f50, contents =
+	"bsxpc" => <string: 0x13c59b780> { string cache = 0x0, length = 10, contents = "invalidate" }
+}
+[bq51] ctl-empty ev#2 [ERR] bsxpc=-: <dictionary: 0x1f176d460> { count = 1, transaction: 0, voucher = 0x0, contents =
+	"XPCErrorDescription" => <string: 0x1f176d5d0> { string cache = 0x0, length = 22, contents = "Connection interrupted" }
+}
+[bq51] run EXIT ctl-empty nev=2
+[bq77] ctl-empty: nev=2 tag=invalidate -> control OK
+[bq77] классы: conn=0x1efa08c98 inh=0x1efa07de8 t=0x1efa08888 a=0x1efa086a8 dom=0x1efa085b8
+[bq77] фоновый запуск...
+[bq77] _inheritances count=4
+[probe13] bq77-only mode, stop
+[bq77] inh=0x13c7a41c0
+[bq77] *** ДОБАВЛЕН в _inheritances (count=5) ***
+[bq77] DomainAttribute=0x13c5f3f00
+[bq77] *** acquire(Domain+inh) -> 0 err=The operation couldn’t be completed. (originator doesn't have entitlement com.apple.runningboard.primitiveattribute AND originator doesn't have entitlement com.apple.runningboard.assertions.frontboard AND target is not running or doesn't have entitlement com.apple.runningboard.trustedtarget AND target is not running or doesn't have entitlement com.apple.UIKit.vends-view-services AND Target not hosted by originator) ***
+[bq77] +3s valid=0
+[bq77] acquire(Domain-соло КОНТРОЛЬ) -> 0 err=The operation couldn’t be completed. (originator doesn't have entitlement com.apple.runningboard.primitiveattribute AND originator doesn't have entitlement com.apple.runningboard.assertions.frontboard AND target is not running or doesn't have entitlement com.apple.runningboard.trustedtarget AND target is not running or doesn't have entitlement com.apple.UIKit.vends-view-services AND Target not hosted by originator)
+[bq77] done — ос-лог: 'Saved endowment grant' или 'Inheritance changeset' от нашего pid?

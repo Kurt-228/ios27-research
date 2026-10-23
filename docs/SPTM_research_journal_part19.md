@@ -6256,3 +6256,44 @@ name:WorkspaceEndpointInjection — как InputUI) + наш
 RBSInheritance в _inheritances → демон должен зарегистрировать
 наследование («Saved endowment grant» / «changeset gained»).
 Альтернативный domain: com.apple.boardservices.
+
+### §223. v228: Domain-атрибут endpoint-injection — 5 гейтов подписи (закрыт)
+
+p_bq77: RBSInheritance в _inheritances + `+[RBSDomainAttribute
+attributeWithDomain:com.apple.frontboard
+name:WorkspaceEndpointInjection]` (точная модель InputUI из
+ос-лога §222-доп) → acquire:
+
+```
+err: originator lacks com.apple.runningboard.primitiveattribute
+     AND lacks com.apple.runningboard.assertions.frontboard
+     AND target lacks trustedtarget
+     AND target lacks UIKit.vends-view-services
+     AND Target not hosted by originator
+```
+
+**Пять гейтов — все за подписью** (MIS вырезает). Domain-атрибут
+WorkspaceEndpointInjection применяется только между host и его
+extension (как InputUI→Tweetie2: originator InputUI — host UI).
+Наследование endpoint-injection — **закрыто для сторонних
+приложений** по дизайну.
+
+Контроль (Domain-соло без inheritance) — те же 5 гейтов (не
+зависит от inheritance).
+
+## ИТОГ БОЛЬШОЙ RBS-КАРТЫ (§213–§223, финальная)
+
+| примитив | гейт | вывод |
+|---|---|---|
+| acquire: target=любой pid | НЕТ | ✅ открыт (launchd/SB/RB, 63с) |
+| acquire: flags=любые 64б | НЕТ | ✅ открыт (не валидируются) |
+| acquire: reason | enum | 4=FinishTask свободен |
+| acquire: Domain (endpoint-inject) | 5 подписей | 🔒 закрыт |
+| invalidate: audit_token=любой | НЕТ | ✅ открыт |
+| terminate | 1 подпись | 🔒 закрыт |
+| RBSInheritance построение | НЕТ | ✅ класс доступен |
+| RBSInheritance регистрация | через Domain-attr | 🔒 закрыт |
+
+Открытые примитивы (bounty-факт): **acquire на произвольные
+системные процессы с произвольными lifecycle-флагами + invalidate
+по произвольному audit_token** — всё остальное за подписью.
