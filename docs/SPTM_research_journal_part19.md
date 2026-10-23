@@ -6634,3 +6634,114 @@ class-confusion), но поверхность богата для дальней
 - Расширенный byte-sweep по 711-байт блобу (bq64-модель)
 
 Лог: results/runf-bq82-v237.log.
+
+## §231. v238: CVE-2026-84607 (AppleAVE2) — 3-версионный дифф kernelcache + Ghidra headless: патч reverse-инжинирен полностью, триггер-путь из песочницы подтверждён
+
+**Задача**: реверс патча race condition в AppleAVE2 (Apple Video
+Encoder, "sandboxed app may execute arbitrary code with kernel
+privileges", CVE-2026-84607, Ruslan Dautov) между нашим b4
+(24A5390f) и 27.0 GM.
+
+### Инструментарий (всё воспроизводимо, скрипты в git)
+
+- `relay/get_kc27.py` range-fetch: kernelcache 24A437 (FCS) — 22.8 МБ
+  с CDN вместо 12 ГБ IPSW; полный RC-IPSW (24A435) скачан отдельно.
+  **AVE2 в 24A435 и 24A437 байт-в-байт идентичен (md5 0adebf9f…)** →
+  дифф b4↔RC == дифф b4↔FCS. 27.2 (24B115) — тоже выкачан.
+- `results/kc-extract/carve_fileset.py`: 264/265 кекстов × 3 версии.
+- `results/kc-extract/ave2_funcdiff.py` — функциональный дифф
+  stripped-кекстов: границы из LC_FUNCTION_STARTS, символизация через
+  лог-якоря `AVE_*` (формат "AVE %s: …" тащит имя функции строкой) →
+  565/3000 функций с именами в каждой версии; xref adrp+add
+  декодируется из сырых байтов (метод §230-цикла, v177).
+- `results/kc-extract/kext_string_sweep.py` — semantic-дифф строк по
+  всем 264 кекстам → results/diffs/strings_b4_vs_435.txt (2 МБ маркеров).
+- Ghidra 12.1.4 headless, `results/kc-extract/decompile_dump.java`
+  (карта имён из syms-CSV применяется скриптом): 4 бинарника
+  декомпилированы ЦЕЛИКОМ, 0 ошибок — AVE2 b4/rel/b115
+  (3161/3600/3603 функции) + **ave.videoencoder** (1540).
+  Грабли хоста: (1) у download-дистрибутива Ghidra НЕТ mac_arm_64
+  natives — работает только `/opt/homebrew/opt/ghidra/libexec/support/
+  analyzeHeadless`; (2) PyGhidra не поднимается в headless → Java
+  postScript; (3) каталог проекта должен существовать до запуска.
+
+### Дифф-факты (b4 → 27.0 GM)
+
+- Все 264 кекстов пересобраны — байт-дифф бесполезен. Систематика
+  пересборки: +1 insn `hint #0x22` (BTI) на КАЖДОЙ функции,
+  перенумерация функций логгинга — это шум, отсеянный по именам.
+- AVE2: +5 функций, из них +1 именованная — **AVE_SVESched_ClearOrder**.
+  Реальные дельты (сверх систематики):
+  - AVE_CHM_GetMCTFOutBuf: 287→245 insns; ассерт `pCHM != nullptr &&
+    pSurface != nullptr && pSize != nullptr && psCBufInfo != nullptr`
+    УДАЛЁН (GONE-строка, владелец именно эта функция);
+  - AVE_CHM_SetFwBuf: 3120→3053 (36 ассертов сохранены);
+  - AVE_MD::Clear и AVE_MD::Reset: +вызов ClearOrder; новый безымянный
+    wrapper sub_13a8e4c (Zero+ClearOrder) на 2 НОВЫХ сайтах AVE_Drv;
+  - AVE_Prop_Cfg_{MCTF,AVC,HEVC,AV1}_Print: +125 insns каждый — новые
+    конфиг-поля **MCTFGatingType / MCTFPreFiltAdjType /
+    MCTFFnumChangeResetMCTF**.
+- Окно 27.0→27.2 (чистое: 21 изменённая функция из 565 общих):
+  вторая волна — НОВЫЕ валидаторы **AVE_Client_CheckMCTFInfo** (737
+  insns), AVE_Client_CheckLRMEInfo (571), AVE_HEVC_CheckVPSExtBounds
+  (310) + раздутые существующие (CheckDMVInfo +494, CheckGGMInfo +440,
+  HEVC_CheckInfo +532, AVC_CheckInfo +170) — профиль "improved
+  checks"/"type confusion" (CVE-2026-65410/84616) фиксов 27.1/27.2.
+
+### Реконструкция CVE-2026-84607 (C-уровень; декомпилят в results/diffs/ghidra/funcs/)
+
+Контекст: **SVESched** — планировщик SVE-энкодеров (до 4): +0xa8 =
+монотонный счётчик порядка кадров (AVE_SVESched_Process: `p->[0xa8]++`;
+инвалидация: `= 1`), +0xb0 = TimingMgr, +0xa0 = single-SVE flag. CHM
+строит fw-команды Start (AVC/HEVC/AV1) через AVE_CHM_SetFwBuf →
+**AVE_CHM_GetMCTFOutBuf** (единственный вызыватель, вложенный цикл
+≤8 поверхностей): дескрипторы MCTF-вывода {addr, size, addr+size,
+width, stride, …} по 0x40 байт на plane.
+
+**Бага b4 — двойная**:
+1. GetMCTFOutBuf заполняет дескриптор ТОЛЬКО для plane 1
+   (`AVE_Surface(surface, id, 1, &addr)`, один слот 0x40; вызыватель
+   даёт 0x40 на запись); plane-0 слот массива остаётся со
+   stale-данными прошлой команды/сессии. Потребитель (fw-DMA по
+   дескриптору / AVE_HwC::ProcessIntr_MCTF_OutputData) читает оба
+   plane → **вывод MCTF летит по протухшему адресу — запись в
+   чужую kernel memory** ("execute arbitrary code with kernel
+   privileges").
+2. Инвалидация order-счётчика условная и поздняя: MD::Reset зовёт
+   AVE_SVESched_Config, который пишет `[0xa8]=1` только в success-ветке
+   (после null-проверок, см. decompile Config); MD::Clear зовёт Clear
+   (аналогично). Гонка: работающий Process (read-modify-write [0xa8])
+   против Reset/Config, переконфигурирующих EU map и буферы.
+
+**Фикс 27.0 GM**:
+1. GetMCTFOutBuf → цикл по plane 0 И 1 (`pOut + plane*0x40`, оба слота
+   инициализируются полностью; вызыватель передаёт 0x80 на запись);
+   null-проверки подняты в SetFwBuf.
+2. Новая **AVE_SVESched_ClearOrder**: безусловный `[0xa8]=1`.
+3. Вставлена в MD::Clear (Zero→ClearOrder→Clear), MD::Reset
+   (Zero→ClearOrder→Config) + wrapper (Zero+ClearOrder) на 2 новых
+   сайтах AVE_Drv — ранняя БЕЗУСЛОВНАЯ инвалидация вместо поздней
+   условной ("improved state management").
+4. Конфиг-ручка MCTFFnumChangeResetMCTF («смена frame number → сброс
+   MCTF») + MCTFGatingType / MCTFPreFiltAdjType.
+
+### Достижимость (наш билд 24A5390f, DeviceSupport)
+
+Цепочка подтверждена по бинарям Xcode DeviceSupport (13 ГБ, наш точный
+билд, локальные символы): приложение (песочница) → VTCompressionSession
+→ VideoToolbox/MediaToolbox → **ave.videoencoder**
+(`/System/Library/VideoCodecs/`, in-process, 2420 локальных символов) →
+сам выполняет `IOServiceMatching/IOServiceOpen` **"AppleAVE2Driver"** →
+кекст. Гейта нет: AVE_Entitlement_Check проверяет только фичи (bit 11
+через AOCP-клиент "aocp-client"), открытие коннекта не гейтится —
+аппаратный encode штатно доступен приложениям.
+
+### Триггер-план (p_bq83, ЕЩЁ НЕ НАПИСАНА)
+
+VTCompressionSession (HEVC, MCTF/temporal filtering ON) → активный
+encode → реконфигурация/flush/смена frameNumber
+(VTSessionSetProperties / IDR / reset) → гонка инвалидации порядка
+против fw-команды Start → stale plane-0 дескриптор → kernel
+corruption. Контроль §144 обязателен: (а) та же сессия без MCTF — не
+падает; (б) редкие реконфиги — не падает; частота реконфигов = основная
+переменная. Устройство на b4 — уязвимая версия.

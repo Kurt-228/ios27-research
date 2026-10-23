@@ -1,0 +1,1334 @@
+AVE2 functional diff: b4 24A5390f -> release 24A435(==24A437)
+funcs: b4=2995 rel=2998; named: b4=565 rel=568; common=565
+
+=== NEW named functions in release ===
+  + AVE_Client_CheckLRMEInfo  @0x1381f80 size=2284 insns=571 tags=[]
+  + AVE_Client_CheckMCTFInfo  @0x13813fc size=2948 insns=737 tags=['MCTF']
+  + AVE_HEVC_CheckVPSExtBounds  @0x137ea38 size=1240 insns=310 tags=[]
+
+=== REMOVED named functions (b4 only) ===
+
+=== CHANGED common functions (mnemonic seq differs) ===
+  * AVE_AV1_CheckInfo: insns 204 -> 256 (bytes 816 -> 1024) tags=['MCTF']
+  * AVE_AVC_CheckInfo: insns 277 -> 447 (bytes 1108 -> 1788) tags=[]
+  * AVE_AXI2AF_GetTunables: insns 320 -> 316 (bytes 1280 -> 1264) tags=[]
+  * AVE_CHM_MakeFwCmd_Start_AV1: insns 433 -> 434 (bytes 1732 -> 1736) tags=[]
+  * AVE_CHM_MakeFwCmd_Start_AVC: insns 474 -> 475 (bytes 1896 -> 1900) tags=[]
+  * AVE_CHM_SetDataInfo_FwBuf: insns 5769 -> 5776 (bytes 23076 -> 23104) tags=[]
+  * AVE_Client_CheckDMVInfo: insns 196 -> 690 (bytes 784 -> 2760) tags=[]
+  * AVE_Client_CheckGGMInfo: insns 309 -> 749 (bytes 1236 -> 2996) tags=[]
+  * AVE_Client_CheckInfo: insns 506 -> 604 (bytes 2024 -> 2416) tags=[]
+  * AVE_Client_Verify: insns 188 -> 189 (bytes 752 -> 756) tags=[]
+  * AVE_HEVC_CheckInfo: insns 361 -> 893 (bytes 1444 -> 3572) tags=['MCTF']
+  * AVE_KeyFrame: insns 820 -> 826 (bytes 3280 -> 3304) tags=[]
+  * AVE_PSInfo_CopyType: insns 328 -> 377 (bytes 1312 -> 1508) tags=[]
+  * AVE_PSInfo_Make: insns 404 -> 460 (bytes 1616 -> 1840) tags=[]
+  * AVE_Prop_Cfg_AV1_Init: insns 150 -> 152 (bytes 600 -> 608) tags=[]
+  * AVE_Prop_Cfg_AV1_Print: insns 9409 -> 9490 (bytes 37636 -> 37960) tags=[]
+  * AVE_Prop_Cfg_AVC_Init: insns 147 -> 146 (bytes 588 -> 584) tags=[]
+  * AVE_Prop_Cfg_AVC_Print: insns 9125 -> 9187 (bytes 36500 -> 36748) tags=[]
+  * AVE_Prop_Cfg_HEVC_Init: insns 169 -> 167 (bytes 676 -> 668) tags=[]
+  * AVE_Prop_Cfg_HEVC_Print: insns 12236 -> 12305 (bytes 48944 -> 49220) tags=[]
+  * AVE_Prop_Cfg_MCTF_Print: insns 1352 -> 1355 (bytes 5408 -> 5420) tags=['MCTF']
+
+summary: identical=544 changed=21 (of 565 common named)
+
+=== MCTF/SVE-tagged functions (both versions) ===
+  [b4] AVE_Prop_Cfg_MCTF_Init @0x12e8274 size=420 insns=105 tags=['MCTF']
+        str 0x4d9d2: AVE_Prop_Cfg_MCTF_Init
+  [b4] AVE_Prop_Cfg_MCTF_Uninit @0x12e8418 size=356 insns=89 tags=['MCTF']
+        str 0x4d9e9: AVE_Prop_Cfg_MCTF_Uninit
+  [b4] AVE_Prop_Cfg_MCTF_Print @0x12e857c size=5408 insns=1352 tags=['MCTF']
+        str 0x4c6fa: pCfg != nullptr
+        str 0x4da02: AVE_Prop_Cfg_MCTF_Print
+        str 0x4db94: %d, 
+  [b4] AVE_Prop_PFCfg_MCTF_Init @0x12e9a9c size=392 insns=98 tags=['MCTF']
+        str 0x4de11: AVE_Prop_PFCfg_MCTF_Init
+  [b4] AVE_Prop_PFCfg_MCTF_Uninit @0x12e9c24 size=372 insns=93 tags=['MCTF']
+        str 0x4de2a: AVE_Prop_PFCfg_MCTF_Uninit
+  [b4] AVE_Prop_PFCfg_MCTF_Print @0x12e9d98 size=600 insns=150 tags=['MCTF']
+        str 0x4c6fa: pCfg != nullptr
+        str 0x4de45: AVE_Prop_PFCfg_MCTF_Print
+  [b4] AVE_MCTF_SMap_Parse @0x1302b00 size=1304 insns=326 tags=['MCTF']
+        str 0x535de: AVE_MCTF_SMap_Parse
+  [b4] AVE_CalcBufSizeOfMCTFOutput @0x131feb4 size=1056 insns=264 tags=['MCTF']
+        str 0x58abb: iLumaDataSize >= 0 && iLumaHeaderSize >= 0 && iChromaDataSize >= 0 && iChromaHeaderSize >= 0 && iTotal <= 2147483647
+        str 0x58f07: AVE_CalcBufSizeOfMCTFOutput
+  [b4] AVE_CHM_SetFwBuf @0x132cea0 size=12212 insns=3053 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x5aca0: AVE_CHM_SetFwBuf
+        str 0x5acb1: pCHM != nullptr && pSet != nullptr && pSInfoSet != nullptr && pBufSet != nullptr
+        str 0x5ad3f: pBufSet->saCodedData[i].iAddr != 0 && pBufSet->saCodedData[i].iSize != 0
+        str 0x5ad88: pBufSet->saCodedHeader[i].iAddr != 0 && pBufSet->saCodedHeader[i].iSize != 0
+        str 0x5ae15: pBufSet->saColocated[i][j].iAddr != 0
+        str 0x5ae3b: iAddr != 0
+        str 0x5aed1: pBufSet->sMCTFLRSNeighborMV.iAddr != 0
+        str 0x5aef8: pBufSet->saLFSOutput[k].iAddr != 0
+        str 0x5af1b: pBufSet->saMCTFLFSOutput[k].iAddr != 0
+        str 0x5af42: pBufSet->saLRSOutput[k].iAddr != 0
+        str 0x5af65: pBufSet->saMCTFLRSOutput[k].iAddr != 0
+        str 0x5af8c: pBufSet->saSrcNeighborInfo[i].iAddr != 0
+        str 0x5afb5: pBufSet->saSTFSrcNeighborInfo[i].iAddr != 0
+        str 0x5afe1: pBufSet->saSrcNeighborPixel[i].iAddr != 0
+        str 0x5b00b: pBufSet->saSrcNeighborData[i].iAddr != 0
+        str 0x5b034: pBufSet->saSrcNeighborFwData[i].iAddr != 0
+        str 0x5b05f: pBufSet->saSrcNeighborAboveFltPixel[i].iAddr != 0
+        str 0x5b091: pBufSet->saSrcNeighborLeftInfo[i].iAddr != 0
+        str 0x5b0be: pBufSet->saSrcNeighborLeftPixel[i].iAddr != 0
+        str 0x5b0ec: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Data].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Da
+        str 0x5b1b7: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Header].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_
+        str 0x5b242: pBufSet->saTranscodedCDF[i].iAddr != 0
+        str 0x5b269: pBufSet->saDefaultCDF[i][m].iAddr != 0
+        str 0x5b2ca: pBufSet->saSrcNeighborInfo[0].iAddr != 0
+        str 0x5b2f3: pBufSet->saSTFSrcNeighborInfo[0].iAddr != 0
+        str 0x5b31f: pBufSet->saSrcNeighborPixel[0].iAddr != 0
+        str 0x5b349: pBufSet->saSrcNeighborData[0].iAddr != 0
+        str 0x5b372: pBufSet->saSrcNeighborFwData[0].iAddr != 0
+        str 0x5b39d: pBufSet->saSrcNeighborAboveFltPixel[0].iAddr != 0
+        str 0x5b3cf: pBufSet->saSrcNeighborLeftInfo[0].iAddr != 0
+        str 0x5b3fc: pBufSet->saSrcNeighborLeftPixel[0].iAddr != 0
+        str 0x5b46b: pBufSet->saTranscodedCDF[0].iAddr != 0
+        str 0x5b492: pBufSet->saTranscodedData[i].iAddr != 0 && pBufSet->saTranscodedData[i].iSize != 0
+        str 0x5b4e5: pBufSet->saMBInputCtrl[i].iAddr != 0
+        str 0x5b50a: pBufSet->saColoFwDataInfo[i][j][m].iAddr != 0
+        str 0x5b538: pBufSet->saStaticAreaCBP0Cntr[i][j].iAddr != 0
+  [b4] AVE_CHM_GetMCTFOutBuf @0x132fe54 size=980 insns=245 tags=['MCTF']
+        str 0x5e80a: AVE_CHM_GetMCTFOutBuf
+        str 0x5e86e: lumaAddr != 0
+  [b4] AVE_Client_MCTF_Check @0x134c994 size=284 insns=71 tags=['MCTF']
+        str 0x61f5b: pIn->multiPassEndPassCounter == 0
+        str 0x62087: AVE_Client_MCTF_Check
+  [b4] AVE_Client_MCTF_Check_Start @0x134cab0 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x6209d: AVE_Client_MCTF_Check_Start
+  [b4] AVE_Client_MCTF_Check_Stop @0x134cc84 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x620b9: AVE_Client_MCTF_Check_Stop
+  [b4] AVE_Client_MCTF_Check_Process @0x134ce58 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x620d4: AVE_Client_MCTF_Check_Process
+  [b4] AVE_Client_MCTF_Check_Complete @0x134d02c size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x620f2: AVE_Client_MCTF_Check_Complete
+  [b4] AVE_Client_MCTF_Check_Flush @0x134d200 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x62111: AVE_Client_MCTF_Check_Flush
+  [b4] AVE_Client_MCTF_Check_Reset @0x134d3d4 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x6212d: AVE_Client_MCTF_Check_Reset
+  [b4] AVE_DevCap_MakeMCTFCap @0x134e70c size=464 insns=116 tags=['MCTF']
+        str 0x62221: ret == AVE_OK
+        str 0x6239d: AVE_DevCap_MakeMCTFCap
+  [b4] AVE_MCTF_IsIndependentModeCapable @0x136350c size=296 insns=74 tags=['MCTF']
+        str 0x666bc: AVE_MCTF_IsIndependentModeCapable
+  [b4] AVE_MCTF_DecideConcurrentMode @0x1363634 size=680 insns=170 tags=['MCTF']
+        str 0x66722: AVE_MCTF_DecideConcurrentMode
+  [b4] sub_1382ba0 @0x1382ba0 size=26524 insns=6631 tags=['MCTF']
+        str 0x6b461: MCTFMapSet
+  [b4] AVE_Work_MCTF_PostUpdate @0x13bcc04 size=504 insns=126 tags=['MCTF']
+        str 0x667ee: pClient != nullptr && pUCInfo != nullptr && pCodedHeader != nullptr
+        str 0x66872: pUCInfo->frameNumber == pCodedHeader->FrameNumberFromDriverReturned
+        str 0x71394: AVE_Work_MCTF_PostUpdate
+  [b4] AVE_HwC @0x13d98f0 size=580 insns=145 tags=['MCTF']
+        str 0x683ce: pCHM != nullptr && pCmd != nullptr
+        str 0x6e484: pDataInfo != nullptr
+        str 0x74303: AVE_HwC
+        str 0x746b9: ProcessIntr_MCTF_OutputData
+  [b4] AVE_HwC @0x13dd134 size=8552 insns=2138 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x6d663: res == 0
+        str 0x74303: AVE_HwC
+        str 0x752a7: pProvider != nullptr && pWorkLoop != nullptr && pCfg != nullptr && pDevInfo != nullptr && pSurfaceMgr != nullptr && id <
+        str 0x75361: m_pcSVECtrl != nullptr
+        str 0x753b6: m_pcAXI2AF != nullptr
+        str 0x75408: m_pcPMGR != nullptr
+        str 0x7549e: m_pcDART != nullptr
+        str 0x75588: m_pcReg != nullptr
+        str 0x756b5: m_pcDPM != nullptr
+        str 0x75748: m_pcDPE != nullptr
+        str 0x7581b: m_pcMCC != nullptr
+        str 0x758b9: m_pcFwImg != nullptr
+        str 0x7595b: m_pcFwLog != nullptr
+        str 0x75a7c: m_pcIOP != nullptr
+  [b4] AVE_PSGen @0x13fee28 size=3784 insns=946 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x6634f: pcMD != nullptr
+        str 0x7a548: AVC_GenerateSlice
+        str 0x7a5e0: psSVEDPBEntry != nullptr
+        str 0x7a630: pcDPB != nullptr
+        str 0x7a9c9: AVE_PSGen
+  [b4] AVE_PSGen @0x140054c size=1980 insns=495 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x6634f: pcMD != nullptr
+        str 0x7a5e0: psSVEDPBEntry != nullptr
+        str 0x7a908: HEVC_SetSliceRPS
+        str 0x7a9c9: AVE_PSGen
+  [b4] AVE_IOP @0x1405184 size=812 insns=203 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x7b08d: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr && pSVECtrl != nullptr && pAXI2AF != nullptr && pFwI
+        str 0x7b491: AVE_IOP
+  [b4] AVE_IPC @0x140779c size=1700 insns=425 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x7b5a0: pDevInfo != nullptr && pSurfaceMgr != nullptr && id < 4 && pSVECtrl != nullptr && pFwImg != nullptr
+        str 0x7b696: pMemPool != nullptr
+        str 0x7c234: AVE_IPC
+  [b4] AVE_IPC @0x1408ce4 size=1000 insns=250 tags=['SVE']
+        str 0x7b9b2: SetChIntr
+        str 0x7b9bc: pInfo != nullptr && pInfo->context != nullptr
+        str 0x7ba1c: pIPC->m_pcSVECtrl != nullptr
+        str 0x7c234: AVE_IPC
+  [b4] AVE_PMGR @0x141cc58 size=1312 insns=328 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x7f402: pProvider != nullptr && pCfg != nullptr && pDevInfo != nullptr && id < 4 && pSVECtrl != nullptr
+        str 0x7f4a3: m_pcProvider != nullptr
+        str 0x7f503: pPDMap != nullptr
+        str 0x7f515: function-set_perf_state_floor
+        str 0x7fe35: AVE_PMGR
+  [b4] AVE_MD_SVE @0x1455fc0 size=628 insns=157 tags=['SVE']
+        str 0x4bfa5: Uninit
+        str 0x4d102: ret == 0
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14562f4 size=1084 insns=271 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x84b03: pcIODrv != nullptr && psTask != nullptr && psCfg != nullptr && pcDevInfo != nullptr && pcSurfaceMgr != nullptr && pClien
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1456730 size=576 insns=144 tags=['SVE']
+        str 0x5383f: ConfigDLB
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1456970 size=444 insns=111 tags=['SVE']
+        str 0x53849: Clear
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1456b2c size=444 insns=111 tags=['SVE']
+        str 0x85332: ClearRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1456ce8 size=932 insns=233 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x5384f: Config
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145741c size=868 insns=217 tags=['SVE']
+        str 0x4bfff: Reset
+        str 0x4d102: ret == 0
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1457780 size=444 insns=111 tags=['SVE']
+        str 0x8533a: ResetRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145793c size=1236 insns=309 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x538a1: InitComponents
+        str 0x84d75: m_pcPSGen != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1457e10 size=440 insns=110 tags=['SVE']
+        str 0x8532b: InitRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1457fc8 size=452 insns=113 tags=['SVE']
+        str 0x538b0: UninitComponents
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145818c size=432 insns=108 tags=['SVE']
+        str 0x85342: UninitRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145833c size=2196 insns=549 tags=['SVE']
+        str 0x509a5: false
+        str 0x6d663: res == 0
+        str 0x84dd1: InitSVESequentialRC
+        str 0x84e2a: m_pcDPB != nullptr
+        str 0x84eca: m_pcDRC != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458bd0 size=400 insns=100 tags=['SVE']
+        str 0x84f2c: ClearSVESequentialRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458d60 size=400 insns=100 tags=['SVE']
+        str 0x84f41: ResetSVESequentialRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458ef0 size=476 insns=119 tags=['SVE']
+        str 0x84f56: UninitSVESequentialRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14590cc size=3936 insns=984 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x84f6c: InitSVEParallelRC
+        str 0x84f7e: m_psClient != nullptr
+        str 0x85049: m_pcGOPMgr != nullptr
+        str 0x850ed: m_pcRefMgr != nullptr
+        str 0x85192: m_pcRefedMgr != nullptr
+        str 0x851f2: m_pcSVERC != nullptr
+        str 0x8524e: m_pcSVEDPB != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145a02c size=496 insns=124 tags=['SVE']
+        str 0x852ac: ClearSVEParallelRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145a21c size=1652 insns=413 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x84f7e: m_psClient != nullptr
+        str 0x852bf: ResetSVEParallelRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145a890 size=584 insns=146 tags=['SVE']
+        str 0x85317: UninitSVEParallelRC
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145aad8 size=1020 insns=255 tags=['SVE']
+        str 0x85395: UpdateRC
+        str 0x8539e: pCmdInfo != nullptr && pUCInfo != nullptr && pInfo != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145aed4 size=928 insns=232 tags=['SVE']
+        str 0x8551d: UpdateDPB
+        str 0x85527: pUCInfo != nullptr && pDPBSet != nullptr
+        str 0x8559b: pDPBSet != nullptr && pUCInfo->sGOPInfo.iPOC >= 0
+        str 0x85618: refIdx >= 0
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145b274 size=1200 insns=300 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x85624: ManageRC
+        str 0x8562d: pCmdInfo != nullptr && pUCInfo != nullptr && pDPBSet != nullptr && pInfo != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145b724 size=1496 insns=374 tags=['SVE']
+        str 0x856cb: RetrieveRCFrameStats
+        str 0x85722: pHdr != nullptr && pStats != nullptr
+        str 0x8578f: iSliceNum >= 0 && iSliceNum <= ((32) < (256) ? (32) : (256))
+        str 0x8580c: pHdr->sSliceInfo.saCOBuf[i].saOBuf[AVE_BufIdx_Data].iSize > 0
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145bcfc size=1104 insns=276 tags=['SVE']
+        str 0x8587e: RetrieveSVERCStats
+        str 0x858d4: pUCInfo != nullptr && pHdr != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145c14c size=1020 insns=255 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x859aa: RetrieveRCStats
+        str 0x85a04: pUCInfo != nullptr && pHdr != nullptr && pStats != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145d56c size=1588 insns=397 tags=['SVE']
+        str 0x5b6fb: pSurface != nullptr
+        str 0x85f19: UpdateOutputBuf_Status
+        str 0x85fb3: %d - 
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145dba0 size=368 insns=92 tags=['SVE']
+        str 0x86011: CheckOutputBuf_Quota
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145ddec size=1656 insns=414 tags=['SVE']
+        str 0x5aa0f: pCHM != nullptr
+        str 0x86026: AcquireOutputBuf
+        str 0x860d1: rret == 0
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145e464 size=900 insns=225 tags=['SVE']
+        str 0x5aa0f: pCHM != nullptr
+        str 0x86129: ReleaseOutputBuf
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145e7e8 size=460 insns=115 tags=['SVE']
+        str 0x6f05a: PreUpdate
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145e9b4 size=456 insns=114 tags=['SVE']
+        str 0x6f064: PostUpdate
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145eb7c size=1028 insns=257 tags=['SVE']
+        str 0x861a9: CalcSurfaceInfo
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145ef80 size=1228 insns=307 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8622d: CreateExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145f44c size=660 insns=165 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x86349: DestroyExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145f6e0 size=684 insns=171 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x863b8: CreateInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145f98c size=660 insns=165 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x86425: DestroyInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145fc20 size=1096 insns=274 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x864c1: DARTMapExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1460068 size=604 insns=151 tags=['SVE']
+        str 0x865c1: DARTUnmapExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14602c4 size=1124 insns=281 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x865db: DARTMapInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1460728 size=604 insns=151 tags=['SVE']
+        str 0x866ac: DARTUnmapInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1460984 size=1708 insns=427 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x78389: psInfo != nullptr && psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x86705: ParallelProcess
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x146112c size=2380 insns=595 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x538c1: DispatchCmd
+        str 0x86946: (sCmdInfo.iChNum >= 1) && (sCmdInfo.iChNum <= m_sHwCMap.iNum)
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1461a78 size=592 insns=148 tags=['SVE']
+        str 0x53970: CalcInputQueueNum
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1461cc8 size=500 insns=125 tags=['SVE']
+        str 0x53982: CalcInputQueueMinNum
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1462324 size=1664 insns=416 tags=['SVE']
+        str 0x509a5: false
+        str 0x869c5: DecideFrameType
+        str 0x86a13: pUCInfo->frameNumber != 0
+        str 0x86b4f: AVE_MD_SVE
+  [b4] AVE_SVECtrl_GetReg @0x14631d0 size=264 insns=66 tags=['SVE']
+        str 0x8781a: AVE_SVECtrl_GetReg
+  [b4] AVE_SVECtrl @0x146334c size=596 insns=149 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x58034: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr
+        str 0x87872: m_psRegOffset != nullptr
+        str 0x87a2b: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x14638a4 size=272 insns=68 tags=['SVE']
+        str 0x87945: SetIntr
+        str 0x87a2b: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x14639b4 size=716 insns=179 tags=['SVE']
+        str 0x878cc: RecvIOPMsg
+        str 0x87a2b: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x1463cc0 size=272 insns=68 tags=['SVE']
+        str 0x8794d: ClearIntr
+        str 0x87a2b: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x1464018 size=320 insns=80 tags=['SVE']
+        str 0x8798b: SetIdle
+        str 0x87a2b: AVE_SVECtrl
+  [b4] AVE_SVEDPB @0x14643b4 size=704 insns=176 tags=['SVE']
+        str 0x4bfa5: Uninit
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14646a0 size=2292 insns=573 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x87ac8: pcaRecon != nullptr && pcaLFSRef != nullptr && pcaLFSOutput != nullptr && pcaLRSOutput != nullptr
+        str 0x87b7e: m_saRefBuf[i].psBuf != nullptr && m_saRefBuf[i].psLowResBuf != nullptr
+        str 0x87c10: m_saRefBuf[i].psaLowResResultBuf != nullptr
+        str 0x87c87: m_saRefBuf[i].psaLowResRCResultBuf != nullptr
+        str 0x87cb5: pcaLFSOutput[i + iRefNum][0] [iLRMEResultBufSetIdx] != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1464f94 size=736 insns=184 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x4c5bc: ResetEntry
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14659e8 size=452 insns=113 tags=['SVE']
+        str 0x53849: Clear
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1465bac size=936 insns=234 tags=['SVE']
+        str 0x4c501: ReleaseEntry
+        str 0x4c50e: psEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1465f54 size=428 insns=107 tags=['SVE']
+        str 0x4bfff: Reset
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1466100 size=1176 insns=294 tags=['SVE']
+        str 0x4c338: AcquireEntry
+        str 0x4c50e: psEntry != nullptr
+        str 0x87d34: ppsEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1466598 size=860 insns=215 tags=['SVE']
+        str 0x6ece9: pBuf != nullptr
+        str 0x88530: ReleaseRefBuf
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14668f4 size=528 insns=132 tags=['SVE']
+        str 0x87df8: GetEntryByPOC
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1466b04 size=524 insns=131 tags=['SVE']
+        str 0x87e34: GetEntryByFrameNum
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1466d10 size=936 insns=234 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x87e77: GetRefParamByFrameNum
+        str 0x87ed0: psRefInfo != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14670b8 size=3256 insns=814 tags=['SVE']
+        str 0x4c034: Process
+        str 0x4d102: ret == 0
+        str 0x87f68: psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x88120: psRefInfo->iaNum[AVE_RefDir_Neg] == 0 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x881b6: psRefInfo->iaNum[AVE_RefDir_Neg] >= 1 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x8824a: (pcPFInfo->iFrameType == IMG_INTER_B || pcPFInfo->iFrameType == IMG_INTER_BREF) && psRefInfo->iaNum[AVE_RefDir_Neg] >= 1
+        str 0x883c4: ret == 0 && psCurEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1467d70 size=1060 insns=265 tags=['SVE']
+        str 0x8859a: TruncateRefedInfo
+        str 0x885ed: iFrameNum >= 0 && (iFrameType == IMG_INTRA_IDR || iFrameType == IMG_INTRA_FRAME || iFrameType == IMG_INTER_P)
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1468194 size=1180 insns=295 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x88793: FreeEntry
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1468630 size=1324 insns=331 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x886d3: UpdateRefedInfo
+        str 0x8873a: psRefEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1468b5c size=1268 insns=317 tags=['SVE']
+        str 0x88478: AcquireRefBuf
+        str 0x88486: ppBuf != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1469050 size=1624 insns=406 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x8887f: PostCheck
+        str 0x888ca: iSkip != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14696a8 size=2608 insns=652 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x4d102: ret == 0
+        str 0x6b681: Check
+        str 0x88a1f: ret == 0 && pBuf != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x146a0d8 size=3016 insns=754 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x88b80: Fetch
+        str 0x88bca: psDPBSet != nullptr && iPOC != nullptr
+        str 0x88c87: psEntry->psBuf != nullptr
+        str 0x88ce2: psRefL0Entry != nullptr
+        str 0x88d83: psRefL1Entry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x146aca0 size=2968 insns=742 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x4d102: ret == 0
+        str 0x4e157: Update
+        str 0x88e7a: eFrmState >= AVE_SVEDPB_FrameState_Processed && eFrmState < AVE_SVEDPB_FrameState_Max
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x146b838 size=1204 insns=301 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x890db: GetAVCRefListParams
+        str 0x89130: psPicReordering != nullptr && m_eEncType == AVE_EncType_AVC
+        str 0x89389: AVE_SVEDPB
+  [b4] AVE_SVERC @0x1470f54 size=576 insns=144 tags=['SVE']
+        str 0x4bfa5: Uninit
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x14711c0 size=1948 insns=487 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x89a97: iSVENum > 0 && iSVENum <= 4
+        str 0x89ab3: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x89aed: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x147195c size=1204 insns=301 tags=['SVE']
+        str 0x8931f: %lld %d | 
+        str 0x89cab: InitBitAllocateRatioArray
+        str 0x89d0b: iFrameNum >= 0 && eMotionLvl >= 0 && eMotionLvl < AVE_SVERC_Motion_LvlMax && psBitRatioInfo != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x1471e10 size=844 insns=211 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x53849: Clear
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x147215c size=1632 insns=408 tags=['SVE']
+        str 0x4bfff: Reset
+        str 0x4d102: ret == 0
+        str 0x89a97: iSVENum > 0 && iSVENum <= 4
+        str 0x89ab3: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x89aed: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x14727bc size=1368 insns=342 tags=['SVE']
+        str 0x67d0a: UpdateStats
+        str 0x790fa: psStats != nullptr
+        str 0x89e4a: iSVEID >= 0 && iSVEID < 4 && psDistributedRCStats != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x1472d14 size=1160 insns=290 tags=['SVE']
+        str 0x89f16: CheckSyncReady
+        str 0x89f25: psSyncInfo != nullptr && piReady != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x147319c size=3228 insns=807 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x6b681: Check
+        str 0x846b5: %lld 
+        str 0x8a009: psSyncInfo != nullptr
+        str 0x8a0f9: | %d %d - 
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x1473e38 size=1572 insns=393 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x790fa: psStats != nullptr
+        str 0x8a6e0: UpdateStaticAreaLowQPMode
+        str 0x8a74a: psLowQPInfo != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x147445c size=2736 insns=684 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x790fa: psStats != nullptr
+        str 0x8a227: UpdateBitAllocation
+        str 0x8a28e: psLastInfo != nullptr
+        str 0x8a2a4: %lld:%d:%d 
+        str 0x8a379: psCurInfo != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x1474f0c size=1608 insns=402 tags=['SVE']
+        str 0x8a422: ProcessBitAllocation
+        str 0x8a47d: iSVEID >=0 && iSVEID < 4 && pfRatio != nullptr
+        str 0x8a503: psBitRatioInfo != nullptr && iFound == 1
+        str 0x8a52c: | %lld %d - 
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x1475554 size=1128 insns=282 tags=['SVE']
+        str 0x8a5d5: ProcessRCParams
+        str 0x8a62e: iSVEID >=0 && iSVEID < 4 && psDistributedRCParams != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVERC @0x14759bc size=960 insns=240 tags=['SVE']
+        str 0x8a81e: AccumulateCBP0Cnt
+        str 0x8a87a: piCBPIs0Flag != nullptr && paCBP0Cnt != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [b4] AVE_SVESched_TimingMgr_Reset @0x1476b90 size=724 insns=181 tags=['SVE']
+        str 0x8ab28: AVE_SVESched_TimingMgr_Reset
+        str 0x8ab7b: psTimingMgr != nullptr && iSVENum >= 0 && iSVENum <= 4
+  [b4] AVE_SVESched_TimingMgr_Init @0x1476e64 size=664 insns=166 tags=['SVE']
+        str 0x8abd7: AVE_SVESched_TimingMgr_Init
+        str 0x8ac28: psTimingMgr != nullptr
+  [b4] AVE_SVESched_TimingMgr_Uninit @0x14770fc size=576 insns=144 tags=['SVE']
+        str 0x8ac28: psTimingMgr != nullptr
+        str 0x8ac3f: AVE_SVESched_TimingMgr_Uninit
+  [b4] AVE_SVESched_TimingMgr_FetchRefTime @0x147733c size=724 insns=181 tags=['SVE']
+        str 0x8ac85: AVE_SVESched_TimingMgr_FetchRefTime
+        str 0x8ace4: psaTimingInfoList != nullptr && iFrameNum >= 0 && iSVENum >= 0 && iSVENum <= 4 && piRefTime != nullptr
+  [b4] AVE_SVESched_TimingMgr_Add @0x1477610 size=1952 insns=488 tags=['SVE']
+        str 0x8ada3: AVE_SVESched_TimingMgr_Add
+        str 0x8adff: psTimingMgr != nullptr && iFrameNum >= 0 && iLayer >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && psRefInfo != nullptr
+  [b4] AVE_SVESched_TimingMgr_Remove @0x1477db0 size=892 insns=223 tags=['SVE']
+        str 0x8afac: AVE_SVESched_TimingMgr_Remove
+        str 0x8b002: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < psTimingMgr->iSyncNum
+  [b4] AVE_SVESched_TimingMgr_Sync @0x147812c size=2008 insns=502 tags=['SVE']
+        str 0x8b0ba: AVE_SVESched_TimingMgr_Sync
+        str 0x8b0d6: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && iSVENum >=0 && iSVENum <= 4 && psSyncIn
+        str 0x8b1a2: iFound == 1 && psInfo != nullptr
+        str 0x8b1c3: [%lld %d] 
+  [b4] AVE_SVESched_Init @0x1478904 size=1064 insns=266 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8b228: AVE_SVESched_Init
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b508: pSVESched->psTimingMgr != nullptr
+  [b4] AVE_SVESched_Config @0x1478d2c size=2328 insns=582 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x89305: %d | 
+        str 0x8b56f: AVE_SVESched_Config
+        str 0x8b5bc: pSVESched != nullptr && psEUMap != nullptr
+        str 0x8b9d6: AVE_SVESched_GenerateEUMap
+        str 0x8b9f1: pSVESched->iActiveSVENum == pEUMap->iNum
+        str 0x8ba1a: %d -> (%d %d %d) 
+  [b4] AVE_SVESched_Uninit @0x1479644 size=600 insns=150 tags=['SVE']
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b697: AVE_SVESched_Uninit
+  [b4] AVE_SVESched_ClearOrder @0x147989c size=248 insns=62 tags=['SVE']
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b6ab: AVE_SVESched_ClearOrder
+  [b4] AVE_SVESched_Clear @0x1479994 size=760 insns=190 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b6c3: AVE_SVESched_Clear
+  [b4] AVE_SVESched_Process @0x1479c8c size=1844 insns=461 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8b74b: AVE_SVESched_Process
+        str 0x8b7a4: pSVESched != nullptr && psInfo != nullptr && psRefInfo != nullptr && pCmdInfo != nullptr
+        str 0x8b88e: %d -> 
+  [b4] AVE_RetrieveSVEID @0x14808ec size=584 insns=146 tags=['SVE']
+        str 0x8c725: AVE_RetrieveSVEID
+        str 0x8c737: pEntry != nullptr && pID != nullptr
+        str 0x8c75b: sve-id
+  [rel] AVE_Prop_Cfg_MCTF_Init @0x1314c54 size=420 insns=105 tags=['MCTF']
+        str 0x4d9a2: AVE_Prop_Cfg_MCTF_Init
+  [rel] AVE_Prop_Cfg_MCTF_Uninit @0x1314df8 size=356 insns=89 tags=['MCTF']
+        str 0x4d9b9: AVE_Prop_Cfg_MCTF_Uninit
+  [rel] AVE_Prop_Cfg_MCTF_Print @0x1314f5c size=5420 insns=1355 tags=['MCTF']
+        str 0x4c6ca: pCfg != nullptr
+        str 0x4d9d2: AVE_Prop_Cfg_MCTF_Print
+        str 0x4db64: %d, 
+  [rel] AVE_Prop_PFCfg_MCTF_Init @0x1316488 size=392 insns=98 tags=['MCTF']
+        str 0x4dde1: AVE_Prop_PFCfg_MCTF_Init
+  [rel] AVE_Prop_PFCfg_MCTF_Uninit @0x1316610 size=372 insns=93 tags=['MCTF']
+        str 0x4ddfa: AVE_Prop_PFCfg_MCTF_Uninit
+  [rel] AVE_Prop_PFCfg_MCTF_Print @0x1316784 size=600 insns=150 tags=['MCTF']
+        str 0x4c6ca: pCfg != nullptr
+        str 0x4de15: AVE_Prop_PFCfg_MCTF_Print
+  [rel] AVE_MCTF_SMap_Parse @0x132f68c size=1304 insns=326 tags=['MCTF']
+        str 0x53635: AVE_MCTF_SMap_Parse
+  [rel] AVE_CalcBufSizeOfMCTFOutput @0x134cb7c size=1056 insns=264 tags=['MCTF']
+        str 0x58b8e: iLumaDataSize >= 0 && iLumaHeaderSize >= 0 && iChromaDataSize >= 0 && iChromaHeaderSize >= 0 && iTotal <= 2147483647
+        str 0x58fda: AVE_CalcBufSizeOfMCTFOutput
+  [rel] AVE_CHM_SetFwBuf @0x1359b70 size=12212 insns=3053 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x5ad73: AVE_CHM_SetFwBuf
+        str 0x5ad84: pCHM != nullptr && pSet != nullptr && pSInfoSet != nullptr && pBufSet != nullptr
+        str 0x5ae12: pBufSet->saCodedData[i].iAddr != 0 && pBufSet->saCodedData[i].iSize != 0
+        str 0x5ae5b: pBufSet->saCodedHeader[i].iAddr != 0 && pBufSet->saCodedHeader[i].iSize != 0
+        str 0x5aee8: pBufSet->saColocated[i][j].iAddr != 0
+        str 0x5af0e: iAddr != 0
+        str 0x5afa4: pBufSet->sMCTFLRSNeighborMV.iAddr != 0
+        str 0x5afcb: pBufSet->saLFSOutput[k].iAddr != 0
+        str 0x5afee: pBufSet->saMCTFLFSOutput[k].iAddr != 0
+        str 0x5b015: pBufSet->saLRSOutput[k].iAddr != 0
+        str 0x5b038: pBufSet->saMCTFLRSOutput[k].iAddr != 0
+        str 0x5b05f: pBufSet->saSrcNeighborInfo[i].iAddr != 0
+        str 0x5b088: pBufSet->saSTFSrcNeighborInfo[i].iAddr != 0
+        str 0x5b0b4: pBufSet->saSrcNeighborPixel[i].iAddr != 0
+        str 0x5b0de: pBufSet->saSrcNeighborData[i].iAddr != 0
+        str 0x5b107: pBufSet->saSrcNeighborFwData[i].iAddr != 0
+        str 0x5b132: pBufSet->saSrcNeighborAboveFltPixel[i].iAddr != 0
+        str 0x5b164: pBufSet->saSrcNeighborLeftInfo[i].iAddr != 0
+        str 0x5b191: pBufSet->saSrcNeighborLeftPixel[i].iAddr != 0
+        str 0x5b1bf: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Data].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Da
+        str 0x5b28a: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Header].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_
+        str 0x5b315: pBufSet->saTranscodedCDF[i].iAddr != 0
+        str 0x5b33c: pBufSet->saDefaultCDF[i][m].iAddr != 0
+        str 0x5b39d: pBufSet->saSrcNeighborInfo[0].iAddr != 0
+        str 0x5b3c6: pBufSet->saSTFSrcNeighborInfo[0].iAddr != 0
+        str 0x5b3f2: pBufSet->saSrcNeighborPixel[0].iAddr != 0
+        str 0x5b41c: pBufSet->saSrcNeighborData[0].iAddr != 0
+        str 0x5b445: pBufSet->saSrcNeighborFwData[0].iAddr != 0
+        str 0x5b470: pBufSet->saSrcNeighborAboveFltPixel[0].iAddr != 0
+        str 0x5b4a2: pBufSet->saSrcNeighborLeftInfo[0].iAddr != 0
+        str 0x5b4cf: pBufSet->saSrcNeighborLeftPixel[0].iAddr != 0
+        str 0x5b53e: pBufSet->saTranscodedCDF[0].iAddr != 0
+        str 0x5b565: pBufSet->saTranscodedData[i].iAddr != 0 && pBufSet->saTranscodedData[i].iSize != 0
+        str 0x5b5b8: pBufSet->saMBInputCtrl[i].iAddr != 0
+        str 0x5b5dd: pBufSet->saColoFwDataInfo[i][j][m].iAddr != 0
+        str 0x5b60b: pBufSet->saStaticAreaCBP0Cntr[i][j].iAddr != 0
+  [rel] AVE_CHM_GetMCTFOutBuf @0x135cb24 size=980 insns=245 tags=['MCTF']
+        str 0x5e8e6: AVE_CHM_GetMCTFOutBuf
+        str 0x5e94a: lumaAddr != 0
+  [rel] AVE_Client_MCTF_Check @0x1379680 size=284 insns=71 tags=['MCTF']
+        str 0x62037: pIn->multiPassEndPassCounter == 0
+        str 0x62163: AVE_Client_MCTF_Check
+  [rel] AVE_Client_MCTF_Check_Start @0x137979c size=468 insns=117 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x4eb73: pClient != nullptr && pIn != nullptr
+        str 0x62179: AVE_Client_MCTF_Check_Start
+  [rel] AVE_Client_MCTF_Check_Stop @0x1379970 size=468 insns=117 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x4eb73: pClient != nullptr && pIn != nullptr
+        str 0x62195: AVE_Client_MCTF_Check_Stop
+  [rel] AVE_Client_MCTF_Check_Process @0x1379b44 size=468 insns=117 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x4eb73: pClient != nullptr && pIn != nullptr
+        str 0x621b0: AVE_Client_MCTF_Check_Process
+  [rel] AVE_Client_MCTF_Check_Complete @0x1379d18 size=468 insns=117 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x4eb73: pClient != nullptr && pIn != nullptr
+        str 0x621ce: AVE_Client_MCTF_Check_Complete
+  [rel] AVE_Client_MCTF_Check_Flush @0x1379eec size=468 insns=117 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x4eb73: pClient != nullptr && pIn != nullptr
+        str 0x621ed: AVE_Client_MCTF_Check_Flush
+  [rel] AVE_Client_MCTF_Check_Reset @0x137a0c0 size=468 insns=117 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x4eb73: pClient != nullptr && pIn != nullptr
+        str 0x62209: AVE_Client_MCTF_Check_Reset
+  [rel] AVE_DevCap_MakeMCTFCap @0x137b3f8 size=464 insns=116 tags=['MCTF']
+        str 0x622fd: ret == AVE_OK
+        str 0x62479: AVE_DevCap_MakeMCTFCap
+  [rel] AVE_HEVC_CheckInfo @0x137dc44 size=3572 insns=893 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x62a3d: 0 < pInfo->sSessionCfg.sEnc.iViewNum && pInfo->sSessionCfg.sEnc.iViewNum <= ((2) < ((62 + 1)) ? (2) : ((62 + 1)))
+        str 0x62af7: 0 < pInfo->sSessionCfg.sEnc.iLayerNum && pInfo->sSessionCfg.sEnc.iLayerNum <= ((2) < ((63 + 1)) ? (2) : ((63 + 1)))
+        str 0x62f67: AVE_HEVC_CheckInfo
+        str 0x6304f: pInfo->saHEVC_SPS[i].separate_colour_plane_flag == 0
+        str 0x630e9: pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12
+        str 0x6316f: 0 < pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLaye
+        str 0x63245: 0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers <= 7
+        str 0x63442: pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1)
+        str 0x63510: pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_long_term_ref_pics_sps <= 16
+        str 0x636ef: pInfo->sHEVC_RPS.strps.num_short_term_ref_pic_sets < 65 && (pInfo->sHEVC_RPS.slice_ltrps.num_long_term_sps + pInfo->sHEV
+        str 0x637e2: pInfo->uPropCfg.sHEVC.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sHEVC.iMCTFStrengthLevelNum <= ((2) < ((63 + 1)) ? (
+  [rel] AVE_AV1_CheckInfo @0x137ef10 size=1024 insns=256 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x62a3d: 0 < pInfo->sSessionCfg.sEnc.iViewNum && pInfo->sSessionCfg.sEnc.iViewNum <= ((2) < ((62 + 1)) ? (2) : ((62 + 1)))
+        str 0x62af7: 0 < pInfo->sSessionCfg.sEnc.iLayerNum && pInfo->sSessionCfg.sEnc.iLayerNum <= ((2) < ((63 + 1)) ? (2) : ((63 + 1)))
+        str 0x6386b: AVE_AV1_CheckInfo
+        str 0x638cb: pInfo->uPropCfg.sAV1.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sAV1.iMCTFStrengthLevelNum <= ((2) < ((63 + 1)) ? (2)
+  [rel] AVE_Client_CheckMCTFInfo @0x13813fc size=2948 insns=737 tags=['MCTF']
+        str 0x4d0d2: ret == 0
+        str 0x62af7: 0 < pInfo->sSessionCfg.sEnc.iLayerNum && pInfo->sSessionCfg.sEnc.iLayerNum <= ((2) < ((63 + 1)) ? (2) : ((63 + 1)))
+        str 0x630e9: pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12
+        str 0x63245: 0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers <= 7
+        str 0x63442: pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1)
+        str 0x63510: pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_long_term_ref_pics_sps <= 16
+        str 0x64098: 0 <= pInfo->sSessionCfg.sEnc.sAlgCfg.sRC.iLAFrameCnt && pInfo->sSessionCfg.sEnc.sAlgCfg.sRC.iLAFrameCnt <= (48 / ((2) < 
+        str 0x6414c: 0 <= pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLay
+        str 0x64271: AVE_Client_CheckMCTFInfo
+        str 0x642d9: pInfo->uPropCfg.sMCTF.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sMCTF.iMCTFStrengthLevelNum <= ((2) < ((63 + 1)) ? (
+  [rel] AVE_MCTF_IsIndependentModeCapable @0x139372c size=296 insns=74 tags=['MCTF']
+        str 0x6772b: AVE_MCTF_IsIndependentModeCapable
+  [rel] AVE_MCTF_DecideConcurrentMode @0x1393854 size=680 insns=170 tags=['MCTF']
+        str 0x67791: AVE_MCTF_DecideConcurrentMode
+  [rel] sub_13b2dc0 @0x13b2dc0 size=26524 insns=6631 tags=['MCTF']
+        str 0x6c4d0: MCTFMapSet
+  [rel] AVE_Work_MCTF_PostUpdate @0x13ecf18 size=504 insns=126 tags=['MCTF']
+        str 0x6785d: pClient != nullptr && pUCInfo != nullptr && pCodedHeader != nullptr
+        str 0x678e1: pUCInfo->frameNumber == pCodedHeader->FrameNumberFromDriverReturned
+        str 0x723ff: AVE_Work_MCTF_PostUpdate
+  [rel] AVE_HwC @0x1409c04 size=580 insns=145 tags=['MCTF']
+        str 0x6943d: pCHM != nullptr && pCmd != nullptr
+        str 0x6f4f3: pDataInfo != nullptr
+        str 0x7536e: AVE_HwC
+        str 0x75724: ProcessIntr_MCTF_OutputData
+  [rel] AVE_HwC @0x140d448 size=8552 insns=2138 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x4d0d2: ret == 0
+        str 0x6e6d2: res == 0
+        str 0x7536e: AVE_HwC
+        str 0x76312: pProvider != nullptr && pWorkLoop != nullptr && pCfg != nullptr && pDevInfo != nullptr && pSurfaceMgr != nullptr && id <
+        str 0x763cc: m_pcSVECtrl != nullptr
+        str 0x76421: m_pcAXI2AF != nullptr
+        str 0x76473: m_pcPMGR != nullptr
+        str 0x76509: m_pcDART != nullptr
+        str 0x765f3: m_pcReg != nullptr
+        str 0x76720: m_pcDPM != nullptr
+        str 0x767b3: m_pcDPE != nullptr
+        str 0x76886: m_pcMCC != nullptr
+        str 0x76924: m_pcFwImg != nullptr
+        str 0x769c6: m_pcFwLog != nullptr
+        str 0x76ae7: m_pcIOP != nullptr
+  [rel] AVE_PSGen @0x142f1d4 size=3784 insns=946 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x670d3: pcMD != nullptr
+        str 0x7b5a7: AVC_GenerateSlice
+        str 0x7b63f: psSVEDPBEntry != nullptr
+        str 0x7b68f: pcDPB != nullptr
+        str 0x7ba28: AVE_PSGen
+  [rel] AVE_PSGen @0x14308f8 size=1980 insns=495 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x670d3: pcMD != nullptr
+        str 0x7b63f: psSVEDPBEntry != nullptr
+        str 0x7b967: HEVC_SetSliceRPS
+        str 0x7ba28: AVE_PSGen
+  [rel] AVE_IOP @0x1435530 size=812 insns=203 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x7c0ec: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr && pSVECtrl != nullptr && pAXI2AF != nullptr && pFwI
+        str 0x7c4f0: AVE_IOP
+  [rel] AVE_IPC @0x1437b48 size=1700 insns=425 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x4d0d2: ret == 0
+        str 0x7c5ff: pDevInfo != nullptr && pSurfaceMgr != nullptr && id < 4 && pSVECtrl != nullptr && pFwImg != nullptr
+        str 0x7c6f5: pMemPool != nullptr
+        str 0x7d293: AVE_IPC
+  [rel] AVE_IPC @0x1439090 size=1000 insns=250 tags=['SVE']
+        str 0x7ca11: SetChIntr
+        str 0x7ca1b: pInfo != nullptr && pInfo->context != nullptr
+        str 0x7ca7b: pIPC->m_pcSVECtrl != nullptr
+        str 0x7d293: AVE_IPC
+  [rel] AVE_PMGR @0x144d274 size=1312 insns=328 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x80588: pProvider != nullptr && pCfg != nullptr && pDevInfo != nullptr && id < 4 && pSVECtrl != nullptr
+        str 0x80629: m_pcProvider != nullptr
+        str 0x80689: pPDMap != nullptr
+        str 0x8069b: function-set_perf_state_floor
+        str 0x80fbb: AVE_PMGR
+  [rel] AVE_MD_SVE @0x14866e8 size=628 insns=157 tags=['SVE']
+        str 0x4bf75: Uninit
+        str 0x4d0d2: ret == 0
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1486a1c size=1084 insns=271 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x4d0d2: ret == 0
+        str 0x85c86: pcIODrv != nullptr && psTask != nullptr && psCfg != nullptr && pcDevInfo != nullptr && pcSurfaceMgr != nullptr && pClien
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1486e58 size=576 insns=144 tags=['SVE']
+        str 0x53896: ConfigDLB
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1487098 size=444 insns=111 tags=['SVE']
+        str 0x538a0: Clear
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1487254 size=444 insns=111 tags=['SVE']
+        str 0x864b5: ClearRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1487410 size=932 insns=233 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x538a6: Config
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1487b44 size=868 insns=217 tags=['SVE']
+        str 0x4bfcf: Reset
+        str 0x4d0d2: ret == 0
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1487ea8 size=444 insns=111 tags=['SVE']
+        str 0x864bd: ResetRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1488064 size=1236 insns=309 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x538f8: InitComponents
+        str 0x85ef8: m_pcPSGen != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1488538 size=440 insns=110 tags=['SVE']
+        str 0x864ae: InitRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14886f0 size=452 insns=113 tags=['SVE']
+        str 0x53907: UninitComponents
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14888b4 size=432 insns=108 tags=['SVE']
+        str 0x864c5: UninitRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1488a64 size=2196 insns=549 tags=['SVE']
+        str 0x50961: false
+        str 0x6e6d2: res == 0
+        str 0x85f54: InitSVESequentialRC
+        str 0x85fad: m_pcDPB != nullptr
+        str 0x8604d: m_pcDRC != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14892f8 size=400 insns=100 tags=['SVE']
+        str 0x860af: ClearSVESequentialRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1489488 size=400 insns=100 tags=['SVE']
+        str 0x860c4: ResetSVESequentialRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1489618 size=476 insns=119 tags=['SVE']
+        str 0x860d9: UninitSVESequentialRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14897f4 size=3936 insns=984 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x860ef: InitSVEParallelRC
+        str 0x86101: m_psClient != nullptr
+        str 0x861cc: m_pcGOPMgr != nullptr
+        str 0x86270: m_pcRefMgr != nullptr
+        str 0x86315: m_pcRefedMgr != nullptr
+        str 0x86375: m_pcSVERC != nullptr
+        str 0x863d1: m_pcSVEDPB != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148a754 size=496 insns=124 tags=['SVE']
+        str 0x8642f: ClearSVEParallelRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148a944 size=1652 insns=413 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x86101: m_psClient != nullptr
+        str 0x86442: ResetSVEParallelRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148afb8 size=584 insns=146 tags=['SVE']
+        str 0x8649a: UninitSVEParallelRC
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148b200 size=1020 insns=255 tags=['SVE']
+        str 0x86518: UpdateRC
+        str 0x86521: pCmdInfo != nullptr && pUCInfo != nullptr && pInfo != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148b5fc size=928 insns=232 tags=['SVE']
+        str 0x866a0: UpdateDPB
+        str 0x866aa: pUCInfo != nullptr && pDPBSet != nullptr
+        str 0x8671e: pDPBSet != nullptr && pUCInfo->sGOPInfo.iPOC >= 0
+        str 0x8679b: refIdx >= 0
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148b99c size=1200 insns=300 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x867a7: ManageRC
+        str 0x867b0: pCmdInfo != nullptr && pUCInfo != nullptr && pDPBSet != nullptr && pInfo != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148be4c size=1496 insns=374 tags=['SVE']
+        str 0x8684e: RetrieveRCFrameStats
+        str 0x868a5: pHdr != nullptr && pStats != nullptr
+        str 0x86912: iSliceNum >= 0 && iSliceNum <= ((32) < (256) ? (32) : (256))
+        str 0x8698f: pHdr->sSliceInfo.saCOBuf[i].saOBuf[AVE_BufIdx_Data].iSize > 0
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148c424 size=1104 insns=276 tags=['SVE']
+        str 0x86a01: RetrieveSVERCStats
+        str 0x86a57: pUCInfo != nullptr && pHdr != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148c874 size=1020 insns=255 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x86b2d: RetrieveRCStats
+        str 0x86b87: pUCInfo != nullptr && pHdr != nullptr && pStats != nullptr
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148dc94 size=1588 insns=397 tags=['SVE']
+        str 0x5b7ce: pSurface != nullptr
+        str 0x8709c: UpdateOutputBuf_Status
+        str 0x87136: %d - 
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148e2c8 size=368 insns=92 tags=['SVE']
+        str 0x87194: CheckOutputBuf_Quota
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148e514 size=1656 insns=414 tags=['SVE']
+        str 0x5aae2: pCHM != nullptr
+        str 0x871a9: AcquireOutputBuf
+        str 0x87254: rret == 0
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148eb8c size=900 insns=225 tags=['SVE']
+        str 0x5aae2: pCHM != nullptr
+        str 0x872ac: ReleaseOutputBuf
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148ef10 size=460 insns=115 tags=['SVE']
+        str 0x700c9: PreUpdate
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148f0dc size=456 insns=114 tags=['SVE']
+        str 0x700d3: PostUpdate
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148f2a4 size=1028 insns=257 tags=['SVE']
+        str 0x8732c: CalcSurfaceInfo
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148f6a8 size=1228 insns=307 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x873b0: CreateExternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148fb74 size=660 insns=165 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x874cc: DestroyExternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x148fe08 size=684 insns=171 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x8753b: CreateInternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14900b4 size=660 insns=165 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x875a8: DestroyInternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1490348 size=1096 insns=274 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x87644: DARTMapExternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1490790 size=604 insns=151 tags=['SVE']
+        str 0x87744: DARTUnmapExternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14909ec size=1124 insns=281 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x8775e: DARTMapInternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1490e50 size=604 insns=151 tags=['SVE']
+        str 0x8782f: DARTUnmapInternalSurfaces
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14910ac size=1708 insns=427 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x793e8: psInfo != nullptr && psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x87888: ParallelProcess
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1491854 size=2380 insns=595 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x53918: DispatchCmd
+        str 0x87ac9: (sCmdInfo.iChNum >= 1) && (sCmdInfo.iChNum <= m_sHwCMap.iNum)
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14921a0 size=592 insns=148 tags=['SVE']
+        str 0x539c7: CalcInputQueueNum
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14923f0 size=500 insns=125 tags=['SVE']
+        str 0x539d9: CalcInputQueueMinNum
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1492a4c size=1664 insns=416 tags=['SVE']
+        str 0x50961: false
+        str 0x87b48: DecideFrameType
+        str 0x87b96: pUCInfo->frameNumber != 0
+        str 0x87cd2: AVE_MD_SVE
+  [rel] AVE_SVECtrl_GetReg @0x14938f8 size=264 insns=66 tags=['SVE']
+        str 0x8899d: AVE_SVECtrl_GetReg
+  [rel] AVE_SVECtrl @0x1493a74 size=596 insns=149 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x58107: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr
+        str 0x889f5: m_psRegOffset != nullptr
+        str 0x88bae: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x1493fcc size=272 insns=68 tags=['SVE']
+        str 0x88ac8: SetIntr
+        str 0x88bae: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x14940dc size=716 insns=179 tags=['SVE']
+        str 0x88a4f: RecvIOPMsg
+        str 0x88bae: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x14943e8 size=272 insns=68 tags=['SVE']
+        str 0x88ad0: ClearIntr
+        str 0x88bae: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x1494740 size=320 insns=80 tags=['SVE']
+        str 0x88b0e: SetIdle
+        str 0x88bae: AVE_SVECtrl
+  [rel] AVE_SVEDPB @0x1494adc size=704 insns=176 tags=['SVE']
+        str 0x4bf75: Uninit
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1494dc8 size=2664 insns=666 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x88c4b: pcaRecon != nullptr && pcaLFSRef != nullptr && pcaLFSOutput != nullptr && pcaLRSOutput != nullptr
+        str 0x88cfa: 0 <= iRefNum && iRefNum <= iMaxRefNum
+        str 0x88d74: m_saRefBuf[i].psBuf != nullptr && m_saRefBuf[i].psLowResBuf != nullptr
+        str 0x88e06: m_saRefBuf[i].psaLowResResultBuf != nullptr
+        str 0x88e7d: m_saRefBuf[i].psaLowResRCResultBuf != nullptr
+        str 0x88eab: pcaLFSOutput[i + iRefNum][0] [iLRMEResultBufSetIdx] != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1495830 size=736 insns=184 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x4c58c: ResetEntry
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1496284 size=452 insns=113 tags=['SVE']
+        str 0x538a0: Clear
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1496448 size=936 insns=234 tags=['SVE']
+        str 0x4c4d1: ReleaseEntry
+        str 0x4c4de: psEntry != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14967f0 size=428 insns=107 tags=['SVE']
+        str 0x4bfcf: Reset
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x149699c size=1176 insns=294 tags=['SVE']
+        str 0x4c308: AcquireEntry
+        str 0x4c4de: psEntry != nullptr
+        str 0x88f2a: ppsEntry != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1496e34 size=860 insns=215 tags=['SVE']
+        str 0x6fd58: pBuf != nullptr
+        str 0x89726: ReleaseRefBuf
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1497190 size=528 insns=132 tags=['SVE']
+        str 0x88fee: GetEntryByPOC
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14973a0 size=524 insns=131 tags=['SVE']
+        str 0x8902a: GetEntryByFrameNum
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14975ac size=936 insns=234 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x8906d: GetRefParamByFrameNum
+        str 0x890c6: psRefInfo != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1497954 size=3256 insns=814 tags=['SVE']
+        str 0x4c004: Process
+        str 0x4d0d2: ret == 0
+        str 0x8915e: psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x89316: psRefInfo->iaNum[AVE_RefDir_Neg] == 0 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x893ac: psRefInfo->iaNum[AVE_RefDir_Neg] >= 1 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x89440: (pcPFInfo->iFrameType == IMG_INTER_B || pcPFInfo->iFrameType == IMG_INTER_BREF) && psRefInfo->iaNum[AVE_RefDir_Neg] >= 1
+        str 0x895ba: ret == 0 && psCurEntry != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x149860c size=1060 insns=265 tags=['SVE']
+        str 0x89790: TruncateRefedInfo
+        str 0x897e3: iFrameNum >= 0 && (iFrameType == IMG_INTRA_IDR || iFrameType == IMG_INTRA_FRAME || iFrameType == IMG_INTER_P)
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1498a30 size=1180 insns=295 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x89989: FreeEntry
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1498ecc size=1324 insns=331 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x898c9: UpdateRefedInfo
+        str 0x89930: psRefEntry != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14993f8 size=1268 insns=317 tags=['SVE']
+        str 0x8966e: AcquireRefBuf
+        str 0x8967c: ppBuf != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14998ec size=1624 insns=406 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x89a75: PostCheck
+        str 0x89ac0: iSkip != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1499f44 size=2608 insns=652 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x4d0d2: ret == 0
+        str 0x6c6f0: Check
+        str 0x89c15: ret == 0 && pBuf != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x149a974 size=3016 insns=754 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x89d76: Fetch
+        str 0x89dc0: psDPBSet != nullptr && iPOC != nullptr
+        str 0x89e7d: psEntry->psBuf != nullptr
+        str 0x89ed8: psRefL0Entry != nullptr
+        str 0x89f79: psRefL1Entry != nullptr
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x149b53c size=2968 insns=742 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x4d0d2: ret == 0
+        str 0x4e127: Update
+        str 0x8a070: eFrmState >= AVE_SVEDPB_FrameState_Processed && eFrmState < AVE_SVEDPB_FrameState_Max
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x149c0d4 size=1204 insns=301 tags=['SVE']
+        str 0x4c4de: psEntry != nullptr
+        str 0x8a2d1: GetAVCRefListParams
+        str 0x8a326: psPicReordering != nullptr && m_eEncType == AVE_EncType_AVC
+        str 0x8a57f: AVE_SVEDPB
+  [rel] AVE_SVERC @0x14a17f0 size=576 insns=144 tags=['SVE']
+        str 0x4bf75: Uninit
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a1a5c size=1948 insns=487 tags=['SVE']
+        str 0x4be5c: Init
+        str 0x4d0d2: ret == 0
+        str 0x8ac8d: iSVENum > 0 && iSVENum <= 4
+        str 0x8aca9: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x8ace3: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a21f8 size=1204 insns=301 tags=['SVE']
+        str 0x8a515: %lld %d | 
+        str 0x8aea1: InitBitAllocateRatioArray
+        str 0x8af01: iFrameNum >= 0 && eMotionLvl >= 0 && eMotionLvl < AVE_SVERC_Motion_LvlMax && psBitRatioInfo != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a26ac size=844 insns=211 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x538a0: Clear
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a29f8 size=1632 insns=408 tags=['SVE']
+        str 0x4bfcf: Reset
+        str 0x4d0d2: ret == 0
+        str 0x8ac8d: iSVENum > 0 && iSVENum <= 4
+        str 0x8aca9: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x8ace3: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a3058 size=1368 insns=342 tags=['SVE']
+        str 0x68d79: UpdateStats
+        str 0x7a159: psStats != nullptr
+        str 0x8b040: iSVEID >= 0 && iSVEID < 4 && psDistributedRCStats != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a35b0 size=1160 insns=290 tags=['SVE']
+        str 0x8b10c: CheckSyncReady
+        str 0x8b11b: psSyncInfo != nullptr && piReady != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a3a38 size=3228 insns=807 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x6c6f0: Check
+        str 0x85838: %lld 
+        str 0x8b1ff: psSyncInfo != nullptr
+        str 0x8b2ef: | %d %d - 
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a46d4 size=1572 insns=393 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x7a159: psStats != nullptr
+        str 0x8b8d6: UpdateStaticAreaLowQPMode
+        str 0x8b940: psLowQPInfo != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a4cf8 size=2736 insns=684 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x7a159: psStats != nullptr
+        str 0x8b41d: UpdateBitAllocation
+        str 0x8b484: psLastInfo != nullptr
+        str 0x8b49a: %lld:%d:%d 
+        str 0x8b56f: psCurInfo != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a57a8 size=1608 insns=402 tags=['SVE']
+        str 0x8b618: ProcessBitAllocation
+        str 0x8b673: iSVEID >=0 && iSVEID < 4 && pfRatio != nullptr
+        str 0x8b6f9: psBitRatioInfo != nullptr && iFound == 1
+        str 0x8b722: | %lld %d - 
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a5df0 size=1128 insns=282 tags=['SVE']
+        str 0x8b7cb: ProcessRCParams
+        str 0x8b824: iSVEID >=0 && iSVEID < 4 && psDistributedRCParams != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVERC @0x14a6258 size=960 insns=240 tags=['SVE']
+        str 0x8ba14: AccumulateCBP0Cnt
+        str 0x8ba70: piCBPIs0Flag != nullptr && paCBP0Cnt != nullptr
+        str 0x8bba7: AVE_SVERC
+  [rel] AVE_SVESched_TimingMgr_Reset @0x14a742c size=724 insns=181 tags=['SVE']
+        str 0x8bd1e: AVE_SVESched_TimingMgr_Reset
+        str 0x8bd71: psTimingMgr != nullptr && iSVENum >= 0 && iSVENum <= 4
+  [rel] AVE_SVESched_TimingMgr_Init @0x14a7700 size=664 insns=166 tags=['SVE']
+        str 0x8bdcd: AVE_SVESched_TimingMgr_Init
+        str 0x8be1e: psTimingMgr != nullptr
+  [rel] AVE_SVESched_TimingMgr_Uninit @0x14a7998 size=576 insns=144 tags=['SVE']
+        str 0x8be1e: psTimingMgr != nullptr
+        str 0x8be35: AVE_SVESched_TimingMgr_Uninit
+  [rel] AVE_SVESched_TimingMgr_FetchRefTime @0x14a7bd8 size=724 insns=181 tags=['SVE']
+        str 0x8be7b: AVE_SVESched_TimingMgr_FetchRefTime
+        str 0x8beda: psaTimingInfoList != nullptr && iFrameNum >= 0 && iSVENum >= 0 && iSVENum <= 4 && piRefTime != nullptr
+  [rel] AVE_SVESched_TimingMgr_Add @0x14a7eac size=1952 insns=488 tags=['SVE']
+        str 0x8bf99: AVE_SVESched_TimingMgr_Add
+        str 0x8bff5: psTimingMgr != nullptr && iFrameNum >= 0 && iLayer >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && psRefInfo != nullptr
+  [rel] AVE_SVESched_TimingMgr_Remove @0x14a864c size=892 insns=223 tags=['SVE']
+        str 0x8c1a2: AVE_SVESched_TimingMgr_Remove
+        str 0x8c1f8: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < psTimingMgr->iSyncNum
+  [rel] AVE_SVESched_TimingMgr_Sync @0x14a89c8 size=2008 insns=502 tags=['SVE']
+        str 0x8c2b0: AVE_SVESched_TimingMgr_Sync
+        str 0x8c2cc: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && iSVENum >=0 && iSVENum <= 4 && psSyncIn
+        str 0x8c398: iFound == 1 && psInfo != nullptr
+        str 0x8c3b9: [%lld %d] 
+  [rel] AVE_SVESched_Init @0x14a91a0 size=1064 insns=266 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x8c41e: AVE_SVESched_Init
+        str 0x8c430: pSVESched != nullptr
+        str 0x8c6fe: pSVESched->psTimingMgr != nullptr
+  [rel] AVE_SVESched_Config @0x14a95c8 size=2328 insns=582 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x8a4fb: %d | 
+        str 0x8c765: AVE_SVESched_Config
+        str 0x8c7b2: pSVESched != nullptr && psEUMap != nullptr
+        str 0x8cbcc: AVE_SVESched_GenerateEUMap
+        str 0x8cbe7: pSVESched->iActiveSVENum == pEUMap->iNum
+        str 0x8cc10: %d -> (%d %d %d) 
+  [rel] AVE_SVESched_Uninit @0x14a9ee0 size=600 insns=150 tags=['SVE']
+        str 0x8c430: pSVESched != nullptr
+        str 0x8c88d: AVE_SVESched_Uninit
+  [rel] AVE_SVESched_ClearOrder @0x14aa138 size=248 insns=62 tags=['SVE']
+        str 0x8c430: pSVESched != nullptr
+        str 0x8c8a1: AVE_SVESched_ClearOrder
+  [rel] AVE_SVESched_Clear @0x14aa230 size=760 insns=190 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x8c430: pSVESched != nullptr
+        str 0x8c8b9: AVE_SVESched_Clear
+  [rel] AVE_SVESched_Process @0x14aa528 size=1844 insns=461 tags=['SVE']
+        str 0x4d0d2: ret == 0
+        str 0x8c941: AVE_SVESched_Process
+        str 0x8c99a: pSVESched != nullptr && psInfo != nullptr && psRefInfo != nullptr && pCmdInfo != nullptr
+        str 0x8ca84: %d -> 
+  [rel] AVE_RetrieveSVEID @0x14b1188 size=584 insns=146 tags=['SVE']
+        str 0x8d91b: AVE_RetrieveSVEID
+        str 0x8d92d: pEntry != nullptr && pID != nullptr
+        str 0x8d951: sve-id
+
+=== semantic strings: NEW in rel / GONE from b4 ===
+  + %d Kernel: %p %p
+  + (uint32_t)pVPS->num_add_olss + pVPS->vps_num_layer_sets_minus1 + 1 + pVPS->num_add_layer_sets <= (63 + 1)
+  + (uint32_t)pVPS->vps_num_layer_sets_minus1 + 1 + pVPS->num_add_layer_sets <= (63 + 1)
+  + 0 < pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer <= 7)
+  + 0 <= iNum && iNum < (1 + ((2) < ((63 + 1)) ? (2) : ((63 + 1))) * (1 + 9 ))
+  + 0 <= iRefNum && iRefNum <= iMaxRefNum
+  + 0 <= pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer <= 7)
+  + 0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers <= 7
+  + 2 <= pInfo->VideoParamsDriver.userDPBnumFrames && pInfo->VideoParamsDriver.userDPBnumFrames <= (((16) > (15) ? (16) : (15)) + 1)
+  + 4 <= pInfo->sSyntaxCfgAVC.iLog2MaxFrameNum && pInfo->sSyntaxCfgAVC.iLog2MaxFrameNum <= (12 + 4) && 4 <= pInfo->sSyntaxCfgAVC.iLog2MaxPOCLsb && pInfo->sSyntaxCfg
+  + AVE_Client_CheckLRMEInfo
+  + AVE_Client_CheckMCTFInfo
+  + AVE_HEVC_CheckVPSExtBounds
+  + layerNumSum <= (63 + 1)
+  + num_ref_frame <= ((16) > (15) ? (16) : (15))
+  + pInfo->sBufPFSet.saMBStats[m].iAddr != 0
+  + pInfo->sHEVC_RPS.strps.num_short_term_ref_pic_sets < 65 && (pInfo->sHEVC_RPS.slice_ltrps.num_long_term_sps + pInfo->sHEVC_RPS.slice_ltrps.num_long_term_pics) <=
+  + pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1)
+  + pInfo->sSyntaxCfgAVC.iBitDepthLuma == 8 && pInfo->sSyntaxCfgAVC.iBitDepthChroma == 8
+  + pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12
+  + pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_long_term_ref_pics_sps <= 16
+  + pInfo->uPropCfg.sAV1.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sAV1.iMCTFStrengthLevelNum <= ((2) < ((63 + 1)) ? (2) : ((63 + 1)))
+  + pInfo->uPropCfg.sHEVC.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sHEVC.iMCTFStrengthLevelNum <= ((2) < ((63 + 1)) ? (2) : ((63 + 1)))
+  + pInfo->uPropCfg.sMCTF.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sMCTF.iMCTFStrengthLevelNum <= ((2) < ((63 + 1)) ? (2) : ((63 + 1)))
+  + pVPS->layer_id_in_nuh[i] < (63 + 1)
+  + pVPS->vps_max_layers_minus1 < (63 + 1)
+  + psPSCtxSrc != psPSCtxDst
+  - %d Kernel: %p 0x%lx
+  - 2 <= pInfo->VideoParamsDriver.userDPBnumFrames && pInfo->VideoParamsDriver.userDPBnumFrames <= (((16) > (16) ? (16) : (16)) + 1)
+  - num_ref_frame <= ((16) > (16) ? (16) : (16))
+  - pInfo->sBufPFSet.sMBStats.iAddr != 0
+
+=== xref owners of NEW/GONE semantic strings ===
+  num_ref_frame <= ((16) > (15) ? (16) : (15)) <- sub_1322a20 @0x1322a20
+  pInfo->sBufPFSet.saMBStats[m].iAddr != 0 <- AVE_CHM_SetDataInfo_FwBuf @0x135cef8
+  pInfo->sSyntaxCfgAVC.iBitDepthLuma == 8 && pInfo->sSyntaxCfgAVC.iBitDepthChroma  <- AVE_AVC_CheckInfo @0x137d548
+  4 <= pInfo->sSyntaxCfgAVC.iLog2MaxFrameNum && pInfo->sSyntaxCfgAVC.iLog2MaxFrame <- AVE_AVC_CheckInfo @0x137d548
+  0 < pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSession <- AVE_HEVC_CheckInfo @0x137dc44
+  pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12 <- AVE_HEVC_CheckInfo @0x137dc44
+  0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNum <- AVE_HEVC_CheckInfo @0x137dc44
+  pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1) <- AVE_HEVC_CheckInfo @0x137dc44
+  pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_l <- AVE_HEVC_CheckInfo @0x137dc44
+  pInfo->sHEVC_RPS.strps.num_short_term_ref_pic_sets < 65 && (pInfo->sHEVC_RPS.sli <- AVE_HEVC_CheckInfo @0x137dc44
+  pInfo->uPropCfg.sHEVC.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sHEVC.iMCTFS <- AVE_HEVC_CheckInfo @0x137dc44
+  pVPS->vps_max_layers_minus1 < (63 + 1) <- AVE_HEVC_CheckVPSExtBounds @0x137ea38
+  AVE_HEVC_CheckVPSExtBounds <- AVE_HEVC_CheckVPSExtBounds @0x137ea38
+  (uint32_t)pVPS->vps_num_layer_sets_minus1 + 1 + pVPS->num_add_layer_sets <= (63  <- AVE_HEVC_CheckVPSExtBounds @0x137ea38
+  (uint32_t)pVPS->num_add_olss + pVPS->vps_num_layer_sets_minus1 + 1 + pVPS->num_a <- AVE_HEVC_CheckVPSExtBounds @0x137ea38
+  pVPS->layer_id_in_nuh[i] < (63 + 1) <- AVE_HEVC_CheckVPSExtBounds @0x137ea38
+  layerNumSum <= (63 + 1) <- AVE_HEVC_CheckVPSExtBounds @0x137ea38
+  pInfo->uPropCfg.sAV1.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sAV1.iMCTFStr <- AVE_AV1_CheckInfo @0x137ef10
+  2 <= pInfo->VideoParamsDriver.userDPBnumFrames && pInfo->VideoParamsDriver.userD <- AVE_Client_CheckCommonInfo @0x137f47c
+  0 <= pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessio <- AVE_Client_CheckDMVInfo @0x137fd80
+  0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNum <- AVE_Client_CheckDMVInfo @0x137fd80
+  pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1) <- AVE_Client_CheckDMVInfo @0x137fd80
+  pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_l <- AVE_Client_CheckDMVInfo @0x137fd80
+  pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12 <- AVE_Client_CheckDMVInfo @0x137fd80
+  0 <= pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessio <- AVE_Client_CheckGGMInfo @0x1380848
+  0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNum <- AVE_Client_CheckGGMInfo @0x1380848
+  pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1) <- AVE_Client_CheckGGMInfo @0x1380848
+  pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_l <- AVE_Client_CheckGGMInfo @0x1380848
+  pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12 <- AVE_Client_CheckGGMInfo @0x1380848
+  AVE_Client_CheckMCTFInfo <- AVE_Client_CheckMCTFInfo @0x13813fc
+  0 <= pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSessio <- AVE_Client_CheckMCTFInfo @0x13813fc
+  0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNum <- AVE_Client_CheckMCTFInfo @0x13813fc
+  pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1) <- AVE_Client_CheckMCTFInfo @0x13813fc
+  pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_l <- AVE_Client_CheckMCTFInfo @0x13813fc
+  pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12 <- AVE_Client_CheckMCTFInfo @0x13813fc
+  pInfo->uPropCfg.sMCTF.iMCTFStrengthLevelNum >= 0 && pInfo->uPropCfg.sMCTF.iMCTFS <- AVE_Client_CheckMCTFInfo @0x13813fc
+  AVE_Client_CheckLRMEInfo <- AVE_Client_CheckLRMEInfo @0x1381f80
+  0 < pInfo->sSessionCfg.sEnc.sAlgCfg.sGOP.iNumOfTemporalLayer && (pInfo->sSession <- AVE_Client_CheckLRMEInfo @0x1381f80
+  0 <= pInfo->uPropCfg.sHEVC.iNumberOfTemporalLayers && pInfo->uPropCfg.sHEVC.iNum <- AVE_Client_CheckLRMEInfo @0x1381f80
+  pInfo->sHEVC_VPS.num_add_layer_sets <= (63 + 1) <- AVE_Client_CheckLRMEInfo @0x1381f80
+  pInfo->saHEVC_SPS[i].sps_max_sub_layers_minus1 < 7 && pInfo->saHEVC_SPS[i].num_l <- AVE_Client_CheckLRMEInfo @0x1381f80
+  pInfo->saHEVC_SPS[i].log2_max_pic_order_cnt_lsb_minus4 <= 12 <- AVE_Client_CheckLRMEInfo @0x1381f80
+  0 <= iNum && iNum < (1 + ((2) < ((63 + 1)) ? (2) : ((63 + 1))) * (1 + 9 )) <- AVE_PSInfo_Make @0x143e2e0
+  0 <= iNum && iNum < (1 + ((2) < ((63 + 1)) ? (2) : ((63 + 1))) * (1 + 9 )) <- AVE_PSInfo_Make @0x143e9cc
+  psPSCtxSrc != psPSCtxDst <- AVE_PSInfo_CopyType @0x143f144
+  %d Kernel: %p %p <- sub_14529f8 @0x14529f8
+  0 <= iRefNum && iRefNum <= iMaxRefNum <- AVE_SVEDPB @0x1494dc8
+  -- gone --
+  num_ref_frame <= ((16) > (16) ? (16) : (16)) <- sub_12f601c @0x12f601c
+  pInfo->sBufPFSet.sMBStats.iAddr != 0 <- AVE_CHM_SetDataInfo_FwBuf @0x1330228
+  2 <= pInfo->VideoParamsDriver.userDPBnumFrames && pInfo->VideoParamsDriver.userD <- AVE_Client_CheckCommonInfo @0x13516f0
+  %d Kernel: %p 0x%lx <- sub_14223dc @0x14223dc

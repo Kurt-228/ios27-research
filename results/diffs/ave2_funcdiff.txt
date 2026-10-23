@@ -1,0 +1,1752 @@
+AVE2 functional diff: b4 24A5390f -> release 24A435(==24A437)
+funcs: b4=2994 rel=2995; named: b4=564 rel=565; common=564
+
+=== NEW named functions in release ===
+  + AVE_SVESched_ClearOrder  @0x147989c size=248 insns=62 tags=['SVE']
+
+=== REMOVED named functions (b4 only) ===
+
+=== CHANGED common functions (mnemonic seq differs) ===
+  * AVE_AV1_CheckInfo: insns 203 -> 204 (bytes 812 -> 816) tags=[]
+  * AVE_AVC_CheckInfo: insns 276 -> 277 (bytes 1104 -> 1108) tags=[]
+  * AVE_AVC_PPS: insns 232 -> 233 (bytes 928 -> 932) tags=[]
+  * AVE_AVC_PrepareSliceHeader: insns 949 -> 950 (bytes 3796 -> 3800) tags=[]
+  * AVE_AVC_SPS: insns 215 -> 216 (bytes 860 -> 864) tags=[]
+  * AVE_AVC_SetPPS: insns 95 -> 96 (bytes 380 -> 384) tags=[]
+  * AVE_AVC_SetSPS: insns 142 -> 143 (bytes 568 -> 572) tags=[]
+  * AVE_AVC_SetSlice: insns 111 -> 112 (bytes 444 -> 448) tags=[]
+  * AVE_AVC_Slice: insns 249 -> 250 (bytes 996 -> 1000) tags=[]
+  * AVE_AXI2AF: insns 135 -> 136 (bytes 540 -> 544) tags=[]
+  * AVE_AXI2AF_GetTunables: insns 319 -> 320 (bytes 1276 -> 1280) tags=[]
+  * AVE_Alg_DecideFrameRate: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Alg_DecideLevel: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Alg_DecideProfile: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Alg_DecideTier: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_AnalyticsService_Create: insns 129 -> 130 (bytes 516 -> 520) tags=[]
+  * AVE_AnalyticsService_Destroy: insns 91 -> 92 (bytes 364 -> 368) tags=[]
+  * AVE_AnalyticsService_Start: insns 234 -> 235 (bytes 936 -> 940) tags=[]
+  * AVE_AnalyticsService_Stop: insns 110 -> 111 (bytes 440 -> 444) tags=[]
+  * AVE_Analytics_CollectEncMode: insns 67 -> 68 (bytes 268 -> 272) tags=[]
+  * AVE_Analytics_CollectGOPMode: insns 77 -> 78 (bytes 308 -> 312) tags=[]
+  * AVE_Analytics_CollectPowerState: insns 85 -> 86 (bytes 340 -> 344) tags=[]
+  * AVE_Analytics_CollectScheduleMode: insns 67 -> 68 (bytes 268 -> 272) tags=[]
+  * AVE_Analytics_CollectThroughputMode: insns 85 -> 86 (bytes 340 -> 344) tags=[]
+  * AVE_Analytics_Create: insns 245 -> 246 (bytes 980 -> 984) tags=[]
+  * AVE_Analytics_Destroy: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_Analytics_Print: insns 976 -> 977 (bytes 3904 -> 3908) tags=[]
+  * AVE_Analytics_SendEvent: insns 2347 -> 2348 (bytes 9388 -> 9392) tags=[]
+  * AVE_Analytics_SetEventFieldDouble: insns 96 -> 97 (bytes 384 -> 388) tags=[]
+  * AVE_Analytics_SetEventFieldPercent: insns 98 -> 99 (bytes 392 -> 396) tags=[]
+  * AVE_Analytics_SetEventFieldString: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Analytics_SetEventFieldStringFromUint32: insns 101 -> 102 (bytes 404 -> 408) tags=[]
+  * AVE_Analytics_SetEventFieldUint64: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_BlkPool: insns 224 -> 225 (bytes 896 -> 900) tags=[]
+  * AVE_BufPool: insns 224 -> 225 (bytes 896 -> 900) tags=[]
+  * AVE_CHMList_InsertByPriority: insns 187 -> 188 (bytes 748 -> 752) tags=[]
+  * AVE_CHM_AppendCmd: insns 356 -> 357 (bytes 1424 -> 1428) tags=[]
+  * AVE_CHM_CheckDataReady: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_CHM_DARTMapInInput: insns 345 -> 346 (bytes 1380 -> 1384) tags=[]
+  * AVE_CHM_DARTMapInReady: insns 744 -> 745 (bytes 2976 -> 2980) tags=[]
+  * AVE_CHM_DARTMapSurfaces: insns 143 -> 144 (bytes 572 -> 576) tags=[]
+  * AVE_CHM_DupCmd: insns 167 -> 168 (bytes 668 -> 672) tags=[]
+  * AVE_CHM_FinishCmd: insns 265 -> 268 (bytes 1060 -> 1072) tags=[]
+  * AVE_CHM_FreeDataInfo: insns 75 -> 76 (bytes 300 -> 304) tags=[]
+  * AVE_CHM_FreeDataInfo_FwBuf: insns 204 -> 205 (bytes 816 -> 820) tags=[]
+  * AVE_CHM_GetFwDPBBuf: insns 341 -> 342 (bytes 1364 -> 1368) tags=[]
+  * AVE_CHM_GetMCTFOutBuf: insns 287 -> 245 (bytes 1148 -> 980) tags=['MCTF']
+  * AVE_CHM_HandleAllCmds: insns 79 -> 80 (bytes 316 -> 320) tags=[]
+  * AVE_CHM_HandleCmds: insns 203 -> 204 (bytes 812 -> 816) tags=[]
+  * AVE_CHM_Init: insns 156 -> 157 (bytes 624 -> 628) tags=[]
+  * AVE_CHM_MakeFwCmd_Close: insns 231 -> 232 (bytes 924 -> 928) tags=[]
+  * AVE_CHM_MakeFwCmd_Complete: insns 233 -> 234 (bytes 932 -> 936) tags=[]
+  * AVE_CHM_MakeFwCmd_Flush: insns 233 -> 234 (bytes 932 -> 936) tags=[]
+  * AVE_CHM_MakeFwCmd_Open: insns 231 -> 232 (bytes 924 -> 928) tags=[]
+  * AVE_CHM_MakeFwCmd_Priority: insns 230 -> 231 (bytes 920 -> 924) tags=[]
+  * AVE_CHM_MakeFwCmd_Process_AV1: insns 256 -> 257 (bytes 1024 -> 1028) tags=[]
+  * AVE_CHM_MakeFwCmd_Process_AVC: insns 490 -> 491 (bytes 1960 -> 1964) tags=[]
+  * AVE_CHM_MakeFwCmd_Process_HEVC: insns 516 -> 517 (bytes 2064 -> 2068) tags=[]
+  * AVE_CHM_MakeFwCmd_Reset: insns 262 -> 263 (bytes 1048 -> 1052) tags=[]
+  * AVE_CHM_MakeFwCmd_Start_AV1: insns 432 -> 433 (bytes 1728 -> 1732) tags=[]
+  * AVE_CHM_MakeFwCmd_Start_AVC: insns 473 -> 474 (bytes 1892 -> 1896) tags=[]
+  * AVE_CHM_MakeFwCmd_Start_HEVC: insns 495 -> 496 (bytes 1980 -> 1984) tags=[]
+  * AVE_CHM_MakeFwCmd_Stop: insns 231 -> 232 (bytes 924 -> 928) tags=[]
+  * AVE_CHM_MoveCmd: insns 257 -> 260 (bytes 1028 -> 1040) tags=[]
+  * AVE_CHM_PrepareDataInfo: insns 264 -> 265 (bytes 1056 -> 1060) tags=[]
+  * AVE_CHM_RemoveCmd: insns 186 -> 187 (bytes 744 -> 748) tags=[]
+  * AVE_CHM_SetDataInfo_Frame: insns 155 -> 156 (bytes 620 -> 624) tags=[]
+  * AVE_CHM_SetDataInfo_FwBuf: insns 5781 -> 5769 (bytes 23124 -> 23076) tags=[]
+  * AVE_CHM_SetDataInfo_Header: insns 660 -> 661 (bytes 2640 -> 2644) tags=[]
+  * AVE_CHM_SetDataInfo_RC: insns 550 -> 551 (bytes 2200 -> 2204) tags=[]
+  * AVE_CHM_SetFwBuf: insns 3120 -> 3053 (bytes 12480 -> 12212) tags=['MCTF']
+  * AVE_CHM_SortCmd: insns 355 -> 358 (bytes 1420 -> 1432) tags=[]
+  * AVE_CHM_Uninit: insns 134 -> 135 (bytes 536 -> 540) tags=[]
+  * AVE_COM_CheckReady: insns 166 -> 168 (bytes 664 -> 672) tags=[]
+  * AVE_CalcBufSizeOfCodedData: insns 342 -> 343 (bytes 1368 -> 1372) tags=[]
+  * AVE_CalcBufSizeOfColoFwDataInfo: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_CalcBufSizeOfColocated: insns 130 -> 131 (bytes 520 -> 524) tags=[]
+  * AVE_CalcBufSizeOfDPB: insns 497 -> 498 (bytes 1988 -> 1992) tags=[]
+  * AVE_CalcBufSizeOfEntropyCoding: insns 122 -> 123 (bytes 488 -> 492) tags=[]
+  * AVE_CalcBufSizeOfEntropyCodingHeader: insns 84 -> 85 (bytes 336 -> 340) tags=[]
+  * AVE_CalcBufSizeOfHSCOutput: insns 145 -> 146 (bytes 580 -> 584) tags=[]
+  * AVE_CalcBufSizeOfLFSOutput: insns 259 -> 260 (bytes 1036 -> 1040) tags=[]
+  * AVE_CalcBufSizeOfLRB: insns 292 -> 293 (bytes 1168 -> 1172) tags=[]
+  * AVE_CalcBufSizeOfLRSOutput: insns 115 -> 116 (bytes 460 -> 464) tags=[]
+  * AVE_CalcBufSizeOfMBInputCtrl: insns 111 -> 112 (bytes 444 -> 448) tags=[]
+  * AVE_CalcBufSizeOfMBStats: insns 127 -> 128 (bytes 508 -> 512) tags=[]
+  * AVE_CalcBufSizeOfMCTFOutput: insns 263 -> 264 (bytes 1052 -> 1056) tags=['MCTF']
+  * AVE_CalcBufSizeOfSTFSrcNeighborInfo: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_CalcBufSizeOfSrcNeighborData: insns 107 -> 108 (bytes 428 -> 432) tags=[]
+  * AVE_CalcBufSizeOfSrcNeighborFwData: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_CalcBufSizeOfSrcNeighborInfo: insns 107 -> 108 (bytes 428 -> 432) tags=[]
+  * AVE_CalcBufSizeOfSrcNeighborPixel: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_CalcBufSizeOfStaticAreaCBP0Cntr: insns 87 -> 88 (bytes 348 -> 352) tags=[]
+  * AVE_Cfg_RetrieveBootArgs: insns 361 -> 362 (bytes 1444 -> 1448) tags=[]
+  * AVE_CheckExternalInSurfaces: insns 273 -> 275 (bytes 1092 -> 1100) tags=[]
+  * AVE_ChkPool: insns 224 -> 225 (bytes 896 -> 900) tags=[]
+  * AVE_Client_AppendCmd: insns 361 -> 362 (bytes 1444 -> 1448) tags=[]
+  * AVE_Client_AssignEU: insns 71 -> 72 (bytes 284 -> 288) tags=[]
+  * AVE_Client_CheckCodecInfo: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Client_CheckCommonInfo: insns 576 -> 577 (bytes 2304 -> 2308) tags=[]
+  * AVE_Client_CheckDMVInfo: insns 195 -> 196 (bytes 780 -> 784) tags=[]
+  * AVE_Client_CheckGGMInfo: insns 308 -> 309 (bytes 1232 -> 1236) tags=[]
+  * AVE_Client_CheckInfo: insns 505 -> 506 (bytes 2020 -> 2024) tags=[]
+  * AVE_Client_Check_Complete: insns 182 -> 183 (bytes 728 -> 732) tags=[]
+  * AVE_Client_Check_Flush: insns 182 -> 183 (bytes 728 -> 732) tags=[]
+  * AVE_Client_Check_Process: insns 182 -> 183 (bytes 728 -> 732) tags=[]
+  * AVE_Client_Check_Reset: insns 182 -> 183 (bytes 728 -> 732) tags=[]
+  * AVE_Client_Check_Start: insns 182 -> 183 (bytes 728 -> 732) tags=[]
+  * AVE_Client_Check_Stop: insns 182 -> 183 (bytes 728 -> 732) tags=[]
+  * AVE_Client_ClearSurfacePool: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_Client_Close: insns 347 -> 348 (bytes 1388 -> 1392) tags=[]
+  * AVE_Client_Complete: insns 411 -> 412 (bytes 1644 -> 1648) tags=[]
+  * AVE_Client_Config: insns 299 -> 300 (bytes 1196 -> 1200) tags=[]
+  * AVE_Client_ConfigDLB: insns 184 -> 193 (bytes 736 -> 772) tags=[]
+  * AVE_Client_ConfigPipeline: insns 91 -> 92 (bytes 364 -> 368) tags=[]
+  * AVE_Client_ConfigSurfacePool: insns 431 -> 434 (bytes 1724 -> 1736) tags=[]
+  * AVE_Client_CopyUCInfoFromEx: insns 389 -> 390 (bytes 1556 -> 1560) tags=[]
+  * AVE_Client_CopyUCInfoToEx: insns 351 -> 352 (bytes 1404 -> 1408) tags=[]
+  * AVE_Client_Create: insns 683 -> 684 (bytes 2732 -> 2736) tags=[]
+  * AVE_Client_CreateCmd: insns 144 -> 145 (bytes 576 -> 580) tags=[]
+  * AVE_Client_CreateCmdInfo: insns 148 -> 149 (bytes 592 -> 596) tags=[]
+  * AVE_Client_CreateDataSurfaces: insns 416 -> 417 (bytes 1664 -> 1668) tags=[]
+  * AVE_Client_DARTMapDataSurfaces: insns 259 -> 260 (bytes 1036 -> 1040) tags=[]
+  * AVE_Client_DARTUnmapDataSurfaces: insns 243 -> 244 (bytes 972 -> 976) tags=[]
+  * AVE_Client_DMV_Check_Complete: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_DMV_Check_Flush: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_DMV_Check_Process: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_DMV_Check_Reset: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_DMV_Check_Start: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_DMV_Check_Stop: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_DecidePFThroughputMode: insns 181 -> 182 (bytes 724 -> 728) tags=[]
+  * AVE_Client_Destroy: insns 152 -> 153 (bytes 608 -> 612) tags=[]
+  * AVE_Client_DestroyCmd: insns 180 -> 181 (bytes 720 -> 724) tags=[]
+  * AVE_Client_DestroyCmdInfo: insns 175 -> 176 (bytes 700 -> 704) tags=[]
+  * AVE_Client_DestroyDataSurfaces: insns 196 -> 197 (bytes 784 -> 788) tags=[]
+  * AVE_Client_Die: insns 136 -> 137 (bytes 544 -> 548) tags=[]
+  * AVE_Client_DispatchCmd: insns 221 -> 222 (bytes 884 -> 888) tags=[]
+  * AVE_Client_DropGroupCmds: insns 57 -> 58 (bytes 228 -> 232) tags=[]
+  * AVE_Client_DupCmd: insns 157 -> 158 (bytes 628 -> 632) tags=[]
+  * AVE_Client_Enc_Check_Complete: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_Enc_Check_Flush: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_Enc_Check_Process: insns 347 -> 348 (bytes 1388 -> 1392) tags=[]
+  * AVE_Client_Enc_Check_Reset: insns 167 -> 168 (bytes 668 -> 672) tags=[]
+  * AVE_Client_Enc_Check_Start: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_Enc_Check_Stop: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_FinishCmd: insns 157 -> 158 (bytes 628 -> 632) tags=[]
+  * AVE_Client_Flush: insns 411 -> 412 (bytes 1644 -> 1648) tags=[]
+  * AVE_Client_GGM_Check_Complete: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_GGM_Check_Flush: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_GGM_Check_Process: insns 685 -> 686 (bytes 2740 -> 2744) tags=[]
+  * AVE_Client_GGM_Check_Reset: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_GGM_Check_Start: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_GGM_Check_Stop: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_HandleAllCmds: insns 75 -> 76 (bytes 300 -> 304) tags=[]
+  * AVE_Client_HandleCmd: insns 148 -> 149 (bytes 592 -> 596) tags=[]
+  * AVE_Client_Init: insns 1350 -> 1351 (bytes 5400 -> 5404) tags=[]
+  * AVE_Client_InitUCInfoPool: insns 449 -> 450 (bytes 1796 -> 1800) tags=[]
+  * AVE_Client_LRME_Check_Complete: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_LRME_Check_Flush: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_LRME_Check_Process: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_LRME_Check_Reset: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_LRME_Check_Start: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_LRME_Check_Stop: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_Client_MCTF_Check_Complete: insns 116 -> 117 (bytes 464 -> 468) tags=['MCTF']
+  * AVE_Client_MCTF_Check_Flush: insns 116 -> 117 (bytes 464 -> 468) tags=['MCTF']
+  * AVE_Client_MCTF_Check_Process: insns 116 -> 117 (bytes 464 -> 468) tags=['MCTF']
+  * AVE_Client_MCTF_Check_Reset: insns 116 -> 117 (bytes 464 -> 468) tags=['MCTF']
+  * AVE_Client_MCTF_Check_Start: insns 116 -> 117 (bytes 464 -> 468) tags=['MCTF']
+  * AVE_Client_MCTF_Check_Stop: insns 116 -> 117 (bytes 464 -> 468) tags=['MCTF']
+  * AVE_Client_MoveCmd: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_Client_Notify: insns 319 -> 320 (bytes 1276 -> 1280) tags=[]
+  * AVE_Client_Open: insns 136 -> 137 (bytes 544 -> 548) tags=[]
+  * AVE_Client_PreUpdate: insns 179 -> 180 (bytes 716 -> 720) tags=[]
+  * AVE_Client_Prepare: insns 654 -> 655 (bytes 2616 -> 2620) tags=[]
+  * AVE_Client_Process: insns 491 -> 492 (bytes 1964 -> 1968) tags=[]
+  * AVE_Client_RemoveCmd: insns 125 -> 126 (bytes 500 -> 504) tags=[]
+  * AVE_Client_Reset: insns 411 -> 412 (bytes 1644 -> 1648) tags=[]
+  * AVE_Client_Start: insns 1951 -> 1952 (bytes 7804 -> 7808) tags=[]
+  * AVE_Client_Stop: insns 367 -> 368 (bytes 1468 -> 1472) tags=[]
+  * AVE_Client_Uninit: insns 309 -> 310 (bytes 1236 -> 1240) tags=[]
+  * AVE_Client_UninitSurfacePool: insns 104 -> 105 (bytes 416 -> 420) tags=[]
+  * AVE_Client_UninitUCInfoPool: insns 218 -> 219 (bytes 872 -> 876) tags=[]
+  * AVE_Client_UpdateOutputBuf: insns 77 -> 78 (bytes 308 -> 312) tags=[]
+  * AVE_Client_Verify: insns 188 -> 188 (bytes 752 -> 752) tags=[]
+  * AVE_Client_VerifyDataResource: insns 399 -> 400 (bytes 1596 -> 1600) tags=[]
+  * AVE_CmdList_Print: insns 188 -> 189 (bytes 752 -> 756) tags=[]
+  * AVE_CreateDataSurfaces: insns 1403 -> 1385 (bytes 5612 -> 5540) tags=[]
+  * AVE_CreateExternalInSurfaces: insns 227 -> 225 (bytes 908 -> 900) tags=[]
+  * AVE_CreateExternalOutSurfaces: insns 891 -> 878 (bytes 3564 -> 3512) tags=[]
+  * AVE_CreateInternalSurfaces: insns 2906 -> 2940 (bytes 11624 -> 11760) tags=[]
+  * AVE_Crypto: insns 728 -> 729 (bytes 2912 -> 2916) tags=[]
+  * AVE_DART: insns 376 -> 377 (bytes 1504 -> 1508) tags=[]
+  * AVE_DARTMapDataSurfaces: insns 1000 -> 1015 (bytes 4000 -> 4060) tags=[]
+  * AVE_DARTMapExternalSurfaces: insns 668 -> 669 (bytes 2672 -> 2676) tags=[]
+  * AVE_DARTMapInternalSurfaces: insns 1817 -> 1854 (bytes 7268 -> 7416) tags=[]
+  * AVE_DARTUnmapDataSurfaces: insns 139 -> 140 (bytes 556 -> 560) tags=[]
+  * AVE_DARTUnmapExternalSurfaces: insns 196 -> 197 (bytes 784 -> 788) tags=[]
+  * AVE_DARTUnmapInternalSurfaces: insns 426 -> 427 (bytes 1704 -> 1708) tags=[]
+  * AVE_DLB: insns 173 -> 174 (bytes 692 -> 696) tags=[]
+  * AVE_DPBElem: insns 245 -> 246 (bytes 980 -> 984) tags=[]
+  * AVE_DPE: insns 364 -> 365 (bytes 1456 -> 1460) tags=[]
+  * AVE_DPM: insns 122 -> 123 (bytes 488 -> 492) tags=[]
+  * AVE_DRC: insns 130 -> 131 (bytes 520 -> 524) tags=[]
+  * AVE_DRL_DecideBitRate: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_DestroyDataSurfaces: insns 137 -> 138 (bytes 548 -> 552) tags=[]
+  * AVE_DestroyExternalInSurfaces: insns 96 -> 97 (bytes 384 -> 388) tags=[]
+  * AVE_DestroyExternalOutSurfaces: insns 171 -> 172 (bytes 684 -> 688) tags=[]
+  * AVE_DestroyInternalSurfaces: insns 430 -> 431 (bytes 1720 -> 1724) tags=[]
+  * AVE_DevCap_MakeEncCap: insns 169 -> 170 (bytes 676 -> 680) tags=[]
+  * AVE_DevCap_MakeGGMCap: insns 115 -> 116 (bytes 460 -> 464) tags=[]
+  * AVE_DevCap_MakeMCTFCap: insns 115 -> 116 (bytes 460 -> 464) tags=['MCTF']
+  * AVE_DevCap_MakeResCap: insns 116 -> 117 (bytes 464 -> 468) tags=[]
+  * AVE_DevInfo: insns 238 -> 239 (bytes 952 -> 956) tags=[]
+  * AVE_Drv: insns 20 -> 21 (bytes 80 -> 84) tags=[]
+  * AVE_Enc_AlignDimension: insns 136 -> 137 (bytes 544 -> 548) tags=[]
+  * AVE_Enc_CheckSearchRange: insns 199 -> 200 (bytes 796 -> 800) tags=[]
+  * AVE_Enc_DecideConcurrentMode: insns 231 -> 232 (bytes 924 -> 928) tags=[]
+  * AVE_Enc_DecideHwFlag: insns 78 -> 79 (bytes 312 -> 316) tags=[]
+  * AVE_Enc_DecideInputQueueMaxCnt: insns 91 -> 92 (bytes 364 -> 368) tags=[]
+  * AVE_Enc_DecideLayerNum: insns 78 -> 79 (bytes 312 -> 316) tags=[]
+  * AVE_Enc_DecideMaxFrameRate: insns 81 -> 82 (bytes 324 -> 328) tags=[]
+  * AVE_Enc_DecidePFThroughputMode: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_Enc_DecidePassNum: insns 78 -> 79 (bytes 312 -> 316) tags=[]
+  * AVE_Enc_DecidePerfFeature_EntropyBits: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_Enc_DecidePerfFeature_MaxPwEff: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_Enc_DecidePriority: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Enc_DecideRealtime: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Enc_DecideThroughputMode: insns 157 -> 158 (bytes 628 -> 632) tags=[]
+  * AVE_Enc_DecideViewNum: insns 78 -> 79 (bytes 312 -> 316) tags=[]
+  * AVE_Enc_GenerateTileMap: insns 283 -> 284 (bytes 1132 -> 1136) tags=[]
+  * AVE_Enc_IsChainedModeCapable: insns 91 -> 92 (bytes 364 -> 368) tags=[]
+  * AVE_Enc_IsIndependentModeCapable: insns 77 -> 78 (bytes 308 -> 312) tags=[]
+  * AVE_Entitlement_Check: insns 151 -> 152 (bytes 604 -> 608) tags=[]
+  * AVE_FPS: insns 216 -> 217 (bytes 864 -> 868) tags=[]
+  * AVE_FwImg: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_FwLog: insns 314 -> 315 (bytes 1256 -> 1260) tags=[]
+  * AVE_GGM_DecideConcurrentMode: insns 154 -> 155 (bytes 616 -> 620) tags=[]
+  * AVE_GGM_IsIndependentModeCapable: insns 59 -> 60 (bytes 236 -> 240) tags=[]
+  * AVE_GOPMgr: insns 195 -> 196 (bytes 780 -> 784) tags=[]
+  * AVE_GOP_DecideFeature_Adapt: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_GOP_DecideFeature_AdaptDelay: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_GOP_DecideFeature_Complete: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_GOP_DecideFeature_Open: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_GOP_DecideFeature_SceneCut: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_GOP_DecideFeature_SceneCutKeyFrame: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_GOP_DecideNumOfBFrame: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_GOP_DecideNumOfGOPLayer: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_GOP_DecideNumOfPFrame: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_GOP_DecideNumOfTemporalLayer: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_HEVC_CheckInfo: insns 360 -> 361 (bytes 1440 -> 1444) tags=[]
+  * AVE_HwC: insns 20 -> 21 (bytes 80 -> 84) tags=[]
+  * AVE_IOP: insns 176 -> 177 (bytes 704 -> 708) tags=[]
+  * AVE_IOP_CheckIdle_Acis: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Aion: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Ares: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Atlas: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Boreas: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Castor: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Erebus: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Eros: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Ersa: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Gaia: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Hera: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Hypnos: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Janus: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Leto: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Nemesis: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Nyx: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Ourea: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Pan: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Panda: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Tethys: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Themis: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Upis: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_CheckIdle_Uranus: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_IOP_Config_Acis: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Aion: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Ares: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Atlas: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Boreas: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Castor: insns 142 -> 143 (bytes 568 -> 572) tags=[]
+  * AVE_IOP_Config_Erebus: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Eros: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Ersa: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Gaia: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Hera: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Hypnos: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Janus: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Leto: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Nemesis: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Nyx: insns 142 -> 143 (bytes 568 -> 572) tags=[]
+  * AVE_IOP_Config_Ourea: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_IOP_Config_Pan: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Panda: insns 142 -> 143 (bytes 568 -> 572) tags=[]
+  * AVE_IOP_Config_Tethys: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Themis: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Upis: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_Config_Uranus: insns 140 -> 141 (bytes 560 -> 564) tags=[]
+  * AVE_IOP_GetCurrTime32: insns 114 -> 115 (bytes 456 -> 460) tags=[]
+  * AVE_IOP_GetCurrTime64: insns 81 -> 82 (bytes 324 -> 328) tags=[]
+  * AVE_IOP_GetCurrTime_Acis: insns 94 -> 95 (bytes 376 -> 380) tags=[]
+  * AVE_IOP_GetCurrTime_Aion: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Ares: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Atlas: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Boreas: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Castor: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Erebus: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Eros: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Ersa: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Gaia: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Hera: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Hypnos: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Janus: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Leto: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Nemesis: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Nyx: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Ourea: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Pan: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Panda: insns 94 -> 95 (bytes 376 -> 380) tags=[]
+  * AVE_IOP_GetCurrTime_Tethys: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Themis: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Upis: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_GetCurrTime_Uranus: insns 93 -> 94 (bytes 372 -> 376) tags=[]
+  * AVE_IOP_Start_Acis: insns 112 -> 113 (bytes 448 -> 452) tags=[]
+  * AVE_IOP_Start_Aion: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Ares: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Atlas: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Boreas: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Castor: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Erebus: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Eros: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Ersa: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Gaia: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Hera: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Hypnos: insns 112 -> 113 (bytes 448 -> 452) tags=[]
+  * AVE_IOP_Start_Janus: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Leto: insns 112 -> 113 (bytes 448 -> 452) tags=[]
+  * AVE_IOP_Start_Nemesis: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Nyx: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Ourea: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Pan: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Panda: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Tethys: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Themis: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Upis: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IOP_Start_Uranus: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_IPC: insns 62 -> 63 (bytes 248 -> 252) tags=[]
+  * AVE_IPC_ChName2ID: insns 73 -> 74 (bytes 292 -> 296) tags=[]
+  * AVE_KeyFrame: insns 810 -> 820 (bytes 3240 -> 3280) tags=[]
+  * AVE_LACost: insns 464 -> 465 (bytes 1856 -> 1860) tags=[]
+  * AVE_LAGOP: insns 362 -> 363 (bytes 1448 -> 1452) tags=[]
+  * AVE_LAGOP_Decide: insns 966 -> 967 (bytes 3864 -> 3868) tags=[]
+  * AVE_LAGOP_Flush: insns 104 -> 105 (bytes 416 -> 420) tags=[]
+  * AVE_Log_PresetCfg: insns 151 -> 152 (bytes 604 -> 608) tags=[]
+  * AVE_Log_Print: insns 122 -> 123 (bytes 488 -> 492) tags=[]
+  * AVE_Log_Update: insns 114 -> 115 (bytes 456 -> 460) tags=[]
+  * AVE_Log_UpdateConf: insns 73 -> 74 (bytes 292 -> 296) tags=[]
+  * AVE_Log_UpdateConsole: insns 105 -> 106 (bytes 420 -> 424) tags=[]
+  * AVE_MCC: insns 236 -> 237 (bytes 944 -> 948) tags=[]
+  * AVE_MCTF_DecideConcurrentMode: insns 169 -> 170 (bytes 676 -> 680) tags=['MCTF']
+  * AVE_MCTF_IsIndependentModeCapable: insns 73 -> 74 (bytes 292 -> 296) tags=['MCTF']
+  * AVE_MCTF_SMap_Parse: insns 325 -> 326 (bytes 1300 -> 1304) tags=['MCTF']
+  * AVE_MD: insns 187 -> 188 (bytes 748 -> 752) tags=[]
+  * AVE_MD_Crypto: insns 187 -> 188 (bytes 748 -> 752) tags=[]
+  * AVE_MD_LACost: insns 252 -> 253 (bytes 1008 -> 1012) tags=[]
+  * AVE_MD_LAGOP: insns 103 -> 104 (bytes 412 -> 416) tags=[]
+  * AVE_MD_LAGOP_Prepare: insns 526 -> 527 (bytes 2104 -> 2108) tags=[]
+  * AVE_MD_SVE: insns 415 -> 416 (bytes 1660 -> 1664) tags=['SVE']
+  * AVE_Mapper: insns 161 -> 162 (bytes 644 -> 648) tags=[]
+  * AVE_Mapper_Pool_Create: insns 132 -> 133 (bytes 528 -> 532) tags=[]
+  * AVE_Mapper_Pool_Destroy: insns 208 -> 209 (bytes 832 -> 836) tags=[]
+  * AVE_Mapper_Pool_GetEntry: insns 180 -> 181 (bytes 720 -> 724) tags=[]
+  * AVE_MemBlkList_Alloc: insns 275 -> 276 (bytes 1100 -> 1104) tags=[]
+  * AVE_MemBlkList_Free: insns 197 -> 198 (bytes 788 -> 792) tags=[]
+  * AVE_MemBlkList_FreeAll: insns 151 -> 152 (bytes 604 -> 608) tags=[]
+  * AVE_MemBlk_Alloc: insns 460 -> 461 (bytes 1840 -> 1844) tags=[]
+  * AVE_MemBlk_Free: insns 173 -> 174 (bytes 692 -> 696) tags=[]
+  * AVE_PMGR: insns 258 -> 259 (bytes 1032 -> 1036) tags=[]
+  * AVE_PSGen: insns 1316 -> 1317 (bytes 5264 -> 5268) tags=[]
+  * AVE_PSInfo_CopyType: insns 327 -> 328 (bytes 1308 -> 1312) tags=[]
+  * AVE_PSInfo_Make: insns 403 -> 404 (bytes 1612 -> 1616) tags=[]
+  * AVE_PTS2DTS: insns 315 -> 316 (bytes 1260 -> 1264) tags=[]
+  * AVE_Perf_DecideInputQueueNum: insns 214 -> 215 (bytes 856 -> 860) tags=[]
+  * AVE_Pipeline: insns 112 -> 113 (bytes 448 -> 452) tags=[]
+  * AVE_PrintClientSurfaces: insns 82 -> 83 (bytes 328 -> 332) tags=[]
+  * AVE_PrintExternalInSurfaces: insns 60 -> 61 (bytes 240 -> 244) tags=[]
+  * AVE_PrintExternalOutSurfaces: insns 201 -> 202 (bytes 804 -> 808) tags=[]
+  * AVE_PrintInternalSurfaces: insns 529 -> 530 (bytes 2116 -> 2120) tags=[]
+  * AVE_PrintOutSurfaces: insns 180 -> 181 (bytes 720 -> 724) tags=[]
+  * AVE_PrintSurfaceInfoSet: insns 2483 -> 2484 (bytes 9932 -> 9936) tags=[]
+  * AVE_Prop_Cfg_AV1_Init: insns 147 -> 150 (bytes 588 -> 600) tags=[]
+  * AVE_Prop_Cfg_AV1_Print: insns 9280 -> 9409 (bytes 37120 -> 37636) tags=[]
+  * AVE_Prop_Cfg_AV1_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Prop_Cfg_AVC_Init: insns 145 -> 147 (bytes 580 -> 588) tags=[]
+  * AVE_Prop_Cfg_AVC_Print: insns 9000 -> 9125 (bytes 36000 -> 36500) tags=[]
+  * AVE_Prop_Cfg_AVC_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Prop_Cfg_DMV_Init: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_Cfg_DMV_Print: insns 272 -> 273 (bytes 1088 -> 1092) tags=[]
+  * AVE_Prop_Cfg_DMV_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Prop_Cfg_GGM_Init: insns 95 -> 96 (bytes 380 -> 384) tags=[]
+  * AVE_Prop_Cfg_GGM_Print: insns 646 -> 647 (bytes 2584 -> 2588) tags=[]
+  * AVE_Prop_Cfg_GGM_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Prop_Cfg_HEVC_Init: insns 167 -> 169 (bytes 668 -> 676) tags=[]
+  * AVE_Prop_Cfg_HEVC_Print: insns 12111 -> 12236 (bytes 48444 -> 48944) tags=[]
+  * AVE_Prop_Cfg_HEVC_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Prop_Cfg_LRME_Init: insns 98 -> 99 (bytes 392 -> 396) tags=[]
+  * AVE_Prop_Cfg_LRME_Print: insns 707 -> 708 (bytes 2828 -> 2832) tags=[]
+  * AVE_Prop_Cfg_LRME_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_Prop_Cfg_MCTF_Init: insns 105 -> 105 (bytes 420 -> 420) tags=['MCTF']
+  * AVE_Prop_Cfg_MCTF_Print: insns 1227 -> 1352 (bytes 4908 -> 5408) tags=['MCTF']
+  * AVE_Prop_Cfg_MCTF_Uninit: insns 88 -> 89 (bytes 352 -> 356) tags=['MCTF']
+  * AVE_Prop_PFCfg_AV1_Init: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_Prop_PFCfg_AV1_Print: insns 149 -> 150 (bytes 596 -> 600) tags=[]
+  * AVE_Prop_PFCfg_AV1_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_PFCfg_AVC_Init: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_Prop_PFCfg_AVC_Print: insns 149 -> 150 (bytes 596 -> 600) tags=[]
+  * AVE_Prop_PFCfg_AVC_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_PFCfg_DMV_Init: insns 111 -> 112 (bytes 444 -> 448) tags=[]
+  * AVE_Prop_PFCfg_DMV_Print: insns 149 -> 150 (bytes 596 -> 600) tags=[]
+  * AVE_Prop_PFCfg_DMV_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_PFCfg_GGM_Init: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_Prop_PFCfg_GGM_Print: insns 149 -> 150 (bytes 596 -> 600) tags=[]
+  * AVE_Prop_PFCfg_GGM_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_PFCfg_HEVC_Init: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_Prop_PFCfg_HEVC_Print: insns 149 -> 150 (bytes 596 -> 600) tags=[]
+  * AVE_Prop_PFCfg_HEVC_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_PFCfg_LRME_Init: insns 97 -> 98 (bytes 388 -> 392) tags=[]
+  * AVE_Prop_PFCfg_LRME_Print: insns 149 -> 150 (bytes 596 -> 600) tags=[]
+  * AVE_Prop_PFCfg_LRME_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=[]
+  * AVE_Prop_PFCfg_MCTF_Init: insns 97 -> 98 (bytes 388 -> 392) tags=['MCTF']
+  * AVE_Prop_PFCfg_MCTF_Print: insns 149 -> 150 (bytes 596 -> 600) tags=['MCTF']
+  * AVE_Prop_PFCfg_MCTF_Uninit: insns 92 -> 93 (bytes 368 -> 372) tags=['MCTF']
+  * AVE_QPMod_DecideFeature_Depth: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_Dering: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_ExtLuma: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_FlatArea: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_HDRPQ: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_LowVariance: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_MBInput: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_MVHEVC: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_ROI: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_StaticArea: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_StaticBorder: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_StillImage: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_UltraFlatArea: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideFeature_Variance: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_QPMod_DecideLevel: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_QPMod_DecideQPRange: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_RC_DecideBitrate: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_RC_DecideDRLCfg: insns 87 -> 88 (bytes 348 -> 352) tags=[]
+  * AVE_RC_DecideFeature_E2EQualityMatch: insns 96 -> 97 (bytes 384 -> 388) tags=[]
+  * AVE_RC_DecideFeature_RelaxBitRate: insns 96 -> 97 (bytes 384 -> 388) tags=[]
+  * AVE_RC_DecideFeature_VFR: insns 96 -> 97 (bytes 384 -> 388) tags=[]
+  * AVE_RC_DecideLAFrameCnt: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_RC_DecideMode: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_RC_DecideQP: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_RC_DecideQPRange: insns 88 -> 89 (bytes 352 -> 356) tags=[]
+  * AVE_RC_DecideQScale: insns 125 -> 126 (bytes 500 -> 504) tags=[]
+  * AVE_RC_DecideVBVBufferSize: insns 326 -> 327 (bytes 1304 -> 1308) tags=[]
+  * AVE_RC_DecideVBVInitialDelay: insns 376 -> 377 (bytes 1504 -> 1508) tags=[]
+  * AVE_RC_DecideVBVMaxBitRate: insns 260 -> 261 (bytes 1040 -> 1044) tags=[]
+  * AVE_RefMgr: insns 525 -> 526 (bytes 2100 -> 2104) tags=[]
+  * AVE_Ref_DecideFeature_LTR: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_Ref_DecideFeature_WeightedPrediction: insns 100 -> 101 (bytes 400 -> 404) tags=[]
+  * AVE_Ref_DecideRefGapOfBFrame: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Ref_DecideRefGapOfPFrame: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Ref_DecideRefNumOfBFrameL0: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Ref_DecideRefNumOfBFrameL1: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_Ref_DecideRefNumOfPFrame: insns 90 -> 91 (bytes 360 -> 364) tags=[]
+  * AVE_RefedMgr: insns 256 -> 257 (bytes 1024 -> 1028) tags=[]
+  * AVE_Reg: insns 236 -> 237 (bytes 944 -> 948) tags=[]
+  * AVE_RegCfgList_Apply: insns 164 -> 165 (bytes 656 -> 660) tags=[]
+  * AVE_RegCfgList_Process: insns 302 -> 303 (bytes 1208 -> 1212) tags=[]
+  * AVE_RegCfgList_Release: insns 141 -> 142 (bytes 564 -> 568) tags=[]
+  * AVE_RegCfg_Apply: insns 159 -> 160 (bytes 636 -> 640) tags=[]
+  * AVE_RegCfg_Create: insns 112 -> 113 (bytes 448 -> 452) tags=[]
+  * AVE_RegCfg_Destroy: insns 94 -> 95 (bytes 376 -> 380) tags=[]
+  * AVE_RetrieveDevID: insns 237 -> 238 (bytes 948 -> 952) tags=[]
+  * AVE_RetrieveDevInfo: insns 284 -> 285 (bytes 1136 -> 1140) tags=[]
+  * AVE_RetrieveRevision: insns 289 -> 290 (bytes 1156 -> 1160) tags=[]
+  * AVE_RetrieveSVEID: insns 145 -> 146 (bytes 580 -> 584) tags=['SVE']
+  * AVE_SVECtrl: insns 79 -> 80 (bytes 316 -> 320) tags=['SVE']
+  * AVE_SVECtrl_GetReg: insns 65 -> 66 (bytes 260 -> 264) tags=['SVE']
+  * AVE_SVEDPB: insns 300 -> 301 (bytes 1200 -> 1204) tags=['SVE']
+  * AVE_SVERC: insns 239 -> 240 (bytes 956 -> 960) tags=['SVE']
+  * AVE_SVESched_Clear: insns 189 -> 190 (bytes 756 -> 760) tags=['SVE']
+  * AVE_SVESched_Config: insns 581 -> 582 (bytes 2324 -> 2328) tags=['SVE']
+  * AVE_SVESched_Init: insns 265 -> 266 (bytes 1060 -> 1064) tags=['SVE']
+  * AVE_SVESched_Process: insns 460 -> 461 (bytes 1840 -> 1844) tags=['SVE']
+  * AVE_SVESched_TimingMgr_Add: insns 487 -> 488 (bytes 1948 -> 1952) tags=['SVE']
+  * AVE_SVESched_TimingMgr_FetchRefTime: insns 180 -> 181 (bytes 720 -> 724) tags=['SVE']
+  * AVE_SVESched_TimingMgr_Init: insns 165 -> 166 (bytes 660 -> 664) tags=['SVE']
+  * AVE_SVESched_TimingMgr_Remove: insns 222 -> 223 (bytes 888 -> 892) tags=['SVE']
+  * AVE_SVESched_TimingMgr_Reset: insns 180 -> 181 (bytes 720 -> 724) tags=['SVE']
+  * AVE_SVESched_TimingMgr_Sync: insns 501 -> 502 (bytes 2004 -> 2008) tags=['SVE']
+  * AVE_SVESched_TimingMgr_Uninit: insns 143 -> 144 (bytes 572 -> 576) tags=['SVE']
+  * AVE_SVESched_Uninit: insns 149 -> 150 (bytes 596 -> 600) tags=['SVE']
+  * AVE_Session_DecideSwFeature_Encrypt: insns 108 -> 109 (bytes 432 -> 436) tags=[]
+  * AVE_Surface: insns 571 -> 572 (bytes 2284 -> 2288) tags=[]
+  * AVE_SurfaceLink: insns 220 -> 221 (bytes 880 -> 884) tags=[]
+  * AVE_SurfaceMgr: insns 96 -> 97 (bytes 384 -> 388) tags=[]
+  * AVE_SurfacePool: insns 285 -> 286 (bytes 1140 -> 1144) tags=[]
+  * AVE_SwC: insns 722 -> 723 (bytes 2888 -> 2892) tags=[]
+  * AVE_TBufPool: insns 293 -> 294 (bytes 1172 -> 1176) tags=[]
+  * AVE_TaskCmd_Create: insns 506 -> 507 (bytes 2024 -> 2028) tags=[]
+  * AVE_TaskCmd_Crypto: insns 489 -> 490 (bytes 1956 -> 1960) tags=[]
+  * AVE_TaskCmd_LACost: insns 162 -> 163 (bytes 648 -> 652) tags=[]
+  * AVE_TaskCmd_LACost_SetInput: insns 104 -> 105 (bytes 416 -> 420) tags=[]
+  * AVE_Thread: insns 20 -> 21 (bytes 80 -> 84) tags=[]
+  * AVE_Timer_Create: insns 273 -> 274 (bytes 1092 -> 1096) tags=[]
+  * AVE_Timer_Destroy: insns 113 -> 114 (bytes 452 -> 456) tags=[]
+  * AVE_Timer_Set: insns 119 -> 120 (bytes 476 -> 480) tags=[]
+  * AVE_Timer_Start: insns 109 -> 110 (bytes 436 -> 440) tags=[]
+  * AVE_Timer_Stop: insns 103 -> 104 (bytes 412 -> 416) tags=[]
+  * AVE_Timer_Trigger: insns 102 -> 103 (bytes 408 -> 412) tags=[]
+  * AVE_UCCmd_CheckParam: insns 124 -> 125 (bytes 496 -> 500) tags=[]
+  * AVE_UCCmd_CheckParam_Close: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCCmd_CheckParam_Complete: insns 176 -> 177 (bytes 704 -> 708) tags=[]
+  * AVE_UCCmd_CheckParam_Config: insns 178 -> 179 (bytes 712 -> 716) tags=[]
+  * AVE_UCCmd_CheckParam_Flush: insns 174 -> 175 (bytes 696 -> 700) tags=[]
+  * AVE_UCCmd_CheckParam_Open: insns 388 -> 389 (bytes 1552 -> 1556) tags=[]
+  * AVE_UCCmd_CheckParam_Prepare: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCCmd_CheckParam_Process: insns 176 -> 177 (bytes 704 -> 708) tags=[]
+  * AVE_UCCmd_CheckParam_Reset: insns 176 -> 177 (bytes 704 -> 708) tags=[]
+  * AVE_UCCmd_CheckParam_Start: insns 230 -> 231 (bytes 920 -> 924) tags=[]
+  * AVE_UCCmd_CheckParam_Stop: insns 176 -> 177 (bytes 704 -> 708) tags=[]
+  * AVE_UCInfo_Check_Complete: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCInfo_Check_Flush: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCInfo_Check_Prepare: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCInfo_Check_Process: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCInfo_Check_Reset: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCInfo_Check_Start: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_UCInfo_Check_Stop: insns 121 -> 122 (bytes 484 -> 488) tags=[]
+  * AVE_WorkPool: insns 20 -> 21 (bytes 80 -> 84) tags=[]
+  * AVE_WorkPool_Create: insns 218 -> 219 (bytes 872 -> 876) tags=[]
+  * AVE_WorkPool_Destroy: insns 190 -> 191 (bytes 760 -> 764) tags=[]
+  * AVE_WorkThread: insns 20 -> 21 (bytes 80 -> 84) tags=[]
+  * AVE_WorkThread_Create: insns 206 -> 207 (bytes 824 -> 828) tags=[]
+  * AVE_WorkThread_Destroy: insns 139 -> 140 (bytes 556 -> 560) tags=[]
+  * AVE_Work_DMV_PostUpdate: insns 70 -> 71 (bytes 280 -> 284) tags=[]
+  * AVE_Work_Enc_CalcEUNumInParallel: insns 114 -> 115 (bytes 456 -> 460) tags=[]
+  * AVE_Work_Enc_CalcEUNumInSequential: insns 130 -> 131 (bytes 520 -> 524) tags=[]
+  * AVE_Work_Enc_CalcRefNum: insns 108 -> 109 (bytes 432 -> 436) tags=[]
+  * AVE_Work_Enc_CalcRefNum_Ext: insns 208 -> 209 (bytes 832 -> 836) tags=[]
+  * AVE_Work_Enc_DecideAV1TileMap: insns 176 -> 177 (bytes 704 -> 708) tags=[]
+  * AVE_Work_Enc_DecideQPModFeature: insns 81 -> 82 (bytes 324 -> 328) tags=[]
+  * AVE_Work_Enc_DecideSchedMode: insns 98 -> 99 (bytes 392 -> 396) tags=[]
+  * AVE_Work_Enc_TuneParam: insns 465 -> 466 (bytes 1860 -> 1864) tags=[]
+  * AVE_Work_Enc_UpdateFrameInfoFromOutputData: insns 152 -> 153 (bytes 608 -> 612) tags=[]
+  * AVE_Work_LRME_PostUpdate: insns 125 -> 126 (bytes 500 -> 504) tags=[]
+  * AVE_Work_MCTF_PostUpdate: insns 125 -> 126 (bytes 500 -> 504) tags=['MCTF']
+  * AVE_Work_MSC_PostUpdate: insns 303 -> 304 (bytes 1212 -> 1216) tags=[]
+
+summary: identical=12 changed=552 (of 564 common named)
+
+=== MCTF/SVE-tagged functions (both versions) ===
+  [b4] AVE_Prop_Cfg_MCTF_Init @0x12e30fc size=420 insns=105 tags=['MCTF']
+        str 0x4d962: AVE_Prop_Cfg_MCTF_Init
+  [b4] AVE_Prop_Cfg_MCTF_Uninit @0x12e32a0 size=352 insns=88 tags=['MCTF']
+        str 0x4d979: AVE_Prop_Cfg_MCTF_Uninit
+  [b4] AVE_Prop_Cfg_MCTF_Print @0x12e3400 size=4908 insns=1227 tags=['MCTF']
+        str 0x4c68a: pCfg != nullptr
+        str 0x4d992: AVE_Prop_Cfg_MCTF_Print
+        str 0x4db24: %d, 
+  [b4] AVE_Prop_PFCfg_MCTF_Init @0x12e472c size=388 insns=97 tags=['MCTF']
+        str 0x4dd0d: AVE_Prop_PFCfg_MCTF_Init
+  [b4] AVE_Prop_PFCfg_MCTF_Uninit @0x12e48b0 size=368 insns=92 tags=['MCTF']
+        str 0x4dd26: AVE_Prop_PFCfg_MCTF_Uninit
+  [b4] AVE_Prop_PFCfg_MCTF_Print @0x12e4a20 size=596 insns=149 tags=['MCTF']
+        str 0x4c68a: pCfg != nullptr
+        str 0x4dd41: AVE_Prop_PFCfg_MCTF_Print
+  [b4] AVE_MCTF_SMap_Parse @0x12fd58c size=1300 insns=325 tags=['MCTF']
+        str 0x534da: AVE_MCTF_SMap_Parse
+  [b4] AVE_CalcBufSizeOfMCTFOutput @0x131a570 size=1052 insns=263 tags=['MCTF']
+        str 0x589b7: iLumaDataSize >= 0 && iLumaHeaderSize >= 0 && iChromaDataSize >= 0 && iChromaHeaderSize >= 0 && iTotal <= 2147483647
+        str 0x58e03: AVE_CalcBufSizeOfMCTFOutput
+  [b4] AVE_CHM_GetMCTFOutBuf @0x1327464 size=1148 insns=287 tags=['MCTF']
+        str 0x5ab9c: AVE_CHM_GetMCTFOutBuf
+        str 0x5abb2: pCHM != nullptr && pSurface != nullptr && pSize != nullptr && psCBufInfo != nullptr
+        str 0x5ac54: lumaAddr != 0
+  [b4] AVE_CHM_SetFwBuf @0x13278e0 size=12480 insns=3120 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x5ac62: AVE_CHM_SetFwBuf
+        str 0x5ac73: pCHM != nullptr && pSet != nullptr && pSInfoSet != nullptr && pBufSet != nullptr
+        str 0x5ad01: pBufSet->saCodedData[i].iAddr != 0 && pBufSet->saCodedData[i].iSize != 0
+        str 0x5ad4a: pBufSet->saCodedHeader[i].iAddr != 0 && pBufSet->saCodedHeader[i].iSize != 0
+        str 0x5add7: pBufSet->saColocated[i][j].iAddr != 0
+        str 0x5adfd: iAddr != 0
+        str 0x5ae93: pBufSet->sMCTFLRSNeighborMV.iAddr != 0
+        str 0x5aeba: pBufSet->saLFSOutput[k].iAddr != 0
+        str 0x5aedd: pBufSet->saMCTFLFSOutput[k].iAddr != 0
+        str 0x5af04: pBufSet->saLRSOutput[k].iAddr != 0
+        str 0x5af27: pBufSet->saMCTFLRSOutput[k].iAddr != 0
+        str 0x5af4e: pBufSet->saSrcNeighborInfo[i].iAddr != 0
+        str 0x5af77: pBufSet->saSTFSrcNeighborInfo[i].iAddr != 0
+        str 0x5afa3: pBufSet->saSrcNeighborPixel[i].iAddr != 0
+        str 0x5afcd: pBufSet->saSrcNeighborData[i].iAddr != 0
+        str 0x5aff6: pBufSet->saSrcNeighborFwData[i].iAddr != 0
+        str 0x5b021: pBufSet->saSrcNeighborAboveFltPixel[i].iAddr != 0
+        str 0x5b053: pBufSet->saSrcNeighborLeftInfo[i].iAddr != 0
+        str 0x5b080: pBufSet->saSrcNeighborLeftPixel[i].iAddr != 0
+        str 0x5b0ae: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Data].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Da
+        str 0x5b179: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Header].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_
+        str 0x5b204: pBufSet->saTranscodedCDF[i].iAddr != 0
+        str 0x5b22b: pBufSet->saDefaultCDF[i][m].iAddr != 0
+        str 0x5b28c: pBufSet->saSrcNeighborInfo[0].iAddr != 0
+        str 0x5b2b5: pBufSet->saSTFSrcNeighborInfo[0].iAddr != 0
+        str 0x5b2e1: pBufSet->saSrcNeighborPixel[0].iAddr != 0
+        str 0x5b30b: pBufSet->saSrcNeighborData[0].iAddr != 0
+        str 0x5b334: pBufSet->saSrcNeighborFwData[0].iAddr != 0
+        str 0x5b35f: pBufSet->saSrcNeighborAboveFltPixel[0].iAddr != 0
+        str 0x5b391: pBufSet->saSrcNeighborLeftInfo[0].iAddr != 0
+        str 0x5b3be: pBufSet->saSrcNeighborLeftPixel[0].iAddr != 0
+        str 0x5b42d: pBufSet->saTranscodedCDF[0].iAddr != 0
+        str 0x5b454: pBufSet->saTranscodedData[i].iAddr != 0 && pBufSet->saTranscodedData[i].iSize != 0
+        str 0x5b4a7: pBufSet->saMBInputCtrl[i].iAddr != 0
+        str 0x5b4cc: pBufSet->saColoFwDataInfo[i][j][m].iAddr != 0
+        str 0x5b4fa: pBufSet->saStaticAreaCBP0Cntr[i][j].iAddr != 0
+  [b4] AVE_Client_MCTF_Check @0x1346f54 size=284 insns=71 tags=['MCTF']
+        str 0x61eab: pIn->multiPassEndPassCounter == 0
+        str 0x61fd7: AVE_Client_MCTF_Check
+  [b4] AVE_Client_MCTF_Check_Start @0x1347070 size=464 insns=116 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x4ea9f: pClient != nullptr && pIn != nullptr
+        str 0x61fed: AVE_Client_MCTF_Check_Start
+  [b4] AVE_Client_MCTF_Check_Stop @0x1347240 size=464 insns=116 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x4ea9f: pClient != nullptr && pIn != nullptr
+        str 0x62009: AVE_Client_MCTF_Check_Stop
+  [b4] AVE_Client_MCTF_Check_Process @0x1347410 size=464 insns=116 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x4ea9f: pClient != nullptr && pIn != nullptr
+        str 0x62024: AVE_Client_MCTF_Check_Process
+  [b4] AVE_Client_MCTF_Check_Complete @0x13475e0 size=464 insns=116 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x4ea9f: pClient != nullptr && pIn != nullptr
+        str 0x62042: AVE_Client_MCTF_Check_Complete
+  [b4] AVE_Client_MCTF_Check_Flush @0x13477b0 size=464 insns=116 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x4ea9f: pClient != nullptr && pIn != nullptr
+        str 0x62061: AVE_Client_MCTF_Check_Flush
+  [b4] AVE_Client_MCTF_Check_Reset @0x1347980 size=464 insns=116 tags=['MCTF']
+        str 0x4d092: ret == 0
+        str 0x4ea9f: pClient != nullptr && pIn != nullptr
+        str 0x6207d: AVE_Client_MCTF_Check_Reset
+  [b4] AVE_DevCap_MakeMCTFCap @0x1348c84 size=460 insns=115 tags=['MCTF']
+        str 0x62171: ret == AVE_OK
+        str 0x622ed: AVE_DevCap_MakeMCTFCap
+  [b4] AVE_MCTF_IsIndependentModeCapable @0x135d8f0 size=292 insns=73 tags=['MCTF']
+        str 0x6660c: AVE_MCTF_IsIndependentModeCapable
+  [b4] AVE_MCTF_DecideConcurrentMode @0x135da14 size=676 insns=169 tags=['MCTF']
+        str 0x66672: AVE_MCTF_DecideConcurrentMode
+  [b4] sub_137cd4c @0x137cd4c size=25836 insns=6459 tags=['MCTF']
+        str 0x6b2e3: MCTFMapSet
+  [b4] AVE_Work_MCTF_PostUpdate @0x13b64c4 size=500 insns=125 tags=['MCTF']
+        str 0x6673e: pClient != nullptr && pUCInfo != nullptr && pCodedHeader != nullptr
+        str 0x667c2: pUCInfo->frameNumber == pCodedHeader->FrameNumberFromDriverReturned
+        str 0x71216: AVE_Work_MCTF_PostUpdate
+  [b4] AVE_HwC @0x13d2f8c size=576 insns=144 tags=['MCTF']
+        str 0x6831e: pCHM != nullptr && pCmd != nullptr
+        str 0x6e306: pDataInfo != nullptr
+        str 0x74185: AVE_HwC
+        str 0x7453b: ProcessIntr_MCTF_OutputData
+  [b4] AVE_HwC @0x13d678c size=8548 insns=2137 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x4d092: ret == 0
+        str 0x6d4e5: res == 0
+        str 0x74185: AVE_HwC
+        str 0x75129: pProvider != nullptr && pWorkLoop != nullptr && pCfg != nullptr && pDevInfo != nullptr && pSurfaceMgr != nullptr && id <
+        str 0x751e3: m_pcSVECtrl != nullptr
+        str 0x75238: m_pcAXI2AF != nullptr
+        str 0x7528a: m_pcPMGR != nullptr
+        str 0x75320: m_pcDART != nullptr
+        str 0x7540a: m_pcReg != nullptr
+        str 0x75537: m_pcDPM != nullptr
+        str 0x755ca: m_pcDPE != nullptr
+        str 0x7569d: m_pcMCC != nullptr
+        str 0x7573b: m_pcFwImg != nullptr
+        str 0x757dd: m_pcFwLog != nullptr
+        str 0x758fe: m_pcIOP != nullptr
+  [b4] AVE_PSGen @0x13f81a0 size=3780 insns=945 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x6629f: pcMD != nullptr
+        str 0x7a3ca: AVC_GenerateSlice
+        str 0x7a462: psSVEDPBEntry != nullptr
+        str 0x7a4b2: pcDPB != nullptr
+        str 0x7a84b: AVE_PSGen
+  [b4] AVE_PSGen @0x13f98bc size=1976 insns=494 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x6629f: pcMD != nullptr
+        str 0x7a462: psSVEDPBEntry != nullptr
+        str 0x7a78a: HEVC_SetSliceRPS
+        str 0x7a84b: AVE_PSGen
+  [b4] AVE_IOP @0x13fe484 size=808 insns=202 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x7af0f: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr && pSVECtrl != nullptr && pAXI2AF != nullptr && pFwI
+        str 0x7b313: AVE_IOP
+  [b4] AVE_IPC @0x1400a54 size=1696 insns=424 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x4d092: ret == 0
+        str 0x7b422: pDevInfo != nullptr && pSurfaceMgr != nullptr && id < 4 && pSVECtrl != nullptr && pFwImg != nullptr
+        str 0x7b518: pMemPool != nullptr
+        str 0x7c0b6: AVE_IPC
+  [b4] AVE_IPC @0x1401f88 size=996 insns=249 tags=['SVE']
+        str 0x7b834: SetChIntr
+        str 0x7b83e: pInfo != nullptr && pInfo->context != nullptr
+        str 0x7b89e: pIPC->m_pcSVECtrl != nullptr
+        str 0x7c0b6: AVE_IPC
+  [b4] AVE_PMGR @0x1415d4c size=1308 insns=327 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x7f284: pProvider != nullptr && pCfg != nullptr && pDevInfo != nullptr && id < 4 && pSVECtrl != nullptr
+        str 0x7f325: m_pcProvider != nullptr
+        str 0x7f385: pPDMap != nullptr
+        str 0x7f397: function-set_perf_state_floor
+        str 0x7fcb7: AVE_PMGR
+  [b4] AVE_MD_SVE @0x144ea4c size=624 insns=156 tags=['SVE']
+        str 0x4bf35: Uninit
+        str 0x4d092: ret == 0
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x144ed74 size=1080 insns=270 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x4d092: ret == 0
+        str 0x84985: pcIODrv != nullptr && psTask != nullptr && psCfg != nullptr && pcDevInfo != nullptr && pcSurfaceMgr != nullptr && pClien
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x144f1ac size=572 insns=143 tags=['SVE']
+        str 0x5373b: ConfigDLB
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x144f3e8 size=440 insns=110 tags=['SVE']
+        str 0x53745: Clear
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x144f5a0 size=440 insns=110 tags=['SVE']
+        str 0x851b4: ClearRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x144f758 size=928 insns=232 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x5374b: Config
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x144fe80 size=864 insns=216 tags=['SVE']
+        str 0x4bf8f: Reset
+        str 0x4d092: ret == 0
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14501e0 size=440 insns=110 tags=['SVE']
+        str 0x851bc: ResetRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1450398 size=1232 insns=308 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x5379d: InitComponents
+        str 0x84bf7: m_pcPSGen != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1450868 size=436 insns=109 tags=['SVE']
+        str 0x851ad: InitRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1450a1c size=448 insns=112 tags=['SVE']
+        str 0x537ac: UninitComponents
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1450bdc size=428 insns=107 tags=['SVE']
+        str 0x851c4: UninitRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1450d88 size=2192 insns=548 tags=['SVE']
+        str 0x508a1: false
+        str 0x6d4e5: res == 0
+        str 0x84c53: InitSVESequentialRC
+        str 0x84cac: m_pcDPB != nullptr
+        str 0x84d4c: m_pcDRC != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1451618 size=396 insns=99 tags=['SVE']
+        str 0x84dae: ClearSVESequentialRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14517a4 size=396 insns=99 tags=['SVE']
+        str 0x84dc3: ResetSVESequentialRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1451930 size=472 insns=118 tags=['SVE']
+        str 0x84dd8: UninitSVESequentialRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1451b08 size=3932 insns=983 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x84dee: InitSVEParallelRC
+        str 0x84e00: m_psClient != nullptr
+        str 0x84ecb: m_pcGOPMgr != nullptr
+        str 0x84f6f: m_pcRefMgr != nullptr
+        str 0x85014: m_pcRefedMgr != nullptr
+        str 0x85074: m_pcSVERC != nullptr
+        str 0x850d0: m_pcSVEDPB != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1452a64 size=492 insns=123 tags=['SVE']
+        str 0x8512e: ClearSVEParallelRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1452c50 size=1648 insns=412 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x84e00: m_psClient != nullptr
+        str 0x85141: ResetSVEParallelRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14532c0 size=580 insns=145 tags=['SVE']
+        str 0x85199: UninitSVEParallelRC
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1453504 size=1016 insns=254 tags=['SVE']
+        str 0x85217: UpdateRC
+        str 0x85220: pCmdInfo != nullptr && pUCInfo != nullptr && pInfo != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14538fc size=924 insns=231 tags=['SVE']
+        str 0x8539f: UpdateDPB
+        str 0x853a9: pUCInfo != nullptr && pDPBSet != nullptr
+        str 0x8541d: pDPBSet != nullptr && pUCInfo->sGOPInfo.iPOC >= 0
+        str 0x8549a: refIdx >= 0
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1453c98 size=1196 insns=299 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x854a6: ManageRC
+        str 0x854af: pCmdInfo != nullptr && pUCInfo != nullptr && pDPBSet != nullptr && pInfo != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1454144 size=1492 insns=373 tags=['SVE']
+        str 0x8554d: RetrieveRCFrameStats
+        str 0x855a4: pHdr != nullptr && pStats != nullptr
+        str 0x85611: iSliceNum >= 0 && iSliceNum <= ((32) < (256) ? (32) : (256))
+        str 0x8568e: pHdr->sSliceInfo.saCOBuf[i].saOBuf[AVE_BufIdx_Data].iSize > 0
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1454718 size=1100 insns=275 tags=['SVE']
+        str 0x85700: RetrieveSVERCStats
+        str 0x85756: pUCInfo != nullptr && pHdr != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1454b64 size=1016 insns=254 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x8582c: RetrieveRCStats
+        str 0x85886: pUCInfo != nullptr && pHdr != nullptr && pStats != nullptr
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1455f78 size=1584 insns=396 tags=['SVE']
+        str 0x5b6bd: pSurface != nullptr
+        str 0x85d9b: UpdateOutputBuf_Status
+        str 0x85e35: %d - 
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14565a8 size=364 insns=91 tags=['SVE']
+        str 0x85e93: CheckOutputBuf_Quota
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14567f0 size=1652 insns=413 tags=['SVE']
+        str 0x5a90b: pCHM != nullptr
+        str 0x85ea8: AcquireOutputBuf
+        str 0x85f53: rret == 0
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1456e64 size=896 insns=224 tags=['SVE']
+        str 0x5a90b: pCHM != nullptr
+        str 0x85fab: ReleaseOutputBuf
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14571e4 size=456 insns=114 tags=['SVE']
+        str 0x6eedc: PreUpdate
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14573ac size=452 insns=113 tags=['SVE']
+        str 0x6eee6: PostUpdate
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1457570 size=1024 insns=256 tags=['SVE']
+        str 0x8602b: CalcSurfaceInfo
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1457970 size=1224 insns=306 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x860af: CreateExternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1457e38 size=656 insns=164 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x861cb: DestroyExternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14580c8 size=680 insns=170 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x8623a: CreateInternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458370 size=656 insns=164 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x862a7: DestroyInternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458600 size=1092 insns=273 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x86343: DARTMapExternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458a44 size=600 insns=150 tags=['SVE']
+        str 0x86443: DARTUnmapExternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1458c9c size=1120 insns=280 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x8645d: DARTMapInternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x14590fc size=600 insns=150 tags=['SVE']
+        str 0x8652e: DARTUnmapInternalSurfaces
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1459354 size=1704 insns=426 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x7820b: psInfo != nullptr && psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x86587: ParallelProcess
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x1459af4 size=2376 insns=594 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x537bd: DispatchCmd
+        str 0x867c8: (sCmdInfo.iChNum >= 1) && (sCmdInfo.iChNum <= m_sHwCMap.iNum)
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145a43c size=588 insns=147 tags=['SVE']
+        str 0x5386c: CalcInputQueueNum
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145a688 size=496 insns=124 tags=['SVE']
+        str 0x5387e: CalcInputQueueMinNum
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_MD_SVE @0x145acd8 size=1660 insns=415 tags=['SVE']
+        str 0x508a1: false
+        str 0x86847: DecideFrameType
+        str 0x86895: pUCInfo->frameNumber != 0
+        str 0x869d1: AVE_MD_SVE
+  [b4] AVE_SVECtrl_GetReg @0x145bb78 size=260 insns=65 tags=['SVE']
+        str 0x8769c: AVE_SVECtrl_GetReg
+  [b4] AVE_SVECtrl @0x145bcf0 size=592 insns=148 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x57f30: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr
+        str 0x876f4: m_psRegOffset != nullptr
+        str 0x878ad: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x145c240 size=268 insns=67 tags=['SVE']
+        str 0x877c7: SetIntr
+        str 0x878ad: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x145c34c size=712 insns=178 tags=['SVE']
+        str 0x8774e: RecvIOPMsg
+        str 0x878ad: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x145c650 size=268 insns=67 tags=['SVE']
+        str 0x877cf: ClearIntr
+        str 0x878ad: AVE_SVECtrl
+  [b4] AVE_SVECtrl @0x145c998 size=316 insns=79 tags=['SVE']
+        str 0x8780d: SetIdle
+        str 0x878ad: AVE_SVECtrl
+  [b4] AVE_SVEDPB @0x145cd24 size=700 insns=175 tags=['SVE']
+        str 0x4bf35: Uninit
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145d008 size=2288 insns=572 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x8794a: pcaRecon != nullptr && pcaLFSRef != nullptr && pcaLFSOutput != nullptr && pcaLRSOutput != nullptr
+        str 0x87a00: m_saRefBuf[i].psBuf != nullptr && m_saRefBuf[i].psLowResBuf != nullptr
+        str 0x87a92: m_saRefBuf[i].psaLowResResultBuf != nullptr
+        str 0x87b09: m_saRefBuf[i].psaLowResRCResultBuf != nullptr
+        str 0x87b37: pcaLFSOutput[i + iRefNum][0] [iLRMEResultBufSetIdx] != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145d8f8 size=732 insns=183 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x4c54c: ResetEntry
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145e344 size=448 insns=112 tags=['SVE']
+        str 0x53745: Clear
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145e504 size=932 insns=233 tags=['SVE']
+        str 0x4c491: ReleaseEntry
+        str 0x4c49e: psEntry != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145e8a8 size=424 insns=106 tags=['SVE']
+        str 0x4bf8f: Reset
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145ea50 size=1172 insns=293 tags=['SVE']
+        str 0x4c2c8: AcquireEntry
+        str 0x4c49e: psEntry != nullptr
+        str 0x87bb6: ppsEntry != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145eee4 size=856 insns=214 tags=['SVE']
+        str 0x6eb6b: pBuf != nullptr
+        str 0x883b2: ReleaseRefBuf
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145f23c size=524 insns=131 tags=['SVE']
+        str 0x87c7a: GetEntryByPOC
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145f448 size=520 insns=130 tags=['SVE']
+        str 0x87cb6: GetEntryByFrameNum
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145f650 size=932 insns=233 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x87cf9: GetRefParamByFrameNum
+        str 0x87d52: psRefInfo != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x145f9f4 size=3252 insns=813 tags=['SVE']
+        str 0x4bfc4: Process
+        str 0x4d092: ret == 0
+        str 0x87dea: psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x87fa2: psRefInfo->iaNum[AVE_RefDir_Neg] == 0 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x88038: psRefInfo->iaNum[AVE_RefDir_Neg] >= 1 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x880cc: (pcPFInfo->iFrameType == IMG_INTER_B || pcPFInfo->iFrameType == IMG_INTER_BREF) && psRefInfo->iaNum[AVE_RefDir_Neg] >= 1
+        str 0x88246: ret == 0 && psCurEntry != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14606a8 size=1056 insns=264 tags=['SVE']
+        str 0x8841c: TruncateRefedInfo
+        str 0x8846f: iFrameNum >= 0 && (iFrameType == IMG_INTRA_IDR || iFrameType == IMG_INTRA_FRAME || iFrameType == IMG_INTER_P)
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1460ac8 size=1176 insns=294 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x88615: FreeEntry
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1460f60 size=1320 insns=330 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x88555: UpdateRefedInfo
+        str 0x885bc: psRefEntry != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1461488 size=1264 insns=316 tags=['SVE']
+        str 0x882fa: AcquireRefBuf
+        str 0x88308: ppBuf != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1461978 size=1620 insns=405 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x88701: PostCheck
+        str 0x8874c: iSkip != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1461fcc size=2604 insns=651 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x4d092: ret == 0
+        str 0x6b503: Check
+        str 0x888a1: ret == 0 && pBuf != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14629f8 size=3012 insns=753 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x88a02: Fetch
+        str 0x88a4c: psDPBSet != nullptr && iPOC != nullptr
+        str 0x88b09: psEntry->psBuf != nullptr
+        str 0x88b64: psRefL0Entry != nullptr
+        str 0x88c05: psRefL1Entry != nullptr
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x14635bc size=2964 insns=741 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x4d092: ret == 0
+        str 0x4e053: Update
+        str 0x88cfc: eFrmState >= AVE_SVEDPB_FrameState_Processed && eFrmState < AVE_SVEDPB_FrameState_Max
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVEDPB @0x1464150 size=1200 insns=300 tags=['SVE']
+        str 0x4c49e: psEntry != nullptr
+        str 0x88f5d: GetAVCRefListParams
+        str 0x88fb2: psPicReordering != nullptr && m_eEncType == AVE_EncType_AVC
+        str 0x8920b: AVE_SVEDPB
+  [b4] AVE_SVERC @0x1469794 size=572 insns=143 tags=['SVE']
+        str 0x4bf35: Uninit
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x14699f8 size=1944 insns=486 tags=['SVE']
+        str 0x4be1c: Init
+        str 0x4d092: ret == 0
+        str 0x89919: iSVENum > 0 && iSVENum <= 4
+        str 0x89935: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x8996f: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146a190 size=1200 insns=300 tags=['SVE']
+        str 0x891a1: %lld %d | 
+        str 0x89b2d: InitBitAllocateRatioArray
+        str 0x89b8d: iFrameNum >= 0 && eMotionLvl >= 0 && eMotionLvl < AVE_SVERC_Motion_LvlMax && psBitRatioInfo != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146a640 size=840 insns=210 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x53745: Clear
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146a988 size=1628 insns=407 tags=['SVE']
+        str 0x4bf8f: Reset
+        str 0x4d092: ret == 0
+        str 0x89919: iSVENum > 0 && iSVENum <= 4
+        str 0x89935: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x8996f: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146afe4 size=1364 insns=341 tags=['SVE']
+        str 0x67c5a: UpdateStats
+        str 0x78f7c: psStats != nullptr
+        str 0x89ccc: iSVEID >= 0 && iSVEID < 4 && psDistributedRCStats != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146b538 size=1156 insns=289 tags=['SVE']
+        str 0x89d98: CheckSyncReady
+        str 0x89da7: psSyncInfo != nullptr && piReady != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146b9bc size=3224 insns=806 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x6b503: Check
+        str 0x84537: %lld 
+        str 0x89e8b: psSyncInfo != nullptr
+        str 0x89f7b: | %d %d - 
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146c654 size=1568 insns=392 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x78f7c: psStats != nullptr
+        str 0x8a562: UpdateStaticAreaLowQPMode
+        str 0x8a5cc: psLowQPInfo != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146cc74 size=2732 insns=683 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x78f7c: psStats != nullptr
+        str 0x8a0a9: UpdateBitAllocation
+        str 0x8a110: psLastInfo != nullptr
+        str 0x8a126: %lld:%d:%d 
+        str 0x8a1fb: psCurInfo != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146d720 size=1604 insns=401 tags=['SVE']
+        str 0x8a2a4: ProcessBitAllocation
+        str 0x8a2ff: iSVEID >=0 && iSVEID < 4 && pfRatio != nullptr
+        str 0x8a385: psBitRatioInfo != nullptr && iFound == 1
+        str 0x8a3ae: | %lld %d - 
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146dd64 size=1124 insns=281 tags=['SVE']
+        str 0x8a457: ProcessRCParams
+        str 0x8a4b0: iSVEID >=0 && iSVEID < 4 && psDistributedRCParams != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVERC @0x146e1c8 size=956 insns=239 tags=['SVE']
+        str 0x8a6a0: AccumulateCBP0Cnt
+        str 0x8a6fc: piCBPIs0Flag != nullptr && paCBP0Cnt != nullptr
+        str 0x8a833: AVE_SVERC
+  [b4] AVE_SVESched_TimingMgr_Reset @0x146f380 size=720 insns=180 tags=['SVE']
+        str 0x8a9aa: AVE_SVESched_TimingMgr_Reset
+        str 0x8a9fd: psTimingMgr != nullptr && iSVENum >= 0 && iSVENum <= 4
+  [b4] AVE_SVESched_TimingMgr_Init @0x146f650 size=660 insns=165 tags=['SVE']
+        str 0x8aa59: AVE_SVESched_TimingMgr_Init
+        str 0x8aaaa: psTimingMgr != nullptr
+  [b4] AVE_SVESched_TimingMgr_Uninit @0x146f8e4 size=572 insns=143 tags=['SVE']
+        str 0x8aaaa: psTimingMgr != nullptr
+        str 0x8aac1: AVE_SVESched_TimingMgr_Uninit
+  [b4] AVE_SVESched_TimingMgr_FetchRefTime @0x146fb20 size=720 insns=180 tags=['SVE']
+        str 0x8ab07: AVE_SVESched_TimingMgr_FetchRefTime
+        str 0x8ab66: psaTimingInfoList != nullptr && iFrameNum >= 0 && iSVENum >= 0 && iSVENum <= 4 && piRefTime != nullptr
+  [b4] AVE_SVESched_TimingMgr_Add @0x146fdf0 size=1948 insns=487 tags=['SVE']
+        str 0x8ac25: AVE_SVESched_TimingMgr_Add
+        str 0x8ac81: psTimingMgr != nullptr && iFrameNum >= 0 && iLayer >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && psRefInfo != nullptr
+  [b4] AVE_SVESched_TimingMgr_Remove @0x147058c size=888 insns=222 tags=['SVE']
+        str 0x8ae2e: AVE_SVESched_TimingMgr_Remove
+        str 0x8ae84: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < psTimingMgr->iSyncNum
+  [b4] AVE_SVESched_TimingMgr_Sync @0x1470904 size=2004 insns=501 tags=['SVE']
+        str 0x8af3c: AVE_SVESched_TimingMgr_Sync
+        str 0x8af58: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && iSVENum >=0 && iSVENum <= 4 && psSyncIn
+        str 0x8b024: iFound == 1 && psInfo != nullptr
+        str 0x8b045: [%lld %d] 
+  [b4] AVE_SVESched_Init @0x14710d8 size=1060 insns=265 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x8b0aa: AVE_SVESched_Init
+        str 0x8b0bc: pSVESched != nullptr
+        str 0x8b38a: pSVESched->psTimingMgr != nullptr
+  [b4] AVE_SVESched_Config @0x14714fc size=2324 insns=581 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x89187: %d | 
+        str 0x8b3f1: AVE_SVESched_Config
+        str 0x8b43e: pSVESched != nullptr && psEUMap != nullptr
+        str 0x8b840: AVE_SVESched_GenerateEUMap
+        str 0x8b85b: pSVESched->iActiveSVENum == pEUMap->iNum
+        str 0x8b884: %d -> (%d %d %d) 
+  [b4] AVE_SVESched_Uninit @0x1471e10 size=596 insns=149 tags=['SVE']
+        str 0x8b0bc: pSVESched != nullptr
+        str 0x8b519: AVE_SVESched_Uninit
+  [b4] AVE_SVESched_Clear @0x1472064 size=756 insns=189 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x8b0bc: pSVESched != nullptr
+        str 0x8b52d: AVE_SVESched_Clear
+  [b4] AVE_SVESched_Process @0x1472358 size=1840 insns=460 tags=['SVE']
+        str 0x4d092: ret == 0
+        str 0x8b5b5: AVE_SVESched_Process
+        str 0x8b60e: pSVESched != nullptr && psInfo != nullptr && psRefInfo != nullptr && pCmdInfo != nullptr
+        str 0x8b6f8: %d -> 
+  [b4] AVE_RetrieveSVEID @0x1478f04 size=580 insns=145 tags=['SVE']
+        str 0x8c58f: AVE_RetrieveSVEID
+        str 0x8c5a1: pEntry != nullptr && pID != nullptr
+        str 0x8c5c5: sve-id
+  [rel] AVE_Prop_Cfg_MCTF_Init @0x12e8274 size=420 insns=105 tags=['MCTF']
+        str 0x4d9d2: AVE_Prop_Cfg_MCTF_Init
+  [rel] AVE_Prop_Cfg_MCTF_Uninit @0x12e8418 size=356 insns=89 tags=['MCTF']
+        str 0x4d9e9: AVE_Prop_Cfg_MCTF_Uninit
+  [rel] AVE_Prop_Cfg_MCTF_Print @0x12e857c size=5408 insns=1352 tags=['MCTF']
+        str 0x4c6fa: pCfg != nullptr
+        str 0x4da02: AVE_Prop_Cfg_MCTF_Print
+        str 0x4db94: %d, 
+  [rel] AVE_Prop_PFCfg_MCTF_Init @0x12e9a9c size=392 insns=98 tags=['MCTF']
+        str 0x4de11: AVE_Prop_PFCfg_MCTF_Init
+  [rel] AVE_Prop_PFCfg_MCTF_Uninit @0x12e9c24 size=372 insns=93 tags=['MCTF']
+        str 0x4de2a: AVE_Prop_PFCfg_MCTF_Uninit
+  [rel] AVE_Prop_PFCfg_MCTF_Print @0x12e9d98 size=600 insns=150 tags=['MCTF']
+        str 0x4c6fa: pCfg != nullptr
+        str 0x4de45: AVE_Prop_PFCfg_MCTF_Print
+  [rel] AVE_MCTF_SMap_Parse @0x1302b00 size=1304 insns=326 tags=['MCTF']
+        str 0x535de: AVE_MCTF_SMap_Parse
+  [rel] AVE_CalcBufSizeOfMCTFOutput @0x131feb4 size=1056 insns=264 tags=['MCTF']
+        str 0x58abb: iLumaDataSize >= 0 && iLumaHeaderSize >= 0 && iChromaDataSize >= 0 && iChromaHeaderSize >= 0 && iTotal <= 2147483647
+        str 0x58f07: AVE_CalcBufSizeOfMCTFOutput
+  [rel] AVE_CHM_SetFwBuf @0x132cea0 size=12212 insns=3053 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x5aca0: AVE_CHM_SetFwBuf
+        str 0x5acb1: pCHM != nullptr && pSet != nullptr && pSInfoSet != nullptr && pBufSet != nullptr
+        str 0x5ad3f: pBufSet->saCodedData[i].iAddr != 0 && pBufSet->saCodedData[i].iSize != 0
+        str 0x5ad88: pBufSet->saCodedHeader[i].iAddr != 0 && pBufSet->saCodedHeader[i].iSize != 0
+        str 0x5ae15: pBufSet->saColocated[i][j].iAddr != 0
+        str 0x5ae3b: iAddr != 0
+        str 0x5aed1: pBufSet->sMCTFLRSNeighborMV.iAddr != 0
+        str 0x5aef8: pBufSet->saLFSOutput[k].iAddr != 0
+        str 0x5af1b: pBufSet->saMCTFLFSOutput[k].iAddr != 0
+        str 0x5af42: pBufSet->saLRSOutput[k].iAddr != 0
+        str 0x5af65: pBufSet->saMCTFLRSOutput[k].iAddr != 0
+        str 0x5af8c: pBufSet->saSrcNeighborInfo[i].iAddr != 0
+        str 0x5afb5: pBufSet->saSTFSrcNeighborInfo[i].iAddr != 0
+        str 0x5afe1: pBufSet->saSrcNeighborPixel[i].iAddr != 0
+        str 0x5b00b: pBufSet->saSrcNeighborData[i].iAddr != 0
+        str 0x5b034: pBufSet->saSrcNeighborFwData[i].iAddr != 0
+        str 0x5b05f: pBufSet->saSrcNeighborAboveFltPixel[i].iAddr != 0
+        str 0x5b091: pBufSet->saSrcNeighborLeftInfo[i].iAddr != 0
+        str 0x5b0be: pBufSet->saSrcNeighborLeftPixel[i].iAddr != 0
+        str 0x5b0ec: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Data].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Da
+        str 0x5b1b7: pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_Header].iAddr != 0 && pBufSet->saEntropyCoding[i][j].saIBuf[AVE_BufIdx_
+        str 0x5b242: pBufSet->saTranscodedCDF[i].iAddr != 0
+        str 0x5b269: pBufSet->saDefaultCDF[i][m].iAddr != 0
+        str 0x5b2ca: pBufSet->saSrcNeighborInfo[0].iAddr != 0
+        str 0x5b2f3: pBufSet->saSTFSrcNeighborInfo[0].iAddr != 0
+        str 0x5b31f: pBufSet->saSrcNeighborPixel[0].iAddr != 0
+        str 0x5b349: pBufSet->saSrcNeighborData[0].iAddr != 0
+        str 0x5b372: pBufSet->saSrcNeighborFwData[0].iAddr != 0
+        str 0x5b39d: pBufSet->saSrcNeighborAboveFltPixel[0].iAddr != 0
+        str 0x5b3cf: pBufSet->saSrcNeighborLeftInfo[0].iAddr != 0
+        str 0x5b3fc: pBufSet->saSrcNeighborLeftPixel[0].iAddr != 0
+        str 0x5b46b: pBufSet->saTranscodedCDF[0].iAddr != 0
+        str 0x5b492: pBufSet->saTranscodedData[i].iAddr != 0 && pBufSet->saTranscodedData[i].iSize != 0
+        str 0x5b4e5: pBufSet->saMBInputCtrl[i].iAddr != 0
+        str 0x5b50a: pBufSet->saColoFwDataInfo[i][j][m].iAddr != 0
+        str 0x5b538: pBufSet->saStaticAreaCBP0Cntr[i][j].iAddr != 0
+  [rel] AVE_CHM_GetMCTFOutBuf @0x132fe54 size=980 insns=245 tags=['MCTF']
+        str 0x5e80a: AVE_CHM_GetMCTFOutBuf
+        str 0x5e86e: lumaAddr != 0
+  [rel] AVE_Client_MCTF_Check @0x134c994 size=284 insns=71 tags=['MCTF']
+        str 0x61f5b: pIn->multiPassEndPassCounter == 0
+        str 0x62087: AVE_Client_MCTF_Check
+  [rel] AVE_Client_MCTF_Check_Start @0x134cab0 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x6209d: AVE_Client_MCTF_Check_Start
+  [rel] AVE_Client_MCTF_Check_Stop @0x134cc84 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x620b9: AVE_Client_MCTF_Check_Stop
+  [rel] AVE_Client_MCTF_Check_Process @0x134ce58 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x620d4: AVE_Client_MCTF_Check_Process
+  [rel] AVE_Client_MCTF_Check_Complete @0x134d02c size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x620f2: AVE_Client_MCTF_Check_Complete
+  [rel] AVE_Client_MCTF_Check_Flush @0x134d200 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x62111: AVE_Client_MCTF_Check_Flush
+  [rel] AVE_Client_MCTF_Check_Reset @0x134d3d4 size=468 insns=117 tags=['MCTF']
+        str 0x4d102: ret == 0
+        str 0x4eba3: pClient != nullptr && pIn != nullptr
+        str 0x6212d: AVE_Client_MCTF_Check_Reset
+  [rel] AVE_DevCap_MakeMCTFCap @0x134e70c size=464 insns=116 tags=['MCTF']
+        str 0x62221: ret == AVE_OK
+        str 0x6239d: AVE_DevCap_MakeMCTFCap
+  [rel] AVE_MCTF_IsIndependentModeCapable @0x136350c size=296 insns=74 tags=['MCTF']
+        str 0x666bc: AVE_MCTF_IsIndependentModeCapable
+  [rel] AVE_MCTF_DecideConcurrentMode @0x1363634 size=680 insns=170 tags=['MCTF']
+        str 0x66722: AVE_MCTF_DecideConcurrentMode
+  [rel] sub_1382ba0 @0x1382ba0 size=26524 insns=6631 tags=['MCTF']
+        str 0x6b461: MCTFMapSet
+  [rel] AVE_Work_MCTF_PostUpdate @0x13bcc04 size=504 insns=126 tags=['MCTF']
+        str 0x667ee: pClient != nullptr && pUCInfo != nullptr && pCodedHeader != nullptr
+        str 0x66872: pUCInfo->frameNumber == pCodedHeader->FrameNumberFromDriverReturned
+        str 0x71394: AVE_Work_MCTF_PostUpdate
+  [rel] AVE_HwC @0x13d98f0 size=580 insns=145 tags=['MCTF']
+        str 0x683ce: pCHM != nullptr && pCmd != nullptr
+        str 0x6e484: pDataInfo != nullptr
+        str 0x74303: AVE_HwC
+        str 0x746b9: ProcessIntr_MCTF_OutputData
+  [rel] AVE_HwC @0x13dd134 size=8552 insns=2138 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x6d663: res == 0
+        str 0x74303: AVE_HwC
+        str 0x752a7: pProvider != nullptr && pWorkLoop != nullptr && pCfg != nullptr && pDevInfo != nullptr && pSurfaceMgr != nullptr && id <
+        str 0x75361: m_pcSVECtrl != nullptr
+        str 0x753b6: m_pcAXI2AF != nullptr
+        str 0x75408: m_pcPMGR != nullptr
+        str 0x7549e: m_pcDART != nullptr
+        str 0x75588: m_pcReg != nullptr
+        str 0x756b5: m_pcDPM != nullptr
+        str 0x75748: m_pcDPE != nullptr
+        str 0x7581b: m_pcMCC != nullptr
+        str 0x758b9: m_pcFwImg != nullptr
+        str 0x7595b: m_pcFwLog != nullptr
+        str 0x75a7c: m_pcIOP != nullptr
+  [rel] AVE_PSGen @0x13fee28 size=3784 insns=946 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x6634f: pcMD != nullptr
+        str 0x7a548: AVC_GenerateSlice
+        str 0x7a5e0: psSVEDPBEntry != nullptr
+        str 0x7a630: pcDPB != nullptr
+        str 0x7a9c9: AVE_PSGen
+  [rel] AVE_PSGen @0x140054c size=1980 insns=495 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x6634f: pcMD != nullptr
+        str 0x7a5e0: psSVEDPBEntry != nullptr
+        str 0x7a908: HEVC_SetSliceRPS
+        str 0x7a9c9: AVE_PSGen
+  [rel] AVE_IOP @0x1405184 size=812 insns=203 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x7b08d: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr && pSVECtrl != nullptr && pAXI2AF != nullptr && pFwI
+        str 0x7b491: AVE_IOP
+  [rel] AVE_IPC @0x140779c size=1700 insns=425 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x7b5a0: pDevInfo != nullptr && pSurfaceMgr != nullptr && id < 4 && pSVECtrl != nullptr && pFwImg != nullptr
+        str 0x7b696: pMemPool != nullptr
+        str 0x7c234: AVE_IPC
+  [rel] AVE_IPC @0x1408ce4 size=1000 insns=250 tags=['SVE']
+        str 0x7b9b2: SetChIntr
+        str 0x7b9bc: pInfo != nullptr && pInfo->context != nullptr
+        str 0x7ba1c: pIPC->m_pcSVECtrl != nullptr
+        str 0x7c234: AVE_IPC
+  [rel] AVE_PMGR @0x141cc58 size=1312 insns=328 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x7f402: pProvider != nullptr && pCfg != nullptr && pDevInfo != nullptr && id < 4 && pSVECtrl != nullptr
+        str 0x7f4a3: m_pcProvider != nullptr
+        str 0x7f503: pPDMap != nullptr
+        str 0x7f515: function-set_perf_state_floor
+        str 0x7fe35: AVE_PMGR
+  [rel] AVE_MD_SVE @0x1455fc0 size=628 insns=157 tags=['SVE']
+        str 0x4bfa5: Uninit
+        str 0x4d102: ret == 0
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14562f4 size=1084 insns=271 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x84b03: pcIODrv != nullptr && psTask != nullptr && psCfg != nullptr && pcDevInfo != nullptr && pcSurfaceMgr != nullptr && pClien
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1456730 size=576 insns=144 tags=['SVE']
+        str 0x5383f: ConfigDLB
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1456970 size=444 insns=111 tags=['SVE']
+        str 0x53849: Clear
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1456b2c size=444 insns=111 tags=['SVE']
+        str 0x85332: ClearRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1456ce8 size=932 insns=233 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x5384f: Config
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145741c size=868 insns=217 tags=['SVE']
+        str 0x4bfff: Reset
+        str 0x4d102: ret == 0
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1457780 size=444 insns=111 tags=['SVE']
+        str 0x8533a: ResetRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145793c size=1236 insns=309 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x538a1: InitComponents
+        str 0x84d75: m_pcPSGen != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1457e10 size=440 insns=110 tags=['SVE']
+        str 0x8532b: InitRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1457fc8 size=452 insns=113 tags=['SVE']
+        str 0x538b0: UninitComponents
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145818c size=432 insns=108 tags=['SVE']
+        str 0x85342: UninitRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145833c size=2196 insns=549 tags=['SVE']
+        str 0x509a5: false
+        str 0x6d663: res == 0
+        str 0x84dd1: InitSVESequentialRC
+        str 0x84e2a: m_pcDPB != nullptr
+        str 0x84eca: m_pcDRC != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1458bd0 size=400 insns=100 tags=['SVE']
+        str 0x84f2c: ClearSVESequentialRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1458d60 size=400 insns=100 tags=['SVE']
+        str 0x84f41: ResetSVESequentialRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1458ef0 size=476 insns=119 tags=['SVE']
+        str 0x84f56: UninitSVESequentialRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14590cc size=3936 insns=984 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x84f6c: InitSVEParallelRC
+        str 0x84f7e: m_psClient != nullptr
+        str 0x85049: m_pcGOPMgr != nullptr
+        str 0x850ed: m_pcRefMgr != nullptr
+        str 0x85192: m_pcRefedMgr != nullptr
+        str 0x851f2: m_pcSVERC != nullptr
+        str 0x8524e: m_pcSVEDPB != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145a02c size=496 insns=124 tags=['SVE']
+        str 0x852ac: ClearSVEParallelRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145a21c size=1652 insns=413 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x84f7e: m_psClient != nullptr
+        str 0x852bf: ResetSVEParallelRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145a890 size=584 insns=146 tags=['SVE']
+        str 0x85317: UninitSVEParallelRC
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145aad8 size=1020 insns=255 tags=['SVE']
+        str 0x85395: UpdateRC
+        str 0x8539e: pCmdInfo != nullptr && pUCInfo != nullptr && pInfo != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145aed4 size=928 insns=232 tags=['SVE']
+        str 0x8551d: UpdateDPB
+        str 0x85527: pUCInfo != nullptr && pDPBSet != nullptr
+        str 0x8559b: pDPBSet != nullptr && pUCInfo->sGOPInfo.iPOC >= 0
+        str 0x85618: refIdx >= 0
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145b274 size=1200 insns=300 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x85624: ManageRC
+        str 0x8562d: pCmdInfo != nullptr && pUCInfo != nullptr && pDPBSet != nullptr && pInfo != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145b724 size=1496 insns=374 tags=['SVE']
+        str 0x856cb: RetrieveRCFrameStats
+        str 0x85722: pHdr != nullptr && pStats != nullptr
+        str 0x8578f: iSliceNum >= 0 && iSliceNum <= ((32) < (256) ? (32) : (256))
+        str 0x8580c: pHdr->sSliceInfo.saCOBuf[i].saOBuf[AVE_BufIdx_Data].iSize > 0
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145bcfc size=1104 insns=276 tags=['SVE']
+        str 0x8587e: RetrieveSVERCStats
+        str 0x858d4: pUCInfo != nullptr && pHdr != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145c14c size=1020 insns=255 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x859aa: RetrieveRCStats
+        str 0x85a04: pUCInfo != nullptr && pHdr != nullptr && pStats != nullptr
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145d56c size=1588 insns=397 tags=['SVE']
+        str 0x5b6fb: pSurface != nullptr
+        str 0x85f19: UpdateOutputBuf_Status
+        str 0x85fb3: %d - 
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145dba0 size=368 insns=92 tags=['SVE']
+        str 0x86011: CheckOutputBuf_Quota
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145ddec size=1656 insns=414 tags=['SVE']
+        str 0x5aa0f: pCHM != nullptr
+        str 0x86026: AcquireOutputBuf
+        str 0x860d1: rret == 0
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145e464 size=900 insns=225 tags=['SVE']
+        str 0x5aa0f: pCHM != nullptr
+        str 0x86129: ReleaseOutputBuf
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145e7e8 size=460 insns=115 tags=['SVE']
+        str 0x6f05a: PreUpdate
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145e9b4 size=456 insns=114 tags=['SVE']
+        str 0x6f064: PostUpdate
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145eb7c size=1028 insns=257 tags=['SVE']
+        str 0x861a9: CalcSurfaceInfo
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145ef80 size=1228 insns=307 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8622d: CreateExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145f44c size=660 insns=165 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x86349: DestroyExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145f6e0 size=684 insns=171 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x863b8: CreateInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145f98c size=660 insns=165 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x86425: DestroyInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x145fc20 size=1096 insns=274 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x864c1: DARTMapExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1460068 size=604 insns=151 tags=['SVE']
+        str 0x865c1: DARTUnmapExternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x14602c4 size=1124 insns=281 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x865db: DARTMapInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1460728 size=604 insns=151 tags=['SVE']
+        str 0x866ac: DARTUnmapInternalSurfaces
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1460984 size=1708 insns=427 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x78389: psInfo != nullptr && psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x86705: ParallelProcess
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x146112c size=2380 insns=595 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x538c1: DispatchCmd
+        str 0x86946: (sCmdInfo.iChNum >= 1) && (sCmdInfo.iChNum <= m_sHwCMap.iNum)
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1461a78 size=592 insns=148 tags=['SVE']
+        str 0x53970: CalcInputQueueNum
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1461cc8 size=500 insns=125 tags=['SVE']
+        str 0x53982: CalcInputQueueMinNum
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_MD_SVE @0x1462324 size=1664 insns=416 tags=['SVE']
+        str 0x509a5: false
+        str 0x869c5: DecideFrameType
+        str 0x86a13: pUCInfo->frameNumber != 0
+        str 0x86b4f: AVE_MD_SVE
+  [rel] AVE_SVECtrl_GetReg @0x14631d0 size=264 insns=66 tags=['SVE']
+        str 0x8781a: AVE_SVECtrl_GetReg
+  [rel] AVE_SVECtrl @0x146334c size=596 insns=149 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x58034: pCfg != nullptr && pDevInfo != nullptr && id < 4 && pReg != nullptr
+        str 0x87872: m_psRegOffset != nullptr
+        str 0x87a2b: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x14638a4 size=272 insns=68 tags=['SVE']
+        str 0x87945: SetIntr
+        str 0x87a2b: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x14639b4 size=716 insns=179 tags=['SVE']
+        str 0x878cc: RecvIOPMsg
+        str 0x87a2b: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x1463cc0 size=272 insns=68 tags=['SVE']
+        str 0x8794d: ClearIntr
+        str 0x87a2b: AVE_SVECtrl
+  [rel] AVE_SVECtrl @0x1464018 size=320 insns=80 tags=['SVE']
+        str 0x8798b: SetIdle
+        str 0x87a2b: AVE_SVECtrl
+  [rel] AVE_SVEDPB @0x14643b4 size=704 insns=176 tags=['SVE']
+        str 0x4bfa5: Uninit
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14646a0 size=2292 insns=573 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x87ac8: pcaRecon != nullptr && pcaLFSRef != nullptr && pcaLFSOutput != nullptr && pcaLRSOutput != nullptr
+        str 0x87b7e: m_saRefBuf[i].psBuf != nullptr && m_saRefBuf[i].psLowResBuf != nullptr
+        str 0x87c10: m_saRefBuf[i].psaLowResResultBuf != nullptr
+        str 0x87c87: m_saRefBuf[i].psaLowResRCResultBuf != nullptr
+        str 0x87cb5: pcaLFSOutput[i + iRefNum][0] [iLRMEResultBufSetIdx] != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1464f94 size=736 insns=184 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x4c5bc: ResetEntry
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14659e8 size=452 insns=113 tags=['SVE']
+        str 0x53849: Clear
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1465bac size=936 insns=234 tags=['SVE']
+        str 0x4c501: ReleaseEntry
+        str 0x4c50e: psEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1465f54 size=428 insns=107 tags=['SVE']
+        str 0x4bfff: Reset
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1466100 size=1176 insns=294 tags=['SVE']
+        str 0x4c338: AcquireEntry
+        str 0x4c50e: psEntry != nullptr
+        str 0x87d34: ppsEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1466598 size=860 insns=215 tags=['SVE']
+        str 0x6ece9: pBuf != nullptr
+        str 0x88530: ReleaseRefBuf
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14668f4 size=528 insns=132 tags=['SVE']
+        str 0x87df8: GetEntryByPOC
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1466b04 size=524 insns=131 tags=['SVE']
+        str 0x87e34: GetEntryByFrameNum
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1466d10 size=936 insns=234 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x87e77: GetRefParamByFrameNum
+        str 0x87ed0: psRefInfo != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14670b8 size=3256 insns=814 tags=['SVE']
+        str 0x4c034: Process
+        str 0x4d102: ret == 0
+        str 0x87f68: psRefInfo != nullptr && psRefedInfo != nullptr
+        str 0x88120: psRefInfo->iaNum[AVE_RefDir_Neg] == 0 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x881b6: psRefInfo->iaNum[AVE_RefDir_Neg] >= 1 && psRefInfo->iaNum[AVE_RefDir_Pos] == 0
+        str 0x8824a: (pcPFInfo->iFrameType == IMG_INTER_B || pcPFInfo->iFrameType == IMG_INTER_BREF) && psRefInfo->iaNum[AVE_RefDir_Neg] >= 1
+        str 0x883c4: ret == 0 && psCurEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1467d70 size=1060 insns=265 tags=['SVE']
+        str 0x8859a: TruncateRefedInfo
+        str 0x885ed: iFrameNum >= 0 && (iFrameType == IMG_INTRA_IDR || iFrameType == IMG_INTRA_FRAME || iFrameType == IMG_INTER_P)
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1468194 size=1180 insns=295 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x88793: FreeEntry
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1468630 size=1324 insns=331 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x886d3: UpdateRefedInfo
+        str 0x8873a: psRefEntry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1468b5c size=1268 insns=317 tags=['SVE']
+        str 0x88478: AcquireRefBuf
+        str 0x88486: ppBuf != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x1469050 size=1624 insns=406 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x8887f: PostCheck
+        str 0x888ca: iSkip != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x14696a8 size=2608 insns=652 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x4d102: ret == 0
+        str 0x6b681: Check
+        str 0x88a1f: ret == 0 && pBuf != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x146a0d8 size=3016 insns=754 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x88b80: Fetch
+        str 0x88bca: psDPBSet != nullptr && iPOC != nullptr
+        str 0x88c87: psEntry->psBuf != nullptr
+        str 0x88ce2: psRefL0Entry != nullptr
+        str 0x88d83: psRefL1Entry != nullptr
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x146aca0 size=2968 insns=742 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x4d102: ret == 0
+        str 0x4e157: Update
+        str 0x88e7a: eFrmState >= AVE_SVEDPB_FrameState_Processed && eFrmState < AVE_SVEDPB_FrameState_Max
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVEDPB @0x146b838 size=1204 insns=301 tags=['SVE']
+        str 0x4c50e: psEntry != nullptr
+        str 0x890db: GetAVCRefListParams
+        str 0x89130: psPicReordering != nullptr && m_eEncType == AVE_EncType_AVC
+        str 0x89389: AVE_SVEDPB
+  [rel] AVE_SVERC @0x1470f54 size=576 insns=144 tags=['SVE']
+        str 0x4bfa5: Uninit
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x14711c0 size=1948 insns=487 tags=['SVE']
+        str 0x4be8c: Init
+        str 0x4d102: ret == 0
+        str 0x89a97: iSVENum > 0 && iSVENum <= 4
+        str 0x89ab3: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x89aed: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x147195c size=1204 insns=301 tags=['SVE']
+        str 0x8931f: %lld %d | 
+        str 0x89cab: InitBitAllocateRatioArray
+        str 0x89d0b: iFrameNum >= 0 && eMotionLvl >= 0 && eMotionLvl < AVE_SVERC_Motion_LvlMax && psBitRatioInfo != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x1471e10 size=844 insns=211 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x53849: Clear
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x147215c size=1632 insns=408 tags=['SVE']
+        str 0x4bfff: Reset
+        str 0x4d102: ret == 0
+        str 0x89a97: iSVENum > 0 && iSVENum <= 4
+        str 0x89ab3: eGOPMode > AVE_GOPMode_None && eGOPMode < AVE_GOPMode_Max
+        str 0x89aed: piaSID2Idx != nullptr && iIdxSize <= sizeof(m_iaSVEID2IDX)/sizeof(*m_iaSVEID2IDX)
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x14727bc size=1368 insns=342 tags=['SVE']
+        str 0x67d0a: UpdateStats
+        str 0x790fa: psStats != nullptr
+        str 0x89e4a: iSVEID >= 0 && iSVEID < 4 && psDistributedRCStats != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x1472d14 size=1160 insns=290 tags=['SVE']
+        str 0x89f16: CheckSyncReady
+        str 0x89f25: psSyncInfo != nullptr && piReady != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x147319c size=3228 insns=807 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x6b681: Check
+        str 0x846b5: %lld 
+        str 0x8a009: psSyncInfo != nullptr
+        str 0x8a0f9: | %d %d - 
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x1473e38 size=1572 insns=393 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x790fa: psStats != nullptr
+        str 0x8a6e0: UpdateStaticAreaLowQPMode
+        str 0x8a74a: psLowQPInfo != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x147445c size=2736 insns=684 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x790fa: psStats != nullptr
+        str 0x8a227: UpdateBitAllocation
+        str 0x8a28e: psLastInfo != nullptr
+        str 0x8a2a4: %lld:%d:%d 
+        str 0x8a379: psCurInfo != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x1474f0c size=1608 insns=402 tags=['SVE']
+        str 0x8a422: ProcessBitAllocation
+        str 0x8a47d: iSVEID >=0 && iSVEID < 4 && pfRatio != nullptr
+        str 0x8a503: psBitRatioInfo != nullptr && iFound == 1
+        str 0x8a52c: | %lld %d - 
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x1475554 size=1128 insns=282 tags=['SVE']
+        str 0x8a5d5: ProcessRCParams
+        str 0x8a62e: iSVEID >=0 && iSVEID < 4 && psDistributedRCParams != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVERC @0x14759bc size=960 insns=240 tags=['SVE']
+        str 0x8a81e: AccumulateCBP0Cnt
+        str 0x8a87a: piCBPIs0Flag != nullptr && paCBP0Cnt != nullptr
+        str 0x8a9b1: AVE_SVERC
+  [rel] AVE_SVESched_TimingMgr_Reset @0x1476b90 size=724 insns=181 tags=['SVE']
+        str 0x8ab28: AVE_SVESched_TimingMgr_Reset
+        str 0x8ab7b: psTimingMgr != nullptr && iSVENum >= 0 && iSVENum <= 4
+  [rel] AVE_SVESched_TimingMgr_Init @0x1476e64 size=664 insns=166 tags=['SVE']
+        str 0x8abd7: AVE_SVESched_TimingMgr_Init
+        str 0x8ac28: psTimingMgr != nullptr
+  [rel] AVE_SVESched_TimingMgr_Uninit @0x14770fc size=576 insns=144 tags=['SVE']
+        str 0x8ac28: psTimingMgr != nullptr
+        str 0x8ac3f: AVE_SVESched_TimingMgr_Uninit
+  [rel] AVE_SVESched_TimingMgr_FetchRefTime @0x147733c size=724 insns=181 tags=['SVE']
+        str 0x8ac85: AVE_SVESched_TimingMgr_FetchRefTime
+        str 0x8ace4: psaTimingInfoList != nullptr && iFrameNum >= 0 && iSVENum >= 0 && iSVENum <= 4 && piRefTime != nullptr
+  [rel] AVE_SVESched_TimingMgr_Add @0x1477610 size=1952 insns=488 tags=['SVE']
+        str 0x8ada3: AVE_SVESched_TimingMgr_Add
+        str 0x8adff: psTimingMgr != nullptr && iFrameNum >= 0 && iLayer >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && psRefInfo != nullptr
+  [rel] AVE_SVESched_TimingMgr_Remove @0x1477db0 size=892 insns=223 tags=['SVE']
+        str 0x8afac: AVE_SVESched_TimingMgr_Remove
+        str 0x8b002: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < psTimingMgr->iSyncNum
+  [rel] AVE_SVESched_TimingMgr_Sync @0x147812c size=2008 insns=502 tags=['SVE']
+        str 0x8b0ba: AVE_SVESched_TimingMgr_Sync
+        str 0x8b0d6: psTimingMgr != nullptr && iFrameNum >= 0 && iSVEIdx >= 0 && iSVEIdx < iSVENum && iSVENum >=0 && iSVENum <= 4 && psSyncIn
+        str 0x8b1a2: iFound == 1 && psInfo != nullptr
+        str 0x8b1c3: [%lld %d] 
+  [rel] AVE_SVESched_Init @0x1478904 size=1064 insns=266 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8b228: AVE_SVESched_Init
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b508: pSVESched->psTimingMgr != nullptr
+  [rel] AVE_SVESched_Config @0x1478d2c size=2328 insns=582 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x89305: %d | 
+        str 0x8b56f: AVE_SVESched_Config
+        str 0x8b5bc: pSVESched != nullptr && psEUMap != nullptr
+        str 0x8b9d6: AVE_SVESched_GenerateEUMap
+        str 0x8b9f1: pSVESched->iActiveSVENum == pEUMap->iNum
+        str 0x8ba1a: %d -> (%d %d %d) 
+  [rel] AVE_SVESched_Uninit @0x1479644 size=600 insns=150 tags=['SVE']
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b697: AVE_SVESched_Uninit
+  [rel] AVE_SVESched_ClearOrder @0x147989c size=248 insns=62 tags=['SVE']
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b6ab: AVE_SVESched_ClearOrder
+  [rel] AVE_SVESched_Clear @0x1479994 size=760 insns=190 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8b23a: pSVESched != nullptr
+        str 0x8b6c3: AVE_SVESched_Clear
+  [rel] AVE_SVESched_Process @0x1479c8c size=1844 insns=461 tags=['SVE']
+        str 0x4d102: ret == 0
+        str 0x8b74b: AVE_SVESched_Process
+        str 0x8b7a4: pSVESched != nullptr && psInfo != nullptr && psRefInfo != nullptr && pCmdInfo != nullptr
+        str 0x8b88e: %d -> 
+  [rel] AVE_RetrieveSVEID @0x14808ec size=584 insns=146 tags=['SVE']
+        str 0x8c725: AVE_RetrieveSVEID
+        str 0x8c737: pEntry != nullptr && pID != nullptr
+        str 0x8c75b: sve-id
+
+=== semantic strings: NEW in rel / GONE from b4 ===
+  + AVE_SVESched_ClearOrder
+  - pCHM != nullptr && pSurface != nullptr && pSize != nullptr && psCBufInfo != nullptr
+
+=== xref owners of NEW/GONE semantic strings ===
+  AVE_SVESched_ClearOrder <- AVE_SVESched_ClearOrder @0x147989c
+  -- gone --
+  pCHM != nullptr && pSurface != nullptr && pSize != nullptr && psCBufInfo != null <- AVE_CHM_GetMCTFOutBuf @0x1327464
