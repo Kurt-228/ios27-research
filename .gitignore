@@ -70,13 +70,11 @@ results/pprp/carve-*.bin
 # с FUZZ_BQ44_ONLY=<имя>; на хост не коммитятся (262 МБ).
 results/dycache/
 
-# v238: карв-бинари трёх kernelcache (b4 24A5390f / RC 24A435 / FCS 24A437 /
-# 27.2 24B115) — регенерируются relay/get_kc27.py (range-fetch 22.8 МБ с CDN)
-# + results/kc-extract/carve_fileset.py. В git идут только скрипты и диффы.
-results/kc27-b4/
-results/kc27-435/
-results/kc27-B115/
-results/kc27-release/
+# v238: карв-бинари kernelcache всех версий (b4 24A5390f / RC 24A435 / FCS
+# 24A437 / 27.2 24B115 / будущие 24A446 и т.д.) — регенерируются
+# relay/get_kc27.py (range-fetch 22.8 МБ с CDN) + results/kc-extract/carve_fileset.py.
+# В git идут только скрипты и диффы. (kc27/ без суффикса не матчится — там tracked-симлинки.)
+results/kc27-*/
 
 # v238: карв-бинари в корне репо (артефакты carve_fileset.py)
 /*.macho
