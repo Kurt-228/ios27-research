@@ -1,0 +1,129 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ94=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4913
+[scaler] conn 0x4913, s1 25 s2 27
+[probe12] SetNotificationPort -> 0x00000000
+[bq94] v254: churn-diff охота на живые VRAM-регионы (§245-next)
+[bq92]   probe(P) target 0: слотов 0 status 4 | B:41 0 Bnz 4096
+[bq94] K0 OK (Bnz 4096)
+[bq94] свип: 32 VA (шаг 0x8000, 0x100_00004000 исключён)
+[bq92]   probe(R) target 0x10000000000: слотов 9 status 4 | B:41 0 Bnz 2762
+[bq94] A 0x10000000000: nz-u64 477/512 range [0xc0..0xe454010f0154150f]
+[bq92]   probe(R) target 0x10000008000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000008000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000010000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000010000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000018000: слотов 8 status 4 | B:41 0 Bnz 16
+[bq94] A 0x10000018000: nz-u64 6/512 range [0x100..0x80000000073c7777]
+[bq92]   probe(R) target 0x10000020000: слотов 8 status 4 | B:41 0 Bnz 3751
+[bq94] A 0x10000020000: nz-u64 500/512 range [0x1400..0xe454010f0154150f]
+[bq92]   probe(R) target 0x10000028000: слотов 8 status 4 | B:41 0 Bnz 4096
+[bq94] A 0x10000028000: nz-u64 512/512 range [0x7777777777777777..0x7777777777777777]
+[bq92]   probe(R) target 0x10000030000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000030000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000038000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000038000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000040000: слотов 8 status 4 | B:41 0 Bnz 76
+[bq94] A 0x10000040000: nz-u64 20/512 range [0x40..0xfffffffbffff8007]
+[bq92]   probe(R) target 0x10000048000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000048000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000050000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000050000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000058000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000058000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000060000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000060000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000068000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000068000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000070000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000070000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000078000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000078000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000080000: слотов 8 status 4 | B:41 0 Bnz 21
+[bq94] A 0x10000080000: nz-u64 10/512 range [0x58000..0x5800000058000]
+[bq92]   probe(R) target 0x10000088000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000088000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000090000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000090000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x10000098000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x10000098000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000a0000: слотов 8 status 4 | B:41 1 Bnz 180
+[bq94] A 0x100000a0000: nz-u64 37/512 range [0xe..0x801c0510a8080002]
+[bq92]   probe(R) target 0x100000a8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000a8000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000b0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000b0000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000b8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000b8000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000c0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000c0000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000c8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000c8000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000d0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000d0000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000d8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000d8000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000e0000: слотов 9 status 4 | B:41 0 Bnz 12
+[bq94] A 0x100000e0000: nz-u64 6/512 range [0x40000000..0x4000000100002800]
+[bq92]   probe(R) target 0x100000e8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000e8000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000f0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000f0000: nz-u64 0/512 range [0..0]
+[bq92]   probe(R) target 0x100000f8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] A 0x100000f8000: nz-u64 0/512 range [0..0]
+[bq94] churn: 10 × (queue + 2×0x20000-буферы + blit-commit + release)
+[bq94] churn завершён
+[bq92]   probe(R) target 0x10000000000: слотов 8 status 4 | B:41 0 Bnz 2762
+[bq92]   probe(R) target 0x10000008000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000010000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000018000: слотов 8 status 4 | B:41 0 Bnz 16
+[bq92]   probe(R) target 0x10000020000: слотов 8 status 4 | B:41 0 Bnz 3751
+[bq92]   probe(R) target 0x10000028000: слотов 8 status 4 | B:41 0 Bnz 4096
+[bq92]   probe(R) target 0x10000030000: слотов 8 status 4 | B:41 0 Bnz 2816
+[bq94] *** DIFF 0x10000030000: 352/512 u64 изменены, первый @+0x500
+[bq94]   diff-A +000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-A +010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-A +020: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-A +030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-A +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-A +050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-B +000: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-B +010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq94]   diff-B +020: 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77
+[bq94]   diff-B +030: 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77
+[bq94]   diff-B +040: 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77
+[bq94]   diff-B +050: 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77 77
+[bq94]   новые-значения: 352 шт, range [0x7777777777777777..0x7777777777777777]
+[bq92]   probe(R) target 0x10000038000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000040000: слотов 8 status 4 | B:41 0 Bnz 76
+[bq92]   probe(R) target 0x10000048000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000050000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000058000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000060000: слотов 9 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000068000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000070000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000078000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000080000: слотов 8 status 4 | B:41 0 Bnz 21
+[bq92]   probe(R) target 0x10000088000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000090000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x10000098000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000a0000: слотов 8 status 4 | B:41 1 Bnz 180
+[bq92]   probe(R) target 0x100000a8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000b0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000b8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000c0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000c8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000d0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000d8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000e0000: слотов 9 status 4 | B:41 0 Bnz 12
+[bq92]   probe(R) target 0x100000e8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000f0000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   probe(R) target 0x100000f8000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq94] ИТОГ: изменённых чанков 1 из 32 — это ЖИВЫЕ runtime-регионы (кандидаты)
+[probe13] bq94-only mode, stop
