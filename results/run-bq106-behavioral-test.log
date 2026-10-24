@@ -1,0 +1,50 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ106=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x4b13
+[scaler] conn 0x4b13, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq106] v266: поведенческий тест входов Tier-A (§259)
+[bq106] escape OK
+[bq106] === [findmydeviced] com.apple.icloud.findmydeviced.extensions.configurations.plist
+[bq106]   ДО: size=42114 mtime=1792301471
+[bq106]   бэкап: 42114 bytes, identical=1
+[bq106]   мутация: 42114 → 42125 bytes
+[bq106]   WRITE OK (42125 bytes)
+[bq106]   t+5s: size=42125 mtime_delta=547540 *** ИЗМЕНЕНО ДЕМОНОМ ***
+[bq106]   ДЕТЕКТ: fz27_probe ПРИСУТСТВУЕТ — файл НЕ перечитан демоном (наш ключ жив)
+[bq106]   ОТКАТ: w=42114, identical=1 *** СИСТЕМА ВОССТАНОВЛЕНА ***
+[bq106] === [findmydeviced] com.apple.icloud.findmydeviced.secureLocations.config.plist
+[bq106]   ДО: size=4887 mtime=1785048411
+[bq106]   бэкап: 4887 bytes, identical=1
+[bq106]   мутация: 4887 → 4912 bytes
+[bq106]   WRITE OK (4912 bytes)
+[bq106]   t+5s: size=4912 mtime_delta=7800605 *** ИЗМЕНЕНО ДЕМОНОМ ***
+[bq106]   ДЕТЕКТ: fz27_probe ПРИСУТСТВУЕТ — файл НЕ перечитан демоном (наш ключ жив)
+[bq106]   ОТКАТ: w=4887, identical=1 *** СИСТЕМА ВОССТАНОВЛЕНА ***
+[bq106] === [findmydeviced] com.apple.icloud.findmydeviced.accessories.locations.plist
+[bq106]   ДО: size=1477 mtime=1792839385
+[bq106]   бэкап: 1477 bytes, identical=1
+[bq106]   мутация: 1477 → 1500 bytes
+[bq106]   WRITE OK (1500 bytes)
+[bq106]   t+5s: size=1500 mtime_delta=9636 *** ИЗМЕНЕНО ДЕМОНОМ ***
+[bq106]   ДЕТЕКТ: fz27_probe ПРИСУТСТВУЕТ — файл НЕ перечитан демоном (наш ключ жив)
+[bq106]   ОТКАТ: w=1477, identical=1 *** СИСТЕМА ВОССТАНОВЛЕНА ***
+[bq106] === [lsd] com.apple.launchservices.securepreferences.plist
+[bq106]   ДО: size=0 mtime=0 (ENOENT)
+[bq106]   ФАЙЛА НЕТ — скип
+[bq106] === [lsd] DefaultAppQueryState.plist
+[bq106]   ДО: size=190 mtime=1791477557
+[bq106]   бэкап: 190 bytes, identical=1
+[bq106]   мутация: 190 → 211 bytes
+[bq106]   WRITE OK (211 bytes)
+[bq106]   t+5s: size=211 mtime_delta=1371469 *** ИЗМЕНЕНО ДЕМОНОМ ***
+[bq106]   ДЕТЕКТ: fz27_probe ПРИСУТСТВУЕТ — файл НЕ перечитан демоном (наш ключ жив)
+[bq106]   ОТКАТ: w=190, identical=1 *** СИСТЕМА ВОССТАНОВЛЕНА ***
+[bq106] ИТОГ: поведенческий тест завершён (все откаты сделаны?)
+[probe13] bq106-only mode, stop

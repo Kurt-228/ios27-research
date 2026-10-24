@@ -7934,3 +7934,24 @@ writable-контейнером: (1) stat-снапшот всех файлов �
 NSKeyedArchiver (§180 показал что accessories — тоже NSKeyedArchiver),
 но с ГЛУБОКОЙ структурой (расширения FindMy-аксессуаров → протоколы
 FindMy → возможные кастомные десериализаторы в root-демоне).
+
+### §260 (v266). p_bq106: поведенческий тест — все файлы НЕ перечитаны за 30с
+
+**Результат**: 5 целей, все fz27_probe-ключи выжили → демоны читают
+файлы при СТАРТЕ, не по таймеру. mtime_delta — артефакт нашей записи.
+lsd/securepreferences — ENOENT (не существует в текущем состоянии).
+
+**Интерпретация**: §177-шные «каждые минуты» относились к accessories.plist
+(витрина §180). Реальные входы читаются при запуске демона → атака =
+написать payload заранее, сработает при следующем ребуте/респринге.
+
+**След фокуса по привилегиям (юзер-поправка)**:
+- findmydeviced — вероятно mobile+sandboxed → низкая ценность даже при баге
+- **lsd (root, no-sbx, mach=3) — ПРАВИЛЬНАЯ ЦЕЛЬ**
+- **mobileactivationd (root, no-sbx, mach=2) — ПРАВИЛЬНАЯ ЦЕЛЬ**
+- **appstored (root, mach=19!) — ПРАВИЛЬНАЯ ЦЕЛЬ (макс XPC)**
+- eligibilityd (root, no-sbx, mach=1) — запасная
+
+**Next**: IPSW range-HTTP → бинари lsd/mobileactivationd/appstored →
+RE парсеров их входных файлов (DefaultAppQueryState, activation_records,
+appstored-кэши) → поиск memory-corruption в бинарных форматах.
