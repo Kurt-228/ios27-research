@@ -7272,3 +7272,67 @@ VRAM-окна parent → чужие GPU-аллокации/ядро.
 (19 МБ gzip: gpu_{b4,435,B115}, agx_435/B115, disp_*, iomg_*, kernel_435/B115,
 ave2_{b4,rel,b115}, ave_venc; README.md с картой сборок) — из temp-каталога
 до его потери.
+
+### §242 (v250). p_bq90: OOB-дети в submit-конвейере — принятия без валидации; формула окна
+
+**Сетап v84-точный** (nqVA data-queue + procName/priority-блоб sel6 + IOConnectSetNotificationPort —
+без них completion-канал молчит; v1-прогон bq90 с zeroed-блобом дал 0 записей).
+Родители A/B/C = format-B type-0 (GPUVA 0x100_00000000/0x180000/0x300000 — аллокатор
+per-connection детерминирован, capture-матч = контроль), дети = sel8 suballoc
+(parent=ridA, resType 0). PROTSWEEP: у format-B родителя проходит ТОЛЬКО prot=0
+(гейт popcount(prot)==parent+0x14 подтверждён на втором типе родителя).
+
+**Формула окна (эмпирика, 2 родителя × 5 детей)**: `win = (parent_gpuva + D) | 0x40_00000000`
+(bit38 — client-side тег пространства; для D<0 бит уже в переносе → raw parent+D).
+Oracle out+0x50 = parent_size − D (wrap для D>len, +|D| для D<0 — знаковая арифметика).
+
+**Матрица 6-pack** (child в слоте dest вместо ridB; сегмент-лист capture-faithful + 6-pack,
+команда verbatim): **все 5 вариантов (ctl {A,B,C}, in-bounds D=0, OOB D=+0x18xxx,
+D<0, D=+0x10000000) — kt=0, outw=0, ОДНА completion-запись status 5** (~77 мкс
+реальной обработки), B/A/C не изменились, устройство живо. Т.е. submit-конвейер
+(translation/residency стадии) парсит и принимает OOB-детей без единого кода
+отказа; executor-стена (status 5, §75) на raw type-1 очереди стоит ДО любого
+дереференса окна. Никакой валидации окна на этом пути НЕТ.
+
+### §243 (v251). p_bq91: MT-PATCH × окно ребёнка — что реально маппится
+
+Кросс §82×§241: родители P/P2/P3 (format-B на **command-конн Metal**, §77:
+port-like u32 из `_deviceRef`/`_impl`, sel12-проба, у нас `_deviceRef+0x14`),
+дети на том же конне; MT-PATCH (pool-слоты dest/source + residency rid в
+seglist 6-pack) через настоящий Metal commit. **Урок контаминации**: Metal
+рециклит commandBufferStorage/pool-таблицы — патчи прошлых тестов висят в
+«свежих» cb (v3-прогон: seglist нового cb нёс ridA=29 от прошлого теста) =>
+обязательны СВЕЖИЕ MTLBuffer'ы на каждый тест (v4/v5).
+
+| тест | что | результат |
+|---|---|---|
+| K0 plain | blit A→B без патчей | B:41=1024 ✓ контекст жив |
+| K0b dest→C + res | v89-базлайн | C:41=1024 ✓ патч-механизм жив |
+| T1/T2 dest→gP ±res | raw VA родителя | P:41=1024 оба — **format-B VA замаплены EAGER** |
+| T3 dest→gP2 res(P2) | алиас-контроль | P2:41=1024 ✓ |
+| **T4 dest→gP2 res(child cX)** | окно D=gP2−gP | P2:41=1024 — запись дошлась, НО неотличимо от eager P2 |
+| T5 dest→(gP+D_big) res(cBig) | окно past-P3 | статус 4, невидимо (физ вне наших буферов) |
+| **T6 src→gP2 res(cX) READ** | чтение через VA окна | **B:44=1024 — прочитан паттерн P2** (v4, свежие буферы) |
+| T7 src→(gP+D_big) res(cBig) | чтение past-P3 | Bnz=0 |
+| **T8/T9 ROUND-TRIP past-P3** | write→readback по внутр. VA окна | **ПУСТО (B:41=0, status 4)** |
+
+**Вердикт по примитиву**: окно ребёнка НЕ маппится ни sel8-созданием, ни
+seglist-residency (round-trip T8/T9 пуст — оба дропнуты); записи/чтения
+«через окно» (T4/T6) ходят по **raw-алиасу gP+D в ЧУЖИЕ готовые маппинги**
+(родители eager). Т.е. на драйвабельных нами путях окно = чистая арифметика
+VA, PTE окна строит только Metal-side view-binding (MTLTexture view →
+encoder → device command stream) — путь не тронут. Реальный консьюмер
++0x48, который гейтил 27.0 фикс — за residency-стадией, в привязке view.
+
+**Атакующая ценность** (b4): OOB-ребёнок даёт ЛЕГИТИМНЫЙ (ядром выданный)
+rid+GPUVA окна с произвольным D — для Metal-клиента это единственный способ
+получить в командный поток VA вне границ своего ресурса; для нас (MT-PATCH
+уже даёт произвольный VA) добавка — только как cover. Гейт-фикс 27.0
+закрывает ровно это: окно ≠ [parent, parent+size) не выдаётся клиенту.
+
+**Next (p_bq92)**: драйвнуть Metal view-binding — создать НАСТОЯЩИЙ
+MTLTexture view (newTextureViewWithPixelFormat от текстуры из P), затем
+патчить view-ивары (_gpuAddress → OOB окно) или командные слоты view —
+тогда ядро само построит PTE окна с нашим D (arbitrary phys-offset
+read/write). Альтернатива: разобрать в agx_435.c, кто читает byte+0x11
+bit1/bit5 (0x200200) — где residency веткуется для детей.

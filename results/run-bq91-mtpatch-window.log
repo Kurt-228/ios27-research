@@ -1,0 +1,80 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ91=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x590f
+[scaler] conn 0x590f, s1 25 s2 27
+[probe12] SetNotificationPort -> 0x00000000
+[bq91] v251: MT-PATCH × child-окно — GPU write/read OOB (§82×§241)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq91] devObj 0x10a650000 devRef 0x10a441a10 (+0x14: 0x6103) devImpl 0x10a5e9000
+[bq91] conn-кандид 0x7d03: sel12 kr=0xe00002c2 
+[bq91] conn-кандид 0x6103: sel12 kr=0 <- Metal conn
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 21 GPUVA 0x10000080000 cpu 109dc4000
+[mtlr]   out: 0000010000080000 0000000109dc4000 0000000109d2cfc0 0000000000000000
+[mtlr]   out: 0000001500000000 0000000000010000 000000033568867c 000000000030728a
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 22 GPUVA 0x10000098000 cpu 109dd4000
+[mtlr]   out: 0000010000098000 0000000109dd4000 0000000109d2d080 0000000000000000
+[mtlr]   out: 0000001600000000 0000000000010000 000000033568867d 000000000030728b
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 23 GPUVA 0x100000b0000 cpu 109de4000
+[mtlr]   out: 00000100000b0000 0000000109de4000 0000000109d2d140 0000000000000000
+[mtlr]   out: 0000001700000000 0000000000010000 000000033568867e 000000000030728c
+[bq91] P rid 21 gpuva 0x10000080000 cpu 0x109dc4000 | P2 rid 22 gpuva 0x10000098000 (delta 0x18000) | P3 rid 23 gpuva 0x100000b0000 (d2 0x18000)
+[bq91] PROTSWEEP(mconn) prot=0 kr=0 *** PASS ***
+[bq91] CHILD cD0  (D=0)             kr=0 rid=25 win=0x14000080000 oracle(+0x50)=0x10000 *** СОЗДАН ***
+[bq91] child-out +000: 00 00 08 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +010: c0 d2 d2 09 01 00 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +020: 00 00 00 00 19 00 00 00 00 00 01 00 00 00 00 00
+[bq91] child-out +030: 54 87 68 35 03 00 00 00 8a 72 30 00 00 00 00 00
+[bq91] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +050: 00 00 01 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq91] CHILD cX   (D=gP2-gP)        kr=0 rid=26 win=0x14000098000 oracle(+0x50)=0xffffffffffff8000 *** СОЗДАН ***
+[bq91] child-out +000: 00 80 09 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +010: 80 d3 d2 09 01 00 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +020: 00 00 00 00 1a 00 00 00 00 00 01 00 00 00 00 00
+[bq91] child-out +030: 2d 89 68 35 03 00 00 00 8a 72 30 00 00 00 00 00
+[bq91] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +050: 00 80 ff ff ff ff ff ff 00 00 00 00 00 00 00 00
+[bq91] CHILD cBig (D=+0x40000 past P2, sz 0x100000) kr=0 rid=27 win=0x140000d8000 oracle(+0x50)=0xfffffffffffb8000 *** СОЗДАН ***
+[bq91] child-out +000: 00 80 0d 00 40 01 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +010: 40 d4 d2 09 01 00 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +020: 00 00 00 00 1b 00 00 00 00 00 01 00 00 00 00 00
+[bq91] child-out +030: 10 8b 68 35 03 00 00 00 8a 72 30 00 00 00 00 00
+[bq91] child-out +040: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq91] child-out +050: 00 80 fb ff ff ff ff ff 00 00 00 00 00 00 00 00
+[bq91] K0 plain A->B: dest-слотов 0 src-слотов 0, ridA 28 ridB 29, residency-патчей 0
+[bq91] K0 plain A->B -> cb status 4 | B:41 1024 B:44 0 Bnz 1024 | C:41 0 | P:41 0 | P2:41 0 | P3:41 0
+[bq91] K0b dest->C (v89): dest-слотов 12 src-слотов 0, ridA 43 ridB 44, residency-патчей 1
+[bq91] K0b dest->C (v89) -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 1024 | P:41 0 | P2:41 0 | P3:41 0
+[bq91]   *** K0b: MT-PATCH базлайн — патч-механизм жив ***
+[bq91] T1 dest->gP res(P): dest-слотов 11 src-слотов 0, ridA 46 ridB 47, residency-патчей 1
+[bq91] T1 dest->gP res(P) -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 0 | P:41 1024 | P2:41 0 | P3:41 0
+[bq91]   *** T1: RAW gP + res(P) — VA родителя пишет! ***
+[bq91] T2 dest->gP no-res: dest-слотов 11 src-слотов 0, ridA 49 ridB 50, residency-патчей 0
+[bq91] T2 dest->gP no-res -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 0 | P:41 1024 | P2:41 0 | P3:41 0
+[bq91]   *** T2: gP замаплен ДАЖЕ БЕЗ residency! ***
+[bq91] T3 dest->gP2 res(P2): dest-слотов 11 src-слотов 0, ridA 52 ridB 53, residency-патчей 1
+[bq91] T3 dest->gP2 res(P2) -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 0 | P:41 0 | P2:41 1024 | P3:41 0
+[bq91]   *** T3: алиас-VA gP2 со своим мапплением ✓ (control) ***
+[bq91] T4 dest->gP2 res(cX): dest-слотов 11 src-слотов 0, ridA 55 ridB 56, residency-патчей 1
+[bq91] T4 dest->gP2 res(cX) -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 0 | P:41 0 | P2:41 1024 | P3:41 0
+[bq91]   T4: res(ребёнок): *** РЕБЁНОК МАППИТ ОКНО — GPU-OOB ПРИМИТИВ! ***
+[bq91] T5 dest->gP2+40000 res(cBig): dest-слотов 11 src-слотов 0, ridA 58 ridB 59, residency-патчей 1
+[bq91] T5 dest->gP2+40000 res(cBig) -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 0 | P:41 0 | P2:41 0 | P3:41 0
+[bq91]   T5: cBig past-P2 window WRITE: статус 4 — запись ушла в phys(P)+0x58000 (вне наших аллокаций)
+[bq91] T6 src->gP2 res(cX) READ: dest-слотов 0 src-слотов 8, ridA 61 ridB 62, residency-патчей 1
+[bq91] T6 src->gP2 res(cX) READ -> cb status 4 | B:41 0 B:44 1024 Bnz 1024 | C:41 0 | P:41 0 | P2:41 0 | P3:41 0
+[bq91]   T6: READ через окно cX: *** ЧТЕНИЕ phys(P)+(gP2-gP) = Р2 ЧЕРЕЗ ОКНО РЕБЁНКА ***
+[bq91] T7 src->gP2+40000 res(cBig) READ: dest-слотов 0 src-слотов 8, ridA 64 ridB 65, residency-патчей 6
+[bq91] T7 src->gP2+40000 res(cBig) READ -> cb status 4 | B:41 0 B:44 0 Bnz 0 | C:41 0 | P:41 0 | P2:41 0 | P3:41 0
+[bq91]   T7: READ past-P3 (phys(P)+0x58000): Bnz 0 (нули/дроп)
+[bq91] ROUND-TRIP: окно cBig raw [0x100000d8000 +0x100000], внутренний VA 0x100000e8000
+[bq91] T8 via window @0x100000e8000: слотов 12 res-патчей 1
+[bq91] T9 via window @0x100000e8000: слотов 9 res-патчей 1
+[bq91] T9 READBACK: B:41 0 Bnz 0 status 4
+[bq91]   round-trip пуст: окно не маппится (residency скипает детей) либо дроп
+[bq91] ИТОГ: матрица завершена (устройство живо? = нет паники)
+[probe13] bq91-only mode, stop
