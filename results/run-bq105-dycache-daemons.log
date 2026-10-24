@@ -1,0 +1,37 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ105=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x7903
+[scaler] conn 0x7903, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq105] v265: карвинг владельцев + strings-проход (§258)
+[bq105] head: dyld_shared_cache_arm64e
+[bq105] images: off=0x2a8 cnt=4690
+[bq105] 76 сабфайлов
+[bq105] lsd                         : нет в таблице образов
+[bq105] findmydeviced               : нет в таблице образов
+[bq105] mobileactivationd           : нет в таблице образов
+[bq105] apsd                        : нет в таблице образов
+[bq105] akd                         : нет в таблице образов
+[bq105] appstored                   : нет в таблице образов
+[bq105] eligibilityd                : нет в таблице образов
+[bq105] fairplayd                   : нет в таблице образов
+[bq105] backboardd                  : нет в таблице образов
+[bq105] SpringBoard                 : /System/Library/AccessibilityBundles/SpringBoard.axbundle/SpringBoard (312 KB)
+[bq105]   парсер-паттерны: 0/8
+[bq105] appprotectiond              : нет в таблице образов
+[bq105] linkd                       : нет в таблице образов
+[bq105] adid                        : нет в таблице образов
+[bq105] geod                        : нет в таблице образов
+[bq105] metrickitd                  : нет в таблице образов
+[bq105] managedappdistributiond     : нет в таблице образов
+[bq105] softposreaderd              : нет в таблице образов
+[bq105] remotemanagementd           : нет в таблице образов
+[bq105] softwareupdateservicesd     : нет в таблице образов
+[bq105] ИТОГ: strings-проход завершён
+[probe13] bq105-only mode, stop

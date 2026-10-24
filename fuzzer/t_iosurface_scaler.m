@@ -46475,6 +46475,204 @@ static void p_bq104(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq105 — v265: карвинг бинарей 23 владельцев из dycache + strings-проход
+// (§258-next). Ищем в таблице образов по basename (lsd, findmydeviced,
+// mobileactivationd, apsd, akd, appstored, eligibilityd, fairplayd,
+// backboardd, SpringBoard, appprotectiond, linkd, adid, geod, metrickitd,
+// managedappdistributiond...). Для каждого: карвинг (bq21-механика) → скан
+// строк: (1) имена СВОИХ контейнерных файлов (подтверждение read-пути),
+// (2) ObjC-селекторы парсеров (parse/decode/readConfig), (3) лог-строки
+// с именами файлов рядом с "read/parse".
+static void p_bq105(void) {
+    LOG("[bq105] v265: карвинг владельцев + strings-проход (§258)");
+    fsync(fileno(stderr));
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    const char *headFileC = [[[NSString stringWithFormat:
+        @"%@/dycache/dyld_shared_cache_arm64e", docs]
+        stringByAppendingPathComponent:@""] UTF8String];
+    NSString *headFile = nil;
+    {
+        NSString *ddir = [docs stringByAppendingPathComponent:@"dycache"];
+        DIR *pd = opendir(ddir.fileSystemRepresentation);
+        if (!pd) { LOG("[bq105] dycache нет — abort"); return; }
+        struct dirent *pe;
+        // головной файл = ТОЧНО "dyld_shared_cache_arm64e" (без расширения;
+        // сабфайлы = .NN, data = .NN.dylddata, symbols = .symbols)
+        while ((pe = readdir(pd))) {
+            if (strcmp(pe->d_name, "dyld_shared_cache_arm64e") == 0) {
+                headFile = [ddir stringByAppendingPathComponent:@(pe->d_name)];
+                break;
+            }
+        }
+        closedir(pd);
+    }
+    if (!headFile) { LOG("[bq105] головной файл кэша не найден"); return; }
+    LOG("[bq105] head: %s", headFile.lastPathComponent.UTF8String);
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    if (fd < 0) { LOG("[bq105] open head errno %d", errno); return; }
+    struct stat cst; fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+    if (map == MAP_FAILED) { close(fd); LOG("[bq105] mmap errno %d", errno); return; }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    if (memcmp(hdr->magic, "dyld_v1", 7) != 0) {
+        munmap(map, (size_t)fsize); close(fd);
+        LOG("[bq105] bad magic"); return;
+    }
+    uint32_t imgOff = 0, imgCnt = 0;
+    BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[256];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        munmap(map, (size_t)fsize); close(fd);
+        LOG("[bq105] таблица образов не валидирована"); return;
+    }
+    LOG("[bq105] images: off=0x%x cnt=%u", imgOff, imgCnt);
+    fsync(fileno(stderr));
+
+    // список сабфайлов для translate
+    NSMutableArray *subs = [NSMutableArray array];
+    {
+        NSString *ddir = [docs stringByAppendingPathComponent:@"dycache"];
+        DIR *cd = opendir(ddir.fileSystemRepresentation);
+        struct dirent *ce;
+        while (cd && (ce = readdir(cd))) {
+            if (ce->d_name[0] == '.') continue;
+            if (strstr(ce->d_name, ".symbols")) continue;
+            if (strstr(ce->d_name, ".dylddata")) continue;
+            if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+            [subs addObject:[ddir stringByAppendingPathComponent:@(ce->d_name)]];
+        }
+        if (cd) closedir(cd);
+    }
+    LOG("[bq105] %d сабфайлов", (int)subs.count);
+
+    static const char *basenames[] = {
+        "lsd", "findmydeviced", "mobileactivationd", "apsd", "akd",
+        "appstored", "eligibilityd", "fairplayd", "backboardd",
+        "SpringBoard", "appprotectiond", "linkd", "adid", "geod",
+        "metrickitd", "managedappdistributiond", "softposreaderd",
+        "remotemanagementd", "softwareupdateservicesd",
+    };
+    static const char *fileneedles[] = {
+        "extensions.configurations", "secureLocations", "accessories.plist",
+        "securepreferences", "DefaultAppQueryState", "activation_records",
+        "adi.pb", "btjm", "AppProtectionBackup", "ActionTranscript",
+        "CloudStorage", "OpenOperationStaging", "connectedAccessories",
+        "supportedaccessories", "accessories.locations",
+    };
+    static const char *parserpat[] = {
+        "parse", "decode", "readConfig", "unarchive", "readFrom",
+        "deserialize", "loadState", "reloadConfiguration",
+    };
+    for (unsigned t = 0; t < sizeof(basenames) / sizeof(basenames[0]); t++) {
+        uint64_t addr = 0; char pthfound[300] = {0};
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            char pth[300];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+            const char *base = strrchr(pth, '/');
+            base = base ? base + 1 : pth;
+            if (strcmp(base, basenames[t]) == 0) {
+                addr = raw[0]; snprintf(pthfound, sizeof(pthfound), "%s", pth);
+                break;
+            }
+        }
+        if (!addr) { LOG("[bq105] %-28s: нет в таблице образов", basenames[t]); continue; }
+        uint64_t next = ~0ULL;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            if (raw[0] > addr && raw[0] < next) next = raw[0];
+        }
+        uint64_t want = (next == ~0ULL ? 0x4000000ULL : next - addr);
+        if (want > 0x4000000ULL) want = 0x4000000ULL;
+        LOG("[bq105] %-28s: %s (%llu KB)", basenames[t], pthfound, want >> 10);
+        fsync(fileno(stderr));
+        // translate + carve + scan
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                if (addr < mm[m].address || addr >= mm[m].address + mm[m].size) continue;
+                uint64_t fo = mm[m].fileOffset + (addr - mm[m].address);
+                uint64_t avail = mm[m].size - (addr - mm[m].address);
+                uint64_t n = want < avail ? want : avail;
+                unsigned char *buf = (unsigned char *)malloc((size_t)n);
+                ssize_t got = pread(sfd, buf, (size_t)n, (off_t)fo);
+                close(sfd);
+                if (got != (ssize_t)n) { free(buf); break; }
+                // === скан ===
+                for (unsigned k = 0; k < sizeof(fileneedles) / sizeof(fileneedles[0]); k++) {
+                    if (memmem(buf, (size_t)n, fileneedles[k], strlen(fileneedles[k]))) {
+                        LOG("[bq105]   %s: содержит '%s' ***", basenames[t], fileneedles[k]);
+                    }
+                }
+                int npar = 0;
+                for (unsigned k = 0; k < sizeof(parserpat) / sizeof(parserpat[0]); k++) {
+                    void *hit = memmem(buf, (size_t)n, parserpat[k], strlen(parserpat[k]));
+                    if (hit) npar++;
+                }
+                // количество ObjC-селекторов (грубая оценка парсерной активности)
+                LOG("[bq105]   парсер-паттерны: %d/%d", npar,
+                    (int)(sizeof(parserpat) / sizeof(parserpat[0])));
+                // карвинг для хоста (топ-цели)
+                if (strcmp(basenames[t], "lsd") == 0 ||
+                    strcmp(basenames[t], "findmydeviced") == 0 ||
+                    strcmp(basenames[t], "mobileactivationd") == 0 ||
+                    strcmp(basenames[t], "apsd") == 0 ||
+                    strcmp(basenames[t], "akd") == 0 ||
+                    strcmp(basenames[t], "appstored") == 0) {
+                    NSString *out = [docs stringByAppendingPathComponent:
+                        [NSString stringWithFormat:@"owner-%s.bin", basenames[t]]];
+                    NSData *dd = [NSData dataWithBytes:buf length:(NSUInteger)n];
+                    [dd writeToFile:out atomically:NO];
+                    NSData *back = [NSData dataWithContentsOfFile:out];
+                    LOG("[bq105]   carved → %@ (%llu KB, identical=%d)",
+                        out.lastPathComponent, (unsigned long long)n >> 10,
+                        (back && [back isEqualToData:dd]) ? 1 : 0);
+                }
+                fsync(fileno(stderr));
+                free(buf);
+                goto next_target;
+            }
+            close(sfd);
+        }
+    next_target:;
+    }
+    LOG("[bq105] ИТОГ: strings-проход завершён");
+    fsync(fileno(stderr));
+    munmap(map, (size_t)fsize); close(fd);
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -55093,6 +55291,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ102")) { p_bq102(); LOG("[probe13] bq102-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ103")) { p_bq103(); LOG("[probe13] bq103-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ104")) { p_bq104(); LOG("[probe13] bq104-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ105")) { p_bq105(); LOG("[probe13] bq105-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

@@ -7903,3 +7903,34 @@ apsd?, akd?, appstored?, coretelephony/CommCenter — плюс springboard/backb
 ObjC-селекторы парсеров (parse*/decode*/read*Config*). Топ-цели: findmydeviced
 (configurations/secureLocations как вход — §180-пробел), lsd
 (securepreferences), mobileactivationd (activation_records).
+
+### §259 (v265). p_bq105: dyld-кэш НЕ содержит бинарей демонов — нужен IPSW
+
+**Находка**: таблица образов split-кэша валидирована (off=0x2a8, cnt=4690,
+76 сабфайлов), но из 19 искомых basename'ов найден только SpringBoard
+(AccessibilityBundle, не основной бинаррь). **Демоны /usr/libexec/ — это
+standalone Mach-O исполняемые файлы, НЕ dylibs** — они не в dyld shared
+cache. С диска /usr/libexec — EPERM из песочницы, escape — −3.
+
+**Следствие для кампании**: для RE бинарей демонов нужен IPSW (get_kc27.py
+range-HTTP умеет вытаскивать любые файлы). Но ПОВЕДЕНЧЕСКИЙ тест (мутация+
+наблюдение, §177-методология) не требует бинаря:
+
+**p_bq106 (поведенческий фильтр входов)**: для каждого Tier-A демона с
+writable-контейнером: (1) stat-снапшот всех файлов → (2) мутация с
+детектируемым маркером (§176-шаблон: бэкап→изменение→детект→откат) →
+(3) наблюдение перечитывания (mtime/fsck/поведение демона).
+
+Топ-цели для поведенческого теста (Tier A + RW + интересный контент):
+- **findmydeviced**: extensions.configurations.plist (41kB!) + secureLocations.
+  config.plist — §180 тестировал ТОЛЬКО accessories.plist (витрина);
+  configurations/secureLocations как ВХОД не тестировались!
+- **lsd**: securepreferences.plist (парсер custom, root daemon, XPC mach=3)
+- **mobileactivationd**: activation_records (Tier A root, custom binary format)
+- **akd/appstored/fairplayd.H2**: контейнеры почти пустые — может быть
+  конфиг-файлы появляются при активности демона
+
+**Приоритет**: findmydeviced configurations — файл 41kB, формат
+NSKeyedArchiver (§180 показал что accessories — тоже NSKeyedArchiver),
+но с ГЛУБОКОЙ структурой (расширения FindMy-аксессуаров → протоколы
+FindMy → возможные кастомные десериализаторы в root-демоне).
