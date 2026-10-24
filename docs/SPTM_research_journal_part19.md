@@ -8161,3 +8161,18 @@ dycache (p_pprp-механика всех маппингов) для RE Spec-ф�
 
 **Порядок работ**: bq117 (data-сегменты → CFString → xref из __TEXT на CFString
 → функция кэша) → RE reader → поведенческий тест bq113/114 → Mac-фаззинг.
+
+### §269 (v277). Ложный позитив 'functions\0' + data-сегменты QC
+
+- **`functions\0` @0x427685 = хвост `timing_functions\0`** (CA-animation строки) —
+  ложный позитив §268: изолированного литерала "functions" в iOS QuartzCore НЕТ.
+  Дисковый код кэша НЕ в QC.
+- bq117: data-сегменты QC iOS вырезаны 100% (DATA_CONST/AUTH_CONST/AUTH/DATA/
+  DATA_DIRTY, results/carve-qc-*.bin). PTR на fc_has_gamma_luts (0x1847dfd2c)
+  и на 'functions' — **НЕТ ни в одном** → fc-строки QC адресуются из ДРУГОГО
+  образа (cross-image dsc-указатель в его data) → p_bq118 скан всех 79 сабфайлов
+  на u64-паттерн + контекст (идентификация образа по строкам-соседям).
+- Кластер 0x1845a9bd8 (регистрация 42 (name,group,idx,type)-таблиц) = debug-панель
+  ('FPS', 'Thermal Pressure', 'Dirty Area'...) — НЕ FunctionCache.
+- Урок: substring-поиск без проверки начала строки (NUL перед) = ложные
+  выводы. Проверять байт [i-1]==0.

