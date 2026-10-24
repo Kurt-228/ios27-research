@@ -1,0 +1,130 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ104=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x550b
+[scaler] conn 0x550b, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq104] v264: глубокая инвентаризация контейнеров Data/System (§257)
+[bq104] === AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8
+[bq104]   OWNER: com.apple.adid
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; adi.pb 0kB; Preferences 0kB; 
+[bq104] === EDFBF92A-FACC-41EE-901E-25CFC69F3058
+[bq104]   OWNER: com.apple.metrickitd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: MetricKit 0kB; 
+[bq104] === AF589EEA-A5CE-42E9-B955-96B9234C5A85
+[bq104]   OWNER: com.apple.lsd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: OpenOperationStaging.sb-8bcc6f9c-a3P4O8 0kB; OpenOperationStaging 0kB; 
+[bq104] === 58E4FA29-796D-400C-8ADF-37FC9B1176FC
+[bq104]   OWNER: com.apple.appinstallationmetrics
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 733E686B-C093-4E1B-B775-35A1D2237AF8
+[bq104]   OWNER: com.apple.coretelephony
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 8EB68272-6502-49E9-B688-25CA4774CFE4
+[bq104]   OWNER: com.apple.appintents.LiveEntityService
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9
+[bq104]   OWNER: com.apple.apsd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB
+[bq104]   OWNER: com.apple.springboard
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: com.apple.PaperBoardUI 0kB; 
+[bq104] === E8F726E1-00B6-4703-91D1-49267FC0F979
+[bq104]   OWNER: com.apple.akd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: Cache.db 48kB; Cache.db-wal 1295kB; Cache.db-shm 32kB; fsCachedData 0kB; 
+[bq104] === 7B03FCEF-ED22-4249-828B-E7509971915F
+[bq104]   OWNER: com.apple.eligibilityd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: NeverRestore 0kB; 
+[bq104] === 867912A4-A70D-428C-9551-D28453B6F1B4
+[bq104]   OWNER: com.apple.backboardd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: functions.data 5680kB; 32024 0kB; functions.list 72kB; 
+[bq104] === 3E27999E-F441-4625-A423-AF11E87F71E8
+[bq104]   OWNER: com.apple.appstored
+[bq104]   W: OK
+[bq104]   Documents: Persistence 0kB; 
+[bq104]   Library: Caches 0kB; apps.plist 0kB; katana-subscription-cache.plist 0kB; Preferences 0kB; 
+[bq104]   Library/Caches: Scratch 0kB; 
+[bq104] === B06F5832-48EA-445B-86F2-D2AC4468FA0C
+[bq104]   OWNER: com.apple.icloud.findmydeviced
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; Application Support 0kB; 
+[bq104]   Library/Preferences: com.apple.icloud.findmydeviced.FMIPAccounts.plist 0kB; com.apple.icloud.findmydeviced.accessories.locations.plist 1kB; com.apple.icloud.findmydeviced.extensions.configurations.plist 41kB; com.apple.icloud.findmydeviced.connectedAccessories.plist.sb-0e6670b2-BnGxzr 0kB; com.apple.icloud.findmydeviced.FMIPAccounts.notbackedup.plist 0kB; com.apple.icloud.findmydeviced.accessories.plist 2kB; com.apple.icloud.findmydeviced.secureLocations.config.plist 4kB; FMDDetachNotificationManager.plist 0kB; protectedContexts 0kB; com.apple.icloud.findmydeviced.supportedaccessories.plist 2kB; com.apple.icloud.findmydeviced.connectedAccessories.plist 0kB; 
+[bq104]   Library/Application Support: CloudStorage.db-wal 76kB; CloudStorage.db-shm 32kB; CloudStorage.db 4kB; CloudStorage_CKRecordCache.db-wal 104kB; CloudStorage_CKRecordCache.db-shm 32kB; LocalStorage.db-shm 32kB; LocalStorage.db-wal 64kB; LocalStorage.db 4kB; CloudStorage_CKRecordCache.db 4kB; 
+[bq104]   P/com.apple.icloud.findmydeviced.FMIPAccounts.plist
+[bq104]   P/com.apple.icloud.findmydeviced.accessories.locations.plist
+[bq104]   P/com.apple.icloud.findmydeviced.extensions.configurations.plist
+[bq104]   P/com.apple.icloud.findmydeviced.connectedAccessories.plist.sb-0e6670b2-BnGxzr
+[bq104]   P/com.apple.icloud.findmydeviced.FMIPAccounts.notbackedup.plist
+[bq104]   P/com.apple.icloud.findmydeviced.accessories.plist
+[bq104]   P/com.apple.icloud.findmydeviced.secureLocations.config.plist
+[bq104]   P/FMDDetachNotificationManager.plist
+[bq104]   P/protectedContexts
+[bq104]   P/com.apple.icloud.findmydeviced.supportedaccessories.plist
+[bq104]   P/com.apple.icloud.findmydeviced.connectedAccessories.plist
+[bq104] === 327EA503-DB77-458C-A855-3B3C8622696A
+[bq104]   OWNER: com.apple.softwareupdateservicesd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; SoftwareUpdate 0kB; 
+[bq104] === A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45
+[bq104]   OWNER: com.apple.mobileactivationd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; internal 0kB; activation_records 0kB; splunk 0kB; Preferences 0kB; 
+[bq104] === com.apple.geod
+[bq104]   OWNER: com.apple.geod
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 373C8E3E-393F-46D5-A143-A9312084B0E3
+[bq104]   OWNER: com.apple.devicemanagementclient.managedappsd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; Application Support 0kB; 
+[bq104]   Library/Application Support: ManagedApps 0kB; 
+[bq104] === F19F9591-A37F-4F88-A218-676D6A685493
+[bq104]   OWNER: com.apple.fairplayd.H2
+[bq104]   W: OK
+[bq104]   Documents: Library 0kB; Media 0kB; 
+[bq104]   Library: Caches 0kB; btjm 0kB; Preferences 0kB; 
+[bq104] === 7CB67CBE-31A2-474A-9555-8A0A3B979760
+[bq104]   OWNER: com.apple.softposreaderd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 5706241F-E82B-4735-A5E8-367E43BA1E3E
+[bq104]   OWNER: com.apple.managedappdistributiond
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === A56ACED1-730D-4624-8C89-DE9DEAE98579
+[bq104]   OWNER: com.apple.linkd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 6043FE60-37AC-4E01-A4D9-8884DEBCC677
+[bq104]   OWNER: com.apple.appprotectiond
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; 
+[bq104] === 4E311340-1D0C-4D2B-A9BA-78E20C7C9D7D
+[bq104]   OWNER: com.apple.remotemanagementd
+[bq104]   W: OK
+[bq104]   Library: Caches 0kB; Preferences 0kB; Application Support 0kB; 
+[bq104]   Library/Application Support: com.apple.remotemanagementd 0kB; 
+[bq104] ИТОГ: 23 контейнеров, owners=23, W=23
+[probe13] bq104-only mode, stop

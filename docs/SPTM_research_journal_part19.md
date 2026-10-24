@@ -7870,3 +7870,36 @@ fseventsd(1), cfprefsd-system(1), containermanagerd(1), notifyd(1)…
 /var/root/Library/Preferences, /var/Keychains, /etc — плюс пер-файловый
 escape на metadata-дотфайлы. Пересечение «читает × writable» → цели
 strings-прохода (карвинг бинарей из dycache — bq21-механика).
+
+### §258 (v264). Полная карта 23 контейнеров: 23/23 владельцев, 23/23 W — приоритеты кампании
+
+**Прорыв метода**: per-file escape на metadata (bad_query с create=1 — lstat-skip)
+**обходит dot-фитч EPERM** — все 23 владельца определены через
+MCMMetadataIdentifier. Все 23 корня writable (create+unlink зонд).
+
+**Карта владелец → данные** (полный листинг в results/run-bq104-container-owners.log):
+- **com.apple.lsd** (root, mach=3): DefaultAppQueryState.plist,
+  **securepreferences.plist**, appmarketplaces.plist — все RW
+- **com.apple.icloud.findmydeviced** (root): 11 плыстов вкл.
+  **extensions.configurations.plist (41kB)**, **secureLocations.config.plist**,
+  accessories.locations — §180 тестировал ТОЛЬКО accessories.plist (витрина);
+  configurations/secureLocations как ВХОД не тестировались!
+- **com.apple.mobileactivationd** (Tier A root, mach=2): activation_records, splunk
+- apsd, akd (authkitd), appstored, fairplayd.H2 (btjm), eligibilityd,
+  backboardd (PaperBoardUI), springboard, coretelephony (OpenOperationStaging),
+  managedappdistributiond (CloudStorage.db ×4 SQLite), linkd (ActionTranscript),
+  appprotectiond (AppProtectionBackup.plist), metrickitd, adid (adi.pb protobuf),
+  geod, softwareupdateservicesd, appinstallationmetrics, softposreaderd,
+  devicemanagement.managedappsd, remotemanagementd
+
+**Пересечение с Tier-A (root+no-sbx+XPC)**: lsd, mobileactivationd, eligibilityd,
+apsd?, akd?, appstored?, coretelephony/CommCenter — плюс springboard/backboardd
+(mobile-uid, но frontmost/display-серверы — исполнение в них = экран+запуск
+аппов).
+
+**Next (p_bq105)**: карвинг бинарей владельцев из dycache (bq21-механика:
+таблица образов split-кэша, pread заголовков маппингов) + strings-проход:
+какой демон содержит строки имён СВОИХ файлов (подтверждение read-путей) +
+ObjC-селекторы парсеров (parse*/decode*/read*Config*). Топ-цели: findmydeviced
+(configurations/secureLocations как вход — §180-пробел), lsd
+(securepreferences), mobileactivationd (activation_records).
