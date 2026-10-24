@@ -45561,6 +45561,68 @@ static void p_bq97(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq98 — v260: AppleAVD достижимость (§252): registry-скан + open-пробы.
+// Вопрос: публикуется ли AVD-сервис на A17 Pro вообще (§142: «absent») и
+// если да — гейтится ли entitlement'ом (com.apple.videotoolbox.hardwarevideodecoder).
+// КОНТРОЛИ §144: «AppleAVE2Driver» (§231: найден+2e2) и «IOGPU» (найден+open).
+static void p_bq98(void) {
+    LOG("[bq98] v260: AppleAVD reachability (§252)");
+    fsync(fileno(stderr));
+    static const char *names[] = {
+        "AppleAVD", "AppleAVDUserClient", "AVD0", "AVD1", "AppleAVDService",
+        "AppleAVDController", "AppleAVD0", "AppleAVD1", "IOAVD", "AVD",
+        "AppleAVE2Driver",   // КОНТРОЛЬ: ожидаем найден + 0x2e2
+        "IOGPU",             // КОНТРОЛЬ: ожидаем найден + открытие type 1
+        "AGXAcceleratorG16P",
+    };
+    for (unsigned i = 0; i < sizeof(names) / sizeof(names[0]); i++) {
+        io_service_t s = IOServiceGetMatchingService(
+            kIOMainPortDefault, IOServiceNameMatching(names[i]));
+        if (!s) {
+            s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                            IOServiceMatching(names[i]));
+        }
+        if (!s) { LOG("[bq98] %-22s: ABSENT (сервис не опубликован)", names[i]); continue; }
+        char cls[128] = {0};
+        IOObjectGetClass(s, cls);
+        LOG("[bq98] %-22s: FOUND (класс '%s')", names[i], cls);
+        for (uint32_t ty = 0; ty < 8; ty++) {
+            io_connect_t c = 0;
+            kern_return_t kr = IOServiceOpen(s, mach_task_self(), ty, &c);
+            if (kr == KERN_SUCCESS && c) {
+                LOG("[bq98]   type %u: ОТКРЫТ (conn 0x%x) — селектор-свип", ty, c);
+                // селектор-свип 0..47: 4 скаляра нули + структурный вход
+                for (uint32_t sel = 0; sel < 48; sel++) {
+                    uint64_t iin[4] = {0, 0, 0, 0};
+                    uint64_t iout[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+                    uint32_t on = 8;
+                    uint8_t so[0x100];
+                    size_t sosz = 0x100;
+                    uint8_t sbuf[0x58];
+                    memset(sbuf, 0, sizeof(sbuf));
+                    size_t sisz = 0x58;
+                    kern_return_t k1 = IOConnectCallMethod(c, sel,
+                        iin, 4, sbuf, sisz, iout, &on, so, &sosz);
+                    if (k1 != 0xe00002c2 && k1 != 0x2c2) {
+                        LOG("[bq98]     sel %2u: kr=%#x %s", sel, k1,
+                            k1 == 0 ? "ОТВЕТИЛ!" : "");
+                    }
+                    if (sel > 12 && k1 == 0xe00002c2) break;  // таблица кончилась
+                }
+                IOServiceClose(c);
+                break;  // первый открывшийся тип достаточен для свипа
+            } else {
+                LOG("[bq98]   type %u: kr=%#x%s", ty, kr,
+                    kr == 0x2e2 ? " (NotPermitted — entitlement)" : "");
+            }
+        }
+        IOObjectRelease(s);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq98] ИТОГ: скан завершён");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54172,6 +54234,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ95")) { p_bq95(); LOG("[probe13] bq95-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ96")) { p_bq96(); LOG("[probe13] bq96-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ97")) { p_bq97(); LOG("[probe13] bq97-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ98")) { p_bq98(); LOG("[probe13] bq98-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

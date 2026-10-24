@@ -7711,3 +7711,43 @@ in-process во всех приложениях → сервис публику�
 по типам + селектор-свип; (2) Ghidra-декомпилят AppleAVD b4+435 (запущен);
 (3) при достижимости — фазз bufIdx/remap-путей (селекторы с bufIdx-аргументом);
 контроль §144; стоп-критерий: если open=0x2e2/absent на всех именах — закрыть.
+
+### §253 (v260). p_bq98: AppleAVD reachability — сервис СУЩЕСТВУЕТ, прямой UC закрыт NotPrivileged
+
+**Поправка §142**: «AppleAVDUserClient — absent» был артефактом методики —
+пробились имена классов-кандидатов, но не нуб-имя сервиса. **«AppleAVD» FOUND
+(класс 'AppleAVD')** — AVD-блок на A17 Pro есть и сервис опубликован.
+
+**Пробы IOServiceOpen type 0..7 — ВСЕ `0xe00002c1` (kIOReturnNotPrivileged)**:
+task-level гейт (entitlement `com.apple.videotoolbox.hardwarevideodecoder`
+из строк кекста) ДО валидации типа. Контроли §144 чистые:
+AppleAVE2Driver FOUND → 0x2bd/0x2e2 (§231-паттерн ✓), IOGPU type 1 ОТКРЫТ ✓.
+
+**Статическая картина (§252 + b4-декомпилят, архив avd_{b4,435}.c.gz):**
+- b4-протоформы работают с 8-слотовыми массивами `ctx+0x18` (flags),
+  `ctx+0x38` (state), refcount `ctx+0x64` — **bufIdx не ограничен**
+  (32-битный `<<2` без bounds). При state==-1/reset: `ctx[0x18+i*4]=0`,
+  `ctx[0x38+i*4]=-1`, `ctx[0x64]--` — **управляемый-offset zero-write**
+  (u32-запись 0 по формуле ctx+0x18+4*bufIdx) + state-write −1 + refcount
+  decrement. GM добавил: `bufIdx<8` (все сайты), AVAILABLE-skip
+  (против in-flight underflow), `map_ref_count overflow → refusing remap`.
+- Ghidra xref-цепочка селектор→функция не резолвится (chained-fixups
+  indirect-вызовы) — только эмпирика.
+
+**Интерпретация достижимости**: прямой userclient из app-sandbox закрыт
+entitlement'ом; но фиксы GM означают живую досягаемость через
+ПРИВИЛЕГИРОВАННЫЙ decode-процесс (VideoToolbox/mediaserverd), который
+потребляет крафтовые битстримы и lifecycle-события приложения:
+H.264/HEVC-семплы, flush/EOS/destroy-гонки, decrypt-пути. Векторы входа:
+(а) VTDecompressionSession в нашем приложении (если HW-путь включается
+in-process или через прокси-демон), (б) AVPlayer/AVSampleBufferDisplayLayer
+с кастомным контентом. Атакуемый вход = байты семплов + вызовы lifecycle.
+
+**Next (p_bq99) — короткая проверка достижимости decode-пути:**
+1. VTDecompressionSessionCreate (H264) в приложении: декодирует ли?
+   (аппаратный путь включается → где живёт AVD-сессия)
+2. Жёсткий lifecycle-стресс против b4: create→decode→flush/EOS/destroy
+   гонки, мусорные семплы между валидными, decrypt-параметры —
+   контроль §144 (валидный стрём = детектор жив), стоп-критерий: если
+   HW-decode из нашего приложения недостижим (SW-fallback) и прокси-путь
+   не запускается — вектор закрыть.

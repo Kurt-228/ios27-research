@@ -1,0 +1,47 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ98=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7703
+[scaler] conn 0x7703, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq98] v260: AppleAVD reachability (§252)
+[bq98] AppleAVD              : FOUND (класс 'AppleAVD')
+[bq98]   type 0: kr=0xe00002c1
+[bq98]   type 1: kr=0xe00002c1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq98]   type 2: kr=0xe00002c1
+[bq98]   type 3: kr=0xe00002c1
+[bq98]   type 4: kr=0xe00002c1
+[bq98]   type 5: kr=0xe00002c1
+[bq98]   type 6: kr=0xe00002c1
+[bq98]   type 7: kr=0xe00002c1
+[bq98] AppleAVDUserClient    : ABSENT (сервис не опубликован)
+[bq98] AVD0                  : ABSENT (сервис не опубликован)
+[bq98] AVD1                  : ABSENT (сервис не опубликован)
+[bq98] AppleAVDService       : ABSENT (сервис не опубликован)
+[bq98] AppleAVDController    : ABSENT (сервис не опубликован)
+[bq98] AppleAVD0             : ABSENT (сервис не опубликован)
+[bq98] AppleAVD1             : ABSENT (сервис не опубликован)
+[bq98] IOAVD                 : ABSENT (сервис не опубликован)
+[bq98] AVD                   : ABSENT (сервис не опубликован)
+[bq98] AppleAVE2Driver       : FOUND (класс 'AppleAVE2Driver')
+[bq98]   type 0: kr=0xe00002bd
+[bq98]   type 1: kr=0xe00002e2
+[bq98]   type 2: kr=0xe00002e2
+[bq98]   type 3: kr=0xe00002e2
+[bq98]   type 4: kr=0xe00002e2
+[bq98]   type 5: kr=0xe00002e2
+[bq98]   type 6: kr=0xe00002bd
+[bq98]   type 7: kr=0xe00002bd
+[bq98] IOGPU                 : FOUND (класс 'AGXAcceleratorG16P')
+[bq98]   type 0: kr=0xe00002c7
+[bq98]   type 1: ОТКРЫТ (conn 0x630f) — селектор-свип
+[bq98] AGXAcceleratorG16P    : FOUND (класс 'AGXAcceleratorG16P')
+[bq98]   type 0: kr=0xe00002c7
+[bq98]   type 1: ОТКРЫТ (conn 0xa80f) — селектор-свип
+[bq98] ИТОГ: скан завершён
+[probe13] bq98-only mode, stop
