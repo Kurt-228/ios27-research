@@ -8176,3 +8176,19 @@ dycache (p_pprp-механика всех маппингов) для RE Spec-ф�
   ('FPS', 'Thermal Pressure', 'Dirty Area'...) — НЕ FunctionCache.
 - Урок: substring-поиск без проверки начала строки (NUL перед) = ложные
   выводы. Проверять байт [i-1]==0.
+
+### §270 (v277b). Структура functions.data: AGC-шейдеры + uniform-лейауты
+
+Первый KB файла: `__text\0__TEXT\0` + повторяющиеся `__fragment\0__GPU_METADATA\0`,
+`__fragment\0__GPU_LD_MD\0`, `__fragment\0__GPU_STATS_MD\0` — **секции рефлексии
+скомпилированных Metal-шейдеров** (AGC = Apple GPU Compiler; `agc.main.
+constant_program\0` @0x1ba8). Записи вида `gamma_luts\0<params>img_tex_0A\0...`
+= фрагментные uniform/argument-лейауты. Тег-строки `CA::OGL::Metal::GammaLUTs` =
+типы CA-сериализации внутри блобов.
+
+**Вывод**: functions.data = сериализованные СКОМПИЛИРОВАННЫЕ шейдерные функции
++ их лейауты; парсинг = смесь CA::OGL (QuartzCore), Metal-рантайма и AGC-
+десериализации — глубокая кастомная C++-поверхность. Дайджест = НЕ sha256
+блоба (проверено на всех (off,len) комбинациях полей записи) → вероятно
+sha256 составного ключа-строки → валидация кэша идёт по ключу, не по блобу?
+(не доказано). p_bq118 ищет владельца кода кэша через cross-image PTR.
