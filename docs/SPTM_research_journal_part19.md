@@ -7657,3 +7657,57 @@ DCP-пайплайном (§239); IOMFB UC — dumb (§239); apfs — недос
 Дифф-аудит 27.0→27.2 исчерпан. Главный актив остаётся §240/§241 (IOGPU
 parent-suballoc, подтверждён на устройстве, закрыт Apple в 27.0) — готов
 к упаковке репорта.
+
+### §252 (v259). Полный patch-guided свип ядро+кексты (b4→435→B115) — кандидатов: 14, фаворит AppleAVD
+
+**Метод**: полный стринг-дифф по всем трём сборкам — XNU-карв (kernel_text_*) +
+264 кекста b4∩435, фильтр валидационной лексики + VERIFY-суффикса; для кекстов —
+то же по всем трём версиям. Фаззи-дифф (sim>0.85) ловит ИЗМЕНЁННЫЕ строки
+(урок m_sum16: точный дифф их пропускает).
+
+**XNU-ядро — чисто**: b4→435: 284 новых строк, НОЛЬ валидаций (rBBR-фичи,
+perflevel, пути сборки). 435→B115: единственное осмысленное изменение строк =
+m_sum16 %d→%u (§250, закрыт). Ядро в CVE-окне b4→GM НЕ укреплялось вовсе.
+
+**Кексты b4→435 (CVE-окно) — 14 с новыми валидациями**, триаж по достижимости:
+| кекст | новые проверки | достижимость из песочницы |
+|---|---|---|
+| **AppleAVD** | bufIdx<8; AVAILABLE-skip; map_ref_count-overflow-refuse | **?? — вопрос, решает устройство** |
+| AppleH16ANEInterface | 3 (seed-BAR, td_addr overflow, LC_NOTE) | ANE закрыт entitlement (§201) |
+| AppleM2ScalerCSC | 4 (MailBox credit, IMEM verify) | firmware-load, не user-input |
+| AppleDisplayCrossbar | 5 (RCAL/pll/POWER-ACK) | hardware-init, не user-input |
+| AppleMobileDispH16P-DCP | 2 (displayWall group id) | за DCP-пайплайном |
+| AppleAuthCP | 1 | SEP, закрыто |
+| AppleSARService | 2 | RF, закрыто |
+| apfs | 1 (zero-fill range) | fskit-внутреннее |
+| IOGPUFamily | parent-suballoc | §240 — наш подтверждённый баг |
+| остальные (MSG/OLYHAL/corecrypto/…) | — | шум/инфраструктура |
+
+**AppleAVD — расшифровка фиксов (capstone, 435)**:
+- Функция @0xfffffff00850cf04 (435): `cmp w1,#8; b.lo` — **новый bounds на
+  bufIdx**; тела: массивы `ctx[0x38 + bufIdx*4]` (state, 8 u32) и
+  `ctx[0x18 + bufIdx*4]` (flags); при flags==0 теперь **SKIP** («already
+  AVAILABLE, skipping reset to avoid in-flight underflow»), иначе reset:
+  `ctx[0x18+i*4]=0; ctx[0x38+i*4]=-1; ctx[0x64] -= 1` (refcount).
+  **В b4**: ни bounds (bufIdx≥8 → OOB-доступ к массивам с управляемым
+  индексом), ни AVAILABLE-check (двойной reset → **underflow ctx[0x64]**).
+- Большой remap-диспетчер @0xfffffff00855dc8c (435): добавлены `w4<=7`+
+  битмаска 0xe8, `w3<=3`, `w23!=2`, и guard «map_ref_count overflow for
+  IOSID, refusing remap» @+0x4fc — в b4 refcount-overflow НЕ отклонялся.
+- b4 имеет тех же функции (строки-якоря: «bufIdx %d used yet»,
+  «resetFrameQslot», «existing mapping (IOSID %d) found, remap it»,
+  «buffer still in-use, not ready to unmap, ref_count=%d») — точки входа
+  для b4-декомпилята.
+
+**Достижимость — открытый вопрос, решает только устройство**: §142 мерил
+именованные классы («AppleAVDUserClient — absent»), но decode работает
+in-process во всех приложениях → сервис публикуется под другим именем.
+Кекст содержит entitlement-строки `com.apple.videotoolbox.hardwarevideodecoder`
+и `.vdectestapp` — если гейт entitlement в userclient — из нашего app-sandbox
+откроется ли сервис/методы = эмпирика (p_bq98: registry-скан AVD*, open по
+всем типам, свип селекторов).
+
+**Next (p_bq98)**: (1) устройство: registry-скан AVD-сервисов + IOServiceOpen
+по типам + селектор-свип; (2) Ghidra-декомпилят AppleAVD b4+435 (запущен);
+(3) при достижимости — фазз bufIdx/remap-путей (селекторы с bufIdx-аргументом);
+контроль §144; стоп-критерий: если open=0x2e2/absent на всех именах — закрыть.
