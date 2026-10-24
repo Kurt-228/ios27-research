@@ -7830,3 +7830,43 @@ Patch-guided свип b4→435→B115 ПОЛНОСТЬЮ завершён — в
 (b) bad_query раунд-2: файл-ПАРСЕРЫ unsandboxed демонов (не XPC —
 конфиги/кэши, которые демоны читают сами; §177-§184 копали XPC-сторону);
 (c) phys-spray §107 — ждёт наблюдателя.
+
+### §257 (v263). Инвентарь демонов по привилегиям (p_bq102): 600 демонов, 137 Tier-A
+
+**Механика**: /System/Library/Launch{Daemons,Agents} читаются **прямым
+opendir без escape** (песочница разрешает file-read /System для dlopen —
+v2 с escape-комбинацией была лишней). dycache-дамп жив (80 сабфайлов,
+6822 МБ). Контейнеры Data/System: 23 UUID; metadata-дотфайл fopen
+отказывает (нужен отдельный разбор), но листинг работоспособен; владельцы
+частично опознаны по содержимому: AF589EEA=lsd (DefaultAppQueryState +
+securepreferences — уже наш W-target §176), 8EB68272=LiveEntity-DB (§181),
+com.apple.geod, 5706241F=installation-database, EDFBF92A=ReportCrash,
+A56ACED1=ActionTranscript, 6043FE60=AppProtection.
+
+**Тир-лист (600 распарсено)**: Tier A (root+no-sbx+XPC) = **137**;
+Tier B (root+no-sbx, без XPC) = 30 (lockdownd, apfs_iosd, seputil…);
+Tier C — sandboxed root — отброшены по фильтру юзера (бесполезные).
+Топ Tier-A по XPC-рычагам: deviceconfigurationd(7), transparencyd(7),
+mobileassetd(6), powerexperienced(6), powerd(5), batteryintelligenced(5),
+ospredictiond(5), remoted(5), amfid(4), corerepaird(4), sysdiagnosed(4),
+CommCenterRootHelper(4), lsd(3), runningboardd(3), nesessionmanager(3),
+fseventsd(1), cfprefsd-system(1), containermanagerd(1), notifyd(1)…
+
+**Шорт-лист «привилегированный демон × writable-данные × парсер»**:
+- **lsd** (root, mach=3): контейнер WRITABLE, plist+state парсинг,
+  перечитывает при запросах — §176 уже доказал W;
+- **fseventsd** (root): собственный бинарный FSEvents-DB — /var/fseventsd?
+- **mobileassetd** (root, mach=6): asset-каталоги /var/MobileAsset —
+  большие бинарные форматы;
+- **cfprefsd-system** (root): /var/preferences/*.plist — универсальное
+  отравление конфигов ВСЕХ демонов, если writable;
+- **containermanagerd** (root): metadata-парсинг;
+- transparencyd/datastored/keybagd: SQLite (жёстче).
+
+**Next (p_bq103)**: W-проба кандидатных путей (создать+unlink зонд,
+как bq2): /var/fseventsd, /var/preferences, /var/MobileAsset{,/Assets},
+/var/db/launchd, /var/db/Override, /Library/Preferences,
+/var/mobile/Library/Preferences, /var/containers/Bundle{,/System},
+/var/root/Library/Preferences, /var/Keychains, /etc — плюс пер-файловый
+escape на metadata-дотфайлы. Пересечение «читает × writable» → цели
+strings-прохода (карвинг бинарей из dycache — bq21-механика).

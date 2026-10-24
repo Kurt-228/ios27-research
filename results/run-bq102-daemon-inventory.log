@@ -1,0 +1,649 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ102=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7e07
+[scaler] conn 0x7e07, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq102] v263: инвентарь демонов по привилегиям (§256-next)
+[bq102] dycache: dycache — 80 сабфайлов, 6822 MB
+[bq102] dycache ИТОГ: 1 записей, 6822 MB *** ДАМП ЖИВ — бинари демонов у нас ***
+[bq102] === /System/Library/LaunchDaemons (ПРЯМОЙ opendir OK — без escape)
+[bq102]   com.apple.mobile.assertion_agent                     uid=mobile   sbx=NONE         mach=1 com.apple.mobile.assertion_agent, /usr/libexec/mobile_assertion_agent
+[bq102]   com.apple.srp-mdns-proxy                             uid=_mdnsresponder sbx=NONE         mach=1 com.apple.srp-mdns-proxy.proxy, /usr/libexec/srp-mdns-proxy
+[bq102]   com.apple.symptomsd                                  uid=_networkd sbx=NONE         mach=4 com.apple.symptoms.symptomsd.managed_events,com.apple.usymptomsd, /usr/libexec/symptomsd
+[bq102]   com.apple.accessibility.axassetsd                    uid=mobile   sbx=NONE         mach=3 com.apple.accessibility.axassetsd.service,com.apple.accessibility.voices, /System/Library/PrivateFrameworks/AXAssetLoader.framework/Support/axassetsd
+[bq102]   com.apple.aslmanager                                 uid=root     sbx=NONE         mach=1 com.apple.aslmanager,  aslmanager
+[bq102]   com.apple.spotlightknowledged.updater                uid=mobile   sbx=NONE         mach=2 com.apple.spotlightknowledged,com.apple.spotlightknowledged.updater.cachedelete, /usr/libexec/spotlightknowledged.updater
+[bq102]   com.apple.uarpd                                      uid=_accessoryupdater sbx=NONE         mach=3 com.apple.uarp.asset.personalization.complete,com.apple.uarp.endpoint.control, /usr/libexec/uarpd
+[bq102]   com.apple.dasd                                       uid=mobile   sbx=NONE         mach=2 com.apple.duetactivityscheduler,com.apple.dasd.end-prewarm, /usr/libexec/dasd
+[bq102]   com.apple.mobile.softwareupdated                     uid=mobile   sbx=NONE         mach=1 com.apple.mobile.softwareupdated, /System/Library/PrivateFrameworks/MobileSoftwareUpdate.framework/Support/softwareupdated
+[bq102]   com.apple.bookdatastored                             uid=mobile   sbx=NONE         mach=2 com.apple.iBooks.BookDataStoreService,com.apple.aps.bookdatastored, /System/Library/PrivateFrameworks/BookDataStore.framework/Support/bookdatastored
+[bq102]   com.apple.realitycamerad                             uid=root     sbx=NONE         mach=3 com.apple.realitycamerad.RCPLSProvider,com.apple.realitycamerad.RCXPCProvider, /System/Library/PrivateFrameworks/RealityCamera.framework/realitycamerad
+[bq102]   com.apple.MobileFileIntegrity                        uid=root     sbx=NONE         mach=4 com.apple.amfi.xpc,com.apple.MobileFileIntegrity, /usr/libexec/amfid
+[bq102]   com.apple.arkitd                                     uid=mobile   sbx=NONE         mach=3 com.apple.arkit.service.geoTracking,com.apple.arkit.service.location, /usr/libexec/arkitd
+[bq102]   com.apple.coredatad                                  uid=mobile   sbx=NONE         mach=1 com.apple.coredatad.cloudkit, /usr/libexec/coredatad
+[bq102]   com.apple.milod                                      uid=mobile   sbx=NONE         mach=1 com.apple.milod.xpc.service, /usr/libexec/milod
+[bq102]   com.apple.pluginkit.pkreporter                       uid=root     sbx=NONE         mach=0                        /usr/libexec/pkreporter
+[bq102]   com.apple.cellularcertd                              uid=_wireless sbx=NONE         mach=1 com.apple.abm.cellularcert, /usr/local/bin/cellularcertd
+[bq102]   com.apple.DataDetectorsSourceAccess                  uid=_datadetectors sbx=NONE         mach=1 com.apple.DataDetectorsSourceAccess, /usr/libexec/DataDetectorsSourceAccess
+[bq102]   com.apple.mobile.installd                            uid=_installd sbx=NONE         mach=1 com.apple.mobile.installd, /usr/libexec/installd
+[bq102]   com.apple.driverkitd                                 uid=root     sbx=NONE         mach=2 com.apple.DriverKitExtensionServer,com.apple.KernelManagementPingServer, /usr/libexec/driverkitd
+[bq102]   com.apple.PerfPowerServices                          uid=mobile   sbx=NONE         mach=3 com.apple.powerlog-GRRRR-Lite,com.apple.powerlog.plxpclogger.xpc, /usr/libexec/PerfPowerServices
+[bq102]   com.apple.knowledgeconstructiond                     uid=mobile   sbx=NONE         mach=1 com.apple.intelligenceplatform.KnowledgeConstruction, /System/Library/PrivateFrameworks/IntelligencePlatformCore.framework/knowledgeconstructiond
+[bq102]   com.apple.icloudsubscriptionoptimizerd               uid=mobile   sbx=NONE         mach=1 com.apple.icloudsubscriptionoptimizerd.xpc.client, /System/Library/PrivateFrameworks/iCloudSubscriptionOptimizerDaemon.framework/icloudsubscriptionoptimizerd/icloudsubscriptionoptimizerd
+[bq102]   com.apple.security.CircleJoinRequested               uid=mobile   sbx=NONE         mach=0                        /System/Library/Frameworks/Security.framework/CircleJoinRequested/CircleJoinRequested
+[bq102]   com.apple.textcontextd                               uid=mobile   sbx=NONE         mach=4 com.apple.textcontextd.PersonalizationService,com.apple.textcontextd, /usr/libexec/textcontextd
+[bq102]   com.apple.ids.IDSCredentialsAgent                    uid=mobile   sbx=NONE         mach=1 com.apple.idscredentialsagent.embedded.auth, /System/Library/PrivateFrameworks/IDSFoundation.framework/IDSCredentialsAgent.app/IDSCredentialsAgent
+[bq102]   com.apple.relatived                                  uid=mobile   sbx=NONE         mach=4 com.apple.relatived.status,com.apple.relatived.public, /usr/libexec/relatived
+[bq102]   com.apple.imageplaygroundd                           uid=mobile   sbx=NONE         mach=2 com.apple.usernotifications.delegate.com.apple.GenerativePlaygroundApp,com.apple.imageplaygroundd.onDemandImageRequesterService, /System/Library/PrivateFrameworks/SuggestedImage.framework/Support/imageplaygroundd
+[bq102]   com.apple.notifyd                                    uid=root     sbx=NONE         mach=1 com.apple.system.notification_center, /usr/sbin/notifyd
+[bq102]   com.apple.crashreportcopymobile                      uid=mobile   sbx=NONE         mach=1 com.apple.crashreportcopymobile, /usr/libexec/afcd
+[bq102]   com.apple.synapse.contentlinkingd                    uid=mobile   sbx=NONE         mach=6 com.apple.synapse.add-link-context-service,com.apple.synapse.DocumentWorkflowsService, /System/Library/PrivateFrameworks/Synapse.framework/Support/contentlinkingd
+[bq102]   com.apple.mediaartworkd                              uid=mobile   sbx=NONE         mach=1 com.apple.mediaartworkd.xpc, /System/Library/PrivateFrameworks/MediaServices.framework/Support/mediaartworkd
+[bq102]   com.apple.nanoregistryd                              uid=mobile   sbx=NONE         mach=8 com.apple.nanoregistry.termsacknowledgementregistry,com.apple.private.alloy.bluetoothregistryclassc-idswake, /usr/libexec/nanoregistryd
+[bq102]   com.apple.healtheventsd                              uid=mobile   sbx=NONE         mach=1 com.apple.healtheventsd, /System/Library/PrivateFrameworks/HealthEventsDaemonImplementation.framework/healtheventsd
+[bq102]   com.apple.wifiFirmwareLoader                         uid=(default=root) sbx=NONE         mach=0                        /usr/libexec/wifiFirmwareLoader
+[bq102]   com.apple.weatherd                                   uid=mobile   sbx=NONE         mach=7 com.apple.usernotifications.delegate.com.apple.weather,com.apple.weatherd.decommissioning, /System/Library/PrivateFrameworks/WeatherDaemon.framework/weatherd
+[bq102]   com.apple.syslogd                                    uid=root     sbx=NONE         mach=1 com.apple.system.logger, /usr/sbin/syslogd
+[bq102]   com.apple.clocksyncd                                 uid=root     sbx=NONE         mach=3 com.apple.timesync.manager,com.apple.timesync.ptp.manager, /usr/libexec/clocksyncd
+[bq102]   com.apple.cloudsettingssyncagent                     uid=mobile   sbx=NONE         mach=0                        /System/Library/CoreServices/CloudSettingsSyncAgent
+[bq102]   com.apple.uarphidd                                   uid=_accessoryupdater sbx=NONE         mach=0                        /usr/libexec/uarphidd
+[bq102]   com.apple.asd                                        uid=mobile   sbx=NONE         mach=2 com.apple.asd.scoring,com.apple.aps.asdPushPort, /usr/libexec/asd
+[bq102]   com.apple.mobile.cache_delete_daily                  uid=mobile   sbx=NONE         mach=1 com.apple.mobile.cache_delete_daily, /System/Library/CoreServices/CacheDeleteDaily
+[bq102]   com.apple.corerepaird                                uid=root     sbx=NONE         mach=4 com.apple.corerepair.preflightControl,com.apple.corerepair.intentControl, /usr/libexec/corerepaird
+[bq102]   com.apple.adid                                       uid=mobile   sbx=NONE         mach=1 com.apple.adid,        /usr/libexec/adid
+[bq102]   com.apple.voicemail.vmd                              uid=mobile   sbx=NONE         mach=1 com.apple.voicemail.vmd, /System/Library/PrivateFrameworks/VisualVoicemail.framework/vmd
+[bq102]   com.apple.siriknowledged                             uid=mobile   sbx=NONE         mach=8 com.apple.siri.reference_resolution_module,com.apple.siriknowledged.vocabulary.admin, /usr/libexec/siriknowledged
+[bq102]   com.apple.sosd                                       uid=mobile   sbx=NONE         mach=6 com.apple.private.alloy.soscoordination-idswake,com.apple.usernotifications.delegate.com.apple.sosd.usernotification, /System/Library/PrivateFrameworks/SOS.framework/sosd
+[bq102]   com.apple.mobile.keybagd                             uid=root     sbx=NONE         mach=2 com.apple.mobile.keybagd.xpc,com.apple.mobile.keybagd.mach, /usr/libexec/keybagd
+[bq102]   com.apple.cfnetwork.AuthBrokerAgent                  uid=mobile   sbx=NONE         mach=1 com.apple.cfnetwork.AuthBrokerAgent, /System/Library/Frameworks/CFNetwork.framework/AuthBrokerAgent
+[bq102]   com.apple.wifianalyticsd                             uid=root     sbx=NONE         mach=2 com.apple.wifianalyticsd.devicestore,com.apple.wifianalyticsd, /usr/libexec/wifianalyticsd
+[bq102]   com.apple.assistant_service                          uid=mobile   sbx=NONE         mach=6 com.apple.private.appintents.delegate.com.apple.assistant_service,com.apple.siri.shared_flow_plugin_service, /System/Library/PrivateFrameworks/AssistantServices.framework/assistant_service
+[bq102]   com.apple.messagesescrowd                            uid=mobile   sbx=NONE         mach=1 com.apple.messagesescrowd, /System/Library/PrivateFrameworks/MessagesEscrow.framework/Daemon/messagesescrowd.xpc/messagesescrowd
+[bq102]   com.apple.appleaccounttransparencyd                  uid=mobile   sbx=NONE         mach=1 com.apple.appleaccount.transparency, /System/Library/PrivateFrameworks/AppleAccountTransparency.framework/appleaccounttransparencyd
+[bq102]   com.apple.logd_reporter                              uid=root     sbx=NONE         mach=0                        /usr/libexec/logd_reporter
+[bq102]   com.apple.accessibility.axremoted                    uid=root     sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/AccessibilityRemoteServices.framework/Support/axremoted
+[bq102]   com.apple.deviceaccessd                              uid=mobile   sbx=NONE         mach=2 com.apple.aps.deviceaccessd,com.apple.DeviceAccess.xpc, /usr/libexec/deviceaccessd
+[bq102]   com.apple.geod                                       uid=mobile   sbx=NONE         mach=3 com.apple.geod,com.apple.geod.cachedelete, /System/Library/PrivateFrameworks/GeoServices.framework/geod
+[bq102]   com.apple.sociallayerd                               uid=mobile   sbx=NONE         mach=3 com.apple.aps.sociallayerd,com.apple.private.appintents.delegate.com.apple.sociallayerd, /System/Library/PrivateFrameworks/SocialLayer.framework/sociallayerd.app/sociallayerd
+[bq102]   com.apple.retimerd                                   uid=root     sbx=NONE         mach=0                        /usr/libexec/retimerd
+[bq102]   com.apple.usbsmartcardreaderd                        uid=root     sbx=NONE         mach=0                        /System/Library/CryptoTokenKit/usbsmartcardreaderd.slotd/usbsmartcardreaderd
+[bq102]   com.apple.proximitycontrold                          uid=mobile   sbx=NONE         mach=6 com.apple.ProximityControl.ProxControlDemoHost,com.apple.ProximityControl.ProximityHandoffInteractions, /usr/libexec/proximitycontrold
+[bq102]   com.apple.mobilestoredemodhelper                     uid=root     sbx=NONE         mach=1 com.apple.mobilestoredemodhelper, /usr/libexec/demod_helper
+[bq102]   com.apple.GSSCred                                    uid=root     sbx=NONE         mach=1 com.apple.GSSCred,     /System/Library/Frameworks/GSS.framework/Helpers/GSSCred
+[bq102]   com.apple.safetyalertsd                              uid=mobile   sbx=NONE         mach=6 com.apple.usernotifications.delegate.com.apple.safetyalerts.aw,com.apple.usernotifications.delegate.com.apple.safetyalerts, /usr/libexec/safetyalertsd
+[bq102]   com.apple.assistivetouchd                            uid=mobile   sbx=NONE         mach=6 com.apple.accessibility.AXSwitchControlServer,com.apple.assistivetouchd.drag.xpc, /System/Library/CoreServices/AssistiveTouch.app/assistivetouchd
+[bq102]   com.apple.bookassetd                                 uid=mobile   sbx=NONE         mach=4 com.apple.mobile.cache_delete_ibooks,com.apple.aps.bookassetd, /System/Library/PrivateFrameworks/BookLibraryCore.framework/Support/bookassetd
+[bq102]   com.apple.powerexceptionsd                           uid=root     sbx=NONE         mach=3 com.apple.computesafeguards.violationhandler,com.apple.computesafeguards.managing, /usr/libexec/powerexceptionsd
+[bq102]   com.apple.naturallanguaged                           uid=_naturallanguaged sbx=NONE         mach=1 com.apple.naturallanguaged, /usr/libexec/naturallanguaged
+[bq102]   com.apple.frauddefensed                              uid=mobile   sbx=NONE         mach=1 com.apple.frauddefensed, /usr/libexec/frauddefensed
+[bq102]   com.apple.photosface                                 uid=mobile   sbx=NONE         mach=1 com.apple.photosface,  /usr/libexec/photosfaced
+[bq102]   com.apple.BatteryDischargeService                    uid=root     sbx=NONE         mach=1 com.apple.BatteryDischargeService, /usr/libexec/BatteryDischargeService
+[bq102]   com.apple.containermanagerd.system                   uid=root     sbx=NONE         mach=1 com.apple.containermanagerd.system, /usr/libexec/containermanagerd_system
+[bq102]   com.apple.nand.aspcarry                              uid=root     sbx=NONE         mach=0                        /usr/libexec/ASPCarryLog
+[bq102]   com.apple.webinspectord                              uid=mobile   sbx=NONE         mach=1 com.apple.webinspector, /System/Cryptexes/App/usr/libexec/webinspectord
+[bq102]   com.apple.apsd                                       uid=mobile   sbx=NONE         mach=2 com.apple.apsd.nsxpc,com.apple.apsd, /System/Library/PrivateFrameworks/ApplePushService.framework/apsd
+[bq102]   com.apple.AppleCredentialManagerDaemon               uid=root     sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/AppleCredentialManager.framework/AppleCredentialManagerDaemon
+[bq102]   com.apple.Safari.History                             uid=mobile   sbx=NONE         mach=3 com.apple.Safari.History.Service,com.apple.SafariCloudHistoryPushAgent, /System/Cryptexes/App/usr/libexec/com.apple.Safari.History
+[bq102]   com.apple.spaceattributiond                          uid=root     sbx=NONE         mach=2 com.apple.spaceattributiond.public,com.apple.spaceattributiond, /System/Library/PrivateFrameworks/SpaceAttribution.framework/spaceattributiond
+[bq102]   com.apple.applekeystored                             uid=root     sbx=NONE         mach=2 com.apple.applekeystored.notification,com.apple.applekeystored, /usr/libexec/applekeystored
+[bq102]   com.apple.mobilegestalt.xpc                          uid=root     sbx=NONE         mach=1 com.apple.mobilegestalt.xpc, /usr/libexec/MobileGestaltHelper
+[bq102]   com.apple.keychainsharingmessagingd                  uid=mobile   sbx=NONE         mach=2 com.apple.private.alloy.kcsharing.invite-idswake,com.apple.keychainsharingmessagingd, /usr/libexec/keychainsharingmessagingd
+[bq102]   com.apple.activityawardsd                            uid=mobile   sbx=NONE         mach=1 com.apple.activityawardsd, /System/Library/PrivateFrameworks/ActivityAwardsServices.framework/activityawardsd
+[bq102]   com.apple.recentsd                                   uid=mobile   sbx=NONE         mach=1 com.apple.corerecents.recentsd, /System/Library/PrivateFrameworks/CoreRecents.framework/recentsd
+[bq102]   com.apple.musicd                                     uid=mobile   sbx=NONE         mach=1 com.apple.musicd,      /System/Library/Frameworks/MusicKit.framework/Support/musicd
+[bq102]   com.apple.internal.ptdremoted                        uid=root     sbx=NONE         mach=0                        /usr/appleinternal/libexec/ptdremoted
+[bq102]   com.apple.contextstored                              uid=mobile   sbx=NONE         mach=2 com.apple.coreduetd.context,com.apple.proactive.ModeAnchorModelSuggestion.xpc, /System/Library/PrivateFrameworks/CoreDuetContext.framework/Resources/contextstored
+[bq102]   com.apple.manageddeviced                             uid=mobile   sbx=NONE         mach=1 com.apple.manageddeviced, /usr/libexec/manageddeviced
+[bq102]   com.apple.devicemanagementclient.managedappsd        uid=mobile   sbx=NONE         mach=2 com.apple.devicemanagementclient.managedappsd,com.apple.devicemanagementclient.managedappsd.public, /usr/libexec/managedappsd
+[bq102]   com.apple.wcd                                        uid=mobile   sbx=NONE         mach=8 com.apple.private.alloy.watchconnectivity.classd-idswake,com.apple.pairedsync.watchconnectivity.complications, /usr/libexec/wcd
+[bq102]   com.apple.mobilebackup2                              uid=root     sbx=NONE         mach=1 com.apple.lockdown.mobilebackup2, /usr/libexec/BackupAgent2
+[bq102]   com.apple.contactsd                                  uid=mobile   sbx=NONE         mach=5 com.apple.contactsd.contact-provider,com.apple.contactsd.support, /System/Library/Frameworks/Contacts.framework/Support/contactsd
+[bq102]   com.apple.logd                                       uid=_logd    sbx=NONE         mach=6 com.apple.logd.watchdog,com.apple.logd.cachedelete, /usr/libexec/logd
+[bq102]   com.apple.featureaccessd                             uid=mobile   sbx=NONE         mach=1 com.apple.ind.cloudfeatures, /System/Library/PrivateFrameworks/CloudSubscriptionFeatures.framework/featureaccessd
+[bq102]   com.apple.mediasetupd                                uid=mobile   sbx=NONE         mach=2 com.apple.mediasetupd.server,com.apple.aps.mediasetupd, /usr/libexec/mediasetupd
+[bq102]   com.apple.security.cryptexd                          uid=root     sbx=NONE         mach=2 com.apple.security.cryptex.xpc,com.apple.security.cryptexd, /usr/libexec/cryptexd
+[bq102]   com.apple.tipsd                                      uid=mobile   sbx=NONE         mach=3 com.apple.tipsd,com.apple.tipsd.assistant, /usr/libexec/tipsd
+[bq102]   com.apple.mobileassetd                               uid=root     sbx=NONE         mach=6 com.apple.mobileassetd.v2,com.apple.mobileassetd, /usr/libexec/mobileassetd
+[bq102]   com.apple.analyticsagent                             uid=mobile   sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/CoreAnalytics.framework/Support/analyticsagent
+[bq102]   com.apple.filesystems.doubleagentd                   uid=root     sbx=NONE         mach=2 com.apple.doubleagentd,com.apple.doubleagentd.ctl, doubleagentd
+[bq102]   com.apple.ScreenTimeSettingsAgent                    uid=mobile   sbx=NONE         mach=6 com.apple.askto.client.ScreenTimeSettings.AskToUnblockApplication,com.apple.ScreenTimeSettingsAgent.private, /System/Library/PrivateFrameworks/ScreenTimeSettingsFoundation.framework/ScreenTimeSettingsAgent
+[bq102]   com.apple.safarifetcherd                             uid=mobile   sbx=NONE         mach=1 com.apple.safarifetcherd, /System/Cryptexes/App/usr/libexec/safarifetcherd
+[bq102]   com.apple.bluetoothuserd                             uid=mobile   sbx=NONE         mach=3 com.apple.aps.bluetoothuserd,com.apple.usernotifications.delegate.com.apple.bluetoothuserd.UserNotification, /usr/libexec/bluetoothuserd
+[bq102]   com.apple.caraccessoryd                              uid=mobile   sbx=NONE         mach=7 com.apple.carkit.appClips.service,com.apple.CarAssetUtils.variants, /usr/libexec/caraccessoryd
+[bq102]   com.apple.afcd                                       uid=mobile   sbx=NONE         mach=1 com.apple.afcd,        /usr/libexec/afcd
+[bq102]   com.apple.mobile.lockdown                            uid=root     sbx=NONE         mach=0                        /usr/libexec/lockdownd
+[bq102]   com.apple.cfprefsd.xpc.daemon                        uid=root     sbx=NONE         mach=1 com.apple.cfprefsd.daemon, /usr/sbin/cfprefsd
+[bq102]   com.apple.IOAccelMemoryInfoCollector                 uid=root     sbx=NONE         mach=2 com.apple.gpumemd.source,com.apple.gpumemd.client, /usr/libexec/IOAccelMemoryInfoCollector
+[bq102]   com.apple.companiond                                 uid=mobile   sbx=NONE         mach=5 com.apple.companiond.xpc,com.apple.private.alloy.companion.auth-idswake, /usr/libexec/companiond
+[bq102]   com.apple.CommCenterMobileHelper                     uid=mobile   sbx=NONE         mach=4 com.apple.commcenter.mobile-helper-xpc,com.apple.commcenter.mobile-helper, /System/Library/Frameworks/CoreTelephony.framework/Support/CommCenterMobileHelper
+[bq102]   com.apple.terminusd                                  uid=mobile   sbx=NONE         mach=1 com.apple.terminusd,   /usr/libexec/terminusd
+[bq102]   com.apple.sensorkitd                                 uid=mobile   sbx=NONE         mach=8 com.apple.SensorKit.reader,com.apple.SensorKit.writer, /usr/libexec/sensorkitd
+[bq102]   com.apple.mediaremoted                               uid=mobile   sbx=NONE         mach=5 com.apple.aps.mediaremoted,com.apple.mediaremoted.xpc, /System/Library/PrivateFrameworks/MediaRemote.framework/Support/mediaremoted
+[bq102]   com.apple.mobileactivationd                          uid=root     sbx=NONE         mach=2 com.apple.mobileactivationd,com.apple.mobileactivationd.lockdown, /usr/libexec/mobileactivationd
+[bq102]   com.apple.ClipServices.clipserviced                  uid=mobile   sbx=NONE         mach=1 com.apple.ClipServices.clipserviced, /System/Library/PrivateFrameworks/ClipServices.framework/clipserviced
+[bq102]   com.apple.peakpowermanagerd                          uid=root     sbx=NONE         mach=0                        /usr/libexec/peakpowermanagerd
+[bq102]   com.apple.securepairingd                             uid=root     sbx=NONE         mach=1 com.apple.securepairingd, /usr/libexec/securepairingd
+[bq102]   com.apple.managedconfiguration.profiled              uid=mobile   sbx=NONE         mach=2 com.apple.managedconfiguration.profiled.public,com.apple.managedconfiguration.profiled, /usr/libexec/profiled
+[bq102]   com.apple.fitnesscoachingd                           uid=mobile   sbx=NONE         mach=1 com.apple.fitnesscoachingd, /System/Library/PrivateFrameworks/FitnessCoachingServices.framework/fitnesscoachingd
+[bq102]   com.apple.datastored                                 uid=root     sbx=NONE         mach=1 com.apple.xpc.datastore, /usr/libexec/datastored
+[bq102]   com.apple.timezoneupdates.tzd                        uid=root     sbx=NONE         mach=3 com.apple.private.alloy.timezonesync-idswake,com.apple.timezoneupdates.tzd.server, /usr/libexec/tzd
+[bq102]   com.apple.security.cloudkeychainproxy3               uid=root     sbx=NONE         mach=1 com.apple.security.cloudkeychainproxy3, /System/Library/Frameworks/Security.framework/CloudKeychainProxy.bundle/CloudKeychainProxy
+[bq102]   com.apple.ReportSystemMemory                         uid=mobile   sbx=NONE         mach=1 com.apple.ReportSystemMemory, /System/Library/CoreServices/ReportSystemMemory
+[bq102]   com.apple.corespotlightservice                       uid=mobile   sbx=NONE         mach=1 com.apple.corespotlightservice, /System/Library/Frameworks/CoreSpotlight.framework/CoreSpotlightService
+[bq102]   com.apple.mobile_diagnostics_relay                   uid=root     sbx=NONE         mach=2 com.apple.mobile.diagnostics_relay.lockdown,com.apple.mobile_diagnostics_relay, /usr/libexec/mobile_diagnostics_relay
+[bq102]   com.apple.cfnetwork.cfnetworkagent                   uid=mobile   sbx=NONE         mach=1 com.apple.cfnetwork.cfnetworkagent, /System/Library/Frameworks/CFNetwork.framework/CFNetworkAgent
+[bq102]   com.apple.modelmanagerd                              uid=mobile   sbx=NONE         mach=1 com.apple.modelmanager, /usr/libexec/modelmanagerd
+[bq102]   com.apple.cdpd                                       uid=mobile   sbx=NONE         mach=1 com.apple.cdp.daemon,  /System/Library/PrivateFrameworks/CoreCDP.framework/cdpd
+[bq102]   com.apple.accountsd                                  uid=mobile   sbx=NONE         mach=4 com.apple.private.alloy.accountssync-idswake,com.apple.accountsd.oauthsigner, /System/Library/Frameworks/Accounts.framework/accountsd
+[bq102]   com.apple.preboardservice_v2                         uid=mobile   sbx=NONE         mach=1 com.apple.preboardservice_v2, /usr/libexec/PreboardService
+[bq102]   com.apple.network.latticed                           uid=root     sbx=NONE         mach=0                        /usr/libexec/latticed
+[bq102]   com.apple.liveactivitiesd                            uid=mobile   sbx=NONE         mach=4 com.apple.aps.sessioncore.PushNotifications,com.apple.private.alloy.sessionkit-idswake, /System/Library/PrivateFrameworks/SessionCore.framework/Support/liveactivitiesd
+[bq102]   com.apple.mobile.storage_mounter                     uid=root     sbx=NONE         mach=1 com.apple.mobile.storage_mounter.xpc, /usr/libexec/MobileStorageMounter
+[bq102]   com.apple.symptomsd.helper                           uid=_networkd sbx=NONE         mach=1 com.apple.symptomsd.helper, /usr/libexec/symptomsd-helper
+[bq102]   com.apple.UsageTrackingAgent                         uid=mobile   sbx=NONE         mach=5 com.apple.UsageTrackingAgent.private,com.apple.UsageTrackingAgent.data-access, /System/Library/PrivateFrameworks/UsageTracking.framework/UsageTrackingAgent
+[bq102]   com.apple.mobile.obliteration                        uid=root     sbx=NONE         mach=1 com.apple.mobile.obliteration, /usr/libexec/mobile_obliterator
+[bq102]   com.apple.timed                                      uid=_timed   sbx=NONE         mach=1 com.apple.timed.xpc,   /usr/libexec/timed
+[bq102]   com.apple.coresymbolicationd                         uid=root     sbx=NONE         mach=1 com.apple.coresymbolicationd, /System/Library/PrivateFrameworks/CoreSymbolication.framework/coresymbolicationd
+[bq102]   com.apple.lockdownmoded                              uid=mobile   sbx=NONE         mach=3 com.apple.usernotifications.delegate.com.apple.LockdownMode,com.apple.private.alloy.lockdownmode-idswake, /System/Library/PrivateFrameworks/LockdownMode.framework/lockdownmoded
+[bq102]   com.apple.BluetoothUIService                         uid=mobile   sbx=NONE         mach=1 com.apple.BluetoothUIService, /System/Library/CoreServices/BluetoothUIService.app/BluetoothUIService
+[bq102]   com.apple.translationd                               uid=mobile   sbx=NONE         mach=2 com.apple.translationd,com.apple.translation.text, /System/Library/Frameworks/Translation.framework/translationd
+[bq102]   com.apple.UserEventAgent-System                      uid=root     sbx=NONE         mach=2 com.apple.xpc.activity.unmanaged,com.apple.xpc.activity.control, /usr/libexec/UserEventAgent
+[bq102]   com.apple.idamd                                      uid=mobile   sbx=NONE         mach=1 com.apple.idamd,       /usr/libexec/idamd
+[bq102]   com.apple.mobile.cache_delete_app_container_caches   uid=mobile   sbx=NONE         mach=2 com.apple.mobile.cache_delete_app_freezer,com.apple.mobile.cache_delete_managed_assets, /System/Library/CoreServices/CacheDeleteAppContainerCaches
+[bq102]   com.apple.gamesaved                                  uid=mobile   sbx=NONE         mach=1 com.apple.gamesaved,   /usr/libexec/gamesaved
+[bq102]   com.apple.dockaccessoryd                             uid=mobile   sbx=NONE         mach=6 com.apple.dockaccessoryd.private,com.apple.dockaccessoryd, /usr/libexec/dockaccessoryd
+[bq102]   com.apple.diagnosticspushd                           uid=mobile   sbx=NONE         mach=1 com.apple.aps.diagnostics, /usr/libexec/diagnosticspushd
+[bq102]   com.apple.AppInstallationMetrics                     uid=mobile   sbx=NONE         mach=1 com.apple.appinstallationmetrics.xpc, /System/Library/PrivateFrameworks/AppInstallationMetrics.framework/Support/appinstallationmetricsd
+[bq102]   com.apple.webkit.webpushd                            uid=mobile   sbx=NONE         mach=2 com.apple.webkit.webpushd.service,com.apple.aps.webkit.webpushd.incoming-push, /System/Cryptexes/App/usr/libexec/webpushd
+[bq102]   com.apple.SCHelper                                   uid=root     sbx=NONE         mach=1 com.apple.SystemConfiguration.helper, /System/Library/Frameworks/SystemConfiguration.framework/SCHelper
+[bq102]   com.apple.assistant_cdmd                             uid=mobile   sbx=NONE         mach=1 com.apple.assistant.cdm, /System/Library/PrivateFrameworks/ContinuousDialogManagerService.framework/assistant_cdmd
+[bq102]   com.apple.icloudmailagent                            uid=mobile   sbx=NONE         mach=2 com.apple.aps.icloud.mcc,com.apple.icloudmailagent.secret.xpc, /usr/libexec/icloudmailagent
+[bq102]   com.apple.OTACrashCopier                             uid=mobile   sbx=NONE         mach=1 com.apple.OSASubmission.client, OTACrashCopier
+[bq102]   com.apple.trustd                                     uid=_trustd  sbx=NONE         mach=1 com.apple.trustd,      /usr/libexec/trustd
+[bq102]   com.apple.cfprefsd.xpc.daemon.system                 uid=root     sbx=NONE         mach=1 com.apple.cfprefsd.daemon.system, /usr/sbin/cfprefsd
+[bq102]   com.apple.SensorKitALSHelper                         uid=mobile   sbx=NONE         mach=0                        /usr/libexec/SensorKitALSHelper
+[bq102]   com.apple.protectedcloudstorage.protectedcloudkeysyncing uid=mobile   sbx=NONE         mach=3 com.apple.private.alloy.pcskey.sync-idswake,com.apple.protectedcloudstorage.protectedcloudkeysyncing, /System/Library/PrivateFrameworks/ProtectedCloudStorage.framework/Helpers/ProtectedCloudKeySyncing
+[bq102]   com.apple.mDNSResponderHelper.reloaded               uid=root     sbx=NONE         mach=1 com.apple.mDNSResponder_Helper, /usr/sbin/mDNSResponderHelper
+[bq102]   com.apple.wifi.wapic                                 uid=root     sbx=NONE         mach=1 com.apple.wapi.client, /usr/libexec/wapic
+[bq102]   com.apple.devicecheckd                               uid=mobile   sbx=NONE         mach=1 com.apple.devicecheckd, /System/Library/PrivateFrameworks/DeviceCheckInternal.framework/devicecheckd
+[bq102]   com.apple.imcore.imtransferagent                     uid=mobile   sbx=NONE         mach=1 com.apple.imtransferservices.IMTransferAgent, /System/Library/PrivateFrameworks/IMTransferServices.framework/IMTransferAgent.app/IMTransferAgent
+[bq102]   com.apple.softposreaderd                             uid=mobile   sbx=NONE         mach=1 com.apple.softposreaderd, /usr/libexec/softposreaderd
+[bq102]   com.apple.nanoregistrylaunchd                        uid=root     sbx=NONE         mach=1 com.apple.nano.nanoregistry.nanoregistrylaunchd, /usr/libexec/nanoregistrylaunchd
+[bq102]   com.apple.SafariBookmarksSyncAgent                   uid=mobile   sbx=NONE         mach=2 com.apple.SafariBookmarksSyncAgent.Push,com.apple.SafariBookmarksSyncAgent, /System/Cryptexes/App/usr/libexec/SafariBookmarksSyncAgent
+[bq102]   com.apple.restorecameraispd                          uid=mobile   sbx=NONE         mach=1 com.apple.restorecameraispd, /usr/libexec/restorecameraispd
+[bq102]   com.apple.textunderstandingd                         uid=mobile   sbx=NONE         mach=7 com.apple.textunderstandingd,com.apple.corespotlight.scheduled.receiver.textunderstandingd, /usr/libexec/textunderstandingd
+[bq102]   com.apple.sntpd                                      uid=_sntpd   sbx=NONE         mach=0                        /usr/sbin/sntpd
+[bq102]   com.apple.dt.automationmode-writer                   uid=root     sbx=NONE         mach=2 com.apple.dt.automationmode.writer,com.apple.dt.automationmode.reader, /System/Library/PrivateFrameworks/AutomationMode.framework/automationmode-writer
+[bq102]   com.apple.privacyaccountingd                         uid=mobile   sbx=NONE         mach=1 com.apple.privacyaccountingd, /System/Library/PrivateFrameworks/PrivacyAccounting.framework/Versions/A/Resources/privacyaccountingd
+[bq102]   com.apple.appleh16camerad                            uid=mobile   sbx=NONE         mach=1 com.apple.appleh16camerad, /usr/sbin/appleh16camerad
+[bq102]   com.apple.inboxupdaterd                              uid=root     sbx=NONE         mach=1 com.apple.inboxupdaterd, /usr/libexec/inboxupdaterd
+[bq102]   com.apple.pluginkit.pkd                              uid=root     sbx=NONE         mach=1 com.apple.pluginkit.pkd, /usr/libexec/pkd
+[bq102]   com.apple.eyereliefd                                 uid=mobile   sbx=NONE         mach=1 com.apple.eyereliefd,  /System/Library/PrivateFrameworks/EyeRelief.framework/Resources/eyereliefd
+[bq102]   com.apple.devicesharingd                             uid=mobile   sbx=NONE         mach=3 com.apple.devicesharingd.enrollmentassetservice,com.apple.devicesharingd, /usr/libexec/devicesharingd
+[bq102]   com.apple.chassisplatformhostd                       uid=root     sbx=NONE         mach=2 com.apple.chassisplatformhostd.cpk.gov.host,com.apple.chassisplatformhostd.cpk.gov.host.internal, /usr/libexec/chassisplatformhostd
+[bq102]   com.apple.nexusd                                     uid=mobile   sbx=NONE         mach=1 com.apple.nexus,       /usr/libexec/nexusd
+[bq102]   com.apple.powerexperienced                           uid=root     sbx=NONE         mach=6 com.apple.powerexperienced.powertargetcontroller,com.apple.powerexperienced.powermitigationsmanager.service, /usr/libexec/powerexperienced
+[bq102]   com.apple.diskimagespawner                           uid=root     sbx=NONE         mach=2 com.apple.diskimagespawner.xpc,com.apple.diskimagespawner, diskimagespawner
+[bq102]   com.apple.fontservicesd                              uid=mobile   sbx=NONE         mach=1 com.apple.fontservicesd, /System/Library/PrivateFrameworks/FontServices.framework/Support/fontservicesd
+[bq102]   com.apple.guidedbrowsingd                            uid=mobile   sbx=NONE         mach=1 com.apple.guidedbrowsingd, /System/Cryptexes/App/usr/libexec/guidedbrowsingd
+[bq102]   com.apple.fairplayd.H2                               uid=mobile   sbx=NONE         mach=4 com.apple.fairplayd.versioned,com.apple.unfreed, /usr/sbin/fairplayd.H2
+[bq102]   com.apple.batterytrapd                               uid=mobile   sbx=NONE         mach=0                        /usr/libexec/batterytrapd
+[bq102]   com.apple.diagnosticservicesd                        uid=_diagnosticservicesd sbx=NONE         mach=1 com.apple.diagnosticservicesd, /System/Library/CoreServices/diagnosticservicesd
+[bq102]   com.apple.wifip2pd                                   uid=root     sbx=NONE         mach=2 com.apple.usernotifications.delegate.com.apple.wifip2pd.UserNotification,com.apple.wifip2pd, /usr/libexec/wifip2pd
+[bq102]   com.apple.fairplaydeviceidentityd                    uid=mobile   sbx=NONE         mach=1 com.apple.fairplaydeviceidentityd, /usr/libexec/fairplaydeviceidentityd
+[bq102]   com.apple.ptpcamerad                                 uid=mobile   sbx=NONE         mach=1 com.apple.ptpcamerad,  /usr/libexec/ptpcamerad
+[bq102]   com.apple.mobile.NRDUpdated                          uid=mobile   sbx=NONE         mach=1 com.apple.mobile.NRDUpdated, /usr/libexec/NRDUpdated
+[bq102]   com.apple.amsondevicestoraged                        uid=mobile   sbx=NONE         mach=3 com.apple.chrono.event-service.amsondevicestoraged,com.apple.servicesanalytics.xpc, /System/Library/PrivateFrameworks/OnDeviceStorage.framework/Support/amsondevicestoraged
+[bq102]   com.apple.geoanalyticsd                              uid=mobile   sbx=NONE         mach=1 com.apple.geoanalyticsd, /System/Library/PrivateFrameworks/GeoAnalytics.framework/geoanalyticsd
+[bq102]   com.apple.reversetemplated                           uid=mobile   sbx=NONE         mach=1 com.apple.reversetemplated, /System/Library/PrivateFrameworks/CoreSuggestions.framework/reversetemplated
+[bq102]   com.apple.pfd                                        uid=root     sbx=NONE         mach=1 com.apple.pfd,         /usr/libexec/pfd
+[bq102]   com.apple.visioncompaniond                           uid=mobile   sbx=NONE         mach=2 com.apple.aps.Tetsuo,com.apple.visioncompaniond, /usr/libexec/visioncompaniond
+[bq102]   com.apple.intelligentroutingd                        uid=mobile   sbx=NONE         mach=1 com.apple.intelligentroutingd.xpc.media, /usr/libexec/intelligentroutingd
+[bq102]   com.apple.racoon                                     uid=root     sbx=NONE         mach=1 com.apple.SecureNetworking.IPSec, /usr/sbin/racoon
+[bq102]   com.apple.intelligencecontextd                       uid=mobile   sbx=NONE         mach=6 com.apple.intelligenceflow.uiContext,com.apple.intelligenceflow.contextIntelligence, /System/Library/PrivateFrameworks/IntelligenceFlowContextRuntime.framework/intelligencecontextd
+[bq102]   com.apple.neagent-ios                                uid=mobile   sbx=NONE         mach=1 com.apple.neagent,     /usr/libexec/neagent
+[bq102]   com.apple.mobile.insecure_notification_proxy         uid=mobile   sbx=NONE         mach=1 com.apple.mobile.insecure_notification_proxy, /usr/libexec/notification_proxy
+[bq102]   com.apple.uarpassetmanagerd                          uid=_accessoryupdater sbx=NONE         mach=2 com.apple.uarpassetmanager.settings,com.apple.uarpassetmanager.uarp, /usr/libexec/uarpassetmanagerd
+[bq102]   com.apple.nearbyd                                    uid=mobile   sbx=NONE         mach=7 com.apple.nearbyd.xpc.nearbyinteraction,com.apple.nearbyd.xpc.nearbyinteraction.observer, /usr/libexec/nearbyd
+[bq102]   com.apple.textcomposerd                              uid=mobile   sbx=NONE         mach=2 com.apple.generativeexperiences.externaltextcomposition,com.apple.generativeexperiences.textcomposition, /usr/libexec/textcomposerd
+[bq102]   com.apple.ndoagent                                   uid=mobile   sbx=NONE         mach=2 com.apple.aps.applecare.push.handler,com.apple.ndoagent, /System/Library/PrivateFrameworks/NewDeviceOutreach.framework/ndoagent
+[bq102]   com.apple.searchd                                    uid=mobile   sbx=NONE         mach=8 com.apple.searchd.personaobserver,com.apple.MobileAsset.SpotlightResources, /System/Library/PrivateFrameworks/Search.framework/searchd
+[bq102]   com.apple.hangreporter                               uid=root     sbx=NONE         mach=1 com.apple.hangreporter, /usr/libexec/hangreporter
+[bq102]   com.apple.remoteappintentsd                          uid=mobile   sbx=NONE         mach=2 com.apple.remoteappintentsd.prewarm,com.apple.remoteappintentsd.appevent, /usr/libexec/remoteappintentsd
+[bq102]   com.apple.Safari.passwordbreachd                     uid=mobile   sbx=NONE         mach=1 com.apple.Safari.PasswordBreachHelper, /System/Cryptexes/App/usr/libexec/passwordbreachd
+[bq102]   com.apple.familynotification                         uid=mobile   sbx=NONE         mach=2 com.apple.usernotifications.delegate.com.apple.familynotifications,com.apple.familynotification.agent, /System/Library/PrivateFrameworks/FamilyNotification.framework/familynotificationd
+[bq102]   com.apple.dt.remotepairingdeviced                    uid=mobile   sbx=NONE         mach=8 com.apple.remotepairingdevice.tunnelmanagement,com.apple.remotepairingdevice.auditlogging, /usr/libexec/remotepairingdeviced
+[bq102]   com.apple.findmy.findmybeaconingd                    uid=mobile   sbx=NONE         mach=2 com.apple.findmy.LocalBeaconing,com.apple.findmy.findmybeaconingd.push, /usr/libexec/findmybeaconingd
+[bq102]   com.apple.revisiond                                  uid=root     sbx=NONE         mach=2 com.apple.revisiond,com.apple.revisiond.cache-delete, /System/Library/PrivateFrameworks/GenerationalStorage.framework/revisiond
+[bq102]   com.apple.betaenrollmentd                            uid=root     sbx=NONE         mach=1 com.apple.seeding.client, /usr/libexec/betaenrollmentd
+[bq102]   com.apple.fseventsd                                  uid=root     sbx=NONE         mach=1 com.apple.FSEvents,    /usr/libexec/fseventsd
+[bq102]   com.apple.newsd                                      uid=mobile   sbx=NONE         mach=8 com.apple.newsd.feed,com.apple.newsd.today-feed, /System/Library/PrivateFrameworks/NewsDaemon.framework/newsd
+[bq102]   com.apple.online-auth-agent.xpc                      uid=root     sbx=NONE         mach=1 com.apple.online-auth-agent.xpc, /usr/libexec/online-auth-agent
+[bq102]   com.apple.devicemanagementclient.teslad              uid=mobile   sbx=NONE         mach=2 com.apple.aps.managedconfiguration.teslad.deppush-prod,com.apple.managedconfiguration.teslad, /usr/libexec/teslad
+[bq102]   com.apple.toolkitd                                   uid=mobile   sbx=NONE         mach=1 com.apple.toolkitd.xpc, /usr/libexec/toolkitd
+[bq102]   com.apple.scrod                                      uid=mobile   sbx=NONE         mach=1 com.apple.scrod,       /System/Library/CoreServices/VoiceOverTouch.app/scrod
+[bq102]   com.apple.usb.networking.addNetworkInterface         uid=root     sbx=NONE         mach=0                        /usr/sbin/addNetworkInterface
+[bq102]   com.apple.storagekitd                                uid=root     sbx=NONE         mach=2 com.apple.storagekitd,com.apple.storagekitd.dm, /usr/libexec/storagekitd
+[bq102]   com.apple.handwritingd                               uid=mobile   sbx=NONE         mach=3 com.apple.handwritingd.pkanalytics,com.apple.handwritingd.pksettings, /usr/libexec/handwritingd
+[bq102]   com.apple.continuitycaptured                         uid=mobile   sbx=NONE         mach=1 com.apple.continuitycaptured, /usr/libexec/continuitycaptured
+[bq102]   com.apple.aned                                       uid=mobile   sbx=NONE         mach=2 com.apple.appleneuralengine.private,com.apple.appleneuralengine, /usr/libexec/aned
+[bq102]   com.apple.cmfsyncagent                               uid=mobile   sbx=NONE         mach=1 com.apple.cmfsyncagent.embedded.auth, /System/Library/PrivateFrameworks/CommunicationsFilter.framework/CMFSyncAgent
+[bq102]   com.apple.wifivelocityd                              uid=root     sbx=NONE         mach=2 com.apple.usernotifications.delegate.com.apple.wifivelocityd.usernotification,com.apple.wifivelocityd, /usr/libexec/wifivelocityd
+[bq102]   com.apple.sensingpredictd                            uid=mobile   sbx=NONE         mach=2 com.apple.SensingPredict,com.apple.SensingPredict.debugService, /usr/libexec/sensingpredictd
+[bq102]   com.apple.corerepaird                                uid=root     sbx=NONE         mach=4 com.apple.corerepair.preflightControl,com.apple.corerepair.intentControl, /usr/libexec/corerepaird
+[bq102]   com.apple.centaurid                                  uid=mobile   sbx=NONE         mach=1 com.apple.centaurid.xpc, /usr/libexec/centaurid
+[bq102]   com.apple.cache_delete                               uid=mobile   sbx=NONE         mach=3 com.apple.cache_delete.private,com.apple.cache_delete, /System/Library/PrivateFrameworks/CacheDelete.framework/deleted
+[bq102]   com.apple.nanobackupd                                uid=mobile   sbx=NONE         mach=1 com.apple.nanobackup,  /System/Library/PrivateFrameworks/NanoBackup.framework/nanobackupd
+[bq102]   com.apple.misagent                                   uid=root     sbx=NONE         mach=1 com.apple.misagent,    /usr/libexec/misagent
+[bq102]   com.apple.browserkitd                                uid=mobile   sbx=NONE         mach=1 com.apple.browserkitd, /System/Cryptexes/App/usr/libexec/browserkitd
+[bq102]   com.apple.mobile.cache_delete_mobile_backup          uid=root     sbx=NONE         mach=1 com.apple.mobile.cache_delete_mobile_backup, /System/Library/PrivateFrameworks/MobileBackup.framework/MobileBackupCacheDeleteService
+[bq102]   com.apple.calaccessd                                 uid=mobile   sbx=NONE         mach=5 com.apple.calaccessd.xpc,com.apple.calaccessd, /System/Library/PrivateFrameworks/CalendarDaemon.framework/Support/calaccessd
+[bq102]   com.apple.voicebankingd                              uid=mobile   sbx=NONE         mach=4 com.apple.voicebanking.services,com.apple.aps.voicebankingd, /System/Library/PrivateFrameworks/TextToSpeechVoiceBankingSupport.framework/Support/voicebankingd
+[bq102]   com.apple.thermalmonitord                            uid=root     sbx=NONE         mach=2 com.apple.thermalmonitord.watchdog,com.apple.thermalMonitor.siriEnabledNote, /usr/libexec/thermalmonitord
+[bq102]   com.apple.audioanalyticsd                            uid=mobile   sbx=NONE         mach=1 com.apple.audioanalyticsd, /usr/libexec/audioanalyticsd
+[bq102]   com.apple.perfpowermetricd                           uid=root     sbx=NONE         mach=2 com.apple.PerfPowerMetricMonitor.xpc,com.apple.PerfPowerMetricMonitorHeadless.xpc, /usr/bin/perfpowermetricd
+[bq102]   com.apple.memory-maintenance                         uid=mobile   sbx=NONE         mach=2 com.apple.mmaintenanced,com.apple.mmaintenanced.server, /usr/libexec/mmaintenanced
+[bq102]   com.apple.photos.ImageConversionService              uid=mobile   sbx=NONE         mach=1 com.apple.photos.ImageConversionService, com.apple.photos.ImageConversionService
+[bq102]   com.apple.triald                                     uid=mobile   sbx=NONE         mach=6 com.apple.triald.namespace-management,com.apple.triald.sysdiagnose, /usr/libexec/triald
+[bq102]   com.apple.security.swcagent                          uid=mobile   sbx=NONE         mach=1 com.apple.security.swcagent, /System/Library/Frameworks/Security.framework/swcagent
+[bq102]   com.apple.usbaudiod                                  uid=mobile   sbx=NONE         mach=1 com.apple.usbaudiod,   /System/Library/Audio/Plug-Ins/usbaudio.bundle/usbaudiod
+[bq102]   com.apple.businessservicesd                          uid=root     sbx=NONE         mach=1 com.apple.businessservicesd, /System/Library/PrivateFrameworks/BusinessChatService.framework/businessservicesd
+[bq102]   com.apple.mobilerepaird                              uid=mobile   sbx=NONE         mach=2 com.apple.mobilerepair.shipmode,com.apple.mobilerepaird, /usr/libexec/mobilerepaird
+[bq102]   com.apple.abm-helper                                 uid=_wireless sbx=NONE         mach=1 com.apple.abm.helper.wireless, /System/Library/PrivateFrameworks/ABMHelper.framework/Support/abm-helper
+[bq102]   com.apple.fs_task_scheduler                          uid=root     sbx=NONE         mach=1 HostSpecialPort,       /usr/libexec/FSTaskScheduler
+[bq102]   com.apple.mediaanalysisd.service                     uid=mobile   sbx=NONE         mach=1 com.apple.mediaanalysisd.service.activity, /System/Library/PrivateFrameworks/MediaAnalysis.framework/mediaanalysisd-service
+[bq102]   com.apple.devicerecoveryd                            uid=root     sbx=NONE         mach=3 com.apple.DeviceRecoveryEnvironmentService,com.apple.DeviceRecoveryOverrideService, /System/Library/PrivateFrameworks/DeviceRecovery.framework/Support/devicerecoveryd
+[bq102]   com.apple.siriappintentsd                            uid=mobile   sbx=NONE         mach=1 com.apple.private.siriappintentsd.orchestrator, /System/Library/PrivateFrameworks/SiriAppIntentsRuntime.framework/siriappintentsd
+[bq102]   com.apple.MobileInternetSharing                      uid=root     sbx=NONE         mach=1 com.apple.MobileInternetSharing, /usr/libexec/misd
+[bq102]   com.apple.heartratecoordinatord                      uid=mobile   sbx=NONE         mach=3 com.apple.heartratecoordinatord.blecollectionobserver,com.apple.heartratecoordinatord.requestor, /usr/libexec/heartratecoordinatord
+[bq102]   com.apple.fileindexerd                               uid=mobile   sbx=NONE         mach=2 com.apple.corespotlight.daemon.fileindexer,com.apple.FileIndexer, /System/Library/PrivateFrameworks/FileIndexerDaemon.framework/Support/fileindexerd
+[bq102]   com.apple.nsurlsessiond                              uid=mobile   sbx=NONE         mach=3 com.apple.nsurlsessiond,com.apple.nsurlsessiond-launchondemand, /usr/libexec/nsurlsessiond
+[bq102]   com.apple.matd                                       uid=mobile   sbx=NONE         mach=1 com.apple.matd,        /System/Library/PrivateFrameworks/WelcomeKit.framework/matd
+[bq102]   com.apple.filesystems.userfsd                        uid=mobile   sbx=NONE         mach=2 com.apple.filesystems.localLiveFiles,com.apple.filesystems.userfsd, /System/Library/PrivateFrameworks/UserFS.framework/userfsd
+[bq102]   com.apple.enhancedloggingd                           uid=mobile   sbx=NONE         mach=3 com.apple.enhancedloggingd.bug-session-status.xpc,com.apple.enhancedloggingd.file-uploader.xpc, /usr/libexec/enhancedloggingd
+[bq102]   com.apple.dietappleh16camerad                        uid=mobile   sbx=NONE         mach=1 com.apple.dietappleh16camerad, /usr/sbin/dietappleh16camerad
+[bq102]   com.apple.PerformanceTrace.ptpassivecollectiond      uid=root     sbx=NONE         mach=1 com.apple.PerformanceTrace.ptpassivecollectiond.collectionconfig, /usr/libexec/ptpassivecollectiond
+[bq102]   com.apple.preboardservice                            uid=mobile   sbx=NONE         mach=1 com.apple.preboardservice, /usr/libexec/PreboardService
+[bq102]   com.apple.progressd                                  uid=mobile   sbx=NONE         mach=2 com.apple.progressd,com.apple.progressd.aps, /System/Library/Frameworks/ClassKit.framework/progressd
+[bq102]   com.apple.ManagedSettingsAgent                       uid=mobile   sbx=NONE         mach=4 com.apple.ManagedSettingsAgent.system,com.apple.ManagedSettingsAgent, /System/Library/Frameworks/ManagedSettings.framework/ManagedSettingsAgent
+[bq102]   com.apple.SiriTTSTrainingAgent                       uid=mobile   sbx=NONE         mach=1 com.apple.SiriTTSTrainingAgent, /System/Library/PrivateFrameworks/SiriTTSTraining.framework/SiriTTSTrainingAgent
+[bq102]   com.apple.diagnosticd                                uid=root     sbx=NONE         mach=3 com.apple.diagnosticd,com.apple.syslog_relay, /usr/libexec/diagnosticd
+[bq102]   com.apple.ctkd                                       uid=mobile   sbx=NONE         mach=4 com.apple.ctkd.smartcardregistration-client,com.apple.ctkd.slot-registry, /System/Library/Frameworks/CryptoTokenKit.framework/ctkd
+[bq102]   com.apple.swiftuitracingsupport.xpc                  uid=root     sbx=NONE         mach=1 com.apple.swiftuitracingsupport.xpc, /usr/libexec/swiftuitraced
+[bq102]   com.apple.FileProvider                               uid=mobile   sbx=NONE         mach=6 com.apple.FileProvider.cache-delete,com.apple.FileProvider, /System/Library/Frameworks/FileProvider.framework/Support/fileproviderd
+[bq102]   com.apple.securemessagingagent                       uid=mobile   sbx=NONE         mach=3 com.apple.securemessagingagent.registration,com.apple.securemessagingagent, /System/Library/PrivateFrameworks/SecureMessaging.framework/SecureMessagingAgent
+[bq102]   com.apple.nesessionmanager                           uid=root     sbx=NONE         mach=3 com.apple.nesessionmanager.content-filter,com.apple.nesessionmanager.flow-divert-token, /usr/libexec/nesessionmanager
+[bq102]   com.apple.shazamd                                    uid=mobile   sbx=NONE         mach=4 com.apple.usernotifications.delegate.com.apple.ShazamNotifications,com.apple.shazamd, /System/Library/Frameworks/ShazamKit.framework/shazamd
+[bq102]   com.apple.avconferenced                              uid=mobile   sbx=NONE         mach=5 com.apple.videoconference.audiodevice,com.apple.videoconference.speechtranslation, /usr/libexec/avconferenced
+[bq102]   com.apple.prngseedd                                  uid=root     sbx=NONE         mach=0                        /usr/libexec/seputil
+[bq102]   com.apple.AdminLite                                  uid=root     sbx=NONE         mach=1 com.apple.AdminLite,   /System/Library/PrivateFrameworks/AdminLite.framework/Resources/AdminLiteTool
+[bq102]   com.apple.mobile.notification_proxy                  uid=mobile   sbx=NONE         mach=1 com.apple.mobile.notification_proxy, /usr/libexec/notification_proxy
+[bq102]   com.apple.cloudtelemetryd                            uid=root     sbx=NONE         mach=1 com.apple.cloudtelemetryd, /System/Library/PrivateFrameworks/CloudTelemetry.framework/Support/cloudtelemetryd
+[bq102]   com.apple.healthappd                                 uid=mobile   sbx=NONE         mach=3 com.apple.healthappd,com.apple.healthappd.orchestration, /System/Library/PrivateFrameworks/HealthPluginHost.framework/healthappd
+[bq102]   com.apple.idsfoundation.IDSRemoteURLConnectionAgent  uid=mobile   sbx=NONE         mach=1 com.apple.idsremoteurlconnectionagent.embedded.auth, /System/Library/PrivateFrameworks/IDSFoundation.framework/IDSRemoteURLConnectionAgent.app/IDSRemoteURLConnectionAgent
+[bq102]   com.apple.installcoordinationd                       uid=mobile   sbx=NONE         mach=4 com.apple.InstallProgress.xpc,com.apple.installcoordinationd, /System/Library/PrivateFrameworks/InstallCoordination.framework/Support/installcoordinationd
+[bq102]   com.apple.PointerUI.pointeruid                       uid=mobile   sbx=NONE         mach=2 com.apple.PointerUI.pointeruid.service-launching,com.apple.PointerUI.pointeruid.service, /System/Library/PrivateFrameworks/PointerUIServices.framework/Support/pointeruid
+[bq102]   com.apple.devicemanagementclient.mdmd                uid=mobile   sbx=NONE         mach=3 com.apple.managedconfiguration.mdmdservice,com.apple.aps.managedconfiguration.mdmdpush-prod, /usr/libexec/mdmd
+[bq102]   com.apple.DesktopServicesHelper                      uid=mobile   sbx=NONE         mach=2 com.apple.DesktopServicesHelper,com.apple.DesktopServicesHelper.FileService, /System/Library/PrivateFrameworks/DesktopServicesPriv.framework/DesktopServicesHelper
+[bq102]   com.apple.appmanagedfeaturesd                        uid=mobile   sbx=NONE         mach=7 com.apple.appmanagedfeatures.testing,com.apple.appmanagedfeatures.restrictions, /System/Library/Frameworks/AppManagedFeatures.framework/Support/appmanagedfeaturesd
+[bq102]   com.apple.homeeventsd                                uid=mobile   sbx=NONE         mach=1 com.apple.homekitevents.xpc, /System/Library/PrivateFrameworks/HomeKitEvents.framework/Support/homeeventsd
+[bq102]   com.apple.callverificationd                          uid=mobile   sbx=NONE         mach=1 com.apple.aps.callverification, /usr/libexec/callverificationd
+[bq102]   com.apple.crash_mover                                uid=root     sbx=NONE         mach=1 com.apple.crash_mover, /usr/libexec/crash_mover
+[bq102]   com.apple.uikit.eyedropperd                          uid=mobile   sbx=NONE         mach=1 com.apple.uikit.eyedropperd.service, /System/Library/PrivateFrameworks/Eyedropper.framework/Support/eyedropperd
+[bq102]   com.apple.ABDatabaseDoctor                           uid=mobile   sbx=NONE         mach=1 com.apple.ABDatabaseDoctor, /System/Library/Frameworks/AddressBook.framework/Support/ABDatabaseDoctor
+[bq102]   com.apple.mobile.storage_mounter_proxy               uid=root     sbx=NONE         mach=1 com.apple.mobile.storage_mounter_proxy, /usr/libexec/mobile_storage_proxy
+[bq102]   com.apple.mlruntimed                                 uid=mobile   sbx=NONE         mach=1 com.apple.mlruntime.xpc, /usr/libexec/mlruntimed
+[bq102]                                                        uid=root     sbx=NONE         mach=0                        
+[bq102]   com.apple.accessoryupdaterd                          uid=_accessoryupdater sbx=NONE         mach=6 com.apple.accessoryupdater.launchauhelper,com.apple.MobileAccessoryUpdater, /System/Library/PrivateFrameworks/MobileAccessoryUpdater.framework/Support/accessoryupdaterd
+[bq102]   com.apple.peopled                                    uid=mobile   sbx=NONE         mach=2 com.apple.people.agent,com.apple.corespotlight.daemon.people, /System/Library/PrivateFrameworks/People.framework/peopled
+[bq102]   com.apple.diskarbitrationd                           uid=root     sbx=NONE         mach=1 com.apple.DiskArbitration.diskarbitrationd, /usr/libexec/diskarbitrationd
+[bq102]   com.apple.fpassetmanagerd                            uid=mobile   sbx=NONE         mach=1 com.apple.fpassetmanagerd, /usr/libexec/fpassetmanagerd
+[bq102]   com.apple.privatecloudcomputed                       uid=mobile   sbx=NONE         mach=1 com.apple.privatecloudcompute, /System/Library/PrivateFrameworks/PrivateCloudCompute.framework/privatecloudcomputed.app/privatecloudcomputed
+[bq102]   com.apple.diskimagesiod                              uid=_diskimagesiod sbx=NONE         mach=2 com.apple.diskimagesiod.xpc,com.apple.diskimagesiod.cachedelete, /usr/libexec/diskimagesiod
+[bq102]   com.apple.hangtracerd                                uid=root     sbx=NONE         mach=2 com.apple.hangtracerd,com.apple.usernotifications.delegate.com.apple.hangtracerd.usernotifications, /usr/libexec/hangtracerd
+[bq102]   com.apple.ftp-proxy-embedded                         uid=_ftp     sbx=NONE         mach=0                        ftp-proxy
+[bq102]   com.apple.CallHistorySyncHelper                      uid=mobile   sbx=NONE         mach=3 com.apple.CallHistorySyncHelper.aps,com.apple.callhistory.pairedsync, /System/Library/PrivateFrameworks/CallHistory.framework/Support/CallHistorySyncHelper
+[bq102]   com.apple.biometrickitd.pearl                        uid=root     sbx=NONE         mach=1 com.apple.pearld,      /usr/libexec/biometrickitd
+[bq102]   com.apple.riskdatad                                  uid=mobile   sbx=NONE         mach=3 com.apple.odi.assessmentService,com.apple.odi.legacySPIService, /usr/libexec/riskdatad
+[bq102]   com.apple.memoryanalyticsd                           uid=root     sbx=NONE         mach=0                        /usr/libexec/memoryanalyticsd
+[bq102]   com.apple.WebBookmarks.webbookmarksd                 uid=mobile   sbx=NONE         mach=2 com.apple.WebBookmarks.webbookmarksd,com.apple.WebBookmarks.CacheDelete, /System/Cryptexes/App/usr/libexec/webbookmarksd
+[bq102]   com.apple.voiced                                     uid=mobile   sbx=NONE         mach=3 com.apple.voiced,com.apple.voiceservices.tts, /System/Library/PrivateFrameworks/VoiceServices.framework/Support/voiced
+[bq102]   com.apple.gpsd                                       uid=_gpsd    sbx=NONE         mach=1 com.apple.gpsd,        /usr/libexec/gpsd
+[bq102]   com.apple.ckdiscretionaryd                           uid=mobile   sbx=NONE         mach=1 com.apple.ckdiscretionaryd, /System/Library/PrivateFrameworks/CloudKitDaemon.framework/Support/ckdiscretionaryd
+[bq102]   com.apple.locationaccessstored                       uid=mobile   sbx=NONE         mach=1 com.apple.locationaccessstored.registration, /usr/libexec/locationaccessstored
+[bq102]   com.apple.appprotectiond                             uid=mobile   sbx=NONE         mach=8 com.apple.appprotectiond.viewsubjectmonitor,com.apple.appprotectiond.extensionmonitor, /usr/libexec/appprotectiond
+[bq102]   com.apple.appplaceholdersyncd                        uid=root     sbx=NONE         mach=1 com.apple.appplaceholdersync, /System/Library/CoreServices/appplaceholdersyncd
+[bq102]   com.apple.systemstats.microstackshot_periodic        uid=root     sbx=NONE         mach=0                        /usr/libexec/microstackshot
+[bq102]   com.apple.alwaysonexclavesd                          uid=root     sbx=NONE         mach=1 com.apple.alwaysonexclaves, /usr/libexec/alwaysonexclavesd
+[bq102]   com.apple.sysmond                                    uid=root     sbx=NONE         mach=1 com.apple.sysmond,     /usr/libexec/sysmond
+[bq102]   com.apple.splashboard                                uid=mobile   sbx=NONE         mach=1 com.apple.splashboard.launchimage, /usr/libexec/splashboardd
+[bq102]   com.apple.certui.relay                               uid=mobile   sbx=NONE         mach=1 com.apple.certui.relay, /System/Library/PrivateFrameworks/CertUI.framework/certui_relay
+[bq102]   com.apple.ciphermld                                  uid=mobile   sbx=NONE         mach=1 com.apple.ciphermld,   /usr/libexec/ciphermld
+[bq102]   com.apple.tailspind                                  uid=root     sbx=NONE         mach=2 com.apple.tailspind.ktrace_background,com.apple.tailspind, /usr/libexec/tailspind
+[bq102]   com.apple.fullkeyboardaccess                         uid=mobile   sbx=NONE         mach=3 com.apple.fullkeyboardaccess.drag.xpc,com.apple.fullkeyboardaccess, /System/Library/CoreServices/FullKeyboardAccess.app/FullKeyboardAccess
+[bq102]   com.apple.devicerecoveryassistant                    uid=mobile   sbx=NONE         mach=5 com.apple.frontboard.systemappservices,PurpleSystemAppPort, /Applications/Device Recovery Assistant.app/Device Recovery Assistant
+[bq102]   com.apple.fskit.fskit_helper                         uid=root     sbx=NONE         mach=1 com.apple.fskit.fskit_helper, /usr/libexec/fskit_helper
+[bq102]   com.apple.assessmentagent                            uid=mobile   sbx=NONE         mach=2 com.apple.assessmentagent.activeRestrictionUUIDFetching,com.apple.assessmentagent, /usr/libexec/assessmentagent
+[bq102]   com.apple.OTATaskingAgent                            uid=root     sbx=NONE         mach=1 com.apple.OTATaskingAgent, /usr/libexec/OTATaskingAgent
+[bq102]   com.apple.filesystems.userfs_helper                  uid=root     sbx=NONE         mach=1 com.apple.filesystems.userfs_helper, /System/Library/PrivateFrameworks/UserFS.framework/userfs_helper
+[bq102]   com.apple.ptpd                                       uid=mobile   sbx=NONE         mach=1 com.apple.usbptpd.demand, /usr/libexec/ptpd
+[bq102]   com.apple.iapauthd                                   uid=mobile   sbx=NONE         mach=2 com.apple.iapauthd,com.apple.iapauthd.xpc, /System/Library/PrivateFrameworks/IAPAuthentication.framework/Support/iapauthd
+[bq102]   com.apple.assetsubscriptiond                         uid=root     sbx=NONE         mach=1 com.apple.siri.uaf.subscription.service, /usr/libexec/assetsubscriptiond
+[bq102]   com.apple.symptomsd.distributed                      uid=mobile   sbx=NONE         mach=2 com.apple.aps.symptoms.networkdiagnostics.push,com.apple.symptomsd.distributed, /usr/libexec/symptomsd-distributed
+[bq102]   com.apple.rtcreportingd                              uid=mobile   sbx=NONE         mach=1 com.apple.rtcreportingd, /usr/libexec/rtcreportingd
+[bq102]   com.apple.storekitd                                  uid=mobile   sbx=NONE         mach=3 com.apple.aps.storekitservice,com.apple.storekit.configuration.xpc, /System/Library/Frameworks/StoreKit.framework/Support/storekitd
+[bq102]   com.apple.DumpBasebandCrash                          uid=root     sbx=NONE         mach=0                        /usr/bin/DumpBasebandCrash
+[bq102]   com.apple.absd                                       uid=mobile   sbx=NONE         mach=2 com.apple.absinthed,com.apple.absd, /usr/sbin/absd
+[bq102]   com.apple.watchdogd                                  uid=root     sbx=NONE         mach=2 com.apple.unblock,com.apple.watchdogd.optin.registration, /usr/libexec/watchdogd
+[bq102]   com.apple.carrierutilitiesd                          uid=root     sbx=NONE         mach=4 com.apple.fieldTestMenud.xpc,com.apple.carrierPartnerUtilitiesSettingsd.xpc, /usr/local/libexec/carrierutilitiesd
+[bq102]   com.apple.callintelligenced                          uid=mobile   sbx=NONE         mach=2 com.apple.callintelligenced.service,com.apple.callintelligenced.callassistant, /System/Library/PrivateFrameworks/CallIntelligence.framework/callintelligenced
+[bq102]   com.apple.securityuploadd                            uid=_securityd sbx=NONE         mach=1 com.apple.securityuploadd, /usr/libexec/securityuploadd
+[bq102]   com.apple.locationpushd                              uid=mobile   sbx=NONE         mach=3 com.apple.locationpushd.pushregistration,com.apple.aps.locationpushd.development, /usr/libexec/locationpushd
+[bq102]   com.apple.dt.fetchsymbolsd                           uid=mobile   sbx=NONE         mach=0                        /usr/libexec/dtfetchsymbolsd
+[bq102]   com.apple.ReportMemoryException                      uid=_reportmemoryexception sbx=NONE         mach=1 com.apple.ReportMemoryException, /usr/libexec/ReportMemoryException
+[bq102]   com.apple.symptomsd-darwin                           uid=_networkd sbx=NONE         mach=1 com.apple.resource_notify.host, /usr/libexec/symptomsd-darwin
+[bq102]   com.apple.PurpleReverseProxy                         uid=mobile   sbx=NONE         mach=2 com.apple.PurpleReverseProxy.Ctrl,com.apple.PurpleReverseProxy.Conn, /usr/libexec/PurpleReverseProxy
+[bq102]   com.apple.feedbackd                                  uid=mobile   sbx=NONE         mach=4 com.apple.feedbackd.remote-feedback,com.apple.usernotifications.delegate.com.apple.appleseed.FeedbackAssistant, /usr/libexec/feedbackd
+[bq102]   com.apple.eligibilityd                               uid=root     sbx=NONE         mach=1 com.apple.eligibilityd, /usr/libexec/eligibilityd
+[bq102]   com.apple.wifid                                      uid=root     sbx=             mach=14                        /usr/sbin/wifid
+[bq102]   com.apple.mobile.MCInstall                           uid=mobile   sbx=NONE         mach=1 com.apple.mobile.MCInstall, /usr/libexec/mc_mobile_tunnel
+[bq102]   com.apple.coreservicesd                              uid=root     sbx=NONE         mach=2 com.apple.CoreServices.fshelper,com.apple.CoreServices.coreservicesd, /System/Library/CoreServices/coreservicesd
+[bq102]   com.apple.itunesstored                               uid=mobile   sbx=NONE         mach=8 com.apple.itunesstored.bulletinboard,com.apple.itunesstored.aps.dev, /System/Library/PrivateFrameworks/iTunesStore.framework/Support/itunesstored
+[bq102]   com.apple.spotlight.IndexAgent                       uid=mobile   sbx=NONE         mach=1 com.apple.spotlight.userfs, /System/Library/Frameworks/CoreSpotlight.framework/Support/com.apple.spotlight.IndexAgent
+[bq102]   com.apple.sportsd                                    uid=mobile   sbx=NONE         mach=3 com.apple.aps.sportsd,com.apple.sportsd.session.xpc, /usr/libexec/sportsd
+[bq102]   com.apple.bluetoothaudiod                            uid=mobile   sbx=NONE         mach=3 com.apple.bluetoothaudiod.cb,com.apple.bluetoothaudiod, /usr/sbin/bluetoothaudiod
+[bq102]   com.apple.applicensedeliveryd                        uid=mobile   sbx=NONE         mach=1 com.apple.applicensedeliveryd, /System/Library/Frameworks/ManagedAppDistribution.framework/Support/applicensedeliveryd
+[bq102]   com.apple.proactiveeventtrackerd                     uid=mobile   sbx=NONE         mach=0                        /usr/libexec/proactiveeventtrackerd
+[bq102]   com.apple.soundanalysisd                             uid=mobile   sbx=NONE         mach=1 com.apple.soundanalysisd, /usr/libexec/soundanalysisd
+[bq102]   com.apple.dhcp6d                                     uid=nobody   sbx=NONE         mach=0                        /usr/libexec/dhcp6d
+[bq102]   com.apple.remindd                                    uid=mobile   sbx=NONE         mach=7 com.apple.aps.remindd.dataaccess,com.apple.aps.remindd.dataaccess.dev, /usr/libexec/remindd
+[bq102]   com.apple.siriinferenced                             uid=mobile   sbx=NONE         mach=4 com.apple.siriinferenced.remembers,com.apple.siriinferenced.signals, /System/Library/PrivateFrameworks/SiriInference.framework/Support/siriinferenced
+[bq102]   com.apple.RemoteManagementAgent                      uid=mobile   sbx=NONE         mach=4 com.apple.aps.remotemanagementd.http.apns-dev,com.apple.RemoteManagementAgent.store, /System/Library/PrivateFrameworks/RemoteManagement.framework/RemoteManagementAgent
+[bq102]   com.apple.dprivacyd                                  uid=mobile   sbx=NONE         mach=1 com.apple.dprivacyd,   /usr/libexec/dprivacyd
+[bq102]   com.apple.quicklook.ThumbnailsAgent                  uid=mobile   sbx=NONE         mach=2 com.apple.quicklook.ThumbnailsAgent.CacheDelete,com.apple.quicklook.ThumbnailsAgent, /System/Library/Frameworks/QuickLookThumbnailing.framework/Support/com.apple.quicklook.ThumbnailsAgent
+[bq102]   com.apple.AuthenticationServicesCore.AuthenticationServicesAgent uid=mobile   sbx=NONE         mach=8 ,com.apple.AuthenticationServicesCore.AuthenticationServicesAgent, /System/Cryptexes/App/usr/libexec/AuthenticationServicesAgent
+[bq102]   com.apple.filesystems.apfs_iosd                      uid=root     sbx=NONE         mach=0                        /System/Library/Filesystems/apfs.fs/apfs_iosd
+[bq102]   com.apple.RestoreRemoteServices.restoreserviced      uid=root     sbx=NONE         mach=0                        /usr/libexec/restoreserviced
+[bq102]   com.apple.powerd                                     uid=root     sbx=NONE         mach=5 com.apple.PowerManagement.control,com.apple.iokit.powerdxpc, /System/Library/CoreServices/powerd.bundle/powerd
+[bq102]   com.apple.BTServer.avrcp                             uid=mobile   sbx=NONE         mach=1 com.apple.BTServer.avrcp, /usr/sbin/BTAvrcp
+[bq102]   com.apple.speechmodeltrainingd                       uid=mobile   sbx=NONE         mach=1 com.apple.corespeech.speechmodeltraining.xpc, /System/Library/PrivateFrameworks/CoreSpeech.framework/speechmodeltrainingd
+[bq102]   com.apple.GenerativeFunctions.agentstored            uid=mobile   sbx=NONE         mach=5 com.apple.generativeexperiences.agentSessionStore,com.apple.aps.agentstored, /System/Library/PrivateFrameworks/AgentSessionKitRuntime.framework/agentstored
+[bq102]   com.apple.trustdFileHelper                           uid=root     sbx=NONE         mach=1 com.apple.trustdFileHelper, /usr/libexec/trustdFileHelper
+[bq102]   com.apple.attributionkitd                            uid=mobile   sbx=NONE         mach=7 com.apple.attributionkitd.xpc.impression-intake,com.apple.attributionkitd.xpc.token-handoff, /System/Library/Frameworks/AdAttributionKit.framework/Support/attributionkitd
+[bq102]   com.apple.PowerUIAgent                               uid=mobile   sbx=NONE         mach=8 com.apple.usernotifications.delegate.com.apple.powerui.lowpowermode,com.apple.powerui.audioAccessorySmartChargeManager, /usr/libexec/PowerUIAgent
+[bq102]   com.apple.lsd.system                                 uid=root     sbx=NONE         mach=3 com.apple.lsd.system.modifydb,com.apple.lsd.system.rebuild, /usr/libexec/lsd
+[bq102]   com.apple.xpc.roleaccountd                           uid=root     sbx=NONE         mach=1 com.apple.xpc.roleaccountd, /usr/libexec/xpcroleaccountd
+[bq102]   com.apple.watchlistd                                 uid=mobile   sbx=NONE         mach=5 com.apple.aps.watchlistd,com.apple.aps.watchlistd.dev, /System/Library/PrivateFrameworks/WatchListKit.framework/Support/watchlistd
+[bq102]   com.apple.seld                                       uid=mobile   sbx=NONE         mach=2 com.apple.seld.aps,com.apple.seld.tsmmanager, /usr/libexec/seld
+[bq102]   com.apple.deferredmediad                             uid=mobile   sbx=NONE         mach=1 com.apple.coremedia.deferredmedia.photoprocessor, /usr/libexec/deferredmediad
+[bq102]   com.apple.fdrhelper                                  uid=mobile   sbx=NONE         mach=1 com.apple.fdrhelper,   /usr/libexec/fdrhelper
+[bq102]   com.apple.FileCoordination                           uid=root     sbx=NONE         mach=3 com.apple.FileCoordination.kernel.ipc,com.apple.FileCoordination, /usr/sbin/filecoordinationd
+[bq102]   com.apple.corecaptured                               uid=root     sbx=NONE         mach=1 com.apple.corecaptured, /usr/libexec/corecaptured
+[bq102]   com.apple.systemstatusd                              uid=root     sbx=NONE         mach=3 com.apple.systemstatus.publisher,com.apple.systemstatus, /System/Library/PrivateFrameworks/SystemStatusServer.framework/Support/systemstatusd
+[bq102]   com.apple.deleted_helper                             uid=root     sbx=NONE         mach=3 com.apple.cache_delete_orphan_dir_handler,com.apple.deleted_helper.purge_specific_apps, /System/Library/PrivateFrameworks/CacheDelete.framework/deleted_helper
+[bq102]   com.apple.servicesintelligenced                      uid=mobile   sbx=NONE         mach=2 com.apple.servicesintelligenced,com.apple.servicesintelligence.xpc.fitness, /System/Library/PrivateFrameworks/ServicesIntelligence.framework/servicesintelligenced
+[bq102]   com.apple.deviceconfigurationd                       uid=root     sbx=NONE         mach=7 com.apple.deviceconfigurationd.consumer.async,com.apple.deviceconfigurationd.provider, /System/Library/PrivateFrameworks/DeviceConfiguration.framework/deviceconfigurationd
+[bq102]   com.apple.AssetCacheLocatorService                   uid=mobile   sbx=NONE         mach=1 com.apple.AssetCacheLocatorService, /System/Library/PrivateFrameworks/AssetCacheServices.framework/XPCServices/AssetCacheLocatorService.xpc/AssetCacheLocatorService
+[bq102]   com.apple.mtmergeprops                               uid=(default=root) sbx=NONE         mach=0                        /usr/libexec/mtmergeprops
+[bq102]   com.apple.WirelessRadioManager                       uid=mobile   sbx=NONE         mach=1 com.apple.WirelessCoexManager, /usr/sbin/WirelessRadioManagerd
+[bq102]   com.apple.tzlinkd                                    uid=root     sbx=NONE         mach=1 com.apple.tzlink,      /usr/libexec/tzlinkd
+[bq102]   com.apple.metrickitd                                 uid=mobile   sbx=NONE         mach=2 com.apple.metrickit.xpc,com.apple.metrickitsource.xpc, /usr/libexec/metrickitd
+[bq102]   com.apple.nanoprefsyncd.2                            uid=mobile   sbx=NONE         mach=5 com.apple.private.alloy.preferencessync.pairedsync-idswake,com.apple.private.alloy.preferencessync-idswake, /System/Library/PrivateFrameworks/NanoPreferencesSync.framework/nanoprefsyncd
+[bq102]   com.apple.momentsd                                   uid=mobile   sbx=NONE         mach=2 com.apple.aps.momentsd,com.apple.momentsd, /usr/libexec/momentsd
+[bq102]   com.apple.swtransparencyd                            uid=_swtransparencyd sbx=NONE         mach=1 com.apple.swtransparencyd, /usr/libexec/swtransparencyd
+[bq102]   com.apple.EscrowSecurityAlert                        uid=mobile   sbx=NONE         mach=0                        /System/Library/CoreServices/EscrowSecurityAlert.app/EscrowSecurityAlert
+[bq102]   com.apple.batteryintelligenced                       uid=root     sbx=NONE         mach=5 ,com.apple.batteryintelligenced.batteryanalysis, /usr/libexec/batteryintelligenced
+[bq102]   com.apple.cloudpaird                                 uid=root     sbx=�~1        mach=18                        /usr/libexec/audioaccessoryd
+[bq102]   com.apple.mediastream.mstreamd                       uid=mobile   sbx=NONE         mach=3 com.apple.mediastream.mstreamd.sharing.push-prod,com.apple.mediastream.mstreamd.sharing.push-dev, /System/Library/PrivateFrameworks/MediaStream.framework/Support/mstreamd
+[bq102]   com.apple.dataaccess.dataaccessd                     uid=mobile   sbx=NONE         mach=4 com.apple.dataaccess.dataaccessd.aps.demo,com.apple.dataaccess.dataaccessd, /System/Library/PrivateFrameworks/DataAccess.framework/Support/dataaccessd
+[bq102]   com.apple.securityresearchdeviceinit                 uid=root     sbx=NONE         mach=0                        /usr/libexec/securityresearchdevice-init
+[bq102]   com.apple.cameracaptured                             uid=mobile   sbx=NONE         mach=2 #Then,#IfFeatureFlagEnabled, /usr/libexec/cameracaptured
+[bq102]   com.apple.pipelined                                  uid=root     sbx=NONE         mach=2 com.apple.pipelined.maintenance,com.apple.pipelined, /usr/libexec/pipelined
+[bq102]   com.apple.dietapplecamerad                           uid=mobile   sbx=NONE         mach=1 com.apple.dietapplecamerad, /usr/sbin/dietapplecamerad
+[bq102]   com.apple.VoiceOverTouch                             uid=mobile   sbx=NONE         mach=4 com.apple.VoiceOverTouch.xpc,com.apple.VoiceOverTouch, /System/Library/CoreServices/VoiceOverTouch.app/vot
+[bq102]   com.apple.finhealthd                                 uid=mobile   sbx=NONE         mach=1 com.apple.finhealthd.service, /System/Library/PrivateFrameworks/FinHealth.framework/finhealthd
+[bq102]   com.apple.icloud.fmflocatord                         uid=mobile   sbx=NONE         mach=7 com.apple.icloud.fmflocatord.APSTokenWatcher.prod,com.apple.icloud.fmflocatord.aps-demo, /usr/libexec/fmflocatord
+[bq102]   com.apple.iomfb_fdr_loader                           uid=root     sbx=NONE         mach=0                        /usr/bin/IOMFB_FDR_Loader
+[bq102]   com.apple.aeroml.intentrecommend.intentrecommendd    uid=mobile   sbx=NONE         mach=1 com.apple.aeroml.intentrecommend.mediasuggester, /System/Library/PrivateFrameworks/IntentRecommendRuntime.framework/intentrecommendd
+[bq102]   com.apple.mDNSResponder.reloaded                     uid=_mdnsresponder sbx=NONE         mach=3 com.apple.dnssd.service,com.apple.mDNSResponder.control, /usr/sbin/mDNSResponder
+[bq102]   com.apple.diskimagesiod.ram                          uid=_diskimagesiod sbx=NONE         mach=1 com.apple.diskimagesiod.ram.xpc, /usr/libexec/diskimagesiod
+[bq102]   com.apple.swcd                                       uid=mobile   sbx=NONE         mach=1 com.apple.SharedWebCredentials, /usr/libexec/swcd
+[bq102]   com.apple.ProxiedCrashCopier.ProxyingDevice          uid=mobile   sbx=NONE         mach=3 com.apple.OSASyncProxy.client,com.apple.private.alloy.proxiedcrashcopier.icloud-idswake, /usr/libexec/ProxiedCrashCopier
+[bq102]   com.apple.DeviceConfigurationAgent                   uid=mobile   sbx=NONE         mach=7 com.apple.DeviceConfigurationAgent.consumer.async,com.apple.DeviceConfigurationAgent.consumer, /System/Library/PrivateFrameworks/DeviceConfiguration.framework/DeviceConfigurationAgent
+[bq102]   com.apple.nand_task_scheduler                        uid=root     sbx=NONE         mach=1 com.apple.nand_task_scheduler, /usr/libexec/NANDTaskScheduler
+[bq102]   com.apple.financed                                   uid=mobile   sbx=NONE         mach=6 com.apple.financed.service.coredatastore,com.apple.financed.service.store, /System/Library/Frameworks/FinanceKit.framework/financed
+[bq102]   com.apple.diagnosticextensionsd                      uid=mobile   sbx=NONE         mach=4 com.apple.diagnosticextensionsd.sharing-wakeup,com.apple.private.alloy.ded-idswake, /usr/libexec/diagnosticextensionsd
+[bq102]   com.apple.osanalytics.osanalyticshelper              uid=root     sbx=NONE         mach=3 com.apple.osanalytics.osanalyticshelper,com.apple.osanalytics.diagnosticmonitor, /System/Library/CoreServices/osanalyticshelper
+[bq102]   com.apple.cksharingmanagementd                       uid=mobile   sbx=NONE         mach=3 com.apple.cksharingmanagementd,com.apple.cksharingmanagementd.testing, /System/Library/PrivateFrameworks/CKSharingManagementDaemon.framework/Support/cksharingmanagementd
+[bq102]   com.apple.amsaccountsd                               uid=mobile   sbx=NONE         mach=6 com.apple.aps.amsprivateidentifiers,com.apple.amsprivateidentifiers, /System/Library/PrivateFrameworks/AppleMediaServices.framework/amsaccountsd
+[bq102]   com.apple.mobile.house_arrest                        uid=mobile   sbx=NONE         mach=1 com.apple.mobile.house_arrest, /usr/libexec/mobile_house_arrest
+[bq102]   com.apple.replicatord                                uid=mobile   sbx=NONE         mach=4 com.apple.private.alloy.widgets-idswake,com.apple.private.alloy.replicator-idswake, /System/Library/PrivateFrameworks/ReplicatorCore.framework/Support/replicatord
+[bq102]   com.apple.containermanagerd                          uid=root     sbx=NONE         mach=1 com.apple.containermanagerd, /usr/libexec/containermanagerd
+[bq102]   com.apple.dt.AutomationModeUI                        uid=root     sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/AutomationMode.framework/AutomationModeUI.app/AutomationModeUI
+[bq102]   com.apple.parsec-fbf                                 uid=mobile   sbx=NONE         mach=2 com.apple.parsec-fbf,com.apple.feedbacklogger, /System/Library/PrivateFrameworks/CoreParsec.framework/parsec-fbf
+[bq102]   com.apple.medialibraryd                              uid=mobile   sbx=NONE         mach=2 com.apple.medialibraryd.xpc,com.apple.medialibraryd.cacheDelete, /System/Library/PrivateFrameworks/MusicLibrary.framework/Support/medialibraryd
+[bq102]   com.apple.mobilecheckpoint.checkpointd               uid=root     sbx=NONE         mach=1 com.apple.mobilecheckpoint.checkpointd, /usr/libexec/checkpointd
+[bq102]   com.apple.FamilyControlsAgent                        uid=mobile   sbx=NONE         mach=5 com.apple.aps.FamilyControlsAgent,com.apple.private.alloy.familycontrols-idswake, /System/Library/Frameworks/FamilyControls.framework/FamilyControlsAgent
+[bq102]   com.apple.gamed                                      uid=mobile   sbx=NONE         mach=7 com.apple.private.alloy.gamecenter-idswake,com.apple.gamed.apsdev, /usr/libexec/gamed
+[bq102]   com.apple.ThreadCommissionerService                  uid=mobile   sbx=NONE         mach=1 com.apple.ThreadNetwork.xpc, /System/Library/PrivateFrameworks/CoreThreadCommissionerService.framework/CoreThreadCommissionerServiced
+[bq102]   com.apple.contacts.postersyncd                       uid=mobile   sbx=NONE         mach=2 com.apple.contacts.poster.api,com.apple.aps.contacts.postersyncd, /System/Library/Frameworks/Contacts.framework/Support/postersyncd
+[bq102]   com.apple.aggregated.addaily                         uid=mobile   sbx=NONE         mach=1 com.apple.aggregated.addaily, /System/Library/PrivateFrameworks/AggregateDictionary.framework/Support/addaily
+[bq102]   com.apple.softwareupdateservicesd                    uid=mobile   sbx=NONE         mach=3 com.apple.softwareupdateservicesui.tool,com.apple.softwareupdateservicesd, /System/Library/PrivateFrameworks/SoftwareUpdateServices.framework/Support/softwareupdateservicesd
+[bq102]   com.apple.DragUI.druid                               uid=mobile   sbx=NONE         mach=3 com.apple.DragUI.druid.destination,com.apple.DragUI.druid.paste-announcement, /System/Library/PrivateFrameworks/DragUI.framework/Support/druid
+[bq102]   com.apple.assetsd.nebulad                            uid=mobile   sbx=NONE         mach=1 com.apple.assetsd.nebulad, /System/Library/PrivateFrameworks/CameraUI.framework/Support/nebulad
+[bq102]   com.apple.sysdiagnose_helper                         uid=root     sbx=NONE         mach=1 com.apple.sysdiagnose_helper, /usr/libexec/sysdiagnose_helper
+[bq102]   com.apple.webkit.adattributiond                      uid=root     sbx=NONE         mach=1 com.apple.webkit.adattributiond.service, /System/Cryptexes/OS/System/Library/Frameworks/WebKit.framework/Daemons/adattributiond
+[bq102]   com.apple.sharereportingd                            uid=mobile   sbx=NONE         mach=1 com.apple.sharereportingd, /usr/libexec/sharereportingd
+[bq102]   com.apple.managedconfiguration.passcodenagd          uid=mobile   sbx=NONE         mach=0                        /usr/libexec/passcodenagd
+[bq102]   com.apple.mobile.installation_proxy                  uid=mobile   sbx=NONE         mach=1 com.apple.mobile.installation_proxy, /usr/libexec/mobile_installation_proxy
+[bq102]   com.apple.accessorysensormgrd                        uid=mobile   sbx=NONE         mach=2 com.apple.AccessorySensorManager,, /usr/libexec/accessorysensormgrd
+[bq102]   com.apple.accessibility.heard                        uid=mobile   sbx=NONE         mach=4 com.apple.usernotifications.delegate.com.apple.SoundDetectionNotifications,com.apple.aps.heard, /System/Library/PrivateFrameworks/HearingCore.framework/heard
+[bq102]   com.apple.askpermissiond                             uid=mobile   sbx=NONE         mach=5 com.apple.usernotifications.delegate.com.apple.askpermission.notifications,com.apple.askpermissiond, /System/Library/PrivateFrameworks/AskPermission.framework/Support/askpermissiond
+[bq102]   com.apple.cloudos.meshnetd                           uid=root     sbx=NONE         mach=1 com.apple.cloudos.MeshNet.service, /usr/libexec/meshnetd
+[bq102]   com.apple.donotdisturbd                              uid=mobile   sbx=NONE         mach=7 com.apple.aps.donotdisturb.sync-engine,com.apple.donotdisturb.availability.service, /System/Library/PrivateFrameworks/DoNotDisturbServer.framework/Support/donotdisturbd
+[bq102]   com.apple.gamepolicyd                                uid=root     sbx=NONE         mach=3 com.apple.gamepolicyd.app.privileged,com.apple.gamepolicyd.tool, /usr/libexec/gamepolicyd
+[bq102]   com.apple.contacts.donation-agent                    uid=mobile   sbx=NONE         mach=2 com.apple.contacts.donation.maintenance,com.apple.contacts.donation.agent, /System/Library/PrivateFrameworks/ContactsDonation.framework/Versions/A/Support/contactsdonationagent
+[bq102]   com.apple.facetimemessagestored                      uid=mobile   sbx=NONE         mach=4 com.apple.facetimemessagestored.service,com.apple.facetimemessagestored.videomessaging, /System/Library/PrivateFrameworks/FaceTimeMessageStore.framework/facetimemessagestored
+[bq102]   com.apple.backupd                                    uid=root     sbx=NONE         mach=2 com.apple.backupd,com.apple.backupd.installcoordination, /System/Library/PrivateFrameworks/MobileBackup.framework/backupd
+[bq102]   com.apple.SyncAgent                                  uid=mobile   sbx=NONE         mach=1 com.apple.lockdown.SyncAgent, /usr/libexec/SyncAgent
+[bq102]   com.apple.mobile.heartbeat                           uid=mobile   sbx=NONE         mach=1 com.apple.mobile.heartbeat, /usr/libexec/heartbeatd
+[bq102]   com.apple.storagedatad                               uid=mobile   sbx=NONE         mach=1 com.apple.storagedatad, /usr/libexec/storagedatad
+[bq102]   com.apple.iconservices.iconservicesagent             uid=_iconservices sbx=NONE         mach=1 com.apple.iconservices, /System/Library/CoreServices/iconservicesagent
+[bq102]   com.apple.callhistoryd                               uid=mobile   sbx=NONE         mach=2 com.apple.conversation.history,com.apple.callhistoryd.service, /System/Library/PrivateFrameworks/CallHistory.framework/Support/callhistoryd
+[bq102]   com.apple.Maps.geocorrectiond                        uid=mobile   sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/MapsSupport.framework/geocorrectiond
+[bq102]   com.apple.remotemanagementd                          uid=mobile   sbx=NONE         mach=4 com.apple.aps.remotemanagementd.http.apns-dev,com.apple.aps.remotemanagementd.http.apns-prod, /System/Library/PrivateFrameworks/RemoteManagement.framework/remotemanagementd
+[bq102]   com.apple.dmd                                        uid=mobile   sbx=NONE         mach=3 com.apple.dmd.policy,com.apple.dmd, /usr/libexec/dmd
+[bq102]   com.apple.BlueTool                                   uid=mobile   sbx=NONE         mach=1 com.apple.BlueTool,    /usr/sbin/BlueTool
+[bq102]   com.apple.followupd                                  uid=mobile   sbx=NONE         mach=6 com.apple.usernotifications.delegate.com.apple.ThreatNotification.FollowUp,com.apple.usernotifications.delegate.com.apple.Siri.FollowUp, /System/Library/PrivateFrameworks/CoreFollowUp.framework/followupd
+[bq102]   com.apple.chronod                                    uid=mobile   sbx=NONE         mach=7 com.apple.chrono.accessoryLiveActivities,com.apple.chronod.replicator, /System/Library/PrivateFrameworks/ChronoCore.framework/Support/chronod
+[bq102]   com.apple.icloudwebd                                 uid=mobile   sbx=NONE         mach=3 com.apple.private.alloy.icloudweb-idswake,com.apple.usernotifications.delegate.com.apple.icloudwebd, /usr/libexec/icloudwebd
+[bq102]   com.apple.powerdatad                                 uid=root     sbx=NONE         mach=1 com.apple.powerdatad,  /usr/libexec/powerdatad
+[bq102]   com.apple.exchangesyncd                              uid=mobile   sbx=NONE         mach=1 com.apple.exchangesyncd, /System/Library/PrivateFrameworks/ExchangeSync.framework/Support/exchangesyncd
+[bq102]   com.apple.GameController.gamecontrollerd             uid=mobile   sbx=NONE         mach=6 com.apple.GameController.gamecontrollerd.app,com.apple.GameController.gamecontrollerd, /usr/libexec/gamecontrollerd
+[bq102]   com.apple.fitcore.session                            uid=mobile   sbx=NONE         mach=1 com.apple.seymour.session, /System/Library/PrivateFrameworks/SeymourServices.framework/fitcoresessiond
+[bq102]   com.apple.avatarsd                                   uid=mobile   sbx=NONE         mach=3 com.apple.avatar.support,com.apple.avatar.service, /System/Library/PrivateFrameworks/AvatarPersistence.framework/Support/avatarsd
+[bq102]   com.apple.sirittsd                                   uid=mobile   sbx=NONE         mach=1 com.apple.sirittsd,    /System/Library/PrivateFrameworks/SiriTTSService.framework/sirittsd
+[bq102]   com.apple.SecureBackupDaemon                         uid=root     sbx=NONE         mach=2 com.apple.SecureBackupDaemon,com.apple.SecureBackupDaemon.concurrent, /System/Library/PrivateFrameworks/CloudServices.framework/Helpers/com.apple.sbd
+[bq102]   com.apple.asktod                                     uid=mobile   sbx=NONE         mach=3 com.apple.private.alloy.askto-idswake,com.apple.usernotifications.delegate.com.apple.asktod, /usr/libexec/asktod
+[bq102]   com.apple.healthcontentd                             uid=mobile   sbx=NONE         mach=1 com.apple.healthcontentd, /System/Library/PrivateFrameworks/HealthContent.framework/healthcontentd
+[bq102]   com.apple.analyticsd                                 uid=_analyticsd sbx=NONE         mach=3 com.apple.analyticsd.agent,com.apple.analyticsd.messagetracer, /System/Library/PrivateFrameworks/CoreAnalytics.framework/Support/analyticsd
+[bq102]   com.apple.siri.sirireaderd                           uid=mobile   sbx=NONE         mach=1 com.apple.siri.sirireaderd, /usr/libexec/sirireaderd
+[bq102]   com.apple.corercd                                    uid=mobile   sbx=NONE         mach=1 com.apple.corercd,     /usr/libexec/corercd
+[bq102]   com.apple.maps.destinationd                          uid=mobile   sbx=NONE         mach=4 com.apple.maps.destinationd.predictions,com.apple.maps.destinationd.donations, /System/Library/PrivateFrameworks/MapsSuggestions.framework/destinationd
+[bq102]   com.apple.inputanalyticsd                            uid=mobile   sbx=NONE         mach=1 com.apple.inputanalyticsd, /usr/libexec/inputanalyticsd
+[bq102]   com.apple.amsengagementd                             uid=mobile   sbx=NONE         mach=6 com.apple.xpc.amsuniversallinks,, /System/Library/PrivateFrameworks/AppleMediaServicesUI.framework/amsengagementd
+[bq102]   com.apple.intelligenceflowd                          uid=mobile   sbx=NONE         mach=8 com.apple.intelligenceflow.toolbox,com.apple.intelligenceflow.orchestrator, /System/Library/PrivateFrameworks/IntelligenceFlowRuntime.framework/intelligenceflowd
+[bq102]   com.apple.ap.adprivacyd                              uid=mobile   sbx=NONE         mach=5 com.apple.AdSheetPhone.push,com.apple.ap.adprivacyd.xpc, /usr/libexec/adprivacyd
+[bq102]   com.apple.webprivacyd                                uid=mobile   sbx=NONE         mach=1 com.apple.webprivacyd, /System/Library/PrivateFrameworks/WebPrivacy.framework/webprivacyd
+[bq102]   com.apple.perfdiagsselfenabled                       uid=root     sbx=NONE         mach=1 com.apple.perfdiagnosticsselfenablement, /usr/libexec/perfdiagsselfenabled
+[bq102]   com.apple.fitnessintelligenced                       uid=mobile   sbx=NONE         mach=1 com.apple.fitnessintelligenced, /System/Library/PrivateFrameworks/FitnessIntelligenceDaemonCore.framework/fitnessintelligenced
+[bq102]   com.apple.libsqlite3.dbtelemetryd                    uid=root     sbx=NONE         mach=0                        /usr/libexec/dbtelemetryd
+[bq102]   com.apple.photoanalysisd                             uid=mobile   sbx=NONE         mach=1 com.apple.photoanalysisd, /System/Library/PrivateFrameworks/PhotoAnalysis.framework/Support/photoanalysisd
+[bq102]   com.apple.ioupsd                                     uid=root     sbx=NONE         mach=0                        /usr/libexec/ioupsd
+[bq102]   com.apple.stickersd                                  uid=mobile   sbx=NONE         mach=7 com.apple.stickers.api,com.apple.stickers.analytics, /System/Library/PrivateFrameworks/Stickers.framework/Support/stickersd
+[bq102]   com.apple.nehelper                                   uid=root     sbx=NONE         mach=2 com.apple.nehelper,com.apple.networkd_privileged, /usr/libexec/nehelper
+[bq102]   com.apple.ospredictiond                              uid=root     sbx=NONE         mach=5 com.apple.OSIntelligence.battery,com.apple.OSIntelligence.charging, /usr/libexec/ospredictiond
+[bq102]   com.apple.distnoted.xpc.daemon                       uid=_distnote sbx=NONE         mach=2 com.apple.distributed_notifications@0v3,com.apple.distributed_notifications@1v3, /usr/sbin/distnoted
+[bq102]   com.apple.usbctelemetryd                             uid=root     sbx=NONE         mach=0                        /usr/libexec/usbctelemetryd
+[bq102]   com.apple.signpost.signpost_reporter                 uid=root     sbx=NONE         mach=0                        /usr/libexec/signpost_reporter
+[bq102]   com.apple.assetsd                                    uid=mobile   sbx=NONE         mach=6 com.apple.assetsd.special.cacheDelete,com.apple.assetsd.keepDaemonAlive, assetsd
+[bq102]   com.apple.threadradiod                               uid=root     sbx=NONE         mach=1 com.apple.wpantund.xpc, /System/Library/PrivateFrameworks/CoreThreadRadio.framework/threadradiod
+[bq102]   com.apple.sleepd                                     uid=mobile   sbx=NONE         mach=2 com.apple.private.alloy.sleep.classd-idswake,com.apple.sleepd.sleepserver, /System/Library/PrivateFrameworks/SleepDaemon.framework/sleepd
+[bq102]   com.apple.DumpPanic                                  uid=root     sbx=NONE         mach=0                        /usr/libexec/DumpPanic
+[bq102]   com.apple.appstored                                  uid=root     sbx=�~1        mach=19                        /System/Library/PrivateFrameworks/AppStoreDaemon.framework/Support/appstored
+[bq102]   com.apple.logd_helper                                uid=root     sbx=NONE         mach=1 com.apple.logd_helper, /usr/libexec/logd_helper
+[bq102]   com.apple.diagnosticscheckupd                        uid=mobile   sbx=NONE         mach=2 com.apple.diagnosticscheckupd,com.apple.private.alloy.diagnosticscheckupd-idswake, /usr/libexec/diagnosticscheckupd
+[bq102]   com.apple.ind                                        uid=mobile   sbx=NONE         mach=4 com.apple.usernotifications.delegate.com.apple.iCloudSettingsNotification,com.apple.ind.and_callback, /System/Library/PrivateFrameworks/iCloudNotification.framework/ind
+[bq102]   com.apple.systemstatusd                              uid=root     sbx=NONE         mach=3 com.apple.systemstatus.publisher,com.apple.systemstatus, /System/Library/PrivateFrameworks/SystemStatusServer.framework/Support/systemstatusd
+[bq102]   com.apple.BarcodeSupport.BarcodeNotificationService  uid=mobile   sbx=NONE         mach=3 com.apple.usernotifications.delegate.com.apple.barcodesupport.nfc,com.apple.BarcodeSupport.BarcodeNotificationService, /System/Library/PrivateFrameworks/BarcodeSupport.framework/com.apple.BarcodeSupport.BarcodeNotificationService
+[bq102]   com.apple.MTLAssetUpgraderD                          uid=mobile   sbx=NONE         mach=1 com.apple.MTLAssetUpgraderD, /usr/libexec/MTLAssetUpgraderD
+[bq102]   com.apple.hangtelemetryd                             uid=root     sbx=NONE         mach=1 com.apple.hangtelemetryd, /usr/libexec/hangtelemetryd
+[bq102]   com.apple.voicememod                                 uid=mobile   sbx=NONE         mach=3 com.apple.voicememod.datastore.Cloud,com.apple.voicememod.xpc, /System/Library/PrivateFrameworks/VoiceMemos.framework/Support/voicememod
+[bq102]   com.apple.cmio.ContinuityCaptureAgent                uid=mobile   sbx=NONE         mach=1 com.apple.cmio.ContinuityCaptureAgent, /usr/libexec/ContinuityCaptureAgent
+[bq102]   com.apple.healthrecordsd                             uid=mobile   sbx=NONE         mach=1 com.apple.healthrecordsd, /System/Library/PrivateFrameworks/HealthRecordServices.framework/healthrecordsd
+[bq102]   com.apple.remoted                                    uid=root     sbx=NONE         mach=5 com.apple.remoted.watchdog,com.apple.remoted.coredevice, /usr/libexec/remoted
+[bq102]   com.apple.iosdiagnosticsd                            uid=mobile   sbx=NONE         mach=4 com.apple.iosdiagnosticsd,com.apple.private.alloy.diagnosticscheckupd-idswake, /System/Library/PrivateFrameworks/iOSDiagnostics.framework/iosdiagnosticsd
+[bq102]   com.apple.subridged                                  uid=mobile   sbx=NONE         mach=3 com.apple.private.alloy.otaupdate-idswake,com.apple.subridged, /System/Library/PrivateFrameworks/SoftwareUpdateBridge.framework/Support/subridged
+[bq102]   com.apple.mdt                                        uid=mobile   sbx=NONE         mach=1 com.apple.mdt,         /usr/libexec/transitd
+[bq102]   com.apple.biomesyncd                                 uid=mobile   sbx=NONE         mach=5 com.apple.biome.ContextSync,com.apple.private.alloy.contextsync.local-idswake, /usr/libexec/biomesyncd
+[bq102]   com.apple.cloudd                                     uid=mobile   sbx=NONE         mach=3 com.apple.cloudd,com.apple.cloudasset.cloudd, /System/Library/PrivateFrameworks/CloudKitDaemon.framework/Support/cloudd
+[bq102]   com.apple.shazameventsd                              uid=mobile   sbx=NONE         mach=1 com.apple.shazameventsd, /System/Library/PrivateFrameworks/ShazamEvents.framework/shazameventsd
+[bq102]   com.apple.PerfPowerServicesExtended                  uid=root     sbx=NONE         mach=2 com.apple.powerlog-GRRRR-FULL,com.apple.powerlogd.XPCService.xpc, /usr/libexec/PerfPowerServicesExtended
+[bq102]   com.apple.devicedataresetd                           uid=mobile   sbx=NONE         mach=2 com.apple.devicedatareset.DeviceDataResetObservationService.NonLaunching,com.apple.devicedatareset.DeviceDataResetService, /System/Library/PrivateFrameworks/EmbeddedDataReset.framework/Support/devicedataresetd
+[bq102]   com.apple.iapd                                       uid=mobile   sbx=NONE         mach=4 com.apple.iapd.distributednotification.server,com.apple.iapd.xpc, /System/Library/PrivateFrameworks/IAP.framework/Support/iapd
+[bq102]   com.apple.bootpd                                     uid=root     sbx=NONE         mach=0                        /usr/libexec/bootpd
+[bq102]   com.apple.commandandcontrol                          uid=mobile   sbx=NONE         mach=4 com.apple.speech.CommandAndControl.utility,com.apple.commandandcontrol, /System/Library/CoreServices/CommandAndControl.app/CommandAndControl
+[bq102]   com.apple.homeenergyd                                uid=mobile   sbx=NONE         mach=6 com.apple.energykit.privateStore,com.apple.energykit.sharedStore, /System/Library/PrivateFrameworks/HomeEnergyDaemon.framework/Support/homeenergyd
+[bq102]   com.apple.managedappdistributiond                    uid=mobile   sbx=NONE         mach=3 com.apple.managedappdistributiond.xpc,com.apple.managedappdistributiond.installcoordination, /System/Library/Frameworks/ManagedAppDistribution.framework/Support/managedappdistributiond
+[bq102]   com.apple.mediacontinuityd                           uid=mobile   sbx=NONE         mach=1 com.apple.mediacontinuitykit.coex, /usr/libexec/mediacontinuityd
+[bq102]   com.apple.mlhostd                                    uid=mobile   sbx=NONE         mach=2 com.apple.aps.mlhostd,com.apple.mlhostd.xpc, /usr/libexec/mlhostd
+[bq102]   com.apple.bird                                       uid=mobile   sbx=NONE         mach=4 com.apple.bird.token,com.apple.bird.cache-delete, /System/Library/PrivateFrameworks/iCloudDriveCore.framework/bird
+[bq102]   com.apple.Maps.mapssyncd                             uid=mobile   sbx=NONE         mach=5 com.apple.Maps.MapsSync.xpc,com.apple.Maps.MapsSync.service, /System/Library/PrivateFrameworks/MapsSync.framework/mapssyncd
+[bq102]   com.apple.griddatad                                  uid=root     sbx=NONE         mach=1 com.apple.griddatad.registration, /usr/libexec/griddatad
+[bq102]   com.apple.sysdiagnose                                uid=root     sbx=NONE         mach=4 com.apple.sysdiagnose.CacheDelete,com.apple.sysdiagnose.service.xpc, /usr/libexec/sysdiagnosed
+[bq102]   com.apple.accessibility.motiontrackingd              uid=root     sbx=NONE         mach=1 com.apple.accessibility.motiontrackingd, /System/Library/PrivateFrameworks/AccessibilitySharedSupport.framework/Support/motiontrackingd
+[bq102]   com.apple.modelcatalogd                              uid=mobile   sbx=NONE         mach=2 com.apple.modelcatalog.catalog,com.apple.modelcatalog.subscriptions, /System/Library/PrivateFrameworks/ModelCatalogRuntime.framework/modelcatalogd
+[bq102]   com.apple.jetpackassetd                              uid=mobile   sbx=NONE         mach=2 com.apple.jetpackassetd.xpc,com.apple.aps.jetpackassetd, /System/Library/PrivateFrameworks/JetCore.framework/Support/jetpackassetd
+[bq102]   com.apple.companion_proxy                            uid=mobile   sbx=NONE         mach=2 com.apple.companion_proxy,com.apple.private.alloy.companionproxy-idswake, /usr/libexec/companion_proxy
+[bq102]   com.apple.CoreAuthentication.daemon                  uid=mobile   sbx=NONE         mach=3 com.apple.CoreAuthentication.daemon.libxpc,com.apple.CoreAuthentication.daemon, /System/Library/Frameworks/LocalAuthentication.framework/Support/coreauthd
+[bq102]   com.apple.anomalydetectiond                          uid=mobile   sbx=NONE         mach=3 com.apple.anomalydetectiond.trigger,com.apple.anomalydetectiond.kappa, /usr/libexec/anomalydetectiond
+[bq102]   com.apple.installcoordination_proxy                  uid=mobile   sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/InstallCoordination.framework/Support/installcoordination_proxy
+[bq102]   com.apple.StatusKitAgent                             uid=mobile   sbx=NONE         mach=8 com.apple.aps.StatusKit,com.apple.StatusKit.subscribe, /System/Library/PrivateFrameworks/StatusKit.framework/StatusKitAgent
+[bq102]   com.apple.CommCenterRootHelper                       uid=root     sbx=NONE         mach=4 com.apple.abm.cache-delete,com.apple.abm.helper.root, /System/Library/Frameworks/CoreTelephony.framework/Support/CommCenterRootHelper
+[bq102]   com.apple.transparencyStaticKey                      uid=root     sbx=NONE         mach=2 com.apple.private.alloy.keytransparency.accountkey.pinning-idswake,com.apple.transparencyd.ids, /usr/libexec/transparencyStaticKey
+[bq102]   com.apple.appstorecomponentsd                        uid=mobile   sbx=NONE         mach=3 com.apple.private.appintents.delegate.com.apple.appstorecomponentsd,com.apple.chrono.event-service.appstorecomponentsd, /System/Library/PrivateFrameworks/AppStoreComponents.framework/Support/appstorecomponentsd
+[bq102]   com.apple.countryd                                   uid=root     sbx=NONE         mach=2 com.apple.countryd.update,com.apple.StatusKit.local.client-com.apple.countryd, /usr/libexec/countryd
+[bq102]   com.apple.coreservices.useractivityd                 uid=mobile   sbx=NONE         mach=6 com.apple.coreservices.lsbestappsuggestionmanager.xpc,com.apple.coreservices.lsuseractivityadministration.xpc, /System/Library/PrivateFrameworks/UserActivity.framework/Agents/useractivityd
+[bq102]   com.apple.mobile.usermanagerd                        uid=root     sbx=NONE         mach=3 com.apple.mobile.usermanagerd.xpc,com.apple.mobile.keybagd.UserManager.xpc, /usr/libexec/usermanagerd
+[bq102]   com.apple.visionhwserverd                            uid=mobile   sbx=NONE         mach=1 com.apple.cvhwa.xpc,   /usr/libexec/visionhwserverd
+[bq102]   com.apple.fusiond                                    uid=root     sbx=NONE         mach=1 com.apple.fusiond,     /usr/libexec/fusiond
+[bq102]   com.apple.tvremoted                                  uid=mobile   sbx=NONE         mach=1 com.apple.tvremotecore.xpc, /usr/libexec/tvremoted
+[bq102]   com.apple.runningboardd                              uid=root     sbx=NONE         mach=3 com.apple.runningboard.watchdog,com.apple.runningboard.resource_notify, /usr/libexec/runningboardd
+[bq102]   com.apple.BTServer.le                                uid=mobile   sbx=NONE         mach=4 com.apple.BTLEAudioController.xpc,com.apple.BTServer.le, /usr/sbin/BTLEServer
+[bq102]   com.apple.checkerboardd                              uid=root     sbx=NONE         mach=1 com.apple.checkerboardd, /usr/libexec/checkerboardd
+[bq102]   com.apple.backgroundassets.user                      uid=mobile   sbx=NONE         mach=3 com.apple.backgroundassets.user,com.apple.backgroundassets.system, /usr/libexec/backgroundassets.user
+[bq102]   com.apple.and                                        uid=mobile   sbx=NONE         mach=2 com.apple.usernotifications.delegate.com.apple.accountnotifications,com.apple.and.xpc, /System/Library/PrivateFrameworks/AccountNotification.framework/and
+[bq102]   com.apple.ecosystemanalyticsd                        uid=root     sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/EcosystemAnalytics.framework/Support/ecosystemanalyticsd
+[bq102]   com.apple.AppSSODaemon                               uid=mobile   sbx=NONE         mach=2 com.apple.AppSSO.service-xpc,com.apple.AppSSO.ddm-configuration-xpc, /System/Library/PrivateFrameworks/AppSSO.framework/Support/AppSSODaemon
+[bq102]   com.apple.parsecd                                    uid=mobile   sbx=NONE         mach=2 com.apple.parsecd,com.apple.aps.parsecd, /System/Library/PrivateFrameworks/CoreParsec.framework/parsecd
+[bq102]   com.apple.activitysharingd                           uid=mobile   sbx=NONE         mach=4 com.apple.aps.activitysharingd.securecloud.push,com.apple.usernotifications.delegate.com.apple.ActivityMonitorApp, /System/Library/PrivateFrameworks/ActivitySharingServices.framework/activitysharingd
+[bq102]   com.apple.imautomatichistorydeletionagent            uid=mobile   sbx=NONE         mach=0                        /System/Library/PrivateFrameworks/IMDPersistence.framework/IMAutomaticHistoryDeletionAgent.app/IMAutomaticHistoryDeletionAgent
+[bq102]   com.apple.spotlightknowledged                        uid=mobile   sbx=NONE         mach=0                        /System/Library/Frameworks/CoreSpotlight.framework/spotlightknowledged
+[bq102]   com.apple.homed                                      uid=root     sbx=�~1        mach=21                        /System/Library/PrivateFrameworks/HomeKitDaemon.framework/Support/homed
+[bq102]   com.apple.fitcore                                    uid=mobile   sbx=NONE         mach=4 com.apple.aps.seymour,com.apple.seymour.persistence, /System/Library/PrivateFrameworks/SeymourServices.framework/fitcored
+[bq102]   com.apple.device-o-matic                             uid=root     sbx=NONE         mach=0                        /System/Library/CoreServices/DeviceOMatic.app/DeviceOMatic
+[bq102]   com.apple.symptomsd-diag                             uid=mobile   sbx=NONE         mach=5 com.apple.aps.diagnosticpipeline.tasking,com.apple.diagnosticpipeline.tasking.service, /usr/libexec/symptomsd-diag
+[bq102]   com.apple.transparencyd                              uid=root     sbx=NONE         mach=7 com.apple.transparencyd.aet,com.apple.aps.transparencyd, /usr/libexec/transparencyd
+[bq102]   com.apple.intelligencetasksd                         uid=mobile   sbx=NONE         mach=1 com.apple.intelligencetasksd.sets.Maintenance, /System/Library/PrivateFrameworks/IntelligenceTasksEngine.framework/Support/intelligencetasksd
+[bq102]   com.apple.hybridsearchd                              uid=mobile   sbx=NONE         mach=2 com.apple.generativesearch.server.indexing,com.apple.generativesearch.server.search, /usr/libexec/hybridsearchd
+[bq102]   com.apple.appleidsetupd                              uid=mobile   sbx=NONE         mach=7 com.apple.aps.appleidsetup,com.apple.usernotifications.delegate.com.apple.appleidsetup.notifications, /usr/libexec/appleidsetupd
+[bq102]   com.apple.communicationtrustd                        uid=mobile   sbx=NONE         mach=2 com.apple.communicationtrustd.service,com.apple.SensitiveContentAnalysis.analysishistory, /System/Library/PrivateFrameworks/CommunicationTrust.framework/Support/communicationtrustd
+[bq102]   com.apple.nfcd                                       uid=mobile   sbx=NONE         mach=4 com.apple.nfcacd.hwmanager,com.apple.nfcd.hwmanager, /usr/libexec/nfcd
+[bq102]   com.apple.mobilestoredemod                           uid=mobile   sbx=NONE         mach=3 com.apple.msdtest.service,com.apple.mobilestoredemod, /usr/libexec/demod
+[bq102]   com.apple.filesystems.fskitd                         uid=mobile   sbx=NONE         mach=2 com.apple.filesystems.fskitd,com.apple.filesystems.fskitd.livefs, /usr/libexec/fskitd
+[bq102]   com.apple.securityd                                  uid=(default=root) sbx=NONE         mach=8 com.apple.securityd.general,com.apple.securityd, /usr/libexec/securityd
+[bq102]   com.apple.streaming_zip_conduit                      uid=mobile   sbx=NONE         mach=1 com.apple.streaming_zip_conduit, /usr/libexec/streaming_zip_conduit
+[bq102]   com.apple.ReportCrash                                uid=mobile   sbx=NONE         mach=2 com.apple.usernotifications.delegate.com.apple.DiagnosticsReporter,com.apple.ReportCrash, /System/Library/CoreServices/ReportCrash
+[bq102]   com.apple.wirelessinsightsd                          uid=_wireless sbx=NONE         mach=2 com.apple.wirelessinsightsd.xpc,com.apple.wirelessinsightsd, /System/Library/Frameworks/WirelessInsights.framework/Support/wirelessinsightsd
+[bq102]   com.apple.aonsensed                                  uid=_aonsensed sbx=NONE         mach=2 com.apple.aonsensed.ipc,com.apple.aonsensed.xpc, /usr/libexec/aonsensed
+[bq102]   com.apple.searchtoold                                uid=mobile   sbx=NONE         mach=1 com.apple.omniSearch.search, /System/Library/PrivateFrameworks/OmniSearch.framework/searchtoold
+[bq102]   com.apple.nlcd                                       uid=root     sbx=NONE         mach=1 com.apple.NetworkLinkConditioner, /usr/libexec/nlcd
+[bq102]   com.apple.lskdd                                      uid=mobile   sbx=NONE         mach=2 com.apple.lskdd,com.apple.lskdd.xpc, /usr/libexec/lskdd
+[bq102]   com.apple.airplayd                                   uid=root     sbx=���	        mach=17                        /usr/libexec/airplayd
+[bq102]   com.apple.migrationd                                 uid=mobile   sbx=NONE         mach=2 com.apple.migrationd.install-coordination,com.apple.migrationd, /System/Library/PrivateFrameworks/MigrationKit.framework/migrationd
+[bq102]   com.apple.videosubscriptionsd                        uid=mobile   sbx=NONE         mach=1 com.apple.VideoSubscriberAccount.videosubscriptionsd, /usr/libexec/videosubscriptionsd
+[bq102]   com.apple.managedassetsd                             uid=mobile   sbx=NONE         mach=2 com.apple.managedassetsd,com.apple.aps.managedassetsd, /usr/libexec/managedassetsd
+[bq102]   com.apple.uarppersonalizationd                       uid=mobile   sbx=NONE         mach=0                        /usr/libexec/uarppersonalizationd
+[bq102]   com.apple.networkserviceproxy                        uid=mobile   sbx=NONE         mach=2 com.apple.networkserviceproxy.fetch-token,com.apple.networkserviceproxy, /usr/libexec/networkserviceproxy
+[bq102]   com.apple.sysdiagnose                                uid=root     sbx=NONE         mach=4 com.apple.sysdiagnose.CacheDelete,com.apple.sysdiagnose.service.xpc, /usr/libexec/sysdiagnosed
+[bq102]   com.apple.speechmaintenanced                         uid=mobile   sbx=NONE         mach=1 com.apple.speechmaintenanced, /System/Library/PrivateFrameworks/CoreEmbeddedSpeechRecognition.framework/speechmaintenanced
+[bq102]   com.apple.cloudphotod                                uid=mobile   sbx=NONE         mach=6 com.apple.photos.cloud.pushnotification,com.apple.cloudphotod, cloudphotod
+[bq102]   com.apple.pasteboard.pasted                          uid=mobile   sbx=NONE         mach=3 com.apple.pasteboard.pasted,com.apple.coreservices.uauseractivitypasteboardclient.xpc, /System/Library/PrivateFrameworks/Pasteboard.framework/Support/pasted
+[bq102]   com.apple.idcredd                                    uid=mobile   sbx=NONE         mach=3 com.apple.idcredd.biometrics.xpc,com.apple.idcredd.presentment.xpc, /usr/libexec/idcredd
+[bq102]   com.apple.identityservicesd                          uid=mobile   sbx=NONE         mach=8 com.apple.identityservicesd.aps,com.apple.usernotifications.delegate.com.apple.identityservicesd.firewall, /System/Library/PrivateFrameworks/IDS.framework/identityservicesd.app/identityservicesd
+[bq102]   com.apple.sidecar-relay                              uid=mobile   sbx=NONE         mach=1 com.apple.sidecar-relay, /usr/libexec/SidecarRelay
+[bq102]   com.apple.iomfb_bics_daemon                          uid=root     sbx=NONE         mach=1 com.apple.iomfb_bics_daemon.migration, /usr/libexec/IOMFB_bics_daemon
+[bq102]   com.apple.BTServer.map                               uid=mobile   sbx=NONE         mach=1 com.apple.BTServer.map, /usr/sbin/BTMap
+[bq102]   com.apple.captiveagent                               uid=_captiveagent sbx=NONE         mach=1 com.apple.captiveagent, /usr/libexec/captiveagent
+[bq102]   com.apple.spindump                                   uid=root     sbx=NONE         mach=1 com.apple.spindump,    /usr/sbin/spindump
+[bq102]   com.apple.safetycheckd                               uid=mobile   sbx=NONE         mach=1 com.apple.safetycheckd, /usr/libexec/safetycheckd
+[bq102]   com.apple.roya.royacaptured                          uid=mobile   sbx=NONE         mach=6 com.apple.roya.royacaptured.capturesession,com.apple.roya.royacaptured.mediaoffload, /usr/libexec/royacaptured
+[bq102]   com.apple.screensharingserver                        uid=mobile   sbx=NONE         mach=1 com.apple.ScreenSharingViewServiceHelper, System/Library/CoreServices/ScreenSharingServer.app/ScreenSharingServer
+[bq102]   com.apple.localizationswitcherd                      uid=mobile   sbx=NONE         mach=1 com.apple.localizationswitcherd, /System/Library/PrivateFrameworks/IntlPreferences.framework/Support/localizationswitcherd
+[bq102]   com.apple.visualintelligenced                        uid=mobile   sbx=NONE         mach=2 com.apple.visualintelligence.visual-action-prediction,com.apple.visualintelligence.daemon-status, /System/Library/PrivateFrameworks/VisualIntelligenceServices.framework/visualintelligenced
+[bq102]   com.apple.videocodecd                                uid=mobile   sbx=NONE         mach=3 com.apple.coremedia.videocodecd.decompressionsession.xpc,com.apple.coremedia.videocodecd.decompressionsession, /usr/libexec/videocodecd
+[bq102]   com.apple.syncdefaultsd                              uid=mobile   sbx=NONE         mach=2 com.apple.kvsd,com.apple.aps.kvsd, /System/Library/PrivateFrameworks/SyncedDefaults.framework/Support/syncdefaultsd
+[bq102]   com.apple.filederivatived                            uid=mobile   sbx=NONE         mach=1 com.apple.FileDerivativeService, /System/Library/PrivateFrameworks/FileDerivatives.framework/Support/filederivatived
+[bq102]   com.apple.Safari.SafeBrowsing.Service                uid=mobile   sbx=NONE         mach=1 com.apple.Safari.SafeBrowsing.Service, /System/Library/PrivateFrameworks/SafariSafeBrowsing.framework/com.apple.Safari.SafeBrowsing.Service
+[bq102]   com.apple.tccd                                       uid=mobile   sbx=NONE         mach=5 com.apple.usernotifications.delegate.com.apple.tccd,com.apple.tccd, /System/Library/PrivateFrameworks/TCC.framework/Support/tccd
+[bq102]   com.apple.BTServer.pbap                              uid=mobile   sbx=NONE         mach=1 com.apple.BTServer.pbap, /usr/sbin/BTPbap
+[bq102]   com.apple.polarisd                                   uid=root     sbx=p?�	        mach=13                        /usr/libexec/polarisd
+[bq102]   com.apple.replayd                                    uid=mobile   sbx=NONE         mach=4 com.apple.usernotifications.delegate.com.apple.ReplayKitNotifications,com.apple.replayd, /usr/libexec/replayd
+[bq102]   com.apple.facemetricsd                               uid=mobile   sbx=NONE         mach=0                        /usr/libexec/facemetricsd
+[bq102]   com.apple.languageassetd                             uid=mobile   sbx=NONE         mach=1 com.apple.languageassetd, /usr/libexec/languageassetd
+[bq102]   com.apple.ValidUpdater                               uid=(default=root) sbx=NONE         mach=1 com.apple.ValidUpdater, /usr/libexec/ValidUpdater
+[bq102]   com.apple.wifi.hostapd                               uid=root     sbx=NONE         mach=1 com.apple.wifi.hostapd, /usr/libexec/hostapd
+[bq102]   com.apple.filesystems.smbclientd                     uid=mobile   sbx=NONE         mach=1 com.apple.filesystems.smbclientd, /System/Library/PrivateFrameworks/SMBClientProvider.framework/smbclientd
+[bq102]   com.apple.osanalytics.osanalyticshelper.agent        uid=root     sbx=NONE         mach=0                        /System/Library/CoreServices/osanalyticshelper
+[bq102]   com.apple.cameraispd                                 uid=mobile   sbx=NONE         mach=1 com.apple.cameraispd,  /usr/libexec/cameraispd
+[bq102]   com.apple.photos.VideoConversionService              uid=mobile   sbx=NONE         mach=1 com.apple.photos.VideoConversionService, com.apple.photos.VideoConversionService
+[bq102]   com.apple.watchpresenced                             uid=mobile   sbx=NONE         mach=1 com.apple.watchpresenced, /usr/libexec/watchpresenced
+[bq102]   com.apple.midiserver                                 uid=mobile   sbx=NONE         mach=2 com.apple.midiserver.io,com.apple.midiserver, /System/Library/Frameworks/CoreMIDI.framework/MIDIServer
+[bq102]   com.apple.powerlogHelperd                            uid=root     sbx=NONE         mach=2 com.apple.powerlogHelperd.XPCService.xpc,com.apple.usernotifications.delegate.com.apple.powerlog.proactivenotifications, /usr/bin/powerlogHelperd
+[bq102]   com.apple.pcapd                                      uid=root     sbx=NONE         mach=3 com.apple.pcapd,com.apple.pcapd-traceroute, /usr/libexec/pcapd
+[bq102] === /System/Library/LaunchAgents (ПРЯМОЙ opendir OK — без escape)
+[bq102] === /private/preboot/Cryptexes/OS/System/Library/LaunchDaemons (escape -3, прямой opendir дал errno 2)
+[bq102] LaunchDirs ИТОГ: 661 демонов, root=174, no-sandbox=598, с MachServices=609
+[bq102] === /var/containers/Data/System (escape 1)
+[bq102]   container AD7D3E87-1AE5-4C13-82F8-6B57ACBF1CB8: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container EDFBF92A-FACC-41EE-901E-25CFC69F3058: meta-errno 1; 6 записей: ReportCrash Documents .com.apple.mobile_container_manager.metadata.plist SpaceAttribution Library PerfPowerServices 
+[bq102]   container AF589EEA-A5CE-42E9-B955-96B9234C5A85: meta-errno 1; 6 записей: Documents .com.apple.mobile_container_manager.metadata.plist DefaultAppQueryState.plist com.apple.launchservices.securepreferences.plist Library com.apple.launchservices.appmarketplaces.plist 
+[bq102]   container 58E4FA29-796D-400C-8ADF-37FC9B1176FC: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 733E686B-C093-4E1B-B775-35A1D2237AF8: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 8EB68272-6502-49E9-B688-25CA4774CFE4: meta-errno 1; 6 записей: db-shm Documents db-wal .com.apple.mobile_container_manager.metadata.plist Library db 
+[bq102]   container 0DC13F03-CD9F-42D8-93FB-9CFE2EBAF2F9: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container E8F726E1-00B6-4703-91D1-49267FC0F979: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 7B03FCEF-ED22-4249-828B-E7509971915F: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 867912A4-A70D-428C-9551-D28453B6F1B4: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 3E27999E-F441-4625-A423-AF11E87F71E8: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container B06F5832-48EA-445B-86F2-D2AC4468FA0C: meta-errno 1; 5 записей: Caches Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 327EA503-DB77-458C-A855-3B3C8622696A: meta-errno 1; 5 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library history tmp 
+[bq102]   container A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container com.apple.geod: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 373C8E3E-393F-46D5-A143-A9312084B0E3: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container F19F9591-A37F-4F88-A218-676D6A685493: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102]   container 7CB67CBE-31A2-474A-9555-8A0A3B979760: meta-errno 1; 6 записей: Documents FBBA8147BA056E0662A9244335337FC55D877FC077D20FFC8C8D8347229ABC99 .com.apple.mobile_container_manager.metadata.plist Library tmp LoadAndInstallBundle_DEFAULT.sefw 
+[bq102]   container 5706241F-E82B-4735-A5E8-367E43BA1E3E: meta-errno 1; 6 записей: database.sqlite database.sqlite-wal Documents Install database.sqlite-shm .com.apple.mobile_container_manager.metadata.plist 
+[bq102]   container A56ACED1-730D-4624-8C89-DE9DEAE98579: meta-errno 1; 6 записей: ActionTranscript Documents .com.apple.mobile_container_manager.metadata.plist Library index tmp 
+[bq102]   container 6043FE60-37AC-4E01-A4D9-8884DEBCC677: meta-errno 1; 5 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library AppProtectionBackup.plist tmp 
+[bq102]   container 4E311340-1D0C-4D2B-A9BA-78E20C7C9D7D: meta-errno 1; 4 записей: Documents .com.apple.mobile_container_manager.metadata.plist Library tmp 
+[bq102] контейнеры ИТОГ: 23 UUID, 0 с bundle-id, 23 только-листинг
+[bq102] ЗАВЕРШЕНО: таблица демонов по привилегиям собрана
+[probe13] bq102-only mode, stop
