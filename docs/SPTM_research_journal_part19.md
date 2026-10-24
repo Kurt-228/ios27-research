@@ -7980,3 +7980,22 @@ security-решениями и богатым парсингом.
 контейнера appstored; (2) Ghidra декомпилят appstored; (3) поиск
 read/parse-путей файлов из контейнера; (4) цель: понять какой файл
 appstored парсит из своего контейнера → payload.
+
+### §262 (v268). p_bq108: глубокий листинг контейнеров — apps.plist!
+
+**appstored** (root, mach=19, контейнер RW):
+- **`Library/apps.plist`** (0 KB, СУЩЕСТВУЕТ) — главный кандидат-вход:
+  root-демон читает при старте, сейчас пустой, мы можем писать
+- `Library/katana-subscription-cache.plist` (0 KB) — второй кандидат
+- Library/Preferences пуста, Caches/Scratch пуст
+
+**backboardd** (mobile, но display server):
+- **`Library/Caches/functions.data` (5.5 MB!)** + `functions.list (72 KB)` —
+  живой бинарный кэш, перечитывается. Но mobile, не root.
+
+**mobileactivationd** (root): Library/activation_records/ (пустая dir),
+splunk/, internal/ — все пусты.
+
+**Стратегия**: RE appstored через Ghidra (запущен) → найти парсер
+apps.plist → найти corruption-точку → payload в пустой файл → при следующем
+рестарте root-демона — исполнение.

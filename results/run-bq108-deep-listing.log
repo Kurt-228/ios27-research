@@ -1,0 +1,49 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ108=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5b03
+[scaler] conn 0x5b03, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq108] v268: глубокий листинг контейнеров Tier-A (§261)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq108] === [appstored] 3E27999E-F441-4625-A423-AF11E87F71E8
+[bq108]   //Documents (0 KB, dir)
+[bq108]   //Library (0 KB, dir)
+[bq108]   //tmp (0 KB, dir)
+[bq108]   /Documents/Persistence (0 KB, dir)
+[bq108]   /Library/Caches (0 KB, dir)
+[bq108]   /Library/apps.plist (0 KB)
+[bq108]   /Library/katana-subscription-cache.plist (0 KB)
+[bq108]   /Library/Preferences (0 KB, dir)
+[bq108]   /Library/Caches/Scratch (0 KB, dir)
+[bq108] === [mobileactivationd] A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45
+[bq108]   //Documents (0 KB, dir)
+[bq108]   //Library (0 KB, dir)
+[bq108]   //tmp (0 KB, dir)
+[bq108]   /Library/Caches (0 KB, dir)
+[bq108]   /Library/internal (0 KB, dir)
+[bq108]   /Library/activation_records (0 KB, dir)
+[bq108]   /Library/splunk (0 KB, dir)
+[bq108]   /Library/Preferences (0 KB, dir)
+[bq108] === [backboardd] 867912A4-A70D-428C-9551-D28453B6F1B4
+[bq108]   //Documents (0 KB, dir)
+[bq108]   //Library (0 KB, dir)
+[bq108]   //tmp (0 KB, dir)
+[bq108]   /Library/Caches (0 KB, dir)
+[bq108]   /Library/Preferences (0 KB, dir)
+[bq108]   /Library/Caches/functions.data (5680 KB)
+[bq108]   /Library/Caches/32024 (0 KB, dir)
+[bq108]   /Library/Caches/functions.list (72 KB)
+[bq108] === [springboard] D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB
+[bq108]   //Documents (0 KB, dir)
+[bq108]   //Library (0 KB, dir)
+[bq108]   //tmp (0 KB, dir)
+[bq108]   /Library/Caches (0 KB, dir)
+[bq108]   /Library/Preferences (0 KB, dir)
+[bq108]   /Library/Caches/com.apple.PaperBoardUI (0 KB, dir)
+[bq108] ИТОГ: глубокий листинг завершён
+[probe13] bq108-only mode, stop

