@@ -8026,3 +8026,30 @@ katana-subscription-cache — тоже plist.
 | lsd | DefaultAppQueryState.plist | CFPropertyList? (проверить RE) | root, mach=3 |
 | lsd | securepreferences.plist | ? (проверить RE) | root |
 | mobileactivationd | activation_records/ | ? (проверить RE) | root, mach=2 |
+
+### §264 (v269). p_bq109: functions.data = Metal/CA-кэш backboardd; staging lsd пуст; apps.plist = XML
+
+**Извлечены живые файлы контейнеров** (results/bq109-*):
+- **backboardd `functions.data` (5.8 MB)**: голова — псевдослучайные байты, НО внутри
+  **`Metal::GammaLUTs`** + 1409 хитов 'Metal' + дубликаты 64-байтных блоков →
+  **сериализованный кэш Metal/CA-функций display-пайплайна** (шейдеры backboardd).
+- **`functions.list` (72 KB)** = индекс: 4-байтный тег + UUID кэша + записи
+  {32-байтный SHA-256 digest, offset/len (до 0x589140)} → блобы в functions.data.
+  Хвост: pairs (0x1838, 0x589140) — offset+len в 5.8MB.
+- **lsd `OpenOperationStaging*` — ПУСТЫЕ ДИРЕКТОРИИ** (транзиентные файлы во время
+  open-операций) → гонка, слабый вектор. Закрыто.
+- **appstored `apps.plist`** = обычный XML-plist (667 байт), `katana-...plist` = bplist
+  — оба hardened CFPropertyList. Закрыто как corruption-вход.
+- **springboard `com.apple.PaperBoardUI/PBUIMappedImageCacheManager-Default`** —
+  mapped-image cache (содержимое — в p_bq110).
+
+**Метал-кэш как вектор**: backboardd (unsandboxed, display-сервер, respawn при
+respring) десериализует functions.data при старте — кастомный C++ парсер
+Metal::объектов в dylib (QuartzCore/Metal — shared cache). Коррупция файла →
+парсер → heap corruption в дисплей-сервере. Reader RE: dyld-кэш (дамп жив на
+устройстве, Documents/dycache — 80 сабфайлов, Mac-копия оказалась iCloud-стабом)
+или macOS QuartzCore.
+
+**akd (root?)**: контейнер содержит **LIVE CFURLCache**: `Caches/Cache.db` 48KB +
+`Cache.db-wal` 1295KB + `shm` + `fsCachedData/` — SQLite + CFNetwork-кэш,
+активно используется. p_bq110 извлекает всё + бинарь akd из AuthKit.

