@@ -8447,3 +8447,38 @@ following bag load»), устройство-Setup-стейт гейтит. Во�
   Ghidra на qc-ios-text.macho запущена (движок decode_segment — общий с mac).
 - appstored: запаркован (§278). Фаззеры NSURL/UUID/JSON — 15M+ на фаззер,
   крашей нет.
+
+### §280 (v292). Metal-фаззинг ЗАРАБОТАЛ: assert-поле functionType @0x19e (255/255 краш); харнесс-уроки
+
+**Харнесс-эволюция** (fuzz_metal.m v1→v3):
+- v1 (signal+longjmp): «краш на каждой итерации» = артефакт longjmp из
+  ObjC-фреймов (autorelease-урон); .ips не пишутся (сигналы ловились).
+- v2 (fork-per-iter): контрольный сид крашит — **Metal не переживает
+  fork()** (документировано) → дочерний MTLCreateSystemDefaultDevice = SIGSEGV.
+- v3 (**posix_spawn-per-iter**): свежий exec-процесс на итерацию ✓.
+  Грабли NSData→dispatch_data_t: НЕ toll-free! `(dispatch_data_t)nsdata`
+  = SIGSEGV внутри CC_SHA256 (стек .ips: MTLLibraryBuilder→SHA256).
+  Фикс: dispatch_data_create. После фикса контроль: rc=0 ✓.
+
+**Первая находка** (500 итераций, seed = AppleAVEEncoder default.metallib,
+18KB): байт **@0x19e** (seed 0x50) — functionType-поле. Свип 0..255:
+**ВСЕ 255 не-сид значений → SIGABRT** `validateMTLFunctionType:10973:
+failed assertion 'type is not a valid MTLFunctionType.'`. Бисекция
+подтвердила: одиночный байт @0x19e 0x50→0x00 детонирует; остальные 3
+мутации инертны.
+
+**Интерпретация**: (а) металл-парсер пропускает невалидный functionType
+до newFunctionWithName → assert (DoS-класс, процесс-аборт, не corruption);
+(б) на iOS при гидрации кэша backboardd этот же путь = краш дисплей-сервера;
+(в) **искомый класс — SIGSEGV (rc=-11), поля БЕЗ валидаторов** —
+масштабный фаззинг запущен: 6 воркеров × 10M итераций × 3 сида
+(own-compiled compute kernel 3896B + AVE + AV1 metallibs), логи в
+results/fuzz-logs/fmtl-*.log, краш-инпуты /tmp/fmtl3-crash-*.bin.
+
+**Сборка сидов**: Metal Toolchain 27A5228f скачан; xcrun metal+metallib
+работают; seed.metal (compute texture kernel, ближайший аналог CA-функций
+кэша backboardd).
+
+**Доставка** (при находке SIGSEVV-класса): мутант-байты → functions.data
+запись (грамматика блобов §264: записи-дескрипторы + AGC-секции) →
+backboardd парсит при буте (§271 подтверждено).
