@@ -8318,3 +8318,42 @@ ASAN-оракул → plant на устройство → appstored (root) кр�
 
 **Caveat**: Apple может бэкпортировать фиксы в свою ветку молча —
 локальный 3.53.0 = кандидат-генератор; устройство решит (crash-oracle).
+
+### §276 (v285-287). nOvfl int-overflow: ПОЛНЫЙ ПОДТВЕРЖДЁННЫЙ PoC (vanilla) — НО Apple уже захардкожен
+
+**Полный PoC-пайплайн сработал** (results/kc-extract/craft_ovflcache.py):
+- База: t(a INTEGER PK, b TEXT); row1=blob 25000 (создаёт aOverflow 48Б на
+  курсоре), row2 → crafted-ячейка.
+- Крафт: P=0xFFFFFFFF (варинт [FF×4][b4] декодируется inline-декодером как
+  0xFFFFFF00+b4; 6-байтная форма даёт 0xFFFFFF80+b4), nLocal=489 (fallback
+  формулы sqlite), rec-hdr: a=NULL, b=огромный blob, заглушка [80 00] —
+  обходит OP_Column guard «header consumed → sum==payloadSize»
+  (zHdr<zEndHdr при i>p2), ovfl-указатель на payload+nLocal → наша цепь
+  страниц; in-header db-size расширен.
+- **ASAN 3.53.0 vanilla: heap-buffer-overflow WRITE of size 4 @ accessPayload**
+  (row1: nOvfl=6→48Б alloc; row2: nOvfl=0 → realloc SKIP → walk пишет
+  aOverflow[iIdx≥12] за границу; данные = номера страниц, длина = длина
+  цепи — полностью управляемые) ✓ БАГ ЖИВ В СНАПШОТЕ.
+- Грабли решённые: length()=BYTELENARG shortcut не читает payload (нужен
+  SELECT b); кэш aOverflow освобождается только при Close (пересечение
+  ячеек внутри листа ок); varint-декодер sqlite = accumulate-left.
+- **Apple CLI (тот же 'aapl' 2026-04-09 снапшок, что на device): rc=0.**
+- **Дизас Apple libsqlite3 (mac=dsc, тот же снапшот): `sdiv x25, x8, x28`
+  — 64-битное деление = фикс 093e23814e УЖЕ В Apple-билде** (захардкожено
+  ДО апстрим-фикса 28.05!).
+
+**Стратегический вывод**: Apple-fork несёт независимую закалку corruption-путей
+(2 из 2 кандидатов мертвы: trigger-chain — свой чек «triggers nested too deep»;
+nOvfl — свой i64). Поток 3.53.x-фиксов — низкий yield; каждый кандидат триажится
+через Apple CLI (идеальный прокси устройства, тот же снапшот, дёшево).
+
+**Остающиеся углы appstored-трека**:
+1. **NSJSONSerialization на blob-колонках** (ORM type-2 → JSON в root!) —
+   Apple-код, НЕ upstream: app_install.metrics_fields JSON, policy JSON —
+   если boot-SELECT читает эти колонки, наши байты идут в CF-JSON-парсер
+   root-процесса.
+2. NSKeyedUnarchiver (bplist, secure) — тот же паттерн.
+3. Остальные 3.53.x (freelist 1a888ea60b, cache-page c37b0d93bf,
+   super-journal) — быстро через Apple-CLI-прокси.
+Инфраструктура: p_bq121 plant + WAL-оракул + Apple-CLI триаж = полный
+конвейер «краш в root-демоне» для любого будущего sqlite/ORM-бага.
