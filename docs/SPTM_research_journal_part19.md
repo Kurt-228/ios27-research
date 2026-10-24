@@ -8256,3 +8256,38 @@ escape на чтение — stat, и только при ENOENT/EPERM; для c
   StoreSystem.db-wal/-shm или mtime-сдвиг = appstored (root) открыл нашу БД
   → цепочка подтверждена → следующий шаг corrupt-варианты (SQLite corruption
   corpus) против root-демона.
+
+### §274 (v282). ЦЕПОЧКА appstored (root) ПОДТВЕРЖДЕНА ДВАЖДЫ + sqlite-гипотеза
+
+**Двойное доказательство открытия (§144):**
+1. mtime StoreSystem.db сдвинулся на момент бута (1792854995→1792855535).
+2. **Поле sqlite-version @96 переписано**: плант=3053004 (Mac 3.53.4) →
+   устройство=**3052428** (Apple-ветка ~3.52.x, июнь 2026). Девайсовый
+   Apple-sqlite совершил транзакцию ЗАПИСИ в нашу БД при старте appstored.
+
+**Поверхность appstored при открытии нашей БД** (RE AppStoreUtilities-mac,
+498 функций, символизировано):
+- ASUSQLiteCopyFoundationValue: диспетчеризация по ORM-типу колонки;
+  **type-2 BLOB → NSJSONSerialization** (наши байты → JSON в root-процессе),
+  type-1 TEXT→NSString; границы колонок проверяются.
+- Схема — в самом бинаре appstored (39 CREATE); триггеры/views мы можем
+  добавлять свои — **триггеры на ТАБЛИЦАХ ДЕМОНА выполнят наш SQL при его
+  записях** (демон пишет при старте — доказано).
+
+**SQLite patch-guided гипотеза (v283):** Apple 3.52.x ← trunk до 3.53.0.
+В 3.53.x (май–июль 2026) — поток corruption-фиксов, ДОСТИЖИМЫХ через файл БД:
+- CORE: btree overflow-page-cache int-overflow (093e23814e), cells-past-page-
+  end при index search (6826c17021), corrupt freelist chains (1a888ea60b),
+  in-use cache page overwrite (c37b0d93bf);
+- **trigger-chain depth при codegen (b22709dcb3) — наш триггер на таблице,
+  в которую демон пишет!**
+- fts5 buffer overwrite серия (если fts5 в Apple-сборке и достижим);
+- НЕ достижим: recursive-view stack overflow (демон не запрашивает наши views).
+Критический вопрос: бэкпортил ли Apple эти фиксы в свою 3.52-ветку →
+p_bq120 v3 карвит libsqlite3.dylib → строка SQLITE_SOURCE_ID (дата снапшота)
+решит, что живо.
+
+**Порядок тестов после версии**: (1) trigger-chain depth probe (безопасный
+crash-oracle: если патч есть — молча, нет — краш appstored при старте);
+(2) core-btree corruption варианты по фиксам; (3) NSJSONSerialization трек
+(строки в JSON-колонках оdr_*).

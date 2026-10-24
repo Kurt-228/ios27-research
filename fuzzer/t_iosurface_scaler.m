@@ -48544,12 +48544,10 @@ static void p_bq120(void) {
     LOG("[bq120] images: off=0x%x cnt=%u", imgOff, imgCnt);
 
     static const char *targets[] = {
-        "/System/Library/PrivateFrameworks/AppStoreUtilities.framework/AppStoreUtilities",
-        "/System/Library/PrivateFrameworks/AppStoreDaemon.framework/AppStoreDaemon",
+        "/usr/lib/libsqlite3.dylib",
     };
     static const char *needles[] = {
-        "StoreSystem.db", "StoreUser.db", "CREATE TABLE", "ASUSQLite",
-        "BindFoundationValue", "CopyFoundationValue",
+        "SQLITE_SOURCE_ID", "3.5", "ENABLE_FTS5", "sqlite_version",
     };
     NSString *docs = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
@@ -48755,8 +48753,31 @@ static void p_bq122(void) {
         }
         closedir(dd);
     }
+    // hex-дамп первых 100 байт БД: change counter @24..27, schema cookie @40
+    {
+        const char *dbp = "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/StoreSystem.db";
+        FILE *f = fopen(dbp, "rb");
+        if (f) {
+            unsigned char hb[100];
+            size_t r = fread(hb, 1, sizeof(hb), f);
+            fclose(f);
+            LOG("[bq122] head[%zu]:", r);
+            for (size_t o = 0; o < r; o += 16) {
+                char line[220]; int off = 0;
+                off += snprintf(line+off, sizeof(line)-off, "  %04zx  ", o);
+                for (size_t b = o; b < o+16 && b < r; b++)
+                    off += snprintf(line+off, sizeof(line)-off, "%02x ", hb[b]);
+                LOG("[bq122]%s", line);
+            }
+            // BE u32 @24 = change counter, @40 = schema cookie
+            uint32_t cc = (hb[24]<<24)|(hb[25]<<16)|(hb[26]<<8)|hb[27];
+            uint32_t sc = (hb[40]<<24)|(hb[41]<<16)|(hb[42]<<8)|hb[43];
+            LOG("[bq122] change_counter=%u schema_cookie=%u (наш планта: cc=? — сверить)",
+                cc, sc);
+        } else LOG("[bq122] head fopen errno %d", errno);
+    }
     bad_query_release(h);
-    LOG("[bq122] ИТОГ: если StoreSystem.db-wal/-shm появились или mtime дёрнулся — appstored ОТКРЫЛ нашу БД");
+    LOG("[bq122] ИТОГ: mtime сдвиг + change-counter = appstored ОТКРЫЛ И ПИСАЛ в нашу БД");
     fsync(fileno(stderr));
 }
 
