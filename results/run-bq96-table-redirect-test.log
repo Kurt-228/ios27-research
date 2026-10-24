@@ -1,0 +1,77 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ96=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x5a03
+[scaler] conn 0x5a03, s1 25 s2 27
+[probe12] SetNotificationPort -> 0x00000000
+[bq96] v256: VA-редирект через живую таблицу 0x100_00018000 (§247)
+[bq92]   probe(P) target 0: слотов 0 status 4 | B:41 0 Bnz 4096
+[bq96] K0 OK
+[bq92]   probe(R) target 0x10000018000: слотов 9 status 4 | B:41 0 Bnz 16
+[bq96] snap0: nz 16
+[bq96] tex0: fill 0x50 status 4
+[bq96] tex1: fill 0x51 status 4
+[bq96] tex2: fill 0x52 status 4
+[bq96] tex3: fill 0x53 status 4
+[bq92]   probe(R) target 0x10000018000: слотов 8 status 4 | B:41 0 Bnz 134
+[bq96] snap1: nz 134 (pristine для restore)
+[bq96] new[0] @+0x20: 0 -> 0x3fc0ff6880a22
+[bq96] new[1] @+0x28: 0 -> 0x1000014800
+[bq96] new[2] @+0x40: 0 -> 0x3fc0ff6880a22
+[bq96] new[3] @+0x48: 0 -> 0x1000019000
+[bq96] new[4] @+0x60: 0 -> 0x3fc0ff6880a22
+[bq96] new[5] @+0x68: 0 -> 0x100001d800
+[bq96] new[6] @+0x80: 0 -> 0x3fc0ff6880a22
+[bq96] new[7] @+0x88: 0 -> 0x1000022000
+[bq96] new[8] @+0xa0: 0 -> 0x3fc0ff9684842
+[bq96] new[9] @+0xa8: 0 -> 0xfc01000010000
+[bq96] new[10] @+0xc0: 0 -> 0x3fc0ff9684862
+[bq96] new[11] @+0xc8: 0 -> 0x1000022000
+[bq96] new[12] @+0x220: 0 -> 0x3fc0ffe40a22
+[bq96] new[13] @+0x228: 0 -> 0x1000014800
+[bq96] new[14] @+0x240: 0 -> 0x3fc0ffe40a22
+[bq96] new[15] @+0x248: 0 -> 0x1000019000
+[bq96] new[16] @+0x260: 0 -> 0x3fc0ffe40a22
+[bq96] new[17] @+0x268: 0 -> 0x100001d800
+[bq96] new[18] @+0x280: 0 -> 0x3fc0ffe40a22
+[bq96] new[19] @+0x288: 0 -> 0x1000022000
+[bq96] new[20] @+0x2a0: 0 -> 0x3fc0ff004842
+[bq96] new[21] @+0x2a8: 0 -> 0x3f01000010000
+[bq96] new[22] @+0x2c0: 0 -> 0x3fc0ff004862
+[bq96] new[23] @+0x2c8: 0 -> 0x1000022000
+[bq96] new[24] @+0x520: 0 -> 0x31b680e0000
+[bq96] snap1-head +000: 19 00 6d 0b 00 00 00 20 00 58 00 00 10 00 00 00
+[bq96] snap1-head +010: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +020: 22 0a 88 f6 0f fc 03 00 00 48 01 00 10 00 00 00
+[bq96] snap1-head +030: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +040: 22 0a 88 f6 0f fc 03 00 00 90 01 00 10 00 00 00
+[bq96] snap1-head +050: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +060: 22 0a 88 f6 0f fc 03 00 00 d8 01 00 10 00 00 00
+[bq96] snap1-head +070: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +080: 22 0a 88 f6 0f fc 03 00 00 20 02 00 10 00 00 00
+[bq96] snap1-head +090: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +0a0: 42 48 68 f9 0f fc 03 00 00 00 01 00 10 c0 0f 00
+[bq96] snap1-head +0b0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +0c0: 62 48 68 f9 0f fc 03 00 00 20 02 00 10 00 00 00
+[bq96] snap1-head +0d0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +0e0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] snap1-head +0f0: 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00 00
+[bq96] va-записей новых: 8, уникальных VA: 4
+[bq96]   uva[0] = 0x1000014800 (0x10_14800)
+[bq96]   uva[1] = 0x1000019000 (0x10_19000)
+[bq96]   uva[2] = 0x100001d800 (0x10_1d800)
+[bq96]   uva[3] = 0x1000022000 (0x10_22000)
+[bq93] write 0x10000018000: слотов 13 status 4
+[bq96] SWAP-ALL: 0x1000014800 <-> 0x1000019000, заменено 4 u64 | write status 4
+[bq96] tex0 readback: status 4 error none
+[bq96] tex0 содержимое: 50:4096 51:0 52:0 53:0 — (нет редиректа — ivar/кэш управляет, таблица — зеркало)
+[bq93] write 0x10000018000: слотов 13 status 4
+[bq96] RESTORE pristine: status 4
+[bq96] после restore tex0 = 0x50: 4096 (таблица восстановлена, всё как было)
+[bq96] ИТОГ: редирект-тест завершен (живо? = нет паники)
+[probe13] bq96-only mode, stop
