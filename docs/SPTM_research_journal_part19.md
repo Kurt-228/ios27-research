@@ -8291,3 +8291,30 @@ p_bq120 v3 карвит libsqlite3.dylib → строка SQLITE_SOURCE_ID (да
 crash-oracle: если патч есть — молча, нет — краш appstored при старте);
 (2) core-btree corruption варианты по фиксам; (3) NSJSONSerialization трек
 (строки в JSON-колонках оdr_*).
+
+### §275 (v284). ВЫПЛАТА: device-sqlite = trunk 2026-04-09 (контент 3.53.0)
+
+**Карвинг libsqlite3.dylib iOS** (results/carve-libsqlite3-ios.bin, 1.8MB):
+- версия = **"3.54.0"** (trunk post-3.53.0 номер)
+- **SOURCE_ID = 2026-04-09 12:25:13** — снапшот trunk В ДЕНЬ релиза 3.53.0!
+- ENABLE_FTS5 присутствует.
+
+**Следствие**: Apple b4 несёт sqlite ≈ 3.53.0. ВСЕ фиксы 3.53.1–3.53.4
+(15 апреля – 24 июля 2026) — кандидаты на живые баги:
+- CORE btree: overflow-page-cache int-overflow (093e23814e, 28.05),
+  cells-past-page-end index search (6826c17021, 24.06 — bug 2026-06-24T14:55),
+  corrupt freelist detection (1a888ea60b, 26.06),
+  in-use cache page overwrite (c37b0d93bf, 19.05);
+- trigger-chain depth codegen (b22709dcb3, 15.06) — ДОСТИЖИМ: наши триггеры
+  на таблицах демона (демон пишет при старте — доказано §274);
+- super-journal: 1-byte overwrite crafted super-journal (f654fa5ac9),
+  zeroed-магик rollback (bf70dadc2d), mxPathname overrun (aa756c8038);
+- fts5 серия buffer overwrite на corrupt records.
+- НЕ достижим: recursive-view stack (демон не запрашивает наши views).
+
+**Локальный пайплайн (v285)**: sqlite-autoconf-3530000 (точный винтаж!)
+собирается с ASAN+FTS5+RTREE → крафт corrupt-DB по кандидатам → локальный
+ASAN-оракул → plant на устройство → appstored (root) крашится?
+
+**Caveat**: Apple может бэкпортировать фиксы в свою ветку молча —
+локальный 3.53.0 = кандидат-генератор; устройство решит (crash-oracle).
