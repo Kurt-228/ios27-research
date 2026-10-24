@@ -8135,3 +8135,29 @@ ColorProgram::Cache. Сериализация шейдеров (Spec) — shared
 (2) p_bq115 — карвинг iOS QuartzCore/BackBoardServices/PaperBoardUI из
 dycache (p_pprp-механика всех маппингов) для RE Spec-формата блобов;
 (3) Ghidra QuartzCore-mac (запущен, heap 16G) — формат Spec/декодеров.
+
+### §268 (v274-276). bq115 (v3): iOS QuartzCore вырезан; грамматика блобов; 0xDECAFBAD-десериализатор
+
+**Карвинг исправлен** (баг: маппинг, начинающийся ДО адреса образа, отбрасывался
+— intersection-логика p_pprp вернула filled=N/N, magic=0xFEEDFACF для всех 5
+фреймворков). Контроль magic@0 сработал как детектор сломанного карва (§144).
+
+**iOS QuartzCore (4.6MB, results/carve-ios-QuartzCore.bin)**:
+- `fc_has_gamma_luts`/`gamma_luts`/`CA::OGL` — needles FOUND (shared с mac).
+- **Изолированный литерал `functions\0` @0x427685 (VM 0x1847d9685)** — iOS-ONLY
+  (в mac QC его нет) → код дискового кэша CA::OGL::FunctionCache в iOS QuartzCore!
+- ПРЯМОГО adrp-xref из __TEXT на строку НЕТ → адресация через CFString-
+  константу в __AUTH_CONST (0x1e8d325a0+0x47df0) → p_bq117 карвит data-сегменты
+  (needle: PTR 0x1847d9685 внутри __AUTH_CONST).
+- **Функция @0x1844d8940+: бинарный десериализатор** — cursor/end pair
+  (`ldp x8,x9,[x20,#0x20]`), bounded-проверки `add x10,x8,#4; cmp x10,x9; b.hi
+  → "buffer overrun"`, **magic 0xDECAFBAD** в потоке, enum-валидация (0..4),
+  pacda-vtable, регистрация атрибутов (name,group,index,type) в @0x1845a9bd8+
+  (42 param-таблица MetalContext). Это reader формата блобов кэша.
+- xref_raw.py — capstone-механика для raw-карва (skipdata, adrp#-иммунитет).
+
+**Ghidra mac QC**: heap 16G, в процессе. Mac-harness fuzz_decode_segment.c
+скомпилирован (guard-page oracle).
+
+**Порядок работ**: bq117 (data-сегменты → CFString → xref из __TEXT на CFString
+→ функция кэша) → RE reader → поведенческий тест bq113/114 → Mac-фаззинг.

@@ -15,6 +15,7 @@
 // ВАЖНО: decode_segment(cursor_ptr, dest, table, nfields=20) — сигнатура из
 // disasm: (const char **cursor, void *dest, const NameDecoder *tbl, int n).
 // Сборка: cc -arch arm64e fuzz_decode_segment.c -o /tmp/fds -framework Foundation
+#include <setjmp.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

