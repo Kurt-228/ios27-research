@@ -1,9 +1,11 @@
-// fuzz_metal.m v3 — posix_spawn-per-iteration (Metal не переживает fork(),
-// но работает в свежем exec-процессе). Два режима:
-//   fmtl3 <seed.metallib> [iters] [seed]   — родитель-цикл
-//   fmtl3 --parse <file>                   — одноразовый ребёнок (parse+exit)
+// fuzz_metal.m v4 — batch + blacklist:
+//   ребёнок (--batch <dir>): парсит variantNNN.bin по порядку, перед каждым
+//   пишет текущий индекс в <dir>/cursor; краш = индекс известен.
+//   родитель: генерирует пачки по 20, спавнит ребёнка, читает cursor.
+//   Blacklist: оффсеты, чьи мутации дают assert-краш, исключаются дальше
+//   (в памяти родителя) → мутации уходят в новые поля.
 // Сборка: cc -arch arm64e -O2 -framework Metal -framework Foundation \
-//         fuzz_metal.m -o results/fuzz-logs/fmtl3
+//         fuzz_metal.m -o results/fuzz-logs/fmtl4
 #import <Foundation/Foundation.h>
 #import <Metal/Metal.h>
 #include <stdio.h>
@@ -12,16 +14,19 @@
 #include <unistd.h>
 #include <spawn.h>
 #include <sys/wait.h>
+#include <dirent.h>
+#include <sys/stat.h>
 
 static uint32_t rs;
 static uint32_t xr(void) {
     rs ^= rs << 13; rs ^= rs >> 17; rs ^= rs << 5; return rs;
 }
 
-static void mutate(uint8_t *buf, size_t n) {
+static void mutate(uint8_t *buf, size_t n, unsigned char *black) {
     int rounds = 1 + (xr() % 6);
     for (int r = 0; r < rounds; r++) {
         size_t off = xr() % n;
+        if (black[off]) { r--; continue; }   // skip blacklisted
         switch (xr() % 4) {
         case 0: buf[off] ^= (uint8_t)(1u << (xr() % 8)); break;
         case 1: buf[off] = (uint8_t)(xr() & 0xff); break;
@@ -31,13 +36,12 @@ static void mutate(uint8_t *buf, size_t n) {
     }
 }
 
-static int parse_file(const char *path) {
+static int parse_one(const char *path) {
     @autoreleasepool {
         NSData *d = [NSData dataWithContentsOfFile:[NSString stringWithUTF8String:path]];
-        if (!d.length) _exit(4);
+        if (!d.length) return 4;
         id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
-        if (!dev) _exit(3);
-        // НАСТОЯЩИЙ dispatch_data (NSData не toll-free с dispatch_data_t!)
+        if (!dev) return 3;
         dispatch_data_t dd = dispatch_data_create(d.bytes, d.length, nil, ^{});
         NSError *e = nil;
         id<MTLLibrary> lib = [dev newLibraryWithData:dd error:&e];
@@ -47,72 +51,134 @@ static int parse_file(const char *path) {
                 if (f) [f release];
             }
             [lib release];
-            _exit(0);
+            return 0;
         }
-        _exit(1);
+        return 1;
     }
 }
 
 extern char **environ;
 
-static int spawn_parse(const char *self, const char *file) {
-    pid_t pid;
-    char *argv[4];
-    argv[0] = (char *)self; argv[1] = (char *)"--parse"; argv[2] = (char *)file; argv[3] = NULL;
-    if (posix_spawn(&pid, self, NULL, NULL, argv, environ) != 0) return -1;
-    int st; waitpid(pid, &st, 0);
-    if (WIFEXITED(st)) return WEXITSTATUS(st);   // 0=ok 1=rejected
-    if (WIFSIGNALED(st)) return 128 + WTERMSIG(st);  // 128+sig = crash
-    return -2;
+static int run_batch(const char *dir, int count) {
+    // ребёнок: последовательный парсинг, курсор в файл
+    char cur[600]; snprintf(cur, sizeof(cur), "%s/cursor", dir);
+    for (int i = 0; i < count; i++) {
+        FILE *cf = fopen(cur, "w");
+        if (cf) { fprintf(cf, "%d", i); fclose(cf); }
+        char vp[600]; snprintf(vp, sizeof(vp), "%s/variant%03d.bin", dir, i);
+        int rc = parse_one(vp);
+        if (rc != 0 && rc != 1) _exit(rc);   // 4/3 = фатальные
+    }
+    FILE *cf = fopen(cur, "w"); if (cf) { fprintf(cf, "%d", count); fclose(cf); }
+    _exit(0);
 }
 
 int main(int argc, char **argv) {
-    if (argc >= 3 && strcmp(argv[1], "--parse") == 0)
-        return parse_file(argv[2]);
+    if (argc >= 3 && strcmp(argv[1], "--batch") == 0)
+        return run_batch(argv[2], atoi(argv[3]));
 
     if (argc < 2) { fprintf(stderr, "usage: %s <seed.metallib> [iters] [seed]\n", argv[0]); return 1; }
-    unsigned long iters = argc > 2 ? strtoul(argv[2], NULL, 0) : 100000;
+    unsigned long iters = argc > 2 ? strtoul(argv[2], NULL, 0) : 1000000;
     rs = argc > 3 ? (uint32_t)strtoul(argv[3], NULL, 0) : 12345;
 
     NSData *sd = [NSData dataWithContentsOfFile:[NSString stringWithUTF8String:argv[1]]];
     if (!sd.length) { fprintf(stderr, "seed не читается\n"); return 1; }
     size_t n = sd.length;
     uint8_t *seed = malloc(n); memcpy(seed, sd.bytes, n);
-    uint8_t *work = malloc(n);
-    const char *tmpf = "/tmp/fmtl3-input.bin";
-    char selfpath[4096];
-    uint32_t sz = sizeof(selfpath) - 1;
+    unsigned char *black = calloc(1, n);
+
+    char selfpath[4096]; uint32_t sz = sizeof(selfpath)-1;
     _NSGetExecutablePath(selfpath, &sz); selfpath[sz] = 0;
+    const char *dir = "/tmp/fmtl4-batch";
+    mkdir(dir, 0777);
 
-    fprintf(stderr, "seed: %zu байт, iters=%lu, helper=%s\n", n, iters, selfpath);
-
-    // контроль §144: немут. сид
-    FILE *f = fopen(tmpf, "wb"); fwrite(seed, 1, n, f); fclose(f);
-    int rc0 = spawn_parse(selfpath, tmpf);
-    fprintf(stderr, "контроль (немут. сид): rc=%d (%s)\n", rc0,
-            rc0 == 0 ? "OK — парсер принял" : rc0 <= 100 ? "rejected" : "CRASH — сид крашит!");
-    if (rc0 > 100) return 3;  // сид сам крашит — не фаззим
-
-    unsigned long total = 0, ok = 0, err = 0, crashes = 0;
-    for (unsigned long it = 0; it < iters; it++) {
-        total++;
-        memcpy(work, seed, n);
-        mutate(work, n);
-        f = fopen(tmpf, "wb"); fwrite(work, 1, n, f); fclose(f);
-        int rc = spawn_parse(selfpath, tmpf);
-        if (rc == 0) ok++;
-        else if (rc >= 1 && rc <= 100) err++;
-        else {
-            crashes++;
-            char name[128];
-            snprintf(name, sizeof(name), "/tmp/fmtl3-crash-%lu.bin", total);
-            FILE *cf = fopen(name, "wb"); fwrite(work, 1, n, cf); fclose(cf);
-            fprintf(stderr, "CRASH iter=%lu rc=%d saved=%s\n", total, rc, name);
-            if (crashes >= 50) { fprintf(stderr, "много крашей — стоп\n"); break; }
-        }
-        if ((total % 1000) == 0)
-            fprintf(stderr, "[%lu] ok=%lu err=%lu crash=%lu\n", total, ok, err, crashes);
+    fprintf(stderr, "seed: %zu байт, iters=%lu, BATCH=20\n", n, iters);
+    // контроль
+    {
+        char vp[600]; snprintf(vp, sizeof(vp), "%s/variant000.bin", dir);
+        FILE *f = fopen(vp, "wb"); fwrite(seed, 1, n, f); fclose(f);
+        FILE *cf = fopen("/tmp/fmtl4-batch/cursor", "w"); fprintf(cf, "0"); fclose(cf);
+        pid_t pid; char *av[5];
+        av[0]=selfpath; av[1]=(char*)"--batch"; av[2]=(char*)dir; av[3]=(char*)"1"; av[4]=NULL;
+        posix_spawn(&pid, selfpath, NULL, NULL, av, environ);
+        int st; waitpid(pid, &st, 0);
+        int rc = WIFEXITED(st) ? WEXITSTATUS(st) : 128+WTERMSIG(st);
+        fprintf(stderr, "контроль: rc=%d (%s)\n", rc, rc==0?"OK":"FAIL");
+        if (rc != 0 && rc != 1) return 3;
     }
-    printf("done: %lu iters, ok=%lu err=%lu crash=%lu\n", total, ok, err, crashes);
+
+    const int BATCH = 20;
+    unsigned long total = 0, ok = 0, err = 0, crashes = 0, blacksz = 0;
+    uint8_t *work = malloc(n);
+    while (total < iters && crashes < 200) {
+        // пачка
+        int made = 0;
+        unsigned long mut_offs[BATCH][8]; int mut_cnt[BATCH];
+        for (int i = 0; i < BATCH && total < iters; i++, total++) {
+            memcpy(work, seed, n);
+            // чистый мутатор с трекингом оффсетов
+            int rounds = 1 + (xr() % 6), cnt = 0;
+            for (int r = 0; r < rounds; r++) {
+                size_t off = xr() % n;
+                if (black[off]) { r--; continue; }
+                if (cnt < 8) mut_offs[i][cnt] = (unsigned long)off;
+                cnt++;
+                switch (xr() % 4) {
+                case 0: work[off] ^= (uint8_t)(1u << (xr() % 8)); break;
+                case 1: work[off] = (uint8_t)(xr() & 0xff); break;
+                case 2: work[off] = 0; break;
+                case 3: work[off] = 0xff; break;
+                }
+            }
+            mut_cnt[i] = cnt;
+            char vp[600]; snprintf(vp, sizeof(vp), "%s/variant%03d.bin", dir, i);
+            FILE *f = fopen(vp, "wb"); fwrite(work, 1, n, f); fclose(f);
+            made++;
+        }
+        FILE *cf = fopen("/tmp/fmtl4-batch/cursor", "w"); fprintf(cf, "0"); fclose(cf);
+        char num[16]; snprintf(num, sizeof(num), "%d", made);
+        pid_t pid; char *av[5];
+        av[0]=selfpath; av[1]=(char*)"--batch"; av[2]=(char*)dir; av[3]=num; av[4]=NULL;
+        if (posix_spawn(&pid, selfpath, NULL, NULL, av, environ) != 0) break;
+        int st; waitpid(pid, &st, 0);
+        int cursor = 0;
+        cf = fopen("/tmp/fmtl4-batch/cursor", "r");
+        if (cf) { if (fscanf(cf, "%d", &cursor) != 1) cursor = made; fclose(cf); }
+        if (WIFEXITED(st) && WEXITSTATUS(st) == 0) {
+            ok += made; err += 0;
+        } else if (WIFEXITED(st) && WEXITSTATUS(st) == 1) {
+            // все rejected? нет: cursor указывает где остановились...
+            ok += cursor; err += (made - cursor);
+        } else if (WIFSIGNALED(st)) {
+            int cidx = cursor;   // краш на variant cidx
+            crashes++;
+            // blacklist оффсетов этого варианта
+            if (cidx < made && cidx >= 0) {
+                for (int k = 0; k < mut_cnt[cidx] && k < 8; k++) {
+                    unsigned long off = mut_offs[cidx][k];
+                    if (off < n) { black[off] = 1; blacksz++; }
+                }
+                // сохранить краш-вариант
+                char name[128];
+                snprintf(name, sizeof(name), "/tmp/fmtl4-crash-%lu.bin", total);
+                char vp[600]; snprintf(vp, sizeof(vp), "%s/variant%03d.bin", dir, cidx);
+                FILE *src = fopen(vp, "rb"); FILE *dst = fopen(name, "wb");
+                if (src && dst) { char b[65536]; size_t r;
+                    while ((r = fread(b,1,sizeof(b),src))>0) fwrite(b,1,r,dst);
+                    fclose(src); fclose(dst);
+                }
+                fprintf(stderr, "CRASH iter=%lu variant=%d sig=%d saved (blacklist=%lu)\n",
+                        total, cidx, WTERMSIG(st), blacksz);
+            }
+            ok += cidx;
+        } else {
+            ok += cursor;
+        }
+        if ((total % 2000) < BATCH)
+            fprintf(stderr, "[%lu] ok=%lu err=%lu crash=%lu black=%lu\n",
+                    total, ok, err, crashes, blacksz);
+    }
+    printf("done: %lu iters, ok=%lu err=%lu crash=%lu black=%lu\n",
+           total, ok, err, crashes, blacksz);
     return crashes ? 2 : 0;
 }
