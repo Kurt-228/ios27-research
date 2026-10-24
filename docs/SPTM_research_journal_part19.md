@@ -8087,3 +8087,22 @@ iOS-специфика → парсер локуем сканом dycache-саб
 2. **akd CFURLCache** — если akd unsandboxed → полный стек SQLite+CFNetwork.
 3. **appstored StoreSystem.db/StoreUser.db** — root, SQLite создаём сами,
    триггер = App Store активность.
+
+### §266 (v271). Уточнение §264 + подготовка теста чтения functions.data
+
+- **macOS dsc не содержит 'functions.list' нигде** (полный скан 82 сабфайлов) —
+  дисковая персистентность FunctionCache = iOS-only (backboardd). Но ядро
+  **shared**: в macOS QuartzCore (карв 4.5MB из dsc) найдены **43 ключа
+  `fc_*`** перестановок шейдеров (fc_has_gamma_luts, fc_attachment_count,
+  fc_blend_function, ...) + `ogl-cgl.cpp` — код CA::OGL::FunctionCache
+  присутствует на macOS, RE доступен локально.
+- §260 НЕ тестировал functions.data (только 5 plist'ов) — «читают при старте»
+  для functions.data НЕ установлено. Готов p_bq113/p_bq114 (§177-методология):
+  мутация 1 байта в payload (0x60d9, gamma_luts) с контролем read-back →
+  ребут (user) → наблюдение: файл переписан (валидация digest) / маркер жив
+  (парс вслепую) / крэш (тоже ответ).
+- p_bq112 готов: sandbox-профили (/System/Library/Sandbox/Profiles), бинарь
+  akd (AuthKit/akd), содержимое PBUIMapped .atx, собственный Caches-листинг
+  (есть ли functions.data у нашего app = безопасный фаззинг-оракул).
+- akd Cache.db: WAL чекпойнтнулся демоном МЕЖДУ нашими копиями (48→72KB) —
+  демон живой. Blobs = bplist + _CFURLString (CFNetwork-сериализация).

