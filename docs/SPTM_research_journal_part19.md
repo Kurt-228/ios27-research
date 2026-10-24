@@ -8220,3 +8220,23 @@ bq109-копии (mtime 14:57:58 — до пула, не переписывал�
 **Следующий шаг**: RE блоб-парсера через Ghidra mac QC (запущен) →
 Mac-harness фаззинг decode_segment (fuzz_decode_segment.c) → крашащие
 мутации length/count полей → повторить bq113-цикл с crafted-блобом.
+
+### §272 (v279). bq116v4-119: metadata контейнеров читаются (per-file escape); sandbox-профилей там НЕТ; create-side-effect
+
+**metadata (5 контейнеров: akd/backboardd/lsd/springboard/appstored)**: читаются
+только через per-file escape `bad_query(fp,1,grp,0)` (dot-EPERM). Содержимое:
+MCMMetadataIdentifier/Info/Version=9/ContentClass=12/UUID/Ownership/Creator/
+ActiveDPClass — **SANDBOX-ПРОФИЛЯ НЕТ** → вопрос «akd sandboxed?» метаданными
+не решается (akd остаётся mobile+unknown → паркован).
+
+**Урок create=true**: per-file escape создаёт файл, если его нет — cand-1
+(`.com.apple.containermanagerd.metadata.plist`) не существовал, был создан
+пустым, молча скипнут (sz=0), а затем СИСТЕМА дозаписала в него 64 байта.
+bq119 сохранил все 5 (не пустые → не удаляем). Правило: перед per-file
+escape на чтение — stat, и только при ENOENT/EPERM; для cand-проверок
+создавать нельзя (загрязнение контейнеров).
+
+**MappedImageCache**: файлы по 64 байта (стабы, не образы) — ветка слабая.
+
+**Итог по akd**: authorization.db вне вселенной (HOME-путь), Cache.db жив,
+профиль неизвестен → паркинг. akd-трек закрыт до появления новой зацепки.

