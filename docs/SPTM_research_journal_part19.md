@@ -7604,3 +7604,56 @@ VM-подтверждение не требуется — опасного вы�
 kernel_text_exec_{b4,435,B115}.bin, kernel_text_{b4,435,B115}.json}; b4
 kernelcache пере-выкачан в results/kc27-b4kc/ (kernelcache_iphone16.macho,
 73MB, полные сегменты; старый kexts-carve был обрезан и objdump-невалиден).
+
+### §251 (v258). AF_LINK gateway (§236) — достижимость: ВЕКТОР ЗАКРЫТ (EPERM до парсинга)
+
+**Якорь изменения (стринг-дифф 435↔B115)**: 27.2 добавил ДВЕ os_log-валидации
+(не panic), отсутствующие в b4/435:
+- `"%s: rejecting AF_LINK gateway on index %u with unusable link address
+  (nlen %u, alen %u, sdl_len %u)"` → EINVAL (сайт B115 @0xfffffff00aaa62c0,
+  отказ в route-add);
+- `"%s: route %s on %s%d link address does not fit (sdl_alen %u, error %d)"`
+  (B115 @0xfffffff00aca1e70; рядом сосуществует `sdl_alen == 0`-лог, который
+  есть во всех трёх сборках → функция-носитель = nd6/ARP rtrequest-семейство).
+
+**Статика (bsd/net/rtsock.c, route_output)**: привилегия ДО парсинга:
+```
+if (RTM->rtm_type != RTM_GET && !(so->so_state & SS_PRIV)) senderr(EPERM);
+```
+rt_xaddrs вызывается ПОСЛЕ гейта. RTM_GET (без привилегий) — читающий путь,
+rt_setgate не зовёт. Прочее: rtioctl → ENXIO; ICMP-redirect строит gateway из
+IPv4-заголовка (sockaddr_in), не AF_LINK; rtm_scrub VERIFY(sdl_alen==size) —
+kernel→user выдача существующих маршрутов; NET_RT_DUMP — только чтение.
+
+**Эмпирика (p_bq97, run-bq97, b4 24A5390f, устройство)**:
+| кейс | результат |
+|---|---|
+| socket(AF_ROUTE, SOCK_RAW, 0) | **открыт** (fd 3) — read-plane доступен |
+| G0 RTM_GET 1.1.1.1 (контроль §144) | ✓ write 108 / read 128, reply-эхо, rtm_index=30 |
+| G1 RTM_ADD, обычный INET-gw | **EPERM** (write -1, errno 1) |
+| G2 легит SDL gw (len=20 alen=6) | **EPERM** |
+| G3 SDL len=8 alen=6 (OOB-клейм) | **EPERM** (не EINVAL!) |
+| G4 SDL alen=0xFF oversize | **EPERM** |
+| G5 SDL nlen=0xFF | **EPERM** |
+| G6 SDL len=255 alen=247 | **EPERM** |
+| G7 RTM_CHANGE + alen=0xFF gw | **EPERM** |
+| cleanup RTM_DELETE | **EPERM** |
+
+Решающий дискриминатор: все малформированные sockaddr_dl (G3-G6) дают **EPERM,
+а не EINVAL** → SS_PRIV-гейт срабатывает до rt_xaddrs → ни один байт
+управляемого sockaddr_dl не достигает изменённого в 27.2 участка. Единственные
+писатели с SS_PRIV — root-демоны (configd); из песочницы write-план закрыт
+на socket-слое.
+
+**Вывод**: AF_LINK-gateway-валидация 27.2 = defense-in-depth для
+привилегированных писателей, НЕ закрытие sandbox-бага. Вектор закрыт по
+критерию остановки: изменённый код недостижим из app-sandbox. Побочное:
+routing socket READ-plane открыт из песочницы (RTM_GET работает — by-design
+Darwin surface, лёгкий infoleak сетевой конфигурации).
+
+**Статус таблицы §239 после §250-§251**: m_sum16 — закрыт (§250, wrap
+недостижим); AF_LINK — закрыт (§251, EPERM до парсинга); map_block_buf — за
+DCP-пайплайном (§239); IOMFB UC — dumb (§239); apfs — недостижим из песочницы.
+Дифф-аудит 27.0→27.2 исчерпан. Главный актив остаётся §240/§241 (IOGPU
+parent-suballoc, подтверждён на устройстве, закрыт Apple в 27.0) — готов
+к упаковке репорта.

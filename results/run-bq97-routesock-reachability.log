@@ -1,0 +1,34 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ97=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[open] AppleM2ScalerCSCDriver -> conn 0x580f
+[scaler] conn 0x580f, s1 15 s2 16
+[probe12] SetNotificationPort -> 0x00000000
+[bq97] v258: AF_LINK gw — достижимость routing socket из песочницы (§236)
+[bq97] socket(AF_ROUTE, SOCK_RAW, 0) = 3 — ОТКРЫТ
+[bq97] G0 RTM_GET 1.1.1.1 (контроль формата):
+[bq97]   type=0x4 addrs=0x1: write=108 (errno 0) read=128 (errno 0) | reply type=0x4 rtm_errno=0 (ok)
+[bq97]   G0 → 128; reply rtm_index=30 *** КОНТРОЛЬ ПРОЙДЕН: socket жив, формат верен ***
+[bq97] G1 RTM_ADD 10.201.201.201/32 via INET 10.0.0.1:
+[bq97]   type=0x1 addrs=0x7: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] G2 SDL легит len=20 alen=6 (rtm_addrs=DST|GW|IFP):
+[bq97]   type=0x1 addrs=0x13: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] G3 SDL len=8 alen=6 (OOB-клейм) (rtm_addrs=DST|GW|IFP):
+[bq97]   type=0x1 addrs=0x13: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] G4 SDL len=20 alen=0xFF (oversize) (rtm_addrs=DST|GW|IFP):
+[bq97]   type=0x1 addrs=0x13: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] G5 SDL len=20 nlen=0xFF (rtm_addrs=DST|GW|IFP):
+[bq97]   type=0x1 addrs=0x13: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] G6 SDL len=255 alen=247 (rtm_addrs=DST|GW|IFP):
+[bq97]   type=0x1 addrs=0x13: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] G7 RTM_CHANGE 10.201.201.201/32 c SDL alen=0xFF gw:
+[bq97]   type=0x3 addrs=0x7: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] cleanup RTM_DELETE 10.201.201.201/32:
+[bq97]   type=0x2 addrs=0x5: write=-1 (errno 1) read=-1 (errno 0) | reply type=0 rtm_errno=0 (ok)
+[bq97] ИТОГ: матрица завершена (живо? = нет паники)
+[probe13] bq97-only mode, stop

