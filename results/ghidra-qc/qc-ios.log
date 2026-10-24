@@ -1,0 +1,96 @@
+Picked up _JAVA_OPTIONS: -Xmx14g
+Picked up _JAVA_OPTIONS: -Xmx14g
+Picked up _JAVA_OPTIONS: -Xmx14g
+Picked up _JAVA_OPTIONS: -Xmx14g
+openjdk version "27" 2026-09-15
+OpenJDK Runtime Environment Temurin-27+35 (build 27+35)
+OpenJDK 64-Bit Server VM Temurin-27+35 (build 27+35, mixed mode)
+INFO  Using log config file: jar:file:/opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Framework/Generic/lib/Generic.jar!/generic.log4j.xml (LoggingInitialization)  
+INFO  Using log file: /Users/kurt228/Library/ghidra/ghidra_12.1.4_PUBLIC/application.log (LoggingInitialization)  
+INFO  Loading user preferences: /Users/kurt228/Library/ghidra/ghidra_12.1.4_PUBLIC/preferences (Preferences)  
+INFO  Searching for classes... (ClassSearcher)  
+INFO  Class search complete (532 ms) (ClassSearcher)  
+WARNING: Final field name in class ghidra.util.charset.CharsetInfo has been mutated reflectively by class com.google.gson.internal.bind.ReflectiveTypeAdapterFactory$2 in unnamed module @4d02f94e (file:/opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Framework/Generic/lib/gson-2.13.2.jar)
+WARNING: Use --enable-final-field-mutation=ALL-UNNAMED to avoid a warning
+WARNING: Mutating final fields will be blocked in a future release unless final field mutation is enabled
+INFO  Initializing SSL Context (DefaultSSLContextInitializer)  
+INFO  Initializing Random Number Generator... (SecureRandomFactory)  
+INFO  Random Number Generator initialization complete: NativePRNGNonBlocking (SecureRandomFactory)  
+INFO  Trust manager disabled, cacerts have not been set (DefaultTrustManagerFactory)  
+INFO  Headless startup complete (1039 ms) (AnalyzeHeadless)  
+INFO  Class searcher loaded 59 extension points (20 false positives) (ClassSearcher)  
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::staticFieldOffset has been called by org.apache.felix.framework.util.SecureAction (file:/opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/Base/lib/org.apache.felix.framework-7.0.5.jar)
+WARNING: Please consider reporting this to the maintainers of class org.apache.felix.framework.util.SecureAction
+WARNING: sun.misc.Unsafe::staticFieldOffset will be removed in a future release
+INFO  HEADLESS Script Paths:
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/GnuDemangler/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Processors/JVM/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Processors/PIC/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/PyGhidra/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Debug/Debugger/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/WildcardAssembler/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/PDB/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/MicrosoftCodeAnalyzer/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Debug/Debugger-rmi-trace/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/VersionTracking/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/FunctionID/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/BytePatterns/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/DecompilerDependent/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/BSim/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/SwiftDemangler/ghidra_scripts
+    /Users/kurt228/Developer/ios27-fuzz/results/kc-extract
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/Decompiler/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/SystemEmulation/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Processors/DATA/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/Base/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Features/FileFormats/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Processors/8051/ghidra_scripts
+    /opt/homebrew/Cellar/ghidra/12.1.4/libexec/Ghidra/Processors/Atmel/ghidra_scripts (HeadlessAnalyzer)  
+INFO  HEADLESS: execution starts (HeadlessAnalyzer)  
+INFO  Creating temporary project: /Users/kurt228/Developer/ios27-fuzz/results/ghidra-qc/proj/QCiOS (HeadlessAnalyzer)  
+INFO  Creating project: /Users/kurt228/Developer/ios27-fuzz/results/ghidra-qc/proj/QCiOS (DefaultProject)  
+INFO  REPORT: Processing input files:  (HeadlessAnalyzer)  
+INFO       project: /Users/kurt228/Developer/ios27-fuzz/results/ghidra-qc/proj/QCiOS (HeadlessAnalyzer)  
+INFO  IMPORTING: file:///Users/kurt228/Developer/ios27-fuzz/results/qc-ios-text.macho (HeadlessAnalyzer)  
+INFO  Using Loader: Mac OS X Mach-O (ProgramLoader)  
+INFO  Using Language/Compiler: AARCH64:LE:64:AppleSilicon:default (ProgramLoader)  
+INFO  Using Library Search Path: [., /System/Library/dyld/dyld_shared_cache_arm64e, /System/Library/dyld/dyld_shared_cache_x86_64, /System/Library/dyld/dyld_shared_cache_x86_64h, /System/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_arm64e, /System/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_x86_64, /System/Cryptexes/OS/System/Library/dyld/dyld_shared_cache_x86_64h, /Users/kurt228/Library/Java/Extensions, /Library/Java/Extensions, /Network/Library/Java/Extensions, /System/Library/Java/Extensions, /usr/lib/java] (ProgramLoader)  
+INFO  Additional info:
+Loading file:///Users/kurt228/Developer/ios27-fuzz/results/qc-ios-text.macho?MD5=a25442d8aefc1425dc677f8375ed6744...
+qc-ios-text.macho: installed 8 objc SpecExtensions
+------------------------------------------------
+
+ (ProgramLoader)  
+INFO  IMPORTING: Loaded 0 additional files (HeadlessAnalyzer)  
+INFO  ANALYZING all memory and code: file:///Users/kurt228/Developer/ios27-fuzz/results/qc-ios-text.macho (HeadlessAnalyzer)  
+WARN  Decompiling 184538e20, pcode error at 18813b860: Could not follow disassembly flow into non-existing memory at 18813b860 (DecompileCallback)  
+WARN  Decompiling 184605c2c, pcode error at 18813b280: Could not follow disassembly flow into non-existing memory at 18813b280 (DecompileCallback)  
+WARN  Decompiling 184605c2c, pcode error at 18800f290: Could not follow disassembly flow into non-existing memory at 18800f290 (DecompileCallback)  
+WARN  Decompiling 184605c2c, pcode error at 188001150: Could not follow disassembly flow into non-existing memory at 188001150 (DecompileCallback)  
+WARN  Decompiling 184648820, pcode error at 188138580: Could not follow disassembly flow into non-existing memory at 188138580 (DecompileCallback)  
+WARN  Decompiling 1843dae38, pcode error at 18813b3a0: Could not follow disassembly flow into non-existing memory at 18813b3a0 (DecompileCallback)  
+WARN  Decompiling 1845ddfbc, pcode error at 188138390: Could not follow disassembly flow into non-existing memory at 188138390 (DecompileCallback)  
+WARN  Decompiling 1846d9628, pcode error at 18814e1a0: Could not follow disassembly flow into non-existing memory at 18814e1a0 (DecompileCallback)  
+WARN  Decompiling 1846d9628, pcode error at 188140c10: Could not follow disassembly flow into non-existing memory at 188140c10 (DecompileCallback)  
+WARN  Decompiling 1846d9628, pcode error at 1881404e0: Could not follow disassembly flow into non-existing memory at 1881404e0 (DecompileCallback)  
+WARN  Decompiling 1846d9628, pcode error at 188140aa0: Could not follow disassembly flow into non-existing memory at 188140aa0 (DecompileCallback)  
+WARN  Decompiling 1846d9628, pcode error at 1881416f0: Could not follow disassembly flow into non-existing memory at 1881416f0 (DecompileCallback)  
+WARN  Decompiling 1844a9038, pcode error at 188141260: Could not follow disassembly flow into non-existing memory at 188141260 (DecompileCallback)  
+WARN  Decompiling 1844a9038, pcode error at 188140bf0: Could not follow disassembly flow into non-existing memory at 188140bf0 (DecompileCallback)  
+WARN  Decompiling 1846eca04, pcode error at 188138580: Could not follow disassembly flow into non-existing memory at 188138580 (DecompileCallback)  
+WARN  Decompiling 1844b34b0, pcode error at 18800bdb0: Could not follow disassembly flow into non-existing memory at 18800bdb0 (DecompileCallback)  
+WARN  Decompiling 1846585fc, pcode error at 188138580: Could not follow disassembly flow into non-existing memory at 188138580 (DecompileCallback)  
+WARN  Decompiling 18465877c, pcode error at 188138580: Could not follow disassembly flow into non-existing memory at 188138580 (DecompileCallback)  
+WARN  Decompiling 1844d7cdc, pcode error at 188138580: Could not follow disassembly flow into non-existing memory at 188138580 (DecompileCallback)  
+WARN  Decompiling 1845eb554, pcode error at 1881399b0: Could not follow disassembly flow into non-existing memory at 1881399b0 (DecompileCallback)  
+WARN  Decompiling 184413fc0, pcode error at 188138580: Could not follow disassembly flow into non-existing memory at 188138580 (DecompileCallback)  
+WARN  Decompiling 18476395c, pcode error at 1881399b0: Could not follow disassembly flow into non-existing memory at 1881399b0 (DecompileCallback)  
+WARN  Decompiling 18471293c, pcode error at 188143d20: Could not follow disassembly flow into non-existing memory at 188143d20 (DecompileCallback)  
+WARN  Decompiling 184586010, pcode error at 18800dff0: Could not follow disassembly flow into non-existing memory at 18800dff0 (DecompileCallback)  
+WARN  Decompiling 1844e37b4, pcode error at 18801a7c0: Could not follow disassembly flow into non-existing memory at 18801a7c0 (DecompileCallback)  
+WARN  Decompiling 1844a9038, pcode error at 188140bf0: Could not follow disassembly flow into non-existing memory at 188140bf0 (DecompileCallback)  
+ERROR VarnodeContext: out of address spaces at @1846131e4 for: x8-1846131e4 (VarnodeContext)  
+INFO  Packed database cache: /var/tmp/kurt228-ghidra/packed-db-cache (PackedDatabaseCache)  
+INFO  Applied data type archive: mac_osx (ApplyDataArchiveAnalyzer)  
+ERROR VarnodeContext: out of address spaces at @1846131e4 for: x8-1846131e4 (VarnodeContext)  

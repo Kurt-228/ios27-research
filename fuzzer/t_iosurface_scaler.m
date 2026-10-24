@@ -48931,6 +48931,102 @@ static void p_bq125(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq126 — v291: где живут CA::OGL::Metal::*-декодеры? Скан dycache на
+// 'CA::OGL::Metal::' + 'GammaLUTs' + 'BackdropDownsample'. Образ-хит → карв.
+static void p_bq126(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq126] v291: поиск CA::OGL::Metal в dycache (§278-next)");
+    fsync(fileno(stderr));
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq126] CONTROL §170 -> handle %lld%s", (long long)h,
+        h < 0 ? " *** NO ESCAPE ***" : "");
+    if (h < 0) return;
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs)/sizeof(candirs[0]) && !cdir[0]; i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) continue;
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]); break;
+            }
+        closedir(pd);
+    }
+    if (!cdir[0]) { LOG("[bq126] кэш-каталог не найден"); bad_query_release(h); return; }
+
+    static const char *needles[] = {
+        "CA::OGL::Metal::", "GammaLUTs", "BackdropDownsample",
+        "ComputeSIMDBlurUniforms", "CA::OGL::Metal",
+    };
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    int nhits = 0;
+    while (cd && (ce = readdir(cd)) && nhits < 30) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char fp[1400];
+        snprintf(fp, sizeof(fp), "%s/%s", cdir, ce->d_name);
+        int sfd = open(fp, O_RDONLY);
+        if (sfd < 0) continue;
+        struct stat st = {0};
+        if (fstat(sfd, &st) != 0 || st.st_size < 8192) { close(sfd); continue; }
+        void *m = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_FILE | MAP_PRIVATE, sfd, 0);
+        if (m == MAP_FAILED) { close(sfd); continue; }
+        struct bq14_cache_header sh = {0};
+        pread(sfd, &sh, sizeof(sh), 0);
+        struct bq14_mapping_info mm[64];
+        memset(mm, 0, sizeof(mm));
+        BOOL have_maps = (memcmp(sh.magic, "dyld_v1", 7) == 0 && sh.mappingCount <= 64 &&
+            pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                  sh.mappingOffset) == (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info)));
+        for (unsigned t = 0; t < sizeof(needles)/sizeof(needles[0]) && nhits < 30; t++) {
+            const char *nd = needles[t];
+            size_t nl = strlen(nd);
+            char *p = (char *)m, *end = (char *)m + st.st_size - nl;
+            while (nhits < 30 && (p = memmem(p, (size_t)(end - p), nd, nl)) != NULL) {
+                uint64_t foff = (uint64_t)(p - (char *)m);
+                uint64_t vm = 0;
+                if (have_maps) {
+                    for (uint32_t k = 0; k < sh.mappingCount; k++) {
+                        if (mm[k].fileOffset <= foff && foff < mm[k].fileOffset + mm[k].size) {
+                            vm = mm[k].address + (foff - mm[k].fileOffset);
+                            break;
+                        }
+                    }
+                }
+                char ctx[100];
+                int cs = (int)(foff > 48 ? foff - 48 : 0);
+                int cl = 96; if (cl > (int)st.st_size - cs) cl = (int)st.st_size - cs;
+                memcpy(ctx, (char *)m + cs, (size_t)cl);
+                for (int k = 0; k < cl; k++)
+                    if (ctx[k] < 0x20 || (unsigned char)ctx[k] > 0x7e) ctx[k] = '.';
+                ctx[cl] = 0;
+                LOG("[bq126] %s [%s] %s+0x%llx (VM %s%llx): %s",
+                    ce->d_name, nd, "file", (unsigned long long)foff,
+                    vm ? "0x" : "?", (unsigned long long)vm, ctx);
+                fsync(fileno(stderr));
+                nhits++;
+                p += nl;
+            }
+        }
+        munmap(m, (size_t)st.st_size);
+        close(sfd);
+    }
+    if (cd) closedir(cd);
+    LOG("[bq126] ИТОГ: %d хитов", nhits);
+    bad_query_release(h);
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -57570,6 +57666,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ123")) { p_bq123(); LOG("[probe13] bq123-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ124")) { p_bq124(); LOG("[probe13] bq124-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ125")) { p_bq125(); LOG("[probe13] bq125-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ126")) { p_bq126(); LOG("[probe13] bq126-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

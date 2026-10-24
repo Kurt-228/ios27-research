@@ -8424,3 +8424,26 @@ following bag load»), устройство-Setup-стейт гейтит. Во�
    гейтинг (bag/migration).
 3. Фаззеры NSURL/NSUUID/NSJSON — работают (180M суммарно), но их баги
    нужно доставлять через ЧИТАЮЩИЙ контекст — приложение-уровень, не БД.
+
+### §279 (v291). Metal-декодеры НЕ в dsc: грамматика блобов = backboardd-приват или Metal-рантайм
+
+- **bq126 (скан всего dycache): 'CA::OGL::Metal::*' = 0 хитов.** Тип-имена
+  существуют ТОЛЬКО внутри файла functions.data. iOS QC несёт GLES-вариант
+  (CA::OGL::GLESImage), не Metal.
+- Следствие: сериализация кэша — код standalone backboardd (EPERM, IPSW AEA)
+  — ПРЯМОЙ RE недоступен. НО: блобы содержат AGC-артефакты
+  (`__text/__TEXT/__fragment/__GPU_METADATA`, `agc.main.constant_program`)
+  — при загрузке кэша эти байты гидрируются ЧЕРЕЗ Metal-рантайм
+  (Metal.framework в dsc — Mac-доступен, символов нет на iOS, но mac dsc
+  = символы + тот же поезд 27.0!).
+- **Развилка §280**:
+  (a) Слепой мутационный поведенческий цикл на устройстве (ребут-оракул,
+      тяжёлый, риск boot-loop);
+  (b) Mac-харнесс: мутированные AGC-артефакты → newLibraryWithData /
+      MTLLibrary → краш-оракур локально (Metal.framework mac = та же
+      версия поезда); при находке — доставка через functions.data;
+  (c) парковка backboardd-трека.
+- Инфраструктура сессии: mk_text_macho.py (карв→тонкий Mach-O для Ghidra),
+  Ghidra на qc-ios-text.macho запущена (движок decode_segment — общий с mac).
+- appstored: запаркован (§278). Фаззеры NSURL/UUID/JSON — 15M+ на фаззер,
+  крашей нет.
