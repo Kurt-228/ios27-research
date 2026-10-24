@@ -7999,3 +7999,30 @@ splunk/, internal/ — все пусты.
 **Стратегия**: RE appstored через Ghidra (запущен) → найти парсер
 apps.plist → найти corruption-точку → payload в пустой файл → при следующем
 рестарте root-демона — исполнение.
+
+### §263 (v268b). IPSW: AEA-шифрование; macOS-аналоги для RE
+
+**b4 IPSW в icloud-archive — iCloud-СТАБ** (0 блоков на диске, не скачан).
+GM/27.2 IPSW в Downloads — локальные, но system volume = **AEA-зашифрованный
+DMG** (043-68880-655.dmg.aea, 4.29 GB) — без ключей Apple не расшифровать.
+
+**Альтернатива**: оба ключевых демона есть на macOS с arm64e-слайсами:
+- /usr/libexec/lsd (57 KB arm64e) — core plist-парсинг идентичен iOS
+  (CFPropertyList), iOS-специфика = launch security decisions
+- /usr/libexec/mobileactivationd (1.1 MB arm64e) — activation_records
+  parsing
+- Оба извлечены, Ghidra запущен.
+
+**appstored** (iOS, с устройства, 24.8 MB декомпилят): apps.plist читается
+через NSArray initWithContentsOfFile: (CFPropertyList, hardened);
+NSKeyedUnarchiver используется для app-version PROPERTY (не файл);
+katana-subscription-cache — тоже plist.
+
+**Сводка парсерной поверхности root-демонов**:
+| Демон | Файл-вход | Парсер | Привилегия |
+|---|---|---|---|
+| appstored | apps.plist (контейнер RW) | CFPropertyList | root, mach=19 |
+| appstored | katana-subscription-cache | CFPropertyList | root |
+| lsd | DefaultAppQueryState.plist | CFPropertyList? (проверить RE) | root, mach=3 |
+| lsd | securepreferences.plist | ? (проверить RE) | root |
+| mobileactivationd | activation_records/ | ? (проверить RE) | root, mach=2 |
