@@ -8053,3 +8053,37 @@ Metal::объектов в dylib (QuartzCore/Metal — shared cache). Корру
 **akd (root?)**: контейнер содержит **LIVE CFURLCache**: `Caches/Cache.db` 48KB +
 `Cache.db-wal` 1295KB + `shm` + `fsCachedData/` — SQLite + CFNetwork-кэш,
 активно используется. p_bq110 извлекает всё + бинарь akd из AuthKit.
+
+### §265 (v270). p_bq110: akd = CFURLCache SQLite (uid=501!); PBUIMapped .atx; functions.list структура
+
+**akd** (контейнер E8F726E1):
+- `Caches/Cache.db` (48KB) + `-wal` (1.3MB!) + `-shm` + `fsCachedData/` = **CFURLCache**
+  (таблицы `cfurl_cache_response/blob_data/receiver_data` подтверждены на Mac).
+  BLOB-поля: `response_object`/`request_object` (NSKeyedArchiver) + `proto_props`
+  (CFNetwork) — десериализуются при переиспользовании кэша. WAL живой (mtime =
+  минута прогона) → демон читает/пишет кэш активно.
+- **НО: файлы uid=501 → akd работает как mobile**, не root. По фильтру юзера —
+  вниз, ЕСЛИ akd не unsandboxed (sandbox-профиль ещё неизвестен — launchd-job
+  не найден в LaunchDaemons; бинарь = `AuthKit.framework/akd`, извлечь можно).
+- fsCachedData-блобы = ответы AppleID-конфига (`cfgs` XML-plist).
+
+**PBUIMappedImageCache (springboard-контейнер, uid=501)**: `RuntimeSnapshot-*-
+home.atx-(pid)` / `lock.atx-(pid)` — ДИРЕКТОРИИ (96 байт, запись .atx внутри) —
+mapped-image кэш PaperBoardUI (обои-снапшоты, mmap!) — парсер в springboard.
+Содержимое .atx не извлечено (следующая фаза).
+
+**functions.list (§264 продолжение)**: структура записи = {SHA-256 digest(32),
+len u64, off u64, flag u64} ≈ 56 байт; записи → блобы functions.data
+(off/len в пределах 5.8MB, len от 0x447 до 0xc820). Это digest-индекс
+CA::OGL::FunctionCache.
+
+**macOS QuartzCore НЕ содержит 'functions.list'** (карвинг 4.5MB __TEXT из
+macOS dsc через .map-манифест — carve_dsc_map.py): CA::OGL-бэкенд —
+iOS-специфика → парсер локуем сканом dycache-сабфайлов НА УСТРОЙСТВЕ (p_bq111).
+
+**Приоритеты кампании**:
+1. **backboardd Metal/CA-кэш** (§264) — display-сервер, custom C++ десериализатор,
+   читается при старте → p_bq111 локует парсер → RE → мутации.
+2. **akd CFURLCache** — если akd unsandboxed → полный стек SQLite+CFNetwork.
+3. **appstored StoreSystem.db/StoreUser.db** — root, SQLite создаём сами,
+   триггер = App Store активность.

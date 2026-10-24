@@ -1,0 +1,109 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ110=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7d03
+[scaler] conn 0x7d03, s1 13 s2 14
+[probe12] SetNotificationPort -> 0x00000000
+[bq110] v270: akd CFURLCache + PaperBoardUI + Metal-cache (§263)
+[bq110] akd-Cache.db: 49152 байт, uid=501 mode=100644 mtime=1785048041
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq110]   copied 49152 (OK)
+[bq110] akd-Cache.db-wal: 1326672 байт, uid=501 mode=100644 mtime=1792839343
+[bq110]   copied 1326672 (OK)
+[bq110] akd-Cache.db-shm: 32768 байт, uid=501 mode=100644 mtime=1792839341
+[bq110]   copied 32768 (OK)
+[bq110] fsCachedData/91221E1E-D9F1-4198-8858-1AD86551EF67: 44687 байт uid=501
+[bq110]   blob copied 44687 -> akd-blob1
+[bq110] fsCachedData/1281C0D0-FCFC-4096-9AE9-D897B02A2406: 44693 байт uid=501
+[bq110]   blob copied 44693 -> akd-blob2
+[bq110] fsCachedData/04E14E95-D9E1-420D-9F11-F310BEF907DF: 20711 байт uid=501
+[bq110]   blob copied 20711 -> akd-blob3
+[bq110] fsCachedData/49A246C3-E489-4353-83D6-0D6E68AD0EBF: 20711 байт uid=501
+[bq110] fsCachedData: 4 записей
+[bq110] akd[0] /usr/libexec/akd: errno 2
+[bq110] akd[1] /System/Library/PrivateFrameworks/AuthKit.framework/Support/akd: errno 2
+[bq110] akd[2] /System/Library/PrivateFrameworks/AuthKit.framework/Resources/akd: errno 2
+[bq110] akd[3] /System/Library/PrivateFrameworks/AuthKit.framework/Resources/com.apple.akd.launchd.plist: errno 2
+[bq110] akd[4] /System/Library/PrivateFrameworks/AuthKit.framework/Resources/launchd.plist: errno 2
+[bq110] AuthKit/Resources opendir errno 2
+[bq110] AuthKit/de.lproj
+[bq110] AuthKit/ur.lproj
+[bq110] AuthKit/he.lproj
+[bq110] AuthKit/ar.lproj
+[bq110] AuthKit/el.lproj
+[bq110] AuthKit/ja.lproj
+[bq110] AuthKit/Localizable.loctable
+[bq110] AuthKit/en_IN.lproj
+[bq110] AuthKit/mr.lproj
+[bq110] AuthKit/akd
+[bq110] AuthKit/PlugIns
+[bq110] AuthKit/en.lproj
+[bq110] AuthKit/uk.lproj
+[bq110] AuthKit/es_419.lproj
+[bq110] AuthKit/gu.lproj
+[bq110] AuthKit/kn.lproj
+[bq110] AuthKit/appleaccount_mono_icon-60-dark.png
+[bq110] AuthKit/pt_PT.lproj
+[bq110] AuthKit/pa.lproj
+[bq110] AuthKit/es.lproj
+[bq110] AuthKit/sl.lproj
+[bq110] AuthKit/or.lproj
+[bq110] AuthKit/da.lproj
+[bq110] AuthKit/it.lproj
+[bq110] AuthKit/AKAgeRangeDefaults.json
+[bq110] AuthKit/bg.lproj
+[bq110] AuthKit/sk.lproj
+[bq110] AuthKit/zh_CN.lproj
+[bq110] AuthKit/kk.lproj
+[bq110] AuthKit/pt_BR.lproj
+[bq110] AuthKit/ms.lproj
+[bq110] AuthKit/_CodeSignature
+[bq110] AuthKit/ta.lproj
+[bq110] AuthKit/ml.lproj
+[bq110] AuthKit/sv.lproj
+[bq110] AuthKit/en_AU.lproj
+[bq110] AuthKit/te.lproj
+[bq110] AuthKit/cs.lproj
+[bq110] AuthKit/ko.lproj
+[bq110] AuthKit/Library
+[bq110] PBUIMapped/2a3493eb95f8e3a5994415ec91b4a139430713c8d4f7c18c01f868c714cb9816-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(21918931): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/2a3493eb95f8e3a5994415ec91b4a139430713c8d4f7c18c01f868c714cb9816-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(23002746): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/a01837fcb054d58abc588e9f219c3bbfdfbceea2b6bba5ff4148ace6cb27ddef-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(21918911): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/2a3493eb95f8e3a5994415ec91b4a139430713c8d4f7c18c01f868c714cb9816-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(21189182): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/307b9c230f654260368525ffcbd205c961c8a079182369615c7dfbe8a9b2e60d-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(22827823): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/307b9c230f654260368525ffcbd205c961c8a079182369615c7dfbe8a9b2e60d-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(14199302): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/a01837fcb054d58abc588e9f219c3bbfdfbceea2b6bba5ff4148ace6cb27ddef-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(24519704): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/a01837fcb054d58abc588e9f219c3bbfdfbceea2b6bba5ff4148ace6cb27ddef-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(24504398): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/a01837fcb054d58abc588e9f219c3bbfdfbceea2b6bba5ff4148ace6cb27ddef-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(23212744): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/2a3493eb95f8e3a5994415ec91b4a139430713c8d4f7c18c01f868c714cb9816-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(24504445): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/2a3493eb95f8e3a5994415ec91b4a139430713c8d4f7c18c01f868c714cb9816-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(24519841): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/8ba5cd60205cba97613fa4d48e6b2cbc3ed16217fd1f413873e78fbcc0b12c99-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(14199210): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/2a3493eb95f8e3a5994415ec91b4a139430713c8d4f7c18c01f868c714cb9816-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(23212765): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/8ba5cd60205cba97613fa4d48e6b2cbc3ed16217fd1f413873e78fbcc0b12c99-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(22950103): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/a01837fcb054d58abc588e9f219c3bbfdfbceea2b6bba5ff4148ace6cb27ddef-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(23002731): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/307b9c230f654260368525ffcbd205c961c8a079182369615c7dfbe8a9b2e60d-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-home.atx-(22950124): 96 байт uid=501 dir=1
+[bq110] PBUIMapped/8ba5cd60205cba97613fa4d48e6b2cbc3ed16217fd1f413873e78fbcc0b12c99-RuntimeSnapshot-dc53092e7273b05198f23b6fbdd78d0e7e8986ba35a2b8712dd75f4f64f0425f-lock.atx-(22827802): 96 байт uid=501 dir=1
+[bq110] functions.list первые 520 байт:
+[bq110]  0000 4536271836363642304630362d394336342d343431462d424237462d36443530
+[bq110]  0020 4531433036423836000000000000000000000000000000000000000000000000
+[bq110]  0040 00000000535d53c0537fc4e8c901cf0aa074fc75166078a8288101bbda83ce61
+[bq110]  0060 dbf9a3c0470400000000000060230000000000000000000000000000d7165e59
+[bq110]  0080 ddc7681404a3f0953523549bc62cef1f65096f3fc50b5534dff8971800000000
+[bq110]  00a0 00000000c8200000000000008023000000000000866546d1c40e354dc0085488
+[bq110]  00c0 96e57eae428baf0018618c6ce7eaf2416e1f0be90000000000000000000e0000
+[bq110]  00e0 000000008044000000000000841db8673a1b33dcaabd4e9c2d2a2fee7089d74a
+[bq110]  0100 d4b3d8d9fa49c04f2a4635350000000000000000501a00000000000080520000
+[bq110]  0120 00000000a0f25094d20851ce72d9fa2311c7a77c295ba57da6af8c9af31f3059
+[bq110]  0140 4efb3b980000000000000000d80a000000000000006d000000000000c33fad56
+[bq110]  0160 aebe881f51c8af0e870b46ef166e8dd973aa33f291d47e22b961808f00000000
+[bq110]  0180 00000000581600000000000000780000000000001ca5ab12266d04c37d0c416b
+[bq110]  01a0 353a3038ea2bfa3219f1316772a3e14852daedf8000000000000000090080000
+[bq110]  01c0 00000000808e0000000000007959b42310769db20c19a822fc95447240ba1550
+[bq110]  01e0 9631e2cb6a011374278eb6fa0000000000000000e00600000000000040970000
+[bq110]  0200 00000000bbb9ad9a
+[bq110] ИТОГ: akd+PaperBoardUI+Metal собраны
+[probe13] bq110-only mode, stop

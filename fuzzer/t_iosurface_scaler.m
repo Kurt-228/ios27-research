@@ -47346,6 +47346,138 @@ static void p_bq110(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq111 — v271: ЛОКАЦИЯ парсера CA::OGL::FunctionCache (§264-next).
+// functions.data (Metal-шейдер кэш backboardd, §264) десериализуется при старте
+// backboardd парсером в одном из dyld-кэш образов. macOS QuartzCore НЕ содержит
+// 'functions.list' (проверено) → iOS-специфика. Скан: все 76 сабфайлов
+// dycache (на устройстве, mmap+memmem) на 'functions.list'/'functions.data'
+// + карта образов QuartzCore/BackBoard/FrontBoard/BaseBoard/PaperBoard/Metal.
+static void p_bq111(void) {
+    LOG("[bq111] v271: локация FunctionCache-парсера в dycache (§264)");
+    fsync(fileno(stderr));
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+    NSString *ddir = [docs stringByAppendingPathComponent:@"dycache"];
+
+    // === 1. Скан сабфайлов на 'functions.list' ===
+    {
+        static const char *needles[] = { "functions.list", "functions.data",
+                                         "PBUIMappedImageCacheManager", "FunctionCache" };
+        DIR *cd = opendir(ddir.fileSystemRepresentation);
+        if (!cd) { LOG("[bq111] dycache opendir errno %d", errno); return; }
+        struct dirent *ce;
+        while ((ce = readdir(cd))) {
+            if (ce->d_name[0] == '.') continue;
+            if (strstr(ce->d_name, ".symbols")) continue;
+            char fp[1300];
+            snprintf(fp, sizeof(fp), "%s/%s", ddir.fileSystemRepresentation, ce->d_name);
+            int fd = open(fp, O_RDONLY);
+            if (fd < 0) continue;
+            struct stat st = {0};
+            if (fstat(fd, &st) != 0 || st.st_size < 4096) { close(fd); continue; }
+            void *m = mmap(NULL, (size_t)st.st_size, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+            if (m == MAP_FAILED) { close(fd); continue; }
+            int nhits = 0;
+            for (unsigned ni = 0; ni < sizeof(needles)/sizeof(needles[0]) && nhits < 24; ni++) {
+                size_t nlen = strlen(needles[ni]);
+                char *p = (char *)m, *end = (char *)m + st.st_size - nlen;
+                while (nhits < 24 && (p = memmem(p, (size_t)(end - p), needles[ni], nlen)) != NULL) {
+                    // контекст: печатаем соседние строки
+                    char ctx[130];
+                    int cs = (int)(p - (char *)m); if (cs > 48) cs -= 48; else cs = 0;
+                    memcpy(ctx, (char *)m + cs, 96); ctx[96] = 0;
+                    for (int k = 0; k < 96; k++) if (ctx[k] < 0x20 || ctx[k] > 0x7e) ctx[k] = '.';
+                    LOG("[bq111] %s [%s] @0x%llx: %s", ce->d_name, needles[ni],
+                        (unsigned long long)(p - (char *)m), ctx);
+                    fsync(fileno(stderr));
+                    nhits++;
+                    p += nlen;
+                }
+            }
+            munmap(m, (size_t)st.st_size);
+            close(fd);
+        }
+        closedir(cd);
+        LOG("[bq111] скан строк завершён");
+        fsync(fileno(stderr));
+    }
+
+    // === 2. Карта образов: интересные фреймворки → (имя, addr) в файл ===
+    {
+        NSString *headFile = nil;
+        DIR *pd = opendir(ddir.fileSystemRepresentation);
+        struct dirent *pe;
+        while (pd && (pe = readdir(pd))) {
+            if (strcmp(pe->d_name, "dyld_shared_cache_arm64e") == 0) {
+                headFile = [ddir stringByAppendingPathComponent:@(pe->d_name)];
+                break;
+            }
+        }
+        if (pd) closedir(pd);
+        if (!headFile) { LOG("[bq111] головной файл кэша не найден"); return; }
+        int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+        if (fd < 0) { LOG("[bq111] open head errno %d", errno); return; }
+        struct stat cst; fstat(fd, &cst);
+        uint64_t fsize = (uint64_t)cst.st_size;
+        void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+        if (map == MAP_FAILED) { close(fd); LOG("[bq111] mmap errno %d", errno); return; }
+        struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+        if (memcmp(hdr->magic, "dyld_v1", 7) != 0) {
+            munmap(map, (size_t)fsize); close(fd); LOG("[bq111] bad magic"); return;
+        }
+        uint32_t imgOff = 0, imgCnt = 0; BOOL found = NO;
+        for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+            uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+            uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+            if (c < 100 || c > 40000) continue;
+            if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+            BOOL ok = YES;
+            for (int probe = 0; probe < 3 && ok; probe++) {
+                uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+                uint64_t raw[4] = {0, 0, 0, 0};
+                memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+                char pth[256];
+                if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+            }
+            if (ok) { imgOff = o; imgCnt = c; found = YES; }
+        }
+        if (!found) {
+            munmap(map, (size_t)fsize); close(fd);
+            LOG("[bq111] таблица образов не валидирована"); return;
+        }
+        LOG("[bq111] images: off=0x%x cnt=%u", imgOff, imgCnt);
+
+        static const char *fw[] = {
+            "QuartzCore", "BackBoardServices", "BaseBoard", "FrontBoard",
+            "SpringBoardFoundation", "PaperBoardUI", "CoreAnimation",
+            "Metal", "AppleGPU", "IOSurface", "BackBoardHID",
+        };
+        char outp[600];
+        snprintf(outp, sizeof(outp), "%s/dycache-images.txt", docs.fileSystemRepresentation);
+        FILE *o = fopen(outp, "w");
+        int n = 0;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0, 0, 0, 0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            char pth[600];
+            if (!bq14_path_at(fd, (uint32_t)raw[3], fsize, pth, sizeof(pth))) continue;
+            int hit = 0;
+            for (unsigned k = 0; k < sizeof(fw)/sizeof(fw[0]); k++)
+                if (strstr(pth, fw[k])) { hit = 1; break; }
+            if (!hit) continue;
+            LOG("[bq111] IMG %s @0x%llx", pth, raw[0]);
+            if (o) fprintf(o, "%s\t%llx\n", pth, raw[0]);
+            n++;
+            fsync(fileno(stderr));
+        }
+        if (o) { fclose(o); LOG("[bq111] карта: %d образов -> dycache-images.txt", n); }
+        munmap(map, (size_t)fsize);
+        close(fd);
+    }
+    LOG("[bq111] ИТОГ: локация парсера завершена");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -55970,6 +56102,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ108")) { p_bq108(); LOG("[probe13] bq108-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ109")) { p_bq109(); LOG("[probe13] bq109-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ110")) { p_bq110(); LOG("[probe13] bq110-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ111")) { p_bq111(); LOG("[probe13] bq111-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
