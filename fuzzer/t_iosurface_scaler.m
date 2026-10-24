@@ -46882,6 +46882,102 @@ static void p_bq106(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq107 — v267: чтение бинарей Tier-A демонов с устройства (§260-next).
+// IPSW URL истёк (403), но /System/Library читается целиком (§176).
+// Проверяем какие из наших целей доступны на диске → копируем в Documents
+// для последующего RE. /usr/libexec — EPERM по §176, но /System/Library/
+// PrivateFrameworks/... — должно читаться.
+static void p_bq107(void) {
+    LOG("[bq107] v267: чтение бинарей демонов с устройства (§260)");
+    fsync(fileno(stderr));
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    static const char *paths[] = {
+        // Tier-A root+no-sbx — наши главные цели
+        "/usr/libexec/lsd",
+        "/usr/libexec/mobileactivationd",
+        "/System/Library/PrivateFrameworks/AppStoreDaemon.framework/Support/appstored",
+        "/usr/libexec/eligibilityd",
+        "/usr/sbin/cfprefsd",
+        "/usr/libexec/containermanagerd",
+        "/usr/libexec/runningboardd",
+        "/usr/libexec/remoted",
+        "/usr/libexec/mobileassetd",
+        "/usr/libexec/transparencyd",
+        "/usr/libexec/corerepaird",
+        // Framework support binaries (должны быть читаемы)
+        "/System/Library/PrivateFrameworks/FindMyiPhone.framework/Support/findmydeviced",
+        "/System/Library/PrivateFrameworks/DeviceConfiguration.framework/Support/deviceconfigurationd",
+        "/System/Library/PrivateFrameworks/CacheDelete.framework/Support/deleted_helper",
+        "/System/Library/PrivateFrameworks/RealityCamera.framework/realitycamerad",
+        "/System/Library/CoreServices/coreservicesd",
+        // Другие полезные root-демоны
+        "/usr/libexec/akd",
+        "/usr/libexec/fairplayd.H2",
+        "/usr/sbin/fairplayd.H2",
+        "/usr/libexec/powerexperienced",
+        "/usr/libexec/powerd",
+        "/System/Library/CoreServices/powerd.bundle/powerd",
+    };
+
+    int n_ok = 0, n_fail = 0;
+    for (unsigned i = 0; i < sizeof(paths) / sizeof(paths[0]); i++) {
+        struct stat st = {0};
+        int rc = stat(paths[i], &st);
+        if (rc != 0) {
+            LOG("[bq107] %-80s: stat FAIL errno %d", paths[i], errno);
+            n_fail++;
+            continue;
+        }
+        if (!S_ISREG(st.st_mode)) {
+            LOG("[bq107] %-80s: не файл (mode=%o)", paths[i], st.st_mode);
+            n_fail++;
+            continue;
+        }
+        LOG("[bq107] %-80s: %lld KB", paths[i], (long long)(st.st_size >> 10));
+
+        // читаем и копируем
+        FILE *f = fopen(paths[i], "rb");
+        if (!f) {
+            LOG("[bq107]   fopen FAIL errno %d", errno);
+            n_fail++;
+            continue;
+        }
+        const char *base = strrchr(paths[i], '/');
+        base = base ? base + 1 : paths[i];
+        char out[512];
+        snprintf(out, sizeof(out), "%s/daemon-%s", docs.fileSystemRepresentation, base);
+        FILE *o = fopen(out, "wb");
+        if (!o) {
+            fclose(f);
+            LOG("[bq107]   out FAIL");
+            n_fail++;
+            continue;
+        }
+        char buf[65536];
+        ssize_t r;
+        unsigned long total = 0;
+        while ((r = fread(buf, 1, sizeof(buf), f)) > 0) {
+            fwrite(buf, 1, (size_t)r, o);
+            total += (unsigned long)r;
+        }
+        fclose(f); fclose(o);
+        LOG("[bq107]   copied %lu bytes → %s", total, out);
+        // verify
+        FILE *v = fopen(out, "rb");
+        if (v) {
+            fseek(v, 0, SEEK_END); long vs = ftell(v); fclose(v);
+            LOG("[bq107]   verify: %ld == %lld %s", vs, (long long)st.st_size,
+                vs == (long)st.st_size ? "*** OK ***" : "*** MISMATCH ***");
+        }
+        n_ok++;
+        fsync(fileno(stderr));
+    }
+    LOG("[bq107] ИТОГ: прочитано %d, FAIL %d", n_ok, n_fail);
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -55502,6 +55598,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ104")) { p_bq104(); LOG("[probe13] bq104-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ105")) { p_bq105(); LOG("[probe13] bq105-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ106")) { p_bq106(); LOG("[probe13] bq106-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ107")) { p_bq107(); LOG("[probe13] bq107-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

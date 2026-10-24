@@ -1,0 +1,42 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ107=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] AppleM2ScalerCSCDriver -> conn 0x5803
+[scaler] conn 0x5803, s1 187 s2 188
+[probe12] SetNotificationPort -> 0x00000000
+[bq107] v267: чтение бинарей демонов с устройства (§260)
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[bq107] /usr/libexec/lsd                                                                : stat FAIL errno 1
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq107] /usr/libexec/mobileactivationd                                                  : stat FAIL errno 1
+[bq107] /System/Library/PrivateFrameworks/AppStoreDaemon.framework/Support/appstored    : 7572 KB
+[bq107]   copied 7754480 bytes → /var/mobile/Containers/Data/Application/97220AE3-1092-4C13-B30A-09E3376BC617/Documents/daemon-appstored
+[bq107]   verify: 7754480 == 7754480 *** OK ***
+[bq107] /usr/libexec/eligibilityd                                                       : stat FAIL errno 1
+[bq107] /usr/sbin/cfprefsd                                                              : stat FAIL errno 1
+[bq107] /usr/libexec/containermanagerd                                                  : stat FAIL errno 1
+[bq107] /usr/libexec/runningboardd                                                      : stat FAIL errno 1
+[bq107] /usr/libexec/remoted                                                            : stat FAIL errno 1
+[bq107] /usr/libexec/mobileassetd                                                       : stat FAIL errno 1
+[bq107] /usr/libexec/transparencyd                                                      : stat FAIL errno 1
+[bq107] /usr/libexec/corerepaird                                                        : stat FAIL errno 1
+[bq107] /System/Library/PrivateFrameworks/FindMyiPhone.framework/Support/findmydeviced  : stat FAIL errno 2
+[bq107] /System/Library/PrivateFrameworks/DeviceConfiguration.framework/Support/deviceconfigurationd: stat FAIL errno 2
+[bq107] /System/Library/PrivateFrameworks/CacheDelete.framework/Support/deleted_helper  : stat FAIL errno 2
+[bq107] /System/Library/PrivateFrameworks/RealityCamera.framework/realitycamerad        : stat FAIL errno 2
+[bq107] /System/Library/CoreServices/coreservicesd                                      : 51 KB
+[bq107]   copied 52576 bytes → /var/mobile/Containers/Data/Application/97220AE3-1092-4C13-B30A-09E3376BC617/Documents/daemon-coreservicesd
+[bq107]   verify: 52576 == 52576 *** OK ***
+[bq107] /usr/libexec/akd                                                                : stat FAIL errno 2
+[bq107] /usr/libexec/fairplayd.H2                                                       : stat FAIL errno 2
+[bq107] /usr/sbin/fairplayd.H2                                                          : stat FAIL errno 1
+[bq107] /usr/libexec/powerexperienced                                                   : stat FAIL errno 1
+[bq107] /usr/libexec/powerd                                                             : stat FAIL errno 2
+[bq107] /System/Library/CoreServices/powerd.bundle/powerd                               : 824 KB
+[bq107]   copied 844752 bytes → /var/mobile/Containers/Data/Application/97220AE3-1092-4C13-B30A-09E3376BC617/Documents/daemon-powerd
+[bq107]   verify: 844752 == 844752 *** OK ***
+[bq107] ИТОГ: прочитано 3, FAIL 19
+[probe13] bq107-only mode, stop

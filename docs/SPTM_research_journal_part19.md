@@ -7955,3 +7955,28 @@ lsd/securepreferences — ENOENT (не существует в текущем с
 **Next**: IPSW range-HTTP → бинари lsd/mobileactivationd/appstored →
 RE парсеров их входных файлов (DefaultAppQueryState, activation_records,
 appstored-кэши) → поиск memory-corruption в бинарных форматах.
+
+### §261 (v267). p_bq107: appstored прочитан с устройства — 7.5 MB root-демона (mach=19)
+
+**IPSW URL истёк (403)** — но /System/Library читается напрямую с устройства.
+**appstored** (/System/Library/PrivateFrameworks/AppStoreDaemon.framework/
+Support/appstored): root-демон, **19 Mach-сервисов** (макс из всех владельцев
+контейнеров!), 7.5 MB arm64e. Также прочитаны powerd (824 KB, root, mach=5)
+и coreservicesd (51 KB стаб). /usr/libexec/* — EPERM (lsd,
+mobileactivationd, eligibilityd, cfprefsd, containermanagerd, runningboardd
+недоступны с диска).
+
+**Стринговый профиль appstored**: NSKeyedArchiver/NSKeyedUnarchiver,
+**"Failed to unarchive app version"** (кастомный unarchive!), SQLite
+(odr.sqlite, ZMANIFEST), 264 self-references, CFPropertyListCreateFiltered,
+parserDidStart/parse/decode, "Denied start" — App Store-демон с
+security-решениями и богатым парсингом.
+
+**Container appstored** (3E27999E-F441): Library/Preferences и Library/Caches
+пусты на верхнем уровне — НУЖЕН глубокий листинг (файлы внутри Preferences/
+и Caches/ не перечислены в §258).
+
+**Next (p_bq108)**: (1) глубокий листинг Library/Preferences и Caches
+контейнера appstored; (2) Ghidra декомпилят appstored; (3) поиск
+read/parse-путей файлов из контейнера; (4) цель: понять какой файл
+appstored парсит из своего контейнера → payload.
