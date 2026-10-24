@@ -45623,6 +45623,193 @@ static void p_bq98(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq99 — v261: VT decode достижимость + lifecycle-стресс (§253-next).
+// Self-contained: VTCompressionSession (H264) кодирует кадры → семплы идут в
+// VTDecompressionSession. Пробы: (а) decode вообще жив? (б) HW-путь из нашего
+// процесса (kVTVideoDecoderSpecification_RequireHardware)? (в) lifecycle-стресс
+// против b4 — класс GM-фикса «bufIdx already AVAILABLE / in-flight underflow»:
+// submit + немедленный invalidate с in-flight кадрами, flush-шторм,
+// corrupt-семплы. Контроль §144: валидный стрём = детектор жив (decoded>0);
+// corrupt обязан дать GRACEFUL error, не краш.
+#import <VideoToolbox/VideoToolbox.h>
+
+static volatile long g_bq99_decoded, g_bq99_err, g_bq99_inflight;
+static CFMutableArrayRef g_bq99_samples;
+
+static void bq99_enc_out(void *ctx, void *src, OSStatus st, VTEncodeInfoFlags fl,
+                         CMSampleBufferRef sbuf) {
+    if (st == noErr && sbuf) { CFRetain(sbuf); CFArrayAppendValue(g_bq99_samples, sbuf); }
+}
+static void bq99_dec_out(void *ctx, void *src, OSStatus st, VTDecodeInfoFlags fl,
+                         CVImageBufferRef img, CMTime pts, CMTime dur) {
+    g_bq99_inflight--;
+    if (st == noErr && img) g_bq99_decoded++;
+    else if (st != noErr) g_bq99_err++;
+}
+// копия семпла с мутированными байтами (graceful-error контроль)
+static CMSampleBufferRef bq99_corrupt_copy(CMSampleBufferRef src) {
+    CMBlockBufferRef bb = CMSampleBufferGetDataBuffer(src);
+    if (!bb) return NULL;
+    size_t len = CMBlockBufferGetDataLength(bb);
+    uint8_t *mem = (uint8_t *)malloc(len);
+    if (!mem) return NULL;
+    uint8_t *ptr = NULL;
+    if (CMBlockBufferGetDataPointer(bb, 0, NULL, NULL, (char **)&ptr) != kCMBlockBufferNoErr || !ptr) {
+        free(mem); return NULL;
+    }
+    memcpy(mem, ptr, len);
+    for (int i = 0; i < 12 && len > 8; i++) {
+        size_t p = ((size_t)rand() % (len - 4)) | 1;
+        mem[p] ^= 0xFF; mem[p + 1] ^= 0x5A;
+    }
+    CMBlockBufferRef nbb = NULL;
+    if (CMBlockBufferCreateWithMemoryBlock(NULL, mem, len, kCFAllocatorMalloc, NULL,
+                                            0, len, 0, &nbb) != kCMBlockBufferNoErr) {
+        free(mem); return NULL;
+    }
+    CMFormatDescriptionRef fmt = CMSampleBufferGetFormatDescription(src);
+    CMSampleTimingInfo tm = { CMTimeMake(1, 30), CMTimeMake(1, 30), CMTimeMake(2, 30) };
+    CMSampleBufferRef out = NULL;
+    CMSampleBufferCreate(NULL, nbb, true, NULL, NULL, fmt, 1, 1, &tm, 1, &len, &out);
+    if (!out) { CFRelease(nbb); return NULL; }
+    return out;
+}
+
+static void p_bq99(void) {
+    LOG("[bq99] v261: VT encode→decode достижимость + lifecycle-стресс (§253)");
+    fsync(fileno(stderr));
+    // === 1. КОДИРОВАНИЕ: 40 кадров 64x32 H264 ===
+    g_bq99_samples = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+    VTCompressionSessionRef enc = NULL;
+    OSStatus e = VTCompressionSessionCreate(NULL, 64, 32, kCMVideoCodecType_H264,
+                                            NULL, NULL, NULL, bq99_enc_out, NULL, &enc);
+    LOG("[bq99] VTCompressionSessionCreate: %d %s", (int)e, e == noErr ? "OK" : "FAIL");
+    if (e != noErr || !enc) return;
+    VTSessionSetProperty(enc, kVTCompressionPropertyKey_RealTime, kCFBooleanTrue);
+    VTCompressionSessionPrepareToEncodeFrames(enc);
+    for (int i = 0; i < 40; i++) {
+        CVPixelBufferRef pb = NULL;
+        if (CVPixelBufferCreate(NULL, 64, 32, kCVPixelFormatType_32BGRA, NULL, &pb) != kCVReturnSuccess)
+            break;
+        CVPixelBufferLockBaseAddress(pb, 0);
+        uint8_t *base = (uint8_t *)CVPixelBufferGetBaseAddress(pb);
+        size_t stride = CVPixelBufferGetBytesPerRow(pb);
+        for (int y = 0; y < 32; y++)
+            for (int x = 0; x < 64; x++) {
+                uint8_t *p = base + y * stride + x * 4;
+                p[0] = (uint8_t)(x * 4 + i); p[1] = (uint8_t)(y * 8); p[2] = (uint8_t)(i * 6 + x); p[3] = 0xFF;
+            }
+        CVPixelBufferUnlockBaseAddress(pb, 0);
+        const void *fk = (const void *)kVTEncodeFrameOptionKey_ForceKeyFrame;
+        const void *tv = (const void *)kCFBooleanTrue;
+        CFDictionaryRef opts = (i % 10 == 0) ?
+            CFDictionaryCreate(NULL, &fk, &tv, 1, &kCFTypeDictionaryKeyCallBacks,
+                              &kCFTypeDictionaryValueCallBacks) : NULL;
+        VTCompressionSessionEncodeFrame(enc, pb, CMTimeMake(i, 30), CMTimeMake(1, 30),
+                                        opts, NULL, NULL);
+        CVPixelBufferRelease(pb);
+    }
+    VTCompressionSessionCompleteFrames(enc, CMTimeMake(41, 30));
+    LOG("[bq99] закодировано семплов: %ld", CFArrayGetCount(g_bq99_samples));
+    VTCompressionSessionInvalidate(enc); CFRelease(enc);
+    if (CFArrayGetCount(g_bq99_samples) < 10) { LOG("[bq99] encode пуст — abort"); return; }
+    fsync(fileno(stderr));
+
+    CMFormatDescriptionRef fmt = CMSampleBufferGetFormatDescription(
+        (CMSampleBufferRef)CFArrayGetValueAtIndex(g_bq99_samples, 0));
+
+    // === 2. ДЕКОД: проба RequireHardware (HW-путь из нашего процесса?) ===
+    const void *k1 = (const void *)kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder;
+    const void *v1 = (const void *)kCFBooleanTrue;
+    CFDictionaryRef hwSpec = CFDictionaryCreate(NULL, &k1, &v1, 1,
+                                               &kCFTypeDictionaryKeyCallBacks,
+                                               &kCFTypeDictionaryValueCallBacks);
+    VTDecompressionOutputCallbackRecord rec = { bq99_dec_out, NULL };
+    VTDecompressionSessionRef dec = NULL;
+    OSStatus e1 = VTDecompressionSessionCreate(NULL, fmt, hwSpec, NULL, &rec, &dec);
+    LOG("[bq99] VTDecompressionSessionCreate[RequireHW]: %d %s", (int)e1,
+        e1 == noErr ? "*** HW-ПУТЬ ДОСТУПЕН ИЗ НАШЕГО ПРОЦЕССА ***" : "(нет — SW/прокси?)");
+    if (e1 != noErr) {
+        OSStatus e2 = VTDecompressionSessionCreate(NULL, fmt, NULL, NULL, &rec, &dec);
+        LOG("[bq99] Create без spec: %d %s", (int)e2, e2 == noErr ? "OK (SW или авто)" : "FAIL — decode недоступен");
+        if (e2 != noErr || !dec) return;
+    }
+    // === 3. КОНТРОЛЬ §144: валидный стрём — все семплы, детектор жив ===
+    g_bq99_decoded = 0;
+    for (CFIndex i = 0; i < CFArrayGetCount(g_bq99_samples); i++) {
+        CMSampleBufferRef s = (CMSampleBufferRef)CFArrayGetValueAtIndex(g_bq99_samples, i);
+        VTDecodeInfoFlags info = 0;
+        g_bq99_inflight++;
+        OSStatus ed = VTDecompressionSessionDecodeFrame(dec, s, 0, NULL, &info);
+        if (ed != noErr) { g_bq99_inflight--; g_bq99_err++; }
+        if (i % 10 == 0) usleep(5000);
+    }
+    usleep(300000);
+    LOG("[bq99] CONTROL-стрём: decoded=%ld errors=%ld %s", g_bq99_decoded, g_bq99_err,
+        g_bq99_decoded > 20 ? "*** ДЕТЕКТОР ЖИВ — decode работает ***" : "*** CONTROL FAILED ***");
+    VTDecompressionSessionInvalidate(dec); CFRelease(dec);
+    if (g_bq99_decoded < 10) return;
+    fsync(fileno(stderr));
+
+    // === 4. corrupt-семпл: graceful error (не краш) ===
+    {
+        CMSampleBufferRef cs = bq99_corrupt_copy((CMSampleBufferRef)CFArrayGetValueAtIndex(g_bq99_samples, 1));
+        VTDecompressionSessionRef d2 = NULL;
+        if (VTDecompressionSessionCreate(NULL, fmt, hwSpec, NULL, &rec, &d2) == noErr && d2) {
+            if (cs) {
+                VTDecodeInfoFlags info = 0;
+                g_bq99_inflight++;
+                OSStatus ec = VTDecompressionSessionDecodeFrame(d2, cs, 0, NULL, &info);
+                LOG("[bq99] corrupt-семпл: submit=%d (ожидаем graceful, не краш)", (int)ec);
+                usleep(200000);
+                LOG("[bq99] corrupt: errors=%ld decoded=%ld — %s", g_bq99_err, g_bq99_decoded,
+                    "живы (graceful)" );
+            }
+            VTDecompressionSessionInvalidate(d2); CFRelease(d2);
+        }
+        if (cs) CFRelease(cs);
+        fsync(fileno(stderr));
+    }
+
+    // === 5. LIFECYCLE-СТРЕСС (класс GM-фикса): in-flight invalidate + flush-шторм ===
+    LOG("[bq99] stress: 40 раундов (submit → немедленный invalidate in-flight / flush-шторм)");
+    long pre_dec = g_bq99_decoded;
+    for (int r = 0; r < 40; r++) {
+        VTDecompressionSessionRef d = NULL;
+        OSStatus er = VTDecompressionSessionCreate(NULL, fmt, hwSpec, NULL, &rec, &d);
+        if (er != noErr)
+            er = VTDecompressionSessionCreate(NULL, fmt, NULL, NULL, &rec, &d);
+        if (er != noErr || !d) { LOG("[bq99] раунд %d: create FAIL %d — стоп", r, (int)er); break; }
+        CFIndex n = CFArrayGetCount(g_bq99_samples);
+        int submit = 1 + (rand() % 10);
+        for (int i = 0; i < submit; i++) {
+            CMSampleBufferRef s = (CMSampleBufferRef)CFArrayGetValueAtIndex(
+                g_bq99_samples, (rand() % n));
+            VTDecodeInfoFlags info = 0;
+            g_bq99_inflight++;
+            if (VTDecompressionSessionDecodeFrame(d, s, 0, NULL, &info) != noErr) g_bq99_inflight--;
+        }
+        if (r % 3 == 0) {
+            VTDecompressionSessionWaitForAsynchronousFrames(d);
+        } else if (r % 3 == 1) {
+            usleep(1000);
+        }
+        // немедленный invalidate с in-flight кадрами — ЦЕЛЬ (GM: "already AVAILABLE")
+        VTDecompressionSessionInvalidate(d);
+        CFRelease(d);
+        usleep(20000);
+        if (r % 10 == 0) {
+            LOG("[bq99] раунд %d: inflight=%ld decoded=%ld (живо?)", r, g_bq99_inflight, g_bq99_decoded);
+            fsync(fileno(stderr));
+        }
+    }
+    usleep(500000);
+    LOG("[bq99] ИТОГ: decoded=%ld (pre=%ld) errors=%ld inflight=%ld — %s",
+        g_bq99_decoded, pre_dec, g_bq99_err, g_bq99_inflight,
+        g_bq99_inflight <= 0 ? "stress завершён, неблокированных кадров нет" : "*** IN-FLIGHT УТЕЧЁК НЕТ/ОСТАЛИСЬ? смотри числа ***");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54235,6 +54422,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ96")) { p_bq96(); LOG("[probe13] bq96-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ97")) { p_bq97(); LOG("[probe13] bq97-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ98")) { p_bq98(); LOG("[probe13] bq98-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ99")) { p_bq99(); LOG("[probe13] bq99-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

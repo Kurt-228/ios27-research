@@ -1,0 +1,25 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ99=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[open] AppleM2ScalerCSCDriver -> conn 0x551b
+[scaler] conn 0x551b, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq99] v261: VT encode→decode достижимость + lifecycle-стресс (§253)
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq99] VTCompressionSessionCreate: 0 OK
+[bq99] закодировано семплов: 40
+[bq99] VTDecompressionSessionCreate[RequireHW]: 0 *** HW-ПУТЬ ДОСТУПЕН ИЗ НАШЕГО ПРОЦЕССА ***
+[bq99] CONTROL-стрём: decoded=40 errors=0 *** ДЕТЕКТОР ЖИВ — decode работает ***
+[bq99] corrupt-семпл: submit=0 (ожидаем graceful, не краш)
+[bq99] corrupt: errors=1 decoded=40 — живы (graceful)
+[bq99] stress: 40 раундов (submit → немедленный invalidate in-flight / flush-шторм)
+[bq99] раунд 0: inflight=0 decoded=40 (живо?)
+[bq99] раунд 10: inflight=0 decoded=56 (живо?)
+[bq99] раунд 20: inflight=0 decoded=70 (живо?)
+[bq99] раунд 30: inflight=0 decoded=102 (живо?)
+[bq99] ИТОГ: decoded=121 (pre=40) errors=151 inflight=0 — stress завершён, неблокированных кадров нет
+[probe13] bq99-only mode, stop

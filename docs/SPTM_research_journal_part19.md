@@ -7751,3 +7751,24 @@ in-process или через прокси-демон), (б) AVPlayer/AVSampleBuf
    контроль §144 (валидный стрём = детектор жив), стоп-критерий: если
    HW-decode из нашего приложения недостижим (SW-fallback) и прокси-путь
    не запускается — вектор закрыть.
+
+### §254 (v261). p_bq99: HW-decode работает ИЗ НАШЕГО ПРОЦЕССА — прямой AVD-UC это вопрос type
+
+**Результат**: VTDecompressionSessionCreate c
+kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder = **noErr из
+app-sandbox**; 40/40 кадров декодированы HW; corrupt-семпл — graceful error;
+40 раундов in-flight-invalidate — decoded +81, errors=151 (брошенные кадры),
+утечек нет, устройство живо.
+
+**Следствие**: §253-интерпретация «task-level entitlement-гейт» ОПРОВЕРГНУТА —
+HW-decode-сессия живёт в нашем процессе, значит 0x2c1 на types 0..7 был
+type-валидацией (неизвестный тип → NotPrivileged), не entitlement-гейтом.
+Правильный type константа где-то вне 0..7.
+
+**Next (p_bq100)**: широкий type-sweep IOServiceOpen("AppleAVD"): 0..0x40,
+0x40..0x100 с шагом, большие константы (0x100000+, по аналогии с
+AGXAcceleratorG16P type 0x100005). При открытии — немедленный селектор-свип
+(48+) + поиск селекторов с bufIdx-аргументом (сопоставление с §252-функциями:
+массивы ctx+0x18/0x38, refcount ctx+0x64). При прямом доступе — управляемый
+zero-write `ctx[0x18+4*bufIdx]=0` с unbounded bufIdx (b4) = ядерный
+memory-corruption primitive из песочницы.
