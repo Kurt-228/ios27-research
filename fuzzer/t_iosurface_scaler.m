@@ -45869,6 +45869,189 @@ static void p_bq100(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq101 — v262: registry-скан при живой VT-HW-сессии (§255-next).
+// Создаём HW-decode-сессию (RequireHW, §254: работает из нашего процесса),
+// держим её ЖИВОЙ и сканируем реестр: все инстансы AppleAVD (их может быть
+// два — AVD0/AVD1), инстансы AppleAVDUserClient (появляются при живой
+// сессии? где их родитель?), свойства нуба. Решает: in-process или прокси.
+#import <VideoToolbox/VideoToolbox.h>
+
+static void bq101_enc_store(void *ctx, void *src, OSStatus st, VTEncodeInfoFlags fl,
+                             CMSampleBufferRef sbuf) {
+    CFMutableArrayRef arr = (CFMutableArrayRef)ctx;
+    if (st == noErr && sbuf) { CFRetain(sbuf); CFArrayAppendValue(arr, sbuf); }
+}
+
+static void p_bq101(void) {
+    LOG("[bq101] v262: registry-скан при живой VT-HW-сессии (§255)");
+    fsync(fileno(stderr));
+    // === 1. снапшот ДО: инстансы AVD/AVDUC ===
+    LOG("[bq101] === СНАПШОТ ДО ===");
+    io_iterator_t it = IO_OBJECT_NULL;
+    int n_avd_pre = 0;
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceNameMatching("AppleAVD"), &it) == KERN_SUCCESS) {
+        io_object_t o;
+        while ((o = IOIteratorNext(it))) {
+            char cls[128] = {0}; IOObjectGetClass(o, cls);
+            LOG("[bq101]   AVD-инстанс: %p класс '%s'", (void *)(uintptr_t)o, cls);
+            n_avd_pre++;
+            IOObjectRelease(o);
+        }
+        IOObjectRelease(it);
+    }
+    int n_uc_pre = 0;
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceNameMatching("AppleAVDUserClient"), &it) == KERN_SUCCESS) {
+        io_object_t o;
+        while ((o = IOIteratorNext(it))) {
+            char cls[128] = {0}; IOObjectGetClass(o, cls);
+            LOG("[bq101]   AVDUserClient-инстанс ДО: %p '%s'", (void *)(uintptr_t)o, cls);
+            n_uc_pre++;
+            IOObjectRelease(o);
+        }
+        IOObjectRelease(it);
+    }
+    // все инстансы по КЛАССУ тоже:
+    int n_cls_pre = 0;
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("AppleAVD"), &it) == KERN_SUCCESS) {
+        io_object_t o;
+        while ((o = IOIteratorNext(it))) { n_cls_pre++; IOObjectRelease(o); }
+        IOObjectRelease(it);
+    }
+    LOG("[bq101] ДО: name-AVD=%d class-AVD=%d AVDUC=%d", n_avd_pre, n_cls_pre, n_uc_pre);
+    fsync(fileno(stderr));
+
+    // === 2. свойства нуба (какие ключи вообще читаются) ===
+    {
+        io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceNameMatching("AppleAVD"));
+        if (s) {
+            CFMutableDictionaryRef props = NULL;
+            kern_return_t kp = IORegistryEntryCreateCFProperties(s, &props, kCFAllocatorDefault, 0);
+            LOG("[bq101] IORegistryEntryCreateCFProperties: kr=%#x keys=%ld", kp,
+                props ? CFDictionaryGetCount(props) : -1);
+            if (props) {
+                CFIndex cnt = CFDictionaryGetCount(props);
+                const void **keys = malloc(cnt * sizeof(void *));
+                const void **vals = malloc(cnt * sizeof(void *));
+                CFDictionaryGetKeysAndValues(props, keys, vals);
+                for (CFIndex i = 0; i < cnt && i < 40; i++) {
+                    char kb[128] = {0}, vb[128] = {0};
+                    CFStringGetCString(keys[i], kb, sizeof(kb), kCFStringEncodingUTF8);
+                    if (CFGetTypeID(vals[i]) == CFStringGetTypeID())
+                        CFStringGetCString(vals[i], vb, sizeof(vb), kCFStringEncodingUTF8);
+                    else
+                        snprintf(vb, sizeof(vb), "<%s>", "non-string");
+                    LOG("[bq101]   %s = %s", kb, vb);
+                }
+                free(keys); free(vals);
+                CFRelease(props);
+            }
+            IOObjectRelease(s);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // === 3. создаём ЖИВУЮ HW-decode-сессию ===
+    // кодируем 12 кадров, берём первый семпл для format description
+    CFMutableArrayRef samples = CFArrayCreateMutable(NULL, 0, &kCFTypeArrayCallBacks);
+    // (переиспользуем механизм bq99)
+    VTCompressionSessionRef enc = NULL;
+    if (VTCompressionSessionCreate(NULL, 64, 32, kCMVideoCodecType_H264,
+                                    NULL, NULL, NULL, bq101_enc_store, samples, &enc) != noErr || !enc) {
+        LOG("[bq101] encode fail"); return;
+    }
+    VTCompressionSessionPrepareToEncodeFrames(enc);
+    for (int i = 0; i < 12; i++) {
+        CVPixelBufferRef pb = NULL;
+        if (CVPixelBufferCreate(NULL, 64, 32, kCVPixelFormatType_32BGRA, NULL, &pb) != kCVReturnSuccess)
+            break;
+        CVPixelBufferLockBaseAddress(pb, 0);
+        uint8_t *base = (uint8_t *)CVPixelBufferGetBaseAddress(pb);
+        size_t stride = CVPixelBufferGetBytesPerRow(pb);
+        for (int y = 0; y < 32; y++)
+            for (int x = 0; x < 64; x++) {
+                uint8_t *p = base + y * stride + x * 4;
+                p[0] = (uint8_t)(x + i); p[1] = (uint8_t)(y); p[2] = (uint8_t)(i * 7); p[3] = 0xFF;
+            }
+        CVPixelBufferUnlockBaseAddress(pb, 0);
+        const void *fk = (const void *)kVTEncodeFrameOptionKey_ForceKeyFrame;
+        const void *tv = (const void *)kCFBooleanTrue;
+        CFDictionaryRef opts = CFDictionaryCreate(NULL, &fk, &tv, 1,
+            &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+        VTCompressionSessionEncodeFrame(enc, pb, CMTimeMake(i, 30), CMTimeMake(1, 30),
+                                        opts, NULL, NULL);
+        if (opts) CFRelease(opts);
+        CVPixelBufferRelease(pb);
+    }
+    VTCompressionSessionCompleteFrames(enc, CMTimeMake(13, 30));
+    VTCompressionSessionInvalidate(enc); CFRelease(enc);
+    if (CFArrayGetCount(samples) < 1) { LOG("[bq101] нет семплов"); return; }
+    CMFormatDescriptionRef fmt = CMSampleBufferGetFormatDescription(
+        (CMSampleBufferRef)CFArrayGetValueAtIndex(samples, 0));
+
+    const void *k1 = (const void *)kVTVideoDecoderSpecification_RequireHardwareAcceleratedVideoDecoder;
+    const void *v1 = (const void *)kCFBooleanTrue;
+    CFDictionaryRef hwSpec = CFDictionaryCreate(NULL, &k1, &v1, 1,
+        &kCFTypeDictionaryKeyCallBacks, &kCFTypeDictionaryValueCallBacks);
+    VTDecompressionOutputCallbackRecord rec = { bq99_dec_out, NULL };
+    VTDecompressionSessionRef dec = NULL;
+    OSStatus e1 = VTDecompressionSessionCreate(NULL, fmt, hwSpec, NULL, &rec, &dec);
+    LOG("[bq101] VTDecompressionSessionCreate[RequireHW] (живая): %d %s", (int)e1,
+        e1 == noErr ? "OK — сессия ДЕРЖИТСЯ" : "FAIL");
+    if (e1 != noErr || !dec) { LOG("[bq101] HW-сессия не создана — скан бессмыслен"); return; }
+    // декодируем пару кадров чтобы сессия АКТИВИРОВАЛАСЬ (не только создана)
+    for (CFIndex i = 0; i < CFArrayGetCount(samples); i++) {
+        VTDecompressionSessionDecodeFrame(dec, (CMSampleBufferRef)CFArrayGetValueAtIndex(samples, i),
+                                          0, NULL, NULL);
+    }
+    usleep(500000);
+    LOG("[bq101] сессия активна, decoded=%ld — СКАН ВО ВРЕМЯ:", g_bq99_decoded);
+    fsync(fileno(stderr));
+
+    // === 4. снапшот ВО ВРЕМЯ: AVD-инстансы + AVDUC-инстансы ===
+    LOG("[bq101] === СНАПШОТ ВО ВРЕМЯ ЖИВОЙ СЕССИИ ===");
+    int n_avd_live = 0, n_uc_live = 0, n_cls_live = 0;
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceNameMatching("AppleAVD"), &it) == KERN_SUCCESS) {
+        io_object_t o;
+        while ((o = IOIteratorNext(it))) { n_avd_live++; IOObjectRelease(o); }
+        IOObjectRelease(it);
+    }
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceNameMatching("AppleAVDUserClient"), &it) == KERN_SUCCESS) {
+        io_object_t o;
+        while ((o = IOIteratorNext(it))) {
+            char cls[128] = {0}; IOObjectGetClass(o, cls);
+            // родитель:
+            io_object_t par = IO_OBJECT_NULL;
+            char parcls[128] = {0};
+            if (IORegistryEntryGetParentEntry(o, kIOServicePlane, &par) == KERN_SUCCESS) {
+                IOObjectGetClass(par, parcls);
+                LOG("[bq101]   AVDUserClient-инстанс ЖИВ: %p '%s', parent '%s'",
+                    (void *)(uintptr_t)o, cls, parcls);
+                IOObjectRelease(par);
+            } else {
+                LOG("[bq101]   AVDUserClient-инстанс ЖИВ: %p '%s', parent н/д",
+                    (void *)(uintptr_t)o, cls);
+            }
+            n_uc_live++;
+            IOObjectRelease(o);
+        }
+        IOObjectRelease(it);
+    }
+    if (IOServiceGetMatchingServices(kIOMainPortDefault, IOServiceMatching("AppleAVD"), &it) == KERN_SUCCESS) {
+        io_object_t o;
+        while ((o = IOIteratorNext(it))) { n_cls_live++; IOObjectRelease(o); }
+        IOObjectRelease(it);
+    }
+    LOG("[bq101] ЖИВАЯ: name-AVD %d→%d, class-AVD %d→%d, AVDUC %d→%d",
+        n_avd_pre, n_avd_live, n_cls_pre, n_cls_live, n_uc_pre, n_uc_live);
+    if (n_uc_live == 0)
+        LOG("[bq101]   ВЫВОД-кандидат: UC-инстанса в нашем реестре НЕТ при живой сессии → ПРОКСИ-ДЕМОН");
+    else
+        LOG("[bq101]   UC-инстанс жив в реестре — смотри parent (наш нуб? прокси?)");
+    VTDecompressionSessionInvalidate(dec); CFRelease(dec);
+    LOG("[bq101] ИТОГ: скан завершён");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54483,6 +54666,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ98")) { p_bq98(); LOG("[probe13] bq98-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ99")) { p_bq99(); LOG("[probe13] bq99-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ100")) { p_bq100(); LOG("[probe13] bq100-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ101")) { p_bq101(); LOG("[probe13] bq101-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }

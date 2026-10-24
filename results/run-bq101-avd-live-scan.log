@@ -1,0 +1,26 @@
+[main] fuzz harness up, mode=all
+[main] env FUZZ_LOGFILE=1
+[main] env FUZZ_BQ101=1
+[main] sandbox note: VCPDRM open is MACF-denied (iokit-open-user-client VCPDRMUserClient); mach-lookup com.apple.sprr / com.apple.jitbox exist but are sandbox-gated (seen in kernel log)
+[open] AppleM2ScalerCSCDriver -> conn 0x570f
+[scaler] conn 0x570f, s1 14 s2 15
+[probe12] SetNotificationPort -> 0x00000000
+[bq101] v262: registry-скан при живой VT-HW-сессии (§255)
+[open] IOServiceOpen VCPDRMService failed: 0xe00002e2
+[open] service VCPDRMServiceUserClient not found
+[vcpdrm] no connection, target dead
+[mig] bootstrap-name phase done; add learned names to cand_names[]
+[bq101] === СНАПШОТ ДО ===
+[bq101]   AVD-инстанс: 0x4a1b класс 'AppleAVD'
+[bq101] ДО: name-AVD=1 class-AVD=1 AVDUC=0
+[bq101] IORegistryEntryCreateCFProperties: kr=0 keys=3
+[bq101]   IOClass = AppleAVD
+[bq101]   HEVCCanDecodeTileToCanvas = <non-string>
+[bq101]   AVCSupported = <non-string>
+[bq101] VTDecompressionSessionCreate[RequireHW] (живая): 0 OK — сессия ДЕРЖИТСЯ
+[bq101] сессия активна, decoded=12 — СКАН ВО ВРЕМЯ:
+[bq101] === СНАПШОТ ВО ВРЕМЯ ЖИВОЙ СЕССИИ ===
+[bq101] ЖИВАЯ: name-AVD 1→1, class-AVD 1→1, AVDUC 0→0
+[bq101]   ВЫВОД-кандидат: UC-инстанса в нашем реестре НЕТ при живой сессии → ПРОКСИ-ДЕМОН
+[bq101] ИТОГ: скан завершён
+[probe13] bq101-only mode, stop
