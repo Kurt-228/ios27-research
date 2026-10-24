@@ -8240,3 +8240,19 @@ escape на чтение — stat, и только при ENOENT/EPERM; для c
 
 **Итог по akd**: authorization.db вне вселенной (HOME-путь), Cache.db жив,
 профиль неизвестен → паркинг. akd-трек закрыт до появления новой зацепки.
+
+### §273 (v280-281). Трек appstored (root): схема собрана, StoreSystem.db подложен
+
+- **Схема в самом бинаре appstored** (не в dylib!): 39 `CREATE TABLE IF NOT
+  EXISTS` (odr_asset_pack/odr_manifest/odr_tag, app_install (100+ колонок,
+  URL/UUID/JSON типы — apple-sqlite), iap_info_iaps, app_updates, ...).
+- Собран валидный StoreSystem.db на Mac (timestamp()→0, 256KB, 57 объектов).
+- **p_bq121**: подложен в контейнер appstored Library/ (read-back byte-exact
+  OK, существующего файла не было). Контроль-снапшот ДО/ПОСЛЕ.
+- **Триггер 1 (App Store просмотр)**: mtime НЕ дёрнулся, -wal/-shm НЕ
+  появились → appstored НЕ открыл БД на просмотре витрины. Ожидаемо: таблицы
+  = install/update-флоу.
+- **Триггер 2 (обновление приложений)**: в процессе (user). Оракул: появление
+  StoreSystem.db-wal/-shm или mtime-сдвиг = appstored (root) открыл нашу БД
+  → цепочка подтверждена → следующий шаг corrupt-варианты (SQLite corruption
+  corpus) против root-демона.

