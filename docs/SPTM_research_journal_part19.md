@@ -7772,3 +7772,27 @@ AGXAcceleratorG16P type 0x100005). При открытии — немедлен�
 массивы ctx+0x18/0x38, refcount ctx+0x64). При прямом доступе — управляемый
 zero-write `ctx[0x18+4*bufIdx]=0` с unbounded bufIdx (b4) = ядерный
 memory-corruption primitive из песочницы.
+
+### §255 (v262). p_bq100: AVD type-sweep — 124 типа, ВСЕ 0x2c1: гейт task-level, прямой UC закрыт
+
+124 типа (8..0x40 подряд, 0x44..0x100 шаг 4, magic 0x100005/0xDEAD/0xFFFFFFFF
+и др.) — **uniform `0xe00002c1`**. Гейт в newUserClient смотрит на ЗАДАЧУ, не
+на type. §254-гипотеза «правильный type вне 0..7» опровергнута.
+
+Совместный вывод §253-§255: HW-decode работает из нашего процесса (§254),
+но IOServiceOpen("AppleAVD") из того же процесса закрыт (§255) → VT-сессия
+открывает AVD НЕ через наш прямой IOServiceOpen: (а) прокси в entitled-демон
+(классика iOS: HW-decode третьих лиц через mediaserverd-подобный хост), либо
+(б) другой provider/nub (двухъядерный AVD: "AVD0/AVD1", "die 0/die 1" —
+IOServiceGetMatchingService вернул только ПЕРВЫЙ инстанс).
+
+**Next (p_bq101 — последняя дешёвая проба)**: во время АКТИВНОЙ VT-HW-сессии:
+(1) IOServiceGetMatchingServices("AppleAVD") — все инстансы (может их два);
+(2) IOServiceGetMatchingServices("AppleAVDUserClient") — если instance
+появляется в реестре при живой сессии — мы увидим ГДЕ он живёт;
+(3) свойства нуба (IORegistryEntryCreateCFProperties). Если инстанс UC
+появляется и его родитель — наш нуб, а gate отфильтровал только наш
+IOServiceOpen — фреймворк проходит гейт каким-то атрибутом задачи, который
+нужно понять. Если UC-инстанса в реестре нет вообще → прокси-демон → прямой
+путь закрыт, остаётся косвенный: крафтовые битстримы + lifecycle через
+работающий decode-путь (b4-баги достижимы входными данными, не ioctl'ами).

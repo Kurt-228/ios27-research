@@ -45810,6 +45810,65 @@ static void p_bq99(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq100 — v262: AVD type-sweep (§254-next): находим правильный IOServiceOpen
+// type (0x2c1 на 0..7 был type-валидацией — HW-decode живёт в нашем процессе!).
+// Диапазоны: 8..0x40 подряд, 0x40..0x100 шаг 4, magic-константы. При открытии —
+// немедленный селектор-свип 0..64 (scalars+struct) с логом отвечающих.
+static void p_bq100(void) {
+    LOG("[bq100] v262: AVD type-sweep (§254)");
+    fsync(fileno(stderr));
+    io_service_t s = IOServiceGetMatchingService(kIOMainPortDefault,
+                                                 IOServiceNameMatching("AppleAVD"));
+    if (!s) s = IOServiceGetMatchingService(kIOMainPortDefault, IOServiceMatching("AppleAVD"));
+    if (!s) { LOG("[bq100] AppleAVD не найден — abort"); return; }
+    LOG("[bq100] AppleAVD FOUND");
+    uint32_t types[512];
+    int nt = 0;
+    for (uint32_t t = 8; t <= 0x40; t++) types[nt++] = t;
+    for (uint32_t t = 0x44; t <= 0x100; t += 4) types[nt++] = t;
+    static const uint32_t magic[] = {
+        0x200, 0x400, 0x800, 0x1000, 0x2000, 0x10000, 0x10001, 0x10005,
+        0x100001, 0x100005, 0x200005, 0xDEAD, 0xBEEF, 0xCAFE, 0x1000000,
+        0x10000001, 0x7FFFFFFF, 0xFFFFFFF0, 0xFFFFFFFF
+    };
+    for (unsigned i = 0; i < sizeof(magic) / sizeof(magic[0]); i++) types[nt++] = magic[i];
+    LOG("[bq100] probing %d types", nt);
+    int found = 0;
+    for (int i = 0; i < nt && !found; i++) {
+        io_connect_t c = 0;
+        kern_return_t kr = IOServiceOpen(s, mach_task_self(), types[i], &c);
+        if (kr == KERN_SUCCESS && c) {
+            LOG("[bq100] *** type %#x: ОТКРЫТ (conn 0x%x)", types[i], c);
+            // селектор-свип
+            for (uint32_t sel = 0; sel < 64; sel++) {
+                uint64_t iin[4] = {0, 0, 0, 0};
+                uint64_t iout[8] = {0, 0, 0, 0, 0, 0, 0, 0};
+                uint32_t on = 8;
+                uint8_t so[0x100];
+                size_t sosz = 0x100;
+                uint8_t sbuf[0x58];
+                memset(sbuf, 0, sizeof(sbuf));
+                size_t sisz = 0x58;
+                kern_return_t k1 = IOConnectCallMethod(c, sel,
+                    iin, 4, sbuf, sisz, iout, &on, so, &sosz);
+                if (k1 == 0) LOG("[bq100]   sel %2u: kr=0 ОТВЕТИЛ! out0=%#llx osz=%zu",
+                                 sel, iout[0], sosz);
+                else if (k1 != 0xe00002c2)
+                    LOG("[bq100]   sel %2u: kr=%#x", sel, k1);
+                if (sel > 12 && k1 == 0xe00002c2) break;
+            }
+            IOServiceClose(c);
+            found = 1;
+        } else if (kr != 0x2c1) {
+            LOG("[bq100] type %#x: kr=%#x", types[i], kr);
+        }
+    }
+    if (!found) LOG("[bq100] НИ ОДИН type не открылся — но §254-вывод остаётся: HW-сессия открывается ФРЕЙМВОРКОМ как-то иначе (возможно через прокси-нуб, создаваемый при decode-сессии)");
+    IOObjectRelease(s);
+    LOG("[bq100] ИТОГ: sweep завершён");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -54423,6 +54482,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ97")) { p_bq97(); LOG("[probe13] bq97-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ98")) { p_bq98(); LOG("[probe13] bq98-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ99")) { p_bq99(); LOG("[probe13] bq99-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ100")) { p_bq100(); LOG("[probe13] bq100-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
