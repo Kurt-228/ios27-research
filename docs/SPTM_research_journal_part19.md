@@ -7555,3 +7555,52 @@ bookkeeping (residency/migration-трекинг), НЕ источник исти
 - Остающиеся НЕПОВТОРЕННЫЕ дискриминаторы: (а) кросс-ребут-дифф карты
   (ASLR-сдвиг живых данных), (б) tag-поля таблицы 0x100_00018000, (в) упаковка
   §240/§241-репорта (главный актив сессии).
+
+### §250 (v257). XNU network stack: m_sum16 (§236 «m_makespace») — МАШИННАЯ ВЕРИФИКАЦИЯ И ЗАКРЫТИЕ ВЕКТОРА
+
+**Поправка к §236**: реальная функция — **m_sum16** (bsd/kern/uipc_mbuf2.c), НЕ
+m_makespace; паник-формат `"%s: mbuf %p len (%d) < off+len (%d+%d)"` (строка
+расположена прямо рядом с `"m_sum16"` в __cstring b4). «Signed check» из §236 —
+неверная атрибуция: машинно НИКАКОЙ signed-компарации нет.
+
+**Шаг 1 — машинная верификация (carve_kernel_text.py + capstone, все 3 сборки):**
+- **b4 (24A5390f) == 27.0 GM (24A435), побайтово идентичная форма**:
+  standalone m_sum16 (435 @ 0xfffffff00ad56f1c, b4 @ 0xfffffff00ad4539c):
+  ```
+  w9 = Σ m->m_len (chain)         // m_length2 inline
+  add w10, w2, w8                 // off+len — 32-БИТНЫЙ WRAP-ABLE ADD
+  cmp w9, w10; b.lo panic         // UNSIGNED — паника если mlen < off+len
+  → os_cpu_in_cksum_mbuf(m, len, off, 0)
+  ```
+  Т.е. уязвимая форма в b4 ПОДТВЕРЖДЕНА, но её механика — wrap off+len (≥2^32)
+  обходит панику (свёрнутая сумма мала, mlen ≥ неё), а не signedness.
+  Плюс m_adj_sum16 (wrapper, 3 inline-сайта): компилятор СВЁРНУЛ start+len→dataoff
+  и bytes+len→pkt_len — runtime-сложения нет, свёрнутые проверки `b.lo` тоже
+  unsigned; свёртка теряет семантику ТОЛЬКО при wrap bytes=dataoff+datalen.
+- **27.2 (24B115, FIXED)**: все сайты переработаны в 64-битную точную арифметику:
+  `add x9, x1, w2, uxtw; cmp x9, w8, uxtw; b.hi panic` + формат паники `%d→%u`
+  (строки 435 `...(%d)...@0x...f2a` vs B115 `...(%u)...@0x...83fe` — сами
+  по себе доказывают починку Apple в этом окне).
+
+**Шаг 2 — достижимость (34 сайта standalone m_sum16 + 8 сайтов m_adj_sum16 в 435):**
+Идентифицированные вызывающие: ARP (off=14), bridge-csum (off=14),
+pf_send_tcp/pf_route (off=0, len=(ihl&0xf)<<2≤60), in_cksum-обёртки (off=0),
+droptap (off = root-sysctl `cksum_start` + guard `pkt_len<off → return`),
+ip_reass/ip6_reass (dataoff=(ihl&0xf)*4≤60, 0x30-константы), igmp, udp_input
+(dataoff=hlen), udp6_input (ext-header walk), tcp-семейство.
+Диапазоны: **off ∈ {0,14,20,hlen≤60, sysctl≤pkt_len}, len = разности
+пакетных длин (≤64КБ)** → off+len ≤ ~2^17 — **на 4 порядка ниже порога wrap
+2^32**. Единственный теоретический путь (wrap bytes в m_adj_sum16 через
+dataoff+datalen) требует тех же недостижимых величин.
+
+**Вердикт (жёсткий критерий остановки применён)**: wrap недостижим ни из
+сетевого ввода, ни из socket API, ни root-sysctl'ом (guard). **Вектор ЗАКРЫТ**;
+27.2-фикс = defensive hardening (32→64-битная точность), не закрытие
+эксплуатируемого бага. Миллион IP_OPTIONS-итераций без паник теперь полностью
+объяснён: EINVAL на setsockopt + недостижимый wrap во всех вызывающих.
+VM-подтверждение не требуется — опасного вызывающего не существует.
+
+**Артефакты**: results/kc-extract/{carve_kernel_text.py, mmakespace_disasm.py,
+kernel_text_exec_{b4,435,B115}.bin, kernel_text_{b4,435,B115}.json}; b4
+kernelcache пере-выкачан в results/kc27-b4kc/ (kernelcache_iphone16.macho,
+73MB, полные сегменты; старый kexts-carve был обрезан и objdump-невалиден).
