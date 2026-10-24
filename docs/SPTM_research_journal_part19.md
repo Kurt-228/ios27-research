@@ -8106,3 +8106,32 @@ iOS-специфика → парсер локуем сканом dycache-саб
   (есть ли functions.data у нашего app = безопасный фаззинг-оракул).
 - akd Cache.db: WAL чекпойнтнулся демоном МЕЖДУ нашими копиями (48→72KB) —
   демон живой. Blobs = bplist + _CFURLString (CFNetwork-сериализация).
+
+### §267 (v272). bq111-112: парсер кэша — в бинаре backboardd; akd-бинарь получен; свой кэш
+
+**bq111 (скан 6.8GB dycache на устройстве)**: 'functions.list'/'functions.data'
+НЕТ ни в одном образе → код дискового кэша CA::OGL::FunctionCache живёт в
+**standalone бинаре backboardd** (/usr/libexec = EPERM, в dsc его нет, IPSW AEA).
+Хиты 'FunctionCache' — чужие (vst PipelineStateDump, HGMetalFunctionCache,
+re8 APIFunctionCache, Metal MultiLevelAirCache). Карта образов: QuartzCore
+iOS @0x1843b2000, BackBoardServices @0x18a010000, PaperBoardUI @0x1dfbf8000.
+
+**bq112**: akd-бинарь извлечён (4.8MB arm64e, results/daemon-akd.bin) — строки:
+`/Library/Application Support/com.apple.akd/{authorization,devicelist,
+privateEmails}.db` (SQLite в контейнере! — в §265-листинге их не было видно —
+ subdir com.apple.akd/), label com.apple.akd. Sandbox/Profiles на iOS 27 —
+ПУСТ (профили скомпилированы в ядро). .atx = вложенные ДИРЫ MappedImageCache
+(содержимое ещё на уровень глубже). Наш app: functions.data НЕ создаётся
+пока нет blur-рендера.
+
+**macOS QuartzCore (извлечён официально dsc_extractor через ctypes+block,
+results/kc-extract/carve_dsc*.py)**: 1413 CA::OGL символов — MetalContext::
+compile_shader/create_vertex_shader/create_fragment_shader/encode_uniform_*,
+FragmentShader::Spec::decode_name, CA::FB::Decoder::decode_asset,
+ColorProgram::Cache. Сериализация шейдеров (Spec) — shared mac/iOS.
+
+**План**: (1) p_bq113/114 — поведенческий тест чтения functions.data без RE
+(мутация 1 байта payload → ребут → файл переписан?=валидация/жив?=вслепую);
+(2) p_bq115 — карвинг iOS QuartzCore/BackBoardServices/PaperBoardUI из
+dycache (p_pprp-механика всех маппингов) для RE Spec-формата блобов;
+(3) Ghidra QuartzCore-mac (запущен, heap 16G) — формат Spec/декодеров.

